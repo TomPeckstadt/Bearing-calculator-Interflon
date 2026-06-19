@@ -4,25 +4,26 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700;800&display=swap');
 
 :root {
-  /* Kleurenpalet */
-  --primary-blue: #2563EB;
-  --primary-blue-hover: #1D4ED8;
-  --primary-blue-light: #EFF6FF;
+  /* Kleurenpalet - Interflon Huisstijl */
+  --primary-blue: #003B73;
+  --primary-blue-hover: #002D59;
+  --primary-blue-light: #F0F5FA;
   
-  --accent-taupe: #726350;
-  --accent-taupe-hover: #5E5141;
-  --accent-taupe-light: #F4F2F0;
-  --accent-taupe-border: #D2C9BF;
+  --accent-yellow: #FFC20E;
+  --accent-yellow-hover: #E0AB00;
+  --accent-yellow-light: #FFF9E6;
+  --accent-yellow-border: #FFE69C;
+  --accent-yellow-border-soft: rgba(255, 194, 14, 0.3);
   
-  --bg-main: #F8FAFC;
+  --bg-main: #F4F6F9;
   --bg-card: #FFFFFF;
-  --text-dark: #0F172A;
-  --text-medium: #475569;
-  --text-light: #94A3B8;
+  --text-dark: #0B132B;
+  --text-medium: #485460;
+  --text-light: #808E9B;
   
-  --success: #10B981;
-  --warning: #F59E0B;
-  --danger: #EF4444;
+  --success: #2ECC71;
+  --warning: #F1C40F;
+  --danger: #E74C3C;
   
   /* Layout constanten */
   --sidebar-width: 280px;
@@ -34,7 +35,7 @@
   --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
   --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
   --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.07), 0 4px 6px -2px rgba(0, 0, 0, 0.03);
-  --shadow-glow-blue: 0 0 15px rgba(37, 99, 235, 0.15);
+  --shadow-glow-blue: 0 0 15px rgba(0, 59, 115, 0.15);
   --transition-fast: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   --transition-normal: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -104,20 +105,20 @@ h1, h2, h3, h4, .brand-text {
   left: 0;
   width: 100%;
   height: 6px;
-  background: linear-gradient(90deg, var(--primary-blue), var(--accent-taupe));
+  background: linear-gradient(90deg, var(--primary-blue), var(--accent-yellow));
 }
 
 .login-logo {
   width: 70px;
   height: 70px;
-  background: var(--primary-blue-light);
+  background: var(--accent-yellow-light);
   color: var(--primary-blue);
   border-radius: 50%;
   display: flex;
   justify-content: center;
   align-items: center;
   margin: 0 auto 24px;
-  box-shadow: var(--shadow-glow-blue);
+  box-shadow: 0 0 15px rgba(255, 194, 14, 0.2);
 }
 
 .login-logo svg {
@@ -217,8 +218,8 @@ h1, h2, h3, h4, .brand-text {
   padding: 14px 24px;
   border-radius: var(--border-radius-md);
   border: none;
-  background-color: var(--primary-blue);
-  color: white;
+  background-color: var(--accent-yellow);
+  color: var(--text-dark);
   font-size: 15px;
   font-weight: 600;
   cursor: pointer;
@@ -227,13 +228,13 @@ h1, h2, h3, h4, .brand-text {
   justify-content: center;
   align-items: center;
   gap: 8px;
-  box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.2);
+  box-shadow: 0 4px 6px -1px rgba(255, 194, 14, 0.2);
 }
 
 .btn:hover {
-  background-color: var(--primary-blue-hover);
+  background-color: var(--accent-yellow-hover);
   transform: translateY(-1px);
-  box-shadow: 0 6px 8px -1px rgba(37, 99, 235, 0.3);
+  box-shadow: 0 6px 8px -1px rgba(255, 194, 14, 0.3);
 }
 
 .btn:active {
@@ -269,7 +270,7 @@ h1, h2, h3, h4, .brand-text {
 /* Sidebar */
 .sidebar {
   width: var(--sidebar-width);
-  background-color: #1E293B; /* Luxe donkere slate */
+  background-color: #0A1C30; /* Interflon donkerblauw */
   color: white;
   display: flex;
   flex-direction: column;
@@ -308,7 +309,7 @@ h1, h2, h3, h4, .brand-text {
 .brand-text {
   font-size: 18px;
   letter-spacing: 0.5px;
-  background: linear-gradient(135deg, #FFFFFF, var(--accent-taupe-border));
+  background: linear-gradient(135deg, #FFFFFF, var(--accent-yellow));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
@@ -351,9 +352,12 @@ h1, h2, h3, h4, .brand-text {
 }
 
 .menu-item-btn.active {
-  color: white;
-  background-color: var(--primary-blue);
-  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+  color: var(--accent-yellow);
+  background-color: rgba(255, 255, 255, 0.05);
+  border-left: 4px solid var(--accent-yellow);
+  border-radius: 0 var(--border-radius-md) var(--border-radius-md) 0;
+  padding-left: 12px;
+  box-shadow: none;
 }
 
 .sidebar-footer {
@@ -400,7 +404,7 @@ h1, h2, h3, h4, .brand-text {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-bottom: 1px solid var(--accent-taupe-light);
+  border-bottom: 1px solid var(--accent-yellow-border-soft);
   padding-bottom: 20px;
 }
 
@@ -422,15 +426,15 @@ h1, h2, h3, h4, .brand-text {
   background-color: var(--bg-card);
   padding: 8px 16px;
   border-radius: 50px;
-  border: 1px solid rgba(210, 201, 191, 0.4);
+  border: 1px solid var(--accent-yellow-border-soft);
   box-shadow: var(--shadow-sm);
 }
 
 .user-avatar {
   width: 32px;
   height: 32px;
-  background-color: var(--accent-taupe-light);
-  color: var(--accent-taupe);
+  background-color: var(--accent-yellow-light);
+  color: var(--primary-blue);
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -505,7 +509,7 @@ h1, h2, h3, h4, .brand-text {
   padding: 16px 24px 16px 56px;
   font-size: 16px;
   border-radius: 50px;
-  border: 2px solid var(--accent-taupe-border);
+  border: 2px solid var(--accent-yellow-border);
   background-color: var(--bg-card);
   box-shadow: var(--shadow-sm);
   transition: all var(--transition-fast);
@@ -572,7 +576,7 @@ h1, h2, h3, h4, .brand-text {
 .suggestion-meta {
   font-size: 12px;
   color: var(--text-medium);
-  background-color: var(--accent-taupe-light);
+  background-color: var(--accent-yellow-light);
   padding: 2px 8px;
   border-radius: 4px;
 }
@@ -642,14 +646,14 @@ h1, h2, h3, h4, .brand-text {
   background-color: var(--bg-main);
   border-radius: var(--border-radius-lg);
   padding: 30px;
-  border: 1px dashed var(--accent-taupe-border);
+  border: 1px dashed var(--accent-yellow-border);
   position: relative;
 }
 
 .bearing-visual-container h4 {
   margin-bottom: 20px;
   font-size: 14px;
-  color: var(--accent-taupe);
+  color: var(--primary-blue);
   text-transform: uppercase;
   letter-spacing: 1px;
 }
@@ -674,8 +678,8 @@ h1, h2, h3, h4, .brand-text {
 
 /* Alert/Note styling */
 .alert-note {
-  background-color: var(--accent-taupe-light);
-  border-left: 4px solid var(--accent-taupe);
+  background-color: var(--accent-yellow-light);
+  border-left: 4px solid var(--accent-yellow);
   padding: 16px;
   border-radius: var(--border-radius-sm);
   color: var(--text-medium);
@@ -690,7 +694,7 @@ h1, h2, h3, h4, .brand-text {
 .alert-note svg {
   width: 20px;
   height: 20px;
-  color: var(--accent-taupe);
+  color: var(--primary-blue);
   flex-shrink: 0;
 }
 
@@ -782,7 +786,7 @@ h1, h2, h3, h4, .brand-text {
 .preview-lock-overlay svg {
   width: 48px;
   height: 48px;
-  color: var(--accent-taupe);
+  color: var(--accent-yellow);
   margin-bottom: 15px;
 }
 
