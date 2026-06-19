@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SKF Lager Smeercalculator</title>
+  <meta name="description" content="Bereken eenvoudig de smeerfrequentie en smeerhoeveelheid voor SKF lagers op basis van lagerspecificaties.">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- ==========================================================================
+       LOGIN GATEWAY (PASSWORD PROTECTED)
+       ========================================================================== -->
+  <div id="loginOverlay" class="login-overlay">
+    <div class="login-card">
+      <div class="login-logo">
+        <!-- Engine/Gear/Bearing SVG Icon -->
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12a7.5 7.5 0 0 0 15 0m-15 0a7.5 7.5 0 1 1 15 0m-15 0H3m16.5 0H21m-1.5 0H12m-8.457 3.077 1.41-.513m14.095-5.13 1.41-.513M5.106 17.785l1.15-.827m11.379-8.16 1.15-.827m-9.42 9.63 1.15-.827M18.894 6.215l1.15-.827m-12.427 1.72 1.41-.513M17.464 12l1.41-.513M6.215 5.106l1.15-.827m11.379 8.16 1.15-.827m-9.42-9.63 1.15-.827M17.785 18.894l1.15-.827M12 4.5V3m0 16.5V21m0-1.5V12" />
+        </svg>
+      </div>
+      <h2>SKF Smeercalculator</h2>
+      <p>Voer het paswoord in om toegang te krijgen tot de applicatie.</p>
+      
+      <form id="loginForm" onsubmit="handleLogin(event)">
+        <div class="form-group">
+          <label for="passwordInput">Paswoord</label>
+          <div class="input-wrapper">
+            <span class="input-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
+              </svg>
+            </span>
+            <input type="password" id="passwordInput" class="form-control" placeholder="Vul paswoord in..." required autocomplete="current-password">
+            <button type="button" class="password-toggle" onclick="togglePasswordVisibility()">
+              <!-- Eye Icon -->
+              <svg id="eyeIcon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+              </svg>
+            </button>
+          </div>
+          <div id="loginError" class="login-error">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width: 16px; height: 16px;">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
+            </svg>
+            Onjuist paswoord. Probeer opnieuw.
+          </div>
+        </div>
+        
+        <button type="submit" class="btn">
+          Inloggen
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width: 20px; height: 20px;">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
+          </svg>
+        </button>
+      </form>
+      
+      <div style="margin-top: 24px; font-size: 11px; color: var(--text-light);">
+        Tip: Standaard paswoord is <code style="background: var(--accent-taupe-light); padding: 2px 6px; border-radius: 4px; color: var(--accent-taupe)">smering2026</code>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================================================
+       MAIN DASHBOARD INTERFACE
+       ========================================================================== -->
+  <div class="app-container">
+    
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-logo">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12a7.5 7.5 0 0 0 15 0m-15 0a7.5 7.5 0 1 1 15 0m-15 0H3m16.5 0H21" />
+          </svg>
+        </div>
+        <span class="brand-text">SKF Calculator</span>
+      </div>
+      
+      <nav style="flex: 1;">
+        <ul class="sidebar-menu">
+          <li>
+            <button id="menuSearch" class="menu-item-btn active" onclick="switchPage('search')">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.637 10.637Z" />
+              </svg>
+              Lager Opzoeken
+            </button>
+          </li>
+          <li>
+            <button id="menuCalc" class="menu-item-btn" onclick="switchPage('calc')">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 15.75V18a2.25 2.25 0 0 1-2.25 2.25h-6a2.25 2.25 0 0 1-2.25-2.25v-6a2.25 2.25 0 0 1 2.25-2.25h6a2.25 2.25 0 0 1 2.25 2.25v2.25m3 3H9m12 0-3-3m3 3-3 3M12 3v2.25m6.364.386-1.591 1.591M21 12h-2.25m-.386 6.364-1.591-1.591M12 21v-2.25m-6.364-.386 1.591-1.591M3 12h2.25m.386-6.364 1.591 1.591" />
+              </svg>
+              Smeercalculatie
+            </button>
+          </li>
+          <li>
+            <button id="menuInfo" class="menu-item-btn" onclick="switchPage('info')">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="m11.25 11.25.041-.02a.75.75 0 1 1 1.059 1.035l-1.06 1.06a.75.75 0 0 0 1.059 1.035l.104-.104m-9.162 0A9 9 0 1 1 18.06 5.44 9 9 0 0 1 3.138 17.567Z" />
+              </svg>
+              Informatie
+            </button>
+          </li>
+        </ul>
+      </nav>
+      
+      <div class="sidebar-footer">
+        <button class="logout-btn" onclick="handleLogout()">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width: 18px; height: 18px;">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 9V5.25A2.25 2.25 0 0 1 10.5 3h6a2.25 2.25 0 0 1 2.25 2.25v13.5A2.25 2.25 0 0 1 16.5 21h-6a2.25 2.25 0 0 1-2.25-2.25V15m-3 0-3-3m0 0 3-3m-3 3H15" />
+          </svg>
+          Afmelden
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main Content Panel -->
+    <main class="main-content">
+      
+      <!-- Top header bar -->
+      <header class="main-header">
+        <div class="header-title">
+          <h1 id="pageTitle">Lager Opzoeken</h1>
+          <p id="pageSubtitle">Geef een SKF lagernummer op om alle technische specificaties te tonen.</p>
+        </div>
+        
+        <div class="user-badge">
+          <div class="user-avatar">SKF</div>
+          <span class="user-name">Operator</span>
+        </div>
+      </header>
+
+      <!-- ==========================================================================
+           PAGE 1: LAGER OPZOEKEN (SEARCH)
+           ========================================================================== -->
+      <section id="pageSearch" class="page-section active">
+        
+        <!-- Search bar layout -->
+        <div class="search-container">
+          <div class="search-wrapper">
+            <span class="search-icon-inside">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.637 10.637Z" />
+              </svg>
+            </span>
+            <input type="text" id="bearingSearchInput" class="search-input" placeholder="Bijv. 6204, 22220, NU210..." oninput="handleSearchInput()" autocomplete="off">
+          </div>
+          
+          <!-- Dropdown Autocomplete Suggestions -->
+          <div id="suggestionsBox" class="autocomplete-suggestions"></div>
+        </div>
+
+        <!-- Empty State (No bearing selected) -->
+        <div id="emptySearchState" class="card text-center" style="padding: 60px 20px;">
+          <div style="color: var(--accent-taupe); margin-bottom: 20px;">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="currentColor" style="width: 72px; height: 72px; margin: 0 auto;">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.637 10.637zM7.5 12h9" />
+            </svg>
+          </div>
+          <h3>Geen lager geselecteerd</h3>
+          <p style="color: var(--text-medium); max-width: 450px; margin: 10px auto 0;">
+            Typ hierboven een SKF aanduiding (bijvoorbeeld <strong>6204</strong>, <strong>22220</strong> of <strong>NU210</strong>) en selecteer deze om de dimensionale gegevens te laden.
+          </p>
+        </div>
+
+        <!-- Result Display Grid -->
+        <div id="searchResultsArea" class="results-grid hidden">
+          
+          <!-- Left Specs Column -->
+          <div class="card">
+            <h3 class="card-title">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 111.059 1.035l-1.06 1.06a.75.75 0 001.059 1.035l.104-.104m-9.162 0A9 9 0 1118.06 5.44 9 9 0 013.138 17.567z" />
+              </svg>
+              Lagerspecificaties: <span id="specBearingName" style="color: var(--primary-blue); font-weight: 700;">-</span>
+            </h3>
+            
+            <div id="estimatedNote" class="alert-note hidden">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
+              </svg>
+              <span><strong>Let op:</strong> Dit lager is niet gevonden in de vaste database. De afmetingen hieronder zijn berekend en geschat op basis van de SKF aanduiding. Gelieve te verifiëren.</span>
+            </div>
+
+            <div class="details-list">
+              <div class="detail-row">
+                <span class="detail-label">Lagertype</span>
+                <span id="specType" class="detail-value">-</span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label">Boring / Asdiameter (d)</span>
+                <span class="detail-value"><span id="specBore">-</span> mm</span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label">Buitendiameter (D)</span>
+                <span class="detail-value"><span id="specOuter">-</span> mm</span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label">Breedte (B)</span>
+                <span class="detail-value"><span id="specWidth">-</span> mm</span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label">Dynamisch draaggetal (C)</span>
+                <span class="detail-value"><span id="specDyn">-</span> kN</span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label">Statisch draaggetal (C<sub>0</sub>)</span>
+                <span class="detail-value"><span id="specStat">-</span> kN</span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label">Referentietoerental</span>
+                <span class="detail-value"><span id="specRefSpeed">-</span> r/min</span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label">Grenstoerental</span>
+                <span class="detail-value"><span id="specLimitSpeed">-</span> r/min</span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label">Massa</span>
+                <span class="detail-value"><span id="specMass">-</span> kg</span>
+              </div>
+            </div>
+
+            <button class="btn" style="margin-top: 30px;" onclick="goToCalculator()">
+              Start Smeerberekening
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width: 20px; height: 20px;">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 15.75V18a2.25 2.25 0 0 1-2.25 2.25h-6a2.25 2.25 0 0 1-2.25-2.25v-6a2.25 2.25 0 0 1 2.25-2.25h6a2.25 2.25 0 0 1 2.25 2.25v2.25" />
+              </svg>
+            </button>
+          </div>
+
+          <!-- Right Visual Column -->
+          <div class="bearing-visual-container">
+            <h4>Visuele Afmetingen</h4>
+            
+            <div class="bearing-svg-wrapper">
+              <svg id="bearingDynamicSvg" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+                <!-- Outer diameter ring -->
+                <circle cx="100" cy="100" r="80" fill="#F4F2F0" stroke="#726350" stroke-width="3" />
+                <!-- Inner diameter ring -->
+                <circle cx="100" cy="100" r="45" fill="#FFFFFF" stroke="#726350" stroke-width="3" />
+                
+                <!-- Shaft / Bore center line indicator -->
+                <line x1="100" y1="20" x2="100" y2="180" stroke="#D2C9BF" stroke-dasharray="4 4" stroke-width="1" />
+                <line x1="20" y1="100" x2="180" y2="100" stroke="#D2C9BF" stroke-dasharray="4 4" stroke-width="1" />
+
+                <!-- Rolling Elements (Balls) - Dynamically positioned in JS -->
+                <g id="svgBallsGroup">
+                  <circle cx="100" cy="38" r="10" fill="#2563EB" opacity="0.8" />
+                  <circle cx="162" cy="100" r="10" fill="#2563EB" opacity="0.8" />
+                  <circle cx="100" cy="162" r="10" fill="#2563EB" opacity="0.8" />
+                  <circle cx="38" cy="100" r="10" fill="#2563EB" opacity="0.8" />
+                  <circle cx="144" cy="56" r="10" fill="#2563EB" opacity="0.8" />
+                  <circle cx="144" cy="144" r="10" fill="#2563EB" opacity="0.8" />
+                  <circle cx="56" cy="144" r="10" fill="#2563EB" opacity="0.8" />
+                  <circle cx="56" cy="56" r="10" fill="#2563EB" opacity="0.8" />
+                </g>
+
+                <!-- Dimension Lines -->
+                <!-- D Outer diameter label arrow -->
+                <line x1="10" y1="100" x2="10" y2="20" stroke="#726350" stroke-width="1" />
+                <line x1="10" y1="100" x2="10" y2="180" stroke="#726350" stroke-width="1" />
+                <polygon points="10,20 7,27 13,27" fill="#726350" />
+                <polygon points="10,180 7,173 13,173" fill="#726350" />
+                <text x="5" y="105" font-family="'Outfit', sans-serif" font-size="12" fill="#726350" font-weight="700">D</text>
+
+                <!-- d Inner diameter label arrow -->
+                <line x1="75" y1="100" x2="75" y2="55" stroke="#2563EB" stroke-width="1" />
+                <line x1="75" y1="100" x2="75" y2="145" stroke="#2563EB" stroke-width="1" />
+                <polygon points="75,55 72,62 78,62" fill="#2563EB" />
+                <polygon points="75,145 72,138 78,138" fill="#2563EB" />
+                <text x="68" y="104" font-family="'Outfit', sans-serif" font-size="11" fill="#2563EB" font-weight="700">d</text>
+              </svg>
+            </div>
+            
+            <div class="bearing-visual-note">
+              Blauwe markeringen tonen de kogels/rollen.<br>
+              <strong>d</strong> = boring (<span id="visualBoreText">-</span>mm) | 
+              <strong>D</strong> = buitendiameter (<span id="visualOuterText">-</span>mm) | 
+              <strong>B</strong> = breedte (<span id="visualWidthText">-</span>mm)
+            </div>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- ==========================================================================
+           PAGE 2: SMEERBEREKENING (CALCULATION)
+           ========================================================================== -->
+      <section id="pageCalc" class="page-section">
+        
+        <!-- Selection banner -->
+        <div class="calc-header-banner">
+          <div class="calc-header-info">
+            <h3 id="calcBannerTitle">Geen lager geselecteerd</h3>
+            <p id="calcBannerSubtitle">Keer terug naar 'Lager Opzoeken' om een lager te laden, of vul handmatig afmetingen in.</p>
+          </div>
+          <span id="calcBannerBadge" class="calc-badge-bearing">-</span>
+        </div>
+
+        <div class="calculator-form-grid">
+          
+          <!-- Parameter Invoer Card -->
+          <div class="card">
+            <h3 class="card-title">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 0-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-9.75 0h9.75" />
+              </svg>
+              Invoerparameters
+            </h3>
+            
+            <form onsubmit="event.preventDefault()">
+              <div class="form-group">
+                <label for="inputGrease">Selecteer Interflon Vet</label>
+                <select id="inputGrease" class="form-control" style="padding-left: 16px;">
+                  <!-- Wordt dynamisch gevuld in JS -->
+                </select>
+                <span class="input-label-description">Bepaalt de maximale DN-factor en de vetdichtheid.</span>
+              </div>
+
+              <div class="form-group">
+                <label for="inputTemperature">Bedrijfstemperatuur (°C)</label>
+                <input type="number" id="inputTemperature" class="form-control" placeholder="Bijv. 70" value="65">
+                <span class="input-label-description">Bepaalt de temperatuurcorrectiefactor Tt.</span>
+              </div>
+              
+              <div class="form-group">
+                <label for="inputSpeed">Bedrijfssnelheid / Toerental (r/min)</label>
+                <input type="number" id="inputSpeed" class="form-control" placeholder="Bijv. 980" value="980">
+                <span class="input-label-description">Draaisnelheid van het lager.</span>
+              </div>
+
+              <div class="form-group">
+                <label for="inputLimitingSpeed">Limiting Speed / Grenstoerental (r/min)</label>
+                <input type="number" id="inputLimitingSpeed" class="form-control" placeholder="Bijv. 4000" value="4000">
+                <span class="input-label-description">Grenstoerental van het lager.</span>
+              </div>
+
+              <div style="border-top: 1px solid var(--accent-taupe-light); padding-top: 15px; margin-top: 15px;">
+                <h4 style="font-size: 13px; color: var(--accent-taupe); margin-bottom: 10px;">Lager Afmetingen & Massa</h4>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                  <div class="form-group">
+                    <label for="inputBoreManual">Boring (d) [mm]</label>
+                    <input type="number" id="inputBoreManual" class="form-control" placeholder="d" value="120" style="padding-left: 16px;">
+                  </div>
+
+                  <div class="form-group">
+                    <label for="inputOuterManual">Buitendiameter (D) [mm]</label>
+                    <input type="number" id="inputOuterManual" class="form-control" placeholder="D" value="215" style="padding-left: 16px;">
+                  </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                  <div class="form-group">
+                    <label for="inputWidthManual">Breedte (B) [mm]</label>
+                    <input type="number" id="inputWidthManual" class="form-control" placeholder="B" value="42" style="padding-left: 16px;">
+                  </div>
+
+                  <div class="form-group">
+                    <label for="inputMassManual">Massa (G) [kg]</label>
+                    <input type="number" id="inputMassManual" class="form-control" placeholder="G" value="6.71" step="0.01" style="padding-left: 16px;">
+                  </div>
+                </div>
+              </div>
+
+              <div style="border-top: 1px solid var(--accent-taupe-light); padding-top: 15px; margin-top: 15px;">
+                <h4 style="font-size: 13px; color: var(--accent-taupe); margin-bottom: 10px;">Correctiefactoren</h4>
+
+                <div class="form-group">
+                  <label for="inputTe">Omgevingsfactor (Te/Tx)</label>
+                  <select id="inputTe" class="form-control" style="padding-left: 16px;">
+                    <option value="0.8">Gemiddeld (0,8)</option>
+                    <option value="0.5" selected>Stof / Hoog (0,5)</option>
+                    <option value="0.3">Vocht / Erg hoog (0,3)</option>
+                    <option value="0.15">Condensatie / Extreem (0,15)</option>
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label for="inputTa">Toepassingsfactor (Ta)</label>
+                  <select id="inputTa" class="form-control" style="padding-left: 16px;">
+                    <option value="0.8">Gemiddeld (0,8)</option>
+                    <option value="0.5" selected>Schokken / Hoog (0,5)</option>
+                    <option value="0.3">Vibraties / Erg hoog (0,3)</option>
+                    <option value="0.15">Verticale as / Extreem (0,15)</option>
+                  </select>
+                </div>
+              </div>
+            </form>
+          </div>
+
+          <!-- Smeeradvies Resultaat Card -->
+          <div class="card" style="display: flex; flex-direction: column; gap: 24px;">
+            <div>
+              <h3 class="card-title" style="margin-bottom: 15px;">
+                Snelheid & Vetlimieten
+              </h3>
+              <div class="details-list">
+                <div class="detail-row">
+                  <span class="detail-label">Lager DN-factor</span>
+                  <span class="detail-value"><span id="calcBearingDN">--</span></span>
+                </div>
+                <div class="detail-row">
+                  <span class="detail-label">Vet DN-limiet</span>
+                  <span class="detail-value"><span id="calcGreaseDN">--</span></span>
+                </div>
+                <div id="dnWarningRow" class="alert-note hidden" style="margin-top: 10px; border-left-color: var(--danger); background-color: #FEF2F2; color: #991B1B;">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="color: var(--danger); width: 20px; height: 20px; flex-shrink: 0;">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
+                  </svg>
+                  <span><strong>Gevaar:</strong> De lager DN-factor overschrijdt de limiet van het geselecteerde vet!</span>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <h3 class="card-title" style="margin-bottom: 15px;">
+                Vrije Volume & Initiële Vulling
+              </h3>
+              <div class="details-list">
+                <div class="detail-row">
+                  <span class="detail-label">Vrije volume (V)</span>
+                  <span class="detail-value"><span id="calcFreeVolumeCm">--</span> cm³ (<span id="calcFreeVolumeM3">--</span> m³)</span>
+                </div>
+                <div class="detail-row">
+                  <span class="detail-label">Vullingspercentage</span>
+                  <span class="detail-value"><span id="calcFillPercent">--</span>%</span>
+                </div>
+                <div class="detail-row" style="background-color: var(--primary-blue-light); padding: 8px 12px; border-radius: var(--border-radius-sm);">
+                  <span class="detail-label" style="font-weight: 600;">Initiële vulhoeveelheid</span>
+                  <span class="detail-value" style="color: var(--primary-blue); font-size: 16px; font-weight: 700;"><span id="calcInitFillGrams">--</span> gram (<span id="calcInitFillCm">--</span> cm³)</span>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <h3 class="card-title" style="margin-bottom: 15px;">
+                Smeerfrequentie / Smeerinterval
+              </h3>
+              <div class="details-list">
+                <div class="detail-row">
+                  <span class="detail-label">Basis frequentie (FB)</span>
+                  <span class="detail-value"><span id="calcBaseFreq">--</span> uren</span>
+                </div>
+                <div class="detail-row">
+                  <span class="detail-label">Temperatuurfactor (Tt)</span>
+                  <span class="detail-value"><span id="calcTt">--</span></span>
+                </div>
+                <div class="detail-row" style="background-color: var(--accent-taupe-light); padding: 12px 12px; border-radius: var(--border-radius-sm); flex-direction: column; align-items: stretch; gap: 8px;">
+                  <div style="display: flex; justify-content: space-between; font-weight: 700; color: var(--text-dark);">
+                    <span>Gecorrigeerd Smeerinterval (FC)</span>
+                    <span><span id="calcInterval">--</span> uren</span>
+                  </div>
+                  <div style="display: flex; justify-content: space-between; font-size: 13px; color: var(--text-medium); border-top: 1px dashed var(--accent-taupe-border); padding-top: 6px;">
+                    <span>Dagen: <strong id="calcIntervalDays">--</strong></span>
+                    <span>Weken: <strong id="calcIntervalWeeks">--</strong></span>
+                    <span>Maanden: <strong id="calcIntervalMonths">--</strong></span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <h3 class="card-title" style="margin-bottom: 15px;">
+                Nasmeervolume (Refills)
+              </h3>
+              <div class="details-list">
+                <div class="detail-row">
+                  <span class="detail-label">Coefficient C</span>
+                  <span class="detail-value"><span id="calcCoefC">--</span></span>
+                </div>
+                <div class="detail-row" style="background-color: #ECFDF5; padding: 12px 12px; border-radius: var(--border-radius-sm); display: flex; justify-content: space-between; align-items: center;">
+                  <div>
+                    <div style="font-weight: 700; color: var(--success); font-size: 16px;"><span id="calcQuantity">--</span> gram vet</div>
+                    <div style="font-size: 11px; color: var(--text-medium); margin-top: 2px;">Nasmeerhoeveelheid (D x B x C)</div>
+                  </div>
+                  <div style="text-align: right;">
+                    <div style="font-weight: 700; color: var(--success); font-size: 16px;"><span id="calcStrokes">--</span> slagen</div>
+                    <div style="font-size: 11px; color: var(--text-medium); margin-top: 2px;">Vetspuit (2g/slag)</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div id="densityCorrectionInfo" class="alert-note" style="margin: 0; font-size: 11px;">
+              <span><strong>Dichtheidsinfo:</strong> Het geselecteerde vet heeft een dichtheid van <span id="calcDensity">--</span> g/cm³. Vulhoeveelheid = cm³ x dichtheid.</span>
+            </div>
+          </div>
+
+        </div>
+
+        </div>
+
+      </section>
+
+      <!-- ==========================================================================
+           PAGE 3: INFORMATIE (INFO)
+           ========================================================================== -->
+      <section id="pageInfo" class="page-section">
+        
+        <div class="card">
+          <h3 class="card-title" style="border-bottom: 1px solid var(--accent-taupe-light); padding-bottom: 10px;">
+            Over deze Webapplicatie
+          </h3>
+          <p style="line-height: 1.6; margin-bottom: 20px; color: var(--text-medium);">
+            Welkom bij de <strong>SKF Lager Smeercalculator</strong>. Dit systeem is speciaal ontworpen om onderhoudsengineers en operatoren te helpen bij het bepalen van de optimale smeerparameters voor roterende machines.
+          </p>
+
+          <h4 style="margin: 30px 0 10px; color: var(--text-dark);">Kleurpalet & Styling</h4>
+          <p style="line-height: 1.6; margin-bottom: 20px; color: var(--text-medium);">
+            Het design is gerealiseerd conform uw richtlijnen met een modern en professioneel uiterlijk:
+          </p>
+          <ul style="margin-left: 20px; margin-bottom: 20px; color: var(--text-medium); line-height: 1.8;">
+            <li><strong>Fris Blauw</strong>: Gebruikt voor knoppen, actieve navigatie, en belangrijke accenten die energie en betrouwbaarheid uitstralen.</li>
+            <li><strong>Brons/Taupe (<span style="color: var(--accent-taupe); font-weight: 700;">#726350</span>)</strong>: De kleur uit de bijlage is gebruikt voor randen, secundaire labels, de inloginterface en visuele details. Dit geeft de app een chique en solide industriële uitstraling.</li>
+          </ul>
+
+          <h4 style="margin: 30px 0 10px; color: var(--text-dark);">Huidige functionaliteiten</h4>
+          <ol style="margin-left: 20px; margin-bottom: 20px; color: var(--text-medium); line-height: 1.8;">
+            <li><strong>Paswoordbeveiliging</strong>: Toegangsbescherming via een modern inlogscherm (Paswoord: <code>smering2026</code>).</li>
+            <li><strong>SKF Database Lookup</strong>: Directe specificaties voor meer dan 100 veelvoorkomende lagers.</li>
+            <li><strong>Slimme Designation Parser</strong>: Als een lager niet in de database staat, herkent de app de typecode en boringcode om de afmetingen automatisch te schatten.</li>
+            <li><strong>Dynamisch Diagram</strong>: Een live SVG-visualisatie die de maten d, D en B schaalt naar verhouding.</li>
+          </ol>
+        </div>
+
+      </section>
+
+    </main>
+
+  </div>
+
+  <!-- JavaScript logic imports -->
+  <script src="interflon-data.js"></script>
+  <script src="bearings-db.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
