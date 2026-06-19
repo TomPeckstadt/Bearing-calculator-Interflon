@@ -788,13 +788,15 @@ function exportToPdf() {
       const envFactor = document.getElementById("inputTe").options[document.getElementById("inputTe").selectedIndex].text;
       const appFactor = document.getElementById("inputTa").options[document.getElementById("inputTa").selectedIndex].text;
 
-      doc.setFillColor(244, 246, 249);
-      doc.rect(20, 104, 170, 7, "F");
       doc.setFont("helvetica", "bold");
       doc.setFontSize(8.5);
       doc.setTextColor(11, 19, 43);
       doc.text("Parameter", 24, 109);
       doc.text("Waarde", 114, 109);
+      
+      doc.setDrawColor(200, 200, 200);
+      doc.setLineWidth(0.25);
+      doc.line(20, 111, 190, 111);
 
       const params = [
         ["Geselecteerd Interflon vet", greaseName],
@@ -809,10 +811,6 @@ function exportToPdf() {
       let currentY = 111;
       params.forEach((p, idx) => {
         currentY += 7;
-        if (idx % 2 === 1) {
-          doc.setFillColor(248, 250, 252);
-          doc.rect(20, currentY - 5, 170, 7, "F");
-        }
         doc.setTextColor(72, 84, 96);
         doc.text(p[0], 24, currentY);
         doc.setTextColor(11, 19, 43);
@@ -828,14 +826,15 @@ function exportToPdf() {
       doc.setTextColor(11, 19, 43);
       doc.text("Calculatieresultaten & Smeeradvies", 20, currentY);
 
-      currentY += 6; // 170 + 6 = 176 (start van header box)
-      doc.setFillColor(244, 246, 249);
-      doc.rect(20, currentY, 170, 7, "F");
       doc.setFont("helvetica", "bold");
       doc.setFontSize(8.5);
       doc.setTextColor(11, 19, 43);
       doc.text("Resultaatparameter", 24, currentY + 5); // 181
       doc.text("Berekende Waarde", 114, currentY + 5); // 181
+      
+      doc.setDrawColor(200, 200, 200);
+      doc.setLineWidth(0.25);
+      doc.line(20, currentY + 7, 190, currentY + 7); // 183
       
       currentY += 7; // 176 + 7 = 183 (onderkant van header box)
 
@@ -869,10 +868,6 @@ function exportToPdf() {
 
       results.forEach((r, idx) => {
         currentY += 7;
-        if (idx % 2 === 1) {
-          doc.setFillColor(248, 250, 252);
-          doc.rect(20, currentY - 5, 170, 7, "F");
-        }
         
         if (r[0].includes("Gecorrigeerd Smeerinterval") || r[0].includes("Nasmeerhoeveelheid") || r[0].includes("slagen")) {
           doc.setFont("helvetica", "bold");
