@@ -63,6 +63,36 @@
   </div>
 
   <!-- ==========================================================================
+       OPERATOR MODAL (POPUP FOR USER DETAILS)
+       ========================================================================== -->
+  <div id="operatorModal" class="modal-overlay hidden">
+    <div class="modal-card">
+      <h3 class="modal-title">Operator Gegevens</h3>
+      <p class="modal-subtitle">Voer hier uw gegevens in. Deze worden bewaard op dit apparaat en getoond op de export-rapporten.</p>
+      
+      <form id="operatorForm" onsubmit="saveOperatorDetails(event)">
+        <div class="form-group">
+          <label for="opNameInput">Naam</label>
+          <input type="text" id="opNameInput" class="form-control" placeholder="Bijv. Jan Janssen" style="padding-left: 16px;">
+        </div>
+        <div class="form-group">
+          <label for="opPhoneInput">Telefoonnummer</label>
+          <input type="tel" id="opPhoneInput" class="form-control" placeholder="Bijv. +32 475 12 34 56" style="padding-left: 16px;">
+        </div>
+        <div class="form-group">
+          <label for="opEmailInput">Emailadres</label>
+          <input type="email" id="opEmailInput" class="form-control" placeholder="Bijv. jan.janssen@interflon.com" style="padding-left: 16px;">
+        </div>
+        
+        <div class="modal-actions">
+          <button type="button" class="btn btn-secondary" onclick="closeOperatorModal()">Annuleren</button>
+          <button type="submit" class="btn">Opslaan</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==========================================================================
        MAIN DASHBOARD INTERFACE
        ========================================================================== -->
   <div class="app-container">
@@ -122,10 +152,10 @@
           <p id="pageSubtitle">Geef een SKF lagernummer op om alle technische specificaties te tonen.</p>
         </div>
         
-        <div class="user-badge">
-          <div class="user-avatar">IF</div>
-          <span class="user-name">Operator</span>
-        </div>
+        <button id="userBadgeBtn" class="user-badge" onclick="openOperatorModal()">
+          <div id="userAvatar" class="user-avatar">IF</div>
+          <span id="userName" class="user-name">Operator</span>
+        </button>
       </header>
 
       <!-- ==========================================================================
@@ -293,7 +323,15 @@
             <h3 id="calcBannerTitle">Geen lager geselecteerd</h3>
             <p id="calcBannerSubtitle">Keer terug naar 'Lager Opzoeken' om een lager te laden, of vul handmatig afmetingen in.</p>
           </div>
-          <span id="calcBannerBadge" class="calc-badge-bearing">-</span>
+          <div style="display: flex; align-items: center; gap: 15px;">
+            <button id="btnExportPdf" class="btn-export" onclick="exportToPdf()">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
+              </svg>
+              Export
+            </button>
+            <span id="calcBannerBadge" class="calc-badge-bearing">-</span>
+          </div>
         </div>
 
         <div class="calculator-form-grid">
@@ -512,6 +550,7 @@
   </div>
 
   <!-- JavaScript logic imports -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="interflon-data.js"></script>
   <script src="bearings-db.js"></script>
   <script src="app.js"></script>
