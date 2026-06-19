@@ -1,0 +1,13 @@
+# Excel and data extraction files
+*.xlsx
+sheet_*.txt
+*.ps1
+
+# Environment variables (credentials)
+.env
+
+# Windows/OS files
+Thumbs.db
+Desktop.ini
+.DS_Store
+
