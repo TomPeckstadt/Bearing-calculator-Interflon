@@ -1014,7 +1014,7 @@ function exportToPdf() {
       doc.setTextColor(227, 6, 19);
       doc.text("INTERFLON - A WORLD WITHOUT FRICTION", 20, 280);
 
-      doc.save("Interflon_Smeeradvies_" + bearingName.replace(/[\/\\?%*:|"<>\s]/g, "_") + ".pdf");
+      doc.save("Interflon_Smeeradvies_" + bearingNum.replace(/[\/\\?%*:|"<>\s]/g, "_") + ".pdf");
     } catch (e) {
       console.error("Fout bij genereren PDF:", e);
       alert("Er is een fout opgetreden bij het genereren van het PDF-rapport: " + e.message);
