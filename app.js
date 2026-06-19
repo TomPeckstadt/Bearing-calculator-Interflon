@@ -51,6 +51,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Laad operator details op startup
   loadOperatorDetails();
+
+  // Laad klant details op startup
+  loadClientDetails();
 });
 
 function handleLogin(event) {
@@ -668,6 +671,80 @@ function saveOperatorDetails(event) {
   closeOperatorModal();
 }
 
+function loadClientDetails() {
+  const company = localStorage.getItem("client_company") || "";
+  const contact = localStorage.getItem("client_contact") || "";
+  const phone = localStorage.getItem("client_phone") || "";
+  const email = localStorage.getItem("client_email") || "";
+
+  const companyInput = document.getElementById("clientCompanyInput");
+  const contactInput = document.getElementById("clientContactInput");
+  const phoneInput = document.getElementById("clientPhoneInput");
+  const emailInput = document.getElementById("clientEmailInput");
+
+  if (companyInput) companyInput.value = company;
+  if (contactInput) contactInput.value = contact;
+  if (phoneInput) phoneInput.value = phone;
+  if (emailInput) emailInput.value = email;
+
+  updateClientBadge(company, contact);
+}
+
+function updateClientBadge(company, contact) {
+  const clientNameEl = document.getElementById("clientName");
+  const clientAvatarEl = document.getElementById("clientAvatar");
+
+  if (!clientNameEl || !clientAvatarEl) return;
+
+  const displayName = company.trim() || contact.trim();
+
+  if (displayName) {
+    clientNameEl.textContent = displayName;
+    const parts = displayName.split(/\s+/);
+    let initials = "";
+    if (parts.length >= 2) {
+      initials = (parts[0][0] + parts[1][0]).toUpperCase();
+    } else if (parts.length === 1) {
+      initials = parts[0].substring(0, 2).toUpperCase();
+    }
+    clientAvatarEl.textContent = initials || "KL";
+  } else {
+    clientNameEl.textContent = "Klant";
+    clientAvatarEl.textContent = "KL";
+  }
+}
+
+function openClientModal() {
+  const modal = document.getElementById("clientModal");
+  if (modal) {
+    loadClientDetails();
+    modal.classList.remove("hidden");
+  }
+}
+
+function closeClientModal() {
+  const modal = document.getElementById("clientModal");
+  if (modal) {
+    modal.classList.add("hidden");
+  }
+}
+
+function saveClientDetails(event) {
+  event.preventDefault();
+  const company = document.getElementById("clientCompanyInput").value;
+  const contact = document.getElementById("clientContactInput").value;
+  const phone = document.getElementById("clientPhoneInput").value;
+  const email = document.getElementById("clientEmailInput").value;
+
+  localStorage.setItem("client_company", company);
+  localStorage.setItem("client_contact", contact);
+  localStorage.setItem("client_phone", phone);
+  localStorage.setItem("client_email", email);
+
+  updateClientBadge(company, contact);
+  closeClientModal();
+}
+
 // ==========================================================================
 // EXPORT NAAR PDF INCLUSIEF WATERMERK EN GEGEVENS
 // ==========================================================================
@@ -723,11 +800,17 @@ function exportToPdf() {
       doc.setDrawColor(220, 220, 220);
       doc.line(20, 42, 190, 42);
 
-      // 3. Twee kolommen: Operator info & Lager specs
+      // 3. Drie kolommen: Operator info, Klant info & Lager specs
       const opName = localStorage.getItem("operator_name") || "-";
       const opPhone = localStorage.getItem("operator_phone") || "-";
       const opEmail = localStorage.getItem("operator_email") || "-";
 
+      const clientCompany = localStorage.getItem("client_company") || "-";
+      const clientContact = localStorage.getItem("client_contact") || "-";
+      const clientPhone = localStorage.getItem("client_phone") || "-";
+      const clientEmail = localStorage.getItem("client_email") || "-";
+
+      // Kolom 1: Operator
       doc.setFont("helvetica", "bold");
       doc.setFontSize(11);
       doc.setTextColor(11, 19, 43);
@@ -742,12 +825,39 @@ function exportToPdf() {
 
       doc.setFont("helvetica", "bold");
       doc.setTextColor(11, 19, 43);
-      doc.text(opName, 42, 59);
-      doc.text(opPhone, 42, 65);
-      doc.text(opEmail, 42, 71);
+      doc.text(opName, 36, 59);
+      doc.text(opPhone, 36, 65);
+      doc.text(opEmail, 36, 71);
 
-      // Lager details
-      const bearingName = document.getElementById("calcBannerBadge").textContent || "-";
+      // Kolom 2: Klant
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(11);
+      doc.setTextColor(11, 19, 43);
+      doc.text("Klant Gegevens", 75, 52);
+
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(9);
+      doc.setTextColor(72, 84, 96);
+      doc.text("Bedrijf:", 75, 59);
+      doc.text("Contact:", 75, 65);
+      doc.text("Telefoon:", 75, 71);
+      doc.text("E-mail:", 75, 77);
+
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(11, 19, 43);
+      doc.text(clientCompany, 91, 59);
+      doc.text(clientContact, 91, 65);
+      doc.text(clientPhone, 91, 71);
+      doc.text(clientEmail, 91, 77);
+
+      // Kolom 3: Lager details
+      let bearingNum = "Handmatige invoer";
+      let bearingType = "Groefkogellager";
+      if (activeBearing) {
+        bearingNum = activeBearing.designation.toUpperCase();
+        bearingType = activeBearing.type;
+      }
+      
       const d = document.getElementById("inputBoreManual").value || "-";
       const D = document.getElementById("inputOuterManual").value || "-";
       const B = document.getElementById("inputWidthManual").value || "-";
@@ -756,32 +866,38 @@ function exportToPdf() {
       doc.setFont("helvetica", "bold");
       doc.setFontSize(11);
       doc.setTextColor(11, 19, 43);
-      doc.text("Lager Specificaties", 110, 52);
+      doc.text("Lager Specificaties", 130, 52);
 
       doc.setFont("helvetica", "normal");
       doc.setFontSize(9);
       doc.setTextColor(72, 84, 96);
-      doc.text("Aanduiding:", 110, 59);
-      doc.text("Boring (d):", 110, 65);
-      doc.text("Buitendiameter (D):", 110, 71);
-      doc.text("Breedte (B):", 110, 77);
-      doc.text("Massa (G):", 110, 83);
+      doc.text("Nummer:", 130, 59);
+      doc.text("Type:", 130, 65);
+      doc.text("Boring (d):", 130, 71);
+      doc.text("Buitendia. (D):", 130, 77);
+      doc.text("Breedte (B):", 130, 83);
+      doc.text("Massa (G):", 130, 89);
 
       doc.setFont("helvetica", "bold");
       doc.setTextColor(11, 19, 43);
-      doc.text(bearingName, 146, 59);
-      doc.text(d + " mm", 146, 65);
-      doc.text(D + " mm", 146, 71);
-      doc.text(B + " mm", 146, 77);
-      doc.text(G + " kg", 146, 83);
+      doc.text(bearingNum, 158, 59);
+      
+      doc.setFontSize(8.5);
+      doc.text(bearingType, 158, 65);
+      doc.setFontSize(9);
+      
+      doc.text(d + " mm", 158, 71);
+      doc.text(D + " mm", 158, 77);
+      doc.text(B + " mm", 158, 83);
+      doc.text(G + " kg", 158, 89);
 
-      doc.line(20, 90, 190, 90);
+      doc.line(20, 95, 190, 95);
 
       // 4. Tabel: Bedrijfsparameters
       doc.setFont("helvetica", "bold");
       doc.setFontSize(11);
       doc.setTextColor(11, 19, 43);
-      doc.text("Bedrijfsparameters", 20, 99);
+      doc.text("Bedrijfsparameters", 20, 104);
 
       const greaseName = document.getElementById("inputGrease").value;
       const speed = document.getElementById("inputSpeed").value;
@@ -793,12 +909,12 @@ function exportToPdf() {
       doc.setFont("helvetica", "bold");
       doc.setFontSize(8.5);
       doc.setTextColor(11, 19, 43);
-      doc.text("Parameter", 24, 109);
-      doc.text("Waarde", 114, 109);
+      doc.text("Parameter", 24, 114);
+      doc.text("Waarde", 114, 114);
       
       doc.setDrawColor(200, 200, 200);
       doc.setLineWidth(0.25);
-      doc.line(20, 111, 190, 111);
+      doc.line(20, 116, 190, 116);
 
       const params = [
         ["Geselecteerd Interflon vet", greaseName],
@@ -810,7 +926,7 @@ function exportToPdf() {
       ];
 
       doc.setFont("helvetica", "normal");
-      let currentY = 111;
+      let currentY = 116;
       params.forEach((p, idx) => {
         currentY += 7;
         doc.setTextColor(72, 84, 96);
