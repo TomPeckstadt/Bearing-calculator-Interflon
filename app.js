@@ -822,20 +822,22 @@ function exportToPdf() {
       doc.line(20, currentY + 5, 190, currentY + 5);
 
       // 5. Tabel: Calculatieresultaten
-      currentY += 13;
+      currentY += 12; // 153 + 12 = 170
       doc.setFont("helvetica", "bold");
       doc.setFontSize(11);
       doc.setTextColor(11, 19, 43);
       doc.text("Calculatieresultaten & Smeeradvies", 20, currentY);
 
-      currentY += 5;
+      currentY += 6; // 170 + 6 = 176 (start van header box)
       doc.setFillColor(244, 246, 249);
       doc.rect(20, currentY, 170, 7, "F");
       doc.setFont("helvetica", "bold");
       doc.setFontSize(8.5);
       doc.setTextColor(11, 19, 43);
-      doc.text("Resultaatparameter", 24, currentY + 5);
-      doc.text("Berekende Waarde", 114, currentY + 5);
+      doc.text("Resultaatparameter", 24, currentY + 5); // 181
+      doc.text("Berekende Waarde", 114, currentY + 5); // 181
+      
+      currentY += 7; // 176 + 7 = 183 (onderkant van header box)
 
       const bearingDN = document.getElementById("calcBearingDN").textContent;
       const greaseDN = document.getElementById("calcGreaseDN").textContent;
@@ -919,7 +921,12 @@ function getTransparentLogo(callback) {
     canvas.width = img.width;
     canvas.height = img.height;
     const ctx = canvas.getContext("2d");
-    ctx.globalAlpha = 0.15; // Semi-transparent
+    
+    // Eerst wit vullen om te voorkomen dat transparante pixels zwart worden bij JPEG export
+    ctx.fillStyle = "#FFFFFF";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    ctx.globalAlpha = 0.15; // Semi-transparant watermerk (15%)
     ctx.drawImage(img, 0, 0);
     callback(canvas.toDataURL("image/jpeg"));
   };
