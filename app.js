@@ -800,7 +800,7 @@ function exportToPdf() {
       doc.setDrawColor(220, 220, 220);
       doc.line(20, 42, 190, 42);
 
-      // 3. Drie kolommen: Operator info, Klant info & Lager specs
+      // 3. Twee kolommen: Linker kolom (Operator & Klant info), Rechter kolom (Lager specs)
       const opName = localStorage.getItem("operator_name") || "-";
       const opPhone = localStorage.getItem("operator_phone") || "-";
       const opEmail = localStorage.getItem("operator_email") || "-";
@@ -810,7 +810,7 @@ function exportToPdf() {
       const clientPhone = localStorage.getItem("client_phone") || "-";
       const clientEmail = localStorage.getItem("client_email") || "-";
 
-      // Kolom 1: Operator
+      // Links: Operator Gegevens (y=52 tot y=71)
       doc.setFont("helvetica", "bold");
       doc.setFontSize(11);
       doc.setTextColor(11, 19, 43);
@@ -825,32 +825,32 @@ function exportToPdf() {
 
       doc.setFont("helvetica", "bold");
       doc.setTextColor(11, 19, 43);
-      doc.text(opName, 36, 59);
-      doc.text(opPhone, 36, 65);
-      doc.text(opEmail, 36, 71);
+      doc.text(opName, 38, 59);
+      doc.text(opPhone, 38, 65);
+      doc.text(opEmail, 38, 71);
 
-      // Kolom 2: Klant
+      // Links: Klant Gegevens (y=80 tot y=105)
       doc.setFont("helvetica", "bold");
       doc.setFontSize(11);
       doc.setTextColor(11, 19, 43);
-      doc.text("Klant Gegevens", 75, 52);
+      doc.text("Klant Gegevens", 20, 80);
 
       doc.setFont("helvetica", "normal");
       doc.setFontSize(9);
       doc.setTextColor(72, 84, 96);
-      doc.text("Bedrijf:", 75, 59);
-      doc.text("Contact:", 75, 65);
-      doc.text("Telefoon:", 75, 71);
-      doc.text("E-mail:", 75, 77);
+      doc.text("Bedrijf:", 20, 87);
+      doc.text("Contact:", 20, 93);
+      doc.text("Telefoon:", 20, 99);
+      doc.text("E-mail:", 20, 105);
 
       doc.setFont("helvetica", "bold");
       doc.setTextColor(11, 19, 43);
-      doc.text(clientCompany, 91, 59);
-      doc.text(clientContact, 91, 65);
-      doc.text(clientPhone, 91, 71);
-      doc.text(clientEmail, 91, 77);
+      doc.text(clientCompany, 38, 87);
+      doc.text(clientContact, 38, 93);
+      doc.text(clientPhone, 38, 99);
+      doc.text(clientEmail, 38, 105);
 
-      // Kolom 3: Lager details
+      // Rechter kolom: Lager details (y=52 tot y=89)
       let bearingNum = "Handmatige invoer";
       let bearingType = "Groefkogellager";
       if (activeBearing) {
@@ -866,38 +866,39 @@ function exportToPdf() {
       doc.setFont("helvetica", "bold");
       doc.setFontSize(11);
       doc.setTextColor(11, 19, 43);
-      doc.text("Lager Specificaties", 130, 52);
+      doc.text("Lager Specificaties", 110, 52);
 
       doc.setFont("helvetica", "normal");
       doc.setFontSize(9);
       doc.setTextColor(72, 84, 96);
-      doc.text("Nummer:", 130, 59);
-      doc.text("Type:", 130, 65);
-      doc.text("Boring (d):", 130, 71);
-      doc.text("Buitendia. (D):", 130, 77);
-      doc.text("Breedte (B):", 130, 83);
-      doc.text("Massa (G):", 130, 89);
+      doc.text("Nummer:", 110, 59);
+      doc.text("Type:", 110, 65);
+      doc.text("Boring (d):", 110, 71);
+      doc.text("Buitendia. (D):", 110, 77);
+      doc.text("Breedte (B):", 110, 83);
+      doc.text("Massa (G):", 110, 89);
 
       doc.setFont("helvetica", "bold");
       doc.setTextColor(11, 19, 43);
-      doc.text(bearingNum, 158, 59);
+      doc.text(bearingNum, 142, 59);
       
       doc.setFontSize(8.5);
-      doc.text(bearingType, 158, 65);
+      doc.text(bearingType, 142, 65);
       doc.setFontSize(9);
       
-      doc.text(d + " mm", 158, 71);
-      doc.text(D + " mm", 158, 77);
-      doc.text(B + " mm", 158, 83);
-      doc.text(G + " kg", 158, 89);
+      doc.text(d + " mm", 142, 71);
+      doc.text(D + " mm", 142, 77);
+      doc.text(B + " mm", 142, 83);
+      doc.text(G + " kg", 142, 89);
 
-      doc.line(20, 95, 190, 95);
+      // Horizontale scheidingslijn onder gegevens
+      doc.line(20, 111, 190, 111);
 
       // 4. Tabel: Bedrijfsparameters
       doc.setFont("helvetica", "bold");
       doc.setFontSize(11);
       doc.setTextColor(11, 19, 43);
-      doc.text("Bedrijfsparameters", 20, 104);
+      doc.text("Bedrijfsparameters", 20, 120);
 
       const greaseName = document.getElementById("inputGrease").value;
       const speed = document.getElementById("inputSpeed").value;
@@ -909,12 +910,12 @@ function exportToPdf() {
       doc.setFont("helvetica", "bold");
       doc.setFontSize(8.5);
       doc.setTextColor(11, 19, 43);
-      doc.text("Parameter", 24, 114);
-      doc.text("Waarde", 114, 114);
+      doc.text("Parameter", 24, 130);
+      doc.text("Waarde", 114, 130);
       
       doc.setDrawColor(200, 200, 200);
       doc.setLineWidth(0.25);
-      doc.line(20, 116, 190, 116);
+      doc.line(20, 132, 190, 132);
 
       const params = [
         ["Geselecteerd Interflon vet", greaseName],
@@ -926,7 +927,7 @@ function exportToPdf() {
       ];
 
       doc.setFont("helvetica", "normal");
-      let currentY = 116;
+      let currentY = 132;
       params.forEach((p, idx) => {
         currentY += 7;
         doc.setTextColor(72, 84, 96);
