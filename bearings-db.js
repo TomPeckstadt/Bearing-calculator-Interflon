@@ -3,10 +3,12 @@
 
 const BEARING_TYPES = {
   GROOVE_BALL: "Eenrijig groefkogellager",
+  DOUBLE_ROW_GROOVE_BALL: "Dubbelrijig groefkogellager",
   SPHERICAL_ROLLER: "Pendelrollager",
   CYLINDRICAL_ROLLER: "Cilinderlager",
   TAPERED_ROLLER: "Kegellager",
   ANGULAR_CONTACT: "Hoekcontactkogellager",
+  DOUBLE_ROW_ANGULAR_CONTACT: "Dubbelrijig hoekcontactkogellager",
   SELF_ALIGNING_BALL: "Pendelkogellager",
   THRUST_BALL: "Axiaalkogellager"
 };
@@ -120,7 +122,68 @@ const bearingDatabase = {
   "NU307": { d: 35, D: 80, B: 21, C: 73.5, C0: 69.5, refSpeed: 8500, limitSpeed: 9500, mass: 0.51, type: BEARING_TYPES.CYLINDRICAL_ROLLER },
   "NU308": { d: 40, D: 90, B: 23, C: 96.5, C0: 91.5, refSpeed: 7500, limitSpeed: 8500, mass: 0.70, type: BEARING_TYPES.CYLINDRICAL_ROLLER },
   "NU309": { d: 45, D: 100, B: 25, C: 112.0, C0: 108.0, refSpeed: 6700, limitSpeed: 7500, mass: 0.93, type: BEARING_TYPES.CYLINDRICAL_ROLLER },
-  "NU310": { d: 50, D: 110, B: 27, C: 125.0, C0: 125.0, refSpeed: 6000, limitSpeed: 6700, mass: 1.15, type: BEARING_TYPES.CYLINDRICAL_ROLLER }
+  "NU310": { d: 50, D: 110, B: 27, C: 125.0, C0: 125.0, refSpeed: 6000, limitSpeed: 6700, mass: 1.15, type: BEARING_TYPES.CYLINDRICAL_ROLLER },
+
+  // --- DUBBELRIJIGE COGEL- EN ROLLERSLAGERS ---
+  // Pendelkogellagers (22xx, 23xx)
+  "2205": { d: 25, D: 52, B: 18, C: 14.3, C0: 4.0, refSpeed: 24000, limitSpeed: 16000, mass: 0.16, type: BEARING_TYPES.SELF_ALIGNING_BALL },
+  "2206": { d: 30, D: 62, B: 20, C: 15.6, C0: 4.65, refSpeed: 20000, limitSpeed: 14000, mass: 0.25, type: BEARING_TYPES.SELF_ALIGNING_BALL },
+  "2207": { d: 35, D: 72, B: 23, C: 21.6, C0: 6.7, refSpeed: 17000, limitSpeed: 12000, mass: 0.39, type: BEARING_TYPES.SELF_ALIGNING_BALL },
+  "2208": { d: 40, D: 80, B: 23, C: 22.9, C0: 7.65, refSpeed: 15000, limitSpeed: 11000, mass: 0.48, type: BEARING_TYPES.SELF_ALIGNING_BALL },
+  "2209": { d: 45, D: 85, B: 23, C: 23.8, C0: 8.5, refSpeed: 14000, limitSpeed: 9500, mass: 0.52, type: BEARING_TYPES.SELF_ALIGNING_BALL },
+  "2210": { d: 50, D: 90, B: 23, C: 24.2, C0: 9.15, refSpeed: 13000, limitSpeed: 9000, mass: 0.55, type: BEARING_TYPES.SELF_ALIGNING_BALL },
+
+  "2305": { d: 25, D: 62, B: 24, C: 24.2, C0: 6.4, refSpeed: 19000, limitSpeed: 13000, mass: 0.33, type: BEARING_TYPES.SELF_ALIGNING_BALL },
+  "2306": { d: 30, D: 72, B: 27, C: 31.2, C0: 8.8, refSpeed: 16000, limitSpeed: 11000, mass: 0.49, type: BEARING_TYPES.SELF_ALIGNING_BALL },
+  "2307": { d: 35, D: 80, B: 31, C: 39.0, C0: 11.2, refSpeed: 14000, limitSpeed: 9500, mass: 0.69, type: BEARING_TYPES.SELF_ALIGNING_BALL },
+  "2308": { d: 40, D: 90, B: 33, C: 44.2, C0: 13.7, refSpeed: 12000, limitSpeed: 8500, mass: 0.96, type: BEARING_TYPES.SELF_ALIGNING_BALL },
+  "2309": { d: 45, D: 100, B: 36, C: 57.2, C0: 17.6, refSpeed: 11000, limitSpeed: 7500, mass: 1.30, type: BEARING_TYPES.SELF_ALIGNING_BALL },
+  "2310": { d: 50, D: 110, B: 40, C: 65.0, C0: 20.8, refSpeed: 9500, limitSpeed: 6700, mass: 1.75, type: BEARING_TYPES.SELF_ALIGNING_BALL },
+
+  // Dubbelrijige hoekcontactkogellagers (32xx, 33xx)
+  "3205": { d: 25, D: 52, B: 20.6, C: 21.6, C0: 14.3, refSpeed: 15000, limitSpeed: 15000, mass: 0.18, type: BEARING_TYPES.DOUBLE_ROW_ANGULAR_CONTACT },
+  "3206": { d: 30, D: 62, B: 23.8, C: 29.1, C0: 20.0, refSpeed: 12000, limitSpeed: 12000, mass: 0.29, type: BEARING_TYPES.DOUBLE_ROW_ANGULAR_CONTACT },
+  "3207": { d: 35, D: 72, B: 27.0, C: 39.0, C0: 27.5, refSpeed: 10000, limitSpeed: 10000, mass: 0.44, type: BEARING_TYPES.DOUBLE_ROW_ANGULAR_CONTACT },
+  "3208": { d: 40, D: 80, B: 30.2, C: 42.3, C0: 31.5, refSpeed: 9000, limitSpeed: 9000, mass: 0.58, type: BEARING_TYPES.DOUBLE_ROW_ANGULAR_CONTACT },
+  "3209": { d: 45, D: 85, B: 30.2, C: 43.6, C0: 34.0, refSpeed: 8500, limitSpeed: 8500, mass: 0.63, type: BEARING_TYPES.DOUBLE_ROW_ANGULAR_CONTACT },
+  "3210": { d: 50, D: 90, B: 30.2, C: 44.9, C0: 36.5, refSpeed: 8000, limitSpeed: 8000, mass: 0.68, type: BEARING_TYPES.DOUBLE_ROW_ANGULAR_CONTACT },
+
+  "3305": { d: 25, D: 62, B: 25.4, C: 31.9, C0: 20.4, refSpeed: 12000, limitSpeed: 12000, mass: 0.35, type: BEARING_TYPES.DOUBLE_ROW_ANGULAR_CONTACT },
+  "3306": { d: 30, D: 72, B: 30.2, C: 44.2, C0: 29.0, refSpeed: 10000, limitSpeed: 10000, mass: 0.53, type: BEARING_TYPES.DOUBLE_ROW_ANGULAR_CONTACT },
+  "3307": { d: 35, D: 80, B: 34.9, C: 55.3, C0: 38.0, refSpeed: 9000, limitSpeed: 9000, mass: 0.74, type: BEARING_TYPES.DOUBLE_ROW_ANGULAR_CONTACT },
+  "3308": { d: 40, D: 90, B: 36.5, C: 63.7, C0: 45.0, refSpeed: 8000, limitSpeed: 8000, mass: 1.00, type: BEARING_TYPES.DOUBLE_ROW_ANGULAR_CONTACT },
+  "3309": { d: 45, D: 100, B: 39.7, C: 78.0, C0: 56.0, refSpeed: 7000, limitSpeed: 7000, mass: 1.35, type: BEARING_TYPES.DOUBLE_ROW_ANGULAR_CONTACT },
+  "3310": { d: 50, D: 110, B: 44.4, C: 95.6, C0: 69.5, refSpeed: 6300, limitSpeed: 6300, mass: 1.85, type: BEARING_TYPES.DOUBLE_ROW_ANGULAR_CONTACT },
+
+  // Dubbelrijige groefkogellagers (42xx)
+  "4205": { d: 25, D: 52, B: 18, C: 19.0, C0: 14.3, refSpeed: 15000, limitSpeed: 10000, mass: 0.16, type: BEARING_TYPES.DOUBLE_ROW_GROOVE_BALL },
+  "4206": { d: 30, D: 62, B: 20, C: 26.0, C0: 20.4, refSpeed: 12000, limitSpeed: 8500, mass: 0.25, type: BEARING_TYPES.DOUBLE_ROW_GROOVE_BALL },
+  "4207": { d: 35, D: 72, B: 23, C: 33.8, C0: 27.0, refSpeed: 10000, limitSpeed: 7500, mass: 0.39, type: BEARING_TYPES.DOUBLE_ROW_GROOVE_BALL },
+  "4208": { d: 40, D: 80, B: 23, C: 35.8, C0: 30.0, refSpeed: 9000, limitSpeed: 6700, mass: 0.48, type: BEARING_TYPES.DOUBLE_ROW_GROOVE_BALL },
+  "4209": { d: 45, D: 85, B: 23, C: 37.1, C0: 32.5, refSpeed: 8500, limitSpeed: 6300, mass: 0.52, type: BEARING_TYPES.DOUBLE_ROW_GROOVE_BALL },
+  "4210": { d: 50, D: 90, B: 23, C: 37.7, C0: 34.5, refSpeed: 8000, limitSpeed: 6000, mass: 0.55, type: BEARING_TYPES.DOUBLE_ROW_GROOVE_BALL },
+
+  // Extra pendelrollagers (230xx, 231xx, 232xx)
+  "23022": { d: 110, D: 170, B: 45, C: 281.0, C0: 415.0, refSpeed: 3200, limitSpeed: 4300, mass: 3.65, type: BEARING_TYPES.SPHERICAL_ROLLER },
+  "23024": { d: 120, D: 180, B: 46, C: 291.0, C0: 440.0, refSpeed: 3000, limitSpeed: 4000, mass: 3.95, type: BEARING_TYPES.SPHERICAL_ROLLER },
+  "23120": { d: 100, D: 165, B: 52, C: 348.0, C0: 490.0, refSpeed: 2800, limitSpeed: 3800, mass: 4.30, type: BEARING_TYPES.SPHERICAL_ROLLER },
+  "23122": { d: 110, D: 180, B: 56, C: 412.0, C0: 585.0, refSpeed: 2600, limitSpeed: 3400, mass: 5.60, type: BEARING_TYPES.SPHERICAL_ROLLER },
+  "23220": { d: 100, D: 180, B: 60.3, C: 493.0, C0: 640.0, refSpeed: 2400, limitSpeed: 3200, mass: 6.80, type: BEARING_TYPES.SPHERICAL_ROLLER },
+
+  // Extra kegellagers (322xx, 332xx)
+  "32205": { d: 25, D: 52, B: 19.25, C: 37.2, C0: 38.0, refSpeed: 9000, limitSpeed: 13000, mass: 0.17, type: BEARING_TYPES.TAPERED_ROLLER },
+  "32206": { d: 30, D: 62, B: 21.25, C: 49.5, C0: 50.0, refSpeed: 7500, limitSpeed: 11000, mass: 0.28, type: BEARING_TYPES.TAPERED_ROLLER },
+  "32207": { d: 35, D: 72, B: 24.25, C: 67.1, C0: 69.5, refSpeed: 6700, limitSpeed: 9500, mass: 0.44, type: BEARING_TYPES.TAPERED_ROLLER },
+  "32208": { d: 40, D: 80, B: 24.75, C: 78.1, C0: 81.5, refSpeed: 6000, limitSpeed: 8500, mass: 0.55, type: BEARING_TYPES.TAPERED_ROLLER },
+  "32209": { d: 45, D: 85, B: 24.75, C: 80.9, C0: 86.5, refSpeed: 5600, limitSpeed: 8000, mass: 0.59, type: BEARING_TYPES.TAPERED_ROLLER },
+  "32210": { d: 50, D: 90, B: 24.75, C: 85.2, C0: 95.0, refSpeed: 5300, limitSpeed: 7500, mass: 0.63, type: BEARING_TYPES.TAPERED_ROLLER },
+
+  "33205": { d: 25, D: 52, B: 22, C: 44.0, C0: 45.5, refSpeed: 9000, limitSpeed: 13000, mass: 0.20, type: BEARING_TYPES.TAPERED_ROLLER },
+  "33206": { d: 30, D: 62, B: 25, C: 60.5, C0: 63.0, refSpeed: 7500, limitSpeed: 11000, mass: 0.35, type: BEARING_TYPES.TAPERED_ROLLER },
+  "33207": { d: 35, D: 72, B: 28, C: 78.1, C0: 83.0, refSpeed: 6700, limitSpeed: 9500, mass: 0.53, type: BEARING_TYPES.TAPERED_ROLLER },
+  "33208": { d: 40, D: 80, B: 32, C: 104.0, C0: 114.0, refSpeed: 6000, limitSpeed: 8500, mass: 0.76, type: BEARING_TYPES.TAPERED_ROLLER },
+  "33209": { d: 45, D: 85, B: 32, C: 108.0, C0: 122.0, refSpeed: 5600, limitSpeed: 8000, mass: 0.81, type: BEARING_TYPES.TAPERED_ROLLER },
+  "33210": { d: 50, D: 90, B: 32, C: 112.0, C0: 132.0, refSpeed: 5300, limitSpeed: 7500, mass: 0.87, type: BEARING_TYPES.TAPERED_ROLLER }
 };
 
 // Functie om de aanduiding (designation) te cleanen en te parsen als deze niet in de DB zit
@@ -181,7 +244,55 @@ function parseBearingDesignation(input) {
       }
     }
   } 
-  // Pendelrollagers (222xx, 223xx, etc.)
+  // Pendelkogellagers (12xx, 13xx, 22xx, 23xx - lengte 4)
+  else if ((baseStr.startsWith("12") || baseStr.startsWith("13") || baseStr.startsWith("22") || baseStr.startsWith("23")) && baseStr.length === 4) {
+    type = BEARING_TYPES.SELF_ALIGNING_BALL;
+    const code = parseInt(baseStr.slice(-2));
+    d = calculateBoreFromCode(code);
+    
+    if (baseStr.startsWith("12")) {
+      D = Math.round(d * 1.4 + 10);
+      B = Math.round((D - d) * 0.22 + 4);
+    } else if (baseStr.startsWith("13")) {
+      D = Math.round(d * 2.0 + 10);
+      B = Math.round((D - d) * 0.35 + 4);
+    } else if (baseStr.startsWith("22")) {
+      D = Math.round(d * 1.7 + 10);
+      B = Math.round((D - d) * 0.35 + 4);
+    } else { // 23
+      D = Math.round(d * 2.0 + 10);
+      B = Math.round((D - d) * 0.45 + 4);
+    }
+  }
+  // Dubbelrijige hoekcontactkogellagers (32xx, 33xx - lengte 4)
+  else if ((baseStr.startsWith("32") || baseStr.startsWith("33")) && baseStr.length === 4) {
+    type = BEARING_TYPES.DOUBLE_ROW_ANGULAR_CONTACT;
+    const code = parseInt(baseStr.slice(-2));
+    d = calculateBoreFromCode(code);
+    
+    if (baseStr.startsWith("32")) {
+      D = Math.round(d * 1.7 + 10);
+      B = Math.round((D - d) * 0.42 + 4);
+    } else { // 33
+      D = Math.round(d * 2.0 + 10);
+      B = Math.round((D - d) * 0.55 + 4);
+    }
+  }
+  // Dubbelrijige groefkogellagers (42xx, 43xx - lengte 4)
+  else if ((baseStr.startsWith("42") || baseStr.startsWith("43")) && baseStr.length === 4) {
+    type = BEARING_TYPES.DOUBLE_ROW_GROOVE_BALL;
+    const code = parseInt(baseStr.slice(-2));
+    d = calculateBoreFromCode(code);
+    
+    if (baseStr.startsWith("42")) {
+      D = Math.round(d * 1.7 + 10);
+      B = Math.round((D - d) * 0.38 + 4);
+    } else { // 43
+      D = Math.round(d * 2.0 + 10);
+      B = Math.round((D - d) * 0.45 + 4);
+    }
+  }
+  // Pendelrollagers (222xx, 223xx, 230xx, 231xx, 232xx, 240xx, 241xx - lengte 5+)
   else if (baseStr.startsWith("222") || baseStr.startsWith("223") || baseStr.startsWith("230") || baseStr.startsWith("231") || baseStr.startsWith("232") || baseStr.startsWith("240") || baseStr.startsWith("241")) {
     type = BEARING_TYPES.SPHERICAL_ROLLER;
     const code = parseInt(baseStr.slice(-2));
@@ -198,15 +309,33 @@ function parseBearingDesignation(input) {
       B = Math.round((D - d) * 0.3 + 5);
     }
   }
-  // Kegellagers (3xxxx)
+  // Kegellagers (3xxxx - lengte 5+)
   else if (baseStr.startsWith("3") && baseStr.length >= 5) {
     type = BEARING_TYPES.TAPERED_ROLLER;
     const code = parseInt(baseStr.slice(-2));
     d = calculateBoreFromCode(code);
-    D = Math.round(d * 1.7 + 12);
-    B = Math.round((D - d) * 0.25 + 4);
+    
+    if (baseStr.startsWith("320")) {
+      D = Math.round(d * 1.45 + 7);
+      B = Math.round((D - d) * 0.48 + 4);
+    } else if (baseStr.startsWith("322")) {
+      D = Math.round(d * 1.8 + 10);
+      B = Math.round((D - d) * 0.32 + 4);
+    } else if (baseStr.startsWith("332")) {
+      D = Math.round(d * 1.8 + 10);
+      B = Math.round((D - d) * 0.45 + 4);
+    } else if (baseStr.startsWith("302")) {
+      D = Math.round(d * 1.8 + 10);
+      B = Math.round((D - d) * 0.28 + 4);
+    } else if (baseStr.startsWith("303")) {
+      D = Math.round(d * 2.15 + 10);
+      B = Math.round((D - d) * 0.33 + 4);
+    } else {
+      D = Math.round(d * 1.7 + 12);
+      B = Math.round((D - d) * 0.25 + 4);
+    }
   }
-  // Groefkogellagers (6xxx, 16xxx)
+  // Groefkogellagers (6xxx, 16xxx - lengte 4+)
   else if ((baseStr.startsWith("6") || baseStr.startsWith("16")) && baseStr.length >= 4) {
     type = BEARING_TYPES.GROOVE_BALL;
     const code = parseInt(baseStr.slice(-2));
