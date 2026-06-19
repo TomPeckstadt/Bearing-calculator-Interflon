@@ -682,7 +682,7 @@ function exportToPdf() {
   exportBtn.disabled = true;
   exportBtn.innerHTML = "Genereren...";
 
-  getTransparentLogo((watermarkDataUrl) => {
+  getTransparentLogo((watermarkDataUrl, aspectRatio) => {
     try {
       const doc = new jsPDF({
         orientation: "portrait",
@@ -694,9 +694,9 @@ function exportToPdf() {
       const pageHeight = doc.internal.pageSize.getHeight();
 
       // 1. Watermerk logo toevoegen (gecentreerd)
-      if (watermarkDataUrl) {
+      if (watermarkDataUrl && aspectRatio) {
         const imgWidth = 160;
-        const imgHeight = 160 * (1080 / 1920); // ratio gebaseerd op logo
+        const imgHeight = 160 * aspectRatio; // ratio gebaseerd op logo
         const x = (pageWidth - imgWidth) / 2;
         const y = (pageHeight - imgHeight) / 2;
         doc.addImage(watermarkDataUrl, "JPEG", x, y, imgWidth, imgHeight);
@@ -928,10 +928,12 @@ function getTransparentLogo(callback) {
     
     ctx.globalAlpha = 0.15; // Semi-transparant watermerk (15%)
     ctx.drawImage(img, 0, 0);
-    callback(canvas.toDataURL("image/jpeg"));
+    
+    const aspectRatio = img.height / img.width;
+    callback(canvas.toDataURL("image/jpeg"), aspectRatio);
   };
   img.onerror = function () {
     console.warn("Logo watermark kon niet worden geladen. PDF wordt gegenereerd zonder watermerk.");
-    callback(null);
+    callback(null, null);
   };
 }
