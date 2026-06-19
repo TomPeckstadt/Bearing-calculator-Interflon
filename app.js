@@ -363,6 +363,7 @@ function updateCalculatorFields() {
   const boreInput = document.getElementById("inputBoreManual");
   const outerInput = document.getElementById("inputOuterManual");
   const widthInput = document.getElementById("inputWidthManual");
+  const massInput = document.getElementById("inputMassManual");
 
   if (activeBearing) {
     // Vul velden in van actieve lager
@@ -373,15 +374,17 @@ function updateCalculatorFields() {
     boreInput.value = activeBearing.d;
     outerInput.value = activeBearing.D;
     widthInput.value = activeBearing.B;
+    if (massInput) massInput.value = activeBearing.mass || "";
   } else {
-    // Geen lager geladen
+    // Geen lager geladen. We behouden de waarden uit het HTML formulier als standaard voorbeeld
     bannerTitle.textContent = "Geen lager geselecteerd";
     bannerSubtitle.textContent = "Keer terug naar 'Lager Opzoeken' of geef hieronder handmatig de afmetingen in.";
     bannerBadge.textContent = "-";
     
-    boreInput.value = "";
-    outerInput.value = "";
-    widthInput.value = "";
+    if (!boreInput.value) boreInput.value = "120";
+    if (!outerInput.value) outerInput.value = "215";
+    if (!widthInput.value) widthInput.value = "42";
+    if (massInput && !massInput.value) massInput.value = "6.71";
   }
 
   // Voer direct een berekening uit op basis van de ingevulde waarden
@@ -395,97 +398,196 @@ function updateCalculatorFields() {
 function calculateGrease() {
   const tempInput = document.getElementById("inputTemperature");
   const speedInput = document.getElementById("inputSpeed");
+  const limitInput = document.getElementById("inputLimitingSpeed");
   const boreInput = document.getElementById("inputBoreManual");
   const outerInput = document.getElementById("inputOuterManual");
   const widthInput = document.getElementById("inputWidthManual");
-  const envInput = document.getElementById("inputEnvironment");
+  const massInput = document.getElementById("inputMassManual");
+  const greaseSelect = document.getElementById("inputGrease");
+  const TeInput = document.getElementById("inputTe");
+  const TaInput = document.getElementById("inputTa");
+
+  if (!tempInput || !speedInput || !boreInput || !outerInput || !widthInput) return;
 
   const temp = parseFloat(tempInput.value);
   const speed = parseFloat(speedInput.value);
+  const limitingSpeed = limitInput ? parseFloat(limitInput.value) : 4000;
   const d = parseFloat(boreInput.value);
   const D = parseFloat(outerInput.value);
   const B = parseFloat(widthInput.value);
-  const env = envInput.value;
+  const mass = massInput ? parseFloat(massInput.value) : NaN;
+  const greaseName = greaseSelect ? greaseSelect.value : "INTERFLON GREASE MP2/3";
+  const Te = TeInput ? parseFloat(TeInput.value) : 0.5;
+  const Ta = TaInput ? parseFloat(TaInput.value) : 0.5;
 
+  // Elements to update
   const qElement = document.getElementById("calcQuantity");
   const iElement = document.getElementById("calcInterval");
-  const sfElement = document.getElementById("calcSpeedFactor");
+  const sfElement = document.getElementById("calcBearingDN"); // Lager DN-factor
+  const greaseDNElement = document.getElementById("calcGreaseDN"); // Vet DN-limiet
+  const dnWarningRow = document.getElementById("dnWarningRow");
+  
+  const freeVolCmElement = document.getElementById("calcFreeVolumeCm");
+  const freeVolM3Element = document.getElementById("calcFreeVolumeM3");
+  const fillPercentElement = document.getElementById("calcFillPercent");
+  const initFillGramsElement = document.getElementById("calcInitFillGrams");
+  const initFillCmElement = document.getElementById("calcInitFillCm");
+  
+  const baseFreqElement = document.getElementById("calcBaseFreq");
+  const TtElement = document.getElementById("calcTt");
+  const intervalDaysElement = document.getElementById("calcIntervalDays");
+  const intervalWeeksElement = document.getElementById("calcIntervalWeeks");
+  const intervalMonthsElement = document.getElementById("calcIntervalMonths");
+  
+  const coefCElement = document.getElementById("calcCoefC");
+  const strokesElement = document.getElementById("calcStrokes");
+  const densityElement = document.getElementById("calcDensity");
 
   // Validatie van invoergegevens
   if (isNaN(d) || isNaN(D) || isNaN(B) || d <= 0 || D <= 0 || B <= 0) {
-    qElement.textContent = "--";
-    iElement.textContent = "--";
-    sfElement.textContent = "--";
+    const elements = [
+      qElement, iElement, sfElement, greaseDNElement, freeVolCmElement,
+      freeVolM3Element, fillPercentElement, initFillGramsElement, initFillCmElement,
+      baseFreqElement, TtElement, intervalDaysElement, intervalWeeksElement,
+      intervalMonthsElement, coefCElement, strokesElement, densityElement
+    ];
+    elements.forEach(el => { if (el) el.textContent = "--"; });
+    if (dnWarningRow) dnWarningRow.classList.add("hidden");
     return;
   }
 
-  // 1. Smeerhoeveelheid (Gp) = 0.005 * D * B (in gram)
-  const quantity = 0.005 * D * B;
+  // 1. Get Grease Details
+  const grease = (typeof INTERFLON_GREASES !== "undefined" && INTERFLON_GREASES[greaseName]) 
+    ? INTERFLON_GREASES[greaseName] 
+    : { dnMax: 680000, density: 0.92, isHighTemp: false };
+  
+  const dnMax = grease.dnMax;
+  const density = grease.density;
 
-  // 2. Gemiddelde diameter (dm) en Snelheidsfactor (n x dm)
+  if (greaseDNElement) greaseDNElement.textContent = dnMax.toLocaleString("nl-NL");
+  if (densityElement) densityElement.textContent = density.toFixed(2);
+
+  // 2. Lager DN-factor
   const dm = (d + D) / 2;
   const ndm = (isNaN(speed) || speed < 0) ? 0 : speed * dm;
+  if (sfElement) sfElement.textContent = Math.round(ndm).toLocaleString("nl-NL");
 
-  // 3. Smeerfrequentie / Smeerinterval (tf in uren)
-  // Bepaal type lager. We halen dit uit activeBearing of schatten het
-  let bearingType = BEARING_TYPES.GROOVE_BALL;
+  // Show/hide DN factor warning
+  if (dnWarningRow) {
+    if (ndm > dnMax) {
+      dnWarningRow.classList.remove("hidden");
+    } else {
+      dnWarningRow.classList.add("hidden");
+    }
+  }
+
+  // 3. Vrije Volume (V)
+  // Formula: V = [π/4 x B x (D² – d²) x 10^-9 – G / 7800] m³
+  const vol_total_m3 = (Math.PI / 4) * B * (D * D - d * d) * 1e-9;
+  const vol_steel_m3 = (isNaN(mass) || mass <= 0) ? (vol_total_m3 * 0.62) : (mass / 7800);
+  let vol_free_m3 = vol_total_m3 - vol_steel_m3;
+  if (vol_free_m3 < 0) vol_free_m3 = vol_total_m3 * 0.38; // safety threshold
+  const vol_free_cm3 = vol_free_m3 * 1e6;
+
+  if (freeVolM3Element) freeVolM3Element.textContent = vol_free_m3.toFixed(6);
+  if (freeVolCmElement) freeVolCmElement.textContent = Math.round(vol_free_cm3);
+
+  // 4. Initiële vulhoeveelheid (40% van vrije volume)
+  const fillPercent = 40;
+  const fill_cm3 = vol_free_cm3 * (fillPercent / 100);
+  const fill_grams = fill_cm3 * density;
+
+  if (fillPercentElement) fillPercentElement.textContent = fillPercent;
+  if (initFillCmElement) initFillCmElement.textContent = Math.round(fill_cm3);
+  if (initFillGramsElement) initFillGramsElement.textContent = Math.round(fill_grams);
+
+  // 5. Bepaal type lager voor lookup
+  let bearingType = "Groove Ball";
   if (activeBearing && activeBearing.d === d && activeBearing.D === D && activeBearing.B === B) {
     bearingType = activeBearing.type;
   } else {
-    // Schatting: pendelrollagers zijn relatief breder
     if (B / D > 0.28) {
-      bearingType = BEARING_TYPES.SPHERICAL_ROLLER;
+      bearingType = "Spherical Roller";
     }
   }
 
-  // Bepaal de basis factor voor het lager type
-  let baseFactor = 8000000;
-  if (bearingType === BEARING_TYPES.SPHERICAL_ROLLER) {
-    baseFactor = 1000000; // Pendelrollagers draaien langzamer/hebben meer wrijving
-  } else if (bearingType === BEARING_TYPES.CYLINDRICAL_ROLLER) {
-    baseFactor = 4000000; // Cilinderlagers
-  } else if (bearingType === BEARING_TYPES.TAPERED_ROLLER) {
-    baseFactor = 1500000; // Kegellagers
+  // 6. Basis frequentie (FB)
+  const ratio = (isNaN(speed) || speed <= 0 || isNaN(limitingSpeed) || limitingSpeed <= 0) 
+    ? 0.01 
+    : (speed / limitingSpeed);
+  
+  let fb = 20000;
+  if (typeof BASE_FREQUENCY_TABLE !== "undefined") {
+    const roundedRatio = Math.max(0.01, Math.min(1.0, Math.round(ratio * 100) / 100));
+    const entry = BASE_FREQUENCY_TABLE.find(e => Math.abs(e.ratio - roundedRatio) < 0.001) || BASE_FREQUENCY_TABLE[0];
+    
+    const bTypeLower = bearingType.toLowerCase();
+    if (bTypeLower.includes("spherical") || bTypeLower.includes("sferisch")) {
+      fb = entry.sph;
+    } else if (bTypeLower.includes("cylindrical") || bTypeLower.includes("cylindrisch")) {
+      fb = entry.cyl;
+    } else if (bTypeLower.includes("tapered") || bTypeLower.includes("conisch")) {
+      fb = entry.cone;
+    } else {
+      fb = entry.ball;
+    }
   }
+  if (baseFreqElement) baseFreqElement.textContent = fb.toLocaleString("nl-NL");
 
-  let baseInterval = 0;
-  if (ndm > 0) {
-    baseInterval = baseFactor / ndm;
-  } else {
-    baseInterval = 20000; // Als toerental 0 is, neem een hoog basisinterval
-  }
-
-  // Temperatuurcorrectie factor f_temp (norm = 70°C. Halvering per 15°C stijging)
-  let fTemp = 1.0;
+  // 7. Temperatuurfactor (Tt)
+  let Tt = 0.8;
   if (!isNaN(temp)) {
-    if (temp > 70) {
-      fTemp = Math.pow(2, -(temp - 70) / 15);
-    } else if (temp < 70 && temp > 0) {
-      fTemp = Math.pow(2, (70 - temp) / 15);
+    if (grease.isHighTemp) {
+      if (temp <= 85) Tt = 0.8;
+      else if (temp > 85 && temp <= 120) Tt = 0.5;
+      else if (temp > 120 && temp <= 170) Tt = 0.3;
+      else Tt = 0.15;
+    } else {
+      if (temp <= 75) Tt = 0.8;
+      else if (temp > 75 && temp <= 85) Tt = 0.5;
+      else if (temp > 85 && temp <= 120) Tt = 0.3;
+      else Tt = 0.15;
     }
   }
-  // Beperk fTemp om extreme intervallen te voorkomen
-  fTemp = Math.max(0.1, Math.min(2.0, fTemp));
+  if (TtElement) TtElement.textContent = Tt.toFixed(1);
 
-  // Omgevingscorrectie factor f_env
-  let fEnv = 1.0;
-  if (env === "dusty") {
-    fEnv = 0.5;
-  } else if (env === "humid") {
-    fEnv = 0.4;
-  } else if (env === "vibrations") {
-    fEnv = 0.6;
+  // 8. Gecorrigeerd Smeerinterval (FC)
+  const fc = fb * Te * Ta * Tt;
+  if (iElement) iElement.textContent = Math.round(fc).toLocaleString("nl-NL");
+
+  const days = fc / 24;
+  const weeks = days / 7;
+  const months = days / 30.4;
+
+  if (intervalDaysElement) intervalDaysElement.textContent = days.toFixed(1);
+  if (intervalWeeksElement) intervalWeeksElement.textContent = weeks.toFixed(1);
+  if (intervalMonthsElement) intervalMonthsElement.textContent = months.toFixed(1);
+
+  // 9. Coefficient C en Nasmeervolume
+  let coefC = 0.00483;
+  if (typeof CORRECTED_FREQUENCY_TABLE !== "undefined") {
+    const lookupVal = fb;
+    const table = CORRECTED_FREQUENCY_TABLE;
+    if (lookupVal >= table[table.length - 1].freq) {
+      coefC = table[table.length - 1].c;
+    } else {
+      for (let i = 0; i < table.length - 1; i++) {
+        if (lookupVal >= table[i].freq && lookupVal <= table[i+1].freq) {
+          const f0 = table[i].freq;
+          const f1 = table[i+1].freq;
+          const c0 = table[i].c;
+          const c1 = table[i+1].c;
+          coefC = c0 + (c1 - c0) * (lookupVal - f0) / (f1 - f0);
+          break;
+        }
+      }
+    }
   }
+  if (coefCElement) coefCElement.textContent = coefC.toFixed(5);
 
-  // Bereken finaal interval
-  let finalInterval = baseInterval * fTemp * fEnv;
+  const refill_grams = D * B * coefC;
+  if (qElement) qElement.textContent = refill_grams.toFixed(1);
 
-  // Realistische grenzen aanbrengen voor industriële smeerintervallen
-  if (finalInterval > 25000) finalInterval = 25000; // Max 25.000 uur
-  if (finalInterval < 100) finalInterval = 100;     // Min 100 uur
-
-  // Update de interface
-  qElement.textContent = quantity.toFixed(1);
-  iElement.textContent = Math.round(finalInterval).toLocaleString("nl-NL");
-  sfElement.textContent = Math.round(ndm).toLocaleString("nl-NL");
+  const strokes = refill_grams / 2;
+  if (strokesElement) strokesElement.textContent = Math.round(strokes);
 }
