@@ -458,6 +458,20 @@ h1, h2, h3, h4, .brand-text {
   border-radius: 50px;
   border: 1px solid var(--accent-yellow-border-soft);
   box-shadow: var(--shadow-sm);
+  cursor: pointer;
+  font-family: inherit;
+  transition: all var(--transition-fast);
+}
+
+.user-badge:hover {
+  background-color: var(--primary-blue-light);
+  border-color: var(--primary-blue);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+.user-badge:active {
+  transform: translateY(0);
 }
 
 .user-avatar {
@@ -851,3 +865,120 @@ h1, h2, h3, h4, .brand-text {
     padding: 20px;
   }
 }
+
+/* ==========================================================================
+   MODAL & EXPORT STYLING
+   ========================================================================== */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(11, 19, 43, 0.4);
+  backdrop-filter: blur(4px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10000;
+  transition: opacity var(--transition-normal);
+}
+
+.modal-overlay.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.modal-card {
+  background: var(--bg-card);
+  width: 100%;
+  max-width: 480px;
+  padding: 30px;
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--shadow-lg), 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(210, 201, 191, 0.3);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  animation: modalFadeIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes modalFadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.modal-title {
+  font-family: 'Outfit', sans-serif;
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--text-dark);
+}
+
+.modal-subtitle {
+  font-size: 13px;
+  color: var(--text-medium);
+  margin-top: -10px;
+  line-height: 1.5;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.btn-secondary {
+  background-color: var(--bg-main);
+  color: var(--text-medium);
+  border: 1px solid rgba(128, 142, 155, 0.3);
+  box-shadow: none;
+}
+
+.btn-secondary:hover {
+  background-color: #E2E8F0;
+  color: var(--text-dark);
+  box-shadow: none;
+}
+
+.btn-export {
+  background-color: #FFFFFF;
+  color: var(--primary-blue);
+  border: 1px solid #FFFFFF;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: inherit;
+  font-size: 14px;
+  padding: 8px 16px;
+  border-radius: var(--border-radius-sm);
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  transition: all var(--transition-fast);
+}
+
+.btn-export svg {
+  width: 16px;
+  height: 16px;
+  color: var(--primary-blue);
+  transition: transform var(--transition-fast);
+}
+
+.btn-export:hover {
+  background-color: var(--primary-blue-light);
+  color: var(--primary-blue-hover);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+.btn-export:hover svg {
+  transform: translateY(1px);
+}
+
+.btn-export:active {
+  transform: translateY(0);
+}
+
