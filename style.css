@@ -282,11 +282,19 @@ h1, h2, h3, h4, .brand-text {
 }
 
 .sidebar-header {
-  padding: 20px;
+  padding: 0;
   border-bottom: 1px solid var(--accent-yellow-border-soft);
   display: flex;
   align-items: center;
   justify-content: center;
+  overflow: hidden;
+  width: 100%;
+}
+
+.sidebar-logo-img {
+  width: 100%;
+  height: auto;
+  display: block;
 }
 
 .sidebar-logo {
