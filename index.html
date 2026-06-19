@@ -71,8 +71,8 @@
     <!-- Sidebar Navigation -->
     <aside class="sidebar">
       <div class="sidebar-header">
-        <div class="sidebar-logo" style="background-color: var(--accent-yellow); color: var(--text-dark); box-shadow: 0 0 10px rgba(255, 194, 14, 0.3)">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="color: var(--text-dark);">
+        <div class="sidebar-logo" style="background-color: #E30613; color: white; box-shadow: 0 0 10px rgba(227, 6, 19, 0.4); border-radius: 50%;">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="color: white; width: 22px; height: 22px;">
             <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12a7.5 7.5 0 0 0 15 0m-15 0a7.5 7.5 0 1 1 15 0m-15 0H3m16.5 0H21" />
           </svg>
         </div>
@@ -156,7 +156,7 @@
 
         <!-- Empty State (No bearing selected) -->
         <div id="emptySearchState" class="card text-center" style="padding: 60px 20px;">
-          <div style="color: var(--accent-taupe); margin-bottom: 20px;">
+          <div style="color: var(--accent-yellow); margin-bottom: 20px;">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="currentColor" style="width: 72px; height: 72px; margin: 0 auto;">
               <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.637 10.637zM7.5 12h9" />
             </svg>
@@ -340,8 +340,8 @@
                 <span class="input-label-description">Grenstoerental van het lager.</span>
               </div>
 
-              <div style="border-top: 1px solid var(--accent-taupe-light); padding-top: 15px; margin-top: 15px;">
-                <h4 style="font-size: 13px; color: var(--accent-taupe); margin-bottom: 10px;">Lager Afmetingen & Massa</h4>
+              <div style="border-top: 1px solid var(--accent-yellow-border-soft); padding-top: 15px; margin-top: 15px;">
+                <h4 style="font-size: 13px; color: var(--primary-blue); margin-bottom: 10px;">Lager Afmetingen & Massa</h4>
                 
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
                   <div class="form-group">
@@ -368,8 +368,8 @@
                 </div>
               </div>
 
-              <div style="border-top: 1px solid var(--accent-taupe-light); padding-top: 15px; margin-top: 15px;">
-                <h4 style="font-size: 13px; color: var(--accent-taupe); margin-bottom: 10px;">Correctiefactoren</h4>
+              <div style="border-top: 1px solid var(--accent-yellow-border-soft); padding-top: 15px; margin-top: 15px;">
+                <h4 style="font-size: 13px; color: var(--primary-blue); margin-bottom: 10px;">Correctiefactoren</h4>
 
                 <div class="form-group">
                   <label for="inputTe">Omgevingsfactor (Te/Tx)</label>
@@ -451,12 +451,12 @@
                   <span class="detail-label">Temperatuurfactor (Tt)</span>
                   <span class="detail-value"><span id="calcTt">--</span></span>
                 </div>
-                <div class="detail-row" style="background-color: var(--accent-taupe-light); padding: 12px 12px; border-radius: var(--border-radius-sm); flex-direction: column; align-items: stretch; gap: 8px;">
+                <div class="detail-row" style="background-color: var(--accent-yellow-light); padding: 12px 12px; border-radius: var(--border-radius-sm); flex-direction: column; align-items: stretch; gap: 8px;">
                   <div style="display: flex; justify-content: space-between; font-weight: 700; color: var(--text-dark);">
                     <span>Gecorrigeerd Smeerinterval (FC)</span>
                     <span><span id="calcInterval">--</span> uren</span>
                   </div>
-                  <div style="display: flex; justify-content: space-between; font-size: 13px; color: var(--text-medium); border-top: 1px dashed var(--accent-taupe-border); padding-top: 6px;">
+                  <div style="display: flex; justify-content: space-between; font-size: 13px; color: var(--text-medium); border-top: 1px dashed var(--accent-yellow-border); padding-top: 6px;">
                     <span>Dagen: <strong id="calcIntervalDays">--</strong></span>
                     <span>Weken: <strong id="calcIntervalWeeks">--</strong></span>
                     <span>Maanden: <strong id="calcIntervalMonths">--</strong></span>
