@@ -168,20 +168,8 @@ function handleSearchInput() {
     if (matches.length >= 6) break; // Limiteer suggesties tot 6
   }
 
-  // Als er geen exacte matches zijn, toon de input als een "parseren..." optie
-  if (matches.length === 0) {
-    suggestionsBox.innerHTML = `
-      <div class="autocomplete-suggestion" onclick="selectBearing('${input}')">
-        <span class="suggestion-name">Analyseer "${input}"...</span>
-        <span class="suggestion-meta">Dynamische Parser</span>
-      </div>
-    `;
-    suggestionsBox.style.display = "block";
-    return;
-  }
-
-  // Render suggesties
-  suggestionsBox.innerHTML = matches.map(key => {
+  // Render suggesties en de Analyseer optie
+  let html = matches.map(key => {
     const bearing = bearingDatabase[key];
     return `
       <div class="autocomplete-suggestion" onclick="selectBearing('${key}')">
@@ -191,6 +179,20 @@ function handleSearchInput() {
     `;
   }).join("");
 
+  // Voeg ALTIJD de "Analyseer..." optie toe als fallback onder de suggesties,
+  // tenzij de invoer exact overeenkomt met een van de database keys.
+  const exactMatchExists = matches.some(key => key.toUpperCase() === cleanInput);
+  if (!exactMatchExists && (matches.length === 0 || input.length >= 3)) {
+    const borderStyle = matches.length > 0 ? 'border-top: 1px dashed var(--accent-yellow-border-soft);' : '';
+    html += `
+      <div class="autocomplete-suggestion" style="${borderStyle}" onclick="selectBearing('${input}')">
+        <span class="suggestion-name" style="color: var(--primary-blue); font-weight: 600;">Analyseer "${input}"...</span>
+        <span class="suggestion-meta">Dynamische Parser</span>
+      </div>
+    `;
+  }
+
+  suggestionsBox.innerHTML = html;
   suggestionsBox.style.display = "block";
 }
 
