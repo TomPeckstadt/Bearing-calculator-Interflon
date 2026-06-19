@@ -93,6 +93,40 @@
   </div>
 
   <!-- ==========================================================================
+       KLANT MODAL (POPUP FOR CUSTOMER DETAILS)
+       ========================================================================== -->
+  <div id="clientModal" class="modal-overlay hidden">
+    <div class="modal-card">
+      <h3 class="modal-title">Klant Gegevens</h3>
+      <p class="modal-subtitle">Voer hier de gegevens van de klant in. Deze worden bewaard op dit apparaat en getoond op de export-rapporten.</p>
+      
+      <form id="clientForm" onsubmit="saveClientDetails(event)">
+        <div class="form-group">
+          <label for="clientCompanyInput">Bedrijf</label>
+          <input type="text" id="clientCompanyInput" class="form-control" placeholder="Bijv. Janssen Logistics" style="padding-left: 16px;">
+        </div>
+        <div class="form-group">
+          <label for="clientContactInput">Naam contactpersoon</label>
+          <input type="text" id="clientContactInput" class="form-control" placeholder="Bijv. Peter Peeters" style="padding-left: 16px;">
+        </div>
+        <div class="form-group">
+          <label for="clientPhoneInput">Telefoonnummer</label>
+          <input type="tel" id="clientPhoneInput" class="form-control" placeholder="Bijv. +32 475 98 76 54" style="padding-left: 16px;">
+        </div>
+        <div class="form-group">
+          <label for="clientEmailInput">Emailadres</label>
+          <input type="email" id="clientEmailInput" class="form-control" placeholder="Bijv. p.peeters@janssenlogistics.com" style="padding-left: 16px;">
+        </div>
+        
+        <div class="modal-actions">
+          <button type="button" class="btn btn-secondary" onclick="closeClientModal()">Annuleren</button>
+          <button type="submit" class="btn">Opslaan</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==========================================================================
        MAIN DASHBOARD INTERFACE
        ========================================================================== -->
   <div class="app-container">
@@ -152,10 +186,16 @@
           <p id="pageSubtitle">Geef een SKF lagernummer op om alle technische specificaties te tonen.</p>
         </div>
         
-        <button id="userBadgeBtn" class="user-badge" onclick="openOperatorModal()">
-          <div id="userAvatar" class="user-avatar">IF</div>
-          <span id="userName" class="user-name">Operator</span>
-        </button>
+        <div style="display: flex; gap: 10px; align-items: center;">
+          <button id="userBadgeBtn" class="user-badge" onclick="openOperatorModal()">
+            <div id="userAvatar" class="user-avatar">IF</div>
+            <span id="userName" class="user-name">Operator</span>
+          </button>
+          <button id="clientBadgeBtn" class="user-badge" onclick="openClientModal()">
+            <div id="clientAvatar" class="user-avatar" style="background-color: var(--accent-yellow-light); color: var(--primary-blue);">KL</div>
+            <span id="clientName" class="user-name">Klant</span>
+          </button>
+        </div>
       </header>
 
       <!-- ==========================================================================
