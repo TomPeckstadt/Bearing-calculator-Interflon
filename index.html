@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SKF Lager Smeercalculator</title>
-  <meta name="description" content="Bereken eenvoudig de smeerfrequentie en smeerhoeveelheid voor SKF lagers op basis van lagerspecificaties.">
+  <title>Interflon Lager Smeercalculator</title>
+  <meta name="description" content="Bereken eenvoudig de smeerfrequentie en smeerhoeveelheid voor lagers op basis van specificaties met Interflon smeermiddelen.">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -20,7 +20,7 @@
           <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12a7.5 7.5 0 0 0 15 0m-15 0a7.5 7.5 0 1 1 15 0m-15 0H3m16.5 0H21m-1.5 0H12m-8.457 3.077 1.41-.513m14.095-5.13 1.41-.513M5.106 17.785l1.15-.827m11.379-8.16 1.15-.827m-9.42 9.63 1.15-.827M18.894 6.215l1.15-.827m-12.427 1.72 1.41-.513M17.464 12l1.41-.513M6.215 5.106l1.15-.827m11.379 8.16 1.15-.827m-9.42-9.63 1.15-.827M17.785 18.894l1.15-.827M12 4.5V3m0 16.5V21m0-1.5V12" />
         </svg>
       </div>
-      <h2>SKF Smeercalculator</h2>
+      <h2>Interflon Smeercalculator</h2>
       <p>Voer het paswoord in om toegang te krijgen tot de applicatie.</p>
       
       <form id="loginForm" onsubmit="handleLogin(event)">
@@ -58,7 +58,7 @@
       </form>
       
       <div style="margin-top: 24px; font-size: 11px; color: var(--text-light);">
-        Tip: Standaard paswoord is <code style="background: var(--accent-taupe-light); padding: 2px 6px; border-radius: 4px; color: var(--accent-taupe)">smering2026</code>
+        Tip: Standaard paswoord is <code style="background: var(--accent-yellow-light); padding: 2px 6px; border-radius: 4px; color: var(--text-dark); border: 1px solid var(--accent-yellow-border)">smering2026</code>
       </div>
     </div>
   </div>
@@ -71,12 +71,12 @@
     <!-- Sidebar Navigation -->
     <aside class="sidebar">
       <div class="sidebar-header">
-        <div class="sidebar-logo">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+        <div class="sidebar-logo" style="background-color: var(--accent-yellow); color: var(--text-dark); box-shadow: 0 0 10px rgba(255, 194, 14, 0.3)">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="color: var(--text-dark);">
             <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12a7.5 7.5 0 0 0 15 0m-15 0a7.5 7.5 0 1 1 15 0m-15 0H3m16.5 0H21" />
           </svg>
         </div>
-        <span class="brand-text">SKF Calculator</span>
+        <span class="brand-text">Interflon</span>
       </div>
       
       <nav style="flex: 1;">
@@ -129,7 +129,7 @@
         </div>
         
         <div class="user-badge">
-          <div class="user-avatar">SKF</div>
+          <div class="user-avatar">IF</div>
           <span class="user-name">Operator</span>
         </div>
       </header>
@@ -504,20 +504,20 @@
       <section id="pageInfo" class="page-section">
         
         <div class="card">
-          <h3 class="card-title" style="border-bottom: 1px solid var(--accent-taupe-light); padding-bottom: 10px;">
+          <h3 class="card-title" style="border-bottom: 1px solid var(--accent-yellow-border-soft); padding-bottom: 10px;">
             Over deze Webapplicatie
           </h3>
           <p style="line-height: 1.6; margin-bottom: 20px; color: var(--text-medium);">
-            Welkom bij de <strong>SKF Lager Smeercalculator</strong>. Dit systeem is speciaal ontworpen om onderhoudsengineers en operatoren te helpen bij het bepalen van de optimale smeerparameters voor roterende machines.
+            Welkom bij de <strong>Interflon Lager Smeercalculator</strong>. Dit systeem is speciaal ontworpen om onderhoudsengineers en operatoren te helpen bij het bepalen van de optimale smeerparameters voor roterende machines.
           </p>
 
           <h4 style="margin: 30px 0 10px; color: var(--text-dark);">Kleurpalet & Styling</h4>
           <p style="line-height: 1.6; margin-bottom: 20px; color: var(--text-medium);">
-            Het design is gerealiseerd conform uw richtlijnen met een modern en professioneel uiterlijk:
+            Het design is gerealiseerd conform de Interflon huisstijl met een modern en professioneel uiterlijk:
           </p>
           <ul style="margin-left: 20px; margin-bottom: 20px; color: var(--text-medium); line-height: 1.8;">
-            <li><strong>Fris Blauw</strong>: Gebruikt voor knoppen, actieve navigatie, en belangrijke accenten die energie en betrouwbaarheid uitstralen.</li>
-            <li><strong>Brons/Taupe (<span style="color: var(--accent-taupe); font-weight: 700;">#726350</span>)</strong>: De kleur uit de bijlage is gebruikt voor randen, secundaire labels, de inloginterface en visuele details. Dit geeft de app een chique en solide industriële uitstraling.</li>
+            <li><strong>Interflon Blauw</strong>: Gebruikt voor de sidebar, headers, en primaire branding elementen voor een betrouwbare en krachtige uitstraling.</li>
+            <li><strong>Interflon Geel (<span style="color: var(--accent-yellow); font-weight: 700;">#FFC20E</span>)</strong>: Gebruikt voor knoppen, actieve navigatie highlights, en belangrijke accenten die de app een dynamische uitstraling geven.</li>
           </ul>
 
           <h4 style="margin: 30px 0 10px; color: var(--text-dark);">Huidige functionaliteiten</h4>
