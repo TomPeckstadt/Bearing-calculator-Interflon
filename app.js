@@ -59,8 +59,8 @@ function handleLogin(event) {
   const loginError = document.getElementById("loginError");
   const loginOverlay = document.getElementById("loginOverlay");
 
-  // Paswoord controle (hardcoded smering2026 voor deze versie)
-  if (passwordInput.value === "smering2026") {
+  // Paswoord controle (hardcoded smeercalculatie voor deze versie)
+  if (passwordInput.value === "smeercalculatie") {
     sessionStorage.setItem("bearing_calc_logged_in", "true");
     loginOverlay.classList.add("hidden");
     loginError.style.display = "none";
