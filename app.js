@@ -48,6 +48,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Pre-load default values in calculator if needed
   updateCalculatorFields();
+
+  // Laad operator details op startup
+  loadOperatorDetails();
 });
 
 function handleLogin(event) {
@@ -590,4 +593,338 @@ function calculateGrease() {
 
   const strokes = refill_grams / 2;
   if (strokesElement) strokesElement.textContent = Math.round(strokes);
+}
+
+// ==========================================================================
+// OPERATOR GEGEVENS EN POPUP BEHEER
+// ==========================================================================
+
+function loadOperatorDetails() {
+  const name = localStorage.getItem("operator_name") || "";
+  const phone = localStorage.getItem("operator_phone") || "";
+  const email = localStorage.getItem("operator_email") || "";
+
+  const nameInput = document.getElementById("opNameInput");
+  const phoneInput = document.getElementById("opPhoneInput");
+  const emailInput = document.getElementById("opEmailInput");
+
+  if (nameInput) nameInput.value = name;
+  if (phoneInput) phoneInput.value = phone;
+  if (emailInput) emailInput.value = email;
+
+  updateOperatorBadge(name);
+}
+
+function updateOperatorBadge(name) {
+  const userNameEl = document.getElementById("userName");
+  const userAvatarEl = document.getElementById("userAvatar");
+
+  if (!userNameEl || !userAvatarEl) return;
+
+  if (name.trim()) {
+    userNameEl.textContent = name;
+    const parts = name.trim().split(/\s+/);
+    let initials = "";
+    if (parts.length >= 2) {
+      initials = (parts[0][0] + parts[1][0]).toUpperCase();
+    } else if (parts.length === 1) {
+      initials = parts[0].substring(0, 2).toUpperCase();
+    }
+    userAvatarEl.textContent = initials || "OP";
+  } else {
+    userNameEl.textContent = "Operator";
+    userAvatarEl.textContent = "IF";
+  }
+}
+
+function openOperatorModal() {
+  const modal = document.getElementById("operatorModal");
+  if (modal) {
+    loadOperatorDetails();
+    modal.classList.remove("hidden");
+  }
+}
+
+function closeOperatorModal() {
+  const modal = document.getElementById("operatorModal");
+  if (modal) {
+    modal.classList.add("hidden");
+  }
+}
+
+function saveOperatorDetails(event) {
+  event.preventDefault();
+  const name = document.getElementById("opNameInput").value;
+  const phone = document.getElementById("opPhoneInput").value;
+  const email = document.getElementById("opEmailInput").value;
+
+  localStorage.setItem("operator_name", name);
+  localStorage.setItem("operator_phone", phone);
+  localStorage.setItem("operator_email", email);
+
+  updateOperatorBadge(name);
+  closeOperatorModal();
+}
+
+// ==========================================================================
+// EXPORT NAAR PDF INCLUSIEF WATERMERK EN GEGEVENS
+// ==========================================================================
+
+function exportToPdf() {
+  const { jsPDF } = window.jspdf;
+  if (!jsPDF) {
+    alert("Fout: PDF-bibliotheek kon niet worden geladen. Controleer uw internetverbinding.");
+    return;
+  }
+
+  const exportBtn = document.getElementById("btnExportPdf");
+  const originalText = exportBtn.innerHTML;
+  exportBtn.disabled = true;
+  exportBtn.innerHTML = "Genereren...";
+
+  getTransparentLogo((watermarkDataUrl) => {
+    try {
+      const doc = new jsPDF({
+        orientation: "portrait",
+        unit: "mm",
+        format: "a4"
+      });
+
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const pageHeight = doc.internal.pageSize.getHeight();
+
+      // 1. Watermerk logo toevoegen (gecentreerd)
+      if (watermarkDataUrl) {
+        const imgWidth = 160;
+        const imgHeight = 160 * (1080 / 1920); // ratio gebaseerd op logo
+        const x = (pageWidth - imgWidth) / 2;
+        const y = (pageHeight - imgHeight) / 2;
+        doc.addImage(watermarkDataUrl, "JPEG", x, y, imgWidth, imgHeight);
+      }
+
+      // 2. Header Rapport
+      doc.setFillColor(227, 6, 19); // Interflon Rood
+      doc.rect(20, 20, 170, 2, "F");
+
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(20);
+      doc.setTextColor(227, 6, 19);
+      doc.text("INTERFLON LAGER SMEERADVIES", 20, 32);
+
+      const now = new Date();
+      const dateString = now.toLocaleDateString("nl-NL") + " " + now.toLocaleTimeString("nl-NL", {hour: '2-digit', minute:'2-digit'});
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(9);
+      doc.setTextColor(100, 100, 100);
+      doc.text("Rapport gegenereerd op: " + dateString, 20, 38);
+
+      doc.setDrawColor(220, 220, 220);
+      doc.line(20, 42, 190, 42);
+
+      // 3. Twee kolommen: Operator info & Lager specs
+      const opName = localStorage.getItem("operator_name") || "-";
+      const opPhone = localStorage.getItem("operator_phone") || "-";
+      const opEmail = localStorage.getItem("operator_email") || "-";
+
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(11);
+      doc.setTextColor(11, 19, 43);
+      doc.text("Operator Gegevens", 20, 52);
+
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(9);
+      doc.setTextColor(72, 84, 96);
+      doc.text("Naam:", 20, 59);
+      doc.text("Telefoon:", 20, 65);
+      doc.text("E-mail:", 20, 71);
+
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(11, 19, 43);
+      doc.text(opName, 42, 59);
+      doc.text(opPhone, 42, 65);
+      doc.text(opEmail, 42, 71);
+
+      // Lager details
+      const bearingName = document.getElementById("calcBannerBadge").textContent || "-";
+      const d = document.getElementById("inputBoreManual").value || "-";
+      const D = document.getElementById("inputOuterManual").value || "-";
+      const B = document.getElementById("inputWidthManual").value || "-";
+      const G = document.getElementById("inputMassManual").value || "-";
+
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(11);
+      doc.setTextColor(11, 19, 43);
+      doc.text("Lager Specificaties", 110, 52);
+
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(9);
+      doc.setTextColor(72, 84, 96);
+      doc.text("Aanduiding:", 110, 59);
+      doc.text("Boring (d):", 110, 65);
+      doc.text("Buitendiameter (D):", 110, 71);
+      doc.text("Breedte (B):", 110, 77);
+      doc.text("Massa (G):", 110, 83);
+
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(11, 19, 43);
+      doc.text(bearingName, 146, 59);
+      doc.text(d + " mm", 146, 65);
+      doc.text(D + " mm", 146, 71);
+      doc.text(B + " mm", 146, 77);
+      doc.text(G + " kg", 146, 83);
+
+      doc.line(20, 90, 190, 90);
+
+      // 4. Tabel: Bedrijfsparameters
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(11);
+      doc.setTextColor(11, 19, 43);
+      doc.text("Bedrijfsparameters", 20, 99);
+
+      const greaseName = document.getElementById("inputGrease").value;
+      const speed = document.getElementById("inputSpeed").value;
+      const limitSpeed = document.getElementById("inputLimitingSpeed").value;
+      const temp = document.getElementById("inputTemperature").value;
+      const envFactor = document.getElementById("inputTe").options[document.getElementById("inputTe").selectedIndex].text;
+      const appFactor = document.getElementById("inputTa").options[document.getElementById("inputTa").selectedIndex].text;
+
+      doc.setFillColor(244, 246, 249);
+      doc.rect(20, 104, 170, 7, "F");
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(8.5);
+      doc.setTextColor(11, 19, 43);
+      doc.text("Parameter", 24, 109);
+      doc.text("Waarde", 114, 109);
+
+      const params = [
+        ["Geselecteerd Interflon vet", greaseName],
+        ["Bedrijfssnelheid (toerental)", speed + " r/min"],
+        ["Grenstoerental (limiting speed)", limitSpeed + " r/min"],
+        ["Bedrijfstemperatuur (°C)", temp + " °C"],
+        ["Omgevingsfactor (Te/Tx)", envFactor],
+        ["Toepassingsfactor (Ta)", appFactor]
+      ];
+
+      doc.setFont("helvetica", "normal");
+      let currentY = 111;
+      params.forEach((p, idx) => {
+        currentY += 7;
+        if (idx % 2 === 1) {
+          doc.setFillColor(248, 250, 252);
+          doc.rect(20, currentY - 5, 170, 7, "F");
+        }
+        doc.setTextColor(72, 84, 96);
+        doc.text(p[0], 24, currentY);
+        doc.setTextColor(11, 19, 43);
+        doc.text(p[1], 114, currentY);
+      });
+
+      doc.line(20, currentY + 5, 190, currentY + 5);
+
+      // 5. Tabel: Calculatieresultaten
+      currentY += 13;
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(11);
+      doc.setTextColor(11, 19, 43);
+      doc.text("Calculatieresultaten & Smeeradvies", 20, currentY);
+
+      currentY += 5;
+      doc.setFillColor(244, 246, 249);
+      doc.rect(20, currentY, 170, 7, "F");
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(8.5);
+      doc.setTextColor(11, 19, 43);
+      doc.text("Resultaatparameter", 24, currentY + 5);
+      doc.text("Berekende Waarde", 114, currentY + 5);
+
+      const bearingDN = document.getElementById("calcBearingDN").textContent;
+      const greaseDN = document.getElementById("calcGreaseDN").textContent;
+      const freeVol = document.getElementById("calcFreeVolumeCm").textContent;
+      const fillGrams = document.getElementById("calcInitFillGrams").textContent;
+      const fillCm = document.getElementById("calcInitFillCm").textContent;
+      const baseFreq = document.getElementById("calcBaseFreq").textContent;
+      const ttFactor = document.getElementById("calcTt").textContent;
+      const correctedInterval = document.getElementById("calcInterval").textContent;
+      const cDays = document.getElementById("calcIntervalDays").textContent;
+      const cWeeks = document.getElementById("calcIntervalWeeks").textContent;
+      const cMonths = document.getElementById("calcIntervalMonths").textContent;
+      const coefC = document.getElementById("calcCoefC").textContent;
+      const quantity = document.getElementById("calcQuantity").textContent;
+      const strokes = document.getElementById("calcStrokes").textContent;
+
+      const results = [
+        ["Lager DN-factor", bearingDN + " (Vet DN-limiet: " + greaseDN + ")"],
+        ["Vrije volume (V)", freeVol + " cm³"],
+        ["Initiële vulling (40% volume)", fillGrams + " gram (" + fillCm + " cm³)"],
+        ["Basisfrequentie (FB)", baseFreq + " uren"],
+        ["Temperatuurfactor (Tt)", ttFactor],
+        ["Gecorrigeerd Smeerinterval (FC)", correctedInterval + " uren"],
+        ["Interval omgerekend", cDays + " dagen / " + cWeeks + " weken / " + cMonths + " maanden"],
+        ["Coëfficiënt C", coefC],
+        ["Nasmeerhoeveelheid (Refill)", quantity + " gram"],
+        ["Vetspuit slagen (2g per slag)", strokes + " slagen"]
+      ];
+
+      results.forEach((r, idx) => {
+        currentY += 7;
+        if (idx % 2 === 1) {
+          doc.setFillColor(248, 250, 252);
+          doc.rect(20, currentY - 5, 170, 7, "F");
+        }
+        
+        if (r[0].includes("Gecorrigeerd Smeerinterval") || r[0].includes("Nasmeerhoeveelheid") || r[0].includes("slagen")) {
+          doc.setFont("helvetica", "bold");
+          doc.setTextColor(227, 6, 19); // Rood
+        } else {
+          doc.setFont("helvetica", "normal");
+          doc.setTextColor(72, 84, 96);
+        }
+        doc.text(r[0], 24, currentY);
+        
+        if (r[0].includes("Gecorrigeerd Smeerinterval") || r[0].includes("Nasmeerhoeveelheid") || r[0].includes("slagen")) {
+          doc.setTextColor(227, 6, 19);
+        } else {
+          doc.setTextColor(11, 19, 43);
+        }
+        doc.text(r[1], 114, currentY);
+      });
+
+      doc.setFont("helvetica", "normal");
+
+      // 6. Footer
+      doc.setFontSize(7.5);
+      doc.setTextColor(150, 150, 150);
+      doc.text("Dit advies is gegenereerd op basis van theoretische formules en geselecteerde invoerdata. Controleer altijd de praktijkomstandigheden.", 20, 275);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(227, 6, 19);
+      doc.text("INTERFLON - A WORLD WITHOUT FRICTION", 20, 280);
+
+      doc.save("Interflon_Smeeradvies_" + bearingName.replace(/[\/\\?%*:|"<>\s]/g, "_") + ".pdf");
+    } catch (e) {
+      console.error("Fout bij genereren PDF:", e);
+      alert("Er is een fout opgetreden bij het genereren van het PDF-rapport: " + e.message);
+    } finally {
+      exportBtn.disabled = false;
+      exportBtn.innerHTML = originalText;
+    }
+  });
+}
+
+function getTransparentLogo(callback) {
+  const img = new Image();
+  img.crossOrigin = "Anonymous";
+  img.src = "interflon-logo.jpg";
+  img.onload = function () {
+    const canvas = document.createElement("canvas");
+    canvas.width = img.width;
+    canvas.height = img.height;
+    const ctx = canvas.getContext("2d");
+    ctx.globalAlpha = 0.15; // Semi-transparent
+    ctx.drawImage(img, 0, 0);
+    callback(canvas.toDataURL("image/jpeg"));
+  };
+  img.onerror = function () {
+    console.warn("Logo watermark kon niet worden geladen. PDF wordt gegenereerd zonder watermerk.");
+    callback(null);
+  };
 }
