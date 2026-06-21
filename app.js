@@ -6,6 +6,12 @@ let currentLang = localStorage.getItem("bearing_calc_lang") || "nl";
 
 const TRANSLATIONS = {
   nl: {
+    pageSearchTitle: "Lager Opzoeken",
+    pageSearchSubtitle: "Geef een SKF lagernummer op om alle technische specificaties te tonen.",
+    pageCalcTitle: "Smeercalculatie",
+    pageCalcSubtitle: "Bereken de optimale smeerhoeveelheid en smeerinterval op basis van lagertype en bedrijfsparameters.",
+    pageInfoTitle: "Informatie",
+    pageInfoSubtitle: "Uitleg over werking, gebruikte formules en het ontwerp van de applicatie.",
     selectLanguageLabel: "Selecteer uw taal",
     loginTitle: "Interflon Smeercalculator",
     loginSubtitle: "Voer het paswoord in om toegang te krijgen tot de applicatie.",
@@ -160,6 +166,12 @@ const TRANSLATIONS = {
     "Axiaalkogellager": "Axiaalkogellager"
   },
   en: {
+    pageSearchTitle: "Search Bearing",
+    pageSearchSubtitle: "Enter an SKF bearing number to display all technical specifications.",
+    pageCalcTitle: "Lubrication Calculation",
+    pageCalcSubtitle: "Calculate the optimal lubrication quantity and interval based on bearing type and operating parameters.",
+    pageInfoTitle: "Information",
+    pageInfoSubtitle: "Explanation of operation, formulas used, and design of the application.",
     selectLanguageLabel: "Select your language",
     loginTitle: "Interflon Lubrication Calculator",
     loginSubtitle: "Enter the password to access the application.",
@@ -314,6 +326,12 @@ const TRANSLATIONS = {
     "Axiaalkogellager": "Thrust ball bearing"
   },
   fr: {
+    pageSearchTitle: "Recherche Roulement",
+    pageSearchSubtitle: "Saisissez un numéro de roulement SKF pour afficher toutes les spécifications techniques.",
+    pageCalcTitle: "Calcul de Lubrification",
+    pageCalcSubtitle: "Calculez la quantité et l'intervalle de lubrification optimaux en fonction du type de roulement et des paramètres de fonctionnement.",
+    pageInfoTitle: "Informations",
+    pageInfoSubtitle: "Explication du fonctionnement, des formules utilisées et de la conception de l'application.",
     selectLanguageLabel: "Choisissez votre langue",
     loginTitle: "Calculateur de Lubrification Interflon",
     loginSubtitle: "Saisissez le mot de passe pour accéder à l'application.",
@@ -518,13 +536,8 @@ function changeLanguage(lang) {
     }
   }
 
-  // If no bearing is selected, make sure banner title/subtitle update
-  const bannerTitle = document.getElementById("calcBannerTitle");
-  const bannerSubtitle = document.getElementById("calcBannerSubtitle");
-  if (!activeBearing) {
-    if (bannerTitle) bannerTitle.textContent = TRANSLATIONS[lang]["searchEmptyTitle"];
-    if (bannerSubtitle) bannerSubtitle.textContent = TRANSLATIONS[lang]["calcBannerSubtitleEmpty"];
-  }
+  // Update calculator selection banner and fields
+  updateCalculatorFields();
 
   // Re-run grease calculations to update dynamic variables and output formatting
   calculateGrease();
@@ -748,19 +761,32 @@ function switchPage(pageId) {
   if (pageId === 'search') {
     document.getElementById("pageSearch").classList.add("active");
     document.getElementById("menuSearch").classList.add("active");
-    targetTitle.textContent = "Lager Opzoeken";
-    targetSubtitle.textContent = "Geef een SKF lagernummer op om alle technische specificaties te tonen.";
+    if (targetTitle) targetTitle.setAttribute("data-i18n", "pageSearchTitle");
+    if (targetSubtitle) targetSubtitle.setAttribute("data-i18n", "pageSearchSubtitle");
   } else if (pageId === 'calc') {
     document.getElementById("pageCalc").classList.add("active");
     document.getElementById("menuCalc").classList.add("active");
-    targetTitle.textContent = "Smeercalculatie";
-    targetSubtitle.textContent = "Bereken de optimale smeerhoeveelheid en smeerinterval op basis van lagertype en bedrijfsparameters.";
+    if (targetTitle) targetTitle.setAttribute("data-i18n", "pageCalcTitle");
+    if (targetSubtitle) targetSubtitle.setAttribute("data-i18n", "pageCalcSubtitle");
     updateCalculatorFields();
   } else if (pageId === 'info') {
     document.getElementById("pageInfo").classList.add("active");
     document.getElementById("menuInfo").classList.add("active");
-    targetTitle.textContent = "Informatie";
-    targetSubtitle.textContent = "Uitleg over werking, gebruikte formules en het ontwerp van de applicatie.";
+    if (targetTitle) targetTitle.setAttribute("data-i18n", "pageInfoTitle");
+    if (targetSubtitle) targetSubtitle.setAttribute("data-i18n", "pageInfoSubtitle");
+  }
+
+  // Vertaling toepassen op deze dynamische elementen
+  const lang = currentLang || "nl";
+  if (TRANSLATIONS[lang]) {
+    if (targetTitle) {
+      const key = targetTitle.getAttribute("data-i18n");
+      if (TRANSLATIONS[lang][key]) targetTitle.textContent = TRANSLATIONS[lang][key];
+    }
+    if (targetSubtitle) {
+      const key = targetSubtitle.getAttribute("data-i18n");
+      if (TRANSLATIONS[lang][key]) targetSubtitle.textContent = TRANSLATIONS[lang][key];
+    }
   }
 }
 
@@ -858,7 +884,7 @@ function loadBearingDetails(designation) {
   resultsArea.classList.remove("hidden");
 
   document.getElementById("specBearingName").textContent = designation.toUpperCase();
-  document.getElementById("specType").textContent = result.type;
+  document.getElementById("specType").textContent = translateBearingType(result.type);
   document.getElementById("specBore").textContent = result.d;
   document.getElementById("specOuter").textContent = result.D;
   document.getElementById("specWidth").textContent = result.B;
@@ -994,10 +1020,17 @@ function updateCalculatorFields() {
   const widthInput = document.getElementById("inputWidthManual");
   const massInput = document.getElementById("inputMassManual");
 
+  const lang = currentLang || "nl";
+  const langData = TRANSLATIONS[lang] || TRANSLATIONS["nl"];
+
   if (activeBearing) {
     // Vul velden in van actieve lager
-    bannerTitle.textContent = `Geselecteerd: SKF ${activeBearing.designation.toUpperCase()}`;
-    bannerSubtitle.textContent = `Lagertype: ${activeBearing.type}. Bedrijfsparameters kunnen hieronder worden aangepast.`;
+    const selectedPrefix = lang === "nl" ? "Geselecteerd" : lang === "en" ? "Selected" : "Sélectionné";
+    const typeLabel = langData.bearingType || "Lagertype";
+    const customLabel = lang === "nl" ? "Bedrijfsparameters kunnen hieronder worden aangepast." : lang === "en" ? "Operating parameters can be customized below." : "Les paramètres de fonctionnement peuvent être modifiés ci-dessous.";
+    
+    bannerTitle.textContent = `${selectedPrefix}: SKF ${activeBearing.designation.toUpperCase()}`;
+    bannerSubtitle.textContent = `${typeLabel}: ${translateBearingType(activeBearing.type)}. ${customLabel}`;
     bannerBadge.textContent = `${activeBearing.d}x${activeBearing.D}x${activeBearing.B} mm`;
     
     boreInput.value = activeBearing.d;
@@ -1006,8 +1039,8 @@ function updateCalculatorFields() {
     if (massInput) massInput.value = activeBearing.mass || "";
   } else {
     // Geen lager geladen. We behouden de waarden uit het HTML formulier als standaard voorbeeld
-    bannerTitle.textContent = "Geen lager geselecteerd";
-    bannerSubtitle.textContent = "Keer terug naar 'Lager Opzoeken' of geef hieronder handmatig de afmetingen in.";
+    bannerTitle.textContent = langData.searchEmptyTitle || "Geen lager geselecteerd";
+    bannerSubtitle.textContent = langData.calcBannerSubtitleEmpty || "Keer terug naar 'Lager Opzoeken' of geef hieronder handmatig de afmetingen in.";
     bannerBadge.textContent = "-";
     
     if (!boreInput.value) boreInput.value = "120";
