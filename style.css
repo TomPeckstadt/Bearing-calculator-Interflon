@@ -96,6 +96,33 @@ h1, h2, h3, h4, .brand-text {
   text-align: center;
   position: relative;
   overflow: hidden;
+  transition: opacity var(--transition-normal), transform var(--transition-normal);
+}
+
+.login-card.fade-out {
+  opacity: 0;
+  transform: scale(0.95);
+  pointer-events: none;
+}
+
+.video-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: #0b1118;
+  z-index: 20000;
+  justify-content: center;
+  align-items: center;
+  opacity: 0;
+  transition: opacity 0.5s ease;
+}
+
+.video-overlay.active {
+  display: flex;
+  opacity: 1;
 }
 
 .login-card::before {
