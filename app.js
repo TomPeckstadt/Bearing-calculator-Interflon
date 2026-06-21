@@ -6,6 +6,14 @@ let currentLang = localStorage.getItem("bearing_calc_lang") || "nl";
 
 const TRANSLATIONS = {
   nl: {
+    descGrease: "Bepaalt de maximale DN-factor en de vetdichtheid.",
+    bearingDimensionsTitle: "Lager Afmetingen & Massa",
+    correctionFactorsTitle: "Correctiefactoren",
+    speedGreaseLimitsTitle: "Snelheid & Vetlimieten",
+    resGreaseLimitLabel: "Vet DN-limiet",
+    freeVolInitFillTitle: "Vrije Volume & Initiële Vulling",
+    resFreeVolLabel: "Vrije volume (V)",
+    frequencyIntervalTitle: "Smeerfrequentie / Smeerinterval",
     pageSearchTitle: "Lager Opzoeken",
     pageSearchSubtitle: "Geef een SKF lagernummer op om alle technische specificaties te tonen.",
     pageCalcTitle: "Smeercalculatie",
@@ -166,6 +174,14 @@ const TRANSLATIONS = {
     "Axiaalkogellager": "Axiaalkogellager"
   },
   en: {
+    descGrease: "Determines the maximum DN factor and grease density.",
+    bearingDimensionsTitle: "Bearing Dimensions & Mass",
+    correctionFactorsTitle: "Correction Factors",
+    speedGreaseLimitsTitle: "Speed & Grease Limits",
+    resGreaseLimitLabel: "Grease DN Limit",
+    freeVolInitFillTitle: "Free Volume & Initial Fill",
+    resFreeVolLabel: "Free volume (V)",
+    frequencyIntervalTitle: "Lubrication Frequency / Interval",
     pageSearchTitle: "Search Bearing",
     pageSearchSubtitle: "Enter an SKF bearing number to display all technical specifications.",
     pageCalcTitle: "Lubrication Calculation",
@@ -326,6 +342,14 @@ const TRANSLATIONS = {
     "Axiaalkogellager": "Thrust ball bearing"
   },
   fr: {
+    descGrease: "Détermine le facteur DN maximum et la densité de la graisse.",
+    bearingDimensionsTitle: "Dimensions & Masse du Roulement",
+    correctionFactorsTitle: "Facteurs de Correction",
+    speedGreaseLimitsTitle: "Vitesse & Limites de Graisse",
+    resGreaseLimitLabel: "Limite DN de la graisse",
+    freeVolInitFillTitle: "Volume Libre & Remplissage Initial",
+    resFreeVolLabel: "Volume libre (V)",
+    frequencyIntervalTitle: "Fréquence / Intervalle de Lubrification",
     pageSearchTitle: "Recherche Roulement",
     pageSearchSubtitle: "Saisissez un numéro de roulement SKF pour afficher toutes les spécifications techniques.",
     pageCalcTitle: "Calcul de Lubrification",
