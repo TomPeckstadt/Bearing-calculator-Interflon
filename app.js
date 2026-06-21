@@ -65,9 +65,7 @@ function handleLogin(event) {
   // Paswoord controle (hardcoded smeercalculatie voor deze versie)
   if (passwordInput.value === "smeercalculatie") {
     sessionStorage.setItem("bearing_calc_logged_in", "true");
-    loginOverlay.classList.add("hidden");
-    loginError.style.display = "none";
-    passwordInput.value = "";
+    playOpeningAnimation();
   } else {
     loginError.style.display = "flex";
     passwordInput.classList.add("error-shake");
@@ -76,6 +74,98 @@ function handleLogin(event) {
     }, 400);
   }
 }
+
+function playOpeningAnimation() {
+  const loginCard = document.querySelector('.login-card');
+  const videoOverlay = document.getElementById('videoOverlay');
+  const video = document.getElementById('openingVideo');
+  const loginOverlay = document.getElementById('loginOverlay');
+  const passwordInput = document.getElementById('passwordInput');
+  const loginError = document.getElementById('loginError');
+
+  // Show and fade in video overlay immediately, and fade out the form card
+  if (videoOverlay) {
+    videoOverlay.classList.add('active');
+  }
+  if (loginCard) {
+    loginCard.classList.add('fade-out');
+  }
+
+  // Set playback rate safely (1.4x like PDC dashboard)
+  if (video) {
+    try {
+      video.playbackRate = 1.4;
+    } catch (e) {
+      console.warn('Could not set playbackRate:', e);
+    }
+    // Try to play with sound first by unmuting
+    video.muted = false;
+  }
+
+  let animationFinished = false;
+
+  const proceedToApp = () => {
+    if (animationFinished) return;
+    animationFinished = true;
+
+    // Hide the login overlay entirely
+    if (loginOverlay) {
+      loginOverlay.classList.add('hidden');
+    }
+    if (loginError) {
+      loginError.style.display = 'none';
+    }
+    if (passwordInput) {
+      passwordInput.value = '';
+    }
+    
+    // Fade out the video overlay
+    if (videoOverlay) {
+      videoOverlay.style.opacity = '0';
+      setTimeout(() => {
+        videoOverlay.classList.remove('active');
+        // Reset styles for future logins (if user logs out)
+        videoOverlay.style.opacity = '';
+        if (loginCard) {
+          loginCard.classList.remove('fade-out');
+        }
+      }, 500);
+    }
+  };
+
+  if (video) {
+    video.play().then(() => {
+      console.log('Video playback started with sound.');
+    }).catch(err => {
+      console.warn('Autoplay with sound failed, falling back to muted:', err);
+      // Fall back to muted (which is guaranteed to work since muted is in HTML markup)
+      video.muted = true;
+      video.play().catch(err2 => {
+        console.error('Autoplay fully blocked, moving directly to dashboard:', err2);
+        proceedToApp();
+      });
+    });
+
+    // Transition when video ends
+    video.onended = () => {
+      proceedToApp();
+    };
+
+    // Transition on error
+    video.onerror = (e) => {
+      console.error('Video playback error, moving to dashboard...', e);
+      proceedToApp();
+    };
+  } else {
+    proceedToApp();
+  }
+
+  // Safety timeout fallback (8 seconds)
+  setTimeout(() => {
+    proceedToApp();
+  }, 8000);
+}
+
 
 function handleLogout() {
   sessionStorage.removeItem("bearing_calc_logged_in");
