@@ -1506,9 +1506,9 @@ function exportToPdf() {
 
       doc.setFont("helvetica", "bold");
       doc.setTextColor(11, 19, 43);
-      doc.text(opName, 38, 59);
-      doc.text(opPhone, 38, 65);
-      doc.text(opEmail, 38, 71);
+      doc.text(opName, 58, 59);
+      doc.text(opPhone, 58, 65);
+      doc.text(opEmail, 58, 71);
 
       // Links: Klant Gegevens (y=80 tot y=105)
       doc.setFont("helvetica", "bold");
@@ -1526,10 +1526,10 @@ function exportToPdf() {
 
       doc.setFont("helvetica", "bold");
       doc.setTextColor(11, 19, 43);
-      doc.text(clientCompany, 38, 87);
-      doc.text(clientContact, 38, 93);
-      doc.text(clientPhone, 38, 99);
-      doc.text(clientEmail, 38, 105);
+      doc.text(clientCompany, 58, 87);
+      doc.text(clientContact, 58, 93);
+      doc.text(clientPhone, 58, 99);
+      doc.text(clientEmail, 58, 105);
 
       // Rechter kolom: Lager details (y=52 tot y=89)
       let bearingNum = currentLang === "nl" ? "Handmatige invoer" : currentLang === "en" ? "Manual input" : "Saisie manuelle";
