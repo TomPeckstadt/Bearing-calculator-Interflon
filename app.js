@@ -1008,12 +1008,15 @@ function exportToPdf() {
       doc.setFont("helvetica", "normal");
 
       // 6. Footer
-      doc.setFontSize(7.5);
-      doc.setTextColor(150, 150, 150);
-      doc.text("Dit advies is gegenereerd op basis van theoretische formules en geselecteerde invoerdata. Controleer altijd de praktijkomstandigheden.", 20, 275);
+      doc.setFontSize(6.8);
+      doc.setTextColor(140, 140, 140);
+      const disclaimer = "De gegenereerde gegevens bieden een betrouwbare indicatie, maar vormen geen expliciete garantie dat een product of dosering geschikt is voor elke specifieke toepassing. De calculator biedt een adviesrichtlijn; er kan geen wettelijke waarborg of aansprakelijkheid worden verleend met betrekking tot het concrete gebruik ervan in de praktijk.";
+      doc.text(disclaimer, 20, 271, { maxWidth: 170 });
+      
       doc.setFont("helvetica", "bold");
+      doc.setFontSize(7.5);
       doc.setTextColor(227, 6, 19);
-      doc.text("INTERFLON - A WORLD WITHOUT FRICTION", 20, 280);
+      doc.text("INTERFLON - A WORLD WITHOUT FRICTION", 20, 282);
 
       doc.save("Interflon_Smeeradvies_" + bearingNum.replace(/[\/\\?%*:|"<>\s]/g, "_") + ".pdf");
     } catch (e) {
