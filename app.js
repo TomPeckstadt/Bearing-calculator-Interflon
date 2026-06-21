@@ -2,6 +2,534 @@
 // Beheert inloggen, paginanavigatie, zoeken naar lagers en dynamische visualisatie.
 
 let activeBearing = null;
+let currentLang = localStorage.getItem("bearing_calc_lang") || "nl";
+
+const TRANSLATIONS = {
+  nl: {
+    selectLanguageLabel: "Selecteer uw taal",
+    loginTitle: "Interflon Smeercalculator",
+    loginSubtitle: "Voer het paswoord in om toegang te krijgen tot de applicatie.",
+    passwordLabel: "Paswoord",
+    passwordPlaceholder: "Vul paswoord in...",
+    loginBtn: "Inloggen",
+    loginError: "Onjuist paswoord. Probeer opnieuw.",
+    menuSearch: "Lager Zoeken",
+    menuCalc: "Berekening",
+    menuInfo: "Informatie",
+    btnLogout: "Uitloggen",
+    operatorBadge: "Operator",
+    clientBadge: "Klant",
+    opTitle: "Operator Gegevens",
+    opSubtitle: "Voer hier uw gegevens in. Deze worden bewaard op dit apparaat en getoond op de export-rapporten.",
+    opNameLabel: "Naam",
+    opPhoneLabel: "Telefoonnummer",
+    opEmailLabel: "Emailadres",
+    opNamePlaceholder: "Bijv. Jan Janssen",
+    opPhonePlaceholder: "Bijv. +32 475 12 34 56",
+    opEmailPlaceholder: "Bijv. jan.janssen@interflon.com",
+    clientTitle: "Klant Gegevens",
+    clientSubtitle: "Voer hier de klantgegevens in. Deze worden getoond op de export-rapporten.",
+    clientCompanyLabel: "Bedrijf",
+    clientContactLabel: "Naam contactpersoon",
+    clientPhoneLabel: "Telefoonnummer",
+    clientEmailLabel: "Emailadres",
+    clientCompanyPlaceholder: "Bijv. Janssen Logistics",
+    clientContactPlaceholder: "Bijv. Peter Peeters",
+    clientPhonePlaceholder: "Bijv. +32 475 98 76 54",
+    clientEmailPlaceholder: "Bijv. p.peeters@janssenlogistics.com",
+    cancel: "Annuleren",
+    save: "Opslaan",
+    searchTitle: "Lager Smeercalculator",
+    searchSubtitle: "Selecteer een lager uit de database of geef handmatig de afmetingen in om de optimale smeerhoeveelheid en interval te berekenen.",
+    searchInputLabel: "Zoek lager op typenummer...",
+    searchInputPlaceholder: "Bijv. 6204 of NU209...",
+    btnManual: "Handmatige Invoer",
+    customAnalyze: "Analyseer...",
+    selectedBearingTitle: "Lagerspecificaties:",
+    bearingType: "Lagertype",
+    boreDiameter: "Boring / Asdiameter (d)",
+    outerDiameter: "Buitendiameter (D)",
+    widthB: "Breedte (B)",
+    weightG: "Massa",
+    limitingSpeed: "Grenstoerental",
+    dynLoad: "Dynamisch draaggetal (C)",
+    statLoad: "Statisch draaggetal (C0)",
+    refSpeed: "Referentietoerental",
+    btnToCalculations: "Start Smeerberekening",
+    calcTitle: "Berekening & Smeeradvies",
+    calcBearingLabel: "Lager:",
+    btnPdfReport: "Rapport PDF",
+    cardInputs: "Invoerparameters",
+    inputGreaseLabel: "Selecteer Interflon Vet",
+    inputTempLabel: "Bedrijfstemperatuur (°C)",
+    inputSpeedLabel: "Operationeel Toerental (RPM)",
+    inputLimitSpeedLabel: "Grenstoerental (RPM) - Optioneel",
+    inputBoreLabel: "Boring (d) [mm]",
+    inputOuterLabel: "Buitendiameter (D) [mm]",
+    inputWidthLabel: "Breedte (B) [mm]",
+    inputWeightLabel: "Massa (G) [kg]",
+    inputTeLabel: "Omgevingsfactor (Te/Tx)",
+    inputTaLabel: "Toepassingsfactor (Ta)",
+    cardResults: "Berekende Resultaten",
+    resFreeVol: "Vrij Volume Lager (V)",
+    resInitialFill: "Eerste Smeervulling (40%)",
+    resInterval: "Gecorrigeerd Smeerinterval (FC)",
+    resRefillQty: "Nasmaarhoeveelheid",
+    resStrokes: "Aantal Slagen Vetspuit",
+    resBaseInterval: "Basissmeerinterval (FB)",
+    resTempFactor: "Temperatuurfactor (Tt)",
+    resDnFactor: "DN-Factor Lager",
+    resGreaseLimit: "Grenstoerental Geselecteerd Vet (DN)",
+    infoTitle: "Over deze Webapplicatie",
+    infoIntro: "Welkom bij de <strong>Interflon Lager Smeercalculator</strong>. Dit systeem is speciaal ontworpen om onderhoudsengineers en operatoren te helpen bij het bepalen van de optimale smeerparameters voor roterende machines.",
+    legalDisclaimerText: "De gegenereerde gegevens bieden een betrouwbare indicatie, maar vormen geen expliciete garantie dat een product of dosering geschikt is voor elke specifieke toepassing. De calculator biedt een adviesrichtlijn; er kan geen wettelijke waarborg of aansprakelijkheid worden verleend met betrekking tot het concrete gebruik ervan in de praktijk.",
+    estimatedNote: "<strong>Let op:</strong> Dit lager is niet gevonden in de vaste database. De afmetingen hieronder zijn berekend en geschat op basis van de SKF aanduiding. Gelieve te verifiëren.",
+    warningSpeedLimit: "Waarschuwing: Het toerental (RPM) is hoger dan het grenstoerental van de lager!",
+    warningDnLimit: "Waarschuwing: De DN-factor (RPM * dm) overschrijdt de limiet van het geselecteerde vet!",
+    teOptionAvg: "Gemiddeld (0,8)",
+    teOptionDust: "Stof / Hoog (0,5)",
+    teOptionMoisture: "Vocht / Erg hoog (0,3)",
+    teOptionCondense: "Condensatie / Extreem (0,15)",
+    taOptionAvg: "Gemiddeld (0,8)",
+    taOptionShock: "Schokken / Hoog (0,5)",
+    taOptionVibe: "Vibraties / Erg hoog (0,3)",
+    taOptionVert: "Verticale as / Extreem (0,15)",
+    unitHours: "uren",
+    unitDays: "dagen",
+    unitWeeks: "weken",
+    unitMonths: "maanden",
+    unitStrokes: "slagen",
+    unitGrams: "gram",
+    unitGramsVet: "gram vet",
+    pdfTitle: "INTERFLON LAGER SMEERADVIES",
+    pdfDocTitle: "INTERFLON LAGER SMEERADVIES",
+    pdfDate: "Datum",
+    pdfEstimateNote: "Let op: Afmetingen en parameters zijn geschat op basis van SKF-aanduiding.",
+    pdfWatermarkText: "A world without friction",
+    pdfReportGeneratedOn: "Rapport gegenereerd op: ",
+    pdfValue: "Waarde",
+    pdfParameter: "Parameter",
+    pdfBearingSpecs: "Lager Specificaties",
+    pdfBearingNumber: "Nummer:",
+    pdfBoreD: "Boring (d):",
+    pdfOuterD: "Buitendia. (D):",
+    pdfWidthB: "Breedte (B):",
+    pdfMassG: "Massa (G):",
+    pdfResultsTitle: "Calculatieresultaten & Smeeradvies",
+    pdfResultParameter: "Resultaatparameter",
+    pdfCalculatedValue: "Berekende Waarde",
+    pdfErrorLib: "Fout: PDF-bibliotheek kon niet worden geladen. Controleer uw internetverbinding.",
+    pdfErrorGen: "Er is een fout opgetreden bij het genereren van het PDF-rapport: ",
+    pdfGenerating: "Genereren...",
+    visualDimensionsTitle: "Visuele Afmetingen",
+    visualNoteBlue: "Blauwe markeringen tonen de kogels/rollen.",
+    boreDiameterShort: "boring",
+    outerDiameterShort: "buitendiameter",
+    widthBShort: "breedte",
+    searchEmptyTitle: "Geen lager geselecteerd",
+    searchEmptyDesc: "Typ hierboven een SKF aanduiding (bijvoorbeeld <strong>6204</strong>, <strong>22220</strong> of <strong>NU210</strong>) en selecteer deze om de dimensionale gegevens te laden.",
+    calcBannerSubtitleEmpty: "Keer terug naar 'Lager Opzoeken' om een lager te laden, of vul handmatig afmetingen in.",
+    descLimitSpeed: "Grenstoerental van het lager.",
+    descSpeed: "Draaisnelheid van het lager.",
+    descTemp: "Bepaalt de temperatuurcorrectiefactor Tt.",
+    resFillPercentLabel: "Vullingspercentage",
+    resInitialFillLabel: "Initiële vulhoeveelheid",
+    resBaseIntervalLabel: "Basis frequentie (FB)",
+    resTempFactorLabel: "Temperatuurfactor (Tt)",
+    resIntervalLabel: "Gecorrigeerd Smeerinterval (FC)",
+    resCoefCLabel: "Coefficient C",
+    refillVolumeTitle: "Nasmeervolume (Refills)",
+    resRefillDesc: "Nasmeerhoeveelheid (D x B x C)",
+    resStrokesDesc: "Vetspuit (2g/slag)",
+    densityInfoTitle: "Dichtheidsinfo:",
+    densityInfoTextPre: "Het geselecteerde vet heeft een dichtheid van",
+    densityInfoTextPost: "Vulhoeveelheid = cm³ x dichtheid.",
+    lblDays: "Dagen",
+    lblWeeks: "Weken",
+    lblMonths: "Maanden",
+    
+    // Bearing types translation
+    "Eenrijig groefkogellager": "Eenrijig groefkogellager",
+    "Dubbelrijig groefkogellager": "Dubbelrijig groefkogellager",
+    "Pendelrollager": "Pendelrollager",
+    "Cilinderlager": "Cilinderlager",
+    "Kegellager": "Kegellager",
+    "Hoekcontactkogellager": "Hoekcontactkogellager",
+    "Dubbelrijig hoekcontactkogellager": "Dubbelrijig hoekcontactkogellager",
+    "Pendelkogellager": "Pendelkogellager",
+    "Axiaalkogellager": "Axiaalkogellager"
+  },
+  en: {
+    selectLanguageLabel: "Select your language",
+    loginTitle: "Interflon Lubrication Calculator",
+    loginSubtitle: "Enter the password to access the application.",
+    passwordLabel: "Password",
+    passwordPlaceholder: "Enter password...",
+    loginBtn: "Log In",
+    loginError: "Incorrect password. Please try again.",
+    menuSearch: "Search Bearing",
+    menuCalc: "Calculation",
+    menuInfo: "Information",
+    btnLogout: "Log Out",
+    operatorBadge: "Operator",
+    clientBadge: "Customer",
+    opTitle: "Operator Details",
+    opSubtitle: "Enter your details here. These are saved on this device and shown on export reports.",
+    opNameLabel: "Name",
+    opPhoneLabel: "Phone Number",
+    opEmailLabel: "Email Address",
+    opNamePlaceholder: "E.g. John Doe",
+    opPhonePlaceholder: "E.g. +31 475 12 34 56",
+    opEmailPlaceholder: "E.g. john.doe@interflon.com",
+    clientTitle: "Customer Details",
+    clientSubtitle: "Enter the customer details here. These are shown on export reports.",
+    clientCompanyLabel: "Company",
+    clientContactLabel: "Contact Person",
+    clientPhoneLabel: "Phone Number",
+    clientEmailLabel: "Email Address",
+    clientCompanyPlaceholder: "E.g. Janssen Logistics",
+    clientContactPlaceholder: "E.g. Peter Peeters",
+    clientPhonePlaceholder: "E.g. +32 475 98 76 54",
+    clientEmailPlaceholder: "E.g. p.peeters@janssenlogistics.com",
+    cancel: "Cancel",
+    save: "Save",
+    searchTitle: "Bearing Lubrication Calculator",
+    searchSubtitle: "Select a bearing from the database or enter dimensions manually to calculate the optimal grease quantity and interval.",
+    searchInputLabel: "Search bearing by designation...",
+    searchInputPlaceholder: "E.g. 6204 or NU209...",
+    btnManual: "Manual Input",
+    customAnalyze: "Analyze...",
+    selectedBearingTitle: "Bearing Specifications:",
+    bearingType: "Bearing Type",
+    boreDiameter: "Bore / Shaft Diameter (d)",
+    outerDiameter: "Outer Diameter (D)",
+    widthB: "Width (B)",
+    weightG: "Mass",
+    limitingSpeed: "Limiting Speed",
+    dynLoad: "Dynamic Load Rating (C)",
+    statLoad: "Static Load Rating (C0)",
+    refSpeed: "Reference Speed",
+    btnToCalculations: "Start Lubrication Calculation",
+    calcTitle: "Calculation & Lubrication Advice",
+    calcBearingLabel: "Bearing:",
+    btnPdfReport: "PDF Report",
+    cardInputs: "Input Parameters",
+    inputGreaseLabel: "Select Interflon Grease",
+    inputTempLabel: "Operating Temperature (°C)",
+    inputSpeedLabel: "Operating Speed (RPM)",
+    inputLimitSpeedLabel: "Limiting Speed (RPM) - Optional",
+    inputBoreLabel: "Bore (d) [mm]",
+    inputOuterLabel: "Outer Diameter (D) [mm]",
+    inputWidthLabel: "Width (B) [mm]",
+    inputWeightLabel: "Mass (G) [kg]",
+    inputTeLabel: "Environmental Factor (Te/Tx)",
+    inputTaLabel: "Application Factor (Ta)",
+    cardResults: "Calculated Results",
+    resFreeVol: "Bearing Free Volume (V)",
+    resInitialFill: "Initial Grease Fill (40%)",
+    resInterval: "Corrected Lubrication Interval (FC)",
+    resRefillQty: "Relubrication Quantity",
+    resStrokes: "Grease Gun Strokes",
+    resBaseInterval: "Base Lubrication Interval (FB)",
+    resTempFactor: "Temperature Factor (Tt)",
+    resDnFactor: "Bearing DN Factor",
+    resGreaseLimit: "Selected Grease Speed Limit (DN)",
+    infoTitle: "About this Web Application",
+    infoIntro: "Welcome to the <strong>Interflon Bearing Lubrication Calculator</strong>. This system is specifically designed to help maintenance engineers and operators determine the optimal lubrication parameters for rotating machinery.",
+    legalDisclaimerText: "The generated data provide a reliable indication, but do not constitute an explicit guarantee that a product or dosage is suitable for any specific application. The calculator offers an advisory guideline; no legal warranty or liability can be granted regarding its actual use in practice.",
+    estimatedNote: "<strong>Please note:</strong> This bearing was not found in the fixed database. The dimensions below are calculated and estimated based on the SKF designation. Please verify.",
+    warningSpeedLimit: "Warning: The speed (RPM) exceeds the bearing's limiting speed!",
+    warningDnLimit: "Warning: The DN factor (RPM * dm) exceeds the selected grease limit!",
+    teOptionAvg: "Average (0.8)",
+    teOptionDust: "Dust / High (0.5)",
+    teOptionMoisture: "Moisture / Very high (0.3)",
+    teOptionCondense: "Condensation / Extreme (0.15)",
+    taOptionAvg: "Average (0.8)",
+    taOptionShock: "Shocks / High (0.5)",
+    taOptionVibe: "Vibrations / Very high (0.3)",
+    taOptionVert: "Vertical shaft / Extreme (0.15)",
+    unitHours: "hours",
+    unitDays: "days",
+    unitWeeks: "weeks",
+    unitMonths: "months",
+    unitStrokes: "strokes",
+    unitGrams: "grams",
+    unitGramsVet: "grams of grease",
+    pdfTitle: "INTERFLON BEARING LUBRICATION ADVICE",
+    pdfDocTitle: "INTERFLON BEARING LUBRICATION ADVICE",
+    pdfDate: "Date",
+    pdfEstimateNote: "Please note: Dimensions and parameters are estimated based on SKF designation.",
+    pdfWatermarkText: "A world without friction",
+    pdfReportGeneratedOn: "Report generated on: ",
+    pdfValue: "Value",
+    pdfParameter: "Parameter",
+    pdfBearingSpecs: "Bearing Specifications",
+    pdfBearingNumber: "Number:",
+    pdfBoreD: "Bore (d):",
+    pdfOuterD: "Outer Dia. (D):",
+    pdfWidthB: "Width (B):",
+    pdfMassG: "Mass (G):",
+    pdfResultsTitle: "Calculation Results & Lubrication Advice",
+    pdfResultParameter: "Result Parameter",
+    pdfCalculatedValue: "Calculated Value",
+    pdfErrorLib: "Error: PDF library could not be loaded. Please check your internet connection.",
+    pdfErrorGen: "An error occurred while generating the PDF report: ",
+    pdfGenerating: "Generating...",
+    visualDimensionsTitle: "Visual Dimensions",
+    visualNoteBlue: "Blue markings show the balls/rollers.",
+    boreDiameterShort: "bore",
+    outerDiameterShort: "outer diameter",
+    widthBShort: "width",
+    searchEmptyTitle: "No bearing selected",
+    searchEmptyDesc: "Type an SKF designation above (for example <strong>6204</strong>, <strong>22220</strong> or <strong>NU210</strong>) and select it to load dimensional data.",
+    calcBannerSubtitleEmpty: "Return to 'Search Bearing' to load a bearing, or fill in dimensions manually.",
+    descLimitSpeed: "Limiting speed of the bearing.",
+    descSpeed: "Rotational speed of the bearing.",
+    descTemp: "Determines the temperature correction factor Tt.",
+    resFillPercentLabel: "Fill percentage",
+    resInitialFillLabel: "Initial grease quantity",
+    resBaseIntervalLabel: "Base frequency (FB)",
+    resTempFactorLabel: "Temperature factor (Tt)",
+    resIntervalLabel: "Corrected Lubrication Interval (FC)",
+    resCoefCLabel: "Coefficient C",
+    refillVolumeTitle: "Relubrication Volume (Refills)",
+    resRefillDesc: "Relubrication quantity (D x B x C)",
+    resStrokesDesc: "Grease gun (2g/stroke)",
+    densityInfoTitle: "Density Info:",
+    densityInfoTextPre: "The selected grease has a density of",
+    densityInfoTextPost: "Grease quantity = cm³ x density.",
+    lblDays: "Days",
+    lblWeeks: "Weeks",
+    lblMonths: "Months",
+    
+    // Bearing types translation
+    "Eenrijig groefkogellager": "Single row deep groove ball bearing",
+    "Dubbelrijig groefkogellager": "Double row deep groove ball bearing",
+    "Pendelrollager": "Spherical roller bearing",
+    "Cilinderlager": "Cylindrical roller bearing",
+    "Kegellager": "Tapered roller bearing",
+    "Hoekcontactkogellager": "Angular contact ball bearing",
+    "Dubbelrijig hoekcontactkogellager": "Double row angular contact ball bearing",
+    "Pendelkogellager": "Self-aligning ball bearing",
+    "Axiaalkogellager": "Thrust ball bearing"
+  },
+  fr: {
+    selectLanguageLabel: "Choisissez votre langue",
+    loginTitle: "Calculateur de Lubrification Interflon",
+    loginSubtitle: "Saisissez le mot de passe pour accéder à l'application.",
+    passwordLabel: "Mot de passe",
+    passwordPlaceholder: "Saisir le mot de passe...",
+    loginBtn: "Se connecter",
+    loginError: "Mot de passe incorrect. Veuillez réessayer.",
+    menuSearch: "Recherche Roulement",
+    menuCalc: "Calcul",
+    menuInfo: "Informations",
+    btnLogout: "Se déconnecter",
+    operatorBadge: "Opérateur",
+    clientBadge: "Client",
+    opTitle: "Informations Opérateur",
+    opSubtitle: "Saisissez vos coordonnées ici. Elles sont enregistrées sur cet appareil et affichées sur les rapports d'exportation.",
+    opNameLabel: "Nom",
+    opPhoneLabel: "Numéro de Téléphone",
+    opEmailLabel: "Adresse E-mail",
+    opNamePlaceholder: "Par ex. Jean Dupont",
+    opPhonePlaceholder: "Par ex. +33 1 23 45 67 89",
+    opEmailPlaceholder: "Par ex. jean.dupont@interflon.com",
+    clientTitle: "Informations Client",
+    clientSubtitle: "Saisissez les coordonnées du client ici. Elles sont affichées sur les rapports d'exportation.",
+    clientCompanyLabel: "Entreprise",
+    clientContactLabel: "Personne de Contact",
+    clientPhoneLabel: "Numéro de Téléphone",
+    clientEmailLabel: "Adresse E-mail",
+    clientCompanyPlaceholder: "Par ex. Janssen Logistics",
+    clientContactPlaceholder: "Par ex. Peter Peeters",
+    clientPhonePlaceholder: "Par ex. +32 475 98 76 54",
+    clientEmailPlaceholder: "Par ex. p.peeters@janssenlogistics.com",
+    cancel: "Annuler",
+    save: "Enregistrer",
+    searchTitle: "Calculateur de Lubrification des Roulements",
+    searchSubtitle: "Sélectionnez un roulement dans la base de données ou saisissez manuellement les dimensions pour calculer la quantité de graisse et l'intervalle optimaux.",
+    searchInputLabel: "Rechercher un roulement par désignation...",
+    searchInputPlaceholder: "Par ex. 6204 ou NU209...",
+    btnManual: "Saisie Manuelle",
+    customAnalyze: "Analyser...",
+    selectedBearingTitle: "Spécifications du Roulement :",
+    bearingType: "Type de Roulement",
+    boreDiameter: "Diamètre Intérieur / Alésage (d)",
+    outerDiameter: "Diamètre Extérieur (D)",
+    widthB: "Largeur (B)",
+    weightG: "Masse",
+    limitingSpeed: "Vitesse Limite",
+    dynLoad: "Capacité de charge dynamique (C)",
+    statLoad: "Capacité de charge statique (C0)",
+    refSpeed: "Vitesse de référence",
+    btnToCalculations: "Démarrer le Calcul de Smeer",
+    calcTitle: "Calcul et Conseil de Lubrification",
+    calcBearingLabel: "Roulement :",
+    btnPdfReport: "Rapport PDF",
+    cardInputs: "Paramètres d'Entrée",
+    inputGreaseLabel: "Sélectionner la Graisse Interflon",
+    inputTempLabel: "Température de Fonctionnement (°C)",
+    inputSpeedLabel: "Vitesse de Fonctionnement (RPM)",
+    inputLimitSpeedLabel: "Vitesse Limite (RPM) - Optionnel",
+    inputBoreLabel: "Alésage (d) [mm]",
+    inputOuterLabel: "Diamètre Extérieur (D) [mm]",
+    inputWidthLabel: "Largeur (B) - mm",
+    inputWeightLabel: "Masse (G) [kg]",
+    inputTeLabel: "Facteur Environnemental (Te/Tx)",
+    inputTaLabel: "Facteur d'Application (Ta)",
+    cardResults: "Résultats Calculés",
+    resFreeVol: "Volume Libre du Roulement (V)",
+    resInitialFill: "Premier Remplissage de Graisse (40%)",
+    resInterval: "Intervalle de Lubrification Corrigé (FC)",
+    resRefillQty: "Quantité de Relubrification",
+    resStrokes: "Coups de Pompe à Graisse",
+    resBaseInterval: "Intervalle de Lubrification de Base (FB)",
+    resTempFactor: "Facteur de Température (Tt)",
+    resDnFactor: "Facteur DN du Roulement",
+    resGreaseLimit: "Vitesse Limite de la Graisse (DN)",
+    infoTitle: "À propos de cette Application Web",
+    infoIntro: "Bienvenue sur le <strong>Calculateur de Lubrification des Roulements Interflon</strong>. Ce système est spécifiquement conçu pour aider les ingénieurs de maintenance et les opérateurs à déterminer les paramètres de lubrification optimaux pour les machines tournantes.",
+    legalDisclaimerText: "Les données générées fournissent une indication fiable, mais ne constituent pas une garantie explicite qu'un produit ou un dosage convient à une application spécifique. Le calculateur propose une ligne directrice de conseil ; aucune garantie légale ou responsabilité ne peut être accordée concernant son utilisation concrète en pratique.",
+    estimatedNote: "<strong>Attention :</strong> Ce roulement n'a pas été trouvé dans la base de données fixe. Les dimensions ci-dessous sont estimées et calculées sur la base de la désignation SKF. Veuillez vérifier.",
+    warningSpeedLimit: "Avertissement : La vitesse (RPM) dépasse la vitesse limite du roulement !",
+    warningDnLimit: "Avertissement : Le facteur DN (RPM * dm) dépasse la limite de la graisse sélectionnée !",
+    teOptionAvg: "Moyen (0,8)",
+    teOptionDust: "Poussière / Élevé (0,5)",
+    teOptionMoisture: "Humidité / Très élevé (0,3)",
+    teOptionCondense: "Condensation / Extrême (0,15)",
+    taOptionAvg: "Moyen (0,8)",
+    taOptionShock: "Chocs / Élevé (0,5)",
+    taOptionVibe: "Vibrations / Très élevé (0,3)",
+    taOptionVert: "Arbre vertical / Extrême (0,15)",
+    unitHours: "heures",
+    unitDays: "jours",
+    unitWeeks: "semaines",
+    unitMonths: "mois",
+    unitStrokes: "coups",
+    unitGrams: "grammes",
+    unitGramsVet: "grammes de graisse",
+    pdfTitle: "CONSEIL DE LUBRIFICATION DES ROULEMENTS INTERFLON",
+    pdfDocTitle: "CONSEIL DE LUBRIFICATION DES ROULEMENTS INTERFLON",
+    pdfDate: "Date",
+    pdfEstimateNote: "Attention : Les dimensions et les paramètres sont estimés sur la base de la désignation SKF.",
+    pdfWatermarkText: "A world without friction",
+    pdfReportGeneratedOn: "Rapport généré le : ",
+    pdfValue: "Valeur",
+    pdfParameter: "Paramètre",
+    pdfBearingSpecs: "Spécifications du Roulement",
+    pdfBearingNumber: "Numéro :",
+    pdfBoreD: "Alésage (d) :",
+    pdfOuterD: "Diam. Extérieur (D) :",
+    pdfWidthB: "Largeur (B) :",
+    pdfMassG: "Masse (G) :",
+    pdfResultsTitle: "Résultats du Calcul & Conseil de Lubrification",
+    pdfResultParameter: "Paramètre de Résultat",
+    pdfCalculatedValue: "Valeur Calculée",
+    pdfErrorLib: "Erreur : La bibliothèque PDF n'a pas pu être chargée. Veuillez vérifier votre connexion Internet.",
+    pdfErrorGen: "Une erreur s'est produite lors de la génération du rapport PDF : ",
+    pdfGenerating: "Génération...",
+    visualDimensionsTitle: "Dimensions Visuelles",
+    visualNoteBlue: "Les repères bleus indiquent les billes/rouleaux.",
+    boreDiameterShort: "alésage",
+    outerDiameterShort: "diamètre extérieur",
+    widthBShort: "largeur",
+    searchEmptyTitle: "Aucun roulement sélectionné",
+    searchEmptyDesc: "Saisissez une désignation SKF ci-dessus (par exemple <strong>6204</strong>, <strong>22220</strong> ou <strong>NU210</strong>) et sélectionnez-la pour charger les données dimensionnelles.",
+    calcBannerSubtitleEmpty: "Retournez à 'Recherche Roulement' pour charger un roulement, ou saisissez les dimensions manuellement.",
+    descLimitSpeed: "Vitesse limite du roulement.",
+    descSpeed: "Vitesse de rotation du roulement.",
+    descTemp: "Détermine le facteur de correction de température Tt.",
+    resFillPercentLabel: "Pourcentage de remplissage",
+    resInitialFillLabel: "Quantité de graisse initiale",
+    resBaseIntervalLabel: "Fréquence de base (FB)",
+    resTempFactorLabel: "Facteur de température (Tt)",
+    resIntervalLabel: "Intervalle de Lubrification Corrigé (FC)",
+    resCoefCLabel: "Coefficient C",
+    refillVolumeTitle: "Volume de Relubrification (Refills)",
+    resRefillDesc: "Quantité de relubrification (D x B x C)",
+    resStrokesDesc: "Pompe à graisse (2g/coup)",
+    densityInfoTitle: "Infos de Densité :",
+    densityInfoTextPre: "La graisse sélectionnée a une densité de",
+    densityInfoTextPost: "Quantité de graisse = cm³ x densité.",
+    lblDays: "Jours",
+    lblWeeks: "Semaines",
+    lblMonths: "Mois",
+    
+    // Bearing types translation
+    "Eenrijig groefkogellager": "Roulement rigide à billes à une rangée",
+    "Dubbelrijig groefkogellager": "Roulement rigide à billes à deux rangées",
+    "Pendelrollager": "Roulement à rotule sur rouleaux",
+    "Cilinderlager": "Roulement à rouleaux cylindriques",
+    "Kegellager": "Roulement à rouleaux coniques",
+    "Hoekcontactkogellager": "Roulement à billes à contact oblique",
+    "Dubbelrijig hoekcontactkogellager": "Roulement à billes à contact oblique à deux rangées",
+    "Pendelkogellager": "Roulement à rotule sur billes",
+    "Axiaalkogellager": "Butée à billes"
+  }
+};
+
+function translateBearingType(typeStr) {
+  if (!typeStr) return "-";
+  const lang = currentLang || "nl";
+  if (TRANSLATIONS[lang] && TRANSLATIONS[lang][typeStr]) {
+    return TRANSLATIONS[lang][typeStr];
+  }
+  return typeStr;
+}
+
+function changeLanguage(lang) {
+  if (!TRANSLATIONS[lang]) return;
+  localStorage.setItem("bearing_calc_lang", lang);
+  currentLang = lang;
+
+  // Sync select dropdown if it exists
+  const langSelect = document.getElementById("langSelect");
+  if (langSelect) {
+    langSelect.value = lang;
+  }
+
+  // Update text values
+  document.querySelectorAll("[data-i18n]").forEach(el => {
+    const key = el.getAttribute("data-i18n");
+    if (TRANSLATIONS[lang] && TRANSLATIONS[lang][key]) {
+      // Use innerHTML for formatting tags inside alert text, intro and legal disclaimer
+      if (key === "estimatedNote" || key === "legalDisclaimerText" || key === "infoIntro" || key === "searchEmptyDesc") {
+        el.innerHTML = TRANSLATIONS[lang][key];
+      } else {
+        el.textContent = TRANSLATIONS[lang][key];
+      }
+    }
+  });
+
+  // Update placeholders
+  document.querySelectorAll("[data-i18n-placeholder]").forEach(el => {
+    const key = el.getAttribute("data-i18n-placeholder");
+    if (TRANSLATIONS[lang] && TRANSLATIONS[lang][key]) {
+      el.placeholder = TRANSLATIONS[lang][key];
+    }
+  });
+
+  // Re-load labels in the specs area
+  if (activeBearing) {
+    const specTypeEl = document.getElementById("specType");
+    if (specTypeEl) {
+      specTypeEl.textContent = translateBearingType(activeBearing.type);
+    }
+  }
+
+  // If no bearing is selected, make sure banner title/subtitle update
+  const bannerTitle = document.getElementById("calcBannerTitle");
+  const bannerSubtitle = document.getElementById("calcBannerSubtitle");
+  if (!activeBearing) {
+    if (bannerTitle) bannerTitle.textContent = TRANSLATIONS[lang]["searchEmptyTitle"];
+    if (bannerSubtitle) bannerSubtitle.textContent = TRANSLATIONS[lang]["calcBannerSubtitleEmpty"];
+  }
+
+  // Re-run grease calculations to update dynamic variables and output formatting
+  calculateGrease();
+}
+
 
 // ==========================================================================
 // AUTHENTICATIE & LOGIN LOGICA
@@ -54,6 +582,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Laad klant details op startup
   loadClientDetails();
+
+  // Initialiseer de taal
+  changeLanguage(currentLang);
 });
 
 function handleLogin(event) {
@@ -841,15 +1372,17 @@ function saveClientDetails(event) {
 
 function exportToPdf() {
   const { jsPDF } = window.jspdf;
+  const langData = TRANSLATIONS[currentLang] || TRANSLATIONS["nl"];
+  
   if (!jsPDF) {
-    alert("Fout: PDF-bibliotheek kon niet worden geladen. Controleer uw internetverbinding.");
+    alert(langData.pdfErrorLib || "Fout: PDF-bibliotheek kon niet worden geladen. Controleer uw internetverbinding.");
     return;
   }
 
   const exportBtn = document.getElementById("btnExportPdf");
   const originalText = exportBtn.innerHTML;
   exportBtn.disabled = true;
-  exportBtn.innerHTML = "Genereren...";
+  exportBtn.innerHTML = langData.pdfGenerating || "Genereren...";
 
   getTransparentLogo((watermarkDataUrl, aspectRatio) => {
     try {
@@ -878,14 +1411,15 @@ function exportToPdf() {
       doc.setFont("helvetica", "bold");
       doc.setFontSize(20);
       doc.setTextColor(227, 6, 19);
-      doc.text("INTERFLON LAGER SMEERADVIES", 20, 32);
+      doc.text(langData.pdfDocTitle || "INTERFLON LAGER SMEERADVIES", 20, 32);
 
       const now = new Date();
-      const dateString = now.toLocaleDateString("nl-NL") + " " + now.toLocaleTimeString("nl-NL", {hour: '2-digit', minute:'2-digit'});
+      const dateLocale = currentLang === "nl" ? "nl-NL" : currentLang === "en" ? "en-US" : "fr-FR";
+      const dateString = now.toLocaleDateString(dateLocale) + " " + now.toLocaleTimeString(dateLocale, {hour: '2-digit', minute:'2-digit'});
       doc.setFont("helvetica", "normal");
       doc.setFontSize(9);
       doc.setTextColor(100, 100, 100);
-      doc.text("Rapport gegenereerd op: " + dateString, 20, 38);
+      doc.text((langData.pdfReportGeneratedOn || "Rapport gegenereerd op: ") + dateString, 20, 38);
 
       doc.setDrawColor(220, 220, 220);
       doc.line(20, 42, 190, 42);
@@ -904,14 +1438,14 @@ function exportToPdf() {
       doc.setFont("helvetica", "bold");
       doc.setFontSize(11);
       doc.setTextColor(11, 19, 43);
-      doc.text("Operator Gegevens", 20, 52);
+      doc.text(langData.opTitle || "Operator Gegevens", 20, 52);
 
       doc.setFont("helvetica", "normal");
       doc.setFontSize(9);
       doc.setTextColor(72, 84, 96);
-      doc.text("Naam:", 20, 59);
-      doc.text("Telefoon:", 20, 65);
-      doc.text("E-mail:", 20, 71);
+      doc.text((langData.opNameLabel || "Naam") + ":", 20, 59);
+      doc.text((langData.opPhoneLabel || "Telefoonnummer") + ":", 20, 65);
+      doc.text((langData.opEmailLabel || "Emailadres") + ":", 20, 71);
 
       doc.setFont("helvetica", "bold");
       doc.setTextColor(11, 19, 43);
@@ -923,15 +1457,15 @@ function exportToPdf() {
       doc.setFont("helvetica", "bold");
       doc.setFontSize(11);
       doc.setTextColor(11, 19, 43);
-      doc.text("Klant Gegevens", 20, 80);
+      doc.text(langData.clientTitle || "Klant Gegevens", 20, 80);
 
       doc.setFont("helvetica", "normal");
       doc.setFontSize(9);
       doc.setTextColor(72, 84, 96);
-      doc.text("Bedrijf:", 20, 87);
-      doc.text("Contact:", 20, 93);
-      doc.text("Telefoon:", 20, 99);
-      doc.text("E-mail:", 20, 105);
+      doc.text((langData.clientCompanyLabel || "Bedrijf") + ":", 20, 87);
+      doc.text((langData.clientContactLabel || "Contact") + ":", 20, 93);
+      doc.text((langData.clientPhoneLabel || "Telefoon") + ":", 20, 99);
+      doc.text((langData.clientEmailLabel || "E-mail") + ":", 20, 105);
 
       doc.setFont("helvetica", "bold");
       doc.setTextColor(11, 19, 43);
@@ -941,11 +1475,11 @@ function exportToPdf() {
       doc.text(clientEmail, 38, 105);
 
       // Rechter kolom: Lager details (y=52 tot y=89)
-      let bearingNum = "Handmatige invoer";
-      let bearingType = "Groefkogellager";
+      let bearingNum = currentLang === "nl" ? "Handmatige invoer" : currentLang === "en" ? "Manual input" : "Saisie manuelle";
+      let bearingType = currentLang === "nl" ? "Groefkogellager" : currentLang === "en" ? "Deep groove ball bearing" : "Roulement rigide à billes";
       if (activeBearing) {
         bearingNum = activeBearing.designation.toUpperCase();
-        bearingType = activeBearing.type;
+        bearingType = translateBearingType(activeBearing.type);
       }
       
       const d = document.getElementById("inputBoreManual").value || "-";
@@ -956,17 +1490,17 @@ function exportToPdf() {
       doc.setFont("helvetica", "bold");
       doc.setFontSize(11);
       doc.setTextColor(11, 19, 43);
-      doc.text("Lager Specificaties", 110, 52);
+      doc.text(langData.pdfBearingSpecs || "Lager Specificaties", 110, 52);
 
       doc.setFont("helvetica", "normal");
       doc.setFontSize(9);
       doc.setTextColor(72, 84, 96);
-      doc.text("Nummer:", 110, 59);
-      doc.text("Type:", 110, 65);
-      doc.text("Boring (d):", 110, 71);
-      doc.text("Buitendia. (D):", 110, 77);
-      doc.text("Breedte (B):", 110, 83);
-      doc.text("Massa (G):", 110, 89);
+      doc.text(langData.pdfBearingNumber || "Nummer:", 110, 59);
+      doc.text((langData.bearingType || "Type") + ":", 110, 65);
+      doc.text(langData.pdfBoreD || "Boring (d):", 110, 71);
+      doc.text(langData.pdfOuterD || "Buitendia. (D):", 110, 77);
+      doc.text(langData.pdfWidthB || "Breedte (B):", 110, 83);
+      doc.text(langData.pdfMassG || "Massa (G):", 110, 89);
 
       doc.setFont("helvetica", "bold");
       doc.setTextColor(11, 19, 43);
@@ -988,7 +1522,7 @@ function exportToPdf() {
       doc.setFont("helvetica", "bold");
       doc.setFontSize(11);
       doc.setTextColor(11, 19, 43);
-      doc.text("Bedrijfsparameters", 20, 120);
+      doc.text(langData.cardInputs || "Bedrijfsparameters", 20, 120);
 
       const greaseName = document.getElementById("inputGrease").value;
       const speed = document.getElementById("inputSpeed").value;
@@ -1000,20 +1534,21 @@ function exportToPdf() {
       doc.setFont("helvetica", "bold");
       doc.setFontSize(8.5);
       doc.setTextColor(11, 19, 43);
-      doc.text("Parameter", 24, 130);
-      doc.text("Waarde", 114, 130);
+      doc.text(langData.pdfParameter || "Parameter", 24, 130);
+      doc.text(langData.pdfValue || "Waarde", 114, 130);
       
       doc.setDrawColor(200, 200, 200);
       doc.setLineWidth(0.25);
       doc.line(20, 132, 190, 132);
 
+      const speedUnit = currentLang === "nl" ? " r/min" : currentLang === "en" ? " rpm" : " tr/min";
       const params = [
-        ["Geselecteerd Interflon vet", greaseName],
-        ["Bedrijfssnelheid (toerental)", speed + " r/min"],
-        ["Grenstoerental (limiting speed)", limitSpeed + " r/min"],
-        ["Bedrijfstemperatuur (°C)", temp + " °C"],
-        ["Omgevingsfactor (Te/Tx)", envFactor],
-        ["Toepassingsfactor (Ta)", appFactor]
+        [langData.inputGreaseLabel, greaseName],
+        [langData.inputSpeedLabel, speed + speedUnit],
+        [langData.inputLimitSpeedLabel, limitSpeed + speedUnit],
+        [langData.inputTempLabel, temp + " °C"],
+        [langData.inputTeLabel, envFactor],
+        [langData.inputTaLabel, appFactor]
       ];
 
       doc.setFont("helvetica", "normal");
@@ -1029,23 +1564,23 @@ function exportToPdf() {
       doc.line(20, currentY + 5, 190, currentY + 5);
 
       // 5. Tabel: Calculatieresultaten
-      currentY += 12; // 153 + 12 = 170
+      currentY += 12;
       doc.setFont("helvetica", "bold");
       doc.setFontSize(11);
       doc.setTextColor(11, 19, 43);
-      doc.text("Calculatieresultaten & Smeeradvies", 20, currentY);
+      doc.text(langData.pdfResultsTitle || "Calculatieresultaten & Smeeradvies", 20, currentY);
 
       doc.setFont("helvetica", "bold");
       doc.setFontSize(8.5);
       doc.setTextColor(11, 19, 43);
-      doc.text("Resultaatparameter", 24, currentY + 5); // 181
-      doc.text("Berekende Waarde", 114, currentY + 5); // 181
+      doc.text(langData.pdfResultParameter || "Resultaatparameter", 24, currentY + 5);
+      doc.text(langData.pdfCalculatedValue || "Berekende Waarde", 114, currentY + 5);
       
       doc.setDrawColor(200, 200, 200);
       doc.setLineWidth(0.25);
-      doc.line(20, currentY + 7, 190, currentY + 7); // 183
+      doc.line(20, currentY + 7, 190, currentY + 7);
       
-      currentY += 7; // 176 + 7 = 183 (onderkant van header box)
+      currentY += 7; // onderkant van header box
 
       const bearingDN = document.getElementById("calcBearingDN").textContent;
       const greaseDN = document.getElementById("calcGreaseDN").textContent;
@@ -1062,23 +1597,28 @@ function exportToPdf() {
       const quantity = document.getElementById("calcQuantity").textContent;
       const strokes = document.getElementById("calcStrokes").textContent;
 
+      const dnLimitLabel = currentLang === "nl" ? "Vet DN-limiet: " : currentLang === "en" ? "Grease DN limit: " : "Limite DN graisse : ";
+      const convertedLabel = currentLang === "nl" ? "Interval omgerekend" : currentLang === "en" ? "Interval converted" : "Intervalle converti";
+      const coefCLabel = currentLang === "nl" ? "Coëfficiënt C" : currentLang === "en" ? "Coefficient C" : "Coefficient C";
+
       const results = [
-        ["Lager DN-factor", bearingDN + " (Vet DN-limiet: " + greaseDN + ")"],
-        ["Vrije volume (V)", freeVol + " cm³"],
-        ["Initiële vulling (40% volume)", fillGrams + " gram (" + fillCm + " cm³)"],
-        ["Basisfrequentie (FB)", baseFreq + " uren"],
-        ["Temperatuurfactor (Tt)", ttFactor],
-        ["Gecorrigeerd Smeerinterval (FC)", correctedInterval + " uren"],
-        ["Interval omgerekend", cDays + " dagen / " + cWeeks + " weken / " + cMonths + " maanden"],
-        ["Coëfficiënt C", coefC],
-        ["Nasmeerhoeveelheid (Refill)", quantity + " gram"],
-        ["Vetspuit slagen (2g per slag)", strokes + " slagen"]
+        [langData.resDnFactor, bearingDN + " (" + dnLimitLabel + greaseDN + ")"],
+        [langData.resFreeVol, freeVol + " cm³"],
+        [langData.resInitialFill, fillGrams + " " + langData.unitGrams + " (" + fillCm + " cm³)"],
+        [langData.resBaseInterval, baseFreq + " " + langData.unitHours],
+        [langData.resTempFactor, ttFactor],
+        [langData.resInterval, correctedInterval + " " + langData.unitHours],
+        [convertedLabel, cDays + " " + langData.unitDays + " / " + cWeeks + " " + langData.unitWeeks + " / " + cMonths + " " + langData.unitMonths],
+        [coefCLabel, coefC],
+        [langData.resRefillQty, quantity + " " + langData.unitGrams],
+        [langData.resStrokes, strokes + " " + langData.unitStrokes]
       ];
 
       results.forEach((r, idx) => {
         currentY += 7;
         
-        if (r[0].includes("Gecorrigeerd Smeerinterval") || r[0].includes("Nasmeerhoeveelheid") || r[0].includes("slagen")) {
+        const isHighlight = r[0] === langData.resInterval || r[0] === langData.resRefillQty || r[0] === langData.resStrokes;
+        if (isHighlight) {
           doc.setFont("helvetica", "bold");
           doc.setTextColor(227, 6, 19); // Rood
         } else {
@@ -1087,7 +1627,7 @@ function exportToPdf() {
         }
         doc.text(r[0], 24, currentY);
         
-        if (r[0].includes("Gecorrigeerd Smeerinterval") || r[0].includes("Nasmeerhoeveelheid") || r[0].includes("slagen")) {
+        if (isHighlight) {
           doc.setTextColor(227, 6, 19);
         } else {
           doc.setTextColor(11, 19, 43);
@@ -1100,18 +1640,19 @@ function exportToPdf() {
       // 6. Footer
       doc.setFontSize(6.8);
       doc.setTextColor(140, 140, 140);
-      const disclaimer = "De gegenereerde gegevens bieden een betrouwbare indicatie, maar vormen geen expliciete garantie dat een product of dosering geschikt is voor elke specifieke toepassing. De calculator biedt een adviesrichtlijn; er kan geen wettelijke waarborg of aansprakelijkheid worden verleend met betrekking tot het concrete gebruik ervan in de praktijk.";
+      const disclaimer = langData.legalDisclaimerText;
       doc.text(disclaimer, 20, 271, { maxWidth: 170 });
       
       doc.setFont("helvetica", "bold");
       doc.setFontSize(7.5);
       doc.setTextColor(227, 6, 19);
-      doc.text("INTERFLON - A WORLD WITHOUT FRICTION", 20, 282);
+      doc.text("INTERFLON - " + (langData.pdfWatermarkText || "A WORLD WITHOUT FRICTION").toUpperCase(), 20, 282);
 
-      doc.save("Interflon_Smeeradvies_" + bearingNum.replace(/[\/\\?%*:|"<>\s]/g, "_") + ".pdf");
+      const filePrefix = currentLang === "nl" ? "Interflon_Smeeradvies_" : currentLang === "en" ? "Interflon_Lubrication_Advice_" : "Interflon_Conseil_Lubrification_";
+      doc.save(filePrefix + bearingNum.replace(/[\/\\?%*:|"<>\s]/g, "_") + ".pdf");
     } catch (e) {
       console.error("Fout bij genereren PDF:", e);
-      alert("Er is een fout opgetreden bij het genereren van het PDF-rapport: " + e.message);
+      alert((langData.pdfErrorGen || "Er is een fout opgetreden bij het genereren van het PDF-rapport: ") + e.message);
     } finally {
       exportBtn.disabled = false;
       exportBtn.innerHTML = originalText;
