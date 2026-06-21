@@ -23,19 +23,28 @@
         </div>
         <img src="vetpomp.png" alt="Vetpomp" class="login-vetpomp-img">
       </div>
-      <h2>Interflon Smeercalculator</h2>
-      <p>Voer het paswoord in om toegang te krijgen tot de applicatie.</p>
+      <h2 data-i18n="loginTitle">Interflon Smeercalculator</h2>
+      <p data-i18n="loginSubtitle">Voer het paswoord in om toegang te krijgen tot de applicatie.</p>
       
       <form id="loginForm" onsubmit="handleLogin(event)">
+        <div class="form-group" style="margin-bottom: 16px;">
+          <label for="langSelect" data-i18n="selectLanguageLabel">Select your language</label>
+          <select id="langSelect" class="form-control" onchange="changeLanguage(this.value)" style="padding-left: 16px; background-position: right 16px center;">
+            <option value="nl">Nederlands</option>
+            <option value="en">English</option>
+            <option value="fr">Français</option>
+          </select>
+        </div>
+
         <div class="form-group">
-          <label for="passwordInput">Paswoord</label>
+          <label for="passwordInput" data-i18n="passwordLabel">Paswoord</label>
           <div class="input-wrapper">
             <span class="input-icon">
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
               </svg>
             </span>
-            <input type="password" id="passwordInput" class="form-control" placeholder="Vul paswoord in..." required autocomplete="current-password">
+            <input type="password" id="passwordInput" class="form-control" placeholder="Vul paswoord in..." data-i18n-placeholder="passwordPlaceholder" required autocomplete="current-password">
             <button type="button" class="password-toggle" onclick="togglePasswordVisibility()">
               <!-- Eye Icon -->
               <svg id="eyeIcon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
@@ -48,12 +57,12 @@
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width: 16px; height: 16px;">
               <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
             </svg>
-            Onjuist paswoord. Probeer opnieuw.
+            <span data-i18n="loginError">Onjuist paswoord. Probeer opnieuw.</span>
           </div>
         </div>
         
         <button type="submit" class="btn">
-          Inloggen
+          <span data-i18n="loginBtn">Inloggen</span>
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width: 20px; height: 20px;">
             <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
           </svg>
@@ -76,26 +85,26 @@
        ========================================================================== -->
   <div id="operatorModal" class="modal-overlay hidden">
     <div class="modal-card">
-      <h3 class="modal-title">Operator Gegevens</h3>
-      <p class="modal-subtitle">Voer hier uw gegevens in. Deze worden bewaard op dit apparaat en getoond op de export-rapporten.</p>
+      <h3 class="modal-title" data-i18n="opTitle">Operator Gegevens</h3>
+      <p class="modal-subtitle" data-i18n="opSubtitle">Voer hier uw gegevens in. Deze worden bewaard op dit apparaat en getoond op de export-rapporten.</p>
       
       <form id="operatorForm" onsubmit="saveOperatorDetails(event)">
         <div class="form-group">
-          <label for="opNameInput">Naam</label>
-          <input type="text" id="opNameInput" class="form-control" placeholder="Bijv. Jan Janssen" style="padding-left: 16px;">
+          <label for="opNameInput" data-i18n="opNameLabel">Naam</label>
+          <input type="text" id="opNameInput" class="form-control" placeholder="Bijv. Jan Janssen" data-i18n-placeholder="opNamePlaceholder" style="padding-left: 16px;">
         </div>
         <div class="form-group">
-          <label for="opPhoneInput">Telefoonnummer</label>
-          <input type="tel" id="opPhoneInput" class="form-control" placeholder="Bijv. +32 475 12 34 56" style="padding-left: 16px;">
+          <label for="opPhoneInput" data-i18n="opPhoneLabel">Telefoonnummer</label>
+          <input type="tel" id="opPhoneInput" class="form-control" placeholder="Bijv. +32 475 12 34 56" data-i18n-placeholder="opPhonePlaceholder" style="padding-left: 16px;">
         </div>
         <div class="form-group">
-          <label for="opEmailInput">Emailadres</label>
-          <input type="email" id="opEmailInput" class="form-control" placeholder="Bijv. jan.janssen@interflon.com" style="padding-left: 16px;">
+          <label for="opEmailInput" data-i18n="opEmailLabel">Emailadres</label>
+          <input type="email" id="opEmailInput" class="form-control" placeholder="Bijv. jan.janssen@interflon.com" data-i18n-placeholder="opEmailPlaceholder" style="padding-left: 16px;">
         </div>
         
         <div class="modal-actions">
-          <button type="button" class="btn btn-secondary" onclick="closeOperatorModal()">Annuleren</button>
-          <button type="submit" class="btn">Opslaan</button>
+          <button type="button" class="btn btn-secondary" onclick="closeOperatorModal()" data-i18n="cancel">Annuleren</button>
+          <button type="submit" class="btn" data-i18n="save">Opslaan</button>
         </div>
       </form>
     </div>
@@ -106,30 +115,30 @@
        ========================================================================== -->
   <div id="clientModal" class="modal-overlay hidden">
     <div class="modal-card">
-      <h3 class="modal-title">Klant Gegevens</h3>
-      <p class="modal-subtitle">Voer hier de gegevens van de klant in. Deze worden bewaard op dit apparaat en getoond op de export-rapporten.</p>
+      <h3 class="modal-title" data-i18n="clientTitle">Klant Gegevens</h3>
+      <p class="modal-subtitle" data-i18n="clientSubtitle">Voer hier de gegevens van de klant in. Deze worden bewaard op dit apparaat en getoond op de export-rapporten.</p>
       
       <form id="clientForm" onsubmit="saveClientDetails(event)">
         <div class="form-group">
-          <label for="clientCompanyInput">Bedrijf</label>
-          <input type="text" id="clientCompanyInput" class="form-control" placeholder="Bijv. Janssen Logistics" style="padding-left: 16px;">
+          <label for="clientCompanyInput" data-i18n="clientCompanyLabel">Bedrijf</label>
+          <input type="text" id="clientCompanyInput" class="form-control" placeholder="Bijv. Janssen Logistics" data-i18n-placeholder="clientCompanyPlaceholder" style="padding-left: 16px;">
         </div>
         <div class="form-group">
-          <label for="clientContactInput">Naam contactpersoon</label>
-          <input type="text" id="clientContactInput" class="form-control" placeholder="Bijv. Peter Peeters" style="padding-left: 16px;">
+          <label for="clientContactInput" data-i18n="clientContactLabel">Naam contactpersoon</label>
+          <input type="text" id="clientContactInput" class="form-control" placeholder="Bijv. Peter Peeters" data-i18n-placeholder="clientContactPlaceholder" style="padding-left: 16px;">
         </div>
         <div class="form-group">
-          <label for="clientPhoneInput">Telefoonnummer</label>
-          <input type="tel" id="clientPhoneInput" class="form-control" placeholder="Bijv. +32 475 98 76 54" style="padding-left: 16px;">
+          <label for="clientPhoneInput" data-i18n="clientPhoneLabel">Telefoonnummer</label>
+          <input type="tel" id="clientPhoneInput" class="form-control" placeholder="Bijv. +32 475 98 76 54" data-i18n-placeholder="clientPhonePlaceholder" style="padding-left: 16px;">
         </div>
         <div class="form-group">
-          <label for="clientEmailInput">Emailadres</label>
-          <input type="email" id="clientEmailInput" class="form-control" placeholder="Bijv. p.peeters@janssenlogistics.com" style="padding-left: 16px;">
+          <label for="clientEmailInput" data-i18n="clientEmailLabel">Emailadres</label>
+          <input type="email" id="clientEmailInput" class="form-control" placeholder="Bijv. p.peeters@janssenlogistics.com" data-i18n-placeholder="clientEmailPlaceholder" style="padding-left: 16px;">
         </div>
         
         <div class="modal-actions">
-          <button type="button" class="btn btn-secondary" onclick="closeClientModal()">Annuleren</button>
-          <button type="submit" class="btn">Opslaan</button>
+          <button type="button" class="btn btn-secondary" onclick="closeClientModal()" data-i18n="cancel">Annuleren</button>
+          <button type="submit" class="btn" data-i18n="save">Opslaan</button>
         </div>
       </form>
     </div>
@@ -153,7 +162,7 @@
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.637 10.637Z" />
               </svg>
-              Lager Opzoeken
+              <span data-i18n="menuSearch">Lager Opzoeken</span>
             </button>
           </li>
           <li>
@@ -161,7 +170,7 @@
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 15.75V18a2.25 2.25 0 0 1-2.25 2.25h-6a2.25 2.25 0 0 1-2.25-2.25v-6a2.25 2.25 0 0 1 2.25-2.25h6a2.25 2.25 0 0 1 2.25 2.25v2.25m3 3H9m12 0-3-3m3 3-3 3M12 3v2.25m6.364.386-1.591 1.591M21 12h-2.25m-.386 6.364-1.591-1.591M12 21v-2.25m-6.364-.386 1.591-1.591M3 12h2.25m.386-6.364 1.591 1.591" />
               </svg>
-              Smeercalculatie
+              <span data-i18n="menuCalc">Smeercalculatie</span>
             </button>
           </li>
           <li>
@@ -169,7 +178,7 @@
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 16v-4m0-4h.01M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
               </svg>
-              Informatie
+              <span data-i18n="menuInfo">Informatie</span>
             </button>
           </li>
         </ul>
@@ -180,7 +189,7 @@
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width: 18px; height: 18px;">
             <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 9V5.25A2.25 2.25 0 0 1 10.5 3h6a2.25 2.25 0 0 1 2.25 2.25v13.5A2.25 2.25 0 0 1 16.5 21h-6a2.25 2.25 0 0 1-2.25-2.25V15m-3 0-3-3m0 0 3-3m-3 3H15" />
           </svg>
-          Afmelden
+          <span data-i18n="btnLogout">Afmelden</span>
         </button>
       </div>
     </aside>
@@ -191,18 +200,18 @@
       <!-- Top header bar -->
       <header class="main-header">
         <div class="header-title">
-          <h1 id="pageTitle">Lager Opzoeken</h1>
-          <p id="pageSubtitle">Geef een SKF lagernummer op om alle technische specificaties te tonen.</p>
+          <h1 id="pageTitle" data-i18n="menuSearch">Lager Opzoeken</h1>
+          <p id="pageSubtitle" data-i18n="searchSubtitle">Geef een SKF lagernummer op om alle technische specificaties te tonen.</p>
         </div>
         
         <div style="display: flex; gap: 10px; align-items: center;">
           <button id="userBadgeBtn" class="user-badge" onclick="openOperatorModal()">
             <div id="userAvatar" class="user-avatar">IF</div>
-            <span id="userName" class="user-name">Operator</span>
+            <span id="userName" class="user-name" data-i18n="operatorBadge">Operator</span>
           </button>
           <button id="clientBadgeBtn" class="user-badge" onclick="openClientModal()">
             <div id="clientAvatar" class="user-avatar" style="background-color: var(--accent-yellow-light); color: var(--primary-blue);">KL</div>
-            <span id="clientName" class="user-name">Klant</span>
+            <span id="clientName" class="user-name" data-i18n="clientBadge">Klant</span>
           </button>
         </div>
       </header>
@@ -220,7 +229,7 @@
                 <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.637 10.637Z" />
               </svg>
             </span>
-            <input type="text" id="bearingSearchInput" class="search-input" placeholder="Bijv. 6204, 22220, NU210..." oninput="handleSearchInput()" autocomplete="off">
+            <input type="text" id="bearingSearchInput" class="search-input" placeholder="Bijv. 6204, 22220, NU210..." data-i18n-placeholder="searchInputPlaceholder" oninput="handleSearchInput()" autocomplete="off">
           </div>
           
           <!-- Dropdown Autocomplete Suggestions -->
@@ -234,8 +243,8 @@
               <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.637 10.637zM7.5 12h9" />
             </svg>
           </div>
-          <h3>Geen lager geselecteerd</h3>
-          <p style="color: var(--text-medium); max-width: 450px; margin: 10px auto 0;">
+          <h3 data-i18n="searchEmptyTitle">Geen lager geselecteerd</h3>
+          <p style="color: var(--text-medium); max-width: 450px; margin: 10px auto 0;" data-i18n="searchEmptyDesc">
             Typ hierboven een SKF aanduiding (bijvoorbeeld <strong>6204</strong>, <strong>22220</strong> of <strong>NU210</strong>) en selecteer deze om de dimensionale gegevens te laden.
           </p>
         </div>
@@ -250,57 +259,57 @@
                 <path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 0 1 1.37.49l1.296 2.247a1.125 1.125 0 0 1-.26 1.43l-1.003.828c-.293.241-.438.613-.43.992a7.723 7.723 0 0 1 0 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 0 1-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 0 1-.22.128c-.331.183-.581.495-.644.869l-.213 1.281c-.09.543-.56.94-1.11.94h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 0 1-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 0 1-1.369-.49l-1.297-2.247a1.125 1.125 0 0 1 .26-1.43l1.004-.827c.292-.24.437-.613.43-.991a6.932 6.932 0 0 1 0-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 0 1-.26-1.43l1.297-2.247a1.125 1.125 0 0 1 1.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.086.22-.128.332-.183.582-.495.644-.869l.214-1.28Z" />
                 <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
               </svg>
-              Lagerspecificaties: <span id="specBearingName" style="color: var(--primary-blue); font-weight: 700;">-</span>
+              <span data-i18n="selectedBearingTitle">Lagerspecificaties:</span> <span id="specBearingName" style="color: var(--primary-blue); font-weight: 700;">-</span>
             </h3>
             
             <div id="estimatedNote" class="alert-note hidden">
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
               </svg>
-              <span><strong>Let op:</strong> Dit lager is niet gevonden in de vaste database. De afmetingen hieronder zijn berekend en geschat op basis van de SKF aanduiding. Gelieve te verifiëren.</span>
+              <span data-i18n="estimatedNote"><strong>Let op:</strong> Dit lager is niet gevonden in de vaste database. De afmetingen hieronder zijn berekend en geschat op basis van de SKF aanduiding. Gelieve te verifiëren.</span>
             </div>
 
             <div class="details-list">
               <div class="detail-row">
-                <span class="detail-label">Lagertype</span>
+                <span class="detail-label" data-i18n="bearingType">Lagertype</span>
                 <span id="specType" class="detail-value">-</span>
               </div>
               <div class="detail-row">
-                <span class="detail-label">Boring / Asdiameter (d)</span>
+                <span class="detail-label" data-i18n="boreDiameter">Boring / Asdiameter (d)</span>
                 <span class="detail-value"><span id="specBore">-</span> mm</span>
               </div>
               <div class="detail-row">
-                <span class="detail-label">Buitendiameter (D)</span>
+                <span class="detail-label" data-i18n="outerDiameter">Buitendiameter (D)</span>
                 <span class="detail-value"><span id="specOuter">-</span> mm</span>
               </div>
               <div class="detail-row">
-                <span class="detail-label">Breedte (B)</span>
+                <span class="detail-label" data-i18n="widthB">Breedte (B)</span>
                 <span class="detail-value"><span id="specWidth">-</span> mm</span>
               </div>
               <div class="detail-row">
-                <span class="detail-label">Dynamisch draaggetal (C)</span>
+                <span class="detail-label" data-i18n="dynLoad">Dynamisch draaggetal (C)</span>
                 <span class="detail-value"><span id="specDyn">-</span> kN</span>
               </div>
               <div class="detail-row">
-                <span class="detail-label">Statisch draaggetal (C<sub>0</sub>)</span>
+                <span class="detail-label" data-i18n="statLoad">Statisch draaggetal (C<sub>0</sub>)</span>
                 <span class="detail-value"><span id="specStat">-</span> kN</span>
               </div>
               <div class="detail-row">
-                <span class="detail-label">Referentietoerental</span>
+                <span class="detail-label" data-i18n="refSpeed">Referentietoerental</span>
                 <span class="detail-value"><span id="specRefSpeed">-</span> r/min</span>
               </div>
               <div class="detail-row">
-                <span class="detail-label">Grenstoerental</span>
+                <span class="detail-label" data-i18n="limitingSpeed">Grenstoerental</span>
                 <span class="detail-value"><span id="specLimitSpeed">-</span> r/min</span>
               </div>
               <div class="detail-row">
-                <span class="detail-label">Massa</span>
+                <span class="detail-label" data-i18n="weightG">Massa</span>
                 <span class="detail-value"><span id="specMass">-</span> kg</span>
               </div>
             </div>
 
             <button class="btn" style="margin-top: 30px;" onclick="goToCalculator()">
-              Start Smeerberekening
+              <span data-i18n="btnToCalculations">Start Smeerberekening</span>
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width: 20px; height: 20px;">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 15.75V18a2.25 2.25 0 0 1-2.25 2.25h-6a2.25 2.25 0 0 1-2.25-2.25v-6a2.25 2.25 0 0 1 2.25-2.25h6a2.25 2.25 0 0 1 2.25 2.25v2.25" />
               </svg>
@@ -309,7 +318,7 @@
 
           <!-- Right Visual Column -->
           <div class="bearing-visual-container">
-            <h4>Visuele Afmetingen</h4>
+            <h4 data-i18n="visualDimensionsTitle">Visuele Afmetingen</h4>
             
             <div class="bearing-svg-wrapper">
               <svg id="bearingDynamicSvg" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
@@ -352,10 +361,10 @@
             </div>
             
             <div class="bearing-visual-note">
-              Blauwe markeringen tonen de kogels/rollen.<br>
-              <strong>d</strong> = boring (<span id="visualBoreText">-</span>mm) | 
-              <strong>D</strong> = buitendiameter (<span id="visualOuterText">-</span>mm) | 
-              <strong>B</strong> = breedte (<span id="visualWidthText">-</span>mm)
+              <span data-i18n="visualNoteBlue">Blauwe markeringen tonen de kogels/rollen.</span><br>
+              <strong>d</strong> = <span data-i18n="boreDiameterShort">boring</span> (<span id="visualBoreText">-</span>mm) | 
+              <strong>D</strong> = <span data-i18n="outerDiameterShort">buitendiameter</span> (<span id="visualOuterText">-</span>mm) | 
+              <strong>B</strong> = <span data-i18n="widthBShort">breedte</span> (<span id="visualWidthText">-</span>mm)
             </div>
           </div>
         </div>
@@ -370,15 +379,15 @@
         <!-- Selection banner -->
         <div class="calc-header-banner">
           <div class="calc-header-info">
-            <h3 id="calcBannerTitle">Geen lager geselecteerd</h3>
-            <p id="calcBannerSubtitle">Keer terug naar 'Lager Opzoeken' om een lager te laden, of vul handmatig afmetingen in.</p>
+            <h3 id="calcBannerTitle" data-i18n="searchEmptyTitle">Geen lager geselecteerd</h3>
+            <p id="calcBannerSubtitle" data-i18n="calcBannerSubtitleEmpty">Keer terug naar 'Lager Opzoeken' om een lager te laden, of vul handmatig afmetingen in.</p>
           </div>
           <div style="display: flex; align-items: center; gap: 15px;">
             <button id="btnExportPdf" class="btn-export" onclick="exportToPdf()">
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
               </svg>
-              Export
+              <span data-i18n="btnPdfReport">Rapport PDF</span>
             </button>
             <span id="calcBannerBadge" class="calc-badge-bearing">-</span>
           </div>
@@ -392,84 +401,84 @@
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 0-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-9.75 0h9.75" />
               </svg>
-              Invoerparameters
+              <span data-i18n="cardInputs">Invoerparameters</span>
             </h3>
             
             <form onsubmit="event.preventDefault()">
               <div class="form-group">
-                <label for="inputGrease">Selecteer Interflon Vet</label>
+                <label for="inputGrease" data-i18n="inputGreaseLabel">Selecteer Interflon Vet</label>
                 <select id="inputGrease" class="form-control" style="padding-left: 16px;">
                   <!-- Wordt dynamisch gevuld in JS -->
                 </select>
-                <span class="input-label-description">Bepaalt de maximale DN-factor en de vetdichtheid.</span>
+                <span class="input-label-description" data-i18n="descGrease">Bepaalt de maximale DN-factor en de vetdichtheid.</span>
               </div>
 
               <div class="form-group">
-                <label for="inputTemperature">Bedrijfstemperatuur (°C)</label>
+                <label for="inputTemperature" data-i18n="inputTempLabel">Bedrijfstemperatuur (°C)</label>
                 <input type="number" id="inputTemperature" class="form-control" placeholder="Bijv. 70" value="65">
-                <span class="input-label-description">Bepaalt de temperatuurcorrectiefactor Tt.</span>
+                <span class="input-label-description" data-i18n="descTemp">Bepaalt de temperatuurcorrectiefactor Tt.</span>
               </div>
               
               <div class="form-group">
-                <label for="inputSpeed">Bedrijfssnelheid / Toerental (r/min)</label>
+                <label for="inputSpeed" data-i18n="inputSpeedLabel">Bedrijfssnelheid / Toerental (r/min)</label>
                 <input type="number" id="inputSpeed" class="form-control" placeholder="Bijv. 980" value="980">
-                <span class="input-label-description">Draaisnelheid van het lager.</span>
+                <span class="input-label-description" data-i18n="descSpeed">Draaisnelheid van het lager.</span>
               </div>
 
               <div class="form-group">
-                <label for="inputLimitingSpeed">Limiting Speed / Grenstoerental (r/min)</label>
+                <label for="inputLimitingSpeed" data-i18n="inputLimitSpeedLabel">Limiting Speed / Grenstoerental (r/min)</label>
                 <input type="number" id="inputLimitingSpeed" class="form-control" placeholder="Bijv. 4000" value="4000">
-                <span class="input-label-description">Grenstoerental van het lager.</span>
+                <span class="input-label-description" data-i18n="descLimitSpeed">Grenstoerental van het lager.</span>
               </div>
 
               <div style="border-top: 1px solid var(--accent-yellow-border-soft); padding-top: 15px; margin-top: 15px;">
-                <h4 style="font-size: 13px; color: var(--primary-blue); margin-bottom: 10px;">Lager Afmetingen & Massa</h4>
+                <h4 style="font-size: 13px; color: var(--primary-blue); margin-bottom: 10px;" data-i18n="bearingDimensionsTitle">Lager Afmetingen & Massa</h4>
                 
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
                   <div class="form-group">
-                    <label for="inputBoreManual">Boring (d) [mm]</label>
+                    <label for="inputBoreManual" data-i18n="inputBoreLabel">Boring (d) [mm]</label>
                     <input type="number" id="inputBoreManual" class="form-control" placeholder="d" value="120" style="padding-left: 16px;">
                   </div>
 
                   <div class="form-group">
-                    <label for="inputOuterManual">Buitendiameter (D) [mm]</label>
+                    <label for="inputOuterManual" data-i18n="inputOuterLabel">Buitendiameter (D) [mm]</label>
                     <input type="number" id="inputOuterManual" class="form-control" placeholder="D" value="215" style="padding-left: 16px;">
                   </div>
                 </div>
 
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
                   <div class="form-group">
-                    <label for="inputWidthManual">Breedte (B) [mm]</label>
+                    <label for="inputWidthManual" data-i18n="inputWidthLabel">Breedte (B) [mm]</label>
                     <input type="number" id="inputWidthManual" class="form-control" placeholder="B" value="42" style="padding-left: 16px;">
                   </div>
 
                   <div class="form-group">
-                    <label for="inputMassManual">Massa (G) [kg]</label>
+                    <label for="inputMassManual" data-i18n="inputWeightLabel">Massa (G) [kg]</label>
                     <input type="number" id="inputMassManual" class="form-control" placeholder="G" value="6.71" step="0.01" style="padding-left: 16px;">
                   </div>
                 </div>
               </div>
 
               <div style="border-top: 1px solid var(--accent-yellow-border-soft); padding-top: 15px; margin-top: 15px;">
-                <h4 style="font-size: 13px; color: var(--primary-blue); margin-bottom: 10px;">Correctiefactoren</h4>
+                <h4 style="font-size: 13px; color: var(--primary-blue); margin-bottom: 10px;" data-i18n="correctionFactorsTitle">Correctiefactoren</h4>
 
                 <div class="form-group">
-                  <label for="inputTe">Omgevingsfactor (Te/Tx)</label>
+                  <label for="inputTe" data-i18n="inputTeLabel">Omgevingsfactor (Te/Tx)</label>
                   <select id="inputTe" class="form-control" style="padding-left: 16px;">
-                    <option value="0.8">Gemiddeld (0,8)</option>
-                    <option value="0.5" selected>Stof / Hoog (0,5)</option>
-                    <option value="0.3">Vocht / Erg hoog (0,3)</option>
-                    <option value="0.15">Condensatie / Extreem (0,15)</option>
+                    <option value="0.8" data-i18n="teOptionAvg">Gemiddeld (0,8)</option>
+                    <option value="0.5" selected data-i18n="teOptionDust">Stof / Hoog (0,5)</option>
+                    <option value="0.3" data-i18n="teOptionMoisture">Vocht / Erg hoog (0,3)</option>
+                    <option value="0.15" data-i18n="teOptionCondense">Condensatie / Extreem (0,15)</option>
                   </select>
                 </div>
 
                 <div class="form-group">
-                  <label for="inputTa">Toepassingsfactor (Ta)</label>
+                  <label for="inputTa" data-i18n="inputTaLabel">Toepassingsfactor (Ta)</label>
                   <select id="inputTa" class="form-control" style="padding-left: 16px;">
-                    <option value="0.8">Gemiddeld (0,8)</option>
-                    <option value="0.5" selected>Schokken / Hoog (0,5)</option>
-                    <option value="0.3">Vibraties / Erg hoog (0,3)</option>
-                    <option value="0.15">Verticale as / Extreem (0,15)</option>
+                    <option value="0.8" data-i18n="taOptionAvg">Gemiddeld (0,8)</option>
+                    <option value="0.5" selected data-i18n="taOptionShock">Schokken / Hoog (0,5)</option>
+                    <option value="0.3" data-i18n="taOptionVibe">Vibraties / Erg hoog (0,3)</option>
+                    <option value="0.15" data-i18n="taOptionVert">Verticale as / Extreem (0,15)</option>
                   </select>
                 </div>
               </div>
@@ -479,98 +488,103 @@
           <!-- Smeeradvies Resultaat Card -->
           <div class="card" style="display: flex; flex-direction: column; gap: 24px;">
             <div>
-              <h3 class="card-title" style="margin-bottom: 15px;">
+              <h3 class="card-title" style="margin-bottom: 15px;" data-i18n="speedGreaseLimitsTitle">
                 Snelheid & Vetlimieten
               </h3>
               <div class="details-list">
                 <div class="detail-row">
-                  <span class="detail-label">Lager DN-factor</span>
+                  <span class="detail-label" data-i18n="resDnFactor">Lager DN-factor</span>
                   <span class="detail-value"><span id="calcBearingDN">--</span></span>
                 </div>
                 <div class="detail-row">
-                  <span class="detail-label">Vet DN-limiet</span>
+                  <span class="detail-label" data-i18n="resGreaseLimitLabel">Vet DN-limiet</span>
                   <span class="detail-value"><span id="calcGreaseDN">--</span></span>
                 </div>
                 <div id="dnWarningRow" class="alert-note hidden" style="margin-top: 10px; border-left-color: var(--danger); background-color: #FEF2F2; color: #991B1B;">
                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="color: var(--danger); width: 20px; height: 20px; flex-shrink: 0;">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
                   </svg>
-                  <span><strong>Gevaar:</strong> De lager DN-factor overschrijdt de limiet van het geselecteerde vet!</span>
+                  <span data-i18n="warningDnLimit"><strong>Gevaar:</strong> De lager DN-factor overschrijdt de limiet van het geselecteerde vet!</span>
                 </div>
               </div>
             </div>
 
             <div>
-              <h3 class="card-title" style="margin-bottom: 15px;">
+              <h3 class="card-title" style="margin-bottom: 15px;" data-i18n="freeVolInitFillTitle">
                 Vrije Volume & Initiële Vulling
               </h3>
               <div class="details-list">
                 <div class="detail-row">
-                  <span class="detail-label">Vrije volume (V)</span>
+                  <span class="detail-label" data-i18n="resFreeVolLabel">Vrije volume (V)</span>
                   <span class="detail-value"><span id="calcFreeVolumeCm">--</span> cm³ (<span id="calcFreeVolumeM3">--</span> m³)</span>
                 </div>
                 <div class="detail-row">
-                  <span class="detail-label">Vullingspercentage</span>
+                  <span class="detail-label" data-i18n="resFillPercentLabel">Vullingspercentage</span>
                   <span class="detail-value"><span id="calcFillPercent">--</span>%</span>
                 </div>
                 <div class="detail-row" style="background-color: var(--primary-blue-light); padding: 8px 12px; border-radius: var(--border-radius-sm);">
-                  <span class="detail-label" style="font-weight: 600;">Initiële vulhoeveelheid</span>
-                  <span class="detail-value" style="color: var(--primary-blue); font-size: 16px; font-weight: 700;"><span id="calcInitFillGrams">--</span> gram (<span id="calcInitFillCm">--</span> cm³)</span>
+                  <span class="detail-label" style="font-weight: 600;" data-i18n="resInitialFillLabel">Initiële vulhoeveelheid</span>
+                  <span class="detail-value" style="color: var(--primary-blue); font-size: 16px; font-weight: 700;"><span id="calcInitFillGrams">--</span> <span data-i18n="unitGrams">gram</span> (<span id="calcInitFillCm">--</span> cm³)</span>
                 </div>
               </div>
             </div>
 
             <div>
-              <h3 class="card-title" style="margin-bottom: 15px;">
+              <h3 class="card-title" style="margin-bottom: 15px;" data-i18n="frequencyIntervalTitle">
                 Smeerfrequentie / Smeerinterval
               </h3>
               <div class="details-list">
                 <div class="detail-row">
-                  <span class="detail-label">Basis frequentie (FB)</span>
-                  <span class="detail-value"><span id="calcBaseFreq">--</span> uren</span>
+                  <span class="detail-label" data-i18n="resBaseIntervalLabel">Basis frequentie (FB)</span>
+                  <span class="detail-value"><span id="calcBaseFreq">--</span> <span data-i18n="unitHours">uren</span></span>
                 </div>
                 <div class="detail-row">
-                  <span class="detail-label">Temperatuurfactor (Tt)</span>
+                  <span class="detail-label" data-i18n="resTempFactorLabel">Temperatuurfactor (Tt)</span>
                   <span class="detail-value"><span id="calcTt">--</span></span>
                 </div>
                 <div class="detail-row" style="background-color: var(--accent-yellow-light); padding: 12px 12px; border-radius: var(--border-radius-sm); flex-direction: column; align-items: stretch; gap: 8px;">
                   <div style="display: flex; justify-content: space-between; font-weight: 700; color: var(--text-dark);">
-                    <span>Gecorrigeerd Smeerinterval (FC)</span>
-                    <span><span id="calcInterval">--</span> uren</span>
+                    <span data-i18n="resIntervalLabel">Gecorrigeerd Smeerinterval (FC)</span>
+                    <span><span id="calcInterval">--</span> <span data-i18n="unitHours">uren</span></span>
                   </div>
                   <div style="display: flex; justify-content: space-between; font-size: 13px; color: var(--text-medium); border-top: 1px dashed var(--accent-yellow-border); padding-top: 6px;">
-                    <span>Dagen: <strong id="calcIntervalDays">--</strong></span>
-                    <span>Weken: <strong id="calcIntervalWeeks">--</strong></span>
-                    <span>Maanden: <strong id="calcIntervalMonths">--</strong></span>
+                    <span><span data-i18n="lblDays">Dagen</span>: <strong id="calcIntervalDays">--</strong></span>
+                    <span><span data-i18n="lblWeeks">Weken</span>: <strong id="calcIntervalWeeks">--</strong></span>
+                    <span><span data-i18n="lblMonths">Maanden</span>: <strong id="calcIntervalMonths">--</strong></span>
                   </div>
                 </div>
               </div>
             </div>
 
             <div>
-              <h3 class="card-title" style="margin-bottom: 15px;">
+              <h3 class="card-title" style="margin-bottom: 15px;" data-i18n="refillVolumeTitle">
                 Nasmeervolume (Refills)
               </h3>
               <div class="details-list">
                 <div class="detail-row">
-                  <span class="detail-label">Coefficient C</span>
+                  <span class="detail-label" data-i18n="resCoefCLabel">Coefficient C</span>
                   <span class="detail-value"><span id="calcCoefC">--</span></span>
                 </div>
                 <div class="detail-row" style="background-color: #ECFDF5; padding: 12px 12px; border-radius: var(--border-radius-sm); display: flex; justify-content: space-between; align-items: center;">
                   <div>
-                    <div style="font-weight: 700; color: var(--success); font-size: 16px;"><span id="calcQuantity">--</span> gram vet</div>
-                    <div style="font-size: 11px; color: var(--text-medium); margin-top: 2px;">Nasmeerhoeveelheid (D x B x C)</div>
+                    <div style="font-weight: 700; color: var(--success); font-size: 16px;"><span id="calcQuantity">--</span> <span data-i18n="unitGramsVet">gram vet</span></div>
+                    <div style="font-size: 11px; color: var(--text-medium); margin-top: 2px;" data-i18n="resRefillDesc">Nasmeerhoeveelheid (D x B x C)</div>
                   </div>
                   <div style="text-align: right;">
-                    <div style="font-weight: 700; color: var(--success); font-size: 16px;"><span id="calcStrokes">--</span> slagen</div>
-                    <div style="font-size: 11px; color: var(--text-medium); margin-top: 2px;">Vetspuit (2g/slag)</div>
+                    <div style="font-weight: 700; color: var(--success); font-size: 16px;"><span id="calcStrokes">--</span> <span data-i18n="unitStrokes">slagen</span></div>
+                    <div style="font-size: 11px; color: var(--text-medium); margin-top: 2px;" data-i18n="resStrokesDesc">Vetspuit (2g/slag)</div>
                   </div>
                 </div>
               </div>
             </div>
 
             <div id="densityCorrectionInfo" class="alert-note" style="margin: 0; font-size: 11px;">
-              <span><strong>Dichtheidsinfo:</strong> Het geselecteerde vet heeft een dichtheid van <span id="calcDensity">--</span> g/cm³. Vulhoeveelheid = cm³ x dichtheid.</span>
+              <span>
+                <strong data-i18n="densityInfoTitle">Dichtheidsinfo:</strong> 
+                <span data-i18n="densityInfoTextPre">Het geselecteerde vet heeft een dichtheid van</span> 
+                <span id="calcDensity">--</span> g/cm³. 
+                <span data-i18n="densityInfoTextPost">Vulhoeveelheid = cm³ x dichtheid.</span>
+              </span>
             </div>
           </div>
 
@@ -584,13 +598,13 @@
       <section id="pageInfo" class="page-section">
         
         <div class="card">
-          <h3 class="card-title" style="border-bottom: 1px solid var(--accent-yellow-border-soft); padding-bottom: 10px;">
+          <h3 class="card-title" style="border-bottom: 1px solid var(--accent-yellow-border-soft); padding-bottom: 10px;" data-i18n="infoTitle">
             Over deze Webapplicatie
           </h3>
-          <p style="line-height: 1.6; margin-bottom: 20px; color: var(--text-medium);">
+          <p style="line-height: 1.6; margin-bottom: 20px; color: var(--text-medium);" data-i18n="infoIntro">
             Welkom bij de <strong>Interflon Lager Smeercalculator</strong>. Dit systeem is speciaal ontworpen om onderhoudsengineers en operatoren te helpen bij het bepalen van de optimale smeerparameters voor roterende machines.
           </p>
-          <p style="line-height: 1.6; color: var(--text-medium); font-style: italic; border-left: 3px solid var(--accent-yellow); padding-left: 15px; margin-top: 20px;">
+          <p style="line-height: 1.6; color: var(--text-medium); font-style: italic; border-left: 3px solid var(--accent-yellow); padding-left: 15px; margin-top: 20px;" data-i18n="legalDisclaimerText">
             De gegenereerde gegevens bieden een betrouwbare indicatie, maar vormen geen expliciete garantie dat een product of dosering geschikt is voor elke specifieke toepassing. De calculator biedt een adviesrichtlijn; er kan geen wettelijke waarborg of aansprakelijkheid worden verleend met betrekking tot het concrete gebruik ervan in de praktijk.
           </p>
 
