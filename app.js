@@ -1120,6 +1120,9 @@ function calculateGrease() {
   const initFillCmElement = document.getElementById("calcInitFillCm");
   
   const baseFreqElement = document.getElementById("calcBaseFreq");
+  const baseFreqDaysElement = document.getElementById("calcBaseFreqDays");
+  const baseFreqWeeksElement = document.getElementById("calcBaseFreqWeeks");
+  const baseFreqMonthsElement = document.getElementById("calcBaseFreqMonths");
   const TtElement = document.getElementById("calcTt");
   const intervalDaysElement = document.getElementById("calcIntervalDays");
   const intervalWeeksElement = document.getElementById("calcIntervalWeeks");
@@ -1135,7 +1138,8 @@ function calculateGrease() {
       qElement, iElement, sfElement, greaseDNElement, freeVolCmElement,
       freeVolM3Element, fillPercentElement, initFillGramsElement, initFillCmElement,
       baseFreqElement, TtElement, intervalDaysElement, intervalWeeksElement,
-      intervalMonthsElement, coefCElement, strokesElement, densityElement
+      intervalMonthsElement, coefCElement, strokesElement, densityElement,
+      baseFreqDaysElement, baseFreqWeeksElement, baseFreqMonthsElement
     ];
     elements.forEach(el => { if (el) el.textContent = "--"; });
     if (dnWarningRow) dnWarningRow.classList.add("hidden");
@@ -1219,6 +1223,14 @@ function calculateGrease() {
     }
   }
   if (baseFreqElement) baseFreqElement.textContent = fb.toLocaleString("nl-NL");
+
+  const fbDays = fb / 24;
+  const fbWeeks = fbDays / 7;
+  const fbMonths = fbDays / 30.4;
+
+  if (baseFreqDaysElement) baseFreqDaysElement.textContent = fbDays.toFixed(1);
+  if (baseFreqWeeksElement) baseFreqWeeksElement.textContent = fbWeeks.toFixed(1);
+  if (baseFreqMonthsElement) baseFreqMonthsElement.textContent = fbMonths.toFixed(1);
 
   // 7. Temperatuurfactor (Tt)
   let Tt = 0.8;
@@ -1621,7 +1633,7 @@ function exportToPdf() {
       doc.line(20, currentY + 5, 190, currentY + 5);
 
       // 5. Tabel: Calculatieresultaten
-      currentY += 12;
+      currentY += 9;
       doc.setFont("helvetica", "bold");
       doc.setFontSize(11);
       doc.setTextColor(11, 19, 43);
@@ -1645,6 +1657,9 @@ function exportToPdf() {
       const fillGrams = document.getElementById("calcInitFillGrams").textContent;
       const fillCm = document.getElementById("calcInitFillCm").textContent;
       const baseFreq = document.getElementById("calcBaseFreq").textContent;
+      const fbDays = document.getElementById("calcBaseFreqDays") ? document.getElementById("calcBaseFreqDays").textContent : "--";
+      const fbWeeks = document.getElementById("calcBaseFreqWeeks") ? document.getElementById("calcBaseFreqWeeks").textContent : "--";
+      const fbMonths = document.getElementById("calcBaseFreqMonths") ? document.getElementById("calcBaseFreqMonths").textContent : "--";
       const ttFactor = document.getElementById("calcTt").textContent;
       const correctedInterval = document.getElementById("calcInterval").textContent;
       const cDays = document.getElementById("calcIntervalDays").textContent;
@@ -1656,6 +1671,7 @@ function exportToPdf() {
 
       const dnLimitLabel = currentLang === "nl" ? "Vet DN-limiet: " : currentLang === "en" ? "Grease DN limit: " : "Limite DN graisse : ";
       const convertedLabel = currentLang === "nl" ? "Interval omgerekend" : currentLang === "en" ? "Interval converted" : "Intervalle converti";
+      const baseConvertedLabel = currentLang === "nl" ? "Basisfrequentie omgerekend" : currentLang === "en" ? "Base frequency converted" : "Fréquence de base convertie";
       const coefCLabel = currentLang === "nl" ? "Coëfficiënt C" : currentLang === "en" ? "Coefficient C" : "Coefficient C";
 
       const results = [
@@ -1663,6 +1679,7 @@ function exportToPdf() {
         [langData.resFreeVol, freeVol + " cm³"],
         [langData.resInitialFill, fillGrams + " " + langData.unitGrams + " (" + fillCm + " cm³)"],
         [langData.resBaseInterval, baseFreq + " " + langData.unitHours],
+        [baseConvertedLabel, fbDays + " " + langData.unitDays + " / " + fbWeeks + " " + langData.unitWeeks + " / " + fbMonths + " " + langData.unitMonths],
         [langData.resTempFactor, ttFactor],
         [langData.resInterval, correctedInterval + " " + langData.unitHours],
         [convertedLabel, cDays + " " + langData.unitDays + " / " + cWeeks + " " + langData.unitWeeks + " / " + cMonths + " " + langData.unitMonths],
