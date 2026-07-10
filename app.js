@@ -7,6 +7,7 @@ let currentLang = localStorage.getItem("bearing_calc_lang") || "nl";
 const TRANSLATIONS = {
   nl: {
     descGrease: "Bepaalt de maximale DN-factor en de vetdichtheid.",
+    descHoursPerDay: "Aantal uren dat de machine per dag operationeel is.",
     bearingDimensionsTitle: "Lager Afmetingen & Massa",
     correctionFactorsTitle: "Correctiefactoren",
     speedGreaseLimitsTitle: "Snelheid & Vetlimieten",
@@ -176,6 +177,7 @@ const TRANSLATIONS = {
   },
   en: {
     descGrease: "Determines the maximum DN factor and grease density.",
+    descHoursPerDay: "Number of hours the machine operates per day.",
     bearingDimensionsTitle: "Bearing Dimensions & Mass",
     correctionFactorsTitle: "Correction Factors",
     speedGreaseLimitsTitle: "Speed & Grease Limits",
@@ -345,6 +347,7 @@ const TRANSLATIONS = {
   },
   fr: {
     descGrease: "Détermine le facteur DN maximum et la densité de la graisse.",
+    descHoursPerDay: "Nombre d'heures pendant lesquelles la machine fonctionne par jour.",
     bearingDimensionsTitle: "Dimensions & Masse du Roulement",
     correctionFactorsTitle: "Facteurs de Correction",
     speedGreaseLimitsTitle: "Vitesse & Limites de Graisse",
