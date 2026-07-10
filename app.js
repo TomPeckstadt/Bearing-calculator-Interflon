@@ -88,7 +88,7 @@ const TRANSLATIONS = {
     resFreeVol: "Vrij Volume Lager (V)",
     resInitialFill: "Eerste Smeervulling (40%)",
     resInterval: "Gecorrigeerd Smeerinterval (FC)",
-    resRefillQty: "Nasmaarhoeveelheid",
+    resRefillQty: "Nasmeerhoeveelheid",
     resStrokes: "Aantal Slagen Vetspuit",
     resBaseInterval: "Basissmeerinterval (FB)",
     resTempFactor: "Temperatuurfactor (Tt)",
