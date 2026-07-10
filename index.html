@@ -414,6 +414,12 @@
               </div>
 
               <div class="form-group">
+                <label for="inputHoursPerDay" data-i18n="inputHoursPerDayLabel">Operationele uren/dag</label>
+                <input type="number" id="inputHoursPerDay" class="form-control" placeholder="24" value="24" min="1" max="24" style="padding-left: 16px;">
+                <span class="input-label-description" data-i18n="descHoursPerDay">Aantal uren dat de machine per dag operationeel is.</span>
+              </div>
+
+              <div class="form-group">
                 <label for="inputTemperature" data-i18n="inputTempLabel">Bedrijfstemperatuur (°C)</label>
                 <input type="number" id="inputTemperature" class="form-control" placeholder="Bijv. 70" value="65">
                 <span class="input-label-description" data-i18n="descTemp">Bepaalt de temperatuurcorrectiefactor Tt.</span>
@@ -480,11 +486,6 @@
                     <option value="0.3" data-i18n="taOptionVibe">Vibraties / Erg hoog (0,3)</option>
                     <option value="0.15" data-i18n="taOptionVert">Verticale as / Extreem (0,15)</option>
                   </select>
-                </div>
-
-                <div class="form-group">
-                  <label for="inputHoursPerDay" data-i18n="inputHoursPerDayLabel">Operationele uren/dag</label>
-                  <input type="number" id="inputHoursPerDay" class="form-control" placeholder="24" value="24" min="1" max="24" style="padding-left: 16px;">
                 </div>
               </div>
             </form>
