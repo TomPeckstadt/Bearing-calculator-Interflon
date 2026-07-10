@@ -84,6 +84,7 @@ const TRANSLATIONS = {
     inputWeightLabel: "Massa (G) [kg]",
     inputTeLabel: "Omgevingsfactor (Te/Tx)",
     inputTaLabel: "Toepassingsfactor (Ta)",
+    inputHoursPerDayLabel: "Operationele uren/dag",
     cardResults: "Berekende Resultaten",
     resFreeVol: "Vrij Volume Lager (V)",
     resInitialFill: "Eerste Smeervulling (40%)",
@@ -252,6 +253,7 @@ const TRANSLATIONS = {
     inputWeightLabel: "Mass (G) [kg]",
     inputTeLabel: "Environmental Factor (Te/Tx)",
     inputTaLabel: "Application Factor (Ta)",
+    inputHoursPerDayLabel: "Operational hours/day",
     cardResults: "Calculated Results",
     resFreeVol: "Bearing Free Volume (V)",
     resInitialFill: "Initial Grease Fill (40%)",
@@ -420,6 +422,7 @@ const TRANSLATIONS = {
     inputWeightLabel: "Masse (G) [kg]",
     inputTeLabel: "Facteur Environnemental (Te/Tx)",
     inputTaLabel: "Facteur d'Application (Ta)",
+    inputHoursPerDayLabel: "Heures opérationnelles/jour",
     cardResults: "Résultats Calculés",
     resFreeVol: "Volume Libre du Roulement (V)",
     resInitialFill: "Premier Remplissage de Graisse (40%)",
@@ -601,7 +604,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const inputs = [
     "inputGrease", "inputTemperature", "inputSpeed", "inputLimitingSpeed",
     "inputBoreManual", "inputOuterManual", "inputWidthManual", "inputMassManual",
-    "inputTe", "inputTa"
+    "inputTe", "inputTa", "inputHoursPerDay"
   ];
   inputs.forEach(id => {
     const el = document.getElementById(id);
@@ -1105,6 +1108,11 @@ function calculateGrease() {
   const greaseName = greaseSelect ? greaseSelect.value : "INTERFLON GREASE MP2/3";
   const Te = TeInput ? parseFloat(TeInput.value) : 0.5;
   const Ta = TaInput ? parseFloat(TaInput.value) : 0.5;
+  const hoursPerDayInput = document.getElementById("inputHoursPerDay");
+  let hoursPerDay = hoursPerDayInput ? parseFloat(hoursPerDayInput.value) : 24;
+  if (isNaN(hoursPerDay) || hoursPerDay <= 0 || hoursPerDay > 24) {
+    hoursPerDay = 24;
+  }
 
   // Elements to update
   const qElement = document.getElementById("calcQuantity");
@@ -1224,7 +1232,7 @@ function calculateGrease() {
   }
   if (baseFreqElement) baseFreqElement.textContent = fb.toLocaleString("nl-NL");
 
-  const fbDays = fb / 24;
+  const fbDays = fb / hoursPerDay;
   const fbWeeks = fbDays / 7;
   const fbMonths = fbDays / 30.4;
 
@@ -1253,7 +1261,7 @@ function calculateGrease() {
   const fc = fb * Te * Ta * Tt;
   if (iElement) iElement.textContent = Math.round(fc).toLocaleString("nl-NL");
 
-  const days = fc / 24;
+  const days = fc / hoursPerDay;
   const weeks = days / 7;
   const months = days / 30.4;
 
@@ -1599,6 +1607,7 @@ function exportToPdf() {
       const temp = document.getElementById("inputTemperature").value;
       const envFactor = document.getElementById("inputTe").options[document.getElementById("inputTe").selectedIndex].text;
       const appFactor = document.getElementById("inputTa").options[document.getElementById("inputTa").selectedIndex].text;
+      const hoursPerDayVal = document.getElementById("inputHoursPerDay") ? document.getElementById("inputHoursPerDay").value : "24";
 
       doc.setFont("helvetica", "bold");
       doc.setFontSize(8.5);
@@ -1611,29 +1620,33 @@ function exportToPdf() {
       doc.line(20, 132, 190, 132);
 
       const speedUnit = currentLang === "nl" ? " r/min" : currentLang === "en" ? " rpm" : " tr/min";
+      const hoursPerDayLabel = currentLang === "nl" ? "Operationele uren/dag" : currentLang === "en" ? "Operational hours/day" : "Heures opérationnelles/jour";
+      const hoursPerDaySuffix = currentLang === "nl" ? " uren/dag" : currentLang === "en" ? " hours/day" : " heures/jour";
+
       const params = [
         [langData.inputGreaseLabel, greaseName],
         [langData.inputSpeedLabel, speed + speedUnit],
         [langData.inputLimitSpeedLabel, limitSpeed + speedUnit],
         [langData.inputTempLabel, temp + " °C"],
         [langData.inputTeLabel, envFactor],
-        [langData.inputTaLabel, appFactor]
+        [langData.inputTaLabel, appFactor],
+        [hoursPerDayLabel, hoursPerDayVal + hoursPerDaySuffix]
       ];
 
       doc.setFont("helvetica", "normal");
       let currentY = 132;
       params.forEach((p, idx) => {
-        currentY += 7;
+        currentY += 6;
         doc.setTextColor(72, 84, 96);
         doc.text(p[0], 24, currentY);
         doc.setTextColor(11, 19, 43);
         doc.text(p[1], 114, currentY);
       });
 
-      doc.line(20, currentY + 5, 190, currentY + 5);
+      doc.line(20, currentY + 4, 190, currentY + 4);
 
       // 5. Tabel: Calculatieresultaten
-      currentY += 9;
+      currentY += 10;
       doc.setFont("helvetica", "bold");
       doc.setFontSize(11);
       doc.setTextColor(11, 19, 43);
@@ -1647,9 +1660,9 @@ function exportToPdf() {
       
       doc.setDrawColor(200, 200, 200);
       doc.setLineWidth(0.25);
-      doc.line(20, currentY + 7, 190, currentY + 7);
+      doc.line(20, currentY + 6, 190, currentY + 6);
       
-      currentY += 7; // onderkant van header box
+      currentY += 6; // onderkant van header box
 
       const bearingDN = document.getElementById("calcBearingDN").textContent;
       const greaseDN = document.getElementById("calcGreaseDN").textContent;
@@ -1689,7 +1702,7 @@ function exportToPdf() {
       ];
 
       results.forEach((r, idx) => {
-        currentY += 7;
+        currentY += 6;
         
         const isHighlight = r[0] === langData.resInterval || r[0] === langData.resRefillQty || r[0] === langData.resStrokes;
         if (isHighlight) {
