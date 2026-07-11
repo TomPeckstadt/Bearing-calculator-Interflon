@@ -1663,6 +1663,10 @@ function exportToPdf() {
       const clientEmail = localStorage.getItem("client_email") || "-";
 
       const techMachine = localStorage.getItem("tech_machine") || "-";
+      const techApp = localStorage.getItem("tech_app") || "-";
+      const techProduct = localStorage.getItem("tech_product") || "-";
+      const techInterval = localStorage.getItem("tech_interval") || "-";
+
       // Links: Operator Gegevens (y=46 tot y=66)
       doc.setFont("helvetica", "bold");
       doc.setFontSize(11);
