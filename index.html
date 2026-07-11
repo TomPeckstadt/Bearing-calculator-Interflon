@@ -137,7 +137,39 @@
         </div>
       </form>
     </div>
-  </div>
+  <!-- ==========================================================================
+       TECHNICAL DATA MODAL (POPUP FOR TECHNICAL DETAILS)
+       ========================================================================== -->
+  <div id="techModal" class="modal-overlay hidden">
+    <div class="modal-card">
+      <h3 class="modal-title" data-i18n="techTitle">Technische Gegevens</h3>
+      <p class="modal-subtitle" data-i18n="techSubtitle">Voer hier de technische gegevens van de toepassing in. Deze worden bewaard op dit apparaat en getoond op de export-rapporten.</p>
+      
+      <form id="techForm" onsubmit="saveTechDetails(event)">
+        <div class="form-group">
+          <label for="techMachineInput" data-i18n="techMachineLabel">Machine</label>
+          <input type="text" id="techMachineInput" class="form-control" placeholder="Bijv. Elektromotor pomp 3" data-i18n-placeholder="techMachinePlaceholder" style="padding-left: 16px;">
+        </div>
+        <div class="form-group">
+          <label for="techAppInput" data-i18n="techAppLabel">Toepassingsomschrijving</label>
+          <input type="text" id="techAppInput" class="form-control" placeholder="Bijv. Ventilator" data-i18n-placeholder="techAppPlaceholder" style="padding-left: 16px;">
+        </div>
+        <div class="form-group">
+          <label for="techProductInput" data-i18n="techProductLabel">Huidig smeermiddel / product</label>
+          <input type="text" id="techProductInput" class="form-control" placeholder="Bijv. Standaard EP2 vet" data-i18n-placeholder="techProductPlaceholder" style="padding-left: 16px;">
+        </div>
+        <div class="form-group">
+          <label for="techIntervalInput" data-i18n="techIntervalLabel">Huidige smeerinterval (dagen)</label>
+          <input type="number" id="techIntervalInput" class="form-control" placeholder="Bijv. 30" data-i18n-placeholder="techIntervalPlaceholder" min="0" style="padding-left: 16px;">
+        </div>
+        
+        <div class="modal-actions">
+          <button type="button" class="btn btn-secondary" onclick="closeTechModal()" data-i18n="cancel">Annuleren</button>
+          <button type="submit" class="btn" data-i18n="save">Opslaan</button>
+        </div>
+      </form>
+    </div>
+  </div></div>
 
   <!-- ==========================================================================
        MAIN DASHBOARD INTERFACE
@@ -207,6 +239,10 @@
           <button id="clientBadgeBtn" class="user-badge" onclick="openClientModal()">
             <div id="clientAvatar" class="user-avatar" style="background-color: var(--accent-yellow-light); color: var(--primary-blue);">KL</div>
             <span id="clientName" class="user-name" data-i18n="clientBadge">Klant</span>
+          </button>
+          <button id="techBadgeBtn" class="user-badge" onclick="openTechModal()">
+            <div id="techAvatar" class="user-avatar" style="background-color: #E0F2FE; color: #0369A1;">TD</div>
+            <span id="techName" class="user-name" data-i18n="techBadge">Technical data</span>
           </button>
         </div>
       </header>
