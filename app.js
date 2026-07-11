@@ -128,7 +128,7 @@ const TRANSLATIONS = {
     pdfBearingSpecs: "Lager Specificaties",
     pdfBearingNumber: "Nummer:",
     pdfBoreD: "Boring (d):",
-    pdfOuterD: "Buitendia. (D):",
+    pdfOuterD: "Buitendiameter (D):",
     pdfWidthB: "Breedte (B):",
     pdfMassG: "Massa (G):",
     pdfResultsTitle: "Calculatieresultaten & Smeeradvies",
@@ -1731,7 +1731,7 @@ function exportToPdf() {
       doc.text(langData.pdfBearingNumber || "Nummer:", 110, 51);
       doc.text((langData.bearingType || "Type") + ":", 110, 56);
       doc.text(langData.pdfBoreD || "Boring (d):", 110, 61);
-      doc.text(langData.pdfOuterD || "Buitendia. (D):", 110, 66);
+      doc.text(langData.pdfOuterD || "Buitendiameter (D):", 110, 66);
       doc.text(langData.pdfWidthB || "Breedte (B):", 110, 71);
       doc.text(langData.pdfMassG || "Massa (G):", 110, 76);
 
