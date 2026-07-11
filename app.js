@@ -1891,12 +1891,16 @@ function exportToPdf() {
         
         const isMicPolHighlight = r[0] === (langData.pdfIntervalMicPol || "Smeerinterval met Interflon MicPol®");
         const isHighlight = r[0] === langData.resInterval || r[0] === langData.resRefillQty || r[0] === langData.resStrokes;
+        const isBaseHighlight = r[0] === langData.resBaseInterval;
         if (isMicPolHighlight) {
           doc.setFont("helvetica", "bold");
           doc.setTextColor(22, 101, 52); // Groen
         } else if (isHighlight) {
           doc.setFont("helvetica", "bold");
           doc.setTextColor(227, 6, 19); // Rood
+        } else if (isBaseHighlight) {
+          doc.setFont("helvetica", "bold");
+          doc.setTextColor(11, 19, 43); // Dark Blue / Black
         } else {
           doc.setFont("helvetica", "normal");
           doc.setTextColor(72, 84, 96);
