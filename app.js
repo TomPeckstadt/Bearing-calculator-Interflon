@@ -166,7 +166,7 @@ const TRANSLATIONS = {
     techIntervalLabel: "Huidige smeerinterval (dagen)",
     techIntervalPlaceholder: "Bijv. 30",
     inputMicPolFactorLabel: "Selecteer convertiefactor naar Interflon MicPol technologie",
-    descMicPolFactor: "Vermenigvuldigingsfactor voor het smeringsinterval door gebruik van MicPol® technologie (1 tot 50).",
+    descMicPolFactor: "Standtijdfactor MicPol® technologie ten opzichte van conventioneel smeermiddel",
     resIntervalMicPolLabel: "Smeerinterval met Interflon MicPol® technologie",
     pdfMicPolFactorLabel: "Convertiefactor naar Interflon MicPol",
     pdfIntervalMicPol: "Smeerinterval met Interflon MicPol®",
@@ -352,7 +352,7 @@ const TRANSLATIONS = {
     techIntervalLabel: "Current lubrication interval (days)",
     techIntervalPlaceholder: "E.g. 30",
     inputMicPolFactorLabel: "Select conversion factor to Interflon MicPol technology",
-    descMicPolFactor: "Multiplier factor for the lubrication interval using MicPol® technology (1 to 50).",
+    descMicPolFactor: "Service life factor of MicPol® technology compared to conventional lubricant",
     resIntervalMicPolLabel: "Lubrication interval with Interflon MicPol® technology",
     pdfMicPolFactorLabel: "Conversion factor to Interflon MicPol",
     pdfIntervalMicPol: "Lubrication interval with Interflon MicPol®",
@@ -538,7 +538,7 @@ const TRANSLATIONS = {
     techIntervalLabel: "Intervalle de lubrification actuel (jours)",
     techIntervalPlaceholder: "Ex. 30",
     inputMicPolFactorLabel: "Sélectionnez le facteur de conversion vers la technologie Interflon MicPol",
-    descMicPolFactor: "Facteur multiplicateur de l'intervalle de lubrification grâce à la technologie MicPol® (1 à 50).",
+    descMicPolFactor: "Facteur de durée de vie de la technologie MicPol® par rapport au lubrifiant conventionnel",
     resIntervalMicPolLabel: "Intervalle de lubrification avec la technologie Interflon MicPol®",
     pdfMicPolFactorLabel: "Facteur de conversion vers Interflon MicPol",
     pdfIntervalMicPol: "Intervalle de lubrification avec Interflon MicPol®",
@@ -1331,9 +1331,9 @@ function calculateGrease() {
 
   // 8.5. Smeerinterval met Interflon MicPol® technologie (F-MicPol)
   const micPolInput = document.getElementById("inputMicPolFactor");
-  let micPolFactor = micPolInput ? parseFloat(micPolInput.value) : 5;
+  let micPolFactor = micPolInput ? parseFloat(micPolInput.value) : 4;
   if (isNaN(micPolFactor) || micPolFactor < 1 || micPolFactor > 50) {
-    micPolFactor = 5;
+    micPolFactor = 4;
   }
   const fcMicPol = fc * micPolFactor;
   if (intervalMicPolElement) intervalMicPolElement.textContent = Math.round(fcMicPol).toLocaleString("nl-NL");
@@ -1783,7 +1783,7 @@ function exportToPdf() {
       const envFactor = document.getElementById("inputTe").options[document.getElementById("inputTe").selectedIndex].text;
       const appFactor = document.getElementById("inputTa").options[document.getElementById("inputTa").selectedIndex].text;
       const hoursPerDayVal = document.getElementById("inputHoursPerDay") ? document.getElementById("inputHoursPerDay").value : "24";
-      const micPolFactorVal = document.getElementById("inputMicPolFactor") ? document.getElementById("inputMicPolFactor").value : "5";
+      const micPolFactorVal = document.getElementById("inputMicPolFactor") ? document.getElementById("inputMicPolFactor").value : "4";
 
       doc.setFont("helvetica", "bold");
       doc.setFontSize(8.5);
