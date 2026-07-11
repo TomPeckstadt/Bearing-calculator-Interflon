@@ -1663,51 +1663,47 @@ function exportToPdf() {
       const clientEmail = localStorage.getItem("client_email") || "-";
 
       const techMachine = localStorage.getItem("tech_machine") || "-";
-      const techApp = localStorage.getItem("tech_app") || "-";
-      const techProduct = localStorage.getItem("tech_product") || "-";
-      const techInterval = localStorage.getItem("tech_interval") || "-";
-
-      // Links: Operator Gegevens (y=48 tot y=66)
+      // Links: Operator Gegevens (y=46 tot y=66)
       doc.setFont("helvetica", "bold");
       doc.setFontSize(11);
       doc.setTextColor(11, 19, 43);
-      doc.text(langData.opTitle || "Operator Gegevens", 20, 48);
+      doc.text(langData.opTitle || "Operator Gegevens", 20, 46);
 
       doc.setFont("helvetica", "normal");
       doc.setFontSize(9);
       doc.setTextColor(72, 84, 96);
-      doc.text((langData.opNameLabel || "Naam") + ":", 20, 54);
-      doc.text((langData.opPhoneLabel || "Telefoonnummer") + ":", 20, 60);
-      doc.text((langData.opEmailLabel || "Emailadres") + ":", 20, 66);
+      doc.text((langData.opNameLabel || "Naam") + ":", 20, 51);
+      doc.text((langData.opPhoneLabel || "Telefoonnummer") + ":", 20, 56);
+      doc.text((langData.opEmailLabel || "Emailadres") + ":", 20, 61);
 
       doc.setFont("helvetica", "bold");
       doc.setTextColor(11, 19, 43);
-      doc.text(opName, 58, 54);
-      doc.text(opPhone, 58, 60);
-      doc.text(opEmail, 58, 66);
+      doc.text(opName, 58, 51);
+      doc.text(opPhone, 58, 56);
+      doc.text(opEmail, 58, 61);
 
-      // Links: Klant Gegevens (y=74 tot y=98)
+      // Links: Klant Gegevens (y=68 tot y=88)
       doc.setFont("helvetica", "bold");
       doc.setFontSize(11);
       doc.setTextColor(11, 19, 43);
-      doc.text(langData.clientTitle || "Klant Gegevens", 20, 74);
+      doc.text(langData.clientTitle || "Klant Gegevens", 20, 68);
 
       doc.setFont("helvetica", "normal");
       doc.setFontSize(9);
       doc.setTextColor(72, 84, 96);
-      doc.text((langData.clientCompanyLabel || "Bedrijf") + ":", 20, 80);
-      doc.text((langData.clientContactLabel || "Contact") + ":", 20, 86);
-      doc.text((langData.clientPhoneLabel || "Telefoon") + ":", 20, 92);
-      doc.text((langData.clientEmailLabel || "E-mail") + ":", 20, 98);
+      doc.text((langData.clientCompanyLabel || "Bedrijf") + ":", 20, 73);
+      doc.text((langData.clientContactLabel || "Contact") + ":", 20, 78);
+      doc.text((langData.clientPhoneLabel || "Telefoon") + ":", 20, 83);
+      doc.text((langData.clientEmailLabel || "E-mail") + ":", 20, 88);
 
       doc.setFont("helvetica", "bold");
       doc.setTextColor(11, 19, 43);
-      doc.text(clientCompany, 58, 80);
-      doc.text(clientContact, 58, 86);
-      doc.text(clientPhone, 58, 92);
-      doc.text(clientEmail, 58, 98);
+      doc.text(clientCompany, 58, 73);
+      doc.text(clientContact, 58, 78);
+      doc.text(clientPhone, 58, 83);
+      doc.text(clientEmail, 58, 88);
 
-      // Rechter kolom: Lager details (y=48 tot y=84)
+      // Rechter kolom: Lager details (y=46 tot y=76)
       let bearingNum = currentLang === "nl" ? "Handmatige invoer" : currentLang === "en" ? "Manual input" : "Saisie manuelle";
       let bearingType = currentLang === "nl" ? "Groefkogellager" : currentLang === "en" ? "Deep groove ball bearing" : "Roulement rigide à billes";
       if (activeBearing) {
@@ -1723,56 +1719,58 @@ function exportToPdf() {
       doc.setFont("helvetica", "bold");
       doc.setFontSize(11);
       doc.setTextColor(11, 19, 43);
-      doc.text(langData.pdfBearingSpecs || "Lager Specificaties", 110, 48);
+      doc.text(langData.pdfBearingSpecs || "Lager Specificaties", 110, 46);
 
       doc.setFont("helvetica", "normal");
       doc.setFontSize(9);
       doc.setTextColor(72, 84, 96);
-      doc.text(langData.pdfBearingNumber || "Nummer:", 110, 54);
-      doc.text((langData.bearingType || "Type") + ":", 110, 60);
-      doc.text(langData.pdfBoreD || "Boring (d):", 110, 66);
-      doc.text(langData.pdfOuterD || "Buitendia. (D):", 110, 72);
-      doc.text(langData.pdfWidthB || "Breedte (B):", 110, 78);
-      doc.text(langData.pdfMassG || "Massa (G):", 110, 84);
+      doc.text(langData.pdfBearingNumber || "Nummer:", 110, 51);
+      doc.text((langData.bearingType || "Type") + ":", 110, 56);
+      doc.text(langData.pdfBoreD || "Boring (d):", 110, 61);
+      doc.text(langData.pdfOuterD || "Buitendia. (D):", 110, 66);
+      doc.text(langData.pdfWidthB || "Breedte (B):", 110, 71);
+      doc.text(langData.pdfMassG || "Massa (G):", 110, 76);
 
       doc.setFont("helvetica", "bold");
       doc.setTextColor(11, 19, 43);
-      doc.text(bearingNum, 144, 54);
-      doc.text(bearingType, 144, 60);
-      doc.text(d + " mm", 144, 66);
-      doc.text(D + " mm", 144, 72);
-      doc.text(B + " mm", 144, 78);
-      doc.text(G + " kg", 144, 84);
+      doc.text(bearingNum, 160, 51);
+      doc.text(bearingType, 160, 56);
+      doc.text(d + " mm", 160, 61);
+      doc.text(D + " mm", 160, 66);
+      doc.text(B + " mm", 160, 71);
+      doc.text(G + " kg", 160, 76);
 
-      // Rechter kolom: Technische Gegevens (y=91 tot y=115)
+      // Rechter kolom: Technische Gegevens (y=82 tot y=102)
       doc.setFont("helvetica", "bold");
       doc.setFontSize(11);
       doc.setTextColor(11, 19, 43);
-      doc.text(langData.techTitle || "Technische Gegevens", 110, 91);
+      doc.text(langData.techTitle || "Technische Gegevens", 110, 82);
 
       doc.setFont("helvetica", "normal");
       doc.setFontSize(9);
       doc.setTextColor(72, 84, 96);
-      doc.text((langData.techMachineLabel || "Machine") + ":", 110, 97);
-      doc.text((langData.techAppLabel || "Toepassing") + ":", 110, 103);
-      doc.text((langData.techProductLabel || "Huidig product") + ":", 110, 109);
-      doc.text((langData.techIntervalLabel || "Huidige freq.") + ":", 110, 115);
+      doc.text((langData.techMachineLabel || "Machine") + ":", 110, 87);
+      doc.text((langData.techAppLabel || "Toepassing") + ":", 110, 92);
+      doc.text((langData.techProductLabel || "Huidig product") + ":", 110, 97);
+      
+      const techIntervalLabelShort = currentLang === "nl" ? "Huidig interval" : currentLang === "en" ? "Current interval" : "Intervalle actuel";
+      doc.text(techIntervalLabelShort + ":", 110, 102);
 
       doc.setFont("helvetica", "bold");
       doc.setTextColor(11, 19, 43);
-      doc.text(techMachine, 144, 97);
-      doc.text(techApp, 144, 103);
-      doc.text(techProduct, 144, 109);
-      doc.text(techInterval + (techInterval !== "-" ? " " + (currentLang === "nl" ? "dagen" : currentLang === "en" ? "days" : "jours") : ""), 144, 115);
+      doc.text(techMachine, 160, 87);
+      doc.text(techApp, 160, 92);
+      doc.text(techProduct, 160, 97);
+      doc.text(techInterval + (techInterval !== "-" ? " " + (currentLang === "nl" ? "dagen" : currentLang === "en" ? "days" : "jours") : ""), 160, 102);
 
       // Horizontale scheidingslijn onder gegevens
-      doc.line(20, 120, 190, 120);
+      doc.line(20, 106, 190, 106);
 
       // 4. Tabel: Bedrijfsparameters
       doc.setFont("helvetica", "bold");
       doc.setFontSize(11);
       doc.setTextColor(11, 19, 43);
-      doc.text(langData.cardInputs || "Bedrijfsparameters", 20, 129);
+      doc.text(langData.cardInputs || "Bedrijfsparameters", 20, 112);
 
       const greaseName = document.getElementById("inputGrease").value;
       const speed = document.getElementById("inputSpeed").value;
@@ -1786,12 +1784,12 @@ function exportToPdf() {
       doc.setFont("helvetica", "bold");
       doc.setFontSize(8.5);
       doc.setTextColor(11, 19, 43);
-      doc.text(langData.pdfParameter || "Parameter", 24, 138);
-      doc.text(langData.pdfValue || "Waarde", 114, 138);
+      doc.text(langData.pdfParameter || "Parameter", 24, 118);
+      doc.text(langData.pdfValue || "Waarde", 150, 118);
       
       doc.setDrawColor(200, 200, 200);
       doc.setLineWidth(0.25);
-      doc.line(20, 140, 190, 140);
+      doc.line(20, 120, 190, 120);
 
       const speedUnit = currentLang === "nl" ? " r/min" : currentLang === "en" ? " rpm" : " tr/min";
       const hoursPerDayLabel = currentLang === "nl" ? "Operationele uren/dag" : currentLang === "en" ? "Operational hours/day" : "Heures opérationnelles/jour";
@@ -1809,19 +1807,19 @@ function exportToPdf() {
       ];
 
       doc.setFont("helvetica", "normal");
-      let currentY = 140;
+      let currentY = 120;
       params.forEach((p, idx) => {
-        currentY += 6;
+        currentY += 5;
         doc.setTextColor(72, 84, 96);
         doc.text(p[0], 24, currentY);
         doc.setTextColor(11, 19, 43);
-        doc.text(p[1], 114, currentY);
+        doc.text(p[1], 150, currentY);
       });
 
-      doc.line(20, currentY + 4, 190, currentY + 4);
+      doc.line(20, currentY + 3, 190, currentY + 3);
 
       // 5. Tabel: Calculatieresultaten
-      currentY += 10;
+      currentY += 8;
       doc.setFont("helvetica", "bold");
       doc.setFontSize(11);
       doc.setTextColor(11, 19, 43);
@@ -1830,14 +1828,14 @@ function exportToPdf() {
       doc.setFont("helvetica", "bold");
       doc.setFontSize(8.5);
       doc.setTextColor(11, 19, 43);
-      doc.text(langData.pdfResultParameter || "Resultaatparameter", 24, currentY + 5);
-      doc.text(langData.pdfCalculatedValue || "Berekende Waarde", 114, currentY + 5);
+      doc.text(langData.pdfResultParameter || "Resultaatparameter", 24, currentY + 4);
+      doc.text(langData.pdfCalculatedValue || "Berekende Waarde", 150, currentY + 4);
       
       doc.setDrawColor(200, 200, 200);
       doc.setLineWidth(0.25);
-      doc.line(20, currentY + 6, 190, currentY + 6);
+      doc.line(20, currentY + 5, 190, currentY + 5);
       
-      currentY += 6; // onderkant van header box
+      currentY += 5; // onderkant van header box
 
       const bearingDN = document.getElementById("calcBearingDN").textContent;
       const greaseDN = document.getElementById("calcGreaseDN").textContent;
@@ -1885,7 +1883,7 @@ function exportToPdf() {
       ];
 
       results.forEach((r, idx) => {
-        currentY += 5.5;
+        currentY += 5;
         
         const isMicPolHighlight = r[0] === (langData.pdfIntervalMicPol || "Smeerinterval met Interflon MicPol®");
         const isHighlight = r[0] === langData.resInterval || r[0] === langData.resRefillQty || r[0] === langData.resStrokes;
@@ -1908,7 +1906,7 @@ function exportToPdf() {
         } else {
           doc.setTextColor(11, 19, 43);
         }
-        doc.text(r[1], 114, currentY);
+        doc.text(r[1], 150, currentY);
       });
 
       doc.setFont("helvetica", "normal");
