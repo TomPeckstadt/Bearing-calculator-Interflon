@@ -154,6 +154,17 @@ const TRANSLATIONS = {
     resTempFactorLabel: "Temperatuurfactor (Tt)",
     resIntervalLabel: "Gecorrigeerd Smeerinterval met conventioneel smeermiddel (FC)",
     resCoefCLabel: "Coefficient C",
+    techBadge: "Technical data",
+    techTitle: "Technische Gegevens",
+    techSubtitle: "Voer hier de technische gegevens van de toepassing in. Deze worden bewaard op dit apparaat en getoond op de export-rapporten.",
+    techMachineLabel: "Machine",
+    techMachinePlaceholder: "Bijv. Elektromotor pomp 3",
+    techAppLabel: "Toepassing",
+    techAppPlaceholder: "Bijv. Ventilator",
+    techProductLabel: "Huidig product",
+    techProductPlaceholder: "Bijv. Standaard EP2 vet",
+    techIntervalLabel: "Huidige smeerinterval (dagen)",
+    techIntervalPlaceholder: "Bijv. 30",
     refillVolumeTitle: "Nasmeervolume (Refills)",
     resRefillDesc: "Nasmeerhoeveelheid (D x B x C)",
     resStrokesDesc: "Vetpomp (2g/slag)",
@@ -324,6 +335,17 @@ const TRANSLATIONS = {
     resTempFactorLabel: "Temperature factor (Tt)",
     resIntervalLabel: "Corrected Lubrication Interval (FC)",
     resCoefCLabel: "Coefficient C",
+    techBadge: "Technical data",
+    techTitle: "Technical Data",
+    techSubtitle: "Enter the technical details of the application here. These are saved on this device and shown on export reports.",
+    techMachineLabel: "Machine",
+    techMachinePlaceholder: "E.g. Electric motor pump 3",
+    techAppLabel: "Application",
+    techAppPlaceholder: "E.g. Fan",
+    techProductLabel: "Current product",
+    techProductPlaceholder: "E.g. Standard EP2 grease",
+    techIntervalLabel: "Current lubrication interval (days)",
+    techIntervalPlaceholder: "E.g. 30",
     refillVolumeTitle: "Relubrication Volume (Refills)",
     resRefillDesc: "Relubrication quantity (D x B x C)",
     resStrokesDesc: "Grease gun (2g/stroke)",
@@ -494,6 +516,17 @@ const TRANSLATIONS = {
     resTempFactorLabel: "Facteur de température (Tt)",
     resIntervalLabel: "Intervalle de Lubrification Corrigé (FC)",
     resCoefCLabel: "Coefficient C",
+    techBadge: "Technical data",
+    techTitle: "Données Techniques",
+    techSubtitle: "Saisissez ici les détails techniques de l'application. Ceux-ci sont enregistrés sur cet appareil et affichés sur les rapports d'exportation.",
+    techMachineLabel: "Machine",
+    techMachinePlaceholder: "Ex. Électromoteur pompe 3",
+    techAppLabel: "Application",
+    techAppPlaceholder: "Ex. Ventilateur",
+    techProductLabel: "Produit actuel",
+    techProductPlaceholder: "Ex. Graisse EP2 standard",
+    techIntervalLabel: "Intervalle de lubrification actuel (jours)",
+    techIntervalPlaceholder: "Ex. 30",
     refillVolumeTitle: "Volume de Relubrification (Refills)",
     resRefillDesc: "Quantité de relubrification (D x B x C)",
     resStrokesDesc: "Pompe à graisse (2g/coup)",
@@ -625,6 +658,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Laad klant details op startup
   loadClientDetails();
+
+  // Laad tech details op startup
+  loadTechDetails();
 
   // Initialiseer de taal
   changeLanguage(currentLang);
@@ -1446,6 +1482,80 @@ function saveClientDetails(event) {
   closeClientModal();
 }
 
+function loadTechDetails() {
+  const machine = localStorage.getItem("tech_machine") || "";
+  const application = localStorage.getItem("tech_app") || "";
+  const product = localStorage.getItem("tech_product") || "";
+  const interval = localStorage.getItem("tech_interval") || "";
+
+  const machineInput = document.getElementById("techMachineInput");
+  const appInput = document.getElementById("techAppInput");
+  const productInput = document.getElementById("techProductInput");
+  const intervalInput = document.getElementById("techIntervalInput");
+
+  if (machineInput) machineInput.value = machine;
+  if (appInput) appInput.value = application;
+  if (productInput) productInput.value = product;
+  if (intervalInput) intervalInput.value = interval;
+
+  updateTechBadge(machine, application);
+}
+
+function updateTechBadge(machine, application) {
+  const techNameEl = document.getElementById("techName");
+  const techAvatarEl = document.getElementById("techAvatar");
+
+  if (!techNameEl || !techAvatarEl) return;
+
+  const displayName = machine.trim() || application.trim();
+
+  if (displayName) {
+    techNameEl.textContent = displayName;
+    const parts = displayName.split(/\s+/);
+    let initials = "";
+    if (parts.length >= 2) {
+      initials = (parts[0][0] + parts[1][0]).toUpperCase();
+    } else if (parts.length === 1) {
+      initials = parts[0].substring(0, 2).toUpperCase();
+    }
+    techAvatarEl.textContent = initials || "TD";
+  } else {
+    techNameEl.textContent = "Technical data";
+    techAvatarEl.textContent = "TD";
+  }
+}
+
+function openTechModal() {
+  const modal = document.getElementById("techModal");
+  if (modal) {
+    loadTechDetails();
+    modal.classList.remove("hidden");
+  }
+}
+
+function closeTechModal() {
+  const modal = document.getElementById("techModal");
+  if (modal) {
+    modal.classList.add("hidden");
+  }
+}
+
+function saveTechDetails(event) {
+  event.preventDefault();
+  const machine = document.getElementById("techMachineInput").value;
+  const application = document.getElementById("techAppInput").value;
+  const product = document.getElementById("techProductInput").value;
+  const interval = document.getElementById("techIntervalInput").value;
+
+  localStorage.setItem("tech_machine", machine);
+  localStorage.setItem("tech_app", application);
+  localStorage.setItem("tech_product", product);
+  localStorage.setItem("tech_interval", interval);
+
+  updateTechBadge(machine, application);
+  closeTechModal();
+}
+
 // ==========================================================================
 // EXPORT NAAR PDF INCLUSIEF WATERMERK EN GEGEVENS
 // ==========================================================================
@@ -1504,7 +1614,7 @@ function exportToPdf() {
       doc.setDrawColor(220, 220, 220);
       doc.line(20, 42, 190, 42);
 
-      // 3. Twee kolommen: Linker kolom (Operator & Klant info), Rechter kolom (Lager specs)
+      // 3. Twee kolommen: Linker kolom (Operator & Klant info), Rechter kolom (Lager specs & Tech info)
       const opName = localStorage.getItem("operator_name") || "-";
       const opPhone = localStorage.getItem("operator_phone") || "-";
       const opEmail = localStorage.getItem("operator_email") || "-";
@@ -1514,47 +1624,52 @@ function exportToPdf() {
       const clientPhone = localStorage.getItem("client_phone") || "-";
       const clientEmail = localStorage.getItem("client_email") || "-";
 
-      // Links: Operator Gegevens (y=52 tot y=71)
+      const techMachine = localStorage.getItem("tech_machine") || "-";
+      const techApp = localStorage.getItem("tech_app") || "-";
+      const techProduct = localStorage.getItem("tech_product") || "-";
+      const techInterval = localStorage.getItem("tech_interval") || "-";
+
+      // Links: Operator Gegevens (y=48 tot y=66)
       doc.setFont("helvetica", "bold");
       doc.setFontSize(11);
       doc.setTextColor(11, 19, 43);
-      doc.text(langData.opTitle || "Operator Gegevens", 20, 52);
+      doc.text(langData.opTitle || "Operator Gegevens", 20, 48);
 
       doc.setFont("helvetica", "normal");
       doc.setFontSize(9);
       doc.setTextColor(72, 84, 96);
-      doc.text((langData.opNameLabel || "Naam") + ":", 20, 59);
-      doc.text((langData.opPhoneLabel || "Telefoonnummer") + ":", 20, 65);
-      doc.text((langData.opEmailLabel || "Emailadres") + ":", 20, 71);
+      doc.text((langData.opNameLabel || "Naam") + ":", 20, 54);
+      doc.text((langData.opPhoneLabel || "Telefoonnummer") + ":", 20, 60);
+      doc.text((langData.opEmailLabel || "Emailadres") + ":", 20, 66);
 
       doc.setFont("helvetica", "bold");
       doc.setTextColor(11, 19, 43);
-      doc.text(opName, 58, 59);
-      doc.text(opPhone, 58, 65);
-      doc.text(opEmail, 58, 71);
+      doc.text(opName, 58, 54);
+      doc.text(opPhone, 58, 60);
+      doc.text(opEmail, 58, 66);
 
-      // Links: Klant Gegevens (y=80 tot y=105)
+      // Links: Klant Gegevens (y=74 tot y=98)
       doc.setFont("helvetica", "bold");
       doc.setFontSize(11);
       doc.setTextColor(11, 19, 43);
-      doc.text(langData.clientTitle || "Klant Gegevens", 20, 80);
+      doc.text(langData.clientTitle || "Klant Gegevens", 20, 74);
 
       doc.setFont("helvetica", "normal");
       doc.setFontSize(9);
       doc.setTextColor(72, 84, 96);
-      doc.text((langData.clientCompanyLabel || "Bedrijf") + ":", 20, 87);
-      doc.text((langData.clientContactLabel || "Contact") + ":", 20, 93);
-      doc.text((langData.clientPhoneLabel || "Telefoon") + ":", 20, 99);
-      doc.text((langData.clientEmailLabel || "E-mail") + ":", 20, 105);
+      doc.text((langData.clientCompanyLabel || "Bedrijf") + ":", 20, 80);
+      doc.text((langData.clientContactLabel || "Contact") + ":", 20, 86);
+      doc.text((langData.clientPhoneLabel || "Telefoon") + ":", 20, 92);
+      doc.text((langData.clientEmailLabel || "E-mail") + ":", 20, 98);
 
       doc.setFont("helvetica", "bold");
       doc.setTextColor(11, 19, 43);
-      doc.text(clientCompany, 58, 87);
-      doc.text(clientContact, 58, 93);
-      doc.text(clientPhone, 58, 99);
-      doc.text(clientEmail, 58, 105);
+      doc.text(clientCompany, 58, 80);
+      doc.text(clientContact, 58, 86);
+      doc.text(clientPhone, 58, 92);
+      doc.text(clientEmail, 58, 98);
 
-      // Rechter kolom: Lager details (y=52 tot y=89)
+      // Rechter kolom: Lager details (y=48 tot y=84)
       let bearingNum = currentLang === "nl" ? "Handmatige invoer" : currentLang === "en" ? "Manual input" : "Saisie manuelle";
       let bearingType = currentLang === "nl" ? "Groefkogellager" : currentLang === "en" ? "Deep groove ball bearing" : "Roulement rigide à billes";
       if (activeBearing) {
@@ -1570,39 +1685,56 @@ function exportToPdf() {
       doc.setFont("helvetica", "bold");
       doc.setFontSize(11);
       doc.setTextColor(11, 19, 43);
-      doc.text(langData.pdfBearingSpecs || "Lager Specificaties", 110, 52);
+      doc.text(langData.pdfBearingSpecs || "Lager Specificaties", 110, 48);
 
       doc.setFont("helvetica", "normal");
       doc.setFontSize(9);
       doc.setTextColor(72, 84, 96);
-      doc.text(langData.pdfBearingNumber || "Nummer:", 110, 59);
-      doc.text((langData.bearingType || "Type") + ":", 110, 65);
-      doc.text(langData.pdfBoreD || "Boring (d):", 110, 71);
-      doc.text(langData.pdfOuterD || "Buitendia. (D):", 110, 77);
-      doc.text(langData.pdfWidthB || "Breedte (B):", 110, 83);
-      doc.text(langData.pdfMassG || "Massa (G):", 110, 89);
+      doc.text(langData.pdfBearingNumber || "Nummer:", 110, 54);
+      doc.text((langData.bearingType || "Type") + ":", 110, 60);
+      doc.text(langData.pdfBoreD || "Boring (d):", 110, 66);
+      doc.text(langData.pdfOuterD || "Buitendia. (D):", 110, 72);
+      doc.text(langData.pdfWidthB || "Breedte (B):", 110, 78);
+      doc.text(langData.pdfMassG || "Massa (G):", 110, 84);
 
       doc.setFont("helvetica", "bold");
       doc.setTextColor(11, 19, 43);
-      doc.text(bearingNum, 142, 59);
-      
-      doc.setFontSize(8.5);
-      doc.text(bearingType, 142, 65);
+      doc.text(bearingNum, 144, 54);
+      doc.text(bearingType, 144, 60);
+      doc.text(d + " mm", 144, 66);
+      doc.text(D + " mm", 144, 72);
+      doc.text(B + " mm", 144, 78);
+      doc.text(G + " kg", 144, 84);
+
+      // Rechter kolom: Technische Gegevens (y=91 tot y=115)
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(11);
+      doc.setTextColor(11, 19, 43);
+      doc.text(langData.techTitle || "Technische Gegevens", 110, 91);
+
+      doc.setFont("helvetica", "normal");
       doc.setFontSize(9);
-      
-      doc.text(d + " mm", 142, 71);
-      doc.text(D + " mm", 142, 77);
-      doc.text(B + " mm", 142, 83);
-      doc.text(G + " kg", 142, 89);
+      doc.setTextColor(72, 84, 96);
+      doc.text((langData.techMachineLabel || "Machine") + ":", 110, 97);
+      doc.text((langData.techAppLabel || "Toepassing") + ":", 110, 103);
+      doc.text((langData.techProductLabel || "Huidig product") + ":", 110, 109);
+      doc.text((langData.techIntervalLabel || "Huidige freq.") + ":", 110, 115);
+
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(11, 19, 43);
+      doc.text(techMachine, 144, 97);
+      doc.text(techApp, 144, 103);
+      doc.text(techProduct, 144, 109);
+      doc.text(techInterval + (techInterval !== "-" ? " " + (currentLang === "nl" ? "dagen" : currentLang === "en" ? "days" : "jours") : ""), 144, 115);
 
       // Horizontale scheidingslijn onder gegevens
-      doc.line(20, 111, 190, 111);
+      doc.line(20, 120, 190, 120);
 
       // 4. Tabel: Bedrijfsparameters
       doc.setFont("helvetica", "bold");
       doc.setFontSize(11);
       doc.setTextColor(11, 19, 43);
-      doc.text(langData.cardInputs || "Bedrijfsparameters", 20, 120);
+      doc.text(langData.cardInputs || "Bedrijfsparameters", 20, 129);
 
       const greaseName = document.getElementById("inputGrease").value;
       const speed = document.getElementById("inputSpeed").value;
@@ -1615,12 +1747,12 @@ function exportToPdf() {
       doc.setFont("helvetica", "bold");
       doc.setFontSize(8.5);
       doc.setTextColor(11, 19, 43);
-      doc.text(langData.pdfParameter || "Parameter", 24, 130);
-      doc.text(langData.pdfValue || "Waarde", 114, 130);
+      doc.text(langData.pdfParameter || "Parameter", 24, 138);
+      doc.text(langData.pdfValue || "Waarde", 114, 138);
       
       doc.setDrawColor(200, 200, 200);
       doc.setLineWidth(0.25);
-      doc.line(20, 132, 190, 132);
+      doc.line(20, 140, 190, 140);
 
       const speedUnit = currentLang === "nl" ? " r/min" : currentLang === "en" ? " rpm" : " tr/min";
       const hoursPerDayLabel = currentLang === "nl" ? "Operationele uren/dag" : currentLang === "en" ? "Operational hours/day" : "Heures opérationnelles/jour";
@@ -1637,7 +1769,7 @@ function exportToPdf() {
       ];
 
       doc.setFont("helvetica", "normal");
-      let currentY = 132;
+      let currentY = 140;
       params.forEach((p, idx) => {
         currentY += 6;
         doc.setTextColor(72, 84, 96);
