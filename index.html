@@ -445,6 +445,12 @@
               </div>
 
               <div class="form-group">
+                <label for="inputMicPolFactor" data-i18n="inputMicPolFactorLabel">Selecteer convertiefactor naar Interflon MicPol technologie</label>
+                <input type="number" id="inputMicPolFactor" class="form-control" placeholder="5" value="5" min="1" max="50" style="padding-left: 16px;">
+                <span class="input-label-description" data-i18n="descMicPolFactor">Vermenigvuldigingsfactor voor het smeringsinterval door gebruik van MicPol® technologie (1 tot 50).</span>
+              </div>
+
+              <div class="form-group">
                 <label for="inputHoursPerDay" data-i18n="inputHoursPerDayLabel">Operationele uren/dag</label>
                 <input type="number" id="inputHoursPerDay" class="form-control" placeholder="24" value="24" min="1" max="24" style="padding-left: 16px;">
                 <span class="input-label-description" data-i18n="descHoursPerDay">Aantal uren dat de machine per dag operationeel is.</span>
@@ -595,6 +601,18 @@
                     <span><span data-i18n="lblDays">Dagen</span>: <strong id="calcIntervalDays">--</strong></span>
                     <span><span data-i18n="lblWeeks">Weken</span>: <strong id="calcIntervalWeeks">--</strong></span>
                     <span><span data-i18n="lblMonths">Maanden</span>: <strong id="calcIntervalMonths">--</strong></span>
+                  </div>
+                </div>
+                
+                <div class="detail-row" style="background: linear-gradient(135deg, #F0FDF4, #DCFCE7); border: 1px solid #BBF7D0; padding: 12px 12px; border-radius: var(--border-radius-sm); flex-direction: column; align-items: stretch; gap: 8px; margin-top: 8px;">
+                  <div style="display: flex; justify-content: space-between; font-weight: 700; color: #166534;">
+                    <span data-i18n="resIntervalMicPolLabel">Smeerinterval met Interflon MicPol® technologie</span>
+                    <span><span id="calcIntervalMicPol">--</span> <span data-i18n="unitHours">uren</span></span>
+                  </div>
+                  <div style="display: flex; justify-content: space-between; font-size: 13px; color: #15803d; border-top: 1px dashed #BBF7D0; padding-top: 6px;">
+                    <span><span data-i18n="lblDays">Dagen</span>: <strong id="calcIntervalMicPolDays">--</strong></span>
+                    <span><span data-i18n="lblWeeks">Weken</span>: <strong id="calcIntervalMicPolWeeks">--</strong></span>
+                    <span><span data-i18n="lblMonths">Maanden</span>: <strong id="calcIntervalMicPolMonths">--</strong></span>
                   </div>
                 </div>
               </div>
