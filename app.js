@@ -165,6 +165,11 @@ const TRANSLATIONS = {
     techProductPlaceholder: "Bijv. Standaard EP2 vet",
     techIntervalLabel: "Huidige smeerinterval (dagen)",
     techIntervalPlaceholder: "Bijv. 30",
+    inputMicPolFactorLabel: "Selecteer convertiefactor naar Interflon MicPol technologie",
+    descMicPolFactor: "Vermenigvuldigingsfactor voor het smeringsinterval door gebruik van MicPol® technologie (1 tot 50).",
+    resIntervalMicPolLabel: "Smeerinterval met Interflon MicPol® technologie",
+    pdfMicPolFactorLabel: "Convertiefactor naar Interflon MicPol",
+    pdfIntervalMicPol: "Smeerinterval met Interflon MicPol®",
     refillVolumeTitle: "Nasmeervolume (Refills)",
     resRefillDesc: "Nasmeerhoeveelheid (D x B x C)",
     resStrokesDesc: "Vetpomp (2g/slag)",
@@ -346,6 +351,11 @@ const TRANSLATIONS = {
     techProductPlaceholder: "E.g. Standard EP2 grease",
     techIntervalLabel: "Current lubrication interval (days)",
     techIntervalPlaceholder: "E.g. 30",
+    inputMicPolFactorLabel: "Select conversion factor to Interflon MicPol technology",
+    descMicPolFactor: "Multiplier factor for the lubrication interval using MicPol® technology (1 to 50).",
+    resIntervalMicPolLabel: "Lubrication interval with Interflon MicPol® technology",
+    pdfMicPolFactorLabel: "Conversion factor to Interflon MicPol",
+    pdfIntervalMicPol: "Lubrication interval with Interflon MicPol®",
     refillVolumeTitle: "Relubrication Volume (Refills)",
     resRefillDesc: "Relubrication quantity (D x B x C)",
     resStrokesDesc: "Grease gun (2g/stroke)",
@@ -527,6 +537,11 @@ const TRANSLATIONS = {
     techProductPlaceholder: "Ex. Graisse EP2 standard",
     techIntervalLabel: "Intervalle de lubrification actuel (jours)",
     techIntervalPlaceholder: "Ex. 30",
+    inputMicPolFactorLabel: "Sélectionnez le facteur de conversion vers la technologie Interflon MicPol",
+    descMicPolFactor: "Facteur multiplicateur de l'intervalle de lubrification grâce à la technologie MicPol® (1 à 50).",
+    resIntervalMicPolLabel: "Intervalle de lubrification avec la technologie Interflon MicPol®",
+    pdfMicPolFactorLabel: "Facteur de conversion vers Interflon MicPol",
+    pdfIntervalMicPol: "Intervalle de lubrification avec Interflon MicPol®",
     refillVolumeTitle: "Volume de Relubrification (Refills)",
     resRefillDesc: "Quantité de relubrification (D x B x C)",
     resStrokesDesc: "Pompe à graisse (2g/coup)",
@@ -640,7 +655,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const inputs = [
     "inputGrease", "inputTemperature", "inputSpeed", "inputLimitingSpeed",
     "inputBoreManual", "inputOuterManual", "inputWidthManual", "inputMassManual",
-    "inputTe", "inputTa", "inputHoursPerDay"
+    "inputTe", "inputTa", "inputHoursPerDay", "inputMicPolFactor"
   ];
   inputs.forEach(id => {
     const el = document.getElementById(id);
@@ -1174,6 +1189,10 @@ function calculateGrease() {
   const intervalDaysElement = document.getElementById("calcIntervalDays");
   const intervalWeeksElement = document.getElementById("calcIntervalWeeks");
   const intervalMonthsElement = document.getElementById("calcIntervalMonths");
+  const intervalMicPolElement = document.getElementById("calcIntervalMicPol");
+  const intervalMicPolDaysElement = document.getElementById("calcIntervalMicPolDays");
+  const intervalMicPolWeeksElement = document.getElementById("calcIntervalMicPolWeeks");
+  const intervalMicPolMonthsElement = document.getElementById("calcIntervalMicPolMonths");
   
   const coefCElement = document.getElementById("calcCoefC");
   const strokesElement = document.getElementById("calcStrokes");
@@ -1186,7 +1205,9 @@ function calculateGrease() {
       freeVolM3Element, fillPercentElement, initFillGramsElement, initFillCmElement,
       baseFreqElement, TtElement, intervalDaysElement, intervalWeeksElement,
       intervalMonthsElement, coefCElement, strokesElement, densityElement,
-      baseFreqDaysElement, baseFreqWeeksElement, baseFreqMonthsElement
+      baseFreqDaysElement, baseFreqWeeksElement, baseFreqMonthsElement,
+      intervalMicPolElement, intervalMicPolDaysElement, intervalMicPolWeeksElement,
+      intervalMicPolMonthsElement
     ];
     elements.forEach(el => { if (el) el.textContent = "--"; });
     if (dnWarningRow) dnWarningRow.classList.add("hidden");
@@ -1307,6 +1328,23 @@ function calculateGrease() {
   if (intervalDaysElement) intervalDaysElement.textContent = days.toFixed(1);
   if (intervalWeeksElement) intervalWeeksElement.textContent = weeks.toFixed(1);
   if (intervalMonthsElement) intervalMonthsElement.textContent = months.toFixed(1);
+
+  // 8.5. Smeerinterval met Interflon MicPol® technologie (F-MicPol)
+  const micPolInput = document.getElementById("inputMicPolFactor");
+  let micPolFactor = micPolInput ? parseFloat(micPolInput.value) : 5;
+  if (isNaN(micPolFactor) || micPolFactor < 1 || micPolFactor > 50) {
+    micPolFactor = 5;
+  }
+  const fcMicPol = fc * micPolFactor;
+  if (intervalMicPolElement) intervalMicPolElement.textContent = Math.round(fcMicPol).toLocaleString("nl-NL");
+
+  const micPolDays = fcMicPol / hoursPerDay;
+  const micPolWeeks = micPolDays / 7;
+  const micPolMonths = micPolDays / 30.4;
+
+  if (intervalMicPolDaysElement) intervalMicPolDaysElement.textContent = micPolDays.toFixed(1);
+  if (intervalMicPolWeeksElement) intervalMicPolWeeksElement.textContent = micPolWeeks.toFixed(1);
+  if (intervalMicPolMonthsElement) intervalMicPolMonthsElement.textContent = micPolMonths.toFixed(1);
 
   // 9. Coefficient C en Nasmeervolume
   let coefC = 0.00483;
@@ -1743,6 +1781,7 @@ function exportToPdf() {
       const envFactor = document.getElementById("inputTe").options[document.getElementById("inputTe").selectedIndex].text;
       const appFactor = document.getElementById("inputTa").options[document.getElementById("inputTa").selectedIndex].text;
       const hoursPerDayVal = document.getElementById("inputHoursPerDay") ? document.getElementById("inputHoursPerDay").value : "24";
+      const micPolFactorVal = document.getElementById("inputMicPolFactor") ? document.getElementById("inputMicPolFactor").value : "5";
 
       doc.setFont("helvetica", "bold");
       doc.setFontSize(8.5);
@@ -1760,6 +1799,7 @@ function exportToPdf() {
 
       const params = [
         [langData.inputGreaseLabel, greaseName],
+        [langData.pdfMicPolFactorLabel || "Convertiefactor naar Interflon MicPol", micPolFactorVal + "x"],
         [langData.inputSpeedLabel, speed + speedUnit],
         [langData.inputLimitSpeedLabel, limitSpeed + speedUnit],
         [langData.inputTempLabel, temp + " °C"],
@@ -1813,6 +1853,12 @@ function exportToPdf() {
       const cDays = document.getElementById("calcIntervalDays").textContent;
       const cWeeks = document.getElementById("calcIntervalWeeks").textContent;
       const cMonths = document.getElementById("calcIntervalMonths").textContent;
+      
+      const fcMicPolVal = document.getElementById("calcIntervalMicPol") ? document.getElementById("calcIntervalMicPol").textContent : "--";
+      const mDays = document.getElementById("calcIntervalMicPolDays") ? document.getElementById("calcIntervalMicPolDays").textContent : "--";
+      const mWeeks = document.getElementById("calcIntervalMicPolWeeks") ? document.getElementById("calcIntervalMicPolWeeks").textContent : "--";
+      const mMonths = document.getElementById("calcIntervalMicPolMonths") ? document.getElementById("calcIntervalMicPolMonths").textContent : "--";
+
       const coefC = document.getElementById("calcCoefC").textContent;
       const quantity = document.getElementById("calcQuantity").textContent;
       const strokes = document.getElementById("calcStrokes").textContent;
@@ -1831,16 +1877,22 @@ function exportToPdf() {
         [langData.resTempFactor, ttFactor],
         [langData.resInterval, correctedInterval + " " + langData.unitHours],
         [convertedLabel, cDays + " " + langData.unitDays + " / " + cWeeks + " " + langData.unitWeeks + " / " + cMonths + " " + langData.unitMonths],
+        [langData.pdfIntervalMicPol || "Smeerinterval met Interflon MicPol®", fcMicPolVal + " " + langData.unitHours],
+        [convertedLabel + " (MicPol)", mDays + " " + langData.unitDays + " / " + mWeeks + " " + langData.unitWeeks + " / " + mMonths + " " + langData.unitMonths],
         [coefCLabel, coefC],
         [langData.resRefillQty, quantity + " " + langData.unitGrams],
         [langData.resStrokes, strokes + " " + langData.unitStrokes]
       ];
 
       results.forEach((r, idx) => {
-        currentY += 6;
+        currentY += 5.5;
         
+        const isMicPolHighlight = r[0] === (langData.pdfIntervalMicPol || "Smeerinterval met Interflon MicPol®");
         const isHighlight = r[0] === langData.resInterval || r[0] === langData.resRefillQty || r[0] === langData.resStrokes;
-        if (isHighlight) {
+        if (isMicPolHighlight) {
+          doc.setFont("helvetica", "bold");
+          doc.setTextColor(22, 101, 52); // Groen
+        } else if (isHighlight) {
           doc.setFont("helvetica", "bold");
           doc.setTextColor(227, 6, 19); // Rood
         } else {
@@ -1849,7 +1901,9 @@ function exportToPdf() {
         }
         doc.text(r[0], 24, currentY);
         
-        if (isHighlight) {
+        if (isMicPolHighlight) {
+          doc.setTextColor(22, 101, 52);
+        } else if (isHighlight) {
           doc.setTextColor(227, 6, 19);
         } else {
           doc.setTextColor(11, 19, 43);
@@ -1858,6 +1912,9 @@ function exportToPdf() {
       });
 
       doc.setFont("helvetica", "normal");
+      doc.setDrawColor(200, 200, 200);
+      doc.setLineWidth(0.25);
+      doc.line(20, currentY + 3, 190, currentY + 3);
 
       // 6. Footer
       doc.setFontSize(6.8);
