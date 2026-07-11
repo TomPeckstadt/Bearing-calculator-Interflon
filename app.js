@@ -1757,7 +1757,7 @@ function exportToPdf() {
       doc.text((langData.techAppLabel || "Toepassing") + ":", 110, 92);
       doc.text((langData.techProductLabel || "Huidig product") + ":", 110, 97);
       
-      const techIntervalLabelShort = currentLang === "nl" ? "Huidig interval" : currentLang === "en" ? "Current interval" : "Intervalle actuel";
+      const techIntervalLabelShort = currentLang === "nl" ? "Huidig interval (dagen)" : currentLang === "en" ? "Current interval (days)" : "Intervalle actuel (jours)";
       doc.text(techIntervalLabelShort + ":", 110, 102);
 
       doc.setFont("helvetica", "bold");
