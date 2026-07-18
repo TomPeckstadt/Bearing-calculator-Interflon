@@ -32,10 +32,10 @@ const TRANSLATIONS = {
     menuCalc: "Berekening",
     menuInfo: "Informatie",
     btnLogout: "Uitloggen",
-    operatorBadge: "Operator",
+    operatorBadge: "Interflon contactpersoon",
     clientBadge: "Klant",
-    opTitle: "Operator Gegevens",
-    opSubtitle: "Voer hier uw gegevens in. Deze worden bewaard op dit apparaat en getoond op de export-rapporten.",
+    opTitle: "Interflon contactpersoon",
+    opSubtitle: "Voer hier de gegevens van de Interflon contactpersoon in. Deze worden bewaard op dit apparaat en getoond op de export-rapporten.",
     opNameLabel: "Naam",
     opPhoneLabel: "Telefoonnummer",
     opEmailLabel: "Emailadres",
@@ -218,10 +218,10 @@ const TRANSLATIONS = {
     menuCalc: "Calculation",
     menuInfo: "Information",
     btnLogout: "Log Out",
-    operatorBadge: "Operator",
+    operatorBadge: "Interflon contact",
     clientBadge: "Customer",
-    opTitle: "Operator Details",
-    opSubtitle: "Enter your details here. These are saved on this device and shown on export reports.",
+    opTitle: "Interflon Contact Person",
+    opSubtitle: "Enter the Interflon contact person details here. These are saved on this device and shown on export reports.",
     opNameLabel: "Name",
     opPhoneLabel: "Phone Number",
     opEmailLabel: "Email Address",
@@ -404,10 +404,10 @@ const TRANSLATIONS = {
     menuCalc: "Calcul",
     menuInfo: "Informations",
     btnLogout: "Se déconnecter",
-    operatorBadge: "Opérateur",
+    operatorBadge: "Contact Interflon",
     clientBadge: "Client",
-    opTitle: "Informations Opérateur",
-    opSubtitle: "Saisissez vos coordonnées ici. Elles sont enregistrées sur cet appareil et affichées sur les rapports d'exportation.",
+    opTitle: "Contact Interflon",
+    opSubtitle: "Saisissez ici les coordonnées du contact Interflon. Elles sont enregistrées sur cet appareil et affichées sur les rapports d'exportation.",
     opNameLabel: "Nom",
     opPhoneLabel: "Numéro de Téléphone",
     opEmailLabel: "Adresse E-mail",
@@ -1412,9 +1412,10 @@ function updateOperatorBadge(name) {
     } else if (parts.length === 1) {
       initials = parts[0].substring(0, 2).toUpperCase();
     }
-    userAvatarEl.textContent = initials || "OP";
+    userAvatarEl.textContent = initials || "IF";
   } else {
-    userNameEl.textContent = "Operator";
+    const langData = TRANSLATIONS[currentLang || "nl"] || TRANSLATIONS["nl"];
+    userNameEl.textContent = langData.operatorBadge || "Interflon contactpersoon";
     userAvatarEl.textContent = "IF";
   }
 }
@@ -1673,7 +1674,7 @@ function exportToPdf() {
       doc.setFont("helvetica", "bold");
       doc.setFontSize(11);
       doc.setTextColor(11, 19, 43);
-      doc.text(langData.opTitle || "Operator Gegevens", 20, 46);
+      doc.text(langData.opTitle || "Interflon contactpersoon", 20, 46);
 
       doc.setFont("helvetica", "normal");
       doc.setFontSize(9);
