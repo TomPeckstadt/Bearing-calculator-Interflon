@@ -1100,6 +1100,7 @@ function updateCalculatorFields() {
   const outerInput = document.getElementById("inputOuterManual");
   const widthInput = document.getElementById("inputWidthManual");
   const massInput = document.getElementById("inputMassManual");
+  const limitInput = document.getElementById("inputLimitingSpeed");
 
   const lang = currentLang || "nl";
   const langData = TRANSLATIONS[lang] || TRANSLATIONS["nl"];
@@ -1118,6 +1119,7 @@ function updateCalculatorFields() {
     outerInput.value = activeBearing.D;
     widthInput.value = activeBearing.B;
     if (massInput) massInput.value = activeBearing.mass || "";
+    if (limitInput && activeBearing.limitSpeed) limitInput.value = activeBearing.limitSpeed;
   } else {
     // Geen lager geladen. We behouden de waarden uit het HTML formulier als standaard voorbeeld
     bannerTitle.textContent = langData.searchEmptyTitle || "Geen lager geselecteerd";
