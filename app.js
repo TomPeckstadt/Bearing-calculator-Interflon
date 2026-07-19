@@ -2540,40 +2540,40 @@ function runPdfExport(includeTco) {
           { label: langData.omProdNameLabel || "Productnaam", val1: p1_name, val2: p2_name },
           { label: (langData.omProdConsLabel || "Productverbruik / smeerbeurt") + " (g)", val1: p1_cons, val2: p2_cons },
           { label: langData.omLubesPerYear || "Aantal smeerbeurten / jaar", val1: p1_freq, val2: p2_freq },
-          { label: (langData.omProdPriceLabel || "Kostprijs product / L") + " (€)", val1: "€ " + parseFloat(p1_price).toFixed(2), val2: "€ " + parseFloat(p2_price).toFixed(2) },
-          { label: (langData.omAnnProdCost || "Kostprijs product / machine / jaar") + " (€)", val1: p1_ann_prod, val2: p2_ann_prod, isCalculated: true },
+          { label: langData.omPricePerL || "Kostprijs product / L (€)", val1: "€ " + parseFloat(p1_price).toFixed(2), val2: "€ " + parseFloat(p2_price).toFixed(2) },
+          { label: langData.omAnnProdCost || "Kostprijs product / machine / jaar (€)", val1: p1_ann_prod, val2: p2_ann_prod, isCalculated: true },
 
           // ARBEID
           { label: currentLang === "nl" ? "ARBEID" : currentLang === "en" ? "LABOR" : "MAIN D'OEUVRE", isSection: true },
           { label: (langData.omWorktimePerLube || "Werktijd / smeerbeurt") + " (min)", val1: shared_worktime, val2: shared_worktime, isShared: true },
           { label: (langData.omRepairFreq || "Revisiefrequentie") + " (mnd)", val1: p1_rep_freq, val2: p2_rep_freq },
           { label: (langData.omRepairDuration || "Revisietijd") + " (uren)", val1: shared_rep_h, val2: shared_rep_h, isShared: true },
-          { label: (langData.omLaborRate || "Kostprijs / H") + " (€)", val1: "€ " + parseFloat(shared_labor_rate).toFixed(2), val2: "€ " + parseFloat(shared_labor_rate).toFixed(2), isShared: true },
+          { label: langData.omLaborRate || "Kostprijs / H (€)", val1: "€ " + parseFloat(shared_labor_rate).toFixed(2), val2: "€ " + parseFloat(shared_labor_rate).toFixed(2), isShared: true },
           { label: (langData.omPrepTimeLabel || "Voorbereidingstijd") + " (uren)", val1: shared_prep_h, val2: shared_prep_h, isShared: true },
-          { label: (langData.omAnnLaborCost || "Kostprijs arbeid / machine / jaar") + " (€)", val1: p1_ann_labor, val2: p2_ann_labor, isCalculated: true },
+          { label: langData.omAnnLaborCost || "Kostprijs arbeid / machine / jaar (€)", val1: p1_ann_labor, val2: p2_ann_labor, isCalculated: true },
 
           // MATERIAAL
           { label: currentLang === "nl" ? "MATERIAAL" : currentLang === "en" ? "MATERIAL" : "MATÉRIEL", isSection: true },
           { label: (langData.omMaterialLifetime || "Levensduur materiaal") + " (mnd)", val1: p1_lifetime, val2: p2_lifetime },
-          { label: (langData.omSparePartsCost || "Kostprijs wisselstukken / set") + " (€)", val1: "€ " + parseFloat(shared_parts_cost).toFixed(2), val2: "€ " + parseFloat(shared_parts_cost).toFixed(2), isShared: true },
+          { label: langData.omSparePartsCost || "Kostprijs wisselstukken / set (€)", val1: "€ " + parseFloat(shared_parts_cost).toFixed(2), val2: "€ " + parseFloat(shared_parts_cost).toFixed(2), isShared: true },
           { label: langData.omSetsPerMachine || "Aantal lagers / machine", val1: shared_sets, val2: shared_sets, isShared: true },
-          { label: (langData.omAnnMatCost || "Kostprijs materiaal / machine / jaar") + " (€)", val1: p1_ann_mat, val2: p2_ann_mat, isCalculated: true },
+          { label: langData.omAnnMatCost || "Kostprijs materiaal / machine / jaar (€)", val1: p1_ann_mat, val2: p2_ann_mat, isCalculated: true },
 
           // DOWNTIME
           { label: currentLang === "nl" ? "DOWN-TIME" : currentLang === "en" ? "DOWNTIME" : "TEMPS D'ARRÊT", isSection: true },
           { label: (langData.omDowntimeHours || "Tijdsduur") + " (H)", val1: p1_dt_h, val2: p2_dt_h },
           { label: langData.omDowntimeFreq || "Aantal / jaar", val1: p1_dt_freq, val2: p2_dt_freq },
-          { label: (langData.omDowntimeRate || "Kostprijs down-time / H") + " (€)", val1: "€ " + parseFloat(shared_dt_rate).toFixed(2), val2: "€ " + parseFloat(shared_dt_rate).toFixed(2), isShared: true },
-          { label: (langData.omAnnDowntimeCost || "Kostprijs downtime / machine / jaar") + " (€)", val1: p1_ann_dt, val2: p2_ann_dt, isCalculated: true },
+          { label: langData.omDowntimeRate || "Kostprijs down-time / H (€)", val1: "€ " + parseFloat(shared_dt_rate).toFixed(2), val2: "€ " + parseFloat(shared_dt_rate).toFixed(2), isShared: true },
+          { label: langData.omAnnDowntimeCost || "Kostprijs downtime / machine / jaar (€)", val1: p1_ann_dt, val2: p2_ann_dt, isCalculated: true },
 
           // OVERVIEW
           { label: currentLang === "nl" ? "TOTAAL OVERZICHT" : currentLang === "en" ? "TOTAL OVERVIEW" : "RÉSUMÉ DES COÛTS", isSection: true },
           { label: langData.omNumMachines || "Aantal machines", val1: num_mach, val2: num_mach, isShared: true },
-          { label: (langData.omTotalCostPerMachine || "Totale kostprijs / jaar / machine") + " (€)", val1: p1_ann_total, val2: p2_ann_total, isTotal: true },
-          { label: (langData.omTotalCostPark || "Totale kostprijs / jaar / park") + " (€)", val1: p1_park_total, val2: p2_park_total, isTotal: true },
-          { label: (langData.omAnnSavingsMachineLabel || "Kostenbesparing / jaar / machine") + " (€)", val1: "", val2: savings_mach, isSavings: true },
-          { label: (langData.omAnnSavingsLabel || "Kostenbesparing / jaar (€)") + " (park)", val1: "", val2: savings_park, isSavings: true },
-          { label: (langData.omSavingsYears || "Kostenbesparing na X jaar") + ` (${tco_yrs} jr)`, val1: "", val2: savings_yrs, isSavingsHighlight: true }
+          { label: langData.omTotalCostPerMachine || "Totale kostprijs / jaar / machine (€)", val1: p1_ann_total, val2: p2_ann_total, isTotal: true },
+          { label: langData.omTotalCostPark || "Totale kostprijs / jaar / park (€)", val1: p1_park_total, val2: p2_park_total, isTotal: true },
+          { label: langData.omAnnSavingsMachineLabel || "Kostenbesparing / jaar / machine (€)", val1: "", val2: savings_mach, isSavings: true },
+          { label: langData.omAnnSavingsLabel || "Kostenbesparing / jaar (park)", val1: "", val2: savings_park, isSavings: true },
+          { label: langData.omSavingsYears || "Kostenbesparing na X jaar (€)", val1: "", val2: savings_yrs, isSavingsHighlight: true }
         ];
 
         let currentY = 50;
@@ -2596,7 +2596,11 @@ function runPdfExport(includeTco) {
             doc.setFont("helvetica", "bold");
             doc.setFontSize(9);
             doc.setTextColor(11, 19, 43);
-            doc.text(row.label, 24, currentY + 5);
+            
+            // Format dynamic label by stripping span and putting in actual years:
+            let labelText = row.label.replace(/<span[^>]*>.*?<\/span>/g, tco_yrs);
+            labelText = labelText.replace(/<[^>]*>/g, ""); // Strip any other tags
+            doc.text(labelText, 24, currentY + 5);
             doc.setTextColor(22, 101, 52); // Bold green
             doc.text(row.val2, 155, currentY + 5);
             currentY += 7;
