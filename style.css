@@ -454,6 +454,8 @@ h1, h2, h3, h4, .brand-text {
   display: flex;
   flex-direction: column;
   gap: 30px;
+  min-width: 0;
+  max-width: calc(100vw - var(--sidebar-width));
 }
 
 /* Top bar / Header */
@@ -890,6 +892,7 @@ h1, h2, h3, h4, .brand-text {
   .main-content {
     margin-left: 0;
     padding: 20px;
+    max-width: 100vw;
   }
 }
 
