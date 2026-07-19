@@ -2512,8 +2512,8 @@ function runPdfExport(includeTco) {
         const p2_lifetime = document.getElementById("omLifetime2").value || "0";
         const shared_parts_cost = document.getElementById("omSharedPartsCost").value || "0";
         const shared_sets = document.getElementById("omSharedSetsPerMachine").value || "0";
-        const p1_ann_mat = document.getElementById("omAnnMatCost1") ? document.getElementById("omAnnMatCost1").textContent : "€ 0,00";
-        const p2_ann_mat = document.getElementById("omAnnMatCost2") ? document.getElementById("omAnnMatCost2").textContent : "€ 0,00";
+        const p1_ann_mat = document.getElementById("omAnnMaterialCost1") ? document.getElementById("omAnnMaterialCost1").textContent : "€ 0,00";
+        const p2_ann_mat = document.getElementById("omAnnMaterialCost2") ? document.getElementById("omAnnMaterialCost2").textContent : "€ 0,00";
 
         const p1_dt_h = document.getElementById("omDowntimeH1").value || "0";
         const p2_dt_h = document.getElementById("omDowntimeH2").value || "0";
