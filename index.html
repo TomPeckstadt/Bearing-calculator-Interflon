@@ -818,9 +818,16 @@
               </svg>
               <span data-i18n="omTableTitle">TCO Calculatie Model</span>
             </h3>
-            <span style="font-size: 12px; color: var(--text-medium); font-weight: 600; padding: 4px 8px; background-color: var(--bg-main); border-radius: var(--border-radius-sm);">
-              💡 <span data-i18n="omInstructionText">Vul de grijze cellen in</span>
-            </span>
+            <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+              <span style="font-size: 11px; color: var(--text-medium); font-weight: 600; padding: 4px 8px; background-color: #f3f4f6; border: 1px solid #e5e7eb; border-radius: var(--border-radius-sm); display: inline-flex; align-items: center; gap: 6px;">
+                <span style="width: 10px; height: 10px; background-color: #F3F4F6; border: 1px solid #cbd5e1; border-radius: 2px; display: inline-block;"></span>
+                <span data-i18n="omInstructionText">Vul de grijze cellen in</span>
+              </span>
+              <span style="font-size: 11px; color: var(--text-medium); font-weight: 600; padding: 4px 8px; background-color: #eff6ff; border: 1px solid #bfdbfe; border-radius: var(--border-radius-sm); display: inline-flex; align-items: center; gap: 6px;">
+                <span style="width: 10px; height: 10px; background-color: #DBEAFE; border: 1px solid #93c5fd; border-radius: 2px; display: inline-block;"></span>
+                <span data-i18n="omAutoInstructionText">De blauwe cellen zijn automatisch berekend maar kunnen handmatig aangepast worden</span>
+              </span>
+            </div>
           </div>
 
           <table class="om-spreadsheet-table">
@@ -871,16 +878,16 @@
               <!-- Row: consumption -->
               <tr>
                 <td class="cell-label" data-i18n="omConsumption">Productverbruik / smeerbeurt (g)</td>
-                <td class="cell-input-wrapper"><input type="number" id="omProdCons1" class="om-cell-input numeric" value="2850" step="0.1"></td>
+                <td class="cell-input-wrapper"><input type="number" id="omProdCons1" class="om-cell-input numeric auto-filled" value="2850" step="0.1"></td>
                 <td class="cell-label" data-i18n="omConsumption">Productverbruik / smeerbeurt (g)</td>
-                <td class="cell-input-wrapper"><input type="number" id="omProdCons2" class="om-cell-input numeric" value="475" step="0.1"></td>
+                <td class="cell-input-wrapper"><input type="number" id="omProdCons2" class="om-cell-input numeric auto-filled" value="475" step="0.1"></td>
               </tr>
               <!-- Row: product price -->
               <tr>
                 <td class="cell-label" data-i18n="omPricePerL">Kostprijs product / L (€)</td>
-                <td class="cell-input-wrapper"><input type="number" id="omProdPrice1" class="om-cell-input numeric" value="10.00" step="0.01"></td>
+                <td class="cell-input-wrapper"><input type="number" id="omProdPrice1" class="om-cell-input numeric auto-filled" value="10.00" step="0.01"></td>
                 <td class="cell-label" data-i18n="omPricePerL">Kostprijs product / L (€)</td>
-                <td class="cell-input-wrapper"><input type="number" id="omProdPrice2" class="om-cell-input numeric" value="38.60" step="0.01"></td>
+                <td class="cell-input-wrapper"><input type="number" id="omProdPrice2" class="om-cell-input numeric auto-filled" value="38.60" step="0.01"></td>
               </tr>
               <!-- Row: calculated annual product cost -->
               <tr class="calculated-row">
@@ -898,9 +905,9 @@
               </tr>
               <tr>
                 <td class="cell-label" data-i18n="omLubesPerYear">Aantal smeerbeurten / jaar</td>
-                <td class="cell-input-wrapper"><input type="number" id="omProdFreq1" class="om-cell-input numeric" value="56" step="0.1"></td>
+                <td class="cell-input-wrapper"><input type="number" id="omProdFreq1" class="om-cell-input numeric auto-filled" value="56" step="0.1"></td>
                 <td class="cell-label" data-i18n="omLubesPerYear">Aantal smeerbeurten / jaar</td>
-                <td class="cell-input-wrapper"><input type="number" id="omProdFreq2" class="om-cell-input numeric" value="56" step="0.1"></td>
+                <td class="cell-input-wrapper"><input type="number" id="omProdFreq2" class="om-cell-input numeric auto-filled" value="56" step="0.1"></td>
                 <td class="cell-label" data-i18n="omWorktimePerLube">Werktijd / smeerbeurt (minuten)</td>
                 <td class="cell-input-wrapper"><input type="number" id="omSharedWorktime" class="om-cell-input numeric" value="30" step="1"></td>
               </tr>
