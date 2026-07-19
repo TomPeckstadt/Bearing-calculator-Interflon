@@ -2407,7 +2407,11 @@ function saveTcoDetails() {
   });
   // Save application photo
   const previewImg = document.getElementById("omAppImagePreview");
-  data["omAppImage"] = (previewImg && previewImg.getAttribute("src")) ? previewImg.getAttribute("src") : "";
+  let imgSrc = "";
+  if (previewImg && previewImg.src && previewImg.src.startsWith("data:image")) {
+    imgSrc = previewImg.src;
+  }
+  data["omAppImage"] = imgSrc;
 
   localStorage.setItem("bearing_calc_tco_data", JSON.stringify(data));
 }
