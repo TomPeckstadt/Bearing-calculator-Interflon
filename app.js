@@ -1796,12 +1796,12 @@ function updateOmMetadata() {
   const omProdName1 = document.getElementById("omProdName1");
   const omProdName2 = document.getElementById("omProdName2");
   if (omProdName1) {
-    omProdName1.value = localStorage.getItem("tech_product") || "";
+    omProdName1.textContent = localStorage.getItem("tech_product") || "";
   }
   if (omProdName2) {
     const greaseSelect = document.getElementById("inputGrease");
     if (greaseSelect) {
-      omProdName2.value = greaseSelect.value || "";
+      omProdName2.textContent = greaseSelect.value || "";
     }
   }
 }
@@ -2232,7 +2232,7 @@ function saveTcoDetails() {
   TCO_INPUTS.forEach(id => {
     const el = document.getElementById(id);
     if (el) {
-      data[id] = el.value;
+      data[id] = el.tagName === "INPUT" || el.tagName === "SELECT" ? el.value : el.textContent;
     }
   });
   localStorage.setItem("bearing_calc_tco_data", JSON.stringify(data));
@@ -2246,7 +2246,11 @@ function loadTcoDetails() {
     TCO_INPUTS.forEach(id => {
       const el = document.getElementById(id);
       if (el && data[id] !== undefined) {
-        el.value = data[id];
+        if (el.tagName === "INPUT" || el.tagName === "SELECT") {
+          el.value = data[id];
+        } else {
+          el.textContent = data[id];
+        }
       }
     });
   } catch (e) {
