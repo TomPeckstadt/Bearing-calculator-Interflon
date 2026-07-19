@@ -1220,6 +1220,15 @@ h1, h2, h3, h4, .brand-text {
   background-color: #DBEAFE; /* Soft blue for auto-filled but editable */
 }
 
+.om-cell-input[readonly] {
+  cursor: not-allowed;
+}
+
+.om-cell-input[readonly]:focus {
+  background-color: #DBEAFE;
+  box-shadow: none;
+}
+
 .om-cell-input:focus {
   outline: none;
   background-color: #FFFFFF;
