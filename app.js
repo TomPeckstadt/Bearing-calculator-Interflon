@@ -228,7 +228,7 @@ const TRANSLATIONS = {
     omRepairDuration: "Revisietijd / Downtime / H",
     omLaborRate: "Prijs werkuur / H (€)",
     omAnnLaborCost: "Kostprijs tijdsbesteding / machine / jaar (€)",
-    omPrepDuration: "Voorbereidingstijd (H)",
+    omPrepDuration: "Voorbereidingstijd revisie (H)",
     omMaterialLabel: "MATERIAAL",
     omMaterialLifetime: "Levensduur lager (maanden)",
     omSparePartsCost: "Kostprijs wisselstukken / set (€)",
@@ -479,7 +479,7 @@ const TRANSLATIONS = {
     omRepairDuration: "Overhaul duration (hours)",
     omLaborRate: "Labor rate (€/H)",
     omAnnLaborCost: "Labor cost / machine / year (€)",
-    omPrepDuration: "Preparation time (H)",
+    omPrepDuration: "Overhaul preparation time (H)",
     omMaterialLabel: "MATERIAL",
     omMaterialLifetime: "Bearing lifetime (months)",
     omSparePartsCost: "Spare parts cost / set (€)",
@@ -730,7 +730,7 @@ const TRANSLATIONS = {
     omRepairDuration: "Temps de révision (heures)",
     omLaborRate: "Taux horaire (€/H)",
     omAnnLaborCost: "Coût main d'œuvre / machine / an (€)",
-    omPrepDuration: "Temps de préparation (H)",
+    omPrepDuration: "Temps de préparation révision (H)",
     omMaterialLabel: "MATÉRIEL",
     omMaterialLifetime: "Durée de vie roulement (mois)",
     omSparePartsCost: "Prix pièces / jeu (€)",
@@ -2739,7 +2739,7 @@ function runPdfExport(includeTco) {
         curY += 6.5;
         drawCell(startX1, curY, 54, 6.5, langData.omDowntimeFreq || "Aantal / jaar", p1_dt_freq, "blue");
         drawCell(startX2, curY, 54, 6.5, langData.omDowntimeFreq || "Aantal / jaar", p2_dt_freq, "blue");
-        drawCell(startX3, curY, 60, 6.5, langData.omPrepDuration || "Voorbereidingstijd (H)", shared_prep_h, "grey");
+        drawCell(startX3, curY, 60, 6.5, langData.omPrepDuration || "Voorbereidingstijd revisie (H)", shared_prep_h, "grey");
 
         curY += 6.5;
         drawCell(startX1, curY, 54, 6.5, langData.omAnnDowntimeCost || "Kostprijs downtime / m / j (€)", p1_ann_dt);
