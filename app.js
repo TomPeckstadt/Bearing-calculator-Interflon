@@ -2457,6 +2457,12 @@ function loadTcoDetails() {
   if (!dataStr) return;
   try {
     const data = JSON.parse(dataStr);
+    
+    // Migrate old default worktime of 30 minutes to 3 minutes
+    if (data["omSharedWorktime"] === "30" || data["omSharedWorktime"] === 30) {
+      data["omSharedWorktime"] = 3;
+    }
+
     TCO_INPUTS.forEach(id => {
       const el = document.getElementById(id);
       if (el && data[id] !== undefined) {
