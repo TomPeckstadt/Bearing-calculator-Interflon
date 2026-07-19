@@ -217,7 +217,7 @@ const TRANSLATIONS = {
     omRepairFreq: "Herstelfrequentie (M)",
     omRepairDuration: "Herstellingstijden (H)",
     omLaborRate: "Kostprijs / H (€)",
-    omAnnLaborCost: "Kostprijs tijdsbesteding / m / j (€)",
+    omAnnLaborCost: "Kostprijs tijdsbesteding / machine / jaar (€)",
     omPrepDuration: "Voorbereidingstijd (H)",
     omMaterialLabel: "MATERIAAL",
     omMaterialLifetime: "Levensduur materiaal (M)",
