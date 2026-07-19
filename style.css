@@ -1170,7 +1170,7 @@ h1, h2, h3, h4, .brand-text {
 .om-spreadsheet-table .cell-input-wrapper {
   padding: 0;
   width: 15%;
-  min-width: 160px;
+  min-width: 220px;
   background-color: #F3F4F6; /* Grey input cells by default */
 }
 
