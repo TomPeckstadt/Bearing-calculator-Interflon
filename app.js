@@ -140,6 +140,13 @@ const TRANSLATIONS = {
     pdfErrorLib: "Fout: PDF-bibliotheek kon niet worden geladen. Controleer uw internetverbinding.",
     pdfErrorGen: "Er is een fout opgetreden bij het genereren van het PDF-rapport: ",
     pdfGenerating: "Genereren...",
+    pdfExportTitle: "Rapport exporteren",
+    pdfExportSubtitle: "Kies hoe u het PDF-rapport wilt genereren:",
+    pdfOptInclTco: "Inclusief TCO Calculatie model",
+    pdfOptInclTcoDesc: "Genereert een 2-pagina's tellend rapport inclusief het volledige vergelijkende kostenmodel.",
+    pdfOptExclTco: "Exclusief TCO Calculatie model",
+    pdfOptExclTcoDesc: "Genereert een compact 1-pagina rapport met enkel de lagerspecificaties en het smeeradvies.",
+    pdfExportBtn: "Rapport exporteren",
     visualDimensionsTitle: "Visuele Afmetingen",
     visualNoteBlue: "Blauwe markeringen tonen de kogels/rollen.",
     boreDiameterShort: "boring",
@@ -384,6 +391,13 @@ const TRANSLATIONS = {
     pdfErrorLib: "Error: PDF library could not be loaded. Please check your internet connection.",
     pdfErrorGen: "An error occurred while generating the PDF report: ",
     pdfGenerating: "Generating...",
+    pdfExportTitle: "Export Report",
+    pdfExportSubtitle: "Choose how to generate the PDF report:",
+    pdfOptInclTco: "Include TCO Calculation model",
+    pdfOptInclTcoDesc: "Generates a 2-page report including the full comparative cost model.",
+    pdfOptExclTco: "Exclude TCO Calculation model",
+    pdfOptExclTcoDesc: "Generates a compact 1-page report with only bearing specifications and lubrication advice.",
+    pdfExportBtn: "Export Report",
     visualDimensionsTitle: "Visual Dimensions",
     visualNoteBlue: "Blue markings show the balls/rollers.",
     boreDiameterShort: "bore",
@@ -628,6 +642,13 @@ const TRANSLATIONS = {
     pdfErrorLib: "Erreur : La bibliothèque PDF n'a pas pu être chargée. Veuillez vérifier votre connexion Internet.",
     pdfErrorGen: "Une erreur s'est produite lors de la génération du rapport PDF : ",
     pdfGenerating: "Génération...",
+    pdfExportTitle: "Exporter le rapport",
+    pdfExportSubtitle: "Choisissez comment générer le rapport PDF :",
+    pdfOptInclTco: "Inclure le modèle de calcul TCO",
+    pdfOptInclTcoDesc: "Génère un rapport de 2 pages comprenant le modèle de coût comparatif complet.",
+    pdfOptExclTco: "Exclure le modèle de calcul TCO",
+    pdfOptExclTcoDesc: "Génère un rapport compact d'une page avec uniquement les spécifications du roulement et les conseils de lubrification.",
+    pdfExportBtn: "Exporter le rapport",
     visualDimensionsTitle: "Dimensions Visuelles",
     visualNoteBlue: "Les repères bleus indiquent les billes/rouleaux.",
     boreDiameterShort: "alésage",
@@ -2049,7 +2070,23 @@ function saveTechDetails(event) {
 // EXPORT NAAR PDF INCLUSIEF WATERMERK EN GEGEVENS
 // ==========================================================================
 
-function exportToPdf() {
+function showPdfModal() {
+  const modal = document.getElementById("pdfOptionsModal");
+  if (modal) modal.classList.remove("hidden");
+}
+
+function closePdfModal() {
+  const modal = document.getElementById("pdfOptionsModal");
+  if (modal) modal.classList.add("hidden");
+}
+
+function confirmPdfExport() {
+  const includeTco = document.querySelector('input[name="pdfTcoOption"]:checked').value === "true";
+  closePdfModal();
+  runPdfExport(includeTco);
+}
+
+function runPdfExport(includeTco) {
   const { jsPDF } = window.jspdf;
   const langData = TRANSLATIONS[currentLang] || TRANSLATIONS["nl"];
   
@@ -2392,6 +2429,233 @@ function exportToPdf() {
       doc.setFontSize(7.5);
       doc.setTextColor(227, 6, 19);
       doc.text("INTERFLON - " + (langData.pdfWatermarkText || "A WORLD WITHOUT FRICTION").toUpperCase(), 20, 282);
+
+      // ==========================================================================
+      // PAGE 2: TCO CALCULATIE MODEL (IF SELECTED)
+      // ==========================================================================
+      if (includeTco) {
+        doc.addPage();
+        
+        // 1. Watermerk logo toevoegen (gecentreerd)
+        if (watermarkDataUrl && aspectRatio) {
+          const imgWidth = 160;
+          const imgHeight = 160 * aspectRatio;
+          const x = (pageWidth - imgWidth) / 2;
+          const y = (pageHeight - imgHeight) / 2;
+          doc.addImage(watermarkDataUrl, "JPEG", x, y, imgWidth, imgHeight);
+        }
+
+        // 2. Header Rapport
+        doc.setFillColor(227, 6, 19); // Interflon Rood
+        doc.rect(20, 20, 170, 2, "F");
+
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(16);
+        doc.setTextColor(227, 6, 19);
+        const tcoTitleText = currentLang === "nl" ? "INTERFLON OPBRENGSTMODEL & TCO BEREKENING" : currentLang === "en" ? "INTERFLON YIELD MODEL & TCO CALCULATION" : "MODÈLE DE RENDEMENT & CALCUL TCO INTERFLON";
+        doc.text(tcoTitleText, 20, 32);
+
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(9);
+        doc.setTextColor(100, 100, 100);
+        doc.text((langData.pdfReportGeneratedOn || "Rapport gegenereerd op: ") + dateString, 20, 38);
+
+        doc.setDrawColor(220, 220, 220);
+        doc.line(20, 42, 190, 42);
+
+        // 3. Grid headers
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(8.5);
+        doc.setTextColor(11, 19, 43);
+        const col1Header = currentLang === "nl" ? "Parameter / Kostencategorie" : currentLang === "en" ? "Parameter / Cost Category" : "Paramètre / Catégorie de Coût";
+        const col2Header = currentLang === "nl" ? "Huidige situatie" : currentLang === "en" ? "Current situation" : "Situation actuelle";
+        const col3Header = currentLang === "nl" ? "Nieuwe situatie" : currentLang === "en" ? "New situation" : "Nouvelle situation";
+        
+        doc.text(col1Header, 24, 48);
+        doc.setTextColor(100, 100, 100);
+        doc.text(col2Header, 110, 48);
+        doc.setTextColor(227, 6, 19);
+        doc.text(col3Header, 155, 48);
+        
+        doc.setDrawColor(200, 200, 200);
+        doc.setLineWidth(0.25);
+        doc.line(20, 50, 190, 50);
+
+        // Gather variables for the TCO table row array
+        const p1_name = document.getElementById("omProdName1").textContent || "-";
+        const p2_name = document.getElementById("omProdName2").textContent || "-";
+        const p1_cons = document.getElementById("omProdCons1").value || "0";
+        const p2_cons = document.getElementById("omProdCons2").value || "0";
+        const p1_freq = document.getElementById("omProdFreq1").value || "0";
+        const p2_freq = document.getElementById("omProdFreq2").value || "0";
+        const p1_price = document.getElementById("omProdPrice1").value || "0";
+        const p2_price = document.getElementById("omProdPrice2").value || "0";
+        const p1_ann_prod = document.getElementById("omAnnProdCost1") ? document.getElementById("omAnnProdCost1").textContent : "€ 0,00";
+        const p2_ann_prod = document.getElementById("omAnnProdCost2") ? document.getElementById("omAnnProdCost2").textContent : "€ 0,00";
+
+        const shared_worktime = document.getElementById("omSharedWorktime").value || "0";
+        const p1_rep_freq = document.getElementById("omRepairFreq1").value || "0";
+        const p2_rep_freq = document.getElementById("omRepairFreq2").value || "0";
+        const shared_rep_h = document.getElementById("omSharedRepairH").value || "0";
+        const shared_labor_rate = document.getElementById("omSharedLaborRate").value || "0";
+        const shared_prep_h = document.getElementById("omSharedPrepH").value || "0";
+        const p1_ann_labor = document.getElementById("omAnnLaborCost1") ? document.getElementById("omAnnLaborCost1").textContent : "€ 0,00";
+        const p2_ann_labor = document.getElementById("omAnnLaborCost2") ? document.getElementById("omAnnLaborCost2").textContent : "€ 0,00";
+
+        const p1_lifetime = document.getElementById("omLifetime1").value || "0";
+        const p2_lifetime = document.getElementById("omLifetime2").value || "0";
+        const shared_parts_cost = document.getElementById("omSharedPartsCost").value || "0";
+        const shared_sets = document.getElementById("omSharedSetsPerMachine").value || "0";
+        const p1_ann_mat = document.getElementById("omAnnMatCost1") ? document.getElementById("omAnnMatCost1").textContent : "€ 0,00";
+        const p2_ann_mat = document.getElementById("omAnnMatCost2") ? document.getElementById("omAnnMatCost2").textContent : "€ 0,00";
+
+        const p1_dt_h = document.getElementById("omDowntimeH1").value || "0";
+        const p2_dt_h = document.getElementById("omDowntimeH2").value || "0";
+        const p1_dt_freq = document.getElementById("omDowntimeFreq1").value || "0";
+        const p2_dt_freq = document.getElementById("omDowntimeFreq2").value || "0";
+        const shared_dt_rate = document.getElementById("omSharedDowntimeRate").value || "0";
+        const p1_ann_dt = document.getElementById("omAnnDowntimeCost1") ? document.getElementById("omAnnDowntimeCost1").textContent : "€ 0,00";
+        const p2_ann_dt = document.getElementById("omAnnDowntimeCost2") ? document.getElementById("omAnnDowntimeCost2").textContent : "€ 0,00";
+
+        const num_mach = document.getElementById("omSharedNumMachines").value || "0";
+        const p1_ann_total = document.getElementById("omAnnTotalCost1") ? document.getElementById("omAnnTotalCost1").textContent : "€ 0,00";
+        const p2_ann_total = document.getElementById("omAnnTotalCost2") ? document.getElementById("omAnnTotalCost2").textContent : "€ 0,00";
+        const p1_park_total = document.getElementById("omAnnParkCost1") ? document.getElementById("omAnnParkCost1").textContent : "€ 0,00";
+        const p2_park_total = document.getElementById("omAnnParkCost2") ? document.getElementById("omAnnParkCost2").textContent : "€ 0,00";
+
+        const savings_mach = document.getElementById("omAnnSavingsMachine") ? document.getElementById("omAnnSavingsMachine").textContent : "€ 0,00";
+        const savings_park = document.getElementById("omAnnSavingsPark") ? document.getElementById("omAnnSavingsPark").textContent : "€ 0,00";
+        const tco_yrs = document.getElementById("omTcoYears").value || "10";
+        const savings_yrs = document.getElementById("omTotalSavingsSummary") ? document.getElementById("omTotalSavingsSummary").textContent : "€ 0,00";
+
+        const tcoRows = [
+          // PRODUCT
+          { label: currentLang === "nl" ? "PRODUCT" : currentLang === "en" ? "PRODUCT" : "PRODUIT", isSection: true },
+          { label: langData.omProdNameLabel || "Productnaam", val1: p1_name, val2: p2_name },
+          { label: (langData.omProdConsLabel || "Productverbruik / smeerbeurt") + " (g)", val1: p1_cons, val2: p2_cons },
+          { label: langData.omLubesPerYear || "Aantal smeerbeurten / jaar", val1: p1_freq, val2: p2_freq },
+          { label: (langData.omProdPriceLabel || "Kostprijs product / L") + " (€)", val1: "€ " + parseFloat(p1_price).toFixed(2), val2: "€ " + parseFloat(p2_price).toFixed(2) },
+          { label: (langData.omAnnProdCost || "Kostprijs product / machine / jaar") + " (€)", val1: p1_ann_prod, val2: p2_ann_prod, isCalculated: true },
+
+          // ARBEID
+          { label: currentLang === "nl" ? "ARBEID" : currentLang === "en" ? "LABOR" : "MAIN D'OEUVRE", isSection: true },
+          { label: (langData.omWorktimePerLube || "Werktijd / smeerbeurt") + " (min)", val1: shared_worktime, val2: shared_worktime, isShared: true },
+          { label: (langData.omRepairFreq || "Revisiefrequentie") + " (mnd)", val1: p1_rep_freq, val2: p2_rep_freq },
+          { label: (langData.omRepairDuration || "Revisietijd") + " (uren)", val1: shared_rep_h, val2: shared_rep_h, isShared: true },
+          { label: (langData.omLaborRate || "Kostprijs / H") + " (€)", val1: "€ " + parseFloat(shared_labor_rate).toFixed(2), val2: "€ " + parseFloat(shared_labor_rate).toFixed(2), isShared: true },
+          { label: (langData.omPrepTimeLabel || "Voorbereidingstijd") + " (uren)", val1: shared_prep_h, val2: shared_prep_h, isShared: true },
+          { label: (langData.omAnnLaborCost || "Kostprijs arbeid / machine / jaar") + " (€)", val1: p1_ann_labor, val2: p2_ann_labor, isCalculated: true },
+
+          // MATERIAAL
+          { label: currentLang === "nl" ? "MATERIAAL" : currentLang === "en" ? "MATERIAL" : "MATÉRIEL", isSection: true },
+          { label: (langData.omMaterialLifetime || "Levensduur materiaal") + " (mnd)", val1: p1_lifetime, val2: p2_lifetime },
+          { label: (langData.omSparePartsCost || "Kostprijs wisselstukken / set") + " (€)", val1: "€ " + parseFloat(shared_parts_cost).toFixed(2), val2: "€ " + parseFloat(shared_parts_cost).toFixed(2), isShared: true },
+          { label: langData.omSetsPerMachine || "Aantal lagers / machine", val1: shared_sets, val2: shared_sets, isShared: true },
+          { label: (langData.omAnnMatCost || "Kostprijs materiaal / machine / jaar") + " (€)", val1: p1_ann_mat, val2: p2_ann_mat, isCalculated: true },
+
+          // DOWNTIME
+          { label: currentLang === "nl" ? "DOWN-TIME" : currentLang === "en" ? "DOWNTIME" : "TEMPS D'ARRÊT", isSection: true },
+          { label: (langData.omDowntimeHours || "Tijdsduur") + " (H)", val1: p1_dt_h, val2: p2_dt_h },
+          { label: langData.omDowntimeFreq || "Aantal / jaar", val1: p1_dt_freq, val2: p2_dt_freq },
+          { label: (langData.omDowntimeRate || "Kostprijs down-time / H") + " (€)", val1: "€ " + parseFloat(shared_dt_rate).toFixed(2), val2: "€ " + parseFloat(shared_dt_rate).toFixed(2), isShared: true },
+          { label: (langData.omAnnDowntimeCost || "Kostprijs downtime / machine / jaar") + " (€)", val1: p1_ann_dt, val2: p2_ann_dt, isCalculated: true },
+
+          // OVERVIEW
+          { label: currentLang === "nl" ? "TOTAAL OVERZICHT" : currentLang === "en" ? "TOTAL OVERVIEW" : "RÉSUMÉ DES COÛTS", isSection: true },
+          { label: langData.omNumMachines || "Aantal machines", val1: num_mach, val2: num_mach, isShared: true },
+          { label: (langData.omTotalCostPerMachine || "Totale kostprijs / jaar / machine") + " (€)", val1: p1_ann_total, val2: p2_ann_total, isTotal: true },
+          { label: (langData.omTotalCostPark || "Totale kostprijs / jaar / park") + " (€)", val1: p1_park_total, val2: p2_park_total, isTotal: true },
+          { label: (langData.omAnnSavingsMachineLabel || "Kostenbesparing / jaar / machine") + " (€)", val1: "", val2: savings_mach, isSavings: true },
+          { label: (langData.omAnnSavingsLabel || "Kostenbesparing / jaar (€)") + " (park)", val1: "", val2: savings_park, isSavings: true },
+          { label: (langData.omSavingsYears || "Kostenbesparing na X jaar") + ` (${tco_yrs} jr)`, val1: "", val2: savings_yrs, isSavingsHighlight: true }
+        ];
+
+        let currentY = 50;
+        doc.setFontSize(8);
+        
+        tcoRows.forEach((row, idx) => {
+          if (row.isSection) {
+            currentY += 2;
+            doc.setFillColor(240, 243, 246);
+            doc.rect(20, currentY, 170, 5, "F");
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(8);
+            doc.setTextColor(11, 19, 43);
+            doc.text(row.label, 24, currentY + 3.8);
+            currentY += 5;
+          } else if (row.isSavingsHighlight) {
+            currentY += 2;
+            doc.setFillColor(220, 252, 231); // Light green background
+            doc.rect(20, currentY, 170, 7, "F");
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(9);
+            doc.setTextColor(11, 19, 43);
+            doc.text(row.label, 24, currentY + 5);
+            doc.setTextColor(22, 101, 52); // Bold green
+            doc.text(row.val2, 155, currentY + 5);
+            currentY += 7;
+          } else {
+            if (row.isTotal) {
+              doc.setDrawColor(220, 220, 220);
+              doc.line(20, currentY, 190, currentY);
+              doc.setFont("helvetica", "bold");
+              doc.setFontSize(8);
+              doc.setTextColor(11, 19, 43);
+            } else if (row.isSavings) {
+              doc.setFont("helvetica", "bold");
+              doc.setFontSize(8);
+              doc.setTextColor(11, 19, 43);
+            } else if (row.isCalculated) {
+              doc.setFont("helvetica", "bolditalic");
+              doc.setFontSize(8);
+              doc.setTextColor(72, 84, 96);
+            } else {
+              doc.setFont("helvetica", "normal");
+              doc.setFontSize(8);
+              doc.setTextColor(72, 84, 96);
+            }
+
+            doc.text(row.label, 24, currentY + 4.2);
+
+            // Draw Column 2 (Current)
+            if (!row.isSavings) {
+              if (row.isCalculated) {
+                doc.setTextColor(72, 84, 96);
+              } else if (row.isTotal) {
+                doc.setTextColor(11, 19, 43);
+              } else {
+                doc.setTextColor(100, 100, 100);
+              }
+              doc.text(row.val1, 110, currentY + 4.2);
+            }
+
+            // Draw Column 3 (New/Interflon)
+            if (row.isCalculated || row.isSavings) {
+              doc.setTextColor(22, 101, 52); // green for savings/calculations
+            } else {
+              doc.setTextColor(11, 19, 43);
+            }
+            doc.text(row.val2, 155, currentY + 4.2);
+
+            currentY += 5.2;
+          }
+        });
+
+        // Page 2 Footer
+        doc.setFont("helvetica", "normal");
+        doc.setDrawColor(200, 200, 200);
+        doc.setLineWidth(0.25);
+        doc.line(20, 267, 190, 267);
+
+        doc.setFontSize(6.8);
+        doc.setTextColor(140, 140, 140);
+        doc.text(disclaimer, 20, 271, { maxWidth: 170 });
+        
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(7.5);
+        doc.setTextColor(227, 6, 19);
+        doc.text("INTERFLON - " + (langData.pdfWatermarkText || "A WORLD WITHOUT FRICTION").toUpperCase(), 20, 282);
+      }
 
       const filePrefix = currentLang === "nl" ? "Interflon_Smeeradvies_" : currentLang === "en" ? "Interflon_Lubrication_Advice_" : "Interflon_Conseil_Lubrification_";
       doc.save(filePrefix + bearingNum.replace(/[\/\\?%*:|"<>\s]/g, "_") + ".pdf");
