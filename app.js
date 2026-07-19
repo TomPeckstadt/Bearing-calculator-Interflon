@@ -211,7 +211,7 @@ const TRANSLATIONS = {
     omAnnProdCost: "Kostprijs product / machine / jaar (€)",
     omLaborLabel: "TIJDSBESTEDING",
     omLubesPerYear: "Aantal smeerbeurten / jaar",
-    omWorktimePerLube: "Werktijd / smeerbeurt (H)",
+    omWorktimePerLube: "Werktijd / smeerbeurt (minuten)",
     omRepairFreq: "Herstelfrequentie (M)",
     omRepairDuration: "Herstellingstijden (H)",
     omLaborRate: "Kostprijs / H (€)",
@@ -445,7 +445,7 @@ const TRANSLATIONS = {
     omAnnProdCost: "Product cost / machine / year (€)",
     omLaborLabel: "TIME SPENT",
     omLubesPerYear: "Lubrications / year",
-    omWorktimePerLube: "Labor / lubrication (H)",
+    omWorktimePerLube: "Labor / lubrication (minutes)",
     omRepairFreq: "Repair frequency (M)",
     omRepairDuration: "Repair duration (H)",
     omLaborRate: "Labor rate (€/H)",
@@ -679,7 +679,7 @@ const TRANSLATIONS = {
     omAnnProdCost: "Coût produit / machine / an (€)",
     omLaborLabel: "TEMPS PASSÉ",
     omLubesPerYear: "Graissages / an",
-    omWorktimePerLube: "Temps de travail / graissage (H)",
+    omWorktimePerLube: "Temps de travail / graissage (minutes)",
     omRepairFreq: "Fréquence de réparation (M)",
     omRepairDuration: "Temps de réparation (H)",
     omLaborRate: "Taux horaire (€/H)",
@@ -2323,11 +2323,13 @@ function calculateTco() {
   const p1_ann_prod_cost = p1_cons * p1_price * p1_freq;
   const p2_ann_prod_cost = p2_cons * p2_price * p2_freq;
   
-  const p1_ann_labor_cost = (p1_freq * shared_worktime * shared_labor_rate) +
+  const shared_worktime_hours = shared_worktime / 60;
+
+  const p1_ann_labor_cost = (p1_freq * shared_worktime_hours * shared_labor_rate) +
     (p1_repair_freq === 0 ? 0 : (12 / p1_repair_freq) * shared_repair_h * shared_labor_rate) +
     (p1_repair_freq === 0 ? 0 : shared_prep_h * shared_labor_rate * (12 / p1_repair_freq));
     
-  const p2_ann_labor_cost = (p2_freq * shared_worktime * shared_labor_rate) +
+  const p2_ann_labor_cost = (p2_freq * shared_worktime_hours * shared_labor_rate) +
     (p2_repair_freq === 0 ? 0 : (12 / p2_repair_freq) * shared_repair_h * shared_labor_rate) +
     (p2_repair_freq === 0 ? 0 : shared_prep_h * shared_labor_rate * (12 / p2_repair_freq));
 
