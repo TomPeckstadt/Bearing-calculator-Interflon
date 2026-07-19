@@ -1755,32 +1755,41 @@ function updateTechBadge(machine, application) {
 }
 
 function updateOmMetadata() {
-  const userNameEl = document.getElementById("userName");
-  const clientNameEl = document.getElementById("clientName");
-  const techNameEl = document.getElementById("techName");
+  // Column 1: Interflon contactpersoon
+  const omOpName = document.getElementById("omOpName");
+  const omOpPhone = document.getElementById("omOpPhone");
+  const omOpEmail = document.getElementById("omOpEmail");
+  if (omOpName) omOpName.value = localStorage.getItem("operator_name") || "";
+  if (omOpPhone) omOpPhone.value = localStorage.getItem("operator_phone") || "";
+  if (omOpEmail) omOpEmail.value = localStorage.getItem("operator_email") || "";
 
-  const omAdviseur = document.getElementById("omAdviseur");
-  const omKlant = document.getElementById("omKlant");
-  const omMachine = document.getElementById("omMachine");
+  // Column 2: Klant Gegevens
+  const omClientCompany = document.getElementById("omClientCompany");
+  const omClientContact = document.getElementById("omClientContact");
+  const omClientPhone = document.getElementById("omClientPhone");
+  const omClientEmail = document.getElementById("omClientEmail");
+  if (omClientCompany) omClientCompany.value = localStorage.getItem("client_company") || "";
+  if (omClientContact) omClientContact.value = localStorage.getItem("client_contact") || "";
+  if (omClientPhone) omClientPhone.value = localStorage.getItem("client_phone") || "";
+  if (omClientEmail) omClientEmail.value = localStorage.getItem("client_email") || "";
 
-  const lang = currentLang || "nl";
-  const langData = TRANSLATIONS[lang] || TRANSLATIONS["nl"];
-
-  const defaultOperatorText = langData.operatorBadge || "Interflon contactpersoon";
-  const defaultClientText = langData.clientBadge || "Klant";
-  const defaultTechText = langData.techBadge || "Technical data";
-
-  if (omAdviseur && userNameEl) {
-    const val = userNameEl.textContent.trim();
-    omAdviseur.value = (val === defaultOperatorText || val === "Interflon contactpersoon" || val === "Interflon contact" || val === "Contact Interflon") ? "" : val;
-  }
-  if (omKlant && clientNameEl) {
-    const val = clientNameEl.textContent.trim();
-    omKlant.value = (val === defaultClientText || val === "Klant" || val === "Customer" || val === "Client") ? "" : val;
-  }
-  if (omMachine && techNameEl) {
-    const val = techNameEl.textContent.trim();
-    omMachine.value = (val === defaultTechText || val === "Technical data" || val === "Fiche technique" || val === "Tech data") ? "" : val;
+  // Column 3: Technische Gegevens
+  const omTechMachine = document.getElementById("omTechMachine");
+  const omTechApp = document.getElementById("omTechApp");
+  const omTechProduct = document.getElementById("omTechProduct");
+  const omTechInterval = document.getElementById("omTechInterval");
+  if (omTechMachine) omTechMachine.value = localStorage.getItem("tech_machine") || "";
+  if (omTechApp) omTechApp.value = localStorage.getItem("tech_app") || "";
+  if (omTechProduct) omTechProduct.value = localStorage.getItem("tech_product") || "";
+  
+  if (omTechInterval) {
+    const val = localStorage.getItem("tech_interval");
+    if (val) {
+      const suffix = currentLang === "nl" ? " dagen" : currentLang === "fr" ? " jours" : " days";
+      omTechInterval.value = `${val}${suffix}`;
+    } else {
+      omTechInterval.value = "";
+    }
   }
 }
 
