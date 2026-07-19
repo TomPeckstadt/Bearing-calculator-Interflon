@@ -950,6 +950,28 @@ document.addEventListener("DOMContentLoaded", () => {
   // Laad operator details op startup
   loadOperatorDetails();
 
+  // Sync downtime frequency with material lifetime in real-time
+  const omLifetime1El = document.getElementById("omLifetime1");
+  const omLifetime2El = document.getElementById("omLifetime2");
+  if (omLifetime1El) {
+    omLifetime1El.addEventListener("input", () => {
+      const freqEl = document.getElementById("omDowntimeFreq1");
+      if (freqEl) {
+        const val = parseFloat(omLifetime1El.value) || 0;
+        freqEl.value = val > 0 ? parseFloat((12 / val).toFixed(2)) : 0;
+      }
+    });
+  }
+  if (omLifetime2El) {
+    omLifetime2El.addEventListener("input", () => {
+      const freqEl = document.getElementById("omDowntimeFreq2");
+      if (freqEl) {
+        const val = parseFloat(omLifetime2El.value) || 0;
+        freqEl.value = val > 0 ? parseFloat((12 / val).toFixed(2)) : 0;
+      }
+    });
+  }
+
   // Voeg event listeners toe voor TCO
   if (typeof TCO_INPUTS !== "undefined") {
     TCO_INPUTS.forEach(id => {
