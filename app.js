@@ -2458,7 +2458,7 @@ function runPdfExport(includeTco) {
         doc.setFont("helvetica", "bold");
         doc.setFontSize(16);
         doc.setTextColor(227, 6, 19);
-        const tcoTitleText = currentLang === "nl" ? "INTERFLON OPBRENGSTMODEL & TCO BEREKENING" : currentLang === "en" ? "INTERFLON YIELD MODEL & TCO CALCULATION" : "MODÈLE DE RENDEMENT & CALCUL TCO INTERFLON";
+        const tcoTitleText = currentLang === "nl" ? "INTERFLON OPBRENGSTMODEL & TCO BEREKENING" : currentLang === "en" ? "INTERFLON YIELD MODEL & TCO BEREKENING" : "MODÈLE DE RENDEMENT & CALCUL TCO INTERFLON";
         doc.text(tcoTitleText, 20, 32);
 
         doc.setFont("helvetica", "normal");
@@ -2470,56 +2470,132 @@ function runPdfExport(includeTco) {
         doc.line(20, 42, 190, 42);
 
         // 3. Grid headers
-        doc.setFont("helvetica", "bold");
-        doc.setFontSize(8.5);
-        doc.setTextColor(11, 19, 43);
-        const col1Header = currentLang === "nl" ? "Parameter / Kostencategorie" : currentLang === "en" ? "Parameter / Cost Category" : "Paramètre / Catégorie de Coût";
-        const col2Header = currentLang === "nl" ? "Huidige situatie" : currentLang === "en" ? "Current situation" : "Situation actuelle";
-        const col3Header = currentLang === "nl" ? "Nieuwe situatie" : currentLang === "en" ? "New situation" : "Nouvelle situation";
-        
-        doc.text(col1Header, 24, 48);
-        doc.setTextColor(100, 100, 100);
-        doc.text(col2Header, 110, 48);
-        doc.setTextColor(227, 6, 19);
-        doc.text(col3Header, 155, 48);
-        
-        doc.setDrawColor(200, 200, 200);
-        doc.setLineWidth(0.25);
-        doc.line(20, 50, 190, 50);
+        const startX1 = 20;
+        const startX2 = 75;
+        const startX3 = 130;
 
-        // Gather variables for the TCO table row array
+        function drawCell(x, y, w, h, label, value, bgType) {
+          // 1. Determine background color
+          if (bgType === "blue") {
+            doc.setFillColor(219, 234, 254); // #DBEAFE
+            doc.rect(x, y, w, h, "F");
+          } else if (bgType === "grey") {
+            doc.setFillColor(243, 244, 246); // #F3F4F6
+            doc.rect(x, y, w, h, "F");
+          } else if (bgType === "slate-header1") {
+            doc.setFillColor(71, 85, 105); // #475569
+            doc.rect(x, y, w, h, "F");
+          } else if (bgType === "slate-header2") {
+            doc.setFillColor(51, 65, 85); // #334155
+            doc.rect(x, y, w, h, "F");
+          } else if (bgType === "red-header") {
+            doc.setFillColor(227, 6, 19); // #E30613
+            doc.rect(x, y, w, h, "F");
+          } else if (bgType === "section") {
+            doc.setFillColor(241, 245, 249); // #F1F5F9
+            doc.rect(x, y, w, h, "F");
+          } else if (bgType === "pink-total") {
+            doc.setFillColor(254, 242, 242); // #FEF2F2
+            doc.rect(x, y, w, h, "F");
+          } else if (bgType === "green-saving") {
+            doc.setFillColor(240, 253, 244); // #F0FDF4
+            doc.rect(x, y, w, h, "F");
+          } else if (bgType === "green-highlight") {
+            doc.setFillColor(220, 252, 231); // #DCFCE7
+            doc.rect(x, y, w, h, "F");
+          }
+
+          // 2. Draw border
+          doc.setDrawColor(229, 231, 235); // #E5E7EB
+          doc.setLineWidth(0.25);
+          doc.rect(x, y, w, h, "D");
+
+          // 3. Draw text
+          if (bgType && bgType.includes("header")) {
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(8.5);
+            doc.setTextColor(255, 255, 255);
+            doc.text(label, x + w / 2, y + h / 2 + 1.5, { align: "center" });
+            return;
+          }
+
+          if (bgType === "section") {
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(7.5);
+            doc.setTextColor(11, 19, 43);
+            doc.text(label, x + 2, y + h / 2 + 1.5);
+            return;
+          }
+
+          // Standard key-value split cell
+          const isHighlight = bgType === "pink-total" || (bgType && bgType.includes("green"));
+          doc.setFont("helvetica", isHighlight ? "bold" : "normal");
+          doc.setFontSize(6.8);
+          
+          if (bgType === "pink-total") {
+            doc.setTextColor(11, 19, 43);
+          } else if (bgType && bgType.includes("green")) {
+            doc.setTextColor(22, 101, 52); // green text
+          } else {
+            doc.setTextColor(72, 84, 96);
+          }
+
+          // Label (left side)
+          doc.text(label, x + 2, y + h / 2 + 1.2, { maxWidth: w - 18 });
+
+          // Value (right side)
+          if (value !== undefined && value !== null) {
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(7.2);
+            if (bgType === "pink-total") {
+              doc.setTextColor(11, 19, 43);
+            } else if (bgType && bgType.includes("green")) {
+              doc.setTextColor(22, 101, 52);
+            } else {
+              doc.setTextColor(11, 19, 43);
+            }
+            doc.text(value.toString(), x + w - 2, y + h / 2 + 1.5, { align: "right" });
+          }
+        }
+
+        // Draw header blocks
+        drawCell(startX1, 46, 54, 6, currentLang === "nl" ? "Huidige situatie" : currentLang === "en" ? "Current situation" : "Situation actuelle", null, "slate-header1");
+        drawCell(startX2, 46, 54, 6, currentLang === "nl" ? "Nieuwe situatie (Interflon)" : currentLang === "en" ? "New situation (Interflon)" : "Situation Interflon", null, "red-header");
+        drawCell(startX3, 46, 60, 6, currentLang === "nl" ? "Algemene info" : currentLang === "en" ? "General info" : "Infos générales", null, "slate-header2");
+
+        // Gather variables for the TCO table rows
         const p1_name = document.getElementById("omProdName1").textContent || "-";
         const p2_name = document.getElementById("omProdName2").textContent || "-";
-        const p1_cons = document.getElementById("omProdCons1").value || "0";
-        const p2_cons = document.getElementById("omProdCons2").value || "0";
+        const p1_cons = (document.getElementById("omProdCons1").value || "0") + " g";
+        const p2_cons = (document.getElementById("omProdCons2").value || "0") + " g";
         const p1_freq = document.getElementById("omProdFreq1").value || "0";
         const p2_freq = document.getElementById("omProdFreq2").value || "0";
-        const p1_price = document.getElementById("omProdPrice1").value || "0";
-        const p2_price = document.getElementById("omProdPrice2").value || "0";
+        const p1_price = "€ " + parseFloat(document.getElementById("omProdPrice1").value || 0).toFixed(2);
+        const p2_price = "€ " + parseFloat(document.getElementById("omProdPrice2").value || 0).toFixed(2);
         const p1_ann_prod = document.getElementById("omAnnProdCost1") ? document.getElementById("omAnnProdCost1").textContent : "€ 0,00";
         const p2_ann_prod = document.getElementById("omAnnProdCost2") ? document.getElementById("omAnnProdCost2").textContent : "€ 0,00";
 
-        const shared_worktime = document.getElementById("omSharedWorktime").value || "0";
-        const p1_rep_freq = document.getElementById("omRepairFreq1").value || "0";
-        const p2_rep_freq = document.getElementById("omRepairFreq2").value || "0";
-        const shared_rep_h = document.getElementById("omSharedRepairH").value || "0";
-        const shared_labor_rate = document.getElementById("omSharedLaborRate").value || "0";
-        const shared_prep_h = document.getElementById("omSharedPrepH").value || "0";
+        const shared_worktime = (document.getElementById("omSharedWorktime").value || "0") + " min";
+        const p1_rep_freq = (document.getElementById("omRepairFreq1").value || "0") + " mnd";
+        const p2_rep_freq = (document.getElementById("omRepairFreq2").value || "0") + " mnd";
+        const shared_rep_h = (document.getElementById("omSharedRepairH").value || "0") + " uren";
+        const shared_labor_rate = "€ " + parseFloat(document.getElementById("omSharedLaborRate").value || 0).toFixed(2);
+        const shared_prep_h = (document.getElementById("omSharedPrepH").value || "0") + " uren";
         const p1_ann_labor = document.getElementById("omAnnLaborCost1") ? document.getElementById("omAnnLaborCost1").textContent : "€ 0,00";
         const p2_ann_labor = document.getElementById("omAnnLaborCost2") ? document.getElementById("omAnnLaborCost2").textContent : "€ 0,00";
 
-        const p1_lifetime = document.getElementById("omLifetime1").value || "0";
-        const p2_lifetime = document.getElementById("omLifetime2").value || "0";
-        const shared_parts_cost = document.getElementById("omSharedPartsCost").value || "0";
+        const p1_lifetime = (document.getElementById("omLifetime1").value || "0") + " mnd";
+        const p2_lifetime = (document.getElementById("omLifetime2").value || "0") + " mnd";
+        const shared_parts_cost = "€ " + parseFloat(document.getElementById("omSharedPartsCost").value || 0).toFixed(2);
         const shared_sets = document.getElementById("omSharedSetsPerMachine").value || "0";
         const p1_ann_mat = document.getElementById("omAnnMaterialCost1") ? document.getElementById("omAnnMaterialCost1").textContent : "€ 0,00";
         const p2_ann_mat = document.getElementById("omAnnMaterialCost2") ? document.getElementById("omAnnMaterialCost2").textContent : "€ 0,00";
 
-        const p1_dt_h = document.getElementById("omDowntimeH1").value || "0";
-        const p2_dt_h = document.getElementById("omDowntimeH2").value || "0";
+        const p1_dt_h = (document.getElementById("omDowntimeH1").value || "0") + " H";
+        const p2_dt_h = (document.getElementById("omDowntimeH2").value || "0") + " H";
         const p1_dt_freq = document.getElementById("omDowntimeFreq1").value || "0";
         const p2_dt_freq = document.getElementById("omDowntimeFreq2").value || "0";
-        const shared_dt_rate = document.getElementById("omSharedDowntimeRate").value || "0";
+        const shared_dt_rate = "€ " + parseFloat(document.getElementById("omSharedDowntimeRate").value || 0).toFixed(2);
         const p1_ann_dt = document.getElementById("omAnnDowntimeCost1") ? document.getElementById("omAnnDowntimeCost1").textContent : "€ 0,00";
         const p2_ann_dt = document.getElementById("omAnnDowntimeCost2") ? document.getElementById("omAnnDowntimeCost2").textContent : "€ 0,00";
 
@@ -2532,124 +2608,149 @@ function runPdfExport(includeTco) {
         const savings_mach = document.getElementById("omAnnSavingsMachine") ? document.getElementById("omAnnSavingsMachine").textContent : "€ 0,00";
         const savings_park = document.getElementById("omAnnSavingsPark") ? document.getElementById("omAnnSavingsPark").textContent : "€ 0,00";
         const tco_yrs = document.getElementById("omTcoYears").value || "10";
-        const savings_yrs = document.getElementById("omTotalSavingsSummary") ? document.getElementById("omTotalSavingsSummary").textContent : "€ 0,00";
+        const savings_yrs = document.getElementById("omTotalSavingsYears") ? document.getElementById("omTotalSavingsYears").textContent : "€ 0,00";
 
-        const tcoRows = [
-          // PRODUCT
-          { label: currentLang === "nl" ? "PRODUCT" : currentLang === "en" ? "PRODUCT" : "PRODUIT", isSection: true },
-          { label: langData.omProdNameLabel || "Productnaam", val1: p1_name, val2: p2_name },
-          { label: (langData.omProdConsLabel || "Productverbruik / smeerbeurt") + " (g)", val1: p1_cons, val2: p2_cons },
-          { label: langData.omLubesPerYear || "Aantal smeerbeurten / jaar", val1: p1_freq, val2: p2_freq },
-          { label: langData.omPricePerL || "Kostprijs product / L (€)", val1: "€ " + parseFloat(p1_price).toFixed(2), val2: "€ " + parseFloat(p2_price).toFixed(2) },
-          { label: langData.omAnnProdCost || "Kostprijs product / machine / jaar (€)", val1: p1_ann_prod, val2: p2_ann_prod, isCalculated: true },
+        // PRODUCT SECTION (Y = 53)
+        let curY = 53;
+        drawCell(startX1, curY, 54, 5, "PRODUCT", null, "section");
+        drawCell(startX2, curY, 54, 5, "PRODUCT", null, "section");
+        drawCell(startX3, curY, 60, 5, "Algemene info", null, "section");
 
-          // ARBEID
-          { label: currentLang === "nl" ? "ARBEID" : currentLang === "en" ? "LABOR" : "MAIN D'OEUVRE", isSection: true },
-          { label: (langData.omWorktimePerLube || "Werktijd / smeerbeurt") + " (min)", val1: shared_worktime, val2: shared_worktime, isShared: true },
-          { label: (langData.omRepairFreq || "Revisiefrequentie") + " (mnd)", val1: p1_rep_freq, val2: p2_rep_freq },
-          { label: (langData.omRepairDuration || "Revisietijd") + " (uren)", val1: shared_rep_h, val2: shared_rep_h, isShared: true },
-          { label: langData.omLaborRate || "Kostprijs / H (€)", val1: "€ " + parseFloat(shared_labor_rate).toFixed(2), val2: "€ " + parseFloat(shared_labor_rate).toFixed(2), isShared: true },
-          { label: (langData.omPrepTimeLabel || "Voorbereidingstijd") + " (uren)", val1: shared_prep_h, val2: shared_prep_h, isShared: true },
-          { label: langData.omAnnLaborCost || "Kostprijs arbeid / machine / jaar (€)", val1: p1_ann_labor, val2: p2_ann_labor, isCalculated: true },
+        // PRODUCT ROWS (Y = 58 to 84)
+        curY = 58;
+        drawCell(startX1, curY, 54, 6.5, langData.omProdName || "Productnaam", p1_name, "grey");
+        drawCell(startX2, curY, 54, 6.5, langData.omProdName || "Productnaam", p2_name, "grey");
 
-          // MATERIAAL
-          { label: currentLang === "nl" ? "MATERIAAL" : currentLang === "en" ? "MATERIAL" : "MATÉRIEL", isSection: true },
-          { label: (langData.omMaterialLifetime || "Levensduur materiaal") + " (mnd)", val1: p1_lifetime, val2: p2_lifetime },
-          { label: langData.omSparePartsCost || "Kostprijs wisselstukken / set (€)", val1: "€ " + parseFloat(shared_parts_cost).toFixed(2), val2: "€ " + parseFloat(shared_parts_cost).toFixed(2), isShared: true },
-          { label: langData.omSetsPerMachine || "Aantal lagers / machine", val1: shared_sets, val2: shared_sets, isShared: true },
-          { label: langData.omAnnMatCost || "Kostprijs materiaal / machine / jaar (€)", val1: p1_ann_mat, val2: p2_ann_mat, isCalculated: true },
+        // Draw photo in Right Column
+        if (typeof tcoUploadedImageBase64 !== "undefined" && tcoUploadedImageBase64) {
+          doc.addImage(tcoUploadedImageBase64, "JPEG", 131, 59, 58, 24);
+          doc.setDrawColor(229, 231, 235);
+          doc.setLineWidth(0.25);
+          doc.rect(startX3, 58, 60, 26, "D");
+        } else {
+          doc.setFillColor(243, 244, 246);
+          doc.rect(startX3, 58, 60, 26, "F");
+          doc.setDrawColor(229, 231, 235);
+          doc.setLineWidth(0.25);
+          doc.rect(startX3, 58, 60, 26, "D");
+          doc.setFont("helvetica", "normal");
+          doc.setFontSize(7.5);
+          doc.setTextColor(140, 140, 140);
+          const noPhotoText = currentLang === "nl" ? "Geen afbeelding" : currentLang === "en" ? "No image" : "Pas d'image";
+          doc.text(noPhotoText, startX3 + 30, 72, { align: "center" });
+        }
 
-          // DOWNTIME
-          { label: currentLang === "nl" ? "DOWN-TIME" : currentLang === "en" ? "DOWNTIME" : "TEMPS D'ARRÊT", isSection: true },
-          { label: (langData.omDowntimeHours || "Tijdsduur") + " (H)", val1: p1_dt_h, val2: p2_dt_h },
-          { label: langData.omDowntimeFreq || "Aantal / jaar", val1: p1_dt_freq, val2: p2_dt_freq },
-          { label: langData.omDowntimeRate || "Kostprijs down-time / H (€)", val1: "€ " + parseFloat(shared_dt_rate).toFixed(2), val2: "€ " + parseFloat(shared_dt_rate).toFixed(2), isShared: true },
-          { label: langData.omAnnDowntimeCost || "Kostprijs downtime / machine / jaar (€)", val1: p1_ann_dt, val2: p2_ann_dt, isCalculated: true },
-
-          // OVERVIEW
-          { label: currentLang === "nl" ? "TOTAAL OVERZICHT" : currentLang === "en" ? "TOTAL OVERVIEW" : "RÉSUMÉ DES COÛTS", isSection: true },
-          { label: langData.omNumMachines || "Aantal machines", val1: num_mach, val2: num_mach, isShared: true },
-          { label: langData.omTotalCostPerMachine || "Totale kostprijs / jaar / machine (€)", val1: p1_ann_total, val2: p2_ann_total, isTotal: true },
-          { label: langData.omTotalCostPark || "Totale kostprijs / jaar / park (€)", val1: p1_park_total, val2: p2_park_total, isTotal: true },
-          { label: langData.omAnnSavingsMachineLabel || "Kostenbesparing / jaar / machine (€)", val1: "", val2: savings_mach, isSavings: true },
-          { label: langData.omAnnSavingsLabel || "Kostenbesparing / jaar (park)", val1: "", val2: savings_park, isSavings: true },
-          { label: langData.omSavingsYears || "Kostenbesparing na X jaar (€)", val1: "", val2: savings_yrs, isSavingsHighlight: true }
-        ];
-
-        let currentY = 50;
-        doc.setFontSize(8);
+        curY += 6.5;
+        drawCell(startX1, curY, 54, 6.5, (langData.omProdConsLabel || "Productverbruik / smeerbeurt") + " (g)", p1_cons, "blue");
+        drawCell(startX2, curY, 54, 6.5, (langData.omProdConsLabel || "Productverbruik / smeerbeurt") + " (g)", p2_cons, "blue");
         
-        tcoRows.forEach((row, idx) => {
-          if (row.isSection) {
-            currentY += 2;
-            doc.setFillColor(240, 243, 246);
-            doc.rect(20, currentY, 170, 5, "F");
-            doc.setFont("helvetica", "bold");
-            doc.setFontSize(8);
-            doc.setTextColor(11, 19, 43);
-            doc.text(row.label, 24, currentY + 3.8);
-            currentY += 5;
-          } else if (row.isSavingsHighlight) {
-            currentY += 2;
-            doc.setFillColor(220, 252, 231); // Light green background
-            doc.rect(20, currentY, 170, 7, "F");
-            doc.setFont("helvetica", "bold");
-            doc.setFontSize(9);
-            doc.setTextColor(11, 19, 43);
-            
-            // Format dynamic label by stripping span and putting in actual years:
-            let labelText = row.label.replace(/<span[^>]*>.*?<\/span>/g, tco_yrs);
-            labelText = labelText.replace(/<[^>]*>/g, ""); // Strip any other tags
-            doc.text(labelText, 24, currentY + 5);
-            doc.setTextColor(22, 101, 52); // Bold green
-            doc.text(row.val2, 155, currentY + 5);
-            currentY += 7;
-          } else {
-            if (row.isTotal) {
-              doc.setDrawColor(220, 220, 220);
-              doc.line(20, currentY, 190, currentY);
-              doc.setFont("helvetica", "bold");
-              doc.setFontSize(8);
-              doc.setTextColor(11, 19, 43);
-            } else if (row.isSavings) {
-              doc.setFont("helvetica", "bold");
-              doc.setFontSize(8);
-              doc.setTextColor(11, 19, 43);
-            } else if (row.isCalculated) {
-              doc.setFont("helvetica", "bolditalic");
-              doc.setFontSize(8);
-              doc.setTextColor(72, 84, 96);
-            } else {
-              doc.setFont("helvetica", "normal");
-              doc.setFontSize(8);
-              doc.setTextColor(72, 84, 96);
-            }
+        curY += 6.5;
+        drawCell(startX1, curY, 54, 6.5, langData.omPricePerL || "Kostprijs product / L (€)", p1_price, "blue");
+        drawCell(startX2, curY, 54, 6.5, langData.omPricePerL || "Kostprijs product / L (€)", p2_price, "blue");
+        
+        curY += 6.5;
+        drawCell(startX1, curY, 54, 6.5, langData.omAnnProdCost || "Kostprijs product / m / j (€)", p1_ann_prod);
+        drawCell(startX2, curY, 54, 6.5, langData.omAnnProdCost || "Kostprijs product / m / j (€)", p2_ann_prod);
 
-            doc.text(row.label, 24, currentY + 4.2);
+        // TIJDSBESTEDING SECTION (Y = 85)
+        curY = 85;
+        drawCell(startX1, curY, 54, 5, "TIJDSBESTEDING", null, "section");
+        drawCell(startX2, curY, 54, 5, "TIJDSBESTEDING", null, "section");
+        drawCell(startX3, curY, 60, 5, "TIJDSBESTEDING", null, "section");
 
-            // Draw Column 2 (Current)
-            if (!row.isSavings) {
-              if (row.isCalculated) {
-                doc.setTextColor(72, 84, 96);
-              } else if (row.isTotal) {
-                doc.setTextColor(11, 19, 43);
-              } else {
-                doc.setTextColor(100, 100, 100);
-              }
-              doc.text(row.val1, 110, currentY + 4.2);
-            }
+        // TIJDSBESTEDING ROWS (Y = 90 to 109.5)
+        curY = 90;
+        drawCell(startX1, curY, 54, 6.5, langData.omLubesPerYear || "Aantal smeerbeurten / jaar", p1_freq, "blue");
+        drawCell(startX2, curY, 54, 6.5, langData.omLubesPerYear || "Aantal smeerbeurten / jaar", p2_freq, "blue");
+        drawCell(startX3, curY, 60, 6.5, langData.omWorktimePerLube || "Werktijd / smeerbeurt (min)", shared_worktime, "grey");
 
-            // Draw Column 3 (New/Interflon)
-            if (row.isCalculated || row.isSavings) {
-              doc.setTextColor(22, 101, 52); // green for savings/calculations
-            } else {
-              doc.setTextColor(11, 19, 43);
-            }
-            doc.text(row.val2, 155, currentY + 4.2);
+        curY += 6.5;
+        drawCell(startX1, curY, 54, 6.5, langData.omRepairFreq || "Revisiefrequentie (mnd)", p1_rep_freq, "blue");
+        drawCell(startX2, curY, 54, 6.5, langData.omRepairFreq || "Revisiefrequentie (mnd)", p2_rep_freq, "blue");
+        drawCell(startX3, curY, 60, 6.5, langData.omRepairDuration || "Revisietijd (uren)", shared_rep_h, "grey");
 
-            currentY += 5.2;
-          }
-        });
+        curY += 6.5;
+        drawCell(startX1, curY, 54, 6.5, langData.omAnnLaborCost || "Kostprijs arbeid / m / j (€)", p1_ann_labor);
+        drawCell(startX2, curY, 54, 6.5, langData.omAnnLaborCost || "Kostprijs arbeid / m / j (€)", p2_ann_labor);
+        drawCell(startX3, curY, 60, 6.5, langData.omLaborRate || "Kostprijs / H (€)", shared_labor_rate, "grey");
+
+        // MATERIAAL SECTION (Y = 111)
+        curY = 111;
+        drawCell(startX1, curY, 54, 5, "MATERIAAL", null, "section");
+        drawCell(startX2, curY, 54, 5, "MATERIAAL", null, "section");
+        drawCell(startX3, curY, 60, 5, "MATERIAAL", null, "section");
+
+        // MATERIAAL ROWS (Y = 116 to 135.5)
+        curY = 116;
+        drawCell(startX1, curY, 54, 6.5, langData.omMaterialLifetime || "Levensduur materiaal (mnd)", p1_lifetime, "blue");
+        drawCell(startX2, curY, 54, 6.5, langData.omMaterialLifetime || "Levensduur materiaal (mnd)", p2_lifetime, "blue");
+        drawCell(startX3, curY, 60, 6.5, langData.omPrepDuration || "Voorbereidingstijd (H)", shared_prep_h, "grey");
+
+        curY += 6.5;
+        drawCell(startX1, curY, 54, 6.5, "", "");
+        drawCell(startX2, curY, 54, 6.5, "", "");
+        drawCell(startX3, curY, 60, 6.5, langData.omSparePartsCost || "Kostprijs wisselstukken (€)", shared_parts_cost, "grey");
+
+        curY += 6.5;
+        drawCell(startX1, curY, 54, 6.5, langData.omAnnMatCost || "Kostprijs materiaal / m / j (€)", p1_ann_mat);
+        drawCell(startX2, curY, 54, 6.5, langData.omAnnMatCost || "Kostprijs materiaal / m / j (€)", p2_ann_mat);
+        drawCell(startX3, curY, 60, 6.5, langData.omSetsPerMachine || "Aantal lagers / machine", shared_sets, "grey");
+
+        // DOWN-TIME SECTION (Y = 137)
+        curY = 137;
+        drawCell(startX1, curY, 54, 5, "DOWN-TIME", null, "section");
+        drawCell(startX2, curY, 54, 5, "DOWN-TIME", null, "section");
+        drawCell(startX3, curY, 60, 5, "DOWN-TIME", null, "section");
+
+        // DOWN-TIME ROWS (Y = 142 to 161.5)
+        curY = 142;
+        drawCell(startX1, curY, 54, 6.5, langData.omDowntimeHours || "Tijdsduur (H)", p1_dt_h, "blue");
+        drawCell(startX2, curY, 54, 6.5, langData.omDowntimeHours || "Tijdsduur (H)", p2_dt_h, "blue");
+        drawCell(startX3, curY, 60, 6.5, langData.omDowntimeRate || "Kostprijs downtime / H (€)", shared_dt_rate, "grey");
+
+        curY += 6.5;
+        drawCell(startX1, curY, 54, 6.5, langData.omDowntimeFreq || "Aantal / jaar", p1_dt_freq, "blue");
+        drawCell(startX2, curY, 54, 6.5, langData.omDowntimeFreq || "Aantal / jaar", p2_dt_freq, "blue");
+        drawCell(startX3, curY, 60, 6.5, langData.omNumMachines || "Aantal machines", num_mach, "grey");
+
+        curY += 6.5;
+        drawCell(startX1, curY, 54, 6.5, langData.omAnnDowntimeCost || "Kostprijs downtime / m / j (€)", p1_ann_dt);
+        drawCell(startX2, curY, 54, 6.5, langData.omAnnDowntimeCost || "Kostprijs downtime / m / j (€)", p2_ann_dt);
+        drawCell(startX3, curY, 60, 6.5, "", "");
+
+        // TCO TOTALS HEADERS (Y = 163)
+        curY = 163;
+        drawCell(startX1, curY, 54, 5, "HUIDIGE KOSTPRIJS", null, "section");
+        drawCell(startX2, curY, 54, 5, "NIEUWE KOSTPRIJS (INTERFLON)", null, "section");
+        drawCell(startX3, curY, 60, 5, "BESPARING / MACHINEPARK", null, "section");
+
+        // TCO TOTALS ROWS (Y = 168 to 207)
+        curY = 168;
+        drawCell(startX1, curY, 54, 6.5, langData.omTotalCostPerMachine || "Totale kostprijs / machine", p1_ann_total, "pink-total");
+        drawCell(startX2, curY, 54, 6.5, langData.omTotalCostPerMachine || "Totale kostprijs / machine", p2_ann_total, "pink-total");
+        drawCell(startX3, curY, 60, 6.5, langData.omAnnSavingsMachineLabel || "Kostenbesparing / machine", savings_mach, "green-saving");
+
+        curY += 6.5;
+        drawCell(startX1, curY, 54, 6.5, langData.omTotalCostPark || "Totale kostprijs / park", p1_park_total, "pink-total");
+        drawCell(startX2, curY, 54, 6.5, langData.omTotalCostPark || "Totale kostprijs / park", p2_park_total, "pink-total");
+        drawCell(startX3, curY, 60, 6.5, langData.omAnnSavingsLabel || "Kostenbesparing / park", savings_park, "green-saving");
+
+        curY += 6.5;
+        drawCell(startX1, curY, 54, 6.5, "", "");
+        drawCell(startX2, curY, 54, 6.5, "", "");
+        drawCell(startX3, curY, 60, 6.5, langData.omProdCostPercentLabel || "% Product / Totale Kost", document.getElementById("omProdCostPercent").textContent, "grey");
+
+        curY += 6.5;
+        drawCell(startX1, curY, 54, 6.5, `Kostprijs / mach. na ${tco_yrs} jr`, document.getElementById("omTotalCostYears1").textContent, "pink-total");
+        drawCell(startX2, curY, 54, 6.5, `Kostprijs / mach. na ${tco_yrs} jr`, document.getElementById("omTotalCostYears2").textContent, "pink-total");
+        drawCell(startX3, curY, 60, 6.5, langData.omTcoPeriodLabel || "Aantal jaren voor TCO", tco_yrs, "grey");
+
+        curY += 6.5;
+        drawCell(startX1, curY, 54, 6.5, `Kostprijs / park na ${tco_yrs} jr`, document.getElementById("omTotalParkCostYears1").textContent, "pink-total");
+        drawCell(startX2, curY, 54, 6.5, `Kostprijs / park na ${tco_yrs} jr`, document.getElementById("omTotalParkCostYears2").textContent, "pink-total");
+        
+        let labelText = (langData.omSavingsYears || "Kostenbesparing na X jaar (€)").replace(/<span[^>]*>.*?<\/span>/g, tco_yrs).replace(/<[^>]*>/g, "");
+        drawCell(startX3, curY, 60, 6.5, labelText, document.getElementById("omTotalSavingsYears").textContent, "green-highlight");
 
         // Page 2 Footer
         doc.setFont("helvetica", "normal");
