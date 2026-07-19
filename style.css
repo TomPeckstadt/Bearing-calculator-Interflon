@@ -1092,11 +1092,23 @@ h1, h2, h3, h4, .brand-text {
   color: #854D0E;
 }
 
-/* Metadata Grid */
 .om-metadata-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 16px;
+}
+
+.om-metadata-sections-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
+@media (max-width: 992px) {
+  .om-metadata-sections-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
 }
 
 /* Spreadsheet Table Styling */
