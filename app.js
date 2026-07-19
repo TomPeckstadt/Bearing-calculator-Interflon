@@ -1554,6 +1554,20 @@ function calculateGrease() {
 
   const strokes = refill_grams / 2;
   if (strokesElement) strokesElement.textContent = Math.round(strokes);
+
+  // Automatically update TCO product consumption fields with the calculated quantity in grams
+  const omProdCons1El = document.getElementById("omProdCons1");
+  const omProdCons2El = document.getElementById("omProdCons2");
+  if (omProdCons1El) omProdCons1El.value = refill_grams.toFixed(1);
+  if (omProdCons2El) omProdCons2El.value = refill_grams.toFixed(1);
+
+  // Recalculate TCO to reflect the updated consumption values
+  if (typeof calculateTco === "function") {
+    calculateTco();
+    if (typeof saveTcoDetails === "function") {
+      saveTcoDetails();
+    }
+  }
 }
 
 // ==========================================================================
