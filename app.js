@@ -8,6 +8,7 @@ const TRANSLATIONS = {
   nl: {
     descGrease: "Bepaalt de maximale DN-factor en de vetdichtheid.",
     descHoursPerDay: "Aantal uren dat de machine per dag operationeel is.",
+    descDaysPerWeek: "Aantal dagen dat de machine per week operationeel is.",
     bearingDimensionsTitle: "Lager Afmetingen & Massa",
     correctionFactorsTitle: "Correctiefactoren",
     speedGreaseLimitsTitle: "Snelheid & Vetlimieten",
@@ -86,6 +87,7 @@ const TRANSLATIONS = {
     inputTeLabel: "Omgevingsfactor (Te/Tx)",
     inputTaLabel: "Toepassingsfactor (Ta)",
     inputHoursPerDayLabel: "Operationele uren/dag",
+    inputDaysPerWeekLabel: "Operationele dagen/week",
     cardResults: "Berekende Resultaten",
     resFreeVol: "Vrij Volume Lager (V)",
     resInitialFill: "Eerste Smeervulling (40%)",
@@ -242,6 +244,7 @@ const TRANSLATIONS = {
   en: {
     descGrease: "Determines the maximum DN factor and grease density.",
     descHoursPerDay: "Number of hours the machine operates per day.",
+    descDaysPerWeek: "Number of days the machine is operational per week.",
     bearingDimensionsTitle: "Bearing Dimensions & Mass",
     correctionFactorsTitle: "Correction Factors",
     speedGreaseLimitsTitle: "Speed & Grease Limits",
@@ -320,6 +323,7 @@ const TRANSLATIONS = {
     inputTeLabel: "Environmental Factor (Te/Tx)",
     inputTaLabel: "Application Factor (Ta)",
     inputHoursPerDayLabel: "Operational hours/day",
+    inputDaysPerWeekLabel: "Operational days/week",
     cardResults: "Calculated Results",
     resFreeVol: "Bearing Free Volume (V)",
     resInitialFill: "Initial Grease Fill (40%)",
@@ -476,6 +480,7 @@ const TRANSLATIONS = {
   fr: {
     descGrease: "Détermine le facteur DN maximum et la densité de la graisse.",
     descHoursPerDay: "Nombre d'heures pendant lesquelles la machine fonctionne par jour.",
+    descDaysPerWeek: "Nombre de jours pendant lesquels la machine est opérationnelle par semaine.",
     bearingDimensionsTitle: "Dimensions & Masse du Roulement",
     correctionFactorsTitle: "Facteurs de Correction",
     speedGreaseLimitsTitle: "Vitesse & Limites de Graisse",
@@ -554,6 +559,7 @@ const TRANSLATIONS = {
     inputTeLabel: "Facteur Environnemental (Te/Tx)",
     inputTaLabel: "Facteur d'Application (Ta)",
     inputHoursPerDayLabel: "Heures opérationnelles/jour",
+    inputDaysPerWeekLabel: "Jours opérationnels/semaine",
     cardResults: "Résultats Calculés",
     resFreeVol: "Volume Libre du Roulement (V)",
     resInitialFill: "Premier Remplissage de Graisse (40%)",
@@ -808,7 +814,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const inputs = [
     "inputGrease", "inputTemperature", "inputSpeed", "inputLimitingSpeed",
     "inputBoreManual", "inputOuterManual", "inputWidthManual", "inputMassManual",
-    "inputTe", "inputTa", "inputHoursPerDay", "inputMicPolFactor"
+    "inputTe", "inputTa", "inputHoursPerDay", "inputDaysPerWeek", "inputMicPolFactor"
   ];
   inputs.forEach(id => {
     const el = document.getElementById(id);
@@ -1349,6 +1355,12 @@ function calculateGrease() {
     hoursPerDay = 24;
   }
 
+  const daysPerWeekInput = document.getElementById("inputDaysPerWeek");
+  let daysPerWeek = daysPerWeekInput ? parseFloat(daysPerWeekInput.value) : 7;
+  if (isNaN(daysPerWeek) || daysPerWeek <= 0 || daysPerWeek > 7) {
+    daysPerWeek = 7;
+  }
+
   // Elements to update
   const qElement = document.getElementById("calcQuantity");
   const iElement = document.getElementById("calcInterval");
@@ -1473,8 +1485,8 @@ function calculateGrease() {
   }
   if (baseFreqElement) baseFreqElement.textContent = fb.toLocaleString("nl-NL");
 
-  const fbDays = fb / hoursPerDay;
-  const fbWeeks = fbDays / 7;
+  const fbWeeks = fb / (hoursPerDay * daysPerWeek);
+  const fbDays = fbWeeks * 7;
   const fbMonths = fbDays / 30.4;
 
   if (baseFreqDaysElement) baseFreqDaysElement.textContent = fbDays.toFixed(1);
@@ -1502,8 +1514,8 @@ function calculateGrease() {
   const fc = fb * Te * Ta * Tt;
   if (iElement) iElement.textContent = Math.round(fc).toLocaleString("nl-NL");
 
-  const days = fc / hoursPerDay;
-  const weeks = days / 7;
+  const weeks = fc / (hoursPerDay * daysPerWeek);
+  const days = weeks * 7;
   const months = days / 30.4;
 
   if (intervalDaysElement) intervalDaysElement.textContent = days.toFixed(1);
@@ -1519,8 +1531,8 @@ function calculateGrease() {
   const fcMicPol = fc * micPolFactor;
   if (intervalMicPolElement) intervalMicPolElement.textContent = Math.round(fcMicPol).toLocaleString("nl-NL");
 
-  const micPolDays = fcMicPol / hoursPerDay;
-  const micPolWeeks = micPolDays / 7;
+  const micPolWeeks = fcMicPol / (hoursPerDay * daysPerWeek);
+  const micPolDays = micPolWeeks * 7;
   const micPolMonths = micPolDays / 30.4;
 
   if (intervalMicPolDaysElement) intervalMicPolDaysElement.textContent = micPolDays.toFixed(1);
@@ -1565,7 +1577,7 @@ function calculateGrease() {
   const omProdFreq1El = document.getElementById("omProdFreq1");
   const omProdFreq2El = document.getElementById("omProdFreq2");
   if (omProdFreq1El || omProdFreq2El) {
-    const annual_hours = hoursPerDay * 365;
+    const annual_hours = hoursPerDay * daysPerWeek * (365 / 7);
     const freq_huidig = fc > 0 ? (annual_hours / fc) : 0;
     const freq_nieuw = fcMicPol > 0 ? (annual_hours / fcMicPol) : 0;
 
@@ -2052,6 +2064,7 @@ function exportToPdf() {
       const envFactor = document.getElementById("inputTe").options[document.getElementById("inputTe").selectedIndex].text;
       const appFactor = document.getElementById("inputTa").options[document.getElementById("inputTa").selectedIndex].text;
       const hoursPerDayVal = document.getElementById("inputHoursPerDay") ? document.getElementById("inputHoursPerDay").value : "24";
+      const daysPerWeekVal = document.getElementById("inputDaysPerWeek") ? document.getElementById("inputDaysPerWeek").value : "7";
       const micPolFactorVal = document.getElementById("inputMicPolFactor") ? document.getElementById("inputMicPolFactor").value : "4";
 
       doc.setFont("helvetica", "bold");
@@ -2067,6 +2080,8 @@ function exportToPdf() {
       const speedUnit = currentLang === "nl" ? " r/min" : currentLang === "en" ? " rpm" : " tr/min";
       const hoursPerDayLabel = currentLang === "nl" ? "Operationele uren/dag" : currentLang === "en" ? "Operational hours/day" : "Heures opérationnelles/jour";
       const hoursPerDaySuffix = currentLang === "nl" ? " uren/dag" : currentLang === "en" ? " hours/day" : " heures/jour";
+      const daysPerWeekLabel = currentLang === "nl" ? "Operationele dagen/week" : currentLang === "en" ? "Operational days/week" : "Jours opérationnels/semaine";
+      const daysPerWeekSuffix = currentLang === "nl" ? " dagen/week" : currentLang === "en" ? " days/week" : " jours/semaine";
 
       const params = [
         [langData.inputGreaseLabel, greaseName],
@@ -2076,7 +2091,8 @@ function exportToPdf() {
         [langData.inputTempLabel, temp + " °C"],
         [langData.inputTeLabel, envFactor],
         [langData.inputTaLabel, appFactor],
-        [hoursPerDayLabel, hoursPerDayVal + hoursPerDaySuffix]
+        [hoursPerDayLabel, hoursPerDayVal + hoursPerDaySuffix],
+        [daysPerWeekLabel, daysPerWeekVal + daysPerWeekSuffix]
       ];
 
       doc.setFont("helvetica", "normal");
