@@ -225,7 +225,7 @@ const TRANSLATIONS = {
     omLubesPerYear: "Aantal smeerbeurten / jaar",
     omWorktimePerLube: "Werktijd / smeerbeurt (minuten)",
     omRepairFreq: "Revisiefrequentie (maanden)",
-    omRepairDuration: "Revisietijd (uren)",
+    omRepairDuration: "Revisietijd / Downtime / H",
     omLaborRate: "Kostprijs / H (€)",
     omAnnLaborCost: "Kostprijs tijdsbesteding / machine / jaar (€)",
     omPrepDuration: "Voorbereidingstijd (H)",
@@ -2682,7 +2682,7 @@ function runPdfExport(includeTco) {
         curY += 6.5;
         drawCell(startX1, curY, 54, 6.5, langData.omRepairFreq || "Revisiefrequentie (mnd)", p1_rep_freq, "blue");
         drawCell(startX2, curY, 54, 6.5, langData.omRepairFreq || "Revisiefrequentie (mnd)", p2_rep_freq, "blue");
-        drawCell(startX3, curY, 60, 6.5, langData.omRepairDuration || "Revisietijd (uren)", shared_rep_h, "grey");
+        drawCell(startX3, curY, 60, 6.5, langData.omRepairDuration || "Revisietijd / Downtime / H", shared_rep_h, "grey");
 
         curY += 6.5;
         drawCell(startX1, curY, 54, 6.5, langData.omAnnLaborCost || "Kostprijs arbeid / m / j (€)", p1_ann_labor);
