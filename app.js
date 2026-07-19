@@ -888,7 +888,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const placeholder = document.getElementById("omAppImagePlaceholder");
         const previewContainer = document.getElementById("omAppImagePreviewContainer");
         if (placeholder) placeholder.style.display = "none";
-        if (previewContainer) previewContainer.style.display = "block";
+        if (previewContainer) previewContainer.style.display = "flex";
 
         saveTcoDetails();
       };
@@ -2398,7 +2398,7 @@ function loadTcoDetails() {
       if (previewImg) {
         previewImg.src = data["omAppImage"];
         if (placeholder) placeholder.style.display = "none";
-        if (previewContainer) previewContainer.style.display = "block";
+        if (previewContainer) previewContainer.style.display = "flex";
       }
     } else {
       if (placeholder) placeholder.style.display = "flex";
