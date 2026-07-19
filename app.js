@@ -226,7 +226,7 @@ const TRANSLATIONS = {
     omWorktimePerLube: "Werktijd / smeerbeurt (minuten)",
     omRepairFreq: "Revisiefrequentie (maanden)",
     omRepairDuration: "Revisietijd / Downtime / H",
-    omLaborRate: "Kostprijs / H (€)",
+    omLaborRate: "Prijs werkuur / H (€)",
     omAnnLaborCost: "Kostprijs tijdsbesteding / machine / jaar (€)",
     omPrepDuration: "Voorbereidingstijd (H)",
     omMaterialLabel: "MATERIAAL",
@@ -2700,7 +2700,7 @@ function runPdfExport(includeTco) {
         curY += 6.5;
         drawCell(startX1, curY, 54, 6.5, langData.omAnnLaborCost || "Kostprijs arbeid / m / j (€)", p1_ann_labor);
         drawCell(startX2, curY, 54, 6.5, langData.omAnnLaborCost || "Kostprijs arbeid / m / j (€)", p2_ann_labor);
-        drawCell(startX3, curY, 60, 6.5, langData.omLaborRate || "Kostprijs / H (€)", shared_labor_rate, "grey");
+        drawCell(startX3, curY, 60, 6.5, langData.omLaborRate || "Prijs werkuur / H (€)", shared_labor_rate, "grey");
 
         // MATERIAAL SECTION (Y = 111)
         curY = 111;
@@ -2712,17 +2712,17 @@ function runPdfExport(includeTco) {
         curY = 116;
         drawCell(startX1, curY, 54, 6.5, langData.omMaterialLifetime || "Levensduur materiaal (mnd)", p1_lifetime, "blue");
         drawCell(startX2, curY, 54, 6.5, langData.omMaterialLifetime || "Levensduur materiaal (mnd)", p2_lifetime, "blue");
-        drawCell(startX3, curY, 60, 6.5, langData.omPrepDuration || "Voorbereidingstijd (H)", shared_prep_h, "grey");
+        drawCell(startX3, curY, 60, 6.5, langData.omSparePartsCost || "Kostprijs wisselstukken (€)", shared_parts_cost, "grey");
 
         curY += 6.5;
         drawCell(startX1, curY, 54, 6.5, "", "");
         drawCell(startX2, curY, 54, 6.5, "", "");
-        drawCell(startX3, curY, 60, 6.5, langData.omSparePartsCost || "Kostprijs wisselstukken (€)", shared_parts_cost, "grey");
+        drawCell(startX3, curY, 60, 6.5, langData.omSetsPerMachine || "Aantal lagers / machine", shared_sets, "grey");
 
         curY += 6.5;
         drawCell(startX1, curY, 54, 6.5, langData.omAnnMatCost || "Kostprijs materiaal / m / j (€)", p1_ann_mat);
         drawCell(startX2, curY, 54, 6.5, langData.omAnnMatCost || "Kostprijs materiaal / m / j (€)", p2_ann_mat);
-        drawCell(startX3, curY, 60, 6.5, langData.omSetsPerMachine || "Aantal lagers / machine", shared_sets, "grey");
+        drawCell(startX3, curY, 60, 6.5, "", "");
 
         // DOWN-TIME SECTION (Y = 137)
         curY = 137;
@@ -2739,12 +2739,12 @@ function runPdfExport(includeTco) {
         curY += 6.5;
         drawCell(startX1, curY, 54, 6.5, langData.omDowntimeFreq || "Aantal / jaar", p1_dt_freq, "blue");
         drawCell(startX2, curY, 54, 6.5, langData.omDowntimeFreq || "Aantal / jaar", p2_dt_freq, "blue");
-        drawCell(startX3, curY, 60, 6.5, langData.omNumMachines || "Aantal machines", num_mach, "grey");
+        drawCell(startX3, curY, 60, 6.5, langData.omPrepDuration || "Voorbereidingstijd (H)", shared_prep_h, "grey");
 
         curY += 6.5;
         drawCell(startX1, curY, 54, 6.5, langData.omAnnDowntimeCost || "Kostprijs downtime / m / j (€)", p1_ann_dt);
         drawCell(startX2, curY, 54, 6.5, langData.omAnnDowntimeCost || "Kostprijs downtime / m / j (€)", p2_ann_dt);
-        drawCell(startX3, curY, 60, 6.5, "", "");
+        drawCell(startX3, curY, 60, 6.5, langData.omNumMachines || "Aantal machines", num_mach, "grey");
 
         // TCO TOTALS HEADERS (Y = 163)
         curY = 163;
