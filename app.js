@@ -2530,7 +2530,7 @@ function runPdfExport(includeTco) {
           // Standard key-value split cell
           const isHighlight = bgType === "pink-total" || (bgType && bgType.includes("green"));
           doc.setFont("helvetica", isHighlight ? "bold" : "normal");
-          doc.setFontSize(6.8);
+          doc.setFontSize(6.2); // Slightly smaller to prevent wrap
           
           if (bgType === "pink-total") {
             doc.setTextColor(11, 19, 43);
@@ -2540,13 +2540,13 @@ function runPdfExport(includeTco) {
             doc.setTextColor(72, 84, 96);
           }
 
-          // Label (left side)
-          doc.text(label, x + 2, y + h / 2 + 1.2, { maxWidth: w - 18 });
+          // Label (left side) - increase maxWidth to w - 12 to prevent wrapping
+          doc.text(label, x + 2, y + h / 2 + 1.2, { maxWidth: w - 12 });
 
           // Value (right side)
           if (value !== undefined && value !== null) {
             doc.setFont("helvetica", "bold");
-            doc.setFontSize(7.2);
+            doc.setFontSize(7.0);
             if (bgType === "pink-total") {
               doc.setTextColor(11, 19, 43);
             } else if (bgType && bgType.includes("green")) {
