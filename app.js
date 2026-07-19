@@ -768,6 +768,10 @@ function changeLanguage(lang) {
   if (typeof calculateTco === "function") {
     calculateTco();
   }
+
+  if (typeof updateOmMetadata === "function") {
+    updateOmMetadata();
+  }
 }
 
 
@@ -1593,6 +1597,9 @@ function updateOperatorBadge(name) {
     userNameEl.textContent = langData.operatorBadge || "Interflon contactpersoon";
     userAvatarEl.textContent = "IF";
   }
+  if (typeof updateOmMetadata === "function") {
+    updateOmMetadata();
+  }
 }
 
 function openOperatorModal() {
@@ -1664,6 +1671,9 @@ function updateClientBadge(company, contact) {
   } else {
     clientNameEl.textContent = "Klant";
     clientAvatarEl.textContent = "KL";
+  }
+  if (typeof updateOmMetadata === "function") {
+    updateOmMetadata();
   }
 }
 
@@ -1738,6 +1748,39 @@ function updateTechBadge(machine, application) {
   } else {
     techNameEl.textContent = "Technical data";
     techAvatarEl.textContent = "TD";
+  }
+  if (typeof updateOmMetadata === "function") {
+    updateOmMetadata();
+  }
+}
+
+function updateOmMetadata() {
+  const userNameEl = document.getElementById("userName");
+  const clientNameEl = document.getElementById("clientName");
+  const techNameEl = document.getElementById("techName");
+
+  const omAdviseur = document.getElementById("omAdviseur");
+  const omKlant = document.getElementById("omKlant");
+  const omMachine = document.getElementById("omMachine");
+
+  const lang = currentLang || "nl";
+  const langData = TRANSLATIONS[lang] || TRANSLATIONS["nl"];
+
+  const defaultOperatorText = langData.operatorBadge || "Interflon contactpersoon";
+  const defaultClientText = langData.clientBadge || "Klant";
+  const defaultTechText = langData.techBadge || "Technical data";
+
+  if (omAdviseur && userNameEl) {
+    const val = userNameEl.textContent.trim();
+    omAdviseur.value = (val === defaultOperatorText || val === "Interflon contactpersoon" || val === "Interflon contact" || val === "Contact Interflon") ? "" : val;
+  }
+  if (omKlant && clientNameEl) {
+    const val = clientNameEl.textContent.trim();
+    omKlant.value = (val === defaultClientText || val === "Klant" || val === "Customer" || val === "Client") ? "" : val;
+  }
+  if (omMachine && techNameEl) {
+    const val = techNameEl.textContent.trim();
+    omMachine.value = (val === defaultTechText || val === "Technical data" || val === "Fiche technique" || val === "Tech data") ? "" : val;
   }
 }
 
