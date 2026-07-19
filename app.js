@@ -166,6 +166,7 @@ const TRANSLATIONS = {
     techProductLabel: "Huidig product",
     techProductPlaceholder: "Bijv. Standaard EP2 vet",
     techIntervalLabel: "Huidige smeerinterval (dagen)",
+    techPriceLabel: "Prijs huidig product / L (€)",
     techIntervalPlaceholder: "Bijv. 30",
     inputMicPolFactorLabel: "Selecteer convertiefactor naar Interflon MicPol® technologie",
     descMicPolFactor: "Standtijdfactor MicPol® technologie ten opzichte van conventioneel smeermiddel",
@@ -408,6 +409,7 @@ const TRANSLATIONS = {
     techProductLabel: "Current product",
     techProductPlaceholder: "E.g. Standard EP2 grease",
     techIntervalLabel: "Current lubrication interval (days)",
+    techPriceLabel: "Price current product / L (€)",
     techIntervalPlaceholder: "E.g. 30",
     inputMicPolFactorLabel: "Select conversion factor to Interflon MicPol® technology",
     descMicPolFactor: "Service life factor of MicPol® technology compared to conventional lubricant",
@@ -650,6 +652,7 @@ const TRANSLATIONS = {
     techProductLabel: "Produit actuel",
     techProductPlaceholder: "Ex. Graisse EP2 standard",
     techIntervalLabel: "Intervalle de lubrification actuel (jours)",
+    techPriceLabel: "Prix produit actuel / L (€)",
     techIntervalPlaceholder: "Ex. 30",
     inputMicPolFactorLabel: "Sélectionnez le facteur de conversion vers la technologie Interflon MicPol®",
     descMicPolFactor: "Facteur de durée de vie de la technologie MicPol® par rapport au lubrifiant conventionnel",
@@ -1842,16 +1845,19 @@ function loadTechDetails() {
   const application = localStorage.getItem("tech_app") || "";
   const product = localStorage.getItem("tech_product") || "";
   const interval = localStorage.getItem("tech_interval") || "";
+  const price = localStorage.getItem("tech_price") || "";
 
   const machineInput = document.getElementById("techMachineInput");
   const appInput = document.getElementById("techAppInput");
   const productInput = document.getElementById("techProductInput");
   const intervalInput = document.getElementById("techIntervalInput");
+  const priceInput = document.getElementById("techPriceInput");
 
   if (machineInput) machineInput.value = machine;
   if (appInput) appInput.value = application;
   if (productInput) productInput.value = product;
   if (intervalInput) intervalInput.value = interval;
+  if (priceInput) priceInput.value = price;
 
   updateTechBadge(machine, application);
 }
@@ -1907,6 +1913,7 @@ function updateOmMetadata() {
   const omTechApp = document.getElementById("omTechApp");
   const omTechProduct = document.getElementById("omTechProduct");
   const omTechInterval = document.getElementById("omTechInterval");
+  const omTechPrice = document.getElementById("omTechPrice");
   if (omTechMachine) omTechMachine.value = localStorage.getItem("tech_machine") || "";
   if (omTechApp) omTechApp.value = localStorage.getItem("tech_app") || "";
   if (omTechProduct) omTechProduct.value = localStorage.getItem("tech_product") || "";
@@ -1918,6 +1925,15 @@ function updateOmMetadata() {
       omTechInterval.value = `${val}${suffix}`;
     } else {
       omTechInterval.value = "";
+    }
+  }
+
+  if (omTechPrice) {
+    const priceVal = localStorage.getItem("tech_price");
+    if (priceVal) {
+      omTechPrice.value = `€ ${parseFloat(priceVal).toFixed(2)}`;
+    } else {
+      omTechPrice.value = "";
     }
   }
 
@@ -1956,14 +1972,30 @@ function saveTechDetails(event) {
   const application = document.getElementById("techAppInput").value;
   const product = document.getElementById("techProductInput").value;
   const interval = document.getElementById("techIntervalInput").value;
+  const price = document.getElementById("techPriceInput").value;
 
   localStorage.setItem("tech_machine", machine);
   localStorage.setItem("tech_app", application);
   localStorage.setItem("tech_product", product);
   localStorage.setItem("tech_interval", interval);
+  localStorage.setItem("tech_price", price);
+
+  // Sync to TCO sheet in real-time
+  const omProdPrice1El = document.getElementById("omProdPrice1");
+  if (omProdPrice1El) {
+    omProdPrice1El.value = price;
+  }
 
   updateTechBadge(machine, application);
   closeTechModal();
+
+  // Trigger recalculations and TCO save
+  if (typeof calculateTco === "function") {
+    calculateTco();
+  }
+  if (typeof saveTcoDetails === "function") {
+    saveTcoDetails();
+  }
 }
 
 // ==========================================================================
@@ -2038,6 +2070,7 @@ function exportToPdf() {
       const techApp = localStorage.getItem("tech_app") || "-";
       const techProduct = localStorage.getItem("tech_product") || "-";
       const techInterval = localStorage.getItem("tech_interval") || "-";
+      const techPrice = localStorage.getItem("tech_price") || "-";
 
       // Links: Operator Gegevens (y=46 tot y=66)
       doc.setFont("helvetica", "bold");
@@ -2125,22 +2158,26 @@ function exportToPdf() {
       doc.setFont("helvetica", "normal");
       doc.setFontSize(9);
       doc.setTextColor(72, 84, 96);
-      doc.text((langData.techMachineLabel || "Machine") + ":", 110, 87);
-      doc.text((langData.techAppLabel || "Toepassing") + ":", 110, 92);
-      doc.text((langData.techProductLabel || "Huidig product") + ":", 110, 97);
+      doc.text((langData.techMachineLabel || "Machine") + ":", 110, 85);
+      doc.text((langData.techAppLabel || "Toepassing") + ":", 110, 90);
+      doc.text((langData.techProductLabel || "Huidig product") + ":", 110, 95);
       
       const techIntervalLabelShort = currentLang === "nl" ? "Huidig interval (dagen)" : currentLang === "en" ? "Current interval (days)" : "Intervalle actuel (jours)";
-      doc.text(techIntervalLabelShort + ":", 110, 102);
+      doc.text(techIntervalLabelShort + ":", 110, 100);
+
+      const techPriceLabelShort = currentLang === "nl" ? "Prijs huidig prod./L" : currentLang === "en" ? "Price current prod./L" : "Prix prod. actuel/L";
+      doc.text(techPriceLabelShort + ":", 110, 105);
 
       doc.setFont("helvetica", "bold");
       doc.setTextColor(11, 19, 43);
-      doc.text(techMachine, 160, 87);
-      doc.text(techApp, 160, 92);
-      doc.text(techProduct, 160, 97);
-      doc.text(techInterval + (techInterval !== "-" ? " " + (currentLang === "nl" ? "dagen" : currentLang === "en" ? "days" : "jours") : ""), 160, 102);
+      doc.text(techMachine, 160, 85);
+      doc.text(techApp, 160, 90);
+      doc.text(techProduct, 160, 95);
+      doc.text(techInterval + (techInterval !== "-" ? " " + (currentLang === "nl" ? "dagen" : currentLang === "en" ? "days" : "jours") : ""), 160, 100);
+      doc.text(techPrice !== "-" ? `€ ${parseFloat(techPrice).toFixed(2)}` : "-", 160, 105);
 
       // Horizontale scheidingslijn onder gegevens
-      doc.line(20, 106, 190, 106);
+      doc.line(20, 109, 190, 109);
 
       // 4. Tabel: Bedrijfsparameters
       doc.setFont("helvetica", "bold");
