@@ -2463,6 +2463,14 @@ function loadTcoDetails() {
       data["omSharedWorktime"] = 3;
     }
 
+    // Migrate old default downtime frequencies to match material lifetime
+    if (data["omDowntimeFreq1"] === "0.5" || data["omDowntimeFreq1"] === 0.5) {
+      data["omDowntimeFreq1"] = 1;
+    }
+    if (data["omDowntimeFreq2"] === "0" || data["omDowntimeFreq2"] === 0 || data["omDowntimeFreq2"] === "0.00" || data["omDowntimeFreq2"] === 0.00) {
+      data["omDowntimeFreq2"] = 0.25;
+    }
+
     TCO_INPUTS.forEach(id => {
       const el = document.getElementById(id);
       if (el && data[id] !== undefined) {
