@@ -848,8 +848,11 @@ document.addEventListener("DOMContentLoaded", () => {
     greaseSelect.innerHTML = Object.keys(INTERFLON_GREASES).map(name => {
       return `<option value="${name}">${name}</option>`;
     }).join("");
-    // Standaard selecteer GREASE MP2/3
-    if (INTERFLON_GREASES["INTERFLON GREASE MP2/3"]) {
+    // Standaard selecteer GREASE MP2/3 of herstel opgeslagen vet
+    const savedGrease = localStorage.getItem("active_interflon_grease");
+    if (savedGrease && INTERFLON_GREASES[savedGrease]) {
+      greaseSelect.value = savedGrease;
+    } else if (INTERFLON_GREASES["INTERFLON GREASE MP2/3"]) {
       greaseSelect.value = "INTERFLON GREASE MP2/3";
     } else {
       greaseSelect.value = Object.keys(INTERFLON_GREASES)[0];
@@ -1503,6 +1506,9 @@ function calculateGrease() {
   const B = parseFloat(widthInput.value);
   const mass = massInput ? parseFloat(massInput.value) : NaN;
   const greaseName = greaseSelect ? greaseSelect.value : "INTERFLON GREASE MP2/3";
+  if (greaseSelect && greaseSelect.value) {
+    localStorage.setItem("active_interflon_grease", greaseSelect.value);
+  }
   const Te = TeInput ? parseFloat(TeInput.value) : 0.5;
   const Ta = TaInput ? parseFloat(TaInput.value) : 0.5;
   const hoursPerDayInput = document.getElementById("inputHoursPerDay");
