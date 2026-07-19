@@ -1561,7 +1561,19 @@ function calculateGrease() {
   if (omProdCons1El) omProdCons1El.value = refill_grams.toFixed(1);
   if (omProdCons2El) omProdCons2El.value = refill_grams.toFixed(1);
 
-  // Recalculate TCO to reflect the updated consumption values
+  // Automatically update TCO frequency fields with the calculated annual frequencies
+  const omProdFreq1El = document.getElementById("omProdFreq1");
+  const omProdFreq2El = document.getElementById("omProdFreq2");
+  if (omProdFreq1El || omProdFreq2El) {
+    const annual_hours = hoursPerDay * 365;
+    const freq_huidig = fc > 0 ? (annual_hours / fc) : 0;
+    const freq_nieuw = fcMicPol > 0 ? (annual_hours / fcMicPol) : 0;
+
+    if (omProdFreq1El) omProdFreq1El.value = freq_huidig.toFixed(1);
+    if (omProdFreq2El) omProdFreq2El.value = freq_nieuw.toFixed(1);
+  }
+
+  // Recalculate TCO to reflect the updated consumption and frequency values
   if (typeof calculateTco === "function") {
     calculateTco();
     if (typeof saveTcoDetails === "function") {
