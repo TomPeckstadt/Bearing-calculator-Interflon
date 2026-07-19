@@ -1791,6 +1791,19 @@ function updateOmMetadata() {
       omTechInterval.value = "";
     }
   }
+
+  // Product Names
+  const omProdName1 = document.getElementById("omProdName1");
+  const omProdName2 = document.getElementById("omProdName2");
+  if (omProdName1) {
+    omProdName1.value = localStorage.getItem("tech_product") || "";
+  }
+  if (omProdName2) {
+    const greaseSelect = document.getElementById("inputGrease");
+    if (greaseSelect) {
+      omProdName2.value = greaseSelect.value || "";
+    }
+  }
 }
 
 function openTechModal() {
@@ -2242,6 +2255,10 @@ function loadTcoDetails() {
 }
 
 function calculateTco() {
+  if (typeof updateOmMetadata === "function") {
+    updateOmMetadata();
+  }
+
   const val = (id) => {
     const el = document.getElementById(id);
     if (!el) return 0;
