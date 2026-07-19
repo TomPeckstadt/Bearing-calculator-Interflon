@@ -849,11 +849,14 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // Pre-load default values in calculator if needed
-  updateCalculatorFields();
+  // Laad klant details op startup
+  loadClientDetails();
 
-  // Laad operator details op startup
-  loadOperatorDetails();
+  // Laad tech details op startup
+  loadTechDetails();
+
+  // Laad TCO details op startup
+  loadTcoDetails();
 
   // Photo upload logic for TCO application photo
   const omAppImageInput = document.getElementById("omAppImageInput");
@@ -931,14 +934,21 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // Laad klant details op startup
-  loadClientDetails();
+  // Restore active bearing on page load if saved
+  const savedDesignation = localStorage.getItem("active_bearing_designation");
+  if (savedDesignation) {
+    const searchInput = document.getElementById("bearingSearchInput");
+    if (searchInput) {
+      searchInput.value = savedDesignation;
+    }
+    loadBearingDetails(savedDesignation);
+  }
 
-  // Laad tech details op startup
-  loadTechDetails();
+  // Pre-load default values in calculator if needed
+  updateCalculatorFields();
 
-  // Laad TCO details op startup
-  loadTcoDetails();
+  // Laad operator details op startup
+  loadOperatorDetails();
 
   // Voeg event listeners toe voor TCO
   if (typeof TCO_INPUTS !== "undefined") {
@@ -955,16 +965,6 @@ document.addEventListener("DOMContentLoaded", () => {
         });
       }
     });
-  }
-
-  // Restore active bearing on page load if saved
-  const savedDesignation = localStorage.getItem("active_bearing_designation");
-  if (savedDesignation) {
-    const searchInput = document.getElementById("bearingSearchInput");
-    if (searchInput) {
-      searchInput.value = savedDesignation;
-    }
-    loadBearingDetails(savedDesignation);
   }
 
   // Initialiseer de taal
