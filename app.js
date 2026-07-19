@@ -1002,6 +1002,19 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  // Sync downtime duration with repair hours in real-time
+  const omSharedRepairHEl = document.getElementById("omSharedRepairH");
+  if (omSharedRepairHEl) {
+    const syncDowntimeH = () => {
+      const dtH1El = document.getElementById("omDowntimeH1");
+      const dtH2El = document.getElementById("omDowntimeH2");
+      if (dtH1El) dtH1El.value = omSharedRepairHEl.value;
+      if (dtH2El) dtH2El.value = omSharedRepairHEl.value;
+    };
+    omSharedRepairHEl.addEventListener("input", syncDowntimeH);
+    omSharedRepairHEl.addEventListener("change", syncDowntimeH);
+  }
+
   // Voeg event listeners toe voor TCO
   if (typeof TCO_INPUTS !== "undefined") {
     TCO_INPUTS.forEach(id => {
