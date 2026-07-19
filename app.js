@@ -206,7 +206,7 @@ const TRANSLATIONS = {
     omProductLabel: "PRODUCT",
     omGeneralLabel: "Algemene info",
     omProdName: "Productnaam",
-    omConsumption: "Productverbruik / smeerbeurt (L)",
+    omConsumption: "Productverbruik / smeerbeurt (g)",
     omPricePerL: "Kostprijs product / L (€)",
     omAnnProdCost: "Kostprijs product / machine / jaar (€)",
     omLaborLabel: "TIJDSBESTEDING",
@@ -440,7 +440,7 @@ const TRANSLATIONS = {
     omProductLabel: "PRODUCT",
     omGeneralLabel: "General info",
     omProdName: "Product name",
-    omConsumption: "Product consumption / lube (L)",
+    omConsumption: "Product consumption / lube (g)",
     omPricePerL: "Product price / L (€)",
     omAnnProdCost: "Product cost / machine / year (€)",
     omLaborLabel: "TIME SPENT",
@@ -674,7 +674,7 @@ const TRANSLATIONS = {
     omProductLabel: "PRODUIT",
     omGeneralLabel: "Infos générales",
     omProdName: "Nom du produit",
-    omConsumption: "Consommation produit / graissage (L)",
+    omConsumption: "Consommation produit / graissage (g)",
     omPricePerL: "Prix produit / L (€)",
     omAnnProdCost: "Coût produit / machine / an (€)",
     omLaborLabel: "TEMPS PASSÉ",
@@ -2320,8 +2320,15 @@ function calculateTco() {
     el.textContent = tco_years.toString();
   });
 
-  const p1_ann_prod_cost = p1_cons * p1_price * p1_freq;
-  const p2_ann_prod_cost = p2_cons * p2_price * p2_freq;
+  const selectedGrease = document.getElementById("inputGrease").value;
+  const grease = INTERFLON_GREASES[selectedGrease] || { dnMax: 680000, density: 0.92, isHighTemp: false };
+  const density = grease.density;
+
+  const p1_cons_Liters = p1_cons / (density * 1000);
+  const p2_cons_Liters = p2_cons / (density * 1000);
+
+  const p1_ann_prod_cost = p1_cons_Liters * p1_price * p1_freq;
+  const p2_ann_prod_cost = p2_cons_Liters * p2_price * p2_freq;
   
   const shared_worktime_hours = shared_worktime / 60;
 
