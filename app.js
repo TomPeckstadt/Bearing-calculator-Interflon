@@ -824,6 +824,12 @@ function changeLanguage(lang) {
   if (typeof updateOmMetadata === "function") {
     updateOmMetadata();
   }
+  if (typeof loadOperatorDetails === "function") {
+    loadOperatorDetails();
+  }
+  if (typeof loadClientDetails === "function") {
+    loadClientDetails();
+  }
 }
 
 
@@ -1869,8 +1875,17 @@ function updateClientBadge(company, contact) {
     }
     clientAvatarEl.textContent = initials || "KL";
   } else {
-    clientNameEl.textContent = "Klant";
-    clientAvatarEl.textContent = "KL";
+    const lang = currentLang || "nl";
+    const langData = TRANSLATIONS[lang] || TRANSLATIONS["nl"];
+    clientNameEl.textContent = langData.clientBadge || "Klant";
+    
+    if (lang === "en") {
+      clientAvatarEl.textContent = "CU";
+    } else if (lang === "fr") {
+      clientAvatarEl.textContent = "CL";
+    } else {
+      clientAvatarEl.textContent = "KL";
+    }
   }
   if (typeof updateOmMetadata === "function") {
     updateOmMetadata();
