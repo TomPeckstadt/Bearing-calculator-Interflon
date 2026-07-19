@@ -189,7 +189,55 @@ const TRANSLATIONS = {
     "Hoekcontactkogellager": "Hoekcontactkogellager",
     "Dubbelrijig hoekcontactkogellager": "Dubbelrijig hoekcontactkogellager",
     "Pendelkogellager": "Pendelkogellager",
-    "Axiaalkogellager": "Axiaalkogellager"
+    "Axiaalkogellager": "Axiaalkogellager",
+    menuOm: "Opbrengstmodel",
+    pageOmTitle: "Opbrengstmodel (TCO)",
+    pageOmSubtitle: "Calculatiesheet berekening kostenbesparingen door inzet van Interflon smeermiddelen volgens TCO.",
+    omClientHeader: "Algemene Projectgegevens",
+    omMachineHuidigLabel: "Machine Huidig",
+    omMachineNieuwLabel: "Machine Nieuw",
+    omTypeHuidigLabel: "Type Huidig",
+    omTypeNieuwLabel: "Type Nieuw",
+    omTableTitle: "TCO Calculatie Model",
+    omInstructionText: "Vul de grijze cellen in",
+    omGroupCurrent: "Huidige situatie",
+    omGroupInterflon: "Nieuwe situatie (Interflon)",
+    omGroupGeneral: "Algemene info",
+    omProductLabel: "PRODUCT",
+    omGeneralLabel: "Algemene info",
+    omProdName: "Productnaam",
+    omConsumption: "Productverbruik / smeerbeurt (L)",
+    omPricePerL: "Kostprijs product / L (€)",
+    omAnnProdCost: "Kostprijs product / machine / jaar (€)",
+    omLaborLabel: "TIJDSBESTEDING",
+    omLubesPerYear: "Aantal smeerbeurten / jaar",
+    omWorktimePerLube: "Werktijd / smeerbeurt (H)",
+    omRepairFreq: "Herstelfrequentie (M)",
+    omRepairDuration: "Herstellingstijden (H)",
+    omLaborRate: "Kostprijs / H (€)",
+    omAnnLaborCost: "Kostprijs tijdsbesteding / m / j (€)",
+    omPrepDuration: "Voorbereidingstijd (H)",
+    omMaterialLabel: "MATERIAAL",
+    omMaterialLifetime: "Levensduur materiaal (M)",
+    omSparePartsCost: "Kostprijs wisselstukken / set (€)",
+    omSetsPerMachine: "Aantal sets / machine",
+    omAnnMatCost: "Kostprijs materiaal / machine / jaar (€)",
+    omNumMachines: "Aantal machines",
+    omDowntimeLabel: "DOWN-TIME",
+    omDowntimeHours: "Aantal (H)",
+    omDowntimeRate: "Kostprijs down-time / H (€)",
+    omDowntimeFreq: "Aantal / jaar",
+    omAnnDowntimeCost: "Kostprijs downtime / machine / jaar (€)",
+    omSavingsLabel: "BESPARING",
+    omTotalCostPerMachine: "Totale kostprijs / jaar / machine (€)",
+    omTotalCostPark: "Totale kostprijs / jaar / park (€)",
+    omAnnSavingsLabel: "Kostenbesparing / jaar (park)",
+    omTotalSavingsLabel: "Kostenbesparing na <span class='omTcoYearsVal'>10</span> Jaar",
+    omProdCostPercentLabel: "% Product / Totale Kost",
+    omTcoPeriodLabel: "Aantal jaren voor TCO",
+    omCostPerMachineYears: "Kostprijs / machine na <span class='omTcoYearsVal'>10</span> jaar (€)",
+    omCostParkYears: "Kostprijs / machinepark na <span class='omTcoYearsVal'>10</span> jaar (€)",
+    omSavingsYears: "Kostenbesparing na <span class='omTcoYearsVal'>10</span> jaar (€)"
   },
   en: {
     descGrease: "Determines the maximum DN factor and grease density.",
@@ -375,7 +423,55 @@ const TRANSLATIONS = {
     "Hoekcontactkogellager": "Angular contact ball bearing",
     "Dubbelrijig hoekcontactkogellager": "Double row angular contact ball bearing",
     "Pendelkogellager": "Self-aligning ball bearing",
-    "Axiaalkogellager": "Thrust ball bearing"
+    "Axiaalkogellager": "Thrust ball bearing",
+    menuOm: "TCO Yield Model",
+    pageOmTitle: "TCO Yield Model (TCO)",
+    pageOmSubtitle: "Calculation of cost savings through the use of Interflon lubricants according to TCO.",
+    omClientHeader: "General Project Data",
+    omMachineHuidigLabel: "Current Machine",
+    omMachineNieuwLabel: "New Machine",
+    omTypeHuidigLabel: "Current Type",
+    omTypeNieuwLabel: "New Type",
+    omTableTitle: "TCO Calculation Model",
+    omInstructionText: "Fill in the grey cells",
+    omGroupCurrent: "Current situation",
+    omGroupInterflon: "New situation (Interflon)",
+    omGroupGeneral: "General info",
+    omProductLabel: "PRODUCT",
+    omGeneralLabel: "General info",
+    omProdName: "Product name",
+    omConsumption: "Product consumption / lube (L)",
+    omPricePerL: "Product price / L (€)",
+    omAnnProdCost: "Product cost / machine / year (€)",
+    omLaborLabel: "TIME SPENT",
+    omLubesPerYear: "Lubrications / year",
+    omWorktimePerLube: "Labor / lubrication (H)",
+    omRepairFreq: "Repair frequency (M)",
+    omRepairDuration: "Repair duration (H)",
+    omLaborRate: "Labor rate (€/H)",
+    omAnnLaborCost: "Labor cost / machine / year (€)",
+    omPrepDuration: "Preparation time (H)",
+    omMaterialLabel: "MATERIAL",
+    omMaterialLifetime: "Material lifetime (M)",
+    omSparePartsCost: "Spare parts cost / set (€)",
+    omSetsPerMachine: "Sets / machine",
+    omAnnMatCost: "Material cost / machine / year (€)",
+    omNumMachines: "Number of machines",
+    omDowntimeLabel: "DOWNTIME",
+    omDowntimeHours: "Downtime (H)",
+    omDowntimeRate: "Downtime rate (€/H)",
+    omDowntimeFreq: "Events / year",
+    omAnnDowntimeCost: "Downtime cost / machine / year (€)",
+    omSavingsLabel: "SAVINGS",
+    omTotalCostPerMachine: "Total cost / year / machine (€)",
+    omTotalCostPark: "Total cost / year / park (€)",
+    omAnnSavingsLabel: "Cost savings / year (park)",
+    omTotalSavingsLabel: "Cost savings after <span class='omTcoYearsVal'>10</span> Years",
+    omProdCostPercentLabel: "% Product / Total Cost",
+    omTcoPeriodLabel: "Years for TCO",
+    omCostPerMachineYears: "Cost / machine after <span class='omTcoYearsVal'>10</span> years (€)",
+    omCostParkYears: "Cost / park after <span class='omTcoYearsVal'>10</span> years (€)",
+    omSavingsYears: "Cost savings after <span class='omTcoYearsVal'>10</span> years (€)"
   },
   fr: {
     descGrease: "Détermine le facteur DN maximum et la densité de la graisse.",
@@ -561,7 +657,55 @@ const TRANSLATIONS = {
     "Hoekcontactkogellager": "Roulement à billes à contact oblique",
     "Dubbelrijig hoekcontactkogellager": "Roulement à billes à contact oblique à deux rangées",
     "Pendelkogellager": "Roulement à rotule sur billes",
-    "Axiaalkogellager": "Butée à billes"
+    "Axiaalkogellager": "Butée à billes",
+    menuOm: "Modèle de rendement TCO",
+    pageOmTitle: "Modèle TCO",
+    pageOmSubtitle: "Calcul des économies de coûts grâce à l'utilisation des lubrifiants Interflon selon le TCO.",
+    omClientHeader: "Données Générales du Projet",
+    omMachineHuidigLabel: "Machine Actuelle",
+    omMachineNieuwLabel: "Nouvelle Machine",
+    omTypeHuidigLabel: "Type Actuel",
+    omTypeNieuwLabel: "Nouveau Type",
+    omTableTitle: "Modèle de Calcul TCO",
+    omInstructionText: "Remplir les cellules grises",
+    omGroupCurrent: "Situation actuelle",
+    omGroupInterflon: "Nouvelle situation (Interflon)",
+    omGroupGeneral: "Infos générales",
+    omProductLabel: "PRODUIT",
+    omGeneralLabel: "Infos générales",
+    omProdName: "Nom du produit",
+    omConsumption: "Consommation produit / graissage (L)",
+    omPricePerL: "Prix produit / L (€)",
+    omAnnProdCost: "Coût produit / machine / an (€)",
+    omLaborLabel: "TEMPS PASSÉ",
+    omLubesPerYear: "Graissages / an",
+    omWorktimePerLube: "Temps de travail / graissage (H)",
+    omRepairFreq: "Fréquence de réparation (M)",
+    omRepairDuration: "Temps de réparation (H)",
+    omLaborRate: "Taux horaire (€/H)",
+    omAnnLaborCost: "Coût main d'œuvre / machine / an (€)",
+    omPrepDuration: "Temps de préparation (H)",
+    omMaterialLabel: "MATÉRIEL",
+    omMaterialLifetime: "Durée de vie matériel (M)",
+    omSparePartsCost: "Prix pièces / jeu (€)",
+    omSetsPerMachine: "Jeux / machine",
+    omAnnMatCost: "Coût matériel / machine / an (€)",
+    omNumMachines: "Nombre de machines",
+    omDowntimeLabel: "TEMPS D'ARRÊT",
+    omDowntimeHours: "Durée (H)",
+    omDowntimeRate: "Coût temps d'arrêt / H (€)",
+    omDowntimeFreq: "Nombre / an",
+    omAnnDowntimeCost: "Coût temps d'arrêt / m / an (€)",
+    omSavingsLabel: "ÉCONOMIES",
+    omTotalCostPerMachine: "Coût total / an / machine (€)",
+    omTotalCostPark: "Coût total / an / parc (€)",
+    omAnnSavingsLabel: "Économies / an (parc)",
+    omTotalSavingsLabel: "Économies après <span class='omTcoYearsVal'>10</span> Ans",
+    omProdCostPercentLabel: "% Produit / Coût Total",
+    omTcoPeriodLabel: "Nombre d'années pour le TCO",
+    omCostPerMachineYears: "Coût / machine après <span class='omTcoYearsVal'>10</span> ans (€)",
+    omCostParkYears: "Coût / parc après <span class='omTcoYearsVal'>10</span> ans (€)",
+    omSavingsYears: "Économies après <span class='omTcoYearsVal'>10</span> ans (€)"
   }
 };
 
@@ -590,7 +734,7 @@ function changeLanguage(lang) {
     const key = el.getAttribute("data-i18n");
     if (TRANSLATIONS[lang] && TRANSLATIONS[lang][key]) {
       // Use innerHTML for formatting tags inside alert text, intro and legal disclaimer
-      if (key === "estimatedNote" || key === "legalDisclaimerText" || key === "infoIntro" || key === "searchEmptyDesc") {
+      if (key === "estimatedNote" || key === "legalDisclaimerText" || key === "infoIntro" || key === "searchEmptyDesc" || key.startsWith("omCost") || key === "omSavingsYears" || key === "omTotalSavingsLabel") {
         el.innerHTML = TRANSLATIONS[lang][key];
       } else {
         el.textContent = TRANSLATIONS[lang][key];
@@ -619,6 +763,11 @@ function changeLanguage(lang) {
 
   // Re-run grease calculations to update dynamic variables and output formatting
   calculateGrease();
+
+  // Re-run TCO calculations to apply locale formatting
+  if (typeof calculateTco === "function") {
+    calculateTco();
+  }
 }
 
 
@@ -676,6 +825,26 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Laad tech details op startup
   loadTechDetails();
+
+  // Laad TCO details op startup
+  loadTcoDetails();
+
+  // Voeg event listeners toe voor TCO
+  if (typeof TCO_INPUTS !== "undefined") {
+    TCO_INPUTS.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) {
+        el.addEventListener("input", () => {
+          calculateTco();
+          saveTcoDetails();
+        });
+        el.addEventListener("change", () => {
+          calculateTco();
+          saveTcoDetails();
+        });
+      }
+    });
+  }
 
   // Initialiseer de taal
   changeLanguage(currentLang);
@@ -850,6 +1019,12 @@ function switchPage(pageId) {
     if (targetTitle) targetTitle.setAttribute("data-i18n", "pageCalcTitle");
     if (targetSubtitle) targetSubtitle.setAttribute("data-i18n", "pageCalcSubtitle");
     updateCalculatorFields();
+  } else if (pageId === 'om') {
+    document.getElementById("pageOm").classList.add("active");
+    document.getElementById("menuOm").classList.add("active");
+    if (targetTitle) targetTitle.setAttribute("data-i18n", "pageOmTitle");
+    if (targetSubtitle) targetSubtitle.setAttribute("data-i18n", "pageOmSubtitle");
+    calculateTco();
   } else if (pageId === 'info') {
     document.getElementById("pageInfo").classList.add("active");
     document.getElementById("menuInfo").classList.add("active");
@@ -1972,4 +2147,175 @@ function getTransparentLogo(callback) {
     console.warn("Logo watermark kon niet worden geladen. PDF wordt gegenereerd zonder watermerk.");
     callback(null, null);
   };
+}
+
+// ==========================================================================
+// OPBRENGSTMODEL (TCO YIELD MODEL) LOGICA
+// ==========================================================================
+
+const TCO_INPUTS = [
+  "omKlant", "omContact", "omMachineHuidig", "omMachineNieuw", "omTypeHuidig", "omTypeNieuw",
+  "omProdName1", "omProdName2", "omProdCons1", "omProdCons2", "omProdPrice1", "omProdPrice2",
+  "omProdFreq1", "omProdFreq2", "omSharedWorktime", "omRepairFreq1", "omRepairFreq2",
+  "omSharedRepairH", "omSharedLaborRate", "omSharedPrepH", "omLifetime1", "omLifetime2",
+  "omSharedPartsCost", "omSharedSetsPerMachine", "omSharedNumMachines", "omDowntimeH1",
+  "omDowntimeH2", "omSharedDowntimeRate", "omDowntimeFreq1", "omDowntimeFreq2", "omTcoYears"
+];
+
+function saveTcoDetails() {
+  const data = {};
+  TCO_INPUTS.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) {
+      data[id] = el.value;
+    }
+  });
+  localStorage.setItem("bearing_calc_tco_data", JSON.stringify(data));
+}
+
+function loadTcoDetails() {
+  const dataStr = localStorage.getItem("bearing_calc_tco_data");
+  if (!dataStr) return;
+  try {
+    const data = JSON.parse(dataStr);
+    TCO_INPUTS.forEach(id => {
+      const el = document.getElementById(id);
+      if (el && data[id] !== undefined) {
+        el.value = data[id];
+      }
+    });
+  } catch (e) {
+    console.error("Fout bij laden TCO data:", e);
+  }
+}
+
+function calculateTco() {
+  const val = (id) => {
+    const el = document.getElementById(id);
+    if (!el) return 0;
+    const v = parseFloat(el.value);
+    return isNaN(v) ? 0 : v;
+  };
+
+  const fmtCurrency = (n) => {
+    return new Intl.NumberFormat(currentLang === 'nl' ? 'nl-NL' : currentLang === 'fr' ? 'fr-FR' : 'en-US', {
+      style: 'currency',
+      currency: 'EUR',
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    }).format(n);
+  };
+
+  const fmtPercent = (n) => {
+    return new Intl.NumberFormat(currentLang === 'nl' ? 'nl-NL' : currentLang === 'fr' ? 'fr-FR' : 'en-US', {
+      style: 'percent',
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    }).format(n);
+  };
+
+  const p1_cons = val("omProdCons1");
+  const p2_cons = val("omProdCons2");
+  const p1_price = val("omProdPrice1");
+  const p2_price = val("omProdPrice2");
+  
+  const p1_freq = val("omProdFreq1");
+  const p2_freq = val("omProdFreq2");
+  const shared_worktime = val("omSharedWorktime");
+  
+  const p1_repair_freq = val("omRepairFreq1");
+  const p2_repair_freq = val("omRepairFreq2");
+  const shared_repair_h = val("omSharedRepairH");
+  const shared_labor_rate = val("omSharedLaborRate");
+  const shared_prep_h = val("omSharedPrepH");
+  
+  const p1_lifetime = val("omLifetime1");
+  const p2_lifetime = val("omLifetime2");
+  const shared_parts_cost = val("omSharedPartsCost");
+  const shared_sets_per_machine = val("omSharedSetsPerMachine");
+  const shared_num_machines = val("omSharedNumMachines");
+  
+  const p1_downtime_h = val("omDowntimeH1");
+  const p2_downtime_h = val("omDowntimeH2");
+  const shared_downtime_rate = val("omSharedDowntimeRate");
+  const p1_downtime_freq = val("omDowntimeFreq1");
+  const p2_downtime_freq = val("omDowntimeFreq2");
+  
+  const tco_years = val("omTcoYears");
+
+  document.querySelectorAll(".omTcoYearsVal").forEach(el => {
+    el.textContent = tco_years.toString();
+  });
+
+  const p1_ann_prod_cost = p1_cons * p1_price * p1_freq;
+  const p2_ann_prod_cost = p2_cons * p2_price * p2_freq;
+  
+  const p1_ann_labor_cost = (p1_freq * shared_worktime * shared_labor_rate) +
+    (p1_repair_freq === 0 ? 0 : (12 / p1_repair_freq) * shared_repair_h * shared_labor_rate) +
+    (p1_repair_freq === 0 ? 0 : shared_prep_h * shared_labor_rate * (12 / p1_repair_freq));
+    
+  const p2_ann_labor_cost = (p2_freq * shared_worktime * shared_labor_rate) +
+    (p2_repair_freq === 0 ? 0 : (12 / p2_repair_freq) * shared_repair_h * shared_labor_rate) +
+    (p2_repair_freq === 0 ? 0 : shared_prep_h * shared_labor_rate * (12 / p2_repair_freq));
+
+  const p1_ann_mat_cost = p1_lifetime === 0 ? 0 : shared_parts_cost * shared_sets_per_machine * (12 / p1_lifetime);
+  const p2_ann_mat_cost = p2_lifetime === 0 ? 0 : shared_parts_cost * shared_sets_per_machine * (12 / p2_lifetime);
+
+  const p1_ann_downtime_cost = p1_downtime_h * p1_downtime_freq * shared_downtime_rate;
+  const p2_ann_downtime_cost = p2_downtime_h * p2_downtime_freq * shared_downtime_rate;
+
+  const p1_ann_total_cost_mach = p1_ann_prod_cost + p1_ann_labor_cost + p1_ann_mat_cost + p1_ann_downtime_cost;
+  const p2_ann_total_cost_mach = p2_ann_prod_cost + p2_ann_labor_cost + p2_ann_mat_cost + p2_ann_downtime_cost;
+
+  const p1_ann_total_cost_park = shared_num_machines === 0 ? p1_ann_total_cost_mach : p1_ann_total_cost_mach * shared_num_machines;
+  const p2_ann_total_cost_park = shared_num_machines === 0 ? p2_ann_total_cost_mach : p2_ann_total_cost_mach * shared_num_machines;
+
+  const ann_savings_park = p1_ann_total_cost_park - p2_ann_total_cost_park;
+  const prod_cost_percent = p1_ann_total_cost_park === 0 ? 0 : p2_ann_prod_cost / p1_ann_total_cost_park;
+
+  const p1_total_cost_mach_years = p1_ann_total_cost_mach * tco_years;
+  const p2_total_cost_mach_years = p2_ann_total_cost_mach * tco_years;
+  
+  const p1_total_cost_park_years = p1_ann_total_cost_park * tco_years;
+  const p2_total_cost_park_years = p2_ann_total_cost_park * tco_years;
+  
+  const total_savings_years = p1_total_cost_park_years - p2_total_cost_park_years;
+
+  const setEl = (id, valStr) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = valStr;
+  };
+
+  setEl("omAnnProdCost1", fmtCurrency(p1_ann_prod_cost));
+  setEl("omAnnProdCost2", fmtCurrency(p2_ann_prod_cost));
+
+  setEl("omAnnLaborCost1", fmtCurrency(p1_ann_labor_cost));
+  setEl("omAnnLaborCost2", fmtCurrency(p2_ann_labor_cost));
+
+  setEl("omAnnMaterialCost1", fmtCurrency(p1_ann_mat_cost));
+  setEl("omAnnMaterialCost2", fmtCurrency(p2_ann_mat_cost));
+
+  setEl("omAnnDowntimeCost1", fmtCurrency(p1_ann_downtime_cost));
+  setEl("omAnnDowntimeCost2", fmtCurrency(p2_ann_downtime_cost));
+
+  setEl("omAnnTotalCost1", fmtCurrency(p1_ann_total_cost_mach));
+  setEl("omAnnTotalCost2", fmtCurrency(p2_ann_total_cost_mach));
+
+  setEl("omAnnParkCost1", fmtCurrency(p1_ann_total_cost_park));
+  setEl("omAnnParkCost2", fmtCurrency(p2_ann_total_cost_park));
+  setEl("omAnnSavingsPark", fmtCurrency(ann_savings_park));
+
+  setEl("omProdCostPercent", fmtPercent(prod_cost_percent));
+
+  setEl("omTotalCostYears1", fmtCurrency(p1_total_cost_mach_years));
+  setEl("omTotalCostYears2", fmtCurrency(p2_total_cost_mach_years));
+
+  setEl("omTotalParkCostYears1", fmtCurrency(p1_total_cost_park_years));
+  setEl("omTotalParkCostYears2", fmtCurrency(p2_total_cost_park_years));
+  setEl("omTotalSavingsYears", fmtCurrency(total_savings_years));
+
+  // Top summary widgets
+  setEl("omAnnSavingsSummary", fmtCurrency(ann_savings_park));
+  setEl("omTotalSavingsSummary", fmtCurrency(total_savings_years));
+  setEl("omProdCostPercentSummary", fmtPercent(prod_cost_percent));
 }
