@@ -2,6 +2,7 @@
 // Beheert inloggen, paginanavigatie, zoeken naar lagers en dynamische visualisatie.
 
 let activeBearing = null;
+let tcoUploadedImageBase64 = "";
 let currentLang = localStorage.getItem("bearing_calc_lang") || "nl";
 
 const TRANSLATIONS = {
@@ -886,6 +887,8 @@ document.addEventListener("DOMContentLoaded", () => {
         ctx.drawImage(img, 0, 0, width, height);
 
         const compressedBase64 = canvas.toDataURL("image/jpeg", 0.7);
+        tcoUploadedImageBase64 = compressedBase64;
+
         const previewImg = document.getElementById("omAppImagePreview");
         if (previewImg) {
           previewImg.src = compressedBase64;
@@ -914,6 +917,7 @@ document.addEventListener("DOMContentLoaded", () => {
   if (omAppImageDeleteBtn) {
     omAppImageDeleteBtn.addEventListener("click", function(e) {
       e.stopPropagation();
+      tcoUploadedImageBase64 = "";
       const previewImg = document.getElementById("omAppImagePreview");
       if (previewImg) previewImg.src = "";
       if (omAppImageInput) omAppImageInput.value = "";
@@ -951,6 +955,16 @@ document.addEventListener("DOMContentLoaded", () => {
         });
       }
     });
+  }
+
+  // Restore active bearing on page load if saved
+  const savedDesignation = localStorage.getItem("active_bearing_designation");
+  if (savedDesignation) {
+    const searchInput = document.getElementById("bearingSearchInput");
+    if (searchInput) {
+      searchInput.value = savedDesignation;
+    }
+    loadBearingDetails(savedDesignation);
   }
 
   // Initialiseer de taal
@@ -1237,10 +1251,12 @@ function loadBearingDetails(designation) {
     // Foutmelding of geen resultaten gevonden
     emptyState.style.display = "block";
     resultsArea.classList.add("hidden");
+    localStorage.removeItem("active_bearing_designation");
     return;
   }
 
   activeBearing = result;
+  localStorage.setItem("active_bearing_designation", designation);
   
   // Update Specs weergave
   emptyState.style.display = "none";
@@ -2409,12 +2425,7 @@ function saveTcoDetails() {
     }
   });
   // Save application photo
-  const previewImg = document.getElementById("omAppImagePreview");
-  let imgSrc = "";
-  if (previewImg && previewImg.src && previewImg.src.startsWith("data:image")) {
-    imgSrc = previewImg.src;
-  }
-  data["omAppImage"] = imgSrc;
+  data["omAppImage"] = tcoUploadedImageBase64;
 
   localStorage.setItem("bearing_calc_tco_data", JSON.stringify(data));
 }
@@ -2435,12 +2446,13 @@ function loadTcoDetails() {
       }
     });
     // Load application photo
+    tcoUploadedImageBase64 = data["omAppImage"] || "";
     const placeholder = document.getElementById("omAppImagePlaceholder");
     const previewContainer = document.getElementById("omAppImagePreviewContainer");
-    if (data["omAppImage"] && data["omAppImage"].startsWith("data:image")) {
+    if (tcoUploadedImageBase64 && tcoUploadedImageBase64.startsWith("data:image")) {
       const previewImg = document.getElementById("omAppImagePreview");
       if (previewImg) {
-        previewImg.src = data["omAppImage"];
+        previewImg.src = tcoUploadedImageBase64;
         if (placeholder) placeholder.style.display = "none";
         if (previewContainer) previewContainer.style.display = "flex";
       }
