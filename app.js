@@ -2301,6 +2301,19 @@ function loadTcoDetails() {
 }
 
 function calculateTco() {
+  // Sync Revisiefrequentie values with Levensduur materiaal values
+  const omRepairFreq1El = document.getElementById("omRepairFreq1");
+  const omRepairFreq2El = document.getElementById("omRepairFreq2");
+  const omLifetime1El = document.getElementById("omLifetime1");
+  const omLifetime2El = document.getElementById("omLifetime2");
+
+  if (omRepairFreq1El && omLifetime1El) {
+    omRepairFreq1El.value = omLifetime1El.value;
+  }
+  if (omRepairFreq2El && omLifetime2El) {
+    omRepairFreq2El.value = omLifetime2El.value;
+  }
+
   if (typeof updateOmMetadata === "function") {
     updateOmMetadata();
   }
