@@ -239,6 +239,7 @@ const TRANSLATIONS = {
     omAnnSavingsMachineLabel: "Kostenbesparing / jaar / machine (€)",
     omUploadPhotoText: "Foto uploaden",
     omUploadPhotoDesc: "Klik of sleep",
+    omAddPhotoBtn: "Voeg foto toe",
     omTotalSavingsLabel: "Kostenbesparing na <span class='omTcoYearsVal'>10</span> Jaar",
     omProdCostPercentLabel: "% Product / Totale Kost",
     omTcoPeriodLabel: "Aantal jaren voor TCO",
@@ -480,6 +481,7 @@ const TRANSLATIONS = {
     omAnnSavingsMachineLabel: "Cost savings / year / machine (€)",
     omUploadPhotoText: "Upload photo",
     omUploadPhotoDesc: "Click or drag",
+    omAddPhotoBtn: "Add photo",
     omTotalSavingsLabel: "Cost savings after <span class='omTcoYearsVal'>10</span> Years",
     omProdCostPercentLabel: "% Product / Total Cost",
     omTcoPeriodLabel: "Years for TCO",
@@ -721,6 +723,7 @@ const TRANSLATIONS = {
     omAnnSavingsMachineLabel: "Économies / an / machine (€)",
     omUploadPhotoText: "Téléverser photo",
     omUploadPhotoDesc: "Cliquer ou glisser",
+    omAddPhotoBtn: "Ajouter photo",
     omTotalSavingsLabel: "Économies après <span class='omTcoYearsVal'>10</span> Ans",
     omProdCostPercentLabel: "% Produit / Coût Total",
     omTcoPeriodLabel: "Nombre d'années pour le TCO",
@@ -2367,7 +2370,7 @@ function saveTcoDetails() {
   });
   // Save application photo
   const previewImg = document.getElementById("omAppImagePreview");
-  data["omAppImage"] = previewImg ? previewImg.src : "";
+  data["omAppImage"] = (previewImg && previewImg.getAttribute("src")) ? previewImg.getAttribute("src") : "";
 
   localStorage.setItem("bearing_calc_tco_data", JSON.stringify(data));
 }
@@ -2388,20 +2391,20 @@ function loadTcoDetails() {
       }
     });
     // Load application photo
-    if (data["omAppImage"]) {
+    const placeholder = document.getElementById("omAppImagePlaceholder");
+    const previewContainer = document.getElementById("omAppImagePreviewContainer");
+    if (data["omAppImage"] && data["omAppImage"].startsWith("data:image")) {
       const previewImg = document.getElementById("omAppImagePreview");
       if (previewImg) {
         previewImg.src = data["omAppImage"];
-        const placeholder = document.getElementById("omAppImagePlaceholder");
-        const previewContainer = document.getElementById("omAppImagePreviewContainer");
         if (placeholder) placeholder.style.display = "none";
         if (previewContainer) previewContainer.style.display = "block";
       }
     } else {
-      const placeholder = document.getElementById("omAppImagePlaceholder");
-      const previewContainer = document.getElementById("omAppImagePreviewContainer");
       if (placeholder) placeholder.style.display = "flex";
       if (previewContainer) previewContainer.style.display = "none";
+      const previewImg = document.getElementById("omAppImagePreview");
+      if (previewImg) previewImg.src = "";
     }
   } catch (e) {
     console.error("Fout bij laden TCO data:", e);
