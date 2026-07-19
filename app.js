@@ -236,6 +236,7 @@ const TRANSLATIONS = {
     omTotalCostPerMachine: "Totale kostprijs / jaar / machine (€)",
     omTotalCostPark: "Totale kostprijs / jaar / park (€)",
     omAnnSavingsLabel: "Kostenbesparing / jaar (park)",
+    omAnnSavingsMachineLabel: "Kostenbesparing / jaar / machine (€)",
     omTotalSavingsLabel: "Kostenbesparing na <span class='omTcoYearsVal'>10</span> Jaar",
     omProdCostPercentLabel: "% Product / Totale Kost",
     omTcoPeriodLabel: "Aantal jaren voor TCO",
@@ -474,6 +475,7 @@ const TRANSLATIONS = {
     omTotalCostPerMachine: "Total cost / year / machine (€)",
     omTotalCostPark: "Total cost / year / park (€)",
     omAnnSavingsLabel: "Cost savings / year (park)",
+    omAnnSavingsMachineLabel: "Cost savings / year / machine (€)",
     omTotalSavingsLabel: "Cost savings after <span class='omTcoYearsVal'>10</span> Years",
     omProdCostPercentLabel: "% Product / Total Cost",
     omTcoPeriodLabel: "Years for TCO",
@@ -712,6 +714,7 @@ const TRANSLATIONS = {
     omTotalCostPerMachine: "Coût total / an / machine (€)",
     omTotalCostPark: "Coût total / an / parc (€)",
     omAnnSavingsLabel: "Économies / an (parc)",
+    omAnnSavingsMachineLabel: "Économies / an / machine (€)",
     omTotalSavingsLabel: "Économies après <span class='omTcoYearsVal'>10</span> Ans",
     omProdCostPercentLabel: "% Produit / Coût Total",
     omTcoPeriodLabel: "Nombre d'années pour le TCO",
@@ -2414,6 +2417,7 @@ function calculateTco() {
   const p2_ann_total_cost_park = shared_num_machines === 0 ? p2_ann_total_cost_mach : p2_ann_total_cost_mach * shared_num_machines;
 
   const ann_savings_park = p1_ann_total_cost_park - p2_ann_total_cost_park;
+  const ann_savings_mach = p1_ann_total_cost_mach - p2_ann_total_cost_mach;
   const prod_cost_percent = p1_ann_total_cost_park === 0 ? 0 : p2_ann_prod_cost / p1_ann_total_cost_park;
 
   const p1_total_cost_mach_years = p1_ann_total_cost_mach * tco_years;
@@ -2447,6 +2451,7 @@ function calculateTco() {
   setEl("omAnnParkCost1", fmtCurrency(p1_ann_total_cost_park));
   setEl("omAnnParkCost2", fmtCurrency(p2_ann_total_cost_park));
   setEl("omAnnSavingsPark", fmtCurrency(ann_savings_park));
+  setEl("omAnnSavingsMachine", fmtCurrency(ann_savings_mach));
 
   setEl("omProdCostPercent", fmtPercent(prod_cost_percent));
 
