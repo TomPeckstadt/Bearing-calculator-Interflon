@@ -1900,6 +1900,12 @@ function loadTechDetails() {
   if (intervalInput) intervalInput.value = interval;
   if (priceInput) priceInput.value = price;
 
+  // Sync to TCO sheet on page load
+  const omProdPrice1El = document.getElementById("omProdPrice1");
+  if (omProdPrice1El && price) {
+    omProdPrice1El.value = price;
+  }
+
   updateTechBadge(machine, application);
 }
 
@@ -2469,6 +2475,12 @@ function loadTcoDetails() {
     }
     if (data["omDowntimeFreq2"] === "0" || data["omDowntimeFreq2"] === 0 || data["omDowntimeFreq2"] === "0.00" || data["omDowntimeFreq2"] === 0.00) {
       data["omDowntimeFreq2"] = 0.25;
+    }
+
+    // Always prioritize the price from Technical Details
+    const techPrice = localStorage.getItem("tech_price");
+    if (techPrice) {
+      data["omProdPrice1"] = techPrice;
     }
 
     TCO_INPUTS.forEach(id => {
