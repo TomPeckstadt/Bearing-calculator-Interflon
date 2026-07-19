@@ -237,6 +237,8 @@ const TRANSLATIONS = {
     omTotalCostPark: "Totale kostprijs / jaar / park (€)",
     omAnnSavingsLabel: "Kostenbesparing / jaar (park)",
     omAnnSavingsMachineLabel: "Kostenbesparing / jaar / machine (€)",
+    omUploadPhotoText: "Foto uploaden",
+    omUploadPhotoDesc: "Klik of sleep",
     omTotalSavingsLabel: "Kostenbesparing na <span class='omTcoYearsVal'>10</span> Jaar",
     omProdCostPercentLabel: "% Product / Totale Kost",
     omTcoPeriodLabel: "Aantal jaren voor TCO",
@@ -476,6 +478,8 @@ const TRANSLATIONS = {
     omTotalCostPark: "Total cost / year / park (€)",
     omAnnSavingsLabel: "Cost savings / year (park)",
     omAnnSavingsMachineLabel: "Cost savings / year / machine (€)",
+    omUploadPhotoText: "Upload photo",
+    omUploadPhotoDesc: "Click or drag",
     omTotalSavingsLabel: "Cost savings after <span class='omTcoYearsVal'>10</span> Years",
     omProdCostPercentLabel: "% Product / Total Cost",
     omTcoPeriodLabel: "Years for TCO",
@@ -715,6 +719,8 @@ const TRANSLATIONS = {
     omTotalCostPark: "Coût total / an / parc (€)",
     omAnnSavingsLabel: "Économies / an (parc)",
     omAnnSavingsMachineLabel: "Économies / an / machine (€)",
+    omUploadPhotoText: "Téléverser photo",
+    omUploadPhotoDesc: "Cliquer ou glisser",
     omTotalSavingsLabel: "Économies après <span class='omTcoYearsVal'>10</span> Ans",
     omProdCostPercentLabel: "% Produit / Coût Total",
     omTcoPeriodLabel: "Nombre d'années pour le TCO",
@@ -838,6 +844,79 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Laad operator details op startup
   loadOperatorDetails();
+
+  // Photo upload logic for TCO application photo
+  const omAppImageInput = document.getElementById("omAppImageInput");
+  const omAppImageDeleteBtn = document.getElementById("omAppImageDeleteBtn");
+
+  function compressImageAndSave(file) {
+    const reader = new FileReader();
+    reader.onload = function(eEvent) {
+      const img = new Image();
+      img.onload = function() {
+        const canvas = document.createElement("canvas");
+        let width = img.width;
+        let height = img.height;
+        const max_size = 500;
+
+        if (width > height) {
+          if (width > max_size) {
+            height *= max_size / width;
+            width = max_size;
+          }
+        } else {
+          if (height > max_size) {
+            width *= max_size / height;
+            height = max_size;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0, width, height);
+
+        const compressedBase64 = canvas.toDataURL("image/jpeg", 0.7);
+        const previewImg = document.getElementById("omAppImagePreview");
+        if (previewImg) {
+          previewImg.src = compressedBase64;
+        }
+        
+        const placeholder = document.getElementById("omAppImagePlaceholder");
+        const previewContainer = document.getElementById("omAppImagePreviewContainer");
+        if (placeholder) placeholder.style.display = "none";
+        if (previewContainer) previewContainer.style.display = "block";
+
+        saveTcoDetails();
+      };
+      img.src = eEvent.target.result;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  if (omAppImageInput) {
+    omAppImageInput.addEventListener("change", function(e) {
+      if (e.target.files && e.target.files[0]) {
+        compressImageAndSave(e.target.files[0]);
+      }
+    });
+  }
+
+  if (omAppImageDeleteBtn) {
+    omAppImageDeleteBtn.addEventListener("click", function(e) {
+      e.stopPropagation();
+      const previewImg = document.getElementById("omAppImagePreview");
+      if (previewImg) previewImg.src = "";
+      if (omAppImageInput) omAppImageInput.value = "";
+      
+      const placeholder = document.getElementById("omAppImagePlaceholder");
+      const previewContainer = document.getElementById("omAppImagePreviewContainer");
+      if (placeholder) placeholder.style.display = "flex";
+      if (previewContainer) previewContainer.style.display = "none";
+
+      saveTcoDetails();
+    });
+  }
 
   // Laad klant details op startup
   loadClientDetails();
@@ -2286,6 +2365,10 @@ function saveTcoDetails() {
       data[id] = el.tagName === "INPUT" || el.tagName === "SELECT" ? el.value : el.textContent;
     }
   });
+  // Save application photo
+  const previewImg = document.getElementById("omAppImagePreview");
+  data["omAppImage"] = previewImg ? previewImg.src : "";
+
   localStorage.setItem("bearing_calc_tco_data", JSON.stringify(data));
 }
 
@@ -2304,6 +2387,22 @@ function loadTcoDetails() {
         }
       }
     });
+    // Load application photo
+    if (data["omAppImage"]) {
+      const previewImg = document.getElementById("omAppImagePreview");
+      if (previewImg) {
+        previewImg.src = data["omAppImage"];
+        const placeholder = document.getElementById("omAppImagePlaceholder");
+        const previewContainer = document.getElementById("omAppImagePreviewContainer");
+        if (placeholder) placeholder.style.display = "none";
+        if (previewContainer) previewContainer.style.display = "block";
+      }
+    } else {
+      const placeholder = document.getElementById("omAppImagePlaceholder");
+      const previewContainer = document.getElementById("omAppImagePreviewContainer");
+      if (placeholder) placeholder.style.display = "flex";
+      if (previewContainer) previewContainer.style.display = "none";
+    }
   } catch (e) {
     console.error("Fout bij laden TCO data:", e);
   }
