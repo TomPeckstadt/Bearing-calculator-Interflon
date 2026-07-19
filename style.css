@@ -1164,11 +1164,13 @@ h1, h2, h3, h4, .brand-text {
   color: var(--text-medium);
   background-color: #FFFFFF;
   width: 25%;
+  min-width: 140px;
 }
 
 .om-spreadsheet-table .cell-input-wrapper {
   padding: 0;
   width: 15%;
+  min-width: 160px;
   background-color: #F3F4F6; /* Grey input cells by default */
 }
 
@@ -1201,6 +1203,7 @@ h1, h2, h3, h4, .brand-text {
   background-color: #FFFFFF;
   color: var(--text-dark);
   width: 15%;
+  min-width: 110px;
 }
 
 .om-spreadsheet-table .empty-cell {
