@@ -1216,6 +1216,10 @@ h1, h2, h3, h4, .brand-text {
   transition: all var(--transition-fast);
 }
 
+.om-cell-input.auto-filled {
+  background-color: #DBEAFE; /* Soft blue for auto-filled but editable */
+}
+
 .om-cell-input:focus {
   outline: none;
   background-color: #FFFFFF;
