@@ -178,6 +178,44 @@
   </div>
 
   <!-- ==========================================================================
+       PDF OPTIONS MODAL (POPUP FOR SELECTING PDF ATTACHMENTS)
+       ========================================================================== -->
+  <div id="pdfOptionsModal" class="modal-overlay hidden" style="z-index: 10000;">
+    <div class="modal-card" style="max-width: 450px;">
+      <h3 class="modal-title" style="display: flex; align-items: center; gap: 8px;">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width: 24px; height: 24px; color: var(--primary-red);">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m.75 12 3 3m0 0 3-3m-3 3v-6m-1.5-9H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+        </svg>
+        <span data-i18n="pdfExportTitle">Rapport exporteren</span>
+      </h3>
+      <p class="modal-subtitle" style="margin-bottom: 20px;" data-i18n="pdfExportSubtitle">Kies hoe u het PDF-rapport wilt genereren:</p>
+      
+      <div class="form-group" style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 24px;">
+        <label class="pdf-option-label" style="display: flex; align-items: flex-start; gap: 12px; padding: 12px; border: 1px solid #e5e7eb; border-radius: var(--border-radius-md); cursor: pointer; transition: all 0.2s;">
+          <input type="radio" name="pdfTcoOption" value="true" checked style="margin-top: 4px; accent-color: var(--primary-red);">
+          <div>
+            <strong style="display: block; font-size: 14px; color: var(--text-dark); margin-bottom: 2px;" data-i18n="pdfOptInclTco">Inclusief TCO Calculatie model</strong>
+            <span style="display: block; font-size: 12px; color: var(--text-medium);" data-i18n="pdfOptInclTcoDesc">Genereert een 2-pagina's tellend rapport inclusief het volledige vergelijkende kostenmodel.</span>
+          </div>
+        </label>
+        
+        <label class="pdf-option-label" style="display: flex; align-items: flex-start; gap: 12px; padding: 12px; border: 1px solid #e5e7eb; border-radius: var(--border-radius-md); cursor: pointer; transition: all 0.2s;">
+          <input type="radio" name="pdfTcoOption" value="false" style="margin-top: 4px; accent-color: var(--primary-red);">
+          <div>
+            <strong style="display: block; font-size: 14px; color: var(--text-dark); margin-bottom: 2px;" data-i18n="pdfOptExclTco">Exclusief TCO Calculatie model</strong>
+            <span style="display: block; font-size: 12px; color: var(--text-medium);" data-i18n="pdfOptExclTcoDesc">Genereert een compact 1-pagina rapport met enkel de lagerspecificaties en het smeeradvies.</span>
+          </div>
+        </label>
+      </div>
+
+      <div class="modal-actions" style="display: flex; justify-content: flex-end; gap: 12px;">
+        <button type="button" class="btn btn-secondary" onclick="closePdfModal()" data-i18n="cancel">Annuleren</button>
+        <button type="button" class="btn" style="background-color: var(--primary-red); color: white; border: none; padding: 0 16px; font-weight: 600;" onclick="confirmPdfExport()" data-i18n="pdfExportBtn">Rapport exporteren</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================================================
        MAIN DASHBOARD INTERFACE
        ========================================================================== -->
   <div class="app-container">
@@ -429,7 +467,7 @@
             <p id="calcBannerSubtitle" data-i18n="calcBannerSubtitleEmpty">Keer terug naar 'Lager Opzoeken' om een lager te laden, of vul handmatig afmetingen in.</p>
           </div>
           <div style="display: flex; align-items: center; gap: 15px;">
-            <button id="btnExportPdf" class="btn-export" onclick="exportToPdf()">
+            <button id="btnExportPdf" class="btn-export" onclick="showPdfModal()">
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
               </svg>
