@@ -230,7 +230,7 @@ const TRANSLATIONS = {
     omAnnLaborCost: "Kostprijs tijdsbesteding / machine / jaar (€)",
     omPrepDuration: "Voorbereidingstijd (H)",
     omMaterialLabel: "MATERIAAL",
-    omMaterialLifetime: "Levensduur materiaal (maanden)",
+    omMaterialLifetime: "Levensduur lager (maanden)",
     omSparePartsCost: "Kostprijs wisselstukken / set (€)",
     omSetsPerMachine: "Aantal lagers / machine",
     omAnnMatCost: "Kostprijs materiaal / machine / jaar (€)",
@@ -481,7 +481,7 @@ const TRANSLATIONS = {
     omAnnLaborCost: "Labor cost / machine / year (€)",
     omPrepDuration: "Preparation time (H)",
     omMaterialLabel: "MATERIAL",
-    omMaterialLifetime: "Material lifetime (months)",
+    omMaterialLifetime: "Bearing lifetime (months)",
     omSparePartsCost: "Spare parts cost / set (€)",
     omSetsPerMachine: "Bearings / machine",
     omAnnMatCost: "Material cost / machine / year (€)",
@@ -732,7 +732,7 @@ const TRANSLATIONS = {
     omAnnLaborCost: "Coût main d'œuvre / machine / an (€)",
     omPrepDuration: "Temps de préparation (H)",
     omMaterialLabel: "MATÉRIEL",
-    omMaterialLifetime: "Durée de vie matériel (mois)",
+    omMaterialLifetime: "Durée de vie roulement (mois)",
     omSparePartsCost: "Prix pièces / jeu (€)",
     omSetsPerMachine: "Roulements / machine",
     omAnnMatCost: "Coût matériel / machine / an (€)",
@@ -2710,8 +2710,8 @@ function runPdfExport(includeTco) {
 
         // MATERIAAL ROWS (Y = 116 to 135.5)
         curY = 116;
-        drawCell(startX1, curY, 54, 6.5, langData.omMaterialLifetime || "Levensduur materiaal (mnd)", p1_lifetime, "blue");
-        drawCell(startX2, curY, 54, 6.5, langData.omMaterialLifetime || "Levensduur materiaal (mnd)", p2_lifetime, "blue");
+        drawCell(startX1, curY, 54, 6.5, langData.omMaterialLifetime || "Levensduur lager (mnd)", p1_lifetime, "blue");
+        drawCell(startX2, curY, 54, 6.5, langData.omMaterialLifetime || "Levensduur lager (mnd)", p2_lifetime, "blue");
         drawCell(startX3, curY, 60, 6.5, langData.omSparePartsCost || "Kostprijs wisselstukken (€)", shared_parts_cost, "grey");
 
         curY += 6.5;
