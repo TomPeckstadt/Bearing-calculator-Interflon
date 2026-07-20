@@ -1403,8 +1403,19 @@ function loadBearingDetails(designation) {
 }
 
 function updateBearingSvg(d, D, B) {
+  // Update tekst labels onderin diagram
+  const visualBoreText = document.getElementById("visualBoreText");
+  const visualOuterText = document.getElementById("visualOuterText");
+  const visualWidthText = document.getElementById("visualWidthText");
+  
+  if (visualBoreText) visualBoreText.textContent = d;
+  if (visualOuterText) visualOuterText.textContent = D;
+  if (visualWidthText) visualWidthText.textContent = B;
+
   // SVG elementen ophalen
   const svg = document.getElementById("bearingDynamicSvg");
+  if (!svg) return;
+
   const outerCircle = svg.querySelector("circle:nth-of-type(1)");
   const innerCircle = svg.querySelector("circle:nth-of-type(2)");
   const ballsGroup = document.getElementById("svgBallsGroup");
