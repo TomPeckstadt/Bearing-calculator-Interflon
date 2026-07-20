@@ -1,4 +1,4 @@
-﻿// Interflon calculation data tables
+// Interflon calculation data tables
 const BASE_FREQUENCY_TABLE = [
   { ratio: 0.01, ball: 60000, cyl: 40000, cone: 30000, sph: 20000 },
   { ratio: 0.02, ball: 60000, cyl: 40000, cone: 30000, sph: 20000 },
@@ -189,26 +189,26 @@ const CORRECTED_FREQUENCY_TABLE = [
 ];
 
 const INTERFLON_GREASES = {
-  "INTERFLON FOOD GREASE MP2": { dnMax: 350000, density: 0.94, isHighTemp: false },
-  "INTERFLON FOOD GREASE EP": { dnMax: 250000, density: 0.97, isHighTemp: false },
-  "INTERFLON GREASE LS1/2": { dnMax: 60000, density: 0.94, isHighTemp: false },
-  "INTERFLON GREASE LS2": { dnMax: 120000, density: 0.95, isHighTemp: false },
-  "INTERFLON GREASE MP00": { dnMax: 320000, density: 0.89, isHighTemp: false },
-  "INTERFLON GREASE OG": { dnMax: 250000, density: 0.91, isHighTemp: false },
-  "INTERFLON FLUOR GREASE 2": { dnMax: 250000, density: 1.99, isHighTemp: true },
-  "INTERFLON FOOD GREASE 000": { dnMax: 250000, density: 0.90, isHighTemp: false },
-  "INTERFLON FOOD GREASE 1": { dnMax: 250000, density: 0.91, isHighTemp: false },
-  "INTERFLON FOOD GREASE 2": { dnMax: 250000, density: 0.94, isHighTemp: false },
-  "INTERFLON FOOD GREASE LT2": { dnMax: 250000, density: 0.89, isHighTemp: false },
-  "INTERFLON GREASE HD2": { dnMax: 500000, density: 1.04, isHighTemp: false },
-  "INTERFLON GREASE HTG": { dnMax: 250000, density: 1.07, isHighTemp: true },
-  "INTERFLON GREASE MP1": { dnMax: 680000, density: 0.93, isHighTemp: false },
-  "INTERFLON GREASE MP2/3": { dnMax: 680000, density: 0.92, isHighTemp: false },
-  "INTERFLON GREASE HS2": { dnMax: 1000000, density: 0.95, isHighTemp: false },
-  "INTERFLON FOOD GREASE 3H": { dnMax: 120000, density: 0.94, isHighTemp: false },
-  "INTERFLON FOOD GREASE HD00": { dnMax: 350000, density: 0.92, isHighTemp: false },
-  "INTERFLON FOOD GREASE HD2": { dnMax: 250000, density: 0.95, isHighTemp: false },
-  "INTERFLON FOOD GREASE S1/2": { dnMax: 300000, density: 0.93, isHighTemp: false }
+  "INTERFLON FOOD GREASE MP2": { dnMax: 350000, density: 0.94, isHighTemp: false, tempMin: -30, tempMax: 120 },
+  "INTERFLON FOOD GREASE EP": { dnMax: 250000, density: 0.97, isHighTemp: false, tempMin: -20, tempMax: 140 },
+  "INTERFLON GREASE LS1/2": { dnMax: 60000, density: 0.94, isHighTemp: false, tempMin: -25, tempMax: 140 },
+  "INTERFLON GREASE LS2": { dnMax: 120000, density: 0.95, isHighTemp: false, tempMin: -20, tempMax: 140 },
+  "INTERFLON GREASE MP00": { dnMax: 320000, density: 0.89, isHighTemp: false, tempMin: -30, tempMax: 120 },
+  "INTERFLON GREASE OG": { dnMax: 250000, density: 0.91, isHighTemp: false, tempMin: -10, tempMax: 140 },
+  "INTERFLON FLUOR GREASE 2": { dnMax: 250000, density: 1.99, isHighTemp: true, tempMin: -30, tempMax: 270 },
+  "INTERFLON FOOD GREASE 000": { dnMax: 250000, density: 0.90, isHighTemp: false, tempMin: -45, tempMax: 120 },
+  "INTERFLON FOOD GREASE 1": { dnMax: 250000, density: 0.91, isHighTemp: false, tempMin: -30, tempMax: 120 },
+  "INTERFLON FOOD GREASE 2": { dnMax: 250000, density: 0.94, isHighTemp: false, tempMin: -30, tempMax: 120 },
+  "INTERFLON FOOD GREASE LT2": { dnMax: 250000, density: 0.89, isHighTemp: false, tempMin: -45, tempMax: 120 },
+  "INTERFLON GREASE HD2": { dnMax: 500000, density: 1.04, isHighTemp: false, tempMin: -20, tempMax: 150 },
+  "INTERFLON GREASE HTG": { dnMax: 250000, density: 1.07, isHighTemp: true, tempMin: -20, tempMax: 240 },
+  "INTERFLON GREASE MP1": { dnMax: 680000, density: 0.93, isHighTemp: false, tempMin: -30, tempMax: 145 },
+  "INTERFLON GREASE MP2/3": { dnMax: 680000, density: 0.92, isHighTemp: false, tempMin: -30, tempMax: 145 },
+  "INTERFLON GREASE HS2": { dnMax: 1000000, density: 0.95, isHighTemp: false, tempMin: -40, tempMax: 120 },
+  "INTERFLON FOOD GREASE 3H": { dnMax: 120000, density: 0.94, isHighTemp: false, tempMin: -5, tempMax: 120 },
+  "INTERFLON FOOD GREASE HD00": { dnMax: 350000, density: 0.92, isHighTemp: false, tempMin: -20, tempMax: 120 },
+  "INTERFLON FOOD GREASE HD2": { dnMax: 250000, density: 0.95, isHighTemp: false, tempMin: -20, tempMax: 150 },
+  "INTERFLON FOOD GREASE S1/2": { dnMax: 300000, density: 0.93, isHighTemp: false, tempMin: -40, tempMax: 150 }
 };
 
 
