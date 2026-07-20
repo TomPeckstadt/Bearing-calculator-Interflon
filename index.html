@@ -241,6 +241,13 @@
             Dit is de absolute mechanische limiet van de lagerconstructie (zoals kooisterkte en trillingen). Dit toerental mag in principe nooit overschreden worden, omdat dit kan leiden tot mechanische schade of kooibreuk.
           </p>
         </div>
+        
+        <div style="border-top: 1px solid var(--accent-yellow-border-soft); padding-top: 15px;">
+          <strong style="color: var(--primary-blue);" data-i18n="speedModalNoteTitle">Waarom kan het referentietoerental hoger zijn?</strong>
+          <p style="margin-top: 4px; font-size: 13px; color: var(--text-medium);" data-i18n="speedModalNoteDesc">
+            Bij kleinere lagers of specifieke kooitypen kan een lager de wrijvingswarmte van een hoog toerental thermisch gezien prima afvoeren (referentietoerental). Echter, de mechanische onderdelen (zoals de sterkte van de kooi of de stabiliteit van de vetsmering onder invloed van centrifugaalkrachten) laten zo'n hoge snelheid fysiek niet toe (grenstoerental). In dat geval is het lagere grenstoerental de absolute veiligheidslimiet.
+          </p>
+        </div>
       </div>
       
       <div class="modal-actions" style="margin-top: 10px; display: flex; justify-content: flex-end;">
@@ -439,11 +446,25 @@
                 <span class="detail-value"><span id="specWidth">-</span> mm</span>
               </div>
               <div class="detail-row">
-                <span class="detail-label" data-i18n="dynLoad">Dynamisch draaggetal (C)</span>
+                <span class="detail-label">
+                  <span data-i18n="dynLoad">Dynamisch draaggetal (C)</span>
+                  <button type="button" class="info-btn" onclick="openLoadInfoModal()" style="background: none; border: none; padding: 2px; cursor: pointer; color: var(--text-medium); display: inline-flex; align-items: center; transition: color 0.2s;" onmouseover="this.style.color='var(--primary-blue)'" onmouseout="this.style.color='var(--text-medium)'">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width: 14px; height: 14px;">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="m11.25 11.25.041-.02a.75.75 0 1 1 1.085 1.085l-.04.02m-.041.02-.08.04m-.08.04-.08.04m-2.122 2.122a9 9 0 1 1 12.728 0 9 9 0 0 1-12.728 0Z" />
+                    </svg>
+                  </button>
+                </span>
                 <span class="detail-value"><span id="specDyn">-</span> kN</span>
               </div>
               <div class="detail-row">
-                <span class="detail-label" data-i18n="statLoad">Statisch draaggetal (C<sub>0</sub>)</span>
+                <span class="detail-label">
+                  <span data-i18n="statLoad">Statisch draaggetal (C<sub>0</sub>)</span>
+                  <button type="button" class="info-btn" onclick="openLoadInfoModal()" style="background: none; border: none; padding: 2px; cursor: pointer; color: var(--text-medium); display: inline-flex; align-items: center; transition: color 0.2s;" onmouseover="this.style.color='var(--primary-blue)'" onmouseout="this.style.color='var(--text-medium)'">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width: 14px; height: 14px;">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="m11.25 11.25.041-.02a.75.75 0 1 1 1.085 1.085l-.04.02m-.041.02-.08.04m-.08.04-.08.04m-2.122 2.122a9 9 0 1 1 12.728 0 9 9 0 0 1-12.728 0Z" />
+                    </svg>
+                  </button>
+                </span>
                 <span class="detail-value"><span id="specStat">-</span> kN</span>
               </div>
               <div class="detail-row">
