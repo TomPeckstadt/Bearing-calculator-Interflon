@@ -255,7 +255,13 @@ const TRANSLATIONS = {
     omTcoPeriodLabel: "Aantal jaren voor TCO",
     omCostPerMachineYears: "Kostprijs / machine na <span class='omTcoYearsVal'>10</span> jaar (€)",
     omCostParkYears: "Kostprijs / machinepark na <span class='omTcoYearsVal'>10</span> jaar (€)",
-    omSavingsYears: "Kostenbesparing na <span class='omTcoYearsVal'>10</span> jaar (€)"
+    omSavingsYears: "Kostenbesparing na <span class='omTcoYearsVal'>10</span> jaar (€)",
+    close: "Sluiten",
+    speedModalTitle: "Toerental Limieten",
+    speedModalRefTitle: "Referentietoerental (Thermische grens)",
+    speedModalRefDesc: "Dit is het toerental waarbij de wrijvingswarmte van het lager in evenwicht is met de warmteafgifte aan de omgeving. Dit is geen harde mechanische grens. Met hoogwaardige smering (zoals Interflon) of betere koeling kan een lager veilig sneller draaien dan deze waarde.",
+    speedModalLimitTitle: "Grenstoerental (Mechanische grens)",
+    speedModalLimitDesc: "Dit is de absolute mechanische limiet van de lagerconstructie (zoals kooisterkte en trillingen). Dit toerental mag in principe nooit overschreden worden, omdat dit kan leiden tot mechanische schade of kooibreuk."
   },
   en: {
     descGrease: "Determines the maximum DN factor and grease density.",
@@ -506,7 +512,13 @@ const TRANSLATIONS = {
     omTcoPeriodLabel: "Years for TCO",
     omCostPerMachineYears: "Cost / machine after <span class='omTcoYearsVal'>10</span> years (€)",
     omCostParkYears: "Cost / park after <span class='omTcoYearsVal'>10</span> years (€)",
-    omSavingsYears: "Cost savings after <span class='omTcoYearsVal'>10</span> years (€)"
+    omSavingsYears: "Cost savings after <span class='omTcoYearsVal'>10</span> years (€)",
+    close: "Close",
+    speedModalTitle: "Speed Limits",
+    speedModalRefTitle: "Reference Speed (Thermal limit)",
+    speedModalRefDesc: "This is the speed at which the frictional heat generated in the bearing is in equilibrium with the heat dissipation to the environment. This is not a hard mechanical limit. With high-quality lubrication (like Interflon) or enhanced cooling, a bearing can safely run faster than this value.",
+    speedModalLimitTitle: "Limiting Speed (Mechanical limit)",
+    speedModalLimitDesc: "This is the absolute mechanical limit of the bearing construction (such as cage strength and vibrations). This speed should in principle never be exceeded, as it can lead to mechanical damage or cage failure."
   },
   fr: {
     descGrease: "Détermine le facteur DN maximum et la densité de la graisse.",
@@ -757,7 +769,13 @@ const TRANSLATIONS = {
     omTcoPeriodLabel: "Nombre d'années pour le TCO",
     omCostPerMachineYears: "Coût / machine après <span class='omTcoYearsVal'>10</span> ans (€)",
     omCostParkYears: "Coût / parc après <span class='omTcoYearsVal'>10</span> ans (€)",
-    omSavingsYears: "Économies après <span class='omTcoYearsVal'>10</span> ans (€)"
+    omSavingsYears: "Économies après <span class='omTcoYearsVal'>10</span> ans (€)",
+    close: "Fermer",
+    speedModalTitle: "Limites de Vitesse",
+    speedModalRefTitle: "Vitesse de Référence (Limite thermique)",
+    speedModalRefDesc: "C'est la vitesse à laquelle la chaleur de frottement générée dans le roulement est en équilibre avec la dissipation thermique dans l'environnement. Ce n'est pas une limite mécanique stricte. Avec une lubrification haut de gamme (comme Interflon) ou un refroidissement amélioré, un roulement peut tourner plus rapidement sans danger.",
+    speedModalLimitTitle: "Vitesse Limite (Limite mécanique)",
+    speedModalLimitDesc: "C'est la limite mécanique absolue de la structure du roulement (comme la résistance de la cage et les vibrations). Cette vitesse ne doit en principe jamais être dépassée, car cela peut entraîner des dommages mécaniques ou la rupture de la cage."
   }
 };
 
@@ -2098,6 +2116,16 @@ function saveTechDetails(event) {
   if (typeof saveTcoDetails === "function") {
     saveTcoDetails();
   }
+}
+
+function openSpeedInfoModal() {
+  const modal = document.getElementById("speedInfoModal");
+  if (modal) modal.classList.remove("hidden");
+}
+
+function closeSpeedInfoModal() {
+  const modal = document.getElementById("speedInfoModal");
+  if (modal) modal.classList.add("hidden");
 }
 
 // ==========================================================================
