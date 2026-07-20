@@ -274,7 +274,8 @@ const TRANSLATIONS = {
     pricelistModalSubtitle: "Selecteer de gewenste verpakking en afnamehoeveelheid. De literprijs wordt automatisch berekend.",
     noPackagesFound: "Geen verpakkingen gevonden voor dit product.",
     btnCheckCompatibility: "Check compatibiliteit",
-    pdfViewerTitle: "Vetten Compatibiliteitstabel"
+    pdfViewerTitle: "Vetten Compatibiliteitstabel",
+    bearingStatusTitle: "Lager Status & Smering"
   },
   en: {
     descGrease: "Determines the maximum DN factor and grease density.",
@@ -544,7 +545,8 @@ const TRANSLATIONS = {
     pricelistModalSubtitle: "Select the desired packaging and order quantity. The price per liter will be calculated automatically.",
     noPackagesFound: "No packaging found for this product.",
     btnCheckCompatibility: "Check compatibility",
-    pdfViewerTitle: "Grease Compatibility Table"
+    pdfViewerTitle: "Grease Compatibility Table",
+    bearingStatusTitle: "Bearing Status & Lubrication"
   },
   fr: {
     descGrease: "Détermine le facteur DN maximum et la densité de la graisse.",
@@ -814,7 +816,8 @@ const TRANSLATIONS = {
     pricelistModalSubtitle: "Sélectionnez l'emballage souhaité et la quantité commandée. Le prix au litre sera calculé automatiquement.",
     noPackagesFound: "Aucun emballage trouvé pour ce produit.",
     btnCheckCompatibility: "Vérifier la compatibilité",
-    pdfViewerTitle: "Tableau de compatibilité des graisses"
+    pdfViewerTitle: "Tableau de compatibilité des graisses",
+    bearingStatusTitle: "Statut du Roulement & Lubrification"
   }
 };
 
@@ -1091,6 +1094,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Initialiseer de taal
   changeLanguage(currentLang);
+
+  // Initialiseer de lageranimatie
+  initBearingAnimation();
 });
 
 function handleLogin(event) {
@@ -1840,6 +1846,11 @@ function calculateGrease() {
     if (typeof saveTcoDetails === "function") {
       saveTcoDetails();
     }
+  }
+
+  // Update the visual bearing animation
+  if (typeof updateBearingAnimation === "function") {
+    updateBearingAnimation(speed, limitingSpeed, ndm, dnMax, fc);
   }
 }
 
@@ -3258,4 +3269,286 @@ function calculateTco() {
   setEl("omAnnSavingsSummary", fmtCurrency(ann_savings_park));
   setEl("omTotalSavingsSummary", fmtCurrency(total_savings_years));
   setEl("omProdCostPercentSummary", fmtPercent(prod_cost_percent));
+}
+
+// ==========================================================================
+// INTERACTIEVE LAGER ROTATIE ANIMATIE (CANVAS)
+// ==========================================================================
+
+let bearingAnimState = {
+  angle: 0,
+  rpm: 0,
+  limitingSpeed: 4000,
+  ndm: 0,
+  dnMax: 680000,
+  fc: 0,
+  state: "idle", // "idle", "normal", "warning"
+  lastTime: null,
+  canvas: null,
+  ctx: null
+};
+
+function initBearingAnimation() {
+  const canvas = document.getElementById("bearingAnimCanvas");
+  if (!canvas) return;
+  
+  bearingAnimState.canvas = canvas;
+  bearingAnimState.ctx = canvas.getContext("2d");
+  bearingAnimState.lastTime = performance.now();
+  
+  // Start the animation loop
+  requestAnimationFrame(animateBearing);
+}
+
+function animateBearing(timestamp) {
+  if (!bearingAnimState.canvas || !bearingAnimState.ctx) {
+    requestAnimationFrame(animateBearing);
+    return;
+  }
+  
+  const elapsed = timestamp - bearingAnimState.lastTime;
+  bearingAnimState.lastTime = timestamp;
+  
+  const dt = elapsed / 1000; // in seconds
+  
+  // Target RPM (make sure it's valid)
+  let targetRpm = bearingAnimState.rpm || 0;
+  if (isNaN(targetRpm) || targetRpm < 0) targetRpm = 0;
+  
+  // Incrementeer rotatiehoek gebaseerd op toerental (RPM)
+  // 1 RPM = 1/60 r/s = 2pi / 60 rad/s = pi / 30 rad/s
+  const radPerSec = (targetRpm * Math.PI) / 30;
+  bearingAnimState.angle += radPerSec * dt;
+  if (bearingAnimState.angle > 2 * Math.PI) {
+    bearingAnimState.angle -= 2 * Math.PI;
+  }
+  
+  drawBearing(targetRpm);
+  
+  requestAnimationFrame(animateBearing);
+}
+
+function drawBearing(rpm) {
+  const canvas = bearingAnimState.canvas;
+  const ctx = bearingAnimState.ctx;
+  if (!canvas || !ctx) return;
+  
+  const width = canvas.width;
+  const height = canvas.height;
+  const cx = width / 2;
+  const cy = height / 2;
+  
+  ctx.clearRect(0, 0, width, height);
+  
+  ctx.save();
+  
+  // 1. Controleer status en pas eventueel trilling (shaking) toe
+  const isWarning = bearingAnimState.state === "warning";
+  const isNormal = bearingAnimState.state === "normal";
+  
+  if (isWarning && rpm > 0) {
+    // Trillingseffect bij overbelasting of extreem toerental
+    const shakeAmount = 1.8;
+    const dx = (Math.random() - 0.5) * shakeAmount;
+    const dy = (Math.random() - 0.5) * shakeAmount;
+    ctx.translate(dx, dy);
+  }
+  
+  // Ring- en schaduwkleuren bepalen op basis van de toestand
+  let primaryRingColor = "#64748b";   // slate-500
+  let secondaryRingColor = "#94a3b8"; // slate-400
+  let shadowColor = "rgba(100, 116, 139, 0.15)";
+  
+  if (isWarning) {
+    primaryRingColor = "#dc2626";     // Interflon rood
+    secondaryRingColor = "#ef4444";   // Lichter rood
+    shadowColor = "rgba(220, 38, 38, 0.4)";
+  } else if (isNormal) {
+    primaryRingColor = "#0284c7";     // Hemelsblauw
+    secondaryRingColor = "#bae6fd";   // Lichtblauw
+    shadowColor = "rgba(2, 132, 199, 0.25)";
+  }
+  
+  // Breng een subtiele gloed aan rond het lager
+  ctx.shadowColor = shadowColor;
+  ctx.shadowBlur = 8;
+  
+  // --- Buitenring Tekenen ---
+  const outerR = 64;
+  const outerW = 8;
+  
+  ctx.beginPath();
+  ctx.arc(cx, cy, outerR, 0, 2 * Math.PI);
+  ctx.strokeStyle = primaryRingColor;
+  ctx.lineWidth = outerW;
+  ctx.stroke();
+  
+  // Donkere scherpe binnenrand op buitenring
+  ctx.shadowBlur = 0;
+  ctx.beginPath();
+  ctx.arc(cx, cy, outerR - outerW / 2, 0, 2 * Math.PI);
+  ctx.strokeStyle = "#475569";
+  ctx.lineWidth = 1;
+  ctx.stroke();
+  
+  // --- Binnenring Tekenen ---
+  const innerR = 34;
+  const innerW = 8;
+  
+  ctx.beginPath();
+  ctx.arc(cx, cy, innerR, 0, 2 * Math.PI);
+  ctx.strokeStyle = primaryRingColor;
+  ctx.lineWidth = innerW;
+  ctx.stroke();
+  
+  // Donkere scherpe buitenrand op binnenring
+  ctx.beginPath();
+  ctx.arc(cx, cy, innerR + innerW / 2, 0, 2 * Math.PI);
+  ctx.strokeStyle = "#475569";
+  ctx.lineWidth = 1;
+  ctx.stroke();
+  
+  // --- Smeerkanaal / Loopbaan Tekenen ---
+  const trackR = (outerR + innerR) / 2; // = 49
+  ctx.beginPath();
+  ctx.arc(cx, cy, trackR, 0, 2 * Math.PI);
+  ctx.strokeStyle = "rgba(226, 232, 240, 0.5)";
+  ctx.lineWidth = outerR - innerR - (outerW + innerW) / 2;
+  ctx.stroke();
+  
+  // --- Smeervet Film Overlay Tekenen ---
+  let greaseColor = "rgba(16, 185, 129, 0.25)"; // Groen (standaard smering)
+  if (isWarning) {
+    greaseColor = "rgba(239, 68, 68, 0.25)";   // Rood (oververhit/droog)
+  } else if (isNormal) {
+    greaseColor = "rgba(14, 165, 233, 0.25)";   // MicPol blauw (optimaal gesmeerd)
+  } else {
+    greaseColor = "rgba(148, 163, 184, 0.15)";  // Neutraal grijs (in rust)
+  }
+  ctx.beginPath();
+  ctx.arc(cx, cy, trackR, 0, 2 * Math.PI);
+  ctx.strokeStyle = greaseColor;
+  ctx.lineWidth = 12;
+  ctx.stroke();
+  
+  // --- 8 Kogels Tekenen (Roterend) ---
+  const numBalls = 8;
+  const ballR = 6.8;
+  
+  for (let i = 0; i < numBalls; i++) {
+    const ballAngle = bearingAnimState.angle + (i * 2 * Math.PI) / numBalls;
+    const bx = cx + trackR * Math.cos(ballAngle);
+    const by = cy + trackR * Math.sin(ballAngle);
+    
+    ctx.beginPath();
+    ctx.arc(bx, by, ballR, 0, 2 * Math.PI);
+    
+    // Radiale gradiënt voor 3D metaalglans effect op de kogel
+    const grad = ctx.createRadialGradient(bx - ballR / 3, by - ballR / 3, ballR / 10, bx, by, ballR);
+    if (isWarning) {
+      grad.addColorStop(0, "#fee2e2");
+      grad.addColorStop(0.3, "#fca5a5");
+      grad.addColorStop(1, "#b91c1c");
+    } else if (isNormal) {
+      grad.addColorStop(0, "#e0f2fe");
+      grad.addColorStop(0.3, "#bae6fd");
+      grad.addColorStop(1, "#0284c7");
+    } else {
+      grad.addColorStop(0, "#f8fafc");
+      grad.addColorStop(0.3, "#cbd5e1");
+      grad.addColorStop(1, "#475569");
+    }
+    
+    ctx.fillStyle = grad;
+    ctx.fill();
+    
+    // Kogelomtrek accent
+    ctx.strokeStyle = "rgba(0,0,0,0.3)";
+    ctx.lineWidth = 1;
+    ctx.stroke();
+  }
+  
+  ctx.restore();
+}
+
+function updateBearingAnimation(speed, limitingSpeed, ndm, dnMax, fc) {
+  bearingAnimState.rpm = speed || 0;
+  bearingAnimState.limitingSpeed = limitingSpeed || 4000;
+  bearingAnimState.ndm = ndm || 0;
+  bearingAnimState.dnMax = dnMax || 680000;
+  bearingAnimState.fc = fc || 0;
+  
+  const rpmVal = document.getElementById("bearingAnimRpmVal");
+  const statusDot = document.getElementById("bearingAnimStatusDot");
+  const statusLabel = document.getElementById("bearingAnimStatusLabel");
+  const container = document.getElementById("bearingAnimContainer");
+  const lang = currentLang || "nl";
+  
+  if (rpmVal) {
+    rpmVal.textContent = isNaN(bearingAnimState.rpm) ? "-" : Math.round(bearingAnimState.rpm).toLocaleString(lang === "nl" ? "nl-NL" : "en-US");
+  }
+  
+  // Status bepalen
+  let state = "idle";
+  let statusText = "";
+  let dotColor = "#94a3b8"; // Slate
+  let cardBorderColor = "var(--accent-yellow-border)";
+  
+  if (bearingAnimState.rpm > 0) {
+    let limitExceeded = bearingAnimState.rpm > bearingAnimState.limitingSpeed;
+    let dnExceeded = bearingAnimState.ndm > bearingAnimState.dnMax;
+    let lifespanTooLow = bearingAnimState.fc < 250 && bearingAnimState.fc > 0;
+    
+    if (limitExceeded || dnExceeded || lifespanTooLow) {
+      state = "warning";
+      dotColor = "#ef4444";
+      cardBorderColor = "#fca5a5";
+      
+      if (limitExceeded) {
+        statusText = lang === "nl" ? "Snelheidslimiet overschreden!" : lang === "en" ? "Speed limit exceeded!" : "Vitesse limite dépassée !";
+      } else if (dnExceeded) {
+        statusText = lang === "nl" ? "Vet DN-limiet overschreden!" : lang === "en" ? "Grease DN limit exceeded!" : "Limite DN de graisse dépassée !";
+      } else {
+        statusText = lang === "nl" ? "Kritiek smeerinterval!" : lang === "en" ? "Critical lubrication interval!" : "Intervalle de lubrification critique !";
+      }
+    } else {
+      state = "normal";
+      dotColor = "#10b981";
+      cardBorderColor = "#bae6fd";
+      statusText = lang === "nl" ? "Lager operationeel (Normaal)" : lang === "en" ? "Bearing operational (Normal)" : "Roulement opérationnel (Normal)";
+    }
+  } else {
+    state = "idle";
+    dotColor = "#94a3b8";
+    statusText = lang === "nl" ? "Lager in rust" : lang === "en" ? "Bearing idle" : "Roulement au repos";
+  }
+  
+  bearingAnimState.state = state;
+  
+  if (statusDot) {
+    statusDot.style.backgroundColor = dotColor;
+  }
+  
+  if (statusLabel) {
+    statusLabel.textContent = statusText;
+    statusLabel.style.color = state === "warning" ? "#dc2626" : state === "normal" ? "#0f766e" : "var(--text-medium)";
+  }
+  
+  const animCard = document.getElementById("bearingAnimCard");
+  if (animCard) {
+    animCard.style.borderTopColor = cardBorderColor;
+  }
+  
+  if (container) {
+    if (state === "warning") {
+      container.style.boxShadow = "0 0 15px rgba(239, 68, 68, 0.25), inset 0 2px 4px rgba(0,0,0,0.06)";
+      container.style.border = "1px solid rgba(239, 68, 68, 0.3)";
+    } else if (state === "normal") {
+      container.style.boxShadow = "0 0 15px rgba(2, 132, 199, 0.15), inset 0 2px 4px rgba(0,0,0,0.06)";
+      container.style.border = "1px solid rgba(2, 132, 199, 0.2)";
+    } else {
+      container.style.boxShadow = "inset 0 2px 4px rgba(0,0,0,0.06)";
+      container.style.border = "1px solid transparent";
+    }
+  }
 }
