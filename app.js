@@ -268,7 +268,11 @@ const TRANSLATIONS = {
     loadModalDynTitle: "Dynamisch draaggetal (C)",
     loadModalDynDesc: "Dit is de maximale belasting die een draaiend lager theoretisch kan verdragen gedurende 1 miljoen omwentelingen voordat de eerste tekenen van metaalmoeheid optreden. Deze waarde wordt gebruikt om de verwachte levensduur te berekenen onder wisselende of constante belasting.",
     loadModalStatTitle: "Statisch draaggetal (C0)",
-    loadModalStatDesc: "Dit is de maximale belasting die een stilstaand of zeer langzaam draaiend lager kan verdragen zonder dat er blijvende, schadelijke vervorming (deukjes) optreedt in de loopbanen of op de rollende elementen. Dit is van belang om schade door zware schokbelastingen bij stilstand te voorkomen."
+    loadModalStatDesc: "Dit is de maximale belasting die een stilstaand of zeer langzaam draaiend lager kan verdragen zonder dat er blijvende, schadelijke vervorming (deukjes) optreedt in de loopbanen of op de rollende elementen. Dit is van belang om schade door zware schokbelastingen bij stilstand te voorkomen.",
+    selectPackaging: "Kies verpakking",
+    pricelistModalTitle: "Verpakking & Prijs Selecteren",
+    pricelistModalSubtitle: "Selecteer de gewenste verpakking en afnamehoeveelheid. De literprijs wordt automatisch berekend.",
+    noPackagesFound: "Geen verpakkingen gevonden voor dit product."
   },
   en: {
     descGrease: "Determines the maximum DN factor and grease density.",
@@ -532,7 +536,11 @@ const TRANSLATIONS = {
     loadModalDynTitle: "Dynamic Load Rating (C)",
     loadModalDynDesc: "This is the maximum load that a rotating bearing can theoretically withstand for 1 million revolutions before the first signs of metal fatigue occur. This value is used to calculate the expected service life under constant or varying load conditions.",
     loadModalStatTitle: "Static Load Rating (C0)",
-    loadModalStatDesc: "This is the maximum load that a stationary or very slowly rotating bearing can withstand without causing permanent, harmful deformation (indentations) in the raceways or on the rolling elements. This is important to prevent damage from heavy shock loads while at standstill."
+    loadModalStatDesc: "This is the maximum load that a stationary or very slowly rotating bearing can withstand without causing permanent, harmful deformation (indentations) in the raceways or on the rolling elements. This is important to prevent damage from heavy shock loads while at standstill.",
+    selectPackaging: "Choose packaging",
+    pricelistModalTitle: "Select Packaging & Price",
+    pricelistModalSubtitle: "Select the desired packaging and order quantity. The price per liter will be calculated automatically.",
+    noPackagesFound: "No packaging found for this product."
   },
   fr: {
     descGrease: "Détermine le facteur DN maximum et la densité de la graisse.",
@@ -796,7 +804,11 @@ const TRANSLATIONS = {
     loadModalDynTitle: "Charge Nominale Dynamique (C)",
     loadModalDynDesc: "C'est la charge maximale qu'un roulement en rotation peut théoriquement supporter pendant 1 million de tours avant que les premiers signes de fatigue du métal n'apparaissent. Cette valeur est utilisée pour calculer la durée de vie attendue sous des charges constantes ou variables.",
     loadModalStatTitle: "Charge Nominale Statique (C0)",
-    loadModalStatDesc: "C'est la charge maximale qu'un roulement immobile ou tournant très lentement peut supporter sans provoquer de déformation permanente et nocive (empreintes) dans les pistes ou sur les éléments roulants. C'est important pour éviter les dommages dus à de lourdes charges de choc à l'arrêt."
+    loadModalStatDesc: "C'est la charge maximale qu'un roulement immobile ou tournant très lentement peut supporter sans provoquer de déformation permanente et nocive (empreintes) dans les pistes ou sur les éléments roulants. C'est important pour éviter les dommages dus à de lourdes charges de choc à l'arrêt.",
+    selectPackaging: "Choisir l'emballage",
+    pricelistModalTitle: "Sélectionner l'emballage & le prix",
+    pricelistModalSubtitle: "Sélectionnez l'emballage souhaité et la quantité commandée. Le prix au litre sera calculé automatiquement.",
+    noPackagesFound: "Aucun emballage trouvé pour ce produit."
   }
 };
 
@@ -2157,6 +2169,91 @@ function openLoadInfoModal() {
 function closeLoadInfoModal() {
   const modal = document.getElementById("loadInfoModal");
   if (modal) modal.classList.add("hidden");
+}
+
+function openPricelistModal() {
+  const modal = document.getElementById("pricelistModal");
+  if (!modal) return;
+  
+  // Get selected product name
+  const prodNameDiv = document.getElementById("omProdName2");
+  if (!prodNameDiv) return;
+  
+  const productName = prodNameDiv.textContent.trim();
+  
+  // Set product name badge in modal
+  const productBadge = document.getElementById("pricelistProductBadge");
+  if (productBadge) {
+    productBadge.textContent = productName || "-";
+  }
+  
+  // Populate packages list
+  const container = document.getElementById("pricelistContainer");
+  if (container) {
+    container.innerHTML = "";
+    
+    const lang = currentLang || "nl";
+    const noPkgsText = (TRANSLATIONS[lang] && TRANSLATIONS[lang].noPackagesFound) || "Geen verpakkingen gevonden voor dit product.";
+    
+    // Look up in pricelist
+    const packages = INTERFLON_PRICELIST[productName];
+    
+    if (!packages || packages.length === 0) {
+      container.innerHTML = `<div style="text-align: center; color: var(--text-medium); font-size: 13px; padding: 20px;">${noPkgsText}</div>`;
+    } else {
+      packages.forEach(pkg => {
+        const row = document.createElement("div");
+        row.className = "pkg-option-row";
+        
+        // Build option info columns
+        const isLubeShuttle = pkg.packaging.toLowerCase().includes("shuttle") || pkg.packaging.toLowerCase().includes("cart");
+        
+        // Create inner HTML
+        row.innerHTML = `
+          <div class="pkg-option-info">
+            <div class="pkg-option-title">${pkg.packaging} - ${pkg.content}</div>
+            <div class="pkg-option-meta">
+              <span>Art. ${pkg.artNo}</span>
+              Afname: ${pkg.qty} st.
+            </div>
+          </div>
+          <div class="pkg-option-price-block">
+            <div class="pkg-option-unit-price">€ ${pkg.unitPrice.toFixed(2).replace(".", ",")} ${isLubeShuttle ? "/st" : "/st"}</div>
+            <div class="pkg-option-liter-price">€ ${pkg.pricePerL.toFixed(2).replace(".", ",")} / L</div>
+          </div>
+        `;
+        
+        // Add click handler
+        row.onclick = () => {
+          selectPackagePrice(pkg.pricePerL);
+        };
+        
+        container.appendChild(row);
+      });
+    }
+  }
+  
+  modal.classList.remove("hidden");
+}
+
+function closePricelistModal() {
+  const modal = document.getElementById("pricelistModal");
+  if (modal) modal.classList.add("hidden");
+}
+
+function selectPackagePrice(pricePerL) {
+  const priceInput = document.getElementById("omProdPrice2");
+  if (priceInput) {
+    priceInput.value = pricePerL.toFixed(2);
+    // Trigger calculations and saving
+    if (typeof calculateTco === "function") {
+      calculateTco();
+    }
+    if (typeof saveTcoDetails === "function") {
+      saveTcoDetails();
+    }
+  }
+  closePricelistModal();
 }
 
 // ==========================================================================
