@@ -845,6 +845,28 @@
                 <span data-i18n="densityInfoTextPost">Vulhoeveelheid = cm³ x dichtheid.</span>
               </span>
             </div>
+
+            <!-- Dynamic Interactive Bearing Animation -->
+            <div id="bearingAnimCard" style="display: flex; flex-direction: column; align-items: center; justify-content: center; margin-top: 25px; padding-top: 15px; border-top: 1px dashed var(--accent-yellow-border);">
+              <h4 style="margin: 0 0 12px 0; font-size: 11px; font-weight: 700; color: var(--primary-blue); text-transform: uppercase; letter-spacing: 0.5px;" data-i18n="bearingStatusTitle">Lager Status & Smering</h4>
+              
+              <!-- Canvas for drawing the rotating bearing -->
+              <div id="bearingAnimContainer" style="position: relative; width: 140px; height: 140px; display: flex; align-items: center; justify-content: center; border-radius: 50%; background-color: var(--bg-body); box-shadow: inset 0 2px 4px rgba(0,0,0,0.06); transition: all 0.3s ease; border: 1px solid transparent;">
+                <canvas id="bearingAnimCanvas" width="140" height="140" style="width: 140px; height: 140px; display: block;"></canvas>
+                
+                <!-- Speed badge inside the center of the bearing -->
+                <div style="position: absolute; display: flex; flex-direction: column; align-items: center; justify-content: center; pointer-events: none; text-align: center;">
+                  <span id="bearingAnimRpmVal" style="font-weight: 800; font-size: 14px; color: var(--text-dark); line-height: 1.1;">-</span>
+                  <span style="font-size: 9px; color: var(--text-medium); font-weight: 600; text-transform: uppercase;">RPM</span>
+                </div>
+              </div>
+              
+              <!-- Bearing Status Indicator text -->
+              <div id="bearingAnimStatusText" style="margin-top: 12px; font-size: 11.5px; font-weight: 600; color: var(--text-medium); display: flex; align-items: center; gap: 6px;">
+                <span id="bearingAnimStatusDot" style="width: 8px; height: 8px; border-radius: 50%; background-color: #94a3b8; display: inline-block;"></span>
+                <span id="bearingAnimStatusLabel">-</span>
+              </div>
+            </div>
           </div>
 
         </div>
