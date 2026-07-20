@@ -332,15 +332,15 @@
         <button type="button" class="btn-close" onclick="closePdfViewerModal()" style="background: none; border: none; font-size: 24px; cursor: pointer; color: var(--text-medium); line-height: 1;">&times;</button>
       </h3>
       
-      <!-- PDF View Iframe Wrapper -->
-      <div style="flex: 1; min-height: 0; background-color: #f1f5f9; border-radius: var(--border-radius-md); overflow: hidden; position: relative;">
-        <iframe src="vetten-cross-reference-tabel.pdf" style="width: 100%; height: 100%; border: none;"></iframe>
+      <!-- PDF View Image Wrapper -->
+      <div style="flex: 1; min-height: 0; background-color: #ffffff; border-radius: var(--border-radius-md); overflow: auto; display: flex; justify-content: center; align-items: flex-start; padding: 10px; border: 1px solid #e2e8f0;">
+        <img id="pdfCompatibilityImg" src="vetten-cross-reference-tabel.png" alt="Vetten Compatibiliteitstabel" style="max-width: 100%; height: auto; display: block; object-fit: contain; cursor: zoom-in; transition: width 0.2s ease, max-width 0.2s ease;" onclick="this.style.maxWidth = (this.style.maxWidth === 'none' ? '100%' : 'none'); this.style.width = (this.style.maxWidth === 'none' ? '180%' : 'auto'); this.style.cursor = (this.style.maxWidth === 'none' ? 'zoom-out' : 'zoom-in');">
       </div>
       
       <div class="modal-actions" style="margin-top: 15px; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0;">
         <span style="font-size: 11px; color: var(--text-medium);">
-          Lijkt het bestand niet te laden? 
-          <a href="vetten-cross-reference-tabel.pdf" target="_blank" style="color: var(--primary-blue); text-decoration: underline;">Klik hier</a> om direct te openen.
+          Lijkt de afbeelding niet te laden? 
+          <a href="vetten-cross-reference-tabel.pdf" target="_blank" style="color: var(--primary-blue); text-decoration: underline;">Klik hier</a> om de PDF direct te openen/downloaden.
         </span>
         <button type="button" class="btn btn-secondary" onclick="closePdfViewerModal()" data-i18n="close">Sluiten</button>
       </div>
