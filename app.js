@@ -1850,7 +1850,7 @@ function calculateGrease() {
 
   // Update the visual bearing animation
   if (typeof updateBearingAnimation === "function") {
-    updateBearingAnimation(speed, limitingSpeed, ndm, dnMax, fc);
+    updateBearingAnimation(speed, limitingSpeed, ndm, dnMax, fc, temp, grease.tempMin, grease.tempMax);
   }
 }
 
@@ -3471,7 +3471,7 @@ function drawBearing(rpm) {
   ctx.restore();
 }
 
-function updateBearingAnimation(speed, limitingSpeed, ndm, dnMax, fc) {
+function updateBearingAnimation(speed, limitingSpeed, ndm, dnMax, fc, temp, tempMin, tempMax) {
   bearingAnimState.rpm = speed || 0;
   bearingAnimState.limitingSpeed = limitingSpeed || 4000;
   bearingAnimState.ndm = ndm || 0;
@@ -3499,12 +3499,20 @@ function updateBearingAnimation(speed, limitingSpeed, ndm, dnMax, fc) {
     let dnExceeded = bearingAnimState.ndm > bearingAnimState.dnMax;
     let lifespanTooLow = bearingAnimState.fc < 250 && bearingAnimState.fc > 0;
     
-    if (limitExceeded || dnExceeded || lifespanTooLow) {
+    // Check vet temperatuurgrenzen
+    let tempVal = parseFloat(temp);
+    let minT = parseFloat(tempMin);
+    let maxT = parseFloat(tempMax);
+    let tempExceeded = !isNaN(tempVal) && !isNaN(minT) && !isNaN(maxT) && (tempVal < minT || tempVal > maxT);
+    
+    if (limitExceeded || dnExceeded || lifespanTooLow || tempExceeded) {
       state = "warning";
       dotColor = "#ef4444";
       cardBorderColor = "#fca5a5";
       
-      if (limitExceeded) {
+      if (tempExceeded) {
+        statusText = lang === "nl" ? "Vettemperatuur buiten limiet (" + minT + "°C / " + maxT + "°C)!" : lang === "en" ? "Grease temp out of limit (" + minT + "°C / " + maxT + "°C)!" : "Temp. graisse hors limites (" + minT + "°C / " + maxT + "°C) !";
+      } else if (limitExceeded) {
         statusText = lang === "nl" ? "Snelheidslimiet overschreden!" : lang === "en" ? "Speed limit exceeded!" : "Vitesse limite dépassée !";
       } else if (dnExceeded) {
         statusText = lang === "nl" ? "Vet DN-limiet overschreden!" : lang === "en" ? "Grease DN limit exceeded!" : "Limite DN de graisse dépassée !";
@@ -3515,7 +3523,7 @@ function updateBearingAnimation(speed, limitingSpeed, ndm, dnMax, fc) {
       state = "normal";
       dotColor = "#10b981";
       cardBorderColor = "#bae6fd";
-      statusText = lang === "nl" ? "Lager operationeel (Normaal)" : lang === "en" ? "Bearing operational (Normal)" : "Roulement opérationnel (Normal)";
+      statusText = lang === "nl" ? "Lager operationeel (Normaal)" : lang === "en" ? "Bearing operational (Normal)" : "Roulement operational (Normal)";
     }
   } else {
     state = "idle";
