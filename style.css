@@ -1186,7 +1186,17 @@ h1, h2, h3, h4, .brand-text {
   padding: 0;
   width: 15%;
   min-width: 150px;
+  height: 1px; /* Stretch input height to 100% of row height */
   background-color: #F3F4F6; /* Grey input cells by default */
+}
+
+/* Match cell background to input background to prevent grey bars on top/bottom */
+.om-spreadsheet-table .cell-input-wrapper:has(.auto-filled) {
+  background-color: #DBEAFE; /* Soft blue */
+}
+
+.om-spreadsheet-table .cell-input-wrapper:has(.om-cell-input:focus) {
+  background-color: #FFFFFF; /* White when focused */
 }
 
 .om-cell-input-div {
