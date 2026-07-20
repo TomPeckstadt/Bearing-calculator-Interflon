@@ -920,6 +920,9 @@ h1, h2, h3, h4, .brand-text {
   background: var(--bg-card);
   width: 100%;
   max-width: 480px;
+  max-height: 90vh;
+  overflow-y: auto;
+  overflow-x: hidden;
   padding: 30px;
   border-radius: var(--border-radius-lg);
   box-shadow: var(--shadow-lg), 0 20px 25px -5px rgba(0, 0, 0, 0.1);
