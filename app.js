@@ -261,7 +261,12 @@ const TRANSLATIONS = {
     speedModalRefTitle: "Referentietoerental (Thermische grens)",
     speedModalRefDesc: "Dit is het toerental waarbij de wrijvingswarmte van het lager in evenwicht is met de warmteafgifte aan de omgeving. Dit is geen harde mechanische grens. Met hoogwaardige smering (zoals Interflon) of betere koeling kan een lager veilig sneller draaien dan deze waarde.",
     speedModalLimitTitle: "Grenstoerental (Mechanische grens)",
-    speedModalLimitDesc: "Dit is de absolute mechanische limiet van de lagerconstructie (zoals kooisterkte en trillingen). Dit toerental mag in principe nooit overschreden worden, omdat dit kan leiden tot mechanische schade of kooibreuk."
+    speedModalLimitDesc: "Dit is de absolute mechanische limiet van de lagerconstructie (zoals kooisterkte en trillingen). Dit toerental mag in principe nooit overschreden worden, omdat dit kan leiden tot mechanische schade of kooibreuk.",
+    loadModalTitle: "Draaggetallen",
+    loadModalDynTitle: "Dynamisch draaggetal (C)",
+    loadModalDynDesc: "Dit is de maximale belasting die een draaiend lager theoretisch kan verdragen gedurende 1 miljoen omwentelingen voordat de eerste tekenen van metaalmoeheid optreden. Deze waarde wordt gebruikt om de verwachte levensduur te berekenen onder wisselende of constante belasting.",
+    loadModalStatTitle: "Statisch draaggetal (C0)",
+    loadModalStatDesc: "Dit is de maximale belasting die een stilstaand of zeer langzaam draaiend lager kan verdragen zonder dat er blijvende, schadelijke vervorming (deukjes) optreedt in de loopbanen of op de rollende elementen. Dit is van belang om schade door zware schokbelastingen bij stilstand te voorkomen."
   },
   en: {
     descGrease: "Determines the maximum DN factor and grease density.",
@@ -518,7 +523,12 @@ const TRANSLATIONS = {
     speedModalRefTitle: "Reference Speed (Thermal limit)",
     speedModalRefDesc: "This is the speed at which the frictional heat generated in the bearing is in equilibrium with the heat dissipation to the environment. This is not a hard mechanical limit. With high-quality lubrication (like Interflon) or enhanced cooling, a bearing can safely run faster than this value.",
     speedModalLimitTitle: "Limiting Speed (Mechanical limit)",
-    speedModalLimitDesc: "This is the absolute mechanical limit of the bearing construction (such as cage strength and vibrations). This speed should in principle never be exceeded, as it can lead to mechanical damage or cage failure."
+    speedModalLimitDesc: "This is the absolute mechanical limit of the bearing construction (such as cage strength and vibrations). This speed should in principle never be exceeded, as it can lead to mechanical damage or cage failure.",
+    loadModalTitle: "Load Ratings",
+    loadModalDynTitle: "Dynamic Load Rating (C)",
+    loadModalDynDesc: "This is the maximum load that a rotating bearing can theoretically withstand for 1 million revolutions before the first signs of metal fatigue occur. This value is used to calculate the expected service life under constant or varying load conditions.",
+    loadModalStatTitle: "Static Load Rating (C0)",
+    loadModalStatDesc: "This is the maximum load that a stationary or very slowly rotating bearing can withstand without causing permanent, harmful deformation (indentations) in the raceways or on the rolling elements. This is important to prevent damage from heavy shock loads while at standstill."
   },
   fr: {
     descGrease: "Détermine le facteur DN maximum et la densité de la graisse.",
@@ -775,7 +785,12 @@ const TRANSLATIONS = {
     speedModalRefTitle: "Vitesse de Référence (Limite thermique)",
     speedModalRefDesc: "C'est la vitesse à laquelle la chaleur de frottement générée dans le roulement est en équilibre avec la dissipation thermique dans l'environnement. Ce n'est pas une limite mécanique stricte. Avec une lubrification haut de gamme (comme Interflon) ou un refroidissement amélioré, un roulement peut tourner plus rapidement sans danger.",
     speedModalLimitTitle: "Vitesse Limite (Limite mécanique)",
-    speedModalLimitDesc: "C'est la limite mécanique absolue de la structure du roulement (comme la résistance de la cage et les vibrations). Cette vitesse ne doit en principe jamais être dépassée, car cela peut entraîner des dommages mécaniques ou la rupture de la cage."
+    speedModalLimitDesc: "C'est la limite mécanique absolue de la structure du roulement (comme la résistance de la cage et les vibrations). Cette vitesse ne doit en principe jamais être dépassée, car cela peut entraîner des dommages mécaniques ou la rupture de la cage.",
+    loadModalTitle: "Charges Nominales",
+    loadModalDynTitle: "Charge Nominale Dynamique (C)",
+    loadModalDynDesc: "C'est la charge maximale qu'un roulement en rotation peut théoriquement supporter pendant 1 million de tours avant que les premiers signes de fatigue du métal n'apparaissent. Cette valeur est utilisée pour calculer la durée de vie attendue sous des charges constantes ou variables.",
+    loadModalStatTitle: "Charge Nominale Statique (C0)",
+    loadModalStatDesc: "C'est la charge maximale qu'un roulement immobile ou tournant très lentement peut supporter sans provoquer de déformation permanente et nocive (empreintes) dans les pistes ou sur les éléments roulants. C'est important pour éviter les dommages dus à de lourdes charges de choc à l'arrêt."
   }
 };
 
@@ -2125,6 +2140,16 @@ function openSpeedInfoModal() {
 
 function closeSpeedInfoModal() {
   const modal = document.getElementById("speedInfoModal");
+  if (modal) modal.classList.add("hidden");
+}
+
+function openLoadInfoModal() {
+  const modal = document.getElementById("loadInfoModal");
+  if (modal) modal.classList.remove("hidden");
+}
+
+function closeLoadInfoModal() {
+  const modal = document.getElementById("loadInfoModal");
   if (modal) modal.classList.add("hidden");
 }
 
