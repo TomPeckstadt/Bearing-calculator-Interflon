@@ -541,49 +541,11 @@
           <!-- Right Visual Column -->
           <div class="bearing-visual-container">
             <h4 data-i18n="visualDimensionsTitle">Visuele Afmetingen</h4>
-            
-            <div class="bearing-svg-wrapper">
-              <svg id="bearingDynamicSvg" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
-                <!-- Outer diameter ring -->
-                <circle cx="100" cy="100" r="80" fill="#F4F2F0" stroke="#726350" stroke-width="3" />
-                <!-- Inner diameter ring -->
-                <circle cx="100" cy="100" r="45" fill="#FFFFFF" stroke="#726350" stroke-width="3" />
-                
-                <!-- Shaft / Bore center line indicator -->
-                <line x1="100" y1="20" x2="100" y2="180" stroke="#D2C9BF" stroke-dasharray="4 4" stroke-width="1" />
-                <line x1="20" y1="100" x2="180" y2="100" stroke="#D2C9BF" stroke-dasharray="4 4" stroke-width="1" />
-
-                <!-- Rolling Elements (Balls) - Dynamically positioned in JS -->
-                <g id="svgBallsGroup">
-                  <circle cx="100" cy="38" r="10" fill="#2563EB" opacity="0.8" />
-                  <circle cx="162" cy="100" r="10" fill="#2563EB" opacity="0.8" />
-                  <circle cx="100" cy="162" r="10" fill="#2563EB" opacity="0.8" />
-                  <circle cx="38" cy="100" r="10" fill="#2563EB" opacity="0.8" />
-                  <circle cx="144" cy="56" r="10" fill="#2563EB" opacity="0.8" />
-                  <circle cx="144" cy="144" r="10" fill="#2563EB" opacity="0.8" />
-                  <circle cx="56" cy="144" r="10" fill="#2563EB" opacity="0.8" />
-                  <circle cx="56" cy="56" r="10" fill="#2563EB" opacity="0.8" />
-                </g>
-
-                <!-- Dimension Lines -->
-                <!-- D Outer diameter label arrow -->
-                <line x1="10" y1="100" x2="10" y2="20" stroke="#726350" stroke-width="1" />
-                <line x1="10" y1="100" x2="10" y2="180" stroke="#726350" stroke-width="1" />
-                <polygon points="10,20 7,27 13,27" fill="#726350" />
-                <polygon points="10,180 7,173 13,173" fill="#726350" />
-                <text x="5" y="105" font-family="'Outfit', sans-serif" font-size="12" fill="#726350" font-weight="700">D</text>
-
-                <!-- d Inner diameter label arrow -->
-                <line x1="75" y1="100" x2="75" y2="55" stroke="#2563EB" stroke-width="1" />
-                <line x1="75" y1="100" x2="75" y2="145" stroke="#2563EB" stroke-width="1" />
-                <polygon points="75,55 72,62 78,62" fill="#2563EB" />
-                <polygon points="75,145 72,138 78,138" fill="#2563EB" />
-                <text x="68" y="104" font-family="'Outfit', sans-serif" font-size="11" fill="#2563EB" font-weight="700">d</text>
-              </svg>
+                     <div class="bearing-svg-wrapper" style="display: flex; align-items: center; justify-content: center; height: 280px; margin-bottom: 10px;">
+              <img id="bearingDimensionsImg" src="bearing-dimensions.jpg" alt="Lager afmetingen" style="max-height: 100%; max-width: 100%; object-fit: contain; border-radius: var(--border-radius-md);">
             </div>
             
-            <div class="bearing-visual-note">
-              <span data-i18n="visualNoteBlue">Blauwe markeringen tonen de kogels/rollen.</span><br>
+            <div class="bearing-visual-note" style="margin-top: 10px; text-align: center;">
               <strong>d</strong> = <span data-i18n="boreDiameterShort">boring</span> (<span id="visualBoreText">-</span>mm) | 
               <strong>D</strong> = <span data-i18n="outerDiameterShort">buitendiameter</span> (<span id="visualOuterText">-</span>mm) | 
               <strong>B</strong> = <span data-i18n="widthBShort">breedte</span> (<span id="visualWidthText">-</span>mm)
