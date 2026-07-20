@@ -216,6 +216,40 @@
   </div>
 
   <!-- ==========================================================================
+       SPEED INFO MODAL (POPUP FOR TOERENTAL EXPLANATION)
+       ========================================================================== -->
+  <div id="speedInfoModal" class="modal-overlay hidden" style="z-index: 10000;" onclick="if(event.target === this) closeSpeedInfoModal()">
+    <div class="modal-card" style="max-width: 500px;">
+      <h3 class="modal-title" style="display: flex; align-items: center; gap: 8px;">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width: 24px; height: 24px; color: var(--primary-blue);">
+          <path stroke-linecap="round" stroke-linejoin="round" d="m11.25 11.25.041-.02a.75.75 0 1 1 1.085 1.085l-.04.02m-.041.02-.08.04m-.08.04-.08.04m-2.122 2.122a9 9 0 1 1 12.728 0 9 9 0 0 1-12.728 0Z" />
+        </svg>
+        <span data-i18n="speedModalTitle">Toerental Limieten</span>
+      </h3>
+      
+      <div style="font-size: 14px; line-height: 1.6; color: var(--text-dark); display: flex; flex-direction: column; gap: 15px;">
+        <div>
+          <strong style="color: var(--primary-blue);" data-i18n="speedModalRefTitle">Referentietoerental (Thermische grens)</strong>
+          <p style="margin-top: 4px; font-size: 13px; color: var(--text-medium);" data-i18n="speedModalRefDesc">
+            Dit is het toerental waarbij de wrijvingswarmte van het lager in evenwicht is met de warmteafgifte aan de omgeving. Dit is geen harde mechanische grens. Met hoogwaardige smering (zoals Interflon) of betere koeling kan een lager veilig sneller draaien dan deze waarde.
+          </p>
+        </div>
+        
+        <div style="border-top: 1px solid var(--accent-yellow-border-soft); padding-top: 15px;">
+          <strong style="color: var(--primary-blue);" data-i18n="speedModalLimitTitle">Grenstoerental (Mechanische grens)</strong>
+          <p style="margin-top: 4px; font-size: 13px; color: var(--text-medium);" data-i18n="speedModalLimitDesc">
+            Dit is de absolute mechanische limiet van de lagerconstructie (zoals kooisterkte en trillingen). Dit toerental mag in principe nooit overschreden worden, omdat dit kan leiden tot mechanische schade of kooibreuk.
+          </p>
+        </div>
+      </div>
+      
+      <div class="modal-actions" style="margin-top: 10px; display: flex; justify-content: flex-end;">
+        <button type="button" class="btn" onclick="closeSpeedInfoModal()" data-i18n="close">Sluiten</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================================================
        MAIN DASHBOARD INTERFACE
        ========================================================================== -->
   <div class="app-container">
@@ -379,11 +413,25 @@
                 <span class="detail-value"><span id="specStat">-</span> kN</span>
               </div>
               <div class="detail-row">
-                <span class="detail-label" data-i18n="refSpeed">Referentietoerental</span>
+                <span class="detail-label">
+                  <span data-i18n="refSpeed">Referentietoerental</span>
+                  <button type="button" class="info-btn" onclick="openSpeedInfoModal()" style="background: none; border: none; padding: 2px; cursor: pointer; color: var(--text-medium); display: inline-flex; align-items: center; transition: color 0.2s;" onmouseover="this.style.color='var(--primary-blue)'" onmouseout="this.style.color='var(--text-medium)'">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width: 14px; height: 14px;">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="m11.25 11.25.041-.02a.75.75 0 1 1 1.085 1.085l-.04.02m-.041.02-.08.04m-.08.04-.08.04m-2.122 2.122a9 9 0 1 1 12.728 0 9 9 0 0 1-12.728 0Z" />
+                    </svg>
+                  </button>
+                </span>
                 <span class="detail-value"><span id="specRefSpeed">-</span> r/min</span>
               </div>
               <div class="detail-row">
-                <span class="detail-label" data-i18n="limitingSpeed">Grenstoerental</span>
+                <span class="detail-label">
+                  <span data-i18n="limitingSpeed">Grenstoerental</span>
+                  <button type="button" class="info-btn" onclick="openSpeedInfoModal()" style="background: none; border: none; padding: 2px; cursor: pointer; color: var(--text-medium); display: inline-flex; align-items: center; transition: color 0.2s;" onmouseover="this.style.color='var(--primary-blue)'" onmouseout="this.style.color='var(--text-medium)'">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width: 14px; height: 14px;">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="m11.25 11.25.041-.02a.75.75 0 1 1 1.085 1.085l-.04.02m-.041.02-.08.04m-.08.04-.08.04m-2.122 2.122a9 9 0 1 1 12.728 0 9 9 0 0 1-12.728 0Z" />
+                    </svg>
+                  </button>
+                </span>
                 <span class="detail-value"><span id="specLimitSpeed">-</span> r/min</span>
               </div>
               <div class="detail-row">
