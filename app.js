@@ -273,7 +273,8 @@ const TRANSLATIONS = {
     pricelistModalTitle: "Verpakking & Prijs Selecteren",
     pricelistModalSubtitle: "Selecteer de gewenste verpakking en afnamehoeveelheid. De literprijs wordt automatisch berekend.",
     noPackagesFound: "Geen verpakkingen gevonden voor dit product.",
-    btnCheckCompatibility: "Check compatibiliteit"
+    btnCheckCompatibility: "Check compatibiliteit",
+    pdfViewerTitle: "Vetten Compatibiliteitstabel"
   },
   en: {
     descGrease: "Determines the maximum DN factor and grease density.",
@@ -542,7 +543,8 @@ const TRANSLATIONS = {
     pricelistModalTitle: "Select Packaging & Price",
     pricelistModalSubtitle: "Select the desired packaging and order quantity. The price per liter will be calculated automatically.",
     noPackagesFound: "No packaging found for this product.",
-    btnCheckCompatibility: "Check compatibility"
+    btnCheckCompatibility: "Check compatibility",
+    pdfViewerTitle: "Grease Compatibility Table"
   },
   fr: {
     descGrease: "Détermine le facteur DN maximum et la densité de la graisse.",
@@ -811,7 +813,8 @@ const TRANSLATIONS = {
     pricelistModalTitle: "Sélectionner l'emballage & le prix",
     pricelistModalSubtitle: "Sélectionnez l'emballage souhaité et la quantité commandée. Le prix au litre sera calculé automatiquement.",
     noPackagesFound: "Aucun emballage trouvé pour ce produit.",
-    btnCheckCompatibility: "Vérifier la compatibilité"
+    btnCheckCompatibility: "Vérifier la compatibilité",
+    pdfViewerTitle: "Tableau de compatibilité des graisses"
   }
 };
 
@@ -2252,6 +2255,16 @@ function openPricelistModal() {
 
 function closePricelistModal() {
   const modal = document.getElementById("pricelistModal");
+  if (modal) modal.classList.add("hidden");
+}
+
+function openPdfViewerModal() {
+  const modal = document.getElementById("pdfViewerModal");
+  if (modal) modal.classList.remove("hidden");
+}
+
+function closePdfViewerModal() {
+  const modal = document.getElementById("pdfViewerModal");
   if (modal) modal.classList.add("hidden");
 }
 
