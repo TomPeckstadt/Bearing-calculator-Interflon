@@ -223,40 +223,40 @@ const INTERFLON_PRICELIST = {
     { artNo: "8023", content: "1 liter", packaging: "pot", qty: 6, unitPrice: 57.1, pricePerL: 57.1 },
     { artNo: "8023", content: "1 liter", packaging: "pot", qty: 12, unitPrice: 51.8, pricePerL: 51.8 },
     { artNo: "8023", content: "1 liter", packaging: "pot", qty: 24, unitPrice: 49.4, pricePerL: 49.4 },
-    { artNo: "8553", content: "13 liter", packaging: "emmer", qty: 1, unitPrice: 47.1, pricePerL: 47.1 },
-    { artNo: "8025", content: "30 liter", packaging: "vat", qty: 1, unitPrice: 38.1, pricePerL: 38.1 },
-    { artNo: "8026", content: "60 liter", packaging: "vat", qty: 1, unitPrice: 36.7, pricePerL: 36.7 },
-    { artNo: "8640", content: "200 liter", packaging: "vat", qty: 1, unitPrice: 35.5, pricePerL: 35.5 }
+    { artNo: "8553", content: "13 liter", packaging: "emmer", qty: 1, unitPrice: 612.3, pricePerL: 47.1 },
+    { artNo: "8025", content: "30 liter", packaging: "vat", qty: 1, unitPrice: 1143, pricePerL: 38.1 },
+    { artNo: "8026", content: "60 liter", packaging: "vat", qty: 1, unitPrice: 2202, pricePerL: 36.7 },
+    { artNo: "8640", content: "200 liter", packaging: "vat", qty: 1, unitPrice: 7100, pricePerL: 35.5 }
   ],
   "INTERFLON GREASE MP1": [
     { artNo: "9149", content: "400 ml", packaging: "Lube-Shuttle cart.", qty: 1, unitPrice: 32.5, pricePerL: 81.25 },
     { artNo: "9149", content: "400 ml", packaging: "Lube-Shuttle cart.", qty: 12, unitPrice: 29.8, pricePerL: 74.5 },
     { artNo: "9149", content: "400 ml", packaging: "Lube-Shuttle cart.", qty: 24, unitPrice: 28.2, pricePerL: 70.5 },
     { artNo: "9149", content: "400 ml", packaging: "Lube-Shuttle cart.", qty: 48, unitPrice: 26.9, pricePerL: 67.25 },
-    { artNo: "8727", content: "13 liter", packaging: "emmer", qty: 1, unitPrice: 47.1, pricePerL: 47.1 },
-    { artNo: "8728", content: "30 liter", packaging: "vat", qty: 1, unitPrice: 38.1, pricePerL: 38.1 },
-    { artNo: "8729", content: "60 liter", packaging: "vat", qty: 1, unitPrice: 36.7, pricePerL: 36.7 },
-    { artNo: "8730", content: "200 liter", packaging: "vat", qty: 1, unitPrice: 35.5, pricePerL: 35.5 }
+    { artNo: "8727", content: "13 liter", packaging: "emmer", qty: 1, unitPrice: 612.3, pricePerL: 47.1 },
+    { artNo: "8728", content: "30 liter", packaging: "vat", qty: 1, unitPrice: 1143, pricePerL: 38.1 },
+    { artNo: "8729", content: "60 liter", packaging: "vat", qty: 1, unitPrice: 2202, pricePerL: 36.7 },
+    { artNo: "8730", content: "200 liter", packaging: "vat", qty: 1, unitPrice: 7100, pricePerL: 35.5 }
   ],
   "INTERFLON GREASE MP00": [
     { artNo: "8620", content: "1 liter", packaging: "pot", qty: 1, unitPrice: 62.9, pricePerL: 62.9 },
     { artNo: "8620", content: "1 liter", packaging: "pot", qty: 6, unitPrice: 57.1, pricePerL: 57.1 },
     { artNo: "8620", content: "1 liter", packaging: "pot", qty: 12, unitPrice: 51.8, pricePerL: 51.8 },
     { artNo: "8620", content: "1 liter", packaging: "pot", qty: 24, unitPrice: 49.4, pricePerL: 49.4 },
-    { artNo: "8554", content: "13 liter", packaging: "emmer", qty: 1, unitPrice: 47.1, pricePerL: 47.1 },
-    { artNo: "8030", content: "30 liter", packaging: "vat", qty: 1, unitPrice: 38.1, pricePerL: 38.1 },
-    { artNo: "8183", content: "60 liter", packaging: "vat", qty: 1, unitPrice: 36.7, pricePerL: 36.7 },
-    { artNo: "8832", content: "200 liter", packaging: "vat", qty: 1, unitPrice: 35.5, pricePerL: 35.5 }
+    { artNo: "8554", content: "13 liter", packaging: "emmer", qty: 1, unitPrice: 612.3, pricePerL: 47.1 },
+    { artNo: "8030", content: "30 liter", packaging: "vat", qty: 1, unitPrice: 1143, pricePerL: 38.1 },
+    { artNo: "8183", content: "60 liter", packaging: "vat", qty: 1, unitPrice: 2202, pricePerL: 36.7 },
+    { artNo: "8832", content: "200 liter", packaging: "vat", qty: 1, unitPrice: 7100, pricePerL: 35.5 }
   ],
   "INTERFLON BIO GREASE MP2": [
     { artNo: "6744", content: "400 ml", packaging: "Lube-Shuttle cart.", qty: 1, unitPrice: 40, pricePerL: 100 },
     { artNo: "6744", content: "400 ml", packaging: "Lube-Shuttle cart.", qty: 12, unitPrice: 36.4, pricePerL: 91 },
     { artNo: "6744", content: "400 ml", packaging: "Lube-Shuttle cart.", qty: 24, unitPrice: 34.8, pricePerL: 87 },
     { artNo: "6744", content: "400 ml", packaging: "Lube-Shuttle cart.", qty: 48, unitPrice: 33, pricePerL: 82.5 },
-    { artNo: "8963", content: "13 liter", packaging: "emmer", qty: 1, unitPrice: 56, pricePerL: 56 },
-    { artNo: "8965", content: "30 liter", packaging: "vat", qty: 1, unitPrice: 52, pricePerL: 52 },
-    { artNo: "8966", content: "60 liter", packaging: "vat", qty: 1, unitPrice: 48.7, pricePerL: 48.7 },
-    { artNo: "8967", content: "200 liter", packaging: "vat", qty: 1, unitPrice: 46.1, pricePerL: 46.1 }
+    { artNo: "8963", content: "13 liter", packaging: "emmer", qty: 1, unitPrice: 728, pricePerL: 56 },
+    { artNo: "8965", content: "30 liter", packaging: "vat", qty: 1, unitPrice: 1560, pricePerL: 52 },
+    { artNo: "8966", content: "60 liter", packaging: "vat", qty: 1, unitPrice: 2922, pricePerL: 48.7 },
+    { artNo: "8967", content: "200 liter", packaging: "vat", qty: 1, unitPrice: 9220, pricePerL: 46.1 }
   ],
   "INTERFLON GREASE OG": [
     { artNo: "9232", content: "400 ml", packaging: "Lube-Shuttle cart.", qty: 1, unitPrice: 63.7, pricePerL: 159.25 },
@@ -267,10 +267,10 @@ const INTERFLON_PRICELIST = {
     { artNo: "8377", content: "1 liter", packaging: "pot", qty: 6, unitPrice: 137.3, pricePerL: 137.3 },
     { artNo: "8377", content: "1 liter", packaging: "pot", qty: 12, unitPrice: 130.7, pricePerL: 130.7 },
     { artNo: "8377", content: "1 liter", packaging: "pot", qty: 24, unitPrice: 124.1, pricePerL: 124.1 },
-    { artNo: "8664", content: "13 liter", packaging: "emmer", qty: 1, unitPrice: 120.7, pricePerL: 120.7 },
-    { artNo: "8379", content: "30 liter", packaging: "vat", qty: 1, unitPrice: 117.7, pricePerL: 117.7 },
-    { artNo: "8540", content: "60 liter", packaging: "vat", qty: 1, unitPrice: 115.1, pricePerL: 115.1 },
-    { artNo: "8654", content: "200 liter", packaging: "vat", qty: 1, unitPrice: 102.8, pricePerL: 102.8 }
+    { artNo: "8664", content: "13 liter", packaging: "emmer", qty: 1, unitPrice: 1569.1, pricePerL: 120.7 },
+    { artNo: "8379", content: "30 liter", packaging: "vat", qty: 1, unitPrice: 3531, pricePerL: 117.7 },
+    { artNo: "8540", content: "60 liter", packaging: "vat", qty: 1, unitPrice: 6906, pricePerL: 115.1 },
+    { artNo: "8654", content: "200 liter", packaging: "vat", qty: 1, unitPrice: 20560, pricePerL: 102.8 }
   ],
   "INTERFLON GREASE HTG": [
     { artNo: "6707", content: "400 ml", packaging: "Lube-Shuttle cart.", qty: 1, unitPrice: 123.5, pricePerL: 308.75 },
@@ -280,10 +280,10 @@ const INTERFLON_PRICELIST = {
     { artNo: "8387", content: "1 liter", packaging: "pot", qty: 6, unitPrice: 251.8, pricePerL: 251.8 },
     { artNo: "8387", content: "1 liter", packaging: "pot", qty: 12, unitPrice: 239.8, pricePerL: 239.8 },
     { artNo: "8387", content: "1 liter", packaging: "pot", qty: 24, unitPrice: 227.9, pricePerL: 227.9 },
-    { artNo: "8665", content: "13 liter", packaging: "emmer", qty: 1, unitPrice: 224.3, pricePerL: 224.3 },
-    { artNo: "8388", content: "30 liter", packaging: "vat", qty: 1, unitPrice: 218.3, pricePerL: 218.3 },
-    { artNo: "8389", content: "60 liter", packaging: "vat", qty: 1, unitPrice: 207.1, pricePerL: 207.1 },
-    { artNo: "8703", content: "200 liter", packaging: "vat", qty: 1, unitPrice: 198.3, pricePerL: 198.3 }
+    { artNo: "8665", content: "13 liter", packaging: "emmer", qty: 1, unitPrice: 2915.9, pricePerL: 224.3 },
+    { artNo: "8388", content: "30 liter", packaging: "vat", qty: 1, unitPrice: 6549, pricePerL: 218.3 },
+    { artNo: "8389", content: "60 liter", packaging: "vat", qty: 1, unitPrice: 12426, pricePerL: 207.1 },
+    { artNo: "8703", content: "200 liter", packaging: "vat", qty: 1, unitPrice: 39660, pricePerL: 198.3 }
   ],
   "INTERFLON GREASE HS2": [
     { artNo: "6741", content: "400 ml", packaging: "Lube-Shuttle cart.", qty: 1, unitPrice: 123.5, pricePerL: 308.75 },
@@ -293,10 +293,10 @@ const INTERFLON_PRICELIST = {
     { artNo: "9237", content: "1 liter", packaging: "pot", qty: 6, unitPrice: 266.1, pricePerL: 266.1 },
     { artNo: "9237", content: "1 liter", packaging: "pot", qty: 12, unitPrice: 253.4, pricePerL: 253.4 },
     { artNo: "9237", content: "1 liter", packaging: "pot", qty: 24, unitPrice: 240.7, pricePerL: 240.7 },
-    { artNo: "9239", content: "13 liter", packaging: "emmer", qty: 1, unitPrice: 246.1, pricePerL: 246.1 },
-    { artNo: "9241", content: "30 liter", packaging: "vat", qty: 1, unitPrice: 243.3, pricePerL: 243.3 },
-    { artNo: "9242", content: "60 liter", packaging: "vat", qty: 1, unitPrice: 239.5, pricePerL: 239.5 },
-    { artNo: "9243", content: "200 liter", packaging: "vat", qty: 1, unitPrice: 236.1, pricePerL: 236.1 }
+    { artNo: "9239", content: "13 liter", packaging: "emmer", qty: 1, unitPrice: 3199.3, pricePerL: 246.1 },
+    { artNo: "9241", content: "30 liter", packaging: "vat", qty: 1, unitPrice: 7299, pricePerL: 243.3 },
+    { artNo: "9242", content: "60 liter", packaging: "vat", qty: 1, unitPrice: 14370, pricePerL: 239.5 },
+    { artNo: "9243", content: "200 liter", packaging: "vat", qty: 1, unitPrice: 47220, pricePerL: 236.1 }
   ],
   "INTERFLON GREASE LS2": [
     { artNo: "9097", content: "400 ml", packaging: "Lube-Shuttle cart.", qty: 1, unitPrice: 33.7, pricePerL: 84.25 },
@@ -307,10 +307,10 @@ const INTERFLON_PRICELIST = {
     { artNo: "8390", content: "1 liter", packaging: "pot", qty: 6, unitPrice: 61.3, pricePerL: 61.3 },
     { artNo: "8390", content: "1 liter", packaging: "pot", qty: 12, unitPrice: 58.5, pricePerL: 58.5 },
     { artNo: "8390", content: "1 liter", packaging: "pot", qty: 24, unitPrice: 55.6, pricePerL: 55.6 },
-    { artNo: "8555", content: "13 liter", packaging: "emmer", qty: 1, unitPrice: 49.9, pricePerL: 49.9 },
-    { artNo: "8270", content: "30 liter", packaging: "vat", qty: 1, unitPrice: 46.7, pricePerL: 46.7 },
-    { artNo: "8341", content: "60 liter", packaging: "vat", qty: 1, unitPrice: 43.4, pricePerL: 43.4 },
-    { artNo: "8649", content: "200 liter", packaging: "vat", qty: 1, unitPrice: 39.7, pricePerL: 39.7 }
+    { artNo: "8555", content: "13 liter", packaging: "emmer", qty: 1, unitPrice: 648.7, pricePerL: 49.9 },
+    { artNo: "8270", content: "30 liter", packaging: "vat", qty: 1, unitPrice: 1401, pricePerL: 46.7 },
+    { artNo: "8341", content: "60 liter", packaging: "vat", qty: 1, unitPrice: 2604, pricePerL: 43.4 },
+    { artNo: "8649", content: "200 liter", packaging: "vat", qty: 1, unitPrice: 7940, pricePerL: 39.7 }
   ],
   "INTERFLON GREASE LS1/2": [
     { artNo: "6701", content: "400 ml", packaging: "Lube-Shuttle cart.", qty: 1, unitPrice: 36, pricePerL: 90 },
@@ -321,10 +321,10 @@ const INTERFLON_PRICELIST = {
     { artNo: "8895", content: "1 liter", packaging: "pot", qty: 6, unitPrice: 65.5, pricePerL: 65.5 },
     { artNo: "8895", content: "1 liter", packaging: "pot", qty: 12, unitPrice: 62.4, pricePerL: 62.4 },
     { artNo: "8895", content: "1 liter", packaging: "pot", qty: 24, unitPrice: 59.3, pricePerL: 59.3 },
-    { artNo: "8897", content: "13 liter", packaging: "emmer", qty: 1, unitPrice: 51.9, pricePerL: 51.9 },
-    { artNo: "8898", content: "30 liter", packaging: "vat", qty: 1, unitPrice: 49.4, pricePerL: 49.4 },
-    { artNo: "8899", content: "60 liter", packaging: "vat", qty: 1, unitPrice: 46.3, pricePerL: 46.3 },
-    { artNo: "8900", content: "200 liter", packaging: "vat", qty: 1, unitPrice: 44.1, pricePerL: 44.1 }
+    { artNo: "8897", content: "13 liter", packaging: "emmer", qty: 1, unitPrice: 674.7, pricePerL: 51.9 },
+    { artNo: "8898", content: "30 liter", packaging: "vat", qty: 1, unitPrice: 1482, pricePerL: 49.4 },
+    { artNo: "8899", content: "60 liter", packaging: "vat", qty: 1, unitPrice: 2778, pricePerL: 46.3 },
+    { artNo: "8900", content: "200 liter", packaging: "vat", qty: 1, unitPrice: 8820, pricePerL: 44.1 }
   ],
   "INTERFLON GREASE HD2": [
     { artNo: "9164", content: "400 ml", packaging: "Lube-Shuttle cart.", qty: 1, unitPrice: 44.6, pricePerL: 111.5 },
@@ -338,17 +338,17 @@ const INTERFLON_PRICELIST = {
     { artNo: "9131", content: "1 liter", packaging: "pot", qty: 6, unitPrice: 75, pricePerL: 75 },
     { artNo: "9131", content: "1 liter", packaging: "pot", qty: 12, unitPrice: 71.3, pricePerL: 71.3 },
     { artNo: "9131", content: "1 liter", packaging: "pot", qty: 24, unitPrice: 67.8, pricePerL: 67.8 },
-    { artNo: "9134", content: "13 liter", packaging: "emmer", qty: 1, unitPrice: 64.3, pricePerL: 64.3 },
-    { artNo: "9136", content: "30 liter", packaging: "vat", qty: 1, unitPrice: 61.8, pricePerL: 61.8 },
-    { artNo: "9137", content: "60 liter", packaging: "vat", qty: 1, unitPrice: 58.7, pricePerL: 58.7 },
-    { artNo: "9138", content: "200 liter", packaging: "vat", qty: 1, unitPrice: 57.5, pricePerL: 57.5 }
+    { artNo: "9134", content: "13 liter", packaging: "emmer", qty: 1, unitPrice: 835.9, pricePerL: 64.3 },
+    { artNo: "9136", content: "30 liter", packaging: "vat", qty: 1, unitPrice: 1854, pricePerL: 61.8 },
+    { artNo: "9137", content: "60 liter", packaging: "vat", qty: 1, unitPrice: 3522, pricePerL: 58.7 },
+    { artNo: "9138", content: "200 liter", packaging: "vat", qty: 1, unitPrice: 11500, pricePerL: 57.5 }
   ],
   "INTERFLON BUFFERGUARD": [
     { artNo: "6902", content: "500 ml", packaging: "spuitbus", qty: 1, unitPrice: 49, pricePerL: 98 },
     { artNo: "6902", content: "500 ml", packaging: "spuitbus", qty: 12, unitPrice: 44.7, pricePerL: 89.4 },
     { artNo: "6902", content: "500 ml", packaging: "spuitbus", qty: 24, unitPrice: 42.6, pricePerL: 85.2 },
     { artNo: "6902", content: "500 ml", packaging: "spuitbus", qty: 48, unitPrice: 40.5, pricePerL: 81 },
-    { artNo: "6893", content: "13 liter", packaging: "emmer", qty: 1, unitPrice: 68.5, pricePerL: 68.5 }
+    { artNo: "6893", content: "13 liter", packaging: "emmer", qty: 1, unitPrice: 890.5, pricePerL: 68.5 }
   ],
   "INTERFLON FOOD GREASE 1": [
     { artNo: "9886", content: "400 ml", packaging: "Lube-Shuttle cart.", qty: 1, unitPrice: 34.6, pricePerL: 86.5 },
@@ -358,9 +358,9 @@ const INTERFLON_PRICELIST = {
     { artNo: "8526", content: "1 liter", packaging: "pot", qty: 6, unitPrice: 76.2, pricePerL: 76.2 },
     { artNo: "8526", content: "1 liter", packaging: "pot", qty: 12, unitPrice: 72.6, pricePerL: 72.6 },
     { artNo: "8526", content: "1 liter", packaging: "pot", qty: 24, unitPrice: 69.1, pricePerL: 69.1 },
-    { artNo: "9248", content: "13 liter", packaging: "emmer", qty: 1, unitPrice: 60.8, pricePerL: 60.8 },
-    { artNo: "8528", content: "30 liter", packaging: "vat", qty: 1, unitPrice: 59.5, pricePerL: 59.5 },
-    { artNo: "8529", content: "60 liter", packaging: "vat", qty: 1, unitPrice: 57.5, pricePerL: 57.5 }
+    { artNo: "9248", content: "13 liter", packaging: "emmer", qty: 1, unitPrice: 790.4, pricePerL: 60.8 },
+    { artNo: "8528", content: "30 liter", packaging: "vat", qty: 1, unitPrice: 1785, pricePerL: 59.5 },
+    { artNo: "8529", content: "60 liter", packaging: "vat", qty: 1, unitPrice: 3450, pricePerL: 57.5 }
   ],
   "INTERFLON FOOD GREASE 2": [
     { artNo: "9098", content: "400 ml", packaging: "Lube-Shuttle cart.", qty: 12, unitPrice: 32.6, pricePerL: 81.5 },
@@ -369,9 +369,9 @@ const INTERFLON_PRICELIST = {
     { artNo: "8384", content: "1 liter", packaging: "pot", qty: 6, unitPrice: 76.2, pricePerL: 76.2 },
     { artNo: "8384", content: "1 liter", packaging: "pot", qty: 12, unitPrice: 72.6, pricePerL: 72.6 },
     { artNo: "8384", content: "1 liter", packaging: "pot", qty: 24, unitPrice: 69.1, pricePerL: 69.1 },
-    { artNo: "8556", content: "13 liter", packaging: "emmer", qty: 1, unitPrice: 60.8, pricePerL: 60.8 },
-    { artNo: "8034", content: "30 liter", packaging: "vat", qty: 1, unitPrice: 59.5, pricePerL: 59.5 },
-    { artNo: "8036", content: "60 liter", packaging: "vat", qty: 1, unitPrice: 57.5, pricePerL: 57.5 }
+    { artNo: "8556", content: "13 liter", packaging: "emmer", qty: 1, unitPrice: 790.4, pricePerL: 60.8 },
+    { artNo: "8034", content: "30 liter", packaging: "vat", qty: 1, unitPrice: 1785, pricePerL: 59.5 },
+    { artNo: "8036", content: "60 liter", packaging: "vat", qty: 1, unitPrice: 3450, pricePerL: 57.5 }
   ],
   "INTERFLON FOOD GREASE 3H": [
     { artNo: "9855", content: "400 ml", packaging: "Lube-Shuttle cart.", qty: 1, unitPrice: 43.1, pricePerL: 107.75 },
@@ -382,10 +382,10 @@ const INTERFLON_PRICELIST = {
     { artNo: "9857", content: "1 liter", packaging: "pot", qty: 6, unitPrice: 80.7, pricePerL: 80.7 },
     { artNo: "9857", content: "1 liter", packaging: "pot", qty: 12, unitPrice: 76.8, pricePerL: 76.8 },
     { artNo: "9857", content: "1 liter", packaging: "pot", qty: 24, unitPrice: 72.8, pricePerL: 72.8 },
-    { artNo: "9859", content: "13 liter", packaging: "emmer", qty: 1, unitPrice: 66.7, pricePerL: 66.7 },
-    { artNo: "9860", content: "30 liter", packaging: "vat", qty: 1, unitPrice: 61.4, pricePerL: 61.4 },
-    { artNo: "9861", content: "60 liter", packaging: "vat", qty: 1, unitPrice: 57.3, pricePerL: 57.3 },
-    { artNo: "9862", content: "200 liter", packaging: "vat", qty: 1, unitPrice: 53.6, pricePerL: 53.6 }
+    { artNo: "9859", content: "13 liter", packaging: "emmer", qty: 1, unitPrice: 867.1, pricePerL: 66.7 },
+    { artNo: "9860", content: "30 liter", packaging: "vat", qty: 1, unitPrice: 1842, pricePerL: 61.4 },
+    { artNo: "9861", content: "60 liter", packaging: "vat", qty: 1, unitPrice: 3438, pricePerL: 57.3 },
+    { artNo: "9862", content: "200 liter", packaging: "vat", qty: 1, unitPrice: 10720, pricePerL: 53.6 }
   ],
   "INTERFLON FOOD GREASE MP2": [
     { artNo: "9806", content: "400 ml", packaging: "Lube-Shuttle cart.", qty: 1, unitPrice: 40.3, pricePerL: 100.75 },
@@ -395,9 +395,9 @@ const INTERFLON_PRICELIST = {
     { artNo: "8850", content: "1 liter", packaging: "pot", qty: 6, unitPrice: 89.3, pricePerL: 89.3 },
     { artNo: "8850", content: "1 liter", packaging: "pot", qty: 12, unitPrice: 85, pricePerL: 85 },
     { artNo: "8850", content: "1 liter", packaging: "pot", qty: 24, unitPrice: 80.8, pricePerL: 80.8 },
-    { artNo: "9199", content: "13 liter", packaging: "emmer", qty: 1, unitPrice: 78.8, pricePerL: 78.8 },
-    { artNo: "8853", content: "30 liter", packaging: "vat", qty: 1, unitPrice: 77, pricePerL: 77 },
-    { artNo: "8854", content: "60 liter", packaging: "vat", qty: 1, unitPrice: 74.5, pricePerL: 74.5 }
+    { artNo: "9199", content: "13 liter", packaging: "emmer", qty: 1, unitPrice: 1024.4, pricePerL: 78.8 },
+    { artNo: "8853", content: "30 liter", packaging: "vat", qty: 1, unitPrice: 2310, pricePerL: 77 },
+    { artNo: "8854", content: "60 liter", packaging: "vat", qty: 1, unitPrice: 4470, pricePerL: 74.5 }
   ],
   "INTERFLON FOOD GREASE HD2": [
     { artNo: "9808", content: "400 ml", packaging: "Lube-Shuttle cart.", qty: 1, unitPrice: 58.3, pricePerL: 145.75 },
@@ -407,9 +407,9 @@ const INTERFLON_PRICELIST = {
     { artNo: "9156", content: "1 liter", packaging: "pot", qty: 6, unitPrice: 110.6, pricePerL: 110.6 },
     { artNo: "9156", content: "1 liter", packaging: "pot", qty: 12, unitPrice: 105.4, pricePerL: 105.4 },
     { artNo: "9156", content: "1 liter", packaging: "pot", qty: 24, unitPrice: 99.9, pricePerL: 99.9 },
-    { artNo: "9159", content: "13 liter", packaging: "emmer", qty: 1, unitPrice: 98.4, pricePerL: 98.4 },
-    { artNo: "9161", content: "30 liter", packaging: "vat", qty: 1, unitPrice: 95.9, pricePerL: 95.9 },
-    { artNo: "9162", content: "60 liter", packaging: "vat", qty: 1, unitPrice: 94.4, pricePerL: 94.4 }
+    { artNo: "9159", content: "13 liter", packaging: "emmer", qty: 1, unitPrice: 1279.2, pricePerL: 98.4 },
+    { artNo: "9161", content: "30 liter", packaging: "vat", qty: 1, unitPrice: 2877, pricePerL: 95.9 },
+    { artNo: "9162", content: "60 liter", packaging: "vat", qty: 1, unitPrice: 5664, pricePerL: 94.4 }
   ],
   "INTERFLON FLUOR GREASE 2": [
     { artNo: "8830", content: "150 gr", packaging: "tube", qty: 1, unitPrice: 163.3, pricePerL: 1088.67 },
@@ -434,10 +434,10 @@ const INTERFLON_PRICELIST = {
     { artNo: "8736", content: "1 liter", packaging: "pot", qty: 6, unitPrice: 94, pricePerL: 94 },
     { artNo: "8736", content: "1 liter", packaging: "pot", qty: 12, unitPrice: 89.4, pricePerL: 89.4 },
     { artNo: "8736", content: "1 liter", packaging: "pot", qty: 24, unitPrice: 84.9, pricePerL: 84.9 },
-    { artNo: "8735", content: "13 liter", packaging: "emmer", qty: 1, unitPrice: 81.2, pricePerL: 81.2 },
-    { artNo: "8549", content: "30 liter", packaging: "vat", qty: 1, unitPrice: 79.5, pricePerL: 79.5 },
-    { artNo: "8550", content: "60 liter", packaging: "vat", qty: 1, unitPrice: 76.8, pricePerL: 76.8 },
-    { artNo: "8658", content: "200 liter", packaging: "vat", qty: 1, unitPrice: 73.1, pricePerL: 73.1 }
+    { artNo: "8735", content: "13 liter", packaging: "emmer", qty: 1, unitPrice: 1055.6, pricePerL: 81.2 },
+    { artNo: "8549", content: "30 liter", packaging: "vat", qty: 1, unitPrice: 2385, pricePerL: 79.5 },
+    { artNo: "8550", content: "60 liter", packaging: "vat", qty: 1, unitPrice: 4608, pricePerL: 76.8 },
+    { artNo: "8658", content: "200 liter", packaging: "vat", qty: 1, unitPrice: 14620, pricePerL: 73.1 }
   ],
   "INTERFLON FOOD GREASE EP": [
     { artNo: "6710", content: "400 ml", packaging: "Lube-Shuttle cart.", qty: 1, unitPrice: 61.8, pricePerL: 154.5 },
@@ -447,10 +447,10 @@ const INTERFLON_PRICELIST = {
     { artNo: "8385", content: "1 liter", packaging: "pot", qty: 6, unitPrice: 107.5, pricePerL: 107.5 },
     { artNo: "8385", content: "1 liter", packaging: "pot", qty: 12, unitPrice: 102.4, pricePerL: 102.4 },
     { artNo: "8385", content: "1 liter", packaging: "pot", qty: 24, unitPrice: 97.2, pricePerL: 97.2 },
-    { artNo: "8821", content: "13 liter", packaging: "emmer", qty: 1, unitPrice: 106.2, pricePerL: 106.2 },
-    { artNo: "8386", content: "30 liter", packaging: "vat", qty: 1, unitPrice: 96.7, pricePerL: 96.7 },
-    { artNo: "8042", content: "60 liter", packaging: "vat", qty: 1, unitPrice: 87.8, pricePerL: 87.8 },
-    { artNo: "8713", content: "200 liter", packaging: "vat", qty: 1, unitPrice: 84.3, pricePerL: 84.3 }
+    { artNo: "8821", content: "13 liter", packaging: "emmer", qty: 1, unitPrice: 1380.6, pricePerL: 106.2 },
+    { artNo: "8386", content: "30 liter", packaging: "vat", qty: 1, unitPrice: 2901, pricePerL: 96.7 },
+    { artNo: "8042", content: "60 liter", packaging: "vat", qty: 1, unitPrice: 5268, pricePerL: 87.8 },
+    { artNo: "8713", content: "200 liter", packaging: "vat", qty: 1, unitPrice: 16860, pricePerL: 84.3 }
   ],
   "INTERFLON FOOD GREASE S1/2": [
     { artNo: "9845", content: "400 ml", packaging: "Lube-Shuttle cart.", qty: 1, unitPrice: 57.3, pricePerL: 143.25 },
@@ -461,10 +461,10 @@ const INTERFLON_PRICELIST = {
     { artNo: "9847", content: "1 liter", packaging: "pot", qty: 6, unitPrice: 115.7, pricePerL: 115.7 },
     { artNo: "9847", content: "1 liter", packaging: "pot", qty: 12, unitPrice: 110.2, pricePerL: 110.2 },
     { artNo: "9847", content: "1 liter", packaging: "pot", qty: 24, unitPrice: 104.7, pricePerL: 104.7 },
-    { artNo: "9849", content: "13 liter", packaging: "emmer", qty: 1, unitPrice: 95.9, pricePerL: 95.9 },
-    { artNo: "9850", content: "30 liter", packaging: "vat", qty: 1, unitPrice: 88.1, pricePerL: 88.1 },
-    { artNo: "9851", content: "60 liter", packaging: "vat", qty: 1, unitPrice: 82.4, pricePerL: 82.4 },
-    { artNo: "9852", content: "200 liter", packaging: "vat", qty: 1, unitPrice: 76.5, pricePerL: 76.5 }
+    { artNo: "9849", content: "13 liter", packaging: "emmer", qty: 1, unitPrice: 1246.7, pricePerL: 95.9 },
+    { artNo: "9850", content: "30 liter", packaging: "vat", qty: 1, unitPrice: 2643, pricePerL: 88.1 },
+    { artNo: "9851", content: "60 liter", packaging: "vat", qty: 1, unitPrice: 4944, pricePerL: 82.4 },
+    { artNo: "9852", content: "200 liter", packaging: "vat", qty: 1, unitPrice: 15300, pricePerL: 76.5 }
   ],
   "INTERFLON FOOD GREASE HS1": [
     { artNo: "932001647", content: "400 ml", packaging: "Lube-Shuttle cart.", qty: 1, unitPrice: 59.2, pricePerL: 148 },
@@ -476,29 +476,29 @@ const INTERFLON_PRICELIST = {
     { artNo: "8873", content: "1 liter", packaging: "pot", qty: 6, unitPrice: 76.2, pricePerL: 76.2 },
     { artNo: "8873", content: "1 liter", packaging: "pot", qty: 12, unitPrice: 72.6, pricePerL: 72.6 },
     { artNo: "8873", content: "1 liter", packaging: "pot", qty: 24, unitPrice: 69.1, pricePerL: 69.1 },
-    { artNo: "8719", content: "13 liter", packaging: "emmer", qty: 1, unitPrice: 61, pricePerL: 61 },
-    { artNo: "8420", content: "30 liter", packaging: "vat", qty: 1, unitPrice: 59, pricePerL: 59 },
-    { artNo: "8421", content: "60 liter", packaging: "vat", qty: 1, unitPrice: 57.5, pricePerL: 57.5 }
+    { artNo: "8719", content: "13 liter", packaging: "emmer", qty: 1, unitPrice: 793, pricePerL: 61 },
+    { artNo: "8420", content: "30 liter", packaging: "vat", qty: 1, unitPrice: 1770, pricePerL: 59 },
+    { artNo: "8421", content: "60 liter", packaging: "vat", qty: 1, unitPrice: 3450, pricePerL: 57.5 }
   ],
   "INTERFLON FOOD GREASE HD00": [
     { artNo: "9179", content: "1 liter", packaging: "pot", qty: 1, unitPrice: 81.5, pricePerL: 81.5 },
     { artNo: "9179", content: "1 liter", packaging: "pot", qty: 6, unitPrice: 74.2, pricePerL: 74.2 },
     { artNo: "9179", content: "1 liter", packaging: "pot", qty: 12, unitPrice: 70.9, pricePerL: 70.9 },
     { artNo: "9179", content: "1 liter", packaging: "pot", qty: 24, unitPrice: 67.4, pricePerL: 67.4 },
-    { artNo: "9181", content: "13 liter", packaging: "emmer", qty: 1, unitPrice: 63.6, pricePerL: 63.6 },
-    { artNo: "9183", content: "30 liter", packaging: "vat", qty: 1, unitPrice: 60.9, pricePerL: 60.9 },
-    { artNo: "9184", content: "60 liter", packaging: "vat", qty: 1, unitPrice: 59.3, pricePerL: 59.3 },
-    { artNo: "9185", content: "200 liter", packaging: "vat", qty: 1, unitPrice: 56.6, pricePerL: 56.6 }
+    { artNo: "9181", content: "13 liter", packaging: "emmer", qty: 1, unitPrice: 826.8, pricePerL: 63.6 },
+    { artNo: "9183", content: "30 liter", packaging: "vat", qty: 1, unitPrice: 1827, pricePerL: 60.9 },
+    { artNo: "9184", content: "60 liter", packaging: "vat", qty: 1, unitPrice: 3558, pricePerL: 59.3 },
+    { artNo: "9185", content: "200 liter", packaging: "vat", qty: 1, unitPrice: 11320, pricePerL: 56.6 }
   ],
   "INTERFLON FOOD GREASE HD000": [
     { artNo: "6879", content: "1 liter", packaging: "pot", qty: 1, unitPrice: 76.9, pricePerL: 76.9 },
     { artNo: "6879", content: "1 liter", packaging: "pot", qty: 6, unitPrice: 70.4, pricePerL: 70.4 },
     { artNo: "6879", content: "1 liter", packaging: "pot", qty: 12, unitPrice: 67, pricePerL: 67 },
     { artNo: "6879", content: "1 liter", packaging: "pot", qty: 24, unitPrice: 63.7, pricePerL: 63.7 },
-    { artNo: "6880", content: "13 liter", packaging: "emmer", qty: 1, unitPrice: 58.2, pricePerL: 58.2 },
-    { artNo: "6881", content: "30 liter", packaging: "vat", qty: 1, unitPrice: 53.5, pricePerL: 53.5 },
-    { artNo: "6882", content: "60 liter", packaging: "vat", qty: 1, unitPrice: 50.1, pricePerL: 50.1 },
-    { artNo: "6883", content: "200 liter", packaging: "vat", qty: 1, unitPrice: 46.5, pricePerL: 46.5 }
+    { artNo: "6880", content: "13 liter", packaging: "emmer", qty: 1, unitPrice: 756.6, pricePerL: 58.2 },
+    { artNo: "6881", content: "30 liter", packaging: "vat", qty: 1, unitPrice: 1605, pricePerL: 53.5 },
+    { artNo: "6882", content: "60 liter", packaging: "vat", qty: 1, unitPrice: 3006, pricePerL: 50.1 },
+    { artNo: "6883", content: "200 liter", packaging: "vat", qty: 1, unitPrice: 9300, pricePerL: 46.5 }
   ]
 };
 
