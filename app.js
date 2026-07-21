@@ -1515,7 +1515,7 @@ function updateBearingImage(type) {
     src = "bearing-thrust-ball.png";
   }
   
-  imgEl.src = src;
+  imgEl.src = src + "?v=12";
 }
 
 function updateBearingSvg(d, D, B) {
