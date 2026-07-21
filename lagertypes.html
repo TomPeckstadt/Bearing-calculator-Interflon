@@ -437,19 +437,9 @@
     </header>
     
     <!-- Legend Box -->
-    <div class="legend-box">
-      <div class="legend-item">
-        <strong id="lblLegendBelastingen">Belastingen:</strong>
-        <span class="badge badge-high" id="lblZwaar">Zwaar</span>
-        <span class="badge badge-medium" id="lblMiddelgroot">Middelgroot</span>
-        <span class="badge badge-low" id="lblLaag">Laag</span>
-      </div>
-      <div class="legend-item">
-        <strong id="lblLegendToerentallen">Toerental:</strong>
-        <span class="badge badge-high" style="background-color: rgba(239, 68, 68, 0.1); color: #EF4444;" id="lblHoog2">Hoog</span>
-        <span class="badge badge-medium" style="background-color: rgba(245, 158, 11, 0.1); color: #F59E0B;" id="lblMiddelgroot2">Middelgroot</span>
-        <span class="badge badge-low" style="background-color: rgba(16, 185, 129, 0.1); color: #10B981;" id="lblLaag2">Laag</span>
-      </div>
+    <!-- Legend Box -->
+    <div class="legend-box" style="display: flex; justify-content: center; align-items: center; background: white; border: 1px solid var(--border-color); border-radius: var(--border-radius-md); padding: 15px; margin-bottom: 30px; box-shadow: var(--shadow-sm); overflow: hidden;">
+      <img src="crop-legend.png?v=4" alt="Legenda / Legend" style="max-width: 100%; height: auto; max-height: 180px; object-fit: contain;">
     </div>
     
     <!-- Filter bar -->
@@ -918,7 +908,7 @@
             <h3>${item.names[currentLang]}</h3>
           </div>
           <div class="card-img-block">
-            <img src="${item.img}" alt="${item.names[currentLang]}" onerror="this.src='bearing-dimensions.jpg'">
+            <img src="${item.img}?v=4" alt="${item.names[currentLang]}" onerror="this.src='bearing-dimensions.jpg'">
           </div>
           <div class="card-body">
             <div class="metrics-row">
