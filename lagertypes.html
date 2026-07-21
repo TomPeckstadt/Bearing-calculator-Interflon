@@ -437,26 +437,11 @@
     </header>
     
     <!-- Legend Box -->
-    <!-- Legend Box -->
     <div class="legend-box" style="display: flex; justify-content: center; align-items: center; background: white; border: 1px solid var(--border-color); border-radius: var(--border-radius-md); padding: 15px; margin-bottom: 30px; box-shadow: var(--shadow-sm); overflow: hidden;">
-      <img src="crop-legend.png?v=8" alt="Legenda / Legend" style="max-width: 550px; width: 100%; height: auto; object-fit: contain; display: block; margin: 0 auto;">
+      <img src="crop-legend.png?v=9" alt="Legenda / Legend" style="max-width: 550px; width: 100%; height: auto; object-fit: contain; display: block; margin: 0 auto;">
     </div>
     
-    <!-- Filter bar -->
-    <div class="filters-section">
-      <div class="search-box">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.637 10.637Z" />
-        </svg>
-        <input type="text" id="searchInput" oninput="filterBearings()" placeholder="Zoek op lagertype (bijv. groefkogel, tonlager...)">
-      </div>
-      <div class="filter-buttons">
-        <button class="filter-btn active" id="btnFilterAll" onclick="setCategoryFilter('all')">Alles</button>
-        <button class="filter-btn" id="btnFilterBall" onclick="setCategoryFilter('ball')">Kogellagers</button>
-        <button class="filter-btn" id="btnFilterRoller" onclick="setCategoryFilter('roller')">Rollagers</button>
-        <button class="filter-btn" id="btnFilterThrust" onclick="setCategoryFilter('thrust')">Taats/Axiaal</button>
-      </div>
-    </div>
+
     
     <!-- Grid containing cards -->
     <div class="grid" id="bearingsGrid">
@@ -779,7 +764,6 @@
     ];
 
     let currentLang = "nl";
-    let currentCategory = "all";
 
     // Initialize Page
     function init() {
@@ -821,70 +805,17 @@
       // Text translations
       document.getElementById("mainTitle").textContent = dict.mainTitle;
       document.getElementById("mainSubtitle").textContent = dict.mainSubtitle;
-      document.getElementById("searchInput").placeholder = dict.searchPlaceholder;
-      document.getElementById("lblLegendBelastingen").textContent = dict.lblLegendBelastingen;
-      document.getElementById("lblLegendToerentallen").textContent = dict.lblLegendToerentallen;
-      
-      document.getElementById("lblZwaar").textContent = dict.lblZwaar;
-      document.getElementById("lblMiddelgroot").textContent = dict.lblMiddelgroot;
-      document.getElementById("lblLaag").textContent = dict.lblLaag;
-      document.getElementById("lblHoog2").textContent = dict.lblHoog2;
-      document.getElementById("lblMiddelgroot2").textContent = dict.lblMiddelgroot2;
-      document.getElementById("lblLaag2").textContent = dict.lblLaag2;
-      
-      document.getElementById("btnFilterAll").textContent = dict.btnFilterAll;
-      document.getElementById("btnFilterBall").textContent = dict.btnFilterBall;
-      document.getElementById("btnFilterRoller").textContent = dict.btnFilterRoller;
-      document.getElementById("btnFilterThrust").textContent = dict.btnFilterThrust;
-      
-      document.getElementById("lblNoResultsTitle").textContent = dict.lblNoResultsTitle;
-      document.getElementById("lblNoResultsDesc").textContent = dict.lblNoResultsDesc;
       document.getElementById("lblFooterText").textContent = dict.lblFooterText;
-    }
-
-    function setCategoryFilter(category) {
-      currentCategory = category;
-      document.querySelectorAll(".filter-btn").forEach(btn => {
-        btn.classList.remove("active");
-      });
-      
-      if (category === 'all') document.getElementById("btnFilterAll").classList.add("active");
-      if (category === 'ball') document.getElementById("btnFilterBall").classList.add("active");
-      if (category === 'roller') document.getElementById("btnFilterRoller").classList.add("active");
-      if (category === 'thrust') document.getElementById("btnFilterThrust").classList.add("active");
-      
-      renderGrid();
-    }
-
-    function filterBearings() {
-      renderGrid();
     }
 
     function renderGrid() {
       const grid = document.getElementById("bearingsGrid");
-      const noResults = document.getElementById("noResultsState");
-      const searchVal = document.getElementById("searchInput").value.toLowerCase();
       const dict = TRANSLATIONS[currentLang];
       
       grid.innerHTML = "";
-      
-      // Filter data
-      const filtered = BEARINGS_DATA.filter(item => {
-        const matchesCategory = currentCategory === 'all' || item.category === currentCategory;
-        const nameTranslated = item.names[currentLang].toLowerCase();
-        return matchesCategory && nameTranslated.includes(searchVal);
-      });
-      
-      if (filtered.length === 0) {
-        grid.style.display = "none";
-        noResults.style.display = "block";
-        return;
-      }
-      
       grid.style.display = "grid";
-      noResults.style.display = "none";
       
-      filtered.forEach(item => {
+      BEARINGS_DATA.forEach(item => {
         const card = document.createElement("div");
         card.className = "bearing-card";
         
@@ -908,7 +839,7 @@
             <h3>${item.names[currentLang]}</h3>
           </div>
           <div class="card-img-block">
-            <img src="${item.img}?v=8" alt="${item.names[currentLang]}" onerror="this.src='bearing-dimensions.jpg'">
+            <img src="${item.img}?v=9" alt="${item.names[currentLang]}" onerror="this.src='bearing-dimensions.jpg'">
           </div>
           <div class="card-body">
             <div class="metrics-row">
