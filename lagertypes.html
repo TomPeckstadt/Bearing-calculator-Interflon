@@ -437,8 +437,67 @@
     </header>
     
     <!-- Legend Box -->
-    <div class="legend-box" style="display: flex; justify-content: center; align-items: center; background: white; border: 1px solid var(--border-color); border-radius: var(--border-radius-md); padding: 15px; margin-bottom: 30px; box-shadow: var(--shadow-sm); overflow: hidden;">
-      <img src="crop-legend.png?v=9" alt="Legenda / Legend" style="max-width: 550px; width: 100%; height: auto; object-fit: contain; display: block; margin: 0 auto;">
+    <div class="legend-box-container" style="display: flex; gap: 20px; justify-content: center; align-items: stretch; flex-wrap: wrap; margin-bottom: 30px;">
+      
+      <!-- BELASTINGEN / LOADS Box -->
+      <div class="pdf-legend-box" style="flex: 1; min-width: 280px; max-width: 380px; background: #F1F4F9; border: 1px solid var(--border-color); border-radius: var(--border-radius-md); padding: 15px 20px; display: flex; flex-direction: column; align-items: center; box-shadow: var(--shadow-sm);">
+        <h4 id="legendLoadsTitle" style="font-family: 'Outfit', sans-serif; font-size: 13px; font-weight: 700; color: var(--primary-blue); margin: 0 0 15px 0; text-transform: uppercase; letter-spacing: 0.5px;">BELASTINGEN</h4>
+        <div style="display: flex; justify-content: space-around; width: 100%; align-items: flex-end; flex: 1; margin-bottom: 5px;">
+          <!-- Column 1: Zwaar -->
+          <div style="display: flex; flex-direction: column; align-items: center; gap: 8px; width: 30%;">
+            <svg width="20" height="35" viewBox="0 0 20 35" style="color: #4D8A54;">
+              <rect x="7" y="0" width="6" height="23" fill="currentColor" />
+              <polygon points="2,21 10,33 18,21" fill="currentColor" />
+            </svg>
+            <span id="legendLoadHeavy" style="font-family: 'Outfit', sans-serif; font-size: 12px; font-weight: 600; color: var(--text-dark); text-align: center; white-space: nowrap;">zware</span>
+          </div>
+          <!-- Column 2: Middelgroot -->
+          <div style="display: flex; flex-direction: column; align-items: center; gap: 8px; width: 30%;">
+            <svg width="20" height="35" viewBox="0 0 20 35" style="color: #90D382;">
+              <rect x="7" y="0" width="6" height="23" fill="currentColor" />
+              <polygon points="2,21 10,33 18,21" fill="currentColor" />
+            </svg>
+            <span id="legendLoadMedium" style="font-family: 'Outfit', sans-serif; font-size: 12px; font-weight: 600; color: var(--text-dark); text-align: center; white-space: nowrap;">middelgrote</span>
+          </div>
+          <!-- Column 3: Laag -->
+          <div style="display: flex; flex-direction: column; align-items: center; gap: 8px; width: 30%;">
+            <svg width="20" height="35" viewBox="0 0 20 35" style="color: #C5E9BE;">
+              <rect x="7" y="0" width="6" height="23" fill="currentColor" />
+              <polygon points="2,21 10,33 18,21" fill="currentColor" />
+            </svg>
+            <span id="legendLoadLight" style="font-family: 'Outfit', sans-serif; font-size: 12px; font-weight: 600; color: var(--text-dark); text-align: center; white-space: nowrap;">lage</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- TOERENTALLEN / SPEEDS Box -->
+      <div class="pdf-legend-box" style="flex: 1; min-width: 280px; max-width: 380px; background: #F1F4F9; border: 1px solid var(--border-color); border-radius: var(--border-radius-md); padding: 15px 20px; display: flex; flex-direction: column; align-items: center; box-shadow: var(--shadow-sm);">
+        <h4 id="legendSpeedsTitle" style="font-family: 'Outfit', sans-serif; font-size: 13px; font-weight: 700; color: var(--primary-blue); margin: 0 0 15px 0; text-transform: uppercase; letter-spacing: 0.5px;">TOERENTALLEN</h4>
+        <div style="display: flex; justify-content: space-around; width: 100%; align-items: flex-end; flex: 1; margin-bottom: 5px;">
+          <!-- Column 1: Hoge -->
+          <div style="display: flex; flex-direction: column; align-items: center; gap: 8px; width: 30%;">
+            <svg width="30" height="35" viewBox="0 0 32 35" style="color: #EF4444;">
+              <path d="M26 4 C26 22, 19 28, 12 28 C9 28, 7 26, 6 24 L10 20 L2 22 L5 30 L8 26 C12 29, 16 29, 20 27 C27 23, 31 16, 31 4 Z" fill="currentColor" stroke="#374151" stroke-width="1" />
+            </svg>
+            <span id="legendSpeedHigh" style="font-family: 'Outfit', sans-serif; font-size: 12px; font-weight: 600; color: var(--text-dark); text-align: center; white-space: nowrap;">hoge</span>
+          </div>
+          <!-- Column 2: Middelgrote -->
+          <div style="display: flex; flex-direction: column; align-items: center; gap: 8px; width: 30%;">
+            <svg width="30" height="35" viewBox="0 0 32 35" style="color: #F97316;">
+              <path d="M26 4 C26 22, 19 28, 12 28 C9 28, 7 26, 6 24 L10 20 L2 22 L5 30 L8 26 C12 29, 16 29, 20 27 C27 23, 31 16, 31 4 Z" fill="currentColor" stroke="#374151" stroke-width="1" />
+            </svg>
+            <span id="legendSpeedMedium" style="font-family: 'Outfit', sans-serif; font-size: 12px; font-weight: 600; color: var(--text-dark); text-align: center; white-space: nowrap;">middelgrote</span>
+          </div>
+          <!-- Column 3: Lage -->
+          <div style="display: flex; flex-direction: column; align-items: center; gap: 8px; width: 30%;">
+            <svg width="30" height="35" viewBox="0 0 32 35" style="color: #EAB308;">
+              <path d="M26 4 C26 22, 19 28, 12 28 C9 28, 7 26, 6 24 L10 20 L2 22 L5 30 L8 26 C12 29, 16 29, 20 27 C27 23, 31 16, 31 4 Z" fill="currentColor" stroke="#374151" stroke-width="1" />
+            </svg>
+            <span id="legendSpeedLow" style="font-family: 'Outfit', sans-serif; font-size: 12px; font-weight: 600; color: var(--text-dark); text-align: center; white-space: nowrap;">lage</span>
+          </div>
+        </div>
+      </div>
+
     </div>
     
 
@@ -475,6 +534,14 @@
       nl: {
         mainTitle: "Interflon Lagertypes Wijzer",
         mainSubtitle: "Een overzicht van mechanische lagertypen, belastbaarheid en toerentalgrenzen.",
+        legendLoadsTitle: "BELASTINGEN",
+        legendSpeedsTitle: "TOERENTALLEN",
+        legendLoadHeavy: "zware",
+        legendLoadMedium: "middelgrote",
+        legendLoadLight: "lage",
+        legendSpeedHigh: "hoge",
+        legendSpeedMedium: "middelgrote",
+        legendSpeedLow: "lage",
         searchPlaceholder: "Zoek op lagertype (bijv. groefkogel, tonlager...)",
         lblLegendBelastingen: "Belastingen:",
         lblLegendToerentallen: "Toerental:",
@@ -518,6 +585,14 @@
       en: {
         mainTitle: "Interflon Bearing Types Guide",
         mainSubtitle: "An overview of bearing types, load capacities, and speed ratings.",
+        legendLoadsTitle: "LOADS",
+        legendSpeedsTitle: "SPEED RATINGS",
+        legendLoadHeavy: "heavy",
+        legendLoadMedium: "medium",
+        legendLoadLight: "light",
+        legendSpeedHigh: "high",
+        legendSpeedMedium: "medium",
+        legendSpeedLow: "low",
         searchPlaceholder: "Search bearing type (e.g., deep groove, spherical roller...)",
         lblLegendBelastingen: "Loads:",
         lblLegendToerentallen: "Speed:",
@@ -561,6 +636,14 @@
       fr: {
         mainTitle: "Guide des Types de Roulement Interflon",
         mainSubtitle: "Un aperçu des types de roulements, capacités de charge et vitesses maximales.",
+        legendLoadsTitle: "CHARGES",
+        legendSpeedsTitle: "VITESSES",
+        legendLoadHeavy: "lourdes",
+        legendLoadMedium: "moyennes",
+        legendLoadLight: "faibles",
+        legendSpeedHigh: "élevées",
+        legendSpeedMedium: "moyennes",
+        legendSpeedLow: "faibles",
         searchPlaceholder: "Rechercher un type (ex. billes, rouleaux sphériques...)",
         lblLegendBelastingen: "Charges :",
         lblLegendToerentallen: "Vitesse :",
@@ -806,6 +889,16 @@
       document.getElementById("mainTitle").textContent = dict.mainTitle;
       document.getElementById("mainSubtitle").textContent = dict.mainSubtitle;
       document.getElementById("lblFooterText").textContent = dict.lblFooterText;
+      
+      // Legend translations
+      document.getElementById("legendLoadsTitle").textContent = dict.legendLoadsTitle;
+      document.getElementById("legendSpeedsTitle").textContent = dict.legendSpeedsTitle;
+      document.getElementById("legendLoadHeavy").textContent = dict.legendLoadHeavy;
+      document.getElementById("legendLoadMedium").textContent = dict.legendLoadMedium;
+      document.getElementById("legendLoadLight").textContent = dict.legendLoadLight;
+      document.getElementById("legendSpeedHigh").textContent = dict.legendSpeedHigh;
+      document.getElementById("legendSpeedMedium").textContent = dict.legendSpeedMedium;
+      document.getElementById("legendSpeedLow").textContent = dict.legendSpeedLow;
     }
 
     function renderGrid() {
