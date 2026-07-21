@@ -1284,6 +1284,30 @@ function switchPage(pageId) {
     if (targetTitle) targetTitle.setAttribute("data-i18n", "pageCalcTitle");
     if (targetSubtitle) targetSubtitle.setAttribute("data-i18n", "pageCalcSubtitle");
     updateCalculatorFields();
+
+    // Trigger zoom pulse animation when the instruction badge becomes visible on scroll
+    const calcBadge = document.getElementById("calcInstructionBadge");
+    if (calcBadge) {
+      calcBadge.classList.remove("pulse-badge");
+      
+      if (window.calcBadgeObserver) {
+        window.calcBadgeObserver.disconnect();
+      }
+      
+      window.calcBadgeObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            // Trigger animation
+            entry.target.classList.add("pulse-badge");
+            // Stop observing once triggered
+            window.calcBadgeObserver.disconnect();
+            window.calcBadgeObserver = null;
+          }
+        });
+      }, { threshold: 0.1 });
+      
+      window.calcBadgeObserver.observe(calcBadge);
+    }
   } else if (pageId === 'om') {
     document.getElementById("pageOm").classList.add("active");
     document.getElementById("menuOm").classList.add("active");
