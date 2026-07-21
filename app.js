@@ -1294,19 +1294,23 @@ function switchPage(pageId) {
         window.calcBadgeObserver.disconnect();
       }
       
-      window.calcBadgeObserver = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-          if (entry.isIntersecting) {
-            // Trigger animation
-            entry.target.classList.add("pulse-badge");
-            // Stop observing once triggered
-            window.calcBadgeObserver.disconnect();
-            window.calcBadgeObserver = null;
-          }
-        });
-      }, { threshold: 0.1 });
-      
-      window.calcBadgeObserver.observe(calcBadge);
+      setTimeout(() => {
+        window.calcBadgeObserver = new IntersectionObserver((entries) => {
+          entries.forEach(entry => {
+            if (entry.isIntersecting) {
+              // Trigger animation
+              entry.target.classList.add("pulse-badge");
+              // Stop observing once triggered
+              if (window.calcBadgeObserver) {
+                window.calcBadgeObserver.disconnect();
+                window.calcBadgeObserver = null;
+              }
+            }
+          });
+        }, { threshold: 0.1 });
+        
+        window.calcBadgeObserver.observe(calcBadge);
+      }, 150);
     }
   } else if (pageId === 'om') {
     document.getElementById("pageOm").classList.add("active");
@@ -1324,19 +1328,23 @@ function switchPage(pageId) {
         window.omBadgeObserver.disconnect();
       }
       
-      window.omBadgeObserver = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-          if (entry.isIntersecting) {
-            // Trigger animation
-            entry.target.classList.add("pulse-badge");
-            // Stop observing once triggered
-            window.omBadgeObserver.disconnect();
-            window.omBadgeObserver = null;
-          }
-        });
-      }, { threshold: 0.1 });
-      
-      window.omBadgeObserver.observe(badge);
+      setTimeout(() => {
+        window.omBadgeObserver = new IntersectionObserver((entries) => {
+          entries.forEach(entry => {
+            if (entry.isIntersecting) {
+              // Trigger animation
+              entry.target.classList.add("pulse-badge");
+              // Stop observing once triggered
+              if (window.omBadgeObserver) {
+                window.omBadgeObserver.disconnect();
+                window.omBadgeObserver = null;
+              }
+            }
+          });
+        }, { threshold: 0.1 });
+        
+        window.omBadgeObserver.observe(badge);
+      }, 150);
     }
   } else if (pageId === 'info') {
     document.getElementById("pageInfo").classList.add("active");
