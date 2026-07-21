@@ -483,14 +483,20 @@
           </div>
           <!-- Column 2: Middelgrote -->
           <div style="display: flex; flex-direction: column; align-items: center; gap: 8px; width: 30%;">
-            <svg width="30" height="35" viewBox="0 0 32 35" style="color: #F97316;">
-              <path d="M26 4 C26 22, 19 28, 12 28 C9 28, 7 26, 6 24 L10 20 L2 22 L5 30 L8 26 C12 29, 16 29, 20 27 C27 23, 31 16, 31 4 Z" fill="currentColor" stroke="#374151" stroke-width="1" />
+            <svg width="30" height="35" viewBox="0 0 32 35">
+              <defs>
+                <linearGradient id="speedMediumGradient" x1="0%" y1="100%" x2="0%" y2="0%">
+                  <stop offset="0%" stop-color="#F97316" />
+                  <stop offset="100%" stop-color="#FFFF00" />
+                </linearGradient>
+              </defs>
+              <path d="M26 4 C26 22, 19 28, 12 28 C9 28, 7 26, 6 24 L10 20 L2 22 L5 30 L8 26 C12 29, 16 29, 20 27 C27 23, 31 16, 31 4 Z" fill="url(#speedMediumGradient)" stroke="#374151" stroke-width="1" />
             </svg>
             <span id="legendSpeedMedium" style="font-family: 'Outfit', sans-serif; font-size: 12px; font-weight: 600; color: var(--text-dark); text-align: center; white-space: nowrap;">middelgrote</span>
           </div>
           <!-- Column 3: Lage -->
           <div style="display: flex; flex-direction: column; align-items: center; gap: 8px; width: 30%;">
-            <svg width="30" height="35" viewBox="0 0 32 35" style="color: #EAB308;">
+            <svg width="30" height="35" viewBox="0 0 32 35" style="color: #FFFF00;">
               <path d="M26 4 C26 22, 19 28, 12 28 C9 28, 7 26, 6 24 L10 20 L2 22 L5 30 L8 26 C12 29, 16 29, 20 27 C27 23, 31 16, 31 4 Z" fill="currentColor" stroke="#374151" stroke-width="1" />
             </svg>
             <span id="legendSpeedLow" style="font-family: 'Outfit', sans-serif; font-size: 12px; font-weight: 600; color: var(--text-dark); text-align: center; white-space: nowrap;">lage</span>
