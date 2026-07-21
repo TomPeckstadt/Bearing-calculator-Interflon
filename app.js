@@ -275,7 +275,8 @@ const TRANSLATIONS = {
     noPackagesFound: "Geen verpakkingen gevonden voor dit product.",
     btnCheckCompatibility: "Check compatibiliteit",
     pdfViewerTitle: "Vetten Compatibiliteitstabel",
-    bearingStatusTitle: "Lager Status & Smering"
+    bearingStatusTitle: "Lager Status & Smering",
+    btnProductInfo: "Ga naar productinfo"
   },
   en: {
     descGrease: "Determines the maximum DN factor and grease density.",
@@ -546,7 +547,8 @@ const TRANSLATIONS = {
     noPackagesFound: "No packaging found for this product.",
     btnCheckCompatibility: "Check compatibility",
     pdfViewerTitle: "Grease Compatibility Table",
-    bearingStatusTitle: "Bearing Status & Lubrication"
+    bearingStatusTitle: "Bearing Status & Lubrication",
+    btnProductInfo: "Go to product info"
   },
   fr: {
     descGrease: "Détermine le facteur DN maximum et la densité de la graisse.",
@@ -817,7 +819,8 @@ const TRANSLATIONS = {
     noPackagesFound: "Aucun emballage trouvé pour ce produit.",
     btnCheckCompatibility: "Vérifier la compatibilité",
     pdfViewerTitle: "Tableau de compatibilité des graisses",
-    bearingStatusTitle: "Statut du Roulement & Lubrification"
+    bearingStatusTitle: "Statut du Roulement & Lubrification",
+    btnProductInfo: "Aller aux infos produit"
   }
 };
 
@@ -3566,4 +3569,49 @@ function updateBearingAnimation(speed, limitingSpeed, ndm, dnMax, fc, temp, temp
       container.style.border = "1px solid transparent";
     }
   }
+}
+
+// ==========================================================================
+// INTERFLON VET PRODUCTINFORMATIE LINK LOGICA
+// ==========================================================================
+
+const INTERFLON_PRODUCT_URLS = {
+  "INTERFLON FOOD GREASE MP2": "https://interflon.com/be/nl/producten/interflon-food-grease-mp2",
+  "INTERFLON FOOD GREASE EP": "https://interflon.com/be/nl/producten/interflon-food-grease-ep",
+  "INTERFLON GREASE LS1/2": "https://interflon.com/be/nl/producten/interflon-grease-ls1-2",
+  "INTERFLON GREASE LS2": "https://interflon.com/be/nl/producten/interflon-grease-ls2",
+  "INTERFLON GREASE MP00": "https://interflon.com/be/nl/producten/interflon-grease-mp00",
+  "INTERFLON GREASE OG": "https://interflon.com/be/nl/producten/interflon-grease-og",
+  "INTERFLON FLUOR GREASE 2": "https://interflon.com/be/nl/producten/interflon-fluor-grease-2",
+  "INTERFLON FOOD GREASE 000": "https://interflon.com/be/nl/producten/interflon-food-grease-000",
+  "INTERFLON FOOD GREASE 1": "https://interflon.com/be/nl/producten/interflon-food-grease-1",
+  "INTERFLON FOOD GREASE 2": "https://interflon.com/be/nl/producten/interflon-food-grease-2",
+  "INTERFLON FOOD GREASE LT2": "https://interflon.com/be/nl/producten/interflon-food-grease-lt2",
+  "INTERFLON GREASE HD2": "https://interflon.com/be/nl/producten/interflon-grease-hd2",
+  "INTERFLON GREASE HTG": "https://interflon.com/be/nl/producten/interflon-grease-htg",
+  "INTERFLON GREASE MP1": "https://interflon.com/be/nl/producten/interflon-grease-mp1",
+  "INTERFLON GREASE MP2/3": "https://interflon.com/be/nl/producten/interflon-grease-mp23",
+  "INTERFLON GREASE HS2": "https://interflon.com/be/nl/producten/interflon-grease-hs2",
+  "INTERFLON FOOD GREASE 3H": "https://interflon.com/be/nl/producten/interflon-food-grease-3h",
+  "INTERFLON FOOD GREASE HD00": "https://interflon.com/be/nl/producten/interflon-food-grease-hd00",
+  "INTERFLON FOOD GREASE HD2": "https://interflon.com/be/nl/producten/interflon-food-grease-hd2",
+  "INTERFLON FOOD GREASE S1/2": "https://interflon.com/be/nl/producten/interflon-food-grease-s1-2"
+};
+
+function openProductInfoPage() {
+  const greaseSelect = document.getElementById("inputGrease");
+  if (!greaseSelect) return;
+  const greaseName = greaseSelect.value;
+  if (!greaseName) return;
+  
+  let url = INTERFLON_PRODUCT_URLS[greaseName];
+  if (!url) {
+    const slug = greaseName.toLowerCase()
+      .replace(/\//g, '-')
+      .replace(/[^a-z0-9\-]/g, '-')
+      .replace(/-+/g, '-');
+    url = `https://interflon.com/be/nl/producten/${slug}`;
+  }
+  
+  window.open(url, "_blank");
 }
