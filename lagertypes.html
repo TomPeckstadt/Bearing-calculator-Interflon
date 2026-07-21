@@ -817,7 +817,7 @@
             names: { nl: "NJ-ontwerp", en: "NJ design", fr: "Conception NJ" },
             direction: "dirCombined",
             load: "magHigh",
-            speed: "spdHigh"
+            speed: "spdMedium"
           },
           {
             names: { nl: "NUP-ontwerp", en: "NUP design", fr: "Conception NUP" },
@@ -862,20 +862,9 @@
           en: "Thrust ball bearing",
           fr: "Butée à billes"
         },
-        subtypes: [
-          {
-            names: { nl: "Eenrichting", en: "Single Direction", fr: "Simple effet" },
-            direction: "dirAxial",
-            load: "magMedium",
-            speed: "spdLow"
-          },
-          {
-            names: { nl: "Tweerichting", en: "Double Direction", fr: "Double effet" },
-            direction: "dirAxial",
-            load: "magMedium",
-            speed: "spdLow"
-          }
-        ]
+        direction: "dirAxial",
+        load: "magMedium",
+        speed: "spdLow"
       },
       {
         id: "cylindrical_thrust",
@@ -1086,9 +1075,11 @@
             <span class="card-category">${categoryText}</span>
             <h3>${item.names[currentLang]}</h3>
           </div>
-          <div class="card-img-block" style="position: relative;">
-            <img src="${item.img}?v=12" alt="${item.names[currentLang]}" onerror="this.src='bearing-dimensions.jpg'">
-            ${overlaysHtml}
+          <div class="card-img-block">
+            <div style="position: relative; display: inline-block; max-height: 100%; max-width: 100%;">
+              <img src="${item.img}?v=12" alt="${item.names[currentLang]}" onerror="this.src='bearing-dimensions.jpg'" style="display: block; max-width: 100%; max-height: 100%;">
+              ${overlaysHtml}
+            </div>
           </div>
           ${tabsHtml}
           <div class="card-body">
