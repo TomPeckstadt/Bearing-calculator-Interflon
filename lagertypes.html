@@ -1,0 +1,1082 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Interflon Lagertypes Wijzer</title>
+  
+  <!-- Typography & Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <style>
+    :root {
+      --primary-blue: #0A2540;
+      --accent-red: #E30613;
+      --accent-red-hover: #C0050F;
+      --accent-yellow: #FFC000;
+      --accent-yellow-light: #FFF9E6;
+      --accent-yellow-border: #FFE0B2;
+      --accent-yellow-border-soft: rgba(255, 192, 0, 0.2);
+      
+      --bg-main: #F4F6F9;
+      --bg-card: #FFFFFF;
+      --text-dark: #1E293B;
+      --text-medium: #64748B;
+      --text-light: #94A3B8;
+      
+      --border-color: #E2E8F0;
+      --border-radius-sm: 8px;
+      --border-radius-md: 12px;
+      --border-radius-lg: 20px;
+      
+      --shadow-sm: 0 2px 4px rgba(10, 37, 64, 0.05);
+      --shadow-md: 0 10px 15px -3px rgba(10, 37, 64, 0.08), 0 4px 6px -2px rgba(10, 37, 64, 0.03);
+      --shadow-lg: 0 20px 25px -5px rgba(10, 37, 64, 0.1), 0 10px 10px -5px rgba(10, 37, 64, 0.04);
+      --shadow-glow-blue: 0 0 15px rgba(10, 37, 64, 0.15);
+      
+      --transition-fast: 0.2s ease;
+      --transition-normal: 0.3s ease;
+    }
+    
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background-color: var(--bg-main);
+      color: var(--text-dark);
+      line-height: 1.6;
+      padding: 40px 20px;
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    
+    /* Header section */
+    header {
+      background-color: var(--bg-card);
+      border-radius: var(--border-radius-lg);
+      padding: 30px;
+      border: 1px solid var(--accent-yellow-border-soft);
+      box-shadow: var(--shadow-sm);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 30px;
+      flex-wrap: wrap;
+      gap: 20px;
+    }
+    
+    .logo-container img {
+      height: 45px;
+      object-fit: contain;
+    }
+    
+    .header-text h1 {
+      font-family: 'Outfit', sans-serif;
+      font-size: 28px;
+      font-weight: 800;
+      color: var(--primary-blue);
+      margin-bottom: 5px;
+    }
+    
+    .header-text p {
+      color: var(--text-medium);
+      font-size: 15px;
+    }
+    
+    /* Language Toggle */
+    .lang-toggle {
+      display: flex;
+      gap: 5px;
+      background: var(--bg-main);
+      padding: 4px;
+      border-radius: 30px;
+      border: 1px solid var(--border-color);
+    }
+    
+    .lang-btn {
+      border: none;
+      background: transparent;
+      padding: 6px 16px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      border-radius: 20px;
+      color: var(--text-medium);
+      font-family: 'Outfit', sans-serif;
+      transition: all var(--transition-fast);
+    }
+    
+    .lang-btn.active {
+      background: var(--primary-blue);
+      color: white;
+    }
+    
+    /* Search and Filters */
+    .filters-section {
+      background: var(--bg-card);
+      border-radius: var(--border-radius-md);
+      padding: 20px;
+      border: 1px solid var(--border-color);
+      box-shadow: var(--shadow-sm);
+      margin-bottom: 30px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+    
+    .search-box {
+      position: relative;
+      flex: 1;
+      max-width: 450px;
+      min-width: 250px;
+    }
+    
+    .search-box input {
+      width: 100%;
+      padding: 12px 20px 12px 48px;
+      font-size: 14px;
+      border-radius: 30px;
+      border: 1.5px solid var(--border-color);
+      background-color: var(--bg-main);
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      transition: all var(--transition-fast);
+    }
+    
+    .search-box input:focus {
+      outline: none;
+      border-color: var(--primary-blue);
+      background-color: white;
+      box-shadow: var(--shadow-glow-blue);
+    }
+    
+    .search-box svg {
+      position: absolute;
+      left: 18px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 18px;
+      height: 18px;
+      color: var(--text-medium);
+    }
+    
+    .filter-buttons {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    
+    .filter-btn {
+      border: 1px solid var(--border-color);
+      background: var(--bg-card);
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: 'Outfit', sans-serif;
+      color: var(--text-medium);
+      transition: all var(--transition-fast);
+    }
+    
+    .filter-btn:hover, .filter-btn.active {
+      border-color: var(--primary-blue);
+      color: var(--primary-blue);
+      background-color: rgba(10, 37, 64, 0.04);
+    }
+    
+    /* Grid */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+      gap: 25px;
+    }
+    
+    /* Card design */
+    .bearing-card {
+      background: var(--bg-card);
+      border-radius: var(--border-radius-lg);
+      border: 1px solid var(--border-color);
+      box-shadow: var(--shadow-sm);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      transition: transform var(--transition-normal), box-shadow var(--transition-normal), border-color var(--transition-normal);
+    }
+    
+    .bearing-card:hover {
+      transform: translateY(-5px);
+      box-shadow: var(--shadow-md);
+      border-color: var(--accent-yellow-border);
+    }
+    
+    .card-header {
+      padding: 20px;
+      background: linear-gradient(135deg, #FAFBFD 0%, #F1F4F9 100%);
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+    
+    .card-img-wrapper {
+      width: 80px;
+      height: 80px;
+      background: white;
+      border-radius: var(--border-radius-md);
+      border: 1px solid var(--border-color);
+      padding: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    
+    .card-img-wrapper img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+    }
+    
+    .card-title-area h3 {
+      font-family: 'Outfit', sans-serif;
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--primary-blue);
+      margin-bottom: 4px;
+    }
+    
+    .card-category {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      font-weight: 700;
+      color: var(--text-light);
+    }
+    
+    .card-body {
+      padding: 20px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+    
+    /* Metrics / Indicators */
+    .metrics-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+    }
+    
+    .metric-box {
+      flex: 1;
+      background: var(--bg-main);
+      padding: 10px;
+      border-radius: var(--border-radius-sm);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+    
+    .metric-label {
+      font-size: 10px;
+      text-transform: uppercase;
+      font-weight: 700;
+      color: var(--text-medium);
+      margin-bottom: 6px;
+    }
+    
+    .badge {
+      font-size: 12px;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-family: 'Outfit', sans-serif;
+    }
+    
+    .badge-high {
+      background-color: rgba(239, 68, 68, 0.1);
+      color: #EF4444;
+    }
+    
+    .badge-medium {
+      background-color: rgba(245, 158, 11, 0.1);
+      color: #F59E0B;
+    }
+    
+    .badge-low {
+      background-color: rgba(16, 185, 129, 0.1);
+      color: #10B981;
+    }
+    
+    .direction-badge {
+      background-color: rgba(10, 37, 64, 0.06);
+      color: var(--primary-blue);
+      font-size: 12px;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 12px;
+    }
+    
+    /* Lubrication Recommendation */
+    .lubrication-box {
+      background: var(--accent-yellow-light);
+      border: 1px solid var(--accent-yellow-border);
+      border-radius: var(--border-radius-md);
+      padding: 15px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    
+    .lubrication-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-family: 'Outfit', sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+      color: #B7791F;
+    }
+    
+    .lubrication-header svg {
+      width: 16px;
+      height: 16px;
+      color: var(--accent-yellow);
+    }
+    
+    .lubrication-grease {
+      font-family: 'Outfit', sans-serif;
+      font-size: 14px;
+      font-weight: 800;
+      color: var(--accent-red);
+    }
+    
+    .lubrication-text {
+      font-size: 12.5px;
+      color: var(--text-dark);
+      line-height: 1.4;
+    }
+    
+    /* Footer */
+    footer {
+      margin-top: 50px;
+      border-top: 1px solid var(--border-color);
+      padding-top: 30px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 15px;
+    }
+    
+    .footer-logo img {
+      height: 35px;
+      object-fit: contain;
+    }
+    
+    .footer-text {
+      font-size: 12px;
+      color: var(--text-light);
+    }
+    
+    /* Legend area in header or sidebar */
+    .legend-box {
+      background: #FAFBFD;
+      border: 1px solid var(--border-color);
+      border-radius: var(--border-radius-md);
+      padding: 15px 25px;
+      margin-bottom: 30px;
+      display: flex;
+      justify-content: space-around;
+      flex-wrap: wrap;
+      gap: 20px;
+      font-size: 12.5px;
+      color: var(--text-medium);
+    }
+    
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .legend-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+    
+    /* No results state */
+    .no-results {
+      background: var(--bg-card);
+      border-radius: var(--border-radius-lg);
+      border: 1.5px dashed var(--border-color);
+      padding: 50px;
+      text-align: center;
+      display: none;
+      width: 100%;
+    }
+    
+    .no-results svg {
+      width: 64px;
+      height: 64px;
+      color: var(--text-light);
+      margin-bottom: 15px;
+    }
+    
+    @media (max-width: 768px) {
+      body {
+        padding: 20px 10px;
+      }
+      
+      header {
+        flex-direction: column;
+        text-align: center;
+        padding: 20px;
+      }
+      
+      .filters-section {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      
+      .filter-buttons {
+        justify-content: center;
+      }
+      
+      .grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    
+    <!-- Top Header -->
+    <header>
+      <div class="logo-container">
+        <img src="interflon-logo.jpg" alt="Interflon">
+      </div>
+      <div class="header-text" style="text-align: center; flex: 1;">
+        <h1 id="mainTitle">Interflon Lagertypes Wijzer</h1>
+        <p id="mainSubtitle">Een overzicht van mechanische lagertypen, belastbaarheid en smeeradvies met Interflon MicPol® technologie.</p>
+      </div>
+      <div class="lang-toggle">
+        <button class="lang-btn active" onclick="changeLanguage('nl')">NL</button>
+        <button class="lang-btn" onclick="changeLanguage('en')">EN</button>
+        <button class="lang-btn" onclick="changeLanguage('fr')">FR</button>
+      </div>
+    </header>
+    
+    <!-- Legend Box -->
+    <div class="legend-box">
+      <div class="legend-item">
+        <strong id="lblLegendBelastingen">Belastingen:</strong>
+        <span class="badge badge-high" id="lblZwaar">Zwaar</span>
+        <span class="badge badge-medium" id="lblMiddelgroot">Middelgroot</span>
+        <span class="badge badge-low" id="lblLaag">Laag</span>
+      </div>
+      <div class="legend-item">
+        <strong id="lblLegendToerentallen">Toerental:</strong>
+        <span class="badge badge-high" style="background-color: rgba(239, 68, 68, 0.1); color: #EF4444;" id="lblHoog2">Hoog</span>
+        <span class="badge badge-medium" style="background-color: rgba(245, 158, 11, 0.1); color: #F59E0B;" id="lblMiddelgroot2">Middelgroot</span>
+        <span class="badge badge-low" style="background-color: rgba(16, 185, 129, 0.1); color: #10B981;" id="lblLaag2">Laag</span>
+      </div>
+    </div>
+    
+    <!-- Filter bar -->
+    <div class="filters-section">
+      <div class="search-box">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.637 10.637Z" />
+        </svg>
+        <input type="text" id="searchInput" oninput="filterBearings()" placeholder="Zoek op lagertype (bijv. groefkogel, tonlager...)">
+      </div>
+      <div class="filter-buttons">
+        <button class="filter-btn active" id="btnFilterAll" onclick="setCategoryFilter('all')">Alles</button>
+        <button class="filter-btn" id="btnFilterBall" onclick="setCategoryFilter('ball')">Kogellagers</button>
+        <button class="filter-btn" id="btnFilterRoller" onclick="setCategoryFilter('roller')">Rollagers</button>
+        <button class="filter-btn" id="btnFilterThrust" onclick="setCategoryFilter('thrust')">Taats/Axiaal</button>
+      </div>
+    </div>
+    
+    <!-- Grid containing cards -->
+    <div class="grid" id="bearingsGrid">
+      <!-- Wordt dynamisch geladen via JS -->
+    </div>
+    
+    <!-- No results state -->
+    <div class="no-results" id="noResultsState">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
+      </svg>
+      <h3 id="lblNoResultsTitle">Geen lagertypes gevonden</h3>
+      <p id="lblNoResultsDesc" style="color: var(--text-medium); margin-top: 8px;">Probeer een andere zoekterm.</p>
+    </div>
+    
+    <!-- Footer -->
+    <footer>
+      <div class="footer-logo">
+        <img src="interflon-logo.jpg" alt="Interflon">
+      </div>
+      <div class="footer-text" id="lblFooterText">
+        © 2026 Interflon - A world without friction. Alle rechten voorbehouden.
+      </div>
+    </footer>
+    
+  </div>
+
+  <script>
+    // Data translation maps
+    const TRANSLATIONS = {
+      nl: {
+        mainTitle: "Interflon Lagertypes Wijzer",
+        mainSubtitle: "Een overzicht van mechanische lagertypen, belastbaarheid en smeeradvies met Interflon MicPol® technologie.",
+        searchPlaceholder: "Zoek op lagertype (bijv. groefkogel, tonlager...)",
+        lblLegendBelastingen: "Belastingen:",
+        lblLegendToerentallen: "Toerental:",
+        lblZwaar: "Zwaar",
+        lblMiddelgroot: "Middelgroot",
+        lblLaag: "Laag",
+        lblHoog2: "Hoog",
+        lblMiddelgroot2: "Middelgroot",
+        lblLaag2: "Laag",
+        btnFilterAll: "Alles",
+        btnFilterBall: "Kogellagers",
+        btnFilterRoller: "Rollagers",
+        btnFilterThrust: "Taats/Axiaal",
+        lblNoResultsTitle: "Geen lagertypes gevonden",
+        lblNoResultsDesc: "Probeer een andere zoekterm.",
+        lblFooterText: "© 2026 Interflon - A world without friction. Alle rechten voorbehouden.",
+        lblSmeeradvies: "Interflon Smeeradvies",
+        lblLoad: "Belastbaarheid",
+        lblSpeed: "Toerental",
+        lblDirection: "Richting",
+        // Categories
+        catBall: "Kogellager",
+        catRoller: "Rollager",
+        catThrust: "Axiaal / Taatslager",
+        catSpecial: "Speciaal lager",
+        // Directions
+        dirRadial: "Radiaal",
+        dirAxial: "Axiaal",
+        dirCombined: "Radiaal + Axiaal",
+        dirSelfAligning: "Zich instellend",
+        dirRadialSelfAligning: "Radiaal + Zich instellend",
+        dirAllSelfAligning: "Radiaal + Axiaal + Zich instellend",
+        // Magnitudes
+        magHigh: "Zwaar",
+        magMedium: "Middelgroot",
+        magLow: "Laag",
+        // Speeds
+        spdHigh: "Hoog",
+        spdMedium: "Middelgroot",
+        spdLow: "Laag"
+      },
+      en: {
+        mainTitle: "Interflon Bearing Types Guide",
+        mainSubtitle: "An overview of bearing types, load capacities, speed ratings, and lubrication advice with Interflon MicPol® technology.",
+        searchPlaceholder: "Search bearing type (e.g., deep groove, spherical roller...)",
+        lblLegendBelastingen: "Loads:",
+        lblLegendToerentallen: "Speed:",
+        lblZwaar: "Heavy",
+        lblMiddelgroot: "Medium",
+        lblLaag: "Low",
+        lblHoog2: "High",
+        lblMiddelgroot2: "Medium",
+        lblLaag2: "Low",
+        btnFilterAll: "All",
+        btnFilterBall: "Ball Bearings",
+        btnFilterRoller: "Roller Bearings",
+        btnFilterThrust: "Thrust Bearings",
+        lblNoResultsTitle: "No bearing types found",
+        lblNoResultsDesc: "Try a different search term.",
+        lblFooterText: "© 2026 Interflon - A world without friction. All rights reserved.",
+        lblSmeeradvies: "Interflon Lubrication Advice",
+        lblLoad: "Load Capacity",
+        lblSpeed: "Speed Rating",
+        lblDirection: "Direction",
+        // Categories
+        catBall: "Ball Bearing",
+        catRoller: "Roller Bearing",
+        catThrust: "Thrust Bearing",
+        catSpecial: "Special Bearing",
+        // Directions
+        dirRadial: "Radial",
+        dirAxial: "Axial",
+        dirCombined: "Radial + Axial",
+        dirSelfAligning: "Self-aligning",
+        dirRadialSelfAligning: "Radial + Self-aligning",
+        dirAllSelfAligning: "Radial + Axial + Self-aligning",
+        // Magnitudes
+        magHigh: "Heavy",
+        magMedium: "Medium",
+        magLow: "Low",
+        // Speeds
+        spdHigh: "High",
+        spdMedium: "Medium",
+        spdLow: "Low"
+      },
+      fr: {
+        mainTitle: "Guide des Types de Roulement Interflon",
+        mainSubtitle: "Un aperçu des types de roulements, capacités de charge, vitesses et conseils de lubrification avec la technologie Interflon MicPol®.",
+        searchPlaceholder: "Rechercher un type (ex. billes, rouleaux sphériques...)",
+        lblLegendBelastingen: "Charges :",
+        lblLegendToerentallen: "Vitesse :",
+        lblZwaar: "Lourde",
+        lblMiddelgroot: "Moyenne",
+        lblLaag: "Faible",
+        lblHoog2: "Élevée",
+        lblMiddelgroot2: "Moyenne",
+        lblLaag2: "Faible",
+        btnFilterAll: "Tout",
+        btnFilterBall: "Roulements à billes",
+        btnFilterRoller: "Roulements à rouleaux",
+        btnFilterThrust: "Butées",
+        lblNoResultsTitle: "Aucun type de roulement trouvé",
+        lblNoResultsDesc: "Essayez un autre mot clé.",
+        lblFooterText: "© 2026 Interflon - A world without friction. Tous droits réservés.",
+        lblSmeeradvies: "Conseil de lubrification Interflon",
+        lblLoad: "Capacité de charge",
+        lblSpeed: "Vitesse maximale",
+        lblDirection: "Direction",
+        // Categories
+        catBall: "Roulement à billes",
+        catRoller: "Roulement à rouleaux",
+        catThrust: "Butée",
+        catSpecial: "Roulement spécial",
+        // Directions
+        dirRadial: "Radiale",
+        dirAxial: "Axiale",
+        dirCombined: "Radiale + Axiale",
+        dirSelfAligning: "Rotule / Auto-aligneur",
+        dirRadialSelfAligning: "Radiale + Auto-aligneur",
+        dirAllSelfAligning: "Radiale + Axiale + Auto-aligneur",
+        // Magnitudes
+        magHigh: "Lourde",
+        magMedium: "Moyenne",
+        magLow: "Faible",
+        // Speeds
+        spdHigh: "Élevée",
+        spdMedium: "Moyenne",
+        spdLow: "Faible"
+      }
+    };
+
+    // Bearing types data
+    const BEARINGS_DATA = [
+      {
+        id: "groove_ball",
+        category: "ball",
+        img: "bearing-groove-ball.png",
+        names: {
+          nl: "Eenrijig groefkogellager",
+          en: "Single row deep groove ball bearing",
+          fr: "Roulement à billes à gorge profonde"
+        },
+        direction: "dirCombined",
+        load: "magMedium",
+        speed: "spdHigh",
+        recommendations: {
+          nl: "Interflon Grease LS2. Voor universeel gebruik. Biedt uitstekende wrijvingsvermindering, afdichting tegen vuil en verlengt smeerintervallen met factor 4.",
+          en: "Interflon Grease LS2. For multipurpose use. Provides excellent friction reduction, seals out contaminants, and extends lubrication intervals by factor 4.",
+          fr: "Interflon Grease LS2. Pour usage universel. Offre une excellente réduction de friction, protège contre l'eau et les poussières, et multiplie la durée de service par 4."
+        }
+      },
+      {
+        id: "double_groove_ball",
+        category: "ball",
+        img: "bearing-double-groove-ball.png",
+        names: {
+          nl: "Dubbelrijig groefkogellager",
+          en: "Double row deep groove ball bearing",
+          fr: "Roulement à billes à double rangée"
+        },
+        direction: "dirCombined",
+        load: "magMedium",
+        speed: "spdHigh",
+        recommendations: {
+          nl: "Interflon Grease LS2 of HD2. Geschikt voor hogere belastingen. Uitstekende mechanische stabiliteit onder continue rotatie.",
+          en: "Interflon Grease LS2 or HD2. Suitable for higher loads. Excellent mechanical stability under continuous rotation.",
+          fr: "Interflon Grease LS2 ou HD2. Convient aux charges plus élevées. Stabilité mécanique exceptionnelle en rotation continue."
+        }
+      },
+      {
+        id: "angular_contact",
+        category: "ball",
+        img: "bearing-angular-contact.png",
+        names: {
+          nl: "Hoekcontactkogellager",
+          en: "Angular contact ball bearing",
+          fr: "Roulement à billes à contact oblique"
+        },
+        direction: "dirCombined",
+        load: "magMedium",
+        speed: "spdHigh",
+        recommendations: {
+          nl: "Interflon Grease LS2. Speciaal ontworpen voor gecombineerde radiale en axiale belastingen. Garandeert een stabiele smeerfilm onder zware hoekkrachten.",
+          en: "Interflon Grease LS2. Specially designed for combined radial and axial loads. Guarantees a stable lubricant film under angular forces.",
+          fr: "Interflon Grease LS2. Conçu pour supporter des charges radiales et axiales combinées. Garantit un film lubrifiant stable sous des forces d'angle."
+        }
+      },
+      {
+        id: "double_angular_contact",
+        category: "ball",
+        img: "bearing-double-angular-contact.png",
+        names: {
+          nl: "Dubbelrijig hoekcontactkogellager",
+          en: "Double row angular contact ball bearing",
+          fr: "Roulement à billes à double contact oblique"
+        },
+        direction: "dirCombined",
+        load: "magHigh",
+        speed: "spdHigh",
+        recommendations: {
+          nl: "Interflon Grease LS2 of HD2. Uitstekend bestand tegen zware axiale krachten in twee richtingen gekoppeld aan hoge toerentallen.",
+          en: "Interflon Grease LS2 or HD2. Excellent resistance to heavy axial forces in both directions coupled with high speeds.",
+          fr: "Interflon Grease LS2 ou HD2. Résistance exceptionnelle aux forces axiales bidirectionnelles et aux vitesses élevées."
+        }
+      },
+      {
+        id: "cylindrical_roller",
+        category: "roller",
+        img: "bearing-cylindrical-roller.png",
+        names: {
+          nl: "Cilinderlager",
+          en: "Cylindrical roller bearing",
+          fr: "Roulement à rouleaux cylindriques"
+        },
+        direction: "dirRadial",
+        load: "magHigh",
+        speed: "spdHigh",
+        recommendations: {
+          nl: "Interflon Grease HD2. Ideaal voor zware radiale belastingen en trillingen. De MicPol® smering voorkomt direct metaal-op-metaal contact onder extreme druk.",
+          en: "Interflon Grease HD2. Ideal for heavy radial loads and vibrations. MicPol® lubrication prevents metal-to-metal contact under extreme pressure.",
+          fr: "Interflon Grease HD2. Idéal pour les charges radiales élevées et les vibrations. La lubrification MicPol® empêche le contact métal contre métal."
+        }
+      },
+      {
+        id: "tapered_roller",
+        category: "roller",
+        img: "bearing-tapered-roller.png",
+        names: {
+          nl: "Kegellager",
+          en: "Tapered roller bearing",
+          fr: "Roulement à rouleaux coniques"
+        },
+        direction: "dirCombined",
+        load: "magHigh",
+        speed: "spdMedium",
+        recommendations: {
+          nl: "Interflon Grease HD2. Perfect voor zware wiellagers en overbrengingen. Biedt uitstekende EP (Extreme Pressure) eigenschappen en anti-corrosie.",
+          en: "Interflon Grease HD2. Perfect for heavy-duty wheel bearings and gearboxes. Offers excellent EP (Extreme Pressure) properties and corrosion protection.",
+          fr: "Interflon Grease HD2. Parfait pour les roulements de roue et les engrenages. Offre d'excellentes propriétés EP (pression extrême) et anti-corrosion."
+        }
+      },
+      {
+        id: "spherical_roller",
+        category: "roller",
+        img: "bearing-spherical-roller.png",
+        names: {
+          nl: "Pendelrollager (Tonlager)",
+          en: "Spherical roller bearing",
+          fr: "Roulement à rotule sur rouleaux"
+        },
+        direction: "dirAllSelfAligning",
+        load: "magHigh",
+        speed: "spdMedium",
+        recommendations: {
+          nl: "Interflon Grease HD2. Uitstekend voor zware machines en tonlagers die onderhevig zijn aan as-uitlijnfouten. Hoge afschuifstabiliteit en taaiheid.",
+          en: "Interflon Grease HD2. Superb for heavy machinery and spherical rollers prone to misalignment. High shear stability and film thickness.",
+          fr: "Interflon Grease HD2. Idéal pour les machines lourdes et les rotules sujettes au désalignement. Haute résistance au cisaillement."
+        }
+      },
+      {
+        id: "self_aligning_ball",
+        category: "ball",
+        img: "bearing-self-aligning-ball.png",
+        names: {
+          nl: "Pendelkogellager",
+          en: "Self-aligning ball bearing",
+          fr: "Roulement à billes auto-aligneur"
+        },
+        direction: "dirAllSelfAligning",
+        load: "magMedium",
+        speed: "spdHigh",
+        recommendations: {
+          nl: "Interflon Grease LS2. Compenseert uitlijnfouten automatisch. Vermindert wrijvingswarmte bij hoge toerentallen en verlengt het nasmeerinterval.",
+          en: "Interflon Grease LS2. Automatically compensates for misalignment. Minimizes frictional heat at high speeds and extends re-lubrication intervals.",
+          fr: "Interflon Grease LS2. Compense automatiquement le désalignement. Réduit la chaleur de friction à haute vitesse et espace les entretiens."
+        }
+      },
+      {
+        id: "thrust_ball",
+        category: "thrust",
+        img: "bearing-thrust-ball.png",
+        names: {
+          nl: "Axiaalkogellager",
+          en: "Thrust ball bearing",
+          fr: "Butée à billes"
+        },
+        direction: "dirAxial",
+        load: "magMedium",
+        speed: "spdLow",
+        recommendations: {
+          nl: "Interflon Grease LS2. Speciaal voor puur axiale belastingen. Houdt de loopbanen van de schijven optimaal gesmeerd bij lage toerentallen.",
+          en: "Interflon Grease LS2. Specially for pure axial loads. Keeps washer raceways optimally lubricated at lower speeds.",
+          fr: "Interflon Grease LS2. Spécialement pour les charges purement axiales. Assure une lubrification optimale des pistes de rondelle à vitesse réduite."
+        }
+      },
+      {
+        id: "needle_roller",
+        category: "roller",
+        img: "bearing-dimensions.jpg", // fallback image placeholder
+        names: {
+          nl: "Naaldlager",
+          en: "Needle roller bearing",
+          fr: "Roulement à aiguilles"
+        },
+        direction: "dirRadial",
+        load: "magHigh",
+        speed: "spdMedium",
+        recommendations: {
+          nl: "Interflon Grease LS1/2. De lagere NLGI-dikte zorgt voor uitstekende penetratie in de krappe ruimtes tussen de naaldrollen.",
+          en: "Interflon Grease LS1/2. Lower NLGI viscosity allows excellent penetration into the tight spaces between needle rollers.",
+          fr: "Interflon Grease LS1/2. Sa classe NLGI légèrement fluide permet une excellente pénétration dans les espaces étroits des aiguilles."
+        }
+      },
+      {
+        id: "carb_toroidal",
+        category: "roller",
+        img: "bearing-cylindrical-roller.png",
+        names: {
+          nl: "CARB® Toroïdaal rollager",
+          en: "CARB® toroidal roller bearing",
+          fr: "Roulement toroïdal CARB®"
+        },
+        direction: "dirRadialSelfAligning",
+        load: "magHigh",
+        speed: "spdMedium",
+        recommendations: {
+          nl: "Interflon Grease HD2. Ideaal voor niet-vastgelegde lagerposities in combinatie met pendelrollagers. Uiterst betrouwbaar onder wisselende asbelasting.",
+          en: "Interflon Grease HD2. Ideal for non-locating bearing positions paired with spherical rollers. Extremely reliable under changing loads.",
+          fr: "Interflon Grease HD2. Idéal pour les paliers libres combinés à des roulements à rotule. Très fiable sous des charges axiales fluctuantes."
+        }
+      },
+      {
+        id: "cylindrical_thrust",
+        category: "thrust",
+        img: "bearing-thrust-ball.png",
+        names: {
+          nl: "Cilindertaatslager",
+          en: "Cylindrical roller thrust bearing",
+          fr: "Butée à rouleaux cylindriques"
+        },
+        direction: "dirAxial",
+        load: "magHigh",
+        speed: "spdLow",
+        recommendations: {
+          nl: "Interflon Grease HD2. Bestand tegen extreem zware axiale drukkrachten. MicPol® voorkomt wrijving en vreten van de loopringen.",
+          en: "Interflon Grease HD2. Capable of carrying extremely heavy axial loads. MicPol® technology prevents scuffing and wear on the plates.",
+          fr: "Interflon Grease HD2. Capable de supporter des charges axiales extrêmement lourdes. Évite le grippage et l'usure prématurée."
+        }
+      }
+    ];
+
+    let currentLang = "nl";
+    let currentCategory = "all";
+
+    // Initialize Page
+    function init() {
+      // Get URL language parameter
+      const params = new URLSearchParams(window.location.search);
+      const urlLang = params.get('lang');
+      if (urlLang && (urlLang === 'nl' || urlLang === 'en' || urlLang === 'fr')) {
+        currentLang = urlLang;
+      }
+      
+      updateLanguageSelector();
+      translateUI();
+      renderGrid();
+    }
+
+    function changeLanguage(lang) {
+      currentLang = lang;
+      updateLanguageSelector();
+      translateUI();
+      renderGrid();
+      
+      // Update URL parameters without reloading
+      const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname + '?lang=' + lang;
+      window.history.pushState({path:newUrl},'',newUrl);
+    }
+
+    function updateLanguageSelector() {
+      document.querySelectorAll(".lang-btn").forEach(btn => {
+        btn.classList.remove("active");
+        if (btn.textContent.toLowerCase() === currentLang) {
+          btn.classList.add("active");
+        }
+      });
+    }
+
+    function translateUI() {
+      const dict = TRANSLATIONS[currentLang];
+      
+      // Text translations
+      document.getElementById("mainTitle").textContent = dict.mainTitle;
+      document.getElementById("mainSubtitle").textContent = dict.mainSubtitle;
+      document.getElementById("searchInput").placeholder = dict.searchPlaceholder;
+      document.getElementById("lblLegendBelastingen").textContent = dict.lblLegendBelastingen;
+      document.getElementById("lblLegendToerentallen").textContent = dict.lblLegendToerentallen;
+      
+      document.getElementById("lblZwaar").textContent = dict.lblZwaar;
+      document.getElementById("lblMiddelgroot").textContent = dict.lblMiddelgroot;
+      document.getElementById("lblLaag").textContent = dict.lblLaag;
+      document.getElementById("lblHoog2").textContent = dict.lblHoog2;
+      document.getElementById("lblMiddelgroot2").textContent = dict.lblMiddelgroot2;
+      document.getElementById("lblLaag2").textContent = dict.lblLaag2;
+      
+      document.getElementById("btnFilterAll").textContent = dict.btnFilterAll;
+      document.getElementById("btnFilterBall").textContent = dict.btnFilterBall;
+      document.getElementById("btnFilterRoller").textContent = dict.btnFilterRoller;
+      document.getElementById("btnFilterThrust").textContent = dict.btnFilterThrust;
+      
+      document.getElementById("lblNoResultsTitle").textContent = dict.lblNoResultsTitle;
+      document.getElementById("lblNoResultsDesc").textContent = dict.lblNoResultsDesc;
+      document.getElementById("lblFooterText").textContent = dict.lblFooterText;
+    }
+
+    function setCategoryFilter(category) {
+      currentCategory = category;
+      document.querySelectorAll(".filter-btn").forEach(btn => {
+        btn.classList.remove("active");
+      });
+      
+      if (category === 'all') document.getElementById("btnFilterAll").classList.add("active");
+      if (category === 'ball') document.getElementById("btnFilterBall").classList.add("active");
+      if (category === 'roller') document.getElementById("btnFilterRoller").classList.add("active");
+      if (category === 'thrust') document.getElementById("btnFilterThrust").classList.add("active");
+      
+      renderGrid();
+    }
+
+    function filterBearings() {
+      renderGrid();
+    }
+
+    function renderGrid() {
+      const grid = document.getElementById("bearingsGrid");
+      const noResults = document.getElementById("noResultsState");
+      const searchVal = document.getElementById("searchInput").value.toLowerCase();
+      const dict = TRANSLATIONS[currentLang];
+      
+      grid.innerHTML = "";
+      
+      // Filter data
+      const filtered = BEARINGS_DATA.filter(item => {
+        const matchesCategory = currentCategory === 'all' || item.category === currentCategory;
+        const nameTranslated = item.names[currentLang].toLowerCase();
+        const matchesSearch = nameTranslated.includes(searchVal) || item.recommendations[currentLang].toLowerCase().includes(searchVal);
+        return matchesCategory && matchesSearch;
+      });
+      
+      if (filtered.length === 0) {
+        grid.style.display = "none";
+        noResults.style.display = "block";
+        return;
+      }
+      
+      grid.style.display = "grid";
+      noResults.style.display = "none";
+      
+      filtered.forEach(item => {
+        const card = document.createElement("div");
+        card.className = "bearing-card";
+        
+        // Determine badges and colors
+        let loadText = dict.magMedium;
+        let loadClass = "badge-medium";
+        if (item.load === 'magHigh') { loadText = dict.magHigh; loadClass = "badge-high"; }
+        if (item.load === 'magLow') { loadText = dict.magLow; loadClass = "badge-low"; }
+        
+        let speedText = dict.spdMedium;
+        let speedClass = "badge-medium";
+        if (item.speed === 'spdHigh') { speedText = dict.spdHigh; speedClass = "badge-high"; }
+        if (item.speed === 'spdLow') { speedText = dict.spdLow; speedClass = "badge-low"; }
+        
+        const directionText = dict[item.direction];
+        const categoryText = dict['cat' + item.category.charAt(0).toUpperCase() + item.category.slice(1)];
+        
+        // Determine specific Interflon grease name for bolding
+        const recText = item.recommendations[currentLang];
+        let boldRecText = recText;
+        if (recText.includes("Interflon Grease LS2")) {
+          boldRecText = recText.replace("Interflon Grease LS2", '<span class="lubrication-grease">Interflon Grease LS2</span>');
+        } else if (recText.includes("Interflon Grease HD2")) {
+          boldRecText = recText.replace("Interflon Grease HD2", '<span class="lubrication-grease">Interflon Grease HD2</span>');
+        } else if (recText.includes("Interflon Grease LS1/2")) {
+          boldRecText = recText.replace("Interflon Grease LS1/2", '<span class="lubrication-grease">Interflon Grease LS1/2</span>');
+        }
+        
+        card.innerHTML = `
+          <div class="card-header">
+            <div class="card-img-wrapper">
+              <img src="${item.img}" alt="${item.names[currentLang]}" onerror="this.src='bearing-dimensions.jpg'">
+            </div>
+            <div class="card-title-area">
+              <span class="card-category">${categoryText}</span>
+              <h3>${item.names[currentLang]}</h3>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="metrics-row">
+              <div class="metric-box">
+                <span class="metric-label">${dict.lblDirection}</span>
+                <span class="direction-badge">${directionText}</span>
+              </div>
+              <div class="metric-box">
+                <span class="metric-label">${dict.lblLoad}</span>
+                <span class="badge ${loadClass}">${loadText}</span>
+              </div>
+              <div class="metric-box">
+                <span class="metric-label">${dict.lblSpeed}</span>
+                <span class="badge ${speedClass}">${speedText}</span>
+              </div>
+            </div>
+            
+            <div class="lubrication-box">
+              <div class="lubrication-header">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m0-10.03V3.75m0 16.5v.75m0-4.5v-1.5m0-3h.008v.008H12V12Zm4.5 4.5h.75m-6.75 0H9.75M12 18.75h.008v.008H12v-.008Z" />
+                </svg>
+                <span>${dict.lblSmeeradvies}</span>
+              </div>
+              <div class="lubrication-text">${boldRecText}</div>
+            </div>
+          </div>
+        `;
+        
+        grid.appendChild(card);
+      });
+    }
+
+    // Initialize on load
+    window.onload = init;
+  </script>
+</body>
+</html>
