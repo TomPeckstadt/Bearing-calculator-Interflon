@@ -276,7 +276,8 @@ const TRANSLATIONS = {
     btnCheckCompatibility: "Check compatibiliteit",
     pdfViewerTitle: "Vetten Compatibiliteitstabel",
     bearingStatusTitle: "Lager Status & Smering",
-    btnProductInfo: "Ga naar productinfo"
+    btnProductInfo: "Ga naar productinfo",
+    bearingIllustrationTitle: "Lager Type Illustratie"
   },
   en: {
     descGrease: "Determines the maximum DN factor and grease density.",
@@ -548,7 +549,8 @@ const TRANSLATIONS = {
     btnCheckCompatibility: "Check compatibility",
     pdfViewerTitle: "Grease Compatibility Table",
     bearingStatusTitle: "Bearing Status & Lubrication",
-    btnProductInfo: "Go to product info"
+    btnProductInfo: "Go to product info",
+    bearingIllustrationTitle: "Bearing Type Illustration"
   },
   fr: {
     descGrease: "Détermine le facteur DN maximum et la densité de la graisse.",
@@ -820,7 +822,8 @@ const TRANSLATIONS = {
     btnCheckCompatibility: "Vérifier la compatibilité",
     pdfViewerTitle: "Tableau de compatibilité des graisses",
     bearingStatusTitle: "Statut du Roulement & Lubrification",
-    btnProductInfo: "Aller aux infos produit"
+    btnProductInfo: "Aller aux infos produit",
+    bearingIllustrationTitle: "Illustration du type de roulement"
   }
 };
 
@@ -1428,10 +1431,10 @@ function loadBearingDetails(designation) {
 }
 
 function updateBearingImage(type) {
-  const imgEl = document.getElementById("bearingDimensionsImg");
+  const imgEl = document.getElementById("bearingTypeImg");
   if (!imgEl) return;
   
-  let src = "bearing-dimensions.jpg"; // Default fallback
+  let src = "bearing-groove-ball.png"; // Default type illustration fallback
   
   if (type === "Eenrijig groefkogellager" || type === "Dubbelrijig groefkogellager") {
     src = "bearing-groove-ball.png";
