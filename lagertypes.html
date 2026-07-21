@@ -370,6 +370,12 @@
       color: #10B981;
     }
     
+    .badge-none {
+      background-color: rgba(226, 232, 240, 0.5);
+      color: #94A3B8;
+      font-weight: 500;
+    }
+    
     .direction-badge {
       background-color: rgba(10, 37, 64, 0.06);
       color: var(--primary-blue);
@@ -756,13 +762,13 @@
           {
             names: { nl: "Eenrijig", en: "Single Row", fr: "Une rangée" },
             direction: "dirCombined",
-            load: "magMedium",
+            load: { radial: "magMedium", axial: "magLow" },
             speed: "spdHigh"
           },
           {
             names: { nl: "Dubbelrijig", en: "Double Row", fr: "Deux rangées" },
             direction: "dirCombined",
-            load: "magMedium",
+            load: { radial: "magMedium", axial: "magLow" },
             speed: "spdLow"
           }
         ]
@@ -780,19 +786,19 @@
           {
             names: { nl: "Eenrijig", en: "Single Row", fr: "Une rangée" },
             direction: "dirCombined",
-            load: "magMedium",
+            load: { radial: "magMedium", axial: "magMedium" },
             speed: "spdHigh"
           },
           {
             names: { nl: "Dubbelrijig", en: "Double Row", fr: "Deux rangées" },
             direction: "dirCombined",
-            load: "magHigh",
+            load: { radial: "magHigh", axial: "magMedium" },
             speed: "spdLow"
           },
           {
             names: { nl: "Vierpuntslager", en: "Four-point", fr: "Quatre points" },
             direction: "dirCombined",
-            load: "magMedium",
+            load: { radial: "magLow", axial: "magMedium" },
             speed: "spdHigh"
           }
         ]
@@ -810,19 +816,19 @@
           {
             names: { nl: "NU-ontwerp", en: "NU design", fr: "Conception NU" },
             direction: "dirRadial",
-            load: "magHigh",
+            load: { radial: "magHigh", axial: null },
             speed: "spdHigh"
           },
           {
             names: { nl: "NJ-ontwerp", en: "NJ design", fr: "Conception NJ" },
             direction: "dirCombined",
-            load: "magHigh",
+            load: { radial: "magHigh", axial: "magLow" },
             speed: "spdLow"
           },
           {
             names: { nl: "NUP-ontwerp", en: "NUP design", fr: "Conception NUP" },
             direction: "dirCombined",
-            load: "magHigh",
+            load: { radial: "magHigh", axial: "magLow" },
             speed: "spdHigh"
           }
         ]
@@ -837,7 +843,7 @@
           fr: "Roulement à aiguilles"
         },
         direction: "dirRadial",
-        load: "magHigh",
+        load: { radial: "magHigh", axial: null },
         speed: "spdLow"
       },
       {
@@ -850,7 +856,7 @@
           fr: "Roulement à rouleaux coniques"
         },
         direction: "dirCombined",
-        load: "magHigh",
+        load: { radial: "magHigh", axial: "magHigh" },
         speed: "spdMedium"
       },
       {
@@ -863,7 +869,7 @@
           fr: "Butée à billes"
         },
         direction: "dirAxial",
-        load: "magMedium",
+        load: { radial: null, axial: "magMedium" },
         speed: "spdMedium"
       },
       {
@@ -876,7 +882,7 @@
           fr: "Butée à rouleaux cylindriques"
         },
         direction: "dirAxial",
-        load: "magHigh",
+        load: { radial: null, axial: "magHigh" },
         speed: "spdLow"
       },
       {
@@ -889,7 +895,7 @@
           fr: "Butée à rotule sur rouleaux"
         },
         direction: "dirAllSelfAligning",
-        load: "magHigh",
+        load: { radial: "magMedium", axial: "magHigh" },
         speed: "spdLow"
       },
       {
@@ -902,7 +908,7 @@
           fr: "Roulement à billes auto-aligneur"
         },
         direction: "dirAllSelfAligning",
-        load: "magMedium",
+        load: { radial: "magMedium", axial: "magLow" },
         speed: "spdHigh"
       },
       {
@@ -915,7 +921,7 @@
           fr: "Roulement à rotule sur rouleaux"
         },
         direction: "dirAllSelfAligning",
-        load: "magHigh",
+        load: { radial: "magHigh", axial: "magMedium" },
         speed: "spdMedium"
       },
       {
@@ -928,7 +934,7 @@
           fr: "Roulement toroïdal CARB®"
         },
         direction: "dirRadialSelfAligning",
-        load: "magHigh",
+        load: { radial: "magHigh", axial: null },
         speed: "spdMedium"
       },
       {
@@ -941,7 +947,7 @@
           fr: "Roulement d'insertion à billes"
         },
         direction: "dirRadialSelfAligning",
-        load: "magMedium",
+        load: { radial: "magMedium", axial: "magLow" },
         speed: "spdMedium"
       }
     ];
@@ -1018,16 +1024,45 @@
         const card = document.createElement("div");
         card.className = "bearing-card";
         
-        // Check if item has subtypes
         const hasSubtypes = item.subtypes && item.subtypes.length > 0;
         const activeSubIdx = activeSubtypeMap[item.id] || 0;
         const currentData = hasSubtypes ? item.subtypes[activeSubIdx] : item;
-        
-        // Determine badges and colors
-        let loadText = dict.magMedium;
-        let loadClass = "badge-medium";
-        if (currentData.load === 'magHigh') { loadText = dict.magHigh; loadClass = "badge-high"; }
-        if (currentData.load === 'magLow') { loadText = dict.magLow; loadClass = "badge-low"; }
+        // Load helpers
+        const getLoadBadgeClass = (val) => {
+          if (val === 'magHigh') return 'badge-high';
+          if (val === 'magMedium') return 'badge-medium';
+          if (val === 'magLow') return 'badge-low';
+          return 'badge-none';
+        };
+        const getLoadText = (val) => {
+          if (val === 'magHigh') return dict.magHigh;
+          if (val === 'magMedium') return dict.magMedium;
+          if (val === 'magLow') return dict.magLow;
+          return '-';
+        };
+
+        // Calculate load display HTML
+        let loadContentHtml = "";
+        if (currentData.load && (currentData.load.radial !== undefined || currentData.load.axial !== undefined)) {
+          loadContentHtml = `
+            <div style="display: flex; flex-direction: column; gap: 4px; align-items: stretch; font-size: 11px; width: 100%; margin-top: auto;">
+              <div style="display: flex; justify-content: space-between; align-items: center; gap: 4px;">
+                <span style="color: var(--text-medium); font-weight: 500; font-size: 9px;">Rad:</span>
+                <span class="badge ${getLoadBadgeClass(currentData.load.radial)}" style="font-size: 9px; padding: 1px 6px; line-height: 1.2;">${getLoadText(currentData.load.radial)}</span>
+              </div>
+              <div style="display: flex; justify-content: space-between; align-items: center; gap: 4px;">
+                <span style="color: var(--text-medium); font-weight: 500; font-size: 9px;">Ax:</span>
+                <span class="badge ${getLoadBadgeClass(currentData.load.axial)}" style="font-size: 9px; padding: 1px 6px; line-height: 1.2;">${getLoadText(currentData.load.axial)}</span>
+              </div>
+            </div>
+          `;
+        } else {
+          let loadText = dict.magMedium;
+          let loadClass = "badge-medium";
+          if (currentData.load === 'magHigh') { loadText = dict.magHigh; loadClass = "badge-high"; }
+          if (currentData.load === 'magLow') { loadText = dict.magLow; loadClass = "badge-low"; }
+          loadContentHtml = `<span class="badge ${loadClass}" style="margin-top: auto; margin-bottom: auto;">${loadText}</span>`;
+        }
         
         let speedText = dict.spdMedium;
         let speedClass = "badge-medium";
@@ -1097,17 +1132,17 @@
           ${tabsHtml}
           <div class="card-body">
             <div class="metrics-row">
-              <div class="metric-box">
+              <div class="metric-box" style="display: flex; flex-direction: column; justify-content: space-between; align-items: center; min-height: 58px; box-sizing: border-box;">
                 <span class="metric-label">${dict.lblDirection}</span>
-                <span class="direction-badge">${directionText}</span>
+                <span class="direction-badge" style="font-size: 8px; padding: 2px 4px; text-align: center; line-height: 1.1; display: flex; align-items: center; justify-content: center; flex: 1; margin-top: auto; margin-bottom: auto; max-width: 100%; word-break: break-word;">${directionText}</span>
               </div>
-              <div class="metric-box">
+              <div class="metric-box" style="display: flex; flex-direction: column; justify-content: space-between; align-items: center; min-height: 58px; box-sizing: border-box;">
                 <span class="metric-label">${dict.lblLoad}</span>
-                <span class="badge ${loadClass}">${loadText}</span>
+                ${loadContentHtml}
               </div>
-              <div class="metric-box">
+              <div class="metric-box" style="display: flex; flex-direction: column; justify-content: space-between; align-items: center; min-height: 58px; box-sizing: border-box;">
                 <span class="metric-label">${dict.lblSpeed}</span>
-                <span class="badge ${speedClass}">${speedText}</span>
+                <span class="badge ${speedClass}" style="margin-top: auto; margin-bottom: auto; font-size: 9px; padding: 2px 6px;">${speedText}</span>
               </div>
             </div>
           </div>
