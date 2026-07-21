@@ -1242,6 +1242,13 @@ function togglePasswordVisibility() {
 // ==========================================================================
 
 function switchPage(pageId) {
+  // Reset scrollpositie naar de top van de pagina
+  window.scrollTo(0, 0);
+  const mainContent = document.querySelector(".main-content");
+  if (mainContent) {
+    mainContent.scrollTop = 0;
+  }
+
   // Verberg alle secties
   document.querySelectorAll(".page-section").forEach(section => {
     section.classList.remove("active");
