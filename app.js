@@ -3813,7 +3813,7 @@ const INTERFLON_PRODUCT_URLS = {
   "INTERFLON GREASE HD2": "https://interflon.com/be/nl/producten/interflon-grease-hd2",
   "INTERFLON GREASE HTG": "https://interflon.com/be/nl/producten/interflon-grease-htg",
   "INTERFLON GREASE MP1": "https://interflon.com/be/nl/producten/interflon-grease-mp1",
-  "INTERFLON GREASE MP2/3": "https://interflon.com/be/nl/producten/interflon-grease-mp-2-3",
+  "INTERFLON GREASE MP2/3": "https://interflon.com/be/nl/producten/interflon-grease-mp2-3",
   "INTERFLON GREASE HS2": "https://interflon.com/be/nl/producten/interflon-grease-hs2",
   "INTERFLON FOOD GREASE 3H": "https://interflon.com/be/nl/producten/interflon-food-grease-3h",
   "INTERFLON FOOD GREASE HD00": "https://interflon.com/be/nl/producten/interflon-food-grease-hd00",
