@@ -277,7 +277,8 @@ const TRANSLATIONS = {
     pdfViewerTitle: "Vetten Compatibiliteitstabel",
     bearingStatusTitle: "Lager Status & Smering",
     btnProductInfo: "Ga naar productinfo",
-    bearingIllustrationTitle: "Lager Type Illustratie"
+    bearingIllustrationTitle: "Lager Type Illustratie",
+    btnLagertypes: "Lagertypes"
   },
   en: {
     descGrease: "Determines the maximum DN factor and grease density.",
@@ -550,7 +551,8 @@ const TRANSLATIONS = {
     pdfViewerTitle: "Grease Compatibility Table",
     bearingStatusTitle: "Bearing Status & Lubrication",
     btnProductInfo: "Go to product info",
-    bearingIllustrationTitle: "Bearing Type Illustration"
+    bearingIllustrationTitle: "Bearing Type Illustration",
+    btnLagertypes: "Bearing Types"
   },
   fr: {
     descGrease: "Détermine le facteur DN maximum et la densité de la graisse.",
@@ -823,7 +825,8 @@ const TRANSLATIONS = {
     pdfViewerTitle: "Tableau de compatibilité des graisses",
     bearingStatusTitle: "Statut du Roulement & Lubrification",
     btnProductInfo: "Aller aux infos produit",
-    bearingIllustrationTitle: "Illustration du type de roulement"
+    bearingIllustrationTitle: "Illustration du type de roulement",
+    btnLagertypes: "Types de roulement"
   }
 };
 
@@ -3649,4 +3652,9 @@ function openProductInfoPage() {
   }
   
   window.open(url, "_blank");
+}
+
+function openLagertypesPage() {
+  const lang = currentLang || "nl";
+  window.open(`lagertypes.html?lang=${lang}`, "_blank");
 }
