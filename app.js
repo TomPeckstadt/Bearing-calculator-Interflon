@@ -3681,21 +3681,46 @@ function updateBearingAnimation(speed, limitingSpeed, ndm, dnMax, fc, temp, temp
       liquid.style.height = heightPct + "%";
     }
     
-    // Interpolate colors based on temperature:
-    // Cold Limit (-20): Dark navy blue - rgb(30, 41, 59)
-    // Baseline (40): Mid blue - rgb(59, 130, 246)
-    // Hot Limit (100): Interflon Red - rgb(227, 6, 19)
+    // Interpolate colors based on temperature and grease limit:
+    // Below 40°C: transition from Dark Blue (30, 41, 59) to Mid Blue (59, 130, 246)
+    // Above 40°C: transition from Mid Blue to Light Yellow, Orange, and finally Interflon Red based on grease max limit
     let r, g, b;
-    if (tClamped < 40) {
-      const ratio = (tClamped - (-20)) / (40 - (-20)); // 0 to 1
+    if (tempVal <= 40) {
+      const ratio = Math.max(0, Math.min(1, (tempVal - (-20)) / 60)); // -20°C to 40°C
       r = Math.round(30 + ratio * (59 - 30));
       g = Math.round(41 + ratio * (130 - 41));
       b = Math.round(59 + ratio * (246 - 59));
     } else {
-      const ratio = (tClamped - 40) / (100 - 40); // 0 to 1
-      r = Math.round(59 + ratio * (227 - 59));
-      g = Math.round(130 + ratio * (6 - 130));
-      b = Math.round(246 + ratio * (19 - 246));
+      const maxT = isNaN(tempMax) ? 120 : parseFloat(tempMax);
+      const span = Math.max(20, maxT - 40);
+      const diff = tempVal - 40;
+      const ratio = diff / span; // 0 to 1 (or > 1 if exceeding max limit)
+      
+      if (ratio <= 0.15) {
+        // 0.0 to 0.15: Transition from Mid Blue (59, 130, 246) to Light Yellow (253, 224, 71)
+        const localRatio = ratio / 0.15;
+        r = Math.round(59 + localRatio * (253 - 59));
+        g = Math.round(130 + localRatio * (224 - 130));
+        b = Math.round(246 + localRatio * (71 - 246));
+      } else if (ratio <= 0.6) {
+        // 0.15 to 0.6: Transition from Light Yellow (253, 224, 71) to Orange (249, 115, 22)
+        const localRatio = (ratio - 0.15) / 0.45;
+        r = Math.round(253 + localRatio * (249 - 253));
+        g = Math.round(224 + localRatio * (115 - 224));
+        b = Math.round(71 + localRatio * (22 - 71));
+      } else if (ratio <= 1.0) {
+        // 0.6 to 1.0: Transition from Orange (249, 115, 22) to Interflon Red (227, 6, 19)
+        const localRatio = (ratio - 0.6) / 0.4;
+        r = Math.round(249 + localRatio * (227 - 249));
+        g = Math.round(115 + localRatio * (6 - 115));
+        b = Math.round(22 + localRatio * (19 - 22));
+      } else {
+        // > 1.0: Exceeding limit - Transition from Interflon Red (227, 6, 19) to Dark Red (127, 29, 29)
+        const localRatio = Math.min(1.0, (ratio - 1.0) / 0.5);
+        r = Math.round(227 + localRatio * (127 - 227));
+        g = Math.round(6 + localRatio * (29 - 6));
+        b = Math.round(19 + localRatio * (29 - 19));
+      }
     }
     
     const colorStr = `rgb(${r}, ${g}, ${b})`;
