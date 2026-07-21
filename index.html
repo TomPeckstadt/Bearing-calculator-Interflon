@@ -569,16 +569,28 @@
           </div>
 
           <!-- Right Visual Column -->
-          <div class="bearing-visual-container">
-            <h4 data-i18n="visualDimensionsTitle">Visuele Afmetingen</h4>
-                     <div class="bearing-svg-wrapper" style="display: flex; align-items: center; justify-content: center; height: 280px; margin-bottom: 10px;">
-              <img id="bearingDimensionsImg" src="bearing-dimensions.jpg" alt="Lager afmetingen" style="max-height: 100%; max-width: 100%; object-fit: contain; border-radius: var(--border-radius-md);">
-            </div>
+          <div class="bearing-visual-container" style="display: flex; flex-direction: column; gap: 20px;">
             
-            <div class="bearing-visual-note" style="margin-top: 10px; text-align: center;">
-              <strong>d</strong> = <span data-i18n="boreDiameterShort">boring</span> (<span id="visualBoreText">-</span>mm) | 
-              <strong>D</strong> = <span data-i18n="outerDiameterShort">buitendiameter</span> (<span id="visualOuterText">-</span>mm) | 
-              <strong>B</strong> = <span data-i18n="widthBShort">breedte</span> (<span id="visualWidthText">-</span>mm)
+            <!-- Type-specifieke 3D CAD Illustratie -->
+            <div class="bearing-type-illustration-card" style="background: white; border: 1px solid var(--accent-yellow-border-soft); border-radius: var(--border-radius-lg); padding: 15px; display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: var(--shadow-sm);">
+              <h4 style="margin-top: 0; margin-bottom: 10px; font-size: 14px; font-weight: 600; color: var(--primary-blue); font-family: 'Outfit', sans-serif;" data-i18n="bearingIllustrationTitle">Lager Type Illustratie</h4>
+              <div style="height: 180px; width: 100%; display: flex; align-items: center; justify-content: center;">
+                <img id="bearingTypeImg" src="bearing-groove-ball.png" alt="Lager type" style="max-height: 100%; max-width: 100%; object-fit: contain;">
+              </div>
+            </div>
+
+            <!-- Visuele Afmetingen (Statisch) -->
+            <div>
+              <h4 data-i18n="visualDimensionsTitle" style="margin-top: 0;">Visuele Afmetingen</h4>
+              <div class="bearing-svg-wrapper" style="display: flex; align-items: center; justify-content: center; height: 280px; margin-bottom: 10px;">
+                <img id="bearingDimensionsImg" src="bearing-dimensions.jpg" alt="Lager afmetingen" style="max-height: 100%; max-width: 100%; object-fit: contain; border-radius: var(--border-radius-md);">
+              </div>
+              
+              <div class="bearing-visual-note" style="margin-top: 10px; text-align: center;">
+                <strong>d</strong> = <span data-i18n="boreDiameterShort">boring</span> (<span id="visualBoreText">-</span>mm) | 
+                <strong>D</strong> = <span data-i18n="outerDiameterShort">buitendiameter</span> (<span id="visualOuterText">-</span>mm) | 
+                <strong>B</strong> = <span data-i18n="widthBShort">breedte</span> (<span id="visualWidthText">-</span>mm)
+              </div>
             </div>
           </div>
         </div>
