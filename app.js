@@ -1290,6 +1290,14 @@ function switchPage(pageId) {
     if (targetTitle) targetTitle.setAttribute("data-i18n", "pageOmTitle");
     if (targetSubtitle) targetSubtitle.setAttribute("data-i18n", "pageOmSubtitle");
     calculateTco();
+
+    // Trigger zoom pulse animation on the instruction badge
+    const badge = document.getElementById("omInstructionBadge");
+    if (badge) {
+      badge.classList.remove("pulse-badge");
+      void badge.offsetWidth; // Force reflow
+      badge.classList.add("pulse-badge");
+    }
   } else if (pageId === 'info') {
     document.getElementById("pageInfo").classList.add("active");
     document.getElementById("menuInfo").classList.add("active");
