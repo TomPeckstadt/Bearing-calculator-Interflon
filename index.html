@@ -385,6 +385,14 @@
               <span data-i18n="menuOm">Opbrengstmodel</span>
             </button>
           </li>
+          <li style="padding: 6px 16px 8px 16px;">
+            <button id="btnExportPdf" onclick="showPdfModal()" class="btn-export-sidebar" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 10px 16px; background-color: var(--primary-blue); color: white; border: none; border-radius: var(--border-radius-md); font-family: inherit; font-size: 13px; font-weight: 700; cursor: pointer; box-shadow: 0 4px 6px -1px rgba(227, 6, 19, 0.2); transition: all 0.2s ease;">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" style="width: 16px; height: 16px; color: white;">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
+              </svg>
+              <span data-i18n="btnPdfReport" style="color: white;">Rapport PDF</span>
+            </button>
+          </li>
           <li>
             <button id="menuInfo" class="menu-item-btn" onclick="switchPage('info')">
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
@@ -618,12 +626,6 @@
             <p id="calcBannerSubtitle" data-i18n="calcBannerSubtitleEmpty">Keer terug naar 'Lager Opzoeken' om een lager te laden, of vul handmatig afmetingen in.</p>
           </div>
           <div style="display: flex; align-items: center; gap: 15px;">
-            <button id="btnExportPdf" class="btn-export" onclick="showPdfModal()">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
-              </svg>
-              <span data-i18n="btnPdfReport">Rapport PDF</span>
-            </button>
             <span id="calcBannerBadge" class="calc-badge-bearing">-</span>
           </div>
         </div>
