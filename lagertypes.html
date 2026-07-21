@@ -1070,16 +1070,29 @@
           tabsHtml += `</div>`;
         }
         
+        let imgHtml = "";
+        if (hasSubtypes) {
+          imgHtml = `
+            <div style="position: relative; display: flex; align-items: center; justify-content: center; width: 100%; height: 100%;">
+              <img src="${item.img}?v=12" alt="${item.names[currentLang]}" onerror="this.src='bearing-dimensions.jpg'" style="max-height: 100%; max-width: 100%; object-fit: contain;">
+              <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex;">
+                ${overlaysHtml}
+              </div>
+            </div>
+          `;
+        } else {
+          imgHtml = `
+            <img src="${item.img}?v=12" alt="${item.names[currentLang]}" onerror="this.src='bearing-dimensions.jpg'">
+          `;
+        }
+
         card.innerHTML = `
           <div class="card-header">
             <span class="card-category">${categoryText}</span>
             <h3>${item.names[currentLang]}</h3>
           </div>
           <div class="card-img-block">
-            <div style="position: relative; display: inline-block; max-height: 100%; max-width: 100%;">
-              <img src="${item.img}?v=12" alt="${item.names[currentLang]}" onerror="this.src='bearing-dimensions.jpg'" style="display: block; max-width: 100%; max-height: 100%;">
-              ${overlaysHtml}
-            </div>
+            ${imgHtml}
           </div>
           ${tabsHtml}
           <div class="card-body">
