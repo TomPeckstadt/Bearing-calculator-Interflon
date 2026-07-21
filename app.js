@@ -1291,12 +1291,28 @@ function switchPage(pageId) {
     if (targetSubtitle) targetSubtitle.setAttribute("data-i18n", "pageOmSubtitle");
     calculateTco();
 
-    // Trigger zoom pulse animation on the instruction badge
+    // Trigger zoom pulse animation when the instruction badge becomes visible on scroll
     const badge = document.getElementById("omInstructionBadge");
     if (badge) {
       badge.classList.remove("pulse-badge");
-      void badge.offsetWidth; // Force reflow
-      badge.classList.add("pulse-badge");
+      
+      if (window.omBadgeObserver) {
+        window.omBadgeObserver.disconnect();
+      }
+      
+      window.omBadgeObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            // Trigger animation
+            entry.target.classList.add("pulse-badge");
+            // Stop observing once triggered
+            window.omBadgeObserver.disconnect();
+            window.omBadgeObserver = null;
+          }
+        });
+      }, { threshold: 0.1 });
+      
+      window.omBadgeObserver.observe(badge);
     }
   } else if (pageId === 'info') {
     document.getElementById("pageInfo").classList.add("active");
