@@ -633,11 +633,17 @@
           <!-- Parameter Invoer Card -->
           <div class="card">
             <h3 class="card-title" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; width: 100%; gap: 10px;">
-              <div style="display: flex; align-items: center; gap: 10px;">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 0-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-9.75 0h9.75" />
-                </svg>
-                <span data-i18n="cardInputs">Invoerparameters</span>
+              <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 0-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-9.75 0h9.75" />
+                  </svg>
+                  <span data-i18n="cardInputs">Invoerparameters</span>
+                </div>
+                <span id="calcInstructionBadge" style="font-size: 11px; color: var(--text-medium); font-weight: 600; padding: 4px 8px; background-color: #f3f4f6; border: 1px solid #e5e7eb; border-radius: var(--border-radius-sm); display: inline-flex; align-items: center; gap: 6px; transition: all 0.3s ease;">
+                  <span style="width: 10px; height: 10px; background-color: #F3F4F6; border: 1px solid #cbd5e1; border-radius: 2px; display: inline-block;"></span>
+                  <span data-i18n="omInstructionText">Vul de grijze cellen in</span>
+                </span>
               </div>
               <button type="button" onclick="openPdfViewerModal()" class="btn" style="padding: 6px 12px; font-size: 12px; height: auto; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; font-family: 'Outfit', sans-serif;">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width: 16px; height: 16px; color: inherit;">
