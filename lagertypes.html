@@ -221,47 +221,46 @@
     }
     
     .card-header {
-      padding: 20px;
+      padding: 16px 20px;
       background: linear-gradient(135deg, #FAFBFD 0%, #F1F4F9 100%);
       border-bottom: 1px solid var(--border-color);
       display: flex;
-      align-items: center;
-      gap: 15px;
-    }
-    
-    .card-img-wrapper {
-      width: 80px;
-      height: 80px;
-      background: white;
-      border-radius: var(--border-radius-md);
-      border: 1px solid var(--border-color);
-      padding: 6px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-    }
-    
-    .card-img-wrapper img {
-      max-width: 100%;
-      max-height: 100%;
-      object-fit: contain;
+      flex-direction: column;
+      gap: 4px;
     }
     
     .card-title-area h3 {
       font-family: 'Outfit', sans-serif;
-      font-size: 18px;
+      font-size: 17px;
       font-weight: 700;
       color: var(--primary-blue);
-      margin-bottom: 4px;
     }
     
     .card-category {
-      font-size: 11px;
+      font-size: 10px;
       text-transform: uppercase;
       letter-spacing: 0.5px;
       font-weight: 700;
       color: var(--text-light);
+    }
+    
+    /* Image Section in Card - full width */
+    .card-img-block {
+      width: 100%;
+      height: 180px;
+      background-color: white;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 10px;
+      overflow: hidden;
+    }
+    
+    .card-img-block img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
     }
     
     .card-body {
@@ -269,6 +268,7 @@
       flex: 1;
       display: flex;
       flex-direction: column;
+      justify-content: center;
       gap: 15px;
     }
     
@@ -330,46 +330,6 @@
       border-radius: 12px;
     }
     
-    /* Lubrication Recommendation */
-    .lubrication-box {
-      background: var(--accent-yellow-light);
-      border: 1px solid var(--accent-yellow-border);
-      border-radius: var(--border-radius-md);
-      padding: 15px;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-    
-    .lubrication-header {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-family: 'Outfit', sans-serif;
-      font-size: 13px;
-      font-weight: 700;
-      color: #B7791F;
-    }
-    
-    .lubrication-header svg {
-      width: 16px;
-      height: 16px;
-      color: var(--accent-yellow);
-    }
-    
-    .lubrication-grease {
-      font-family: 'Outfit', sans-serif;
-      font-size: 14px;
-      font-weight: 800;
-      color: var(--accent-red);
-    }
-    
-    .lubrication-text {
-      font-size: 12.5px;
-      color: var(--text-dark);
-      line-height: 1.4;
-    }
-    
     /* Footer */
     footer {
       margin-top: 50px;
@@ -411,12 +371,6 @@
       display: flex;
       align-items: center;
       gap: 8px;
-    }
-    
-    .legend-dot {
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
     }
     
     /* No results state */
@@ -473,7 +427,7 @@
       </div>
       <div class="header-text" style="text-align: center; flex: 1;">
         <h1 id="mainTitle">Interflon Lagertypes Wijzer</h1>
-        <p id="mainSubtitle">Een overzicht van mechanische lagertypen, belastbaarheid en smeeradvies met Interflon MicPol® technologie.</p>
+        <p id="mainSubtitle">Een overzicht van mechanische lagertypen, belastbaarheid en toerentalgrenzen.</p>
       </div>
       <div class="lang-toggle">
         <button class="lang-btn active" onclick="changeLanguage('nl')">NL</button>
@@ -545,7 +499,7 @@
     const TRANSLATIONS = {
       nl: {
         mainTitle: "Interflon Lagertypes Wijzer",
-        mainSubtitle: "Een overzicht van mechanische lagertypen, belastbaarheid en smeeradvies met Interflon MicPol® technologie.",
+        mainSubtitle: "Een overzicht van mechanische lagertypen, belastbaarheid en toerentalgrenzen.",
         searchPlaceholder: "Zoek op lagertype (bijv. groefkogel, tonlager...)",
         lblLegendBelastingen: "Belastingen:",
         lblLegendToerentallen: "Toerental:",
@@ -562,7 +516,6 @@
         lblNoResultsTitle: "Geen lagertypes gevonden",
         lblNoResultsDesc: "Probeer een andere zoekterm.",
         lblFooterText: "© 2026 Interflon - A world without friction. Alle rechten voorbehouden.",
-        lblSmeeradvies: "Interflon Smeeradvies",
         lblLoad: "Belastbaarheid",
         lblSpeed: "Toerental",
         lblDirection: "Richting",
@@ -589,7 +542,7 @@
       },
       en: {
         mainTitle: "Interflon Bearing Types Guide",
-        mainSubtitle: "An overview of bearing types, load capacities, speed ratings, and lubrication advice with Interflon MicPol® technology.",
+        mainSubtitle: "An overview of bearing types, load capacities, and speed ratings.",
         searchPlaceholder: "Search bearing type (e.g., deep groove, spherical roller...)",
         lblLegendBelastingen: "Loads:",
         lblLegendToerentallen: "Speed:",
@@ -606,7 +559,6 @@
         lblNoResultsTitle: "No bearing types found",
         lblNoResultsDesc: "Try a different search term.",
         lblFooterText: "© 2026 Interflon - A world without friction. All rights reserved.",
-        lblSmeeradvies: "Interflon Lubrication Advice",
         lblLoad: "Load Capacity",
         lblSpeed: "Speed Rating",
         lblDirection: "Direction",
@@ -633,7 +585,7 @@
       },
       fr: {
         mainTitle: "Guide des Types de Roulement Interflon",
-        mainSubtitle: "Un aperçu des types de roulements, capacités de charge, vitesses et conseils de lubrification avec la technologie Interflon MicPol®.",
+        mainSubtitle: "Un aperçu des types de roulements, capacités de charge et vitesses maximales.",
         searchPlaceholder: "Rechercher un type (ex. billes, rouleaux sphériques...)",
         lblLegendBelastingen: "Charges :",
         lblLegendToerentallen: "Vitesse :",
@@ -650,7 +602,6 @@
         lblNoResultsTitle: "Aucun type de roulement trouvé",
         lblNoResultsDesc: "Essayez un autre mot clé.",
         lblFooterText: "© 2026 Interflon - A world without friction. Tous droits réservés.",
-        lblSmeeradvies: "Conseil de lubrification Interflon",
         lblLoad: "Capacité de charge",
         lblSpeed: "Vitesse maximale",
         lblDirection: "Direction",
@@ -677,48 +628,25 @@
       }
     };
 
-    // Bearing types data
+    // Bearing types data using original PDF crops
     const BEARINGS_DATA = [
       {
         id: "groove_ball",
         category: "ball",
-        img: "bearing-groove-ball.png",
+        img: "crop-groove-ball.png",
         names: {
-          nl: "Eenrijig groefkogellager",
-          en: "Single row deep groove ball bearing",
+          nl: "Groefkogellager",
+          en: "Deep groove ball bearing",
           fr: "Roulement à billes à gorge profonde"
         },
         direction: "dirCombined",
         load: "magMedium",
-        speed: "spdHigh",
-        recommendations: {
-          nl: "Interflon Grease LS2. Voor universeel gebruik. Biedt uitstekende wrijvingsvermindering, afdichting tegen vuil en verlengt smeerintervallen met factor 4.",
-          en: "Interflon Grease LS2. For multipurpose use. Provides excellent friction reduction, seals out contaminants, and extends lubrication intervals by factor 4.",
-          fr: "Interflon Grease LS2. Pour usage universel. Offre une excellente réduction de friction, protège contre l'eau et les poussières, et multiplie la durée de service par 4."
-        }
-      },
-      {
-        id: "double_groove_ball",
-        category: "ball",
-        img: "bearing-double-groove-ball.png",
-        names: {
-          nl: "Dubbelrijig groefkogellager",
-          en: "Double row deep groove ball bearing",
-          fr: "Roulement à billes à double rangée"
-        },
-        direction: "dirCombined",
-        load: "magMedium",
-        speed: "spdHigh",
-        recommendations: {
-          nl: "Interflon Grease LS2 of HD2. Geschikt voor hogere belastingen. Uitstekende mechanische stabiliteit onder continue rotatie.",
-          en: "Interflon Grease LS2 or HD2. Suitable for higher loads. Excellent mechanical stability under continuous rotation.",
-          fr: "Interflon Grease LS2 ou HD2. Convient aux charges plus élevées. Stabilité mécanique exceptionnelle en rotation continue."
-        }
+        speed: "spdHigh"
       },
       {
         id: "angular_contact",
         category: "ball",
-        img: "bearing-angular-contact.png",
+        img: "crop-angular-contact.png",
         names: {
           nl: "Hoekcontactkogellager",
           en: "Angular contact ball bearing",
@@ -726,35 +654,12 @@
         },
         direction: "dirCombined",
         load: "magMedium",
-        speed: "spdHigh",
-        recommendations: {
-          nl: "Interflon Grease LS2. Speciaal ontworpen voor gecombineerde radiale en axiale belastingen. Garandeert een stabiele smeerfilm onder zware hoekkrachten.",
-          en: "Interflon Grease LS2. Specially designed for combined radial and axial loads. Guarantees a stable lubricant film under angular forces.",
-          fr: "Interflon Grease LS2. Conçu pour supporter des charges radiales et axiales combinées. Garantit un film lubrifiant stable sous des forces d'angle."
-        }
-      },
-      {
-        id: "double_angular_contact",
-        category: "ball",
-        img: "bearing-double-angular-contact.png",
-        names: {
-          nl: "Dubbelrijig hoekcontactkogellager",
-          en: "Double row angular contact ball bearing",
-          fr: "Roulement à billes à double contact oblique"
-        },
-        direction: "dirCombined",
-        load: "magHigh",
-        speed: "spdHigh",
-        recommendations: {
-          nl: "Interflon Grease LS2 of HD2. Uitstekend bestand tegen zware axiale krachten in twee richtingen gekoppeld aan hoge toerentallen.",
-          en: "Interflon Grease LS2 or HD2. Excellent resistance to heavy axial forces in both directions coupled with high speeds.",
-          fr: "Interflon Grease LS2 ou HD2. Résistance exceptionnelle aux forces axiales bidirectionnelles et aux vitesses élevées."
-        }
+        speed: "spdHigh"
       },
       {
         id: "cylindrical_roller",
         category: "roller",
-        img: "bearing-cylindrical-roller.png",
+        img: "crop-cylindrical-roller.png",
         names: {
           nl: "Cilinderlager",
           en: "Cylindrical roller bearing",
@@ -762,89 +667,12 @@
         },
         direction: "dirRadial",
         load: "magHigh",
-        speed: "spdHigh",
-        recommendations: {
-          nl: "Interflon Grease HD2. Ideaal voor zware radiale belastingen en trillingen. De MicPol® smering voorkomt direct metaal-op-metaal contact onder extreme druk.",
-          en: "Interflon Grease HD2. Ideal for heavy radial loads and vibrations. MicPol® lubrication prevents metal-to-metal contact under extreme pressure.",
-          fr: "Interflon Grease HD2. Idéal pour les charges radiales élevées et les vibrations. La lubrification MicPol® empêche le contact métal contre métal."
-        }
-      },
-      {
-        id: "tapered_roller",
-        category: "roller",
-        img: "bearing-tapered-roller.png",
-        names: {
-          nl: "Kegellager",
-          en: "Tapered roller bearing",
-          fr: "Roulement à rouleaux coniques"
-        },
-        direction: "dirCombined",
-        load: "magHigh",
-        speed: "spdMedium",
-        recommendations: {
-          nl: "Interflon Grease HD2. Perfect voor zware wiellagers en overbrengingen. Biedt uitstekende EP (Extreme Pressure) eigenschappen en anti-corrosie.",
-          en: "Interflon Grease HD2. Perfect for heavy-duty wheel bearings and gearboxes. Offers excellent EP (Extreme Pressure) properties and corrosion protection.",
-          fr: "Interflon Grease HD2. Parfait pour les roulements de roue et les engrenages. Offre d'excellentes propriétés EP (pression extrême) et anti-corrosion."
-        }
-      },
-      {
-        id: "spherical_roller",
-        category: "roller",
-        img: "bearing-spherical-roller.png",
-        names: {
-          nl: "Pendelrollager (Tonlager)",
-          en: "Spherical roller bearing",
-          fr: "Roulement à rotule sur rouleaux"
-        },
-        direction: "dirAllSelfAligning",
-        load: "magHigh",
-        speed: "spdMedium",
-        recommendations: {
-          nl: "Interflon Grease HD2. Uitstekend voor zware machines en tonlagers die onderhevig zijn aan as-uitlijnfouten. Hoge afschuifstabiliteit en taaiheid.",
-          en: "Interflon Grease HD2. Superb for heavy machinery and spherical rollers prone to misalignment. High shear stability and film thickness.",
-          fr: "Interflon Grease HD2. Idéal pour les machines lourdes et les rotules sujettes au désalignement. Haute résistance au cisaillement."
-        }
-      },
-      {
-        id: "self_aligning_ball",
-        category: "ball",
-        img: "bearing-self-aligning-ball.png",
-        names: {
-          nl: "Pendelkogellager",
-          en: "Self-aligning ball bearing",
-          fr: "Roulement à billes auto-aligneur"
-        },
-        direction: "dirAllSelfAligning",
-        load: "magMedium",
-        speed: "spdHigh",
-        recommendations: {
-          nl: "Interflon Grease LS2. Compenseert uitlijnfouten automatisch. Vermindert wrijvingswarmte bij hoge toerentallen en verlengt het nasmeerinterval.",
-          en: "Interflon Grease LS2. Automatically compensates for misalignment. Minimizes frictional heat at high speeds and extends re-lubrication intervals.",
-          fr: "Interflon Grease LS2. Compense automatiquement le désalignement. Réduit la chaleur de friction à haute vitesse et espace les entretiens."
-        }
-      },
-      {
-        id: "thrust_ball",
-        category: "thrust",
-        img: "bearing-thrust-ball.png",
-        names: {
-          nl: "Axiaalkogellager",
-          en: "Thrust ball bearing",
-          fr: "Butée à billes"
-        },
-        direction: "dirAxial",
-        load: "magMedium",
-        speed: "spdLow",
-        recommendations: {
-          nl: "Interflon Grease LS2. Speciaal voor puur axiale belastingen. Houdt de loopbanen van de schijven optimaal gesmeerd bij lage toerentallen.",
-          en: "Interflon Grease LS2. Specially for pure axial loads. Keeps washer raceways optimally lubricated at lower speeds.",
-          fr: "Interflon Grease LS2. Spécialement pour les charges purement axiales. Assure une lubrification optimale des pistes de rondelle à vitesse réduite."
-        }
+        speed: "spdHigh"
       },
       {
         id: "needle_roller",
         category: "roller",
-        img: "bearing-dimensions.jpg", // fallback image placeholder
+        img: "crop-needle-roller.png",
         names: {
           nl: "Naaldlager",
           en: "Needle roller bearing",
@@ -852,35 +680,38 @@
         },
         direction: "dirRadial",
         load: "magHigh",
-        speed: "spdMedium",
-        recommendations: {
-          nl: "Interflon Grease LS1/2. De lagere NLGI-dikte zorgt voor uitstekende penetratie in de krappe ruimtes tussen de naaldrollen.",
-          en: "Interflon Grease LS1/2. Lower NLGI viscosity allows excellent penetration into the tight spaces between needle rollers.",
-          fr: "Interflon Grease LS1/2. Sa classe NLGI légèrement fluide permet une excellente pénétration dans les espaces étroits des aiguilles."
-        }
+        speed: "spdMedium"
       },
       {
-        id: "carb_toroidal",
+        id: "tapered_roller",
         category: "roller",
-        img: "bearing-cylindrical-roller.png",
+        img: "crop-tapered-roller.png",
         names: {
-          nl: "CARB® Toroïdaal rollager",
-          en: "CARB® toroidal roller bearing",
-          fr: "Roulement toroïdal CARB®"
+          nl: "Kegellager",
+          en: "Tapered roller bearing",
+          fr: "Roulement à rouleaux coniques"
         },
-        direction: "dirRadialSelfAligning",
+        direction: "dirCombined",
         load: "magHigh",
-        speed: "spdMedium",
-        recommendations: {
-          nl: "Interflon Grease HD2. Ideaal voor niet-vastgelegde lagerposities in combinatie met pendelrollagers. Uiterst betrouwbaar onder wisselende asbelasting.",
-          en: "Interflon Grease HD2. Ideal for non-locating bearing positions paired with spherical rollers. Extremely reliable under changing loads.",
-          fr: "Interflon Grease HD2. Idéal pour les paliers libres combinés à des roulements à rotule. Très fiable sous des charges axiales fluctuantes."
-        }
+        speed: "spdMedium"
+      },
+      {
+        id: "thrust_ball",
+        category: "thrust",
+        img: "crop-thrust-ball.png",
+        names: {
+          nl: "Axiaalkogellager (Kogelkraaglager)",
+          en: "Thrust ball bearing",
+          fr: "Butée à billes"
+        },
+        direction: "dirAxial",
+        load: "magMedium",
+        speed: "spdLow"
       },
       {
         id: "cylindrical_thrust",
         category: "thrust",
-        img: "bearing-thrust-ball.png",
+        img: "crop-cylindrical-thrust.png",
         names: {
           nl: "Cilindertaatslager",
           en: "Cylindrical roller thrust bearing",
@@ -888,12 +719,72 @@
         },
         direction: "dirAxial",
         load: "magHigh",
-        speed: "spdLow",
-        recommendations: {
-          nl: "Interflon Grease HD2. Bestand tegen extreem zware axiale drukkrachten. MicPol® voorkomt wrijving en vreten van de loopringen.",
-          en: "Interflon Grease HD2. Capable of carrying extremely heavy axial loads. MicPol® technology prevents scuffing and wear on the plates.",
-          fr: "Interflon Grease HD2. Capable de supporter des charges axiales extrêmement lourdes. Évite le grippage et l'usure prématurée."
-        }
+        speed: "spdLow"
+      },
+      {
+        id: "spherical_thrust",
+        category: "thrust",
+        img: "crop-spherical-thrust.png",
+        names: {
+          nl: "Tontaatslager",
+          en: "Spherical roller thrust bearing",
+          fr: "Butée à rotule sur rouleaux"
+        },
+        direction: "dirAllSelfAligning",
+        load: "magHigh",
+        speed: "spdMedium"
+      },
+      {
+        id: "self_aligning_ball",
+        category: "ball",
+        img: "crop-self-aligning-ball.png",
+        names: {
+          nl: "Pendelkogellager",
+          en: "Self-aligning ball bearing",
+          fr: "Roulement à billes auto-aligneur"
+        },
+        direction: "dirAllSelfAligning",
+        load: "magMedium",
+        speed: "spdHigh"
+      },
+      {
+        id: "spherical_roller",
+        category: "roller",
+        img: "crop-spherical-roller.png",
+        names: {
+          nl: "Pendelrollager (Tonlager)",
+          en: "Spherical roller bearing",
+          fr: "Roulement à rotule sur rouleaux"
+        },
+        direction: "dirAllSelfAligning",
+        load: "magHigh",
+        speed: "spdMedium"
+      },
+      {
+        id: "carb_toroidal",
+        category: "roller",
+        img: "crop-carb.png",
+        names: {
+          nl: "CARB® Toroïdaal rollager",
+          en: "CARB® toroidal roller bearing",
+          fr: "Roulement toroïdal CARB®"
+        },
+        direction: "dirRadialSelfAligning",
+        load: "magHigh",
+        speed: "spdMedium"
+      },
+      {
+        id: "insert_ball",
+        category: "ball",
+        img: "crop-insert-ball.png",
+        names: {
+          nl: "Instelbaar kogellager (Y-lager)",
+          en: "Insert ball bearing",
+          fr: "Roulement d'insertion à billes"
+        },
+        direction: "dirRadialSelfAligning",
+        load: "magMedium",
+        speed: "spdMedium"
       }
     ];
 
@@ -991,8 +882,7 @@
       const filtered = BEARINGS_DATA.filter(item => {
         const matchesCategory = currentCategory === 'all' || item.category === currentCategory;
         const nameTranslated = item.names[currentLang].toLowerCase();
-        const matchesSearch = nameTranslated.includes(searchVal) || item.recommendations[currentLang].toLowerCase().includes(searchVal);
-        return matchesCategory && matchesSearch;
+        return matchesCategory && nameTranslated.includes(searchVal);
       });
       
       if (filtered.length === 0) {
@@ -1022,26 +912,13 @@
         const directionText = dict[item.direction];
         const categoryText = dict['cat' + item.category.charAt(0).toUpperCase() + item.category.slice(1)];
         
-        // Determine specific Interflon grease name for bolding
-        const recText = item.recommendations[currentLang];
-        let boldRecText = recText;
-        if (recText.includes("Interflon Grease LS2")) {
-          boldRecText = recText.replace("Interflon Grease LS2", '<span class="lubrication-grease">Interflon Grease LS2</span>');
-        } else if (recText.includes("Interflon Grease HD2")) {
-          boldRecText = recText.replace("Interflon Grease HD2", '<span class="lubrication-grease">Interflon Grease HD2</span>');
-        } else if (recText.includes("Interflon Grease LS1/2")) {
-          boldRecText = recText.replace("Interflon Grease LS1/2", '<span class="lubrication-grease">Interflon Grease LS1/2</span>');
-        }
-        
         card.innerHTML = `
           <div class="card-header">
-            <div class="card-img-wrapper">
-              <img src="${item.img}" alt="${item.names[currentLang]}" onerror="this.src='bearing-dimensions.jpg'">
-            </div>
-            <div class="card-title-area">
-              <span class="card-category">${categoryText}</span>
-              <h3>${item.names[currentLang]}</h3>
-            </div>
+            <span class="card-category">${categoryText}</span>
+            <h3>${item.names[currentLang]}</h3>
+          </div>
+          <div class="card-img-block">
+            <img src="${item.img}" alt="${item.names[currentLang]}" onerror="this.src='bearing-dimensions.jpg'">
           </div>
           <div class="card-body">
             <div class="metrics-row">
@@ -1057,16 +934,6 @@
                 <span class="metric-label">${dict.lblSpeed}</span>
                 <span class="badge ${speedClass}">${speedText}</span>
               </div>
-            </div>
-            
-            <div class="lubrication-box">
-              <div class="lubrication-header">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m0-10.03V3.75m0 16.5v.75m0-4.5v-1.5m0-3h.008v.008H12V12Zm4.5 4.5h.75m-6.75 0H9.75M12 18.75h.008v.008H12v-.008Z" />
-                </svg>
-                <span>${dict.lblSmeeradvies}</span>
-              </div>
-              <div class="lubrication-text">${boldRecText}</div>
             </div>
           </div>
         `;
