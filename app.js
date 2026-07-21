@@ -1422,6 +1422,34 @@ function loadBearingDetails(designation) {
 
   // Update SVG
   updateBearingSvg(result.d, result.D, result.B);
+  
+  // Update bearing type illustration image
+  updateBearingImage(result.type);
+}
+
+function updateBearingImage(type) {
+  const imgEl = document.getElementById("bearingDimensionsImg");
+  if (!imgEl) return;
+  
+  let src = "bearing-dimensions.jpg"; // Default fallback
+  
+  if (type === "Eenrijig groefkogellager" || type === "Dubbelrijig groefkogellager") {
+    src = "bearing-groove-ball.png";
+  } else if (type === "Pendelrollager") {
+    src = "bearing-spherical-roller.png";
+  } else if (type === "Cilinderlager") {
+    src = "bearing-cylindrical-roller.png";
+  } else if (type === "Kegellager") {
+    src = "bearing-tapered-roller.png";
+  } else if (type === "Hoekcontactkogellager" || type === "Dubbelrijig hoekcontactkogellager") {
+    src = "bearing-angular-contact.png";
+  } else if (type === "Pendelkogellager") {
+    src = "bearing-self-aligning-ball.png";
+  } else if (type === "Axiaalkogellager") {
+    src = "bearing-thrust-ball.png";
+  }
+  
+  imgEl.src = src;
 }
 
 function updateBearingSvg(d, D, B) {
