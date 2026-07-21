@@ -3663,6 +3663,56 @@ function updateBearingAnimation(speed, limitingSpeed, ndm, dnMax, fc, temp, temp
       container.style.border = "1px solid transparent";
     }
   }
+
+  // Update Thermometer visual state
+  const tempVal = parseFloat(temp);
+  const bulb = document.getElementById("thermoBulb");
+  const liquid = document.getElementById("thermoLiquid");
+  const label = document.getElementById("thermoValLabel");
+  
+  if (label && !isNaN(tempVal)) {
+    label.textContent = tempVal + "°C";
+    
+    // Scale height percentage between -20 and 100 degrees Celsius
+    const tClamped = Math.max(-20, Math.min(100, tempVal));
+    const heightPct = Math.max(5, Math.min(95, ((tClamped + 20) / 120) * 100));
+    
+    if (liquid) {
+      liquid.style.height = heightPct + "%";
+    }
+    
+    // Interpolate colors based on temperature:
+    // Cold Limit (-20): Dark navy blue - rgb(30, 41, 59)
+    // Baseline (40): Mid blue - rgb(59, 130, 246)
+    // Hot Limit (100): Interflon Red - rgb(227, 6, 19)
+    let r, g, b;
+    if (tClamped < 40) {
+      const ratio = (tClamped - (-20)) / (40 - (-20)); // 0 to 1
+      r = Math.round(30 + ratio * (59 - 30));
+      g = Math.round(41 + ratio * (130 - 41));
+      b = Math.round(59 + ratio * (246 - 59));
+    } else {
+      const ratio = (tClamped - 40) / (100 - 40); // 0 to 1
+      r = Math.round(59 + ratio * (227 - 59));
+      g = Math.round(130 + ratio * (6 - 130));
+      b = Math.round(246 + ratio * (19 - 246));
+    }
+    
+    const colorStr = `rgb(${r}, ${g}, ${b})`;
+    if (liquid) liquid.style.backgroundColor = colorStr;
+    if (bulb) {
+      bulb.style.backgroundColor = colorStr;
+      bulb.style.borderColor = colorStr;
+    }
+  } else if (label) {
+    label.textContent = "--°C";
+    if (liquid) liquid.style.height = "50%";
+    if (liquid) liquid.style.backgroundColor = "#94a3b8";
+    if (bulb) {
+      bulb.style.backgroundColor = "#94a3b8";
+      bulb.style.borderColor = "#94a3b8";
+    }
+  }
 }
 
 // ==========================================================================
