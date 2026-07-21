@@ -1392,5 +1392,15 @@ h1, h2, h3, h4, .brand-text {
   transition: all 0.3s ease;
 }
 
+/* Sidebar PDF Export button */
+.btn-export-sidebar:hover {
+  background-color: var(--primary-blue-hover) !important;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 12px -1px rgba(227, 6, 19, 0.3) !important;
+}
+.btn-export-sidebar:active {
+  transform: translateY(0);
+}
+
 
 
