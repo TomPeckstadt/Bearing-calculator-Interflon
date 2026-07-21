@@ -3666,6 +3666,9 @@ function updateBearingAnimation(speed, limitingSpeed, ndm, dnMax, fc, temp, temp
 
   // Update Thermometer visual state
   const tempVal = parseFloat(temp);
+  const maxT = isNaN(tempMax) ? 120 : parseFloat(tempMax);
+  const minT = isNaN(tempMin) ? -20 : parseFloat(tempMin);
+
   const bulb = document.getElementById("thermoBulb");
   const liquid = document.getElementById("thermoLiquid");
   const label = document.getElementById("thermoValLabel");
@@ -3673,10 +3676,50 @@ function updateBearingAnimation(speed, limitingSpeed, ndm, dnMax, fc, temp, temp
   if (label && !isNaN(tempVal)) {
     label.textContent = tempVal + "°C";
     
-    // Scale height percentage between -20 and 100 degrees Celsius
-    const tClamped = Math.max(-20, Math.min(100, tempVal));
-    const heightPct = Math.max(5, Math.min(95, ((tClamped + 20) / 120) * 100));
+    // Dynamically calculate scale limits based on temperature and grease spec limit
+    let scaleMax = 100;
+    if (tempVal > 80) {
+      scaleMax = Math.ceil(tempVal / 20) * 20;
+    }
+    if (maxT > scaleMax) {
+      scaleMax = Math.ceil(maxT / 20) * 20;
+    }
     
+    let scaleMin = -20;
+    if (tempVal < 0) {
+      scaleMin = Math.floor(tempVal / 20) * 20;
+    }
+    if (minT < scaleMin) {
+      scaleMin = Math.floor(minT / 20) * 20;
+    }
+    
+    // Safeguard scale order
+    if (scaleMin >= scaleMax) {
+      scaleMin = scaleMax - 120;
+    }
+    
+    // Update Scale Marking Labels in DOM
+    const range = scaleMax - scaleMin;
+    const t5 = scaleMax;
+    const t4 = Math.round(scaleMin + range * 0.75);
+    const t3 = Math.round(scaleMin + range * 0.5);
+    const t2 = Math.round(scaleMin + range * 0.25);
+    const t1 = scaleMin;
+    
+    const tick5 = document.getElementById("thermoTick5");
+    const tick4 = document.getElementById("thermoTick4");
+    const tick3 = document.getElementById("thermoTick3");
+    const tick2 = document.getElementById("thermoTick2");
+    const tick1 = document.getElementById("thermoTick1");
+    
+    if (tick5) tick5.textContent = t5 + "°";
+    if (tick4) tick4.textContent = t4 + "°";
+    if (tick3) tick3.textContent = t3 + "°";
+    if (tick2) tick2.textContent = t2 + "°";
+    if (tick1) tick1.textContent = t1 + "°";
+    
+    // Calculate liquid level height percentage based on dynamic range
+    const heightPct = Math.max(5, Math.min(95, ((tempVal - scaleMin) / range) * 100));
     if (liquid) {
       liquid.style.height = heightPct + "%";
     }
@@ -3686,12 +3729,11 @@ function updateBearingAnimation(speed, limitingSpeed, ndm, dnMax, fc, temp, temp
     // Above 40°C: transition from Mid Blue to Light Yellow, Orange, and finally Interflon Red based on grease max limit
     let r, g, b;
     if (tempVal <= 40) {
-      const ratio = Math.max(0, Math.min(1, (tempVal - (-20)) / 60)); // -20°C to 40°C
+      const ratio = Math.max(0, Math.min(1, (tempVal - scaleMin) / (40 - scaleMin)));
       r = Math.round(30 + ratio * (59 - 30));
       g = Math.round(41 + ratio * (130 - 41));
       b = Math.round(59 + ratio * (246 - 59));
     } else {
-      const maxT = isNaN(tempMax) ? 120 : parseFloat(tempMax);
       const span = Math.max(20, maxT - 40);
       const diff = tempVal - 40;
       const ratio = diff / span; // 0 to 1 (or > 1 if exceeding max limit)
@@ -3736,6 +3778,12 @@ function updateBearingAnimation(speed, limitingSpeed, ndm, dnMax, fc, temp, temp
     if (bulb) {
       bulb.style.backgroundColor = "#94a3b8";
       bulb.style.borderColor = "#94a3b8";
+    }
+    // Reset to default ticks
+    const ticks = { "thermoTick5": 100, "thermoTick4": 70, "thermoTick3": 40, "thermoTick2": 10, "thermoTick1": -20 };
+    for (let id in ticks) {
+      const el = document.getElementById(id);
+      if (el) el.textContent = ticks[id] + "°";
     }
   }
 }
