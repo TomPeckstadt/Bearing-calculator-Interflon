@@ -1436,16 +1436,20 @@ function updateBearingImage(type) {
   
   let src = "bearing-groove-ball.png"; // Default type illustration fallback
   
-  if (type === "Eenrijig groefkogellager" || type === "Dubbelrijig groefkogellager") {
+  if (type === "Eenrijig groefkogellager") {
     src = "bearing-groove-ball.png";
+  } else if (type === "Dubbelrijig groefkogellager") {
+    src = "bearing-double-groove-ball.png";
   } else if (type === "Pendelrollager") {
     src = "bearing-spherical-roller.png";
   } else if (type === "Cilinderlager") {
     src = "bearing-cylindrical-roller.png";
   } else if (type === "Kegellager") {
     src = "bearing-tapered-roller.png";
-  } else if (type === "Hoekcontactkogellager" || type === "Dubbelrijig hoekcontactkogellager") {
+  } else if (type === "Hoekcontactkogellager") {
     src = "bearing-angular-contact.png";
+  } else if (type === "Dubbelrijig hoekcontactkogellager") {
+    src = "bearing-double-angular-contact.png";
   } else if (type === "Pendelkogellager") {
     src = "bearing-self-aligning-ball.png";
   } else if (type === "Axiaalkogellager") {
