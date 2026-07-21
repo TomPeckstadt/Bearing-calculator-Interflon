@@ -886,16 +886,42 @@
             <!-- Dynamic Interactive Bearing Animation -->
             <div id="bearingAnimCard" style="display: flex; flex-direction: column; align-items: center; justify-content: center; margin-top: 25px; padding-top: 15px; border-top: 1px dashed var(--accent-yellow-border);">
               <h4 style="margin: 0 0 12px 0; font-size: 11px; font-weight: 700; color: var(--primary-blue); text-transform: uppercase; letter-spacing: 0.5px;" data-i18n="bearingStatusTitle">Lager Status & Smering</h4>
-              
-              <!-- Canvas for drawing the rotating bearing -->
-              <div id="bearingAnimContainer" style="position: relative; width: 140px; height: 140px; display: flex; align-items: center; justify-content: center; border-radius: 50%; background-color: var(--bg-body); box-shadow: inset 0 2px 4px rgba(0,0,0,0.06); transition: all 0.3s ease; border: 1px solid transparent;">
-                <canvas id="bearingAnimCanvas" width="140" height="140" style="width: 140px; height: 140px; display: block;"></canvas>
+              <div style="display: flex; align-items: center; justify-content: center; gap: 30px; margin-bottom: 5px; flex-wrap: wrap;">
                 
-                <!-- Speed badge inside the center of the bearing -->
-                <div style="position: absolute; display: flex; flex-direction: column; align-items: center; justify-content: center; pointer-events: none; text-align: center;">
-                  <span id="bearingAnimRpmVal" style="font-weight: 800; font-size: 14px; color: var(--text-dark); line-height: 1.1;">-</span>
-                  <span style="font-size: 9px; color: var(--text-medium); font-weight: 600; text-transform: uppercase;">RPM</span>
+                <!-- Canvas for drawing the rotating bearing -->
+                <div id="bearingAnimContainer" style="position: relative; width: 140px; height: 140px; display: flex; align-items: center; justify-content: center; border-radius: 50%; background-color: var(--bg-body); box-shadow: inset 0 2px 4px rgba(0,0,0,0.06); transition: all 0.3s ease; border: 1px solid transparent;">
+                  <canvas id="bearingAnimCanvas" width="140" height="140" style="width: 140px; height: 140px; display: block;"></canvas>
+                  
+                  <!-- Speed badge inside the center of the bearing -->
+                  <div style="position: absolute; display: flex; flex-direction: column; align-items: center; justify-content: center; pointer-events: none; text-align: center;">
+                    <span id="bearingAnimRpmVal" style="font-weight: 800; font-size: 14px; color: var(--text-dark); line-height: 1.1;">-</span>
+                    <span style="font-size: 9px; color: var(--text-medium); font-weight: 600; text-transform: uppercase;">RPM</span>
+                  </div>
                 </div>
+
+                <!-- Thermometer Component -->
+                <div id="thermometerContainer" style="display: flex; flex-direction: column; align-items: center; justify-content: center; width: 85px; height: 140px; background: white; border: 1px solid var(--border-color); border-radius: var(--border-radius-md); padding: 12px 8px; box-shadow: var(--shadow-sm); position: relative; box-sizing: border-box; overflow: visible;">
+                  <div style="display: flex; height: 90px; width: 100%; align-items: flex-end; justify-content: center; gap: 6px; position: relative;">
+                    <!-- Scale markings -->
+                    <div style="display: flex; flex-direction: column; justify-content: space-between; height: 75px; font-family: 'Outfit', sans-serif; font-size: 8px; color: var(--text-light); text-align: right; width: 22px; padding-right: 2px; font-weight: 600;">
+                      <span>100°</span>
+                      <span>70°</span>
+                      <span>40°</span>
+                      <span>10°</span>
+                      <span>-20°</span>
+                    </div>
+                    <!-- Thermometer tube -->
+                    <div style="position: relative; width: 10px; height: 75px; background-color: #f1f5f9; border-radius: 5px; border: 1px solid #cbd5e1; display: flex; align-items: flex-end; justify-content: center; overflow: visible;">
+                      <!-- Bulb at the bottom -->
+                      <div id="thermoBulb" style="position: absolute; bottom: -7px; width: 18px; height: 18px; border-radius: 50%; background-color: #3b82f6; border: 1px solid #cbd5e1; box-shadow: 0 1px 3px rgba(0,0,0,0.1); z-index: 2; transition: background-color 0.4s ease, border-color 0.4s ease;"></div>
+                      <!-- Liquid level -->
+                      <div id="thermoLiquid" style="width: 100%; height: 50%; background-color: #3b82f6; border-radius: 4px; position: relative; z-index: 1; transition: height 0.4s ease, background-color 0.4s ease;"></div>
+                    </div>
+                  </div>
+                  <!-- Temperature label -->
+                  <div id="thermoValLabel" style="margin-top: 10px; font-family: 'Outfit', sans-serif; font-size: 11px; font-weight: 700; color: var(--text-dark); text-align: center; width: 100%; line-height: 1;">--°C</div>
+                </div>
+
               </div>
               
               <!-- Bearing Status Indicator text -->
