@@ -192,6 +192,11 @@ const TRANSLATIONS = {
     lblDays: "Dagen",
     lblWeeks: "Weken",
     lblMonths: "Maanden",
+    tcoModeFormula: "Volgens formule",
+    tcoModePractical: "Huidige praktijk",
+    tcoModeHintFormula: "SKF Formule (FC)",
+    tcoModeHintPractical: "Actueel: {days}d / smeerbeurt",
+    tcoModeHintNoDays: "Vul interval in bij Tech. Gegevens",
     
     // Bearing types translation
     "Eenrijig groefkogellager": "Eenrijig groefkogellager",
@@ -468,6 +473,11 @@ const TRANSLATIONS = {
     lblDays: "Days",
     lblWeeks: "Weeks",
     lblMonths: "Months",
+    tcoModeFormula: "According to formula",
+    tcoModePractical: "Current practice",
+    tcoModeHintFormula: "SKF Formula (FC)",
+    tcoModeHintPractical: "Actual: {days}d / relubrication",
+    tcoModeHintNoDays: "Set interval in Tech. Data",
     
     // Bearing types translation
     "Eenrijig groefkogellager": "Single row deep groove ball bearing",
@@ -744,6 +754,11 @@ const TRANSLATIONS = {
     lblDays: "Jours",
     lblWeeks: "Semaines",
     lblMonths: "Mois",
+    tcoModeFormula: "Selon formule",
+    tcoModePractical: "Pratique actuelle",
+    tcoModeHintFormula: "Formule SKF (FC)",
+    tcoModeHintPractical: "Actuel : {days}j / graissage",
+    tcoModeHintNoDays: "Saisir intervalle dans Données Tech.",
     
     // Bearing types translation
     "Eenrijig groefkogellager": "Roulement rigide à billes à une rangée",
@@ -892,6 +907,9 @@ function changeLanguage(lang) {
   calculateGrease();
 
   // Re-run TCO calculations to apply locale formatting
+  if (typeof updateTcoFrequencies === "function") {
+    updateTcoFrequencies();
+  }
   if (typeof calculateTco === "function") {
     calculateTco();
   }
@@ -962,6 +980,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Laad TCO details op startup
   loadTcoDetails();
+  if (typeof updateTcoFrequencies === "function") {
+    updateTcoFrequencies();
+  }
 
   // Photo upload logic for TCO application photo
   const omAppImageInput = document.getElementById("omAppImageInput");
@@ -1938,17 +1959,12 @@ function calculateGrease() {
   if (omProdCons1El) omProdCons1El.value = refill_grams.toFixed(1);
   if (omProdCons2El) omProdCons2El.value = refill_grams.toFixed(1);
 
-  // Automatically update TCO frequency fields with the calculated annual frequencies
-  const omProdFreq1El = document.getElementById("omProdFreq1");
-  const omProdFreq2El = document.getElementById("omProdFreq2");
-  if (omProdFreq1El || omProdFreq2El) {
-    const annual_hours = hoursPerDay * daysPerWeek * (365 / 7);
-    const freq_huidig = fc > 0 ? (annual_hours / fc) : 0;
-    const freq_nieuw = fcMicPol > 0 ? (annual_hours / fcMicPol) : 0;
+  // Store current FC values globally for TCO frequency recalculations
+  window.currentFc = fc;
+  window.currentFcMicPol = fcMicPol;
 
-    if (omProdFreq1El) omProdFreq1El.value = freq_huidig.toFixed(1);
-    if (omProdFreq2El) omProdFreq2El.value = freq_nieuw.toFixed(1);
-  }
+  // Automatically update TCO frequency fields based on the active mode (formula vs practical)
+  updateTcoFrequencies();
 
   // Recalculate TCO to reflect the updated consumption and frequency values
   if (typeof calculateTco === "function") {
@@ -1962,6 +1978,86 @@ function calculateGrease() {
   if (typeof updateBearingAnimation === "function") {
     updateBearingAnimation(speed, limitingSpeed, ndm, dnMax, fc, temp, grease.tempMin, grease.tempMax);
   }
+}
+
+// ==========================================================================
+// TCO CALCULATIE MODUS ("Volgens formule" vs "Huidige praktijk")
+// ==========================================================================
+function setTcoCalcMode(mode) {
+  localStorage.setItem("tco_calc_mode", mode);
+  updateTcoFrequencies();
+  if (typeof calculateTco === "function") {
+    calculateTco();
+    if (typeof saveTcoDetails === "function") {
+      saveTcoDetails();
+    }
+  }
+}
+
+function updateTcoModeHint(mode) {
+  const hintEl = document.getElementById("tcoModeHint");
+  const selectEl = document.getElementById("tcoCalcModeSelect");
+  if (selectEl && selectEl.value !== mode) {
+    selectEl.value = mode;
+  }
+  if (!hintEl) return;
+
+  const langData = TRANSLATIONS[currentLang] || TRANSLATIONS["nl"];
+  if (mode === "practical") {
+    const techIntervalVal = localStorage.getItem("tech_interval");
+    const intervalDays = techIntervalVal ? parseFloat(techIntervalVal) : 0;
+    if (intervalDays > 0) {
+      const hintPattern = langData.tcoModeHintPractical || "Actueel: {days}d / smeerbeurt";
+      hintEl.textContent = hintPattern.replace("{days}", intervalDays);
+    } else {
+      hintEl.textContent = langData.tcoModeHintNoDays || "Vul interval in bij Tech. Gegevens";
+    }
+  } else {
+    hintEl.textContent = langData.tcoModeHintFormula || "SKF Formule (FC)";
+  }
+}
+
+function updateTcoFrequencies() {
+  const omProdFreq1El = document.getElementById("omProdFreq1");
+  const omProdFreq2El = document.getElementById("omProdFreq2");
+  const tcoCalcMode = localStorage.getItem("tco_calc_mode") || "formula";
+
+  updateTcoModeHint(tcoCalcMode);
+
+  if (!omProdFreq1El && !omProdFreq2El) return;
+
+  const hoursPerDay = document.getElementById("inputHoursPerDay") ? parseFloat(document.getElementById("inputHoursPerDay").value) || 24 : 24;
+  const daysPerWeek = document.getElementById("inputDaysPerWeek") ? parseFloat(document.getElementById("inputDaysPerWeek").value) || 7 : 7;
+  const annual_hours = hoursPerDay * daysPerWeek * (365 / 7);
+
+  const micPolInput = document.getElementById("inputMicPolFactor");
+  let micPolFactor = micPolInput ? parseFloat(micPolInput.value) : 4;
+  if (isNaN(micPolFactor) || micPolFactor < 1 || micPolFactor > 50) micPolFactor = 4;
+
+  const fc = window.currentFc || 0;
+  const fcMicPol = window.currentFcMicPol || (fc * micPolFactor);
+
+  let freq_huidig = 0;
+  let freq_nieuw = 0;
+
+  if (tcoCalcMode === "practical") {
+    const techIntervalVal = localStorage.getItem("tech_interval");
+    const intervalDays = techIntervalVal ? parseFloat(techIntervalVal) : 0;
+
+    if (intervalDays > 0) {
+      freq_huidig = 365 / intervalDays;
+      freq_nieuw = 365 / (intervalDays * micPolFactor);
+    } else {
+      freq_huidig = fc > 0 ? (annual_hours / fc) : 0;
+      freq_nieuw = fcMicPol > 0 ? (annual_hours / fcMicPol) : 0;
+    }
+  } else {
+    freq_huidig = fc > 0 ? (annual_hours / fc) : 0;
+    freq_nieuw = fcMicPol > 0 ? (annual_hours / fcMicPol) : 0;
+  }
+
+  if (omProdFreq1El) omProdFreq1El.value = freq_huidig.toFixed(1);
+  if (omProdFreq2El) omProdFreq2El.value = freq_nieuw.toFixed(1);
 }
 
 // ==========================================================================
@@ -2281,6 +2377,9 @@ function saveTechDetails(event) {
   closeTechModal();
 
   // Trigger recalculations and TCO save
+  if (typeof updateTcoFrequencies === "function") {
+    updateTcoFrequencies();
+  }
   if (typeof calculateTco === "function") {
     calculateTco();
   }
@@ -2927,7 +3026,20 @@ function runPdfExport(includeTco) {
         }
 
         // Draw header blocks
-        drawCell(startX1, 46, 54, 6, currentLang === "nl" ? "Huidige situatie" : currentLang === "en" ? "Current situation" : "Situation actuelle", null, "slate-header1");
+        const tcoCalcModePdf = localStorage.getItem("tco_calc_mode") || "formula";
+        let currentHeaderLabel = currentLang === "nl" ? "Huidige situatie" : currentLang === "en" ? "Current situation" : "Situation actuelle";
+        if (tcoCalcModePdf === "practical") {
+          const techIntervalVal = localStorage.getItem("tech_interval");
+          const intervalDays = techIntervalVal ? parseFloat(techIntervalVal) : 0;
+          const suffix = currentLang === "nl" ? "d" : currentLang === "en" ? "d" : "j";
+          const modeLabel = currentLang === "nl" ? "Praktijk" : currentLang === "en" ? "Practice" : "Pratique";
+          if (intervalDays > 0) {
+            currentHeaderLabel += ` (${modeLabel}: ${intervalDays}${suffix})`;
+          } else {
+            currentHeaderLabel += ` (${modeLabel})`;
+          }
+        }
+        drawCell(startX1, 46, 54, 6, currentHeaderLabel, null, "slate-header1");
         drawCell(startX2, 46, 54, 6, currentLang === "nl" ? "Nieuwe situatie (Interflon)" : currentLang === "en" ? "New situation (Interflon)" : "Situation Interflon", null, "red-header");
         drawCell(startX3, 46, 60, 6, currentLang === "nl" ? "Algemene info" : currentLang === "en" ? "General info" : "Infos générales", null, "slate-header2");
 
