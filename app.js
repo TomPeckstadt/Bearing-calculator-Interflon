@@ -3202,6 +3202,7 @@ function getTransparentLogo(callback) {
     ctx.drawImage(img, 0, 0);
     
     const aspectRatio = img.height / img.width;
+    callback(canvas.toDataURL("image/jpeg"), aspectRatio);
   };
   img.onerror = function () {
     console.warn("Logo watermark kon niet worden geladen. PDF wordt gegenereerd zonder watermerk.");
