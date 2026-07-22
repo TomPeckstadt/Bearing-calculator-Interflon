@@ -2037,23 +2037,22 @@ function updateTcoFrequencies() {
   const fc = window.currentFc || 0;
   const fcMicPol = window.currentFcMicPol || (fc * micPolFactor);
 
-  let freq_huidig = 0;
-  let freq_nieuw = 0;
+  // Nieuwe situatie (Interflon) is ALTIJD berekend volgens de Interflon/MicPol® formule
+  const freq_nieuw = fcMicPol > 0 ? (annual_hours / fcMicPol) : 0;
 
+  // Huidige situatie is berekend op basis van de gekozen modus (formule vs praktijk)
+  let freq_huidig = 0;
   if (tcoCalcMode === "practical") {
     const techIntervalVal = localStorage.getItem("tech_interval");
     const intervalDays = techIntervalVal ? parseFloat(techIntervalVal) : 0;
 
     if (intervalDays > 0) {
       freq_huidig = 365 / intervalDays;
-      freq_nieuw = 365 / (intervalDays * micPolFactor);
     } else {
       freq_huidig = fc > 0 ? (annual_hours / fc) : 0;
-      freq_nieuw = fcMicPol > 0 ? (annual_hours / fcMicPol) : 0;
     }
   } else {
     freq_huidig = fc > 0 ? (annual_hours / fc) : 0;
-    freq_nieuw = fcMicPol > 0 ? (annual_hours / fcMicPol) : 0;
   }
 
   if (omProdFreq1El) omProdFreq1El.value = freq_huidig.toFixed(1);
