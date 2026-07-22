@@ -3123,7 +3123,7 @@ function runPdfExport(includeTco) {
         // ==========================================================================
         // MICPOL® TECHNOLOGIE SECTIE (Page 2 Onderkant)
         // ==========================================================================
-        const micpolStartY = 197;
+        const micpolStartY = 205;
 
         doc.setFont("helvetica", "bold");
         doc.setFontSize(11);
@@ -3137,18 +3137,18 @@ function runPdfExport(includeTco) {
         doc.text(micpolText, 20, micpolStartY + 9, { maxWidth: 170 });
 
         if (micpolDataUrl && micpolRatio) {
-          const boxX = 35;
+          const boxX = 45;
           const boxY = micpolStartY + 17;
-          const boxW = 140;
-          const boxH = 47;
+          const boxW = 120;
+          const boxH = 40;
 
           doc.setFillColor(248, 250, 252);
           doc.setDrawColor(226, 232, 240);
           doc.setLineWidth(0.25);
           doc.roundedRect(boxX, boxY, boxW, boxH, 3, 3, "FD");
 
-          const imgW = 90;
-          const imgH = 90 * micpolRatio;
+          const imgW = 75;
+          const imgH = 75 * micpolRatio; // ~35.5 mm
           const imgX = boxX + (boxW - imgW) / 2;
           const imgY = boxY + (boxH - imgH) / 2;
 
