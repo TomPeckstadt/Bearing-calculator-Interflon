@@ -2649,17 +2649,17 @@ function runPdfExport(includeTco) {
       doc.setFont("helvetica", "normal");
       let currentY = 120;
       params.forEach((p, idx) => {
-        currentY += 5;
+        currentY += 4.0;
         doc.setTextColor(72, 84, 96);
         doc.text(p[0], 24, currentY);
         doc.setTextColor(11, 19, 43);
         doc.text(p[1], 150, currentY);
       });
 
-      doc.line(20, currentY + 3, 190, currentY + 3);
+      doc.line(20, currentY + 2.5, 190, currentY + 2.5);
 
       // 5. Tabel: Calculatieresultaten
-      currentY += 8;
+      currentY += 7;
       doc.setFont("helvetica", "bold");
       doc.setFontSize(11);
       doc.setTextColor(11, 19, 43);
@@ -2723,7 +2723,7 @@ function runPdfExport(includeTco) {
       ];
 
       results.forEach((r, idx) => {
-        currentY += 5;
+        currentY += 3.8;
         
         const isMicPolHighlight = r[0] === (langData.pdfIntervalMicPol || "Smeerinterval met Interflon MicPol®");
         const isHighlight = r[0] === langData.resInterval || r[0] === langData.resRefillQty || r[0] === langData.resStrokes;
@@ -2756,11 +2756,11 @@ function runPdfExport(includeTco) {
       doc.setFont("helvetica", "normal");
       doc.setDrawColor(200, 200, 200);
       doc.setLineWidth(0.25);
-      doc.line(20, currentY + 3, 190, currentY + 3);
+      doc.line(20, currentY + 2.5, 190, currentY + 2.5);
 
       // MicPol® Technologie Sectie op Pagina 1 (als TCO niet wordt geëxporteerd)
       if (!includeTco) {
-        const micpolStartY = Math.max(currentY + 6, 226);
+        const micpolStartY = Math.max(currentY + 5, 224);
 
         doc.setFont("helvetica", "bold");
         doc.setFontSize(10);
@@ -2768,24 +2768,24 @@ function runPdfExport(includeTco) {
         doc.text(langData.infoMicPolTitle || "MicPol® technologie", 20, micpolStartY + 3);
 
         doc.setFont("helvetica", "normal");
-        doc.setFontSize(7.3);
+        doc.setFontSize(7.2);
         doc.setTextColor(72, 84, 96);
         const micpolText = langData.infoMicPolText || "MicPol® is de unieke technologie in de producten van Interflon. MicPol® is intern ontwikkeld door ons eigen team van wetenschappers en onderscheidt onze producten van alle andere smeermiddelen.";
         doc.text(micpolText, 20, micpolStartY + 7.5, { maxWidth: 170 });
 
         if (micpolDataUrl && micpolRatio) {
-          const boxX = 45;
-          const boxY = micpolStartY + 14;
-          const boxW = 120;
-          const boxH = 24;
+          const boxX = 50;
+          const boxY = micpolStartY + 13.5;
+          const boxW = 110;
+          const boxH = 26;
 
           doc.setFillColor(248, 250, 252);
           doc.setDrawColor(226, 232, 240);
           doc.setLineWidth(0.25);
           doc.roundedRect(boxX, boxY, boxW, boxH, 2, 2, "FD");
 
-          const imgW = 46;
-          const imgH = 46 * micpolRatio;
+          const imgW = 52;
+          const imgH = 52 * micpolRatio;
           const imgX = boxX + (boxW - imgW) / 2;
           const imgY = boxY + (boxH - imgH) / 2;
 
