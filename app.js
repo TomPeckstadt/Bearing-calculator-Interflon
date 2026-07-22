@@ -2439,7 +2439,8 @@ function runPdfExport(includeTco) {
   exportBtn.innerHTML = langData.pdfGenerating || "Genereren...";
 
   getTransparentLogo((watermarkDataUrl, aspectRatio) => {
-    try {
+    getMicPolImageDataUrl((micpolDataUrl, micpolRatio) => {
+      try {
       const doc = new jsPDF({
         orientation: "portrait",
         unit: "mm",
@@ -2756,6 +2757,41 @@ function runPdfExport(includeTco) {
       doc.setDrawColor(200, 200, 200);
       doc.setLineWidth(0.25);
       doc.line(20, currentY + 3, 190, currentY + 3);
+
+      // MicPol® Technologie Sectie op Pagina 1 (als TCO niet wordt geëxporteerd)
+      if (!includeTco) {
+        const micpolStartY = Math.max(currentY + 6, 226);
+
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(10);
+        doc.setTextColor(227, 6, 19);
+        doc.text(langData.infoMicPolTitle || "MicPol® technologie", 20, micpolStartY + 3);
+
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(7.3);
+        doc.setTextColor(72, 84, 96);
+        const micpolText = langData.infoMicPolText || "MicPol® is de unieke technologie in de producten van Interflon. MicPol® is intern ontwikkeld door ons eigen team van wetenschappers en onderscheidt onze producten van alle andere smeermiddelen.";
+        doc.text(micpolText, 20, micpolStartY + 7.5, { maxWidth: 170 });
+
+        if (micpolDataUrl && micpolRatio) {
+          const boxX = 45;
+          const boxY = micpolStartY + 14;
+          const boxW = 120;
+          const boxH = 24;
+
+          doc.setFillColor(248, 250, 252);
+          doc.setDrawColor(226, 232, 240);
+          doc.setLineWidth(0.25);
+          doc.roundedRect(boxX, boxY, boxW, boxH, 2, 2, "FD");
+
+          const imgW = 46;
+          const imgH = 46 * micpolRatio;
+          const imgX = boxX + (boxW - imgW) / 2;
+          const imgY = boxY + (boxH - imgH) / 2;
+
+          doc.addImage(micpolDataUrl, "PNG", imgX, imgY, imgW, imgH);
+        }
+      }
 
       // 6. Footer
       doc.setFontSize(6.8);
@@ -3084,6 +3120,41 @@ function runPdfExport(includeTco) {
         let labelText = (langData.omSavingsYears || "Kostenbesparing na X jaar (€)").replace(/<span[^>]*>.*?<\/span>/g, tco_yrs).replace(/<[^>]*>/g, "");
         drawCell(startX3, curY, 60, 6.5, labelText, document.getElementById("omTotalSavingsYears").textContent, "green-highlight");
 
+        // ==========================================================================
+        // MICPOL® TECHNOLOGIE SECTIE (Page 2 Onderkant)
+        // ==========================================================================
+        const micpolStartY = 197;
+
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(11);
+        doc.setTextColor(227, 6, 19);
+        doc.text(langData.infoMicPolTitle || "MicPol® technologie", 20, micpolStartY + 4);
+
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(8);
+        doc.setTextColor(72, 84, 96);
+        const micpolText = langData.infoMicPolText || "MicPol® is de unieke technologie in de producten van Interflon. MicPol® is intern ontwikkeld door ons eigen team van wetenschappers en onderscheidt onze producten van alle andere smeermiddelen.";
+        doc.text(micpolText, 20, micpolStartY + 9, { maxWidth: 170 });
+
+        if (micpolDataUrl && micpolRatio) {
+          const boxX = 35;
+          const boxY = micpolStartY + 17;
+          const boxW = 140;
+          const boxH = 47;
+
+          doc.setFillColor(248, 250, 252);
+          doc.setDrawColor(226, 232, 240);
+          doc.setLineWidth(0.25);
+          doc.roundedRect(boxX, boxY, boxW, boxH, 3, 3, "FD");
+
+          const imgW = 90;
+          const imgH = 90 * micpolRatio;
+          const imgX = boxX + (boxW - imgW) / 2;
+          const imgY = boxY + (boxH - imgH) / 2;
+
+          doc.addImage(micpolDataUrl, "PNG", imgX, imgY, imgW, imgH);
+        }
+
         // Page 2 Footer
         doc.setFont("helvetica", "normal");
         doc.setDrawColor(200, 200, 200);
@@ -3109,6 +3180,7 @@ function runPdfExport(includeTco) {
       exportBtn.disabled = false;
       exportBtn.innerHTML = originalText;
     }
+    });
   });
 }
 
@@ -3130,10 +3202,32 @@ function getTransparentLogo(callback) {
     ctx.drawImage(img, 0, 0);
     
     const aspectRatio = img.height / img.width;
-    callback(canvas.toDataURL("image/jpeg"), aspectRatio);
   };
   img.onerror = function () {
     console.warn("Logo watermark kon niet worden geladen. PDF wordt gegenereerd zonder watermerk.");
+    callback(null, null);
+  };
+}
+
+function getMicPolImageDataUrl(callback) {
+  const img = new Image();
+  img.crossOrigin = "Anonymous";
+  img.src = "micpol-tech.png?v=14";
+  img.onload = function () {
+    const canvas = document.createElement("canvas");
+    canvas.width = img.width;
+    canvas.height = img.height;
+    const ctx = canvas.getContext("2d");
+    
+    ctx.fillStyle = "#FFFFFF";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(img, 0, 0);
+    
+    const aspectRatio = img.height / img.width;
+    callback(canvas.toDataURL("image/png"), aspectRatio);
+  };
+  img.onerror = function () {
+    console.warn("MicPol afbeelding kon niet worden geladen voor PDF.");
     callback(null, null);
   };
 }
