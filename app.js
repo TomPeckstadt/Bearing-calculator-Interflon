@@ -4354,8 +4354,13 @@ function calculateAutomationLubrication() {
   const formattedMonthly = actualMonthlyVolume.toLocaleString("nl-BE", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 
   resValEl.textContent = `${formattedDaily} cm³/dag`;
+  let unitLabel = "maanden";
+  if (unit === "weeks") unitLabel = "weken";
+  else if (unit === "days") unitLabel = "dagen";
+  else if (unit === "months") unitLabel = "maanden";
+
   if (hintEl) {
-    hintEl.textContent = `(~ ${formattedMonthly} cm³ / maand bij ${capMl} ml op ${periodVal} ${unit})`;
+    hintEl.textContent = `(~ ${formattedMonthly} cm³ / maand bij ${capMl} ml op ${periodVal} ${unitLabel})`;
   }
 
   // Show status notice comparing active dosage with bearing requirement
