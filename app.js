@@ -4138,7 +4138,7 @@ function updateAutomationPage() {
     if (titleEl) titleEl.textContent = "Pulsarlube MSP";
     if (imgEl) imgEl.src = "pulsarlube-msp.png";
     if (descEl) {
-      descEl.innerHTML = `De <strong>Pulsarlube MSP</strong> is een extern gevoede, elektro-mechanische automatische smeerunit. Het toestel werkt <strong>synchroon met de machine</strong> en doseert uitsluitend gedurende de operationele uren (${hDay}u/dag, ${dWeek}d/week). Wanneer de machine stilstaat, stopt ook de dosering.`;
+      descEl.innerHTML = "De <strong>Pulsarlube MSP</strong> is een extern gevoede, elektro-mechanische automatische smeerunit. Het toestel werkt synchroon met de machine en doseert enkel smeervet gedurende de actieve bedrijfsuren van de installatie.";
     }
     if (toggleWrapper) toggleWrapper.style.display = "none";
   } else {
@@ -4146,7 +4146,7 @@ function updateAutomationPage() {
     if (titleEl) titleEl.textContent = "Interflon Single Point Lubricator";
     if (imgEl) imgEl.src = "interflon-single-point-lubricator.jpg";
     if (descEl) {
-      descEl.innerHTML = "De <strong>Interflon Single Point Lubricator</strong> is een automatisch smeertoestel dat <strong>continu 24u/24u en 7d/7d doorsmeert</strong>, onafhankelijk van de ingestelde operationele uren van de machine. Het patroon doseert gestaag gedurende alle kalenderdagen.";
+      descEl.innerHTML = "De <strong>Interflon Single Point Lubricator</strong> zorgt voor een continue, geautomatiseerde smering van uw lagers. Dit voorkomt onder- en oversmering en verlengt de levensduur van uw roterende apparatuur significant.";
     }
     if (toggleWrapper) toggleWrapper.style.display = "block";
     if (toggleLabel) {
