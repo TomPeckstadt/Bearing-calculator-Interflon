@@ -23,6 +23,11 @@ const TRANSLATIONS = {
     pageCalcSubtitle: "Bereken de optimale smeerhoeveelheid en smeerinterval op basis van lagertype en bedrijfsparameters.",
     pageInfoTitle: "Informatie",
     pageInfoSubtitle: "Uitleg over werking, gebruikte formules en het ontwerp van de applicatie.",
+    menuAutomation: "Automatisering",
+    pageAutomationTitle: "Automatisering",
+    pageAutomationSubtitle: "Beheer geautomatiseerde functies en instellingen.",
+    automationTitle: "Automatisering",
+    automationIntro: "Deze sectie is voorbereid voor geautomatiseerde functies en instellingen.",
     selectLanguageLabel: "Selecteer uw taal",
     loginTitle: "Interflon Smeercalculator",
     loginSubtitle: "Voer het paswoord in om toegang te krijgen tot de applicatie.",
@@ -304,6 +309,11 @@ const TRANSLATIONS = {
     pageCalcSubtitle: "Calculate the optimal lubrication quantity and interval based on bearing type and operating parameters.",
     pageInfoTitle: "Information",
     pageInfoSubtitle: "Explanation of operation, formulas used, and design of the application.",
+    menuAutomation: "Automation",
+    pageAutomationTitle: "Automation",
+    pageAutomationSubtitle: "Manage automated features and settings.",
+    automationTitle: "Automation",
+    automationIntro: "This section is prepared for automated features and settings.",
     selectLanguageLabel: "Select your language",
     loginTitle: "Interflon Lubrication Calculator",
     loginSubtitle: "Enter the password to access the application.",
@@ -585,6 +595,11 @@ const TRANSLATIONS = {
     pageCalcSubtitle: "Calculez la quantité et l'intervalle de lubrification optimaux en fonction du type de roulement et des paramètres de fonctionnement.",
     pageInfoTitle: "Informations",
     pageInfoSubtitle: "Explication du fonctionnement, des formules utilisées et de la conception de l'application.",
+    menuAutomation: "Automatisation",
+    pageAutomationTitle: "Automatisation",
+    pageAutomationSubtitle: "Gérer les fonctionnalités et paramètres automatisés.",
+    automationTitle: "Automatisation",
+    automationIntro: "Cette section est préparée pour les fonctionnalités et paramètres automatisés.",
     selectLanguageLabel: "Choisissez votre langue",
     loginTitle: "Calculateur de Lubrification Interflon",
     loginSubtitle: "Saisissez le mot de passe pour accéder à l'application.",
@@ -1373,6 +1388,11 @@ function switchPage(pageId) {
         window.omBadgeObserver.observe(badge);
       }, 150);
     }
+  } else if (pageId === 'automation') {
+    document.getElementById("pageAutomation").classList.add("active");
+    document.getElementById("menuAutomation").classList.add("active");
+    if (targetTitle) targetTitle.setAttribute("data-i18n", "pageAutomationTitle");
+    if (targetSubtitle) targetSubtitle.setAttribute("data-i18n", "pageAutomationSubtitle");
   } else if (pageId === 'info') {
     document.getElementById("pageInfo").classList.add("active");
     document.getElementById("menuInfo").classList.add("active");
