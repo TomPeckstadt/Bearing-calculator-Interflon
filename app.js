@@ -26,8 +26,18 @@ const TRANSLATIONS = {
     menuAutomation: "Automatisering",
     pageAutomationTitle: "Automatisering",
     pageAutomationSubtitle: "Beheer geautomatiseerde functies en instellingen.",
-    automationTitle: "Automatisering",
-    automationIntro: "Deze sectie is voorbereid voor geautomatiseerde functies en instellingen.",
+    automationTitle: "Automatisering: Automatische Smeertoestellen",
+    automationSubtitle: "Berekening & weergave bij inzet van automatische smeertoestellen.",
+    automationDeviceLabel: "Selecteer Toestel:",
+    deviceSinglePoint: "Interflon Single Point Lubricator",
+    devicePulsarlube: "Pulsarlube MSP",
+    automationParamsTitle: "Toestel Parameters & Smeerinstelling",
+    automationCalcHeader: "Smeerinterval & Dosering",
+    labelCartridgeCap: "Patroon Capaciteit (ml / cm³)",
+    labelDispensePeriod: "Gewenste Looptijd / Leeglooptijd",
+    autoDailyVolumeLabel: "Berekend Dagelijks Smeervolume:",
+    btnShowDimensions: "Bekijk Afmetingen Sheet",
+    btnShowPhoto: "Bekijk Foto Toestel",
     selectLanguageLabel: "Selecteer uw taal",
     loginTitle: "Interflon Smeercalculator",
     loginSubtitle: "Voer het paswoord in om toegang te krijgen tot de applicatie.",
@@ -312,8 +322,18 @@ const TRANSLATIONS = {
     menuAutomation: "Automation",
     pageAutomationTitle: "Automation",
     pageAutomationSubtitle: "Manage automated features and settings.",
-    automationTitle: "Automation",
-    automationIntro: "This section is prepared for automated features and settings.",
+    automationTitle: "Automation: Automatic Lubricators",
+    automationSubtitle: "Calculation & visualization for automatic lubrication units.",
+    automationDeviceLabel: "Select Device:",
+    deviceSinglePoint: "Interflon Single Point Lubricator",
+    devicePulsarlube: "Pulsarlube MSP",
+    automationParamsTitle: "Device Parameters & Lubrication Setting",
+    automationCalcHeader: "Lubrication Interval & Dosage",
+    labelCartridgeCap: "Cartridge Capacity (ml / cm³)",
+    labelDispensePeriod: "Desired Dispensing Period",
+    autoDailyVolumeLabel: "Calculated Daily Lubricant Volume:",
+    btnShowDimensions: "View Dimensions Sheet",
+    btnShowPhoto: "View Device Photo",
     selectLanguageLabel: "Select your language",
     loginTitle: "Interflon Lubrication Calculator",
     loginSubtitle: "Enter the password to access the application.",
@@ -598,8 +618,18 @@ const TRANSLATIONS = {
     menuAutomation: "Automatisation",
     pageAutomationTitle: "Automatisation",
     pageAutomationSubtitle: "Gérer les fonctionnalités et paramètres automatisés.",
-    automationTitle: "Automatisation",
-    automationIntro: "Cette section est préparée pour les fonctionnalités et paramètres automatisés.",
+    automationTitle: "Automatisation: Graisseurs Automatiques",
+    automationSubtitle: "Calcul et visualisation pour les unités de graissage automatique.",
+    automationDeviceLabel: "Sélectionner l'Appareil:",
+    deviceSinglePoint: "Interflon Single Point Lubricator",
+    devicePulsarlube: "Pulsarlube MSP",
+    automationParamsTitle: "Paramètres de l'Appareil & Réglage",
+    automationCalcHeader: "Intervalle & Dosage de Lubrification",
+    labelCartridgeCap: "Capacité de la Cartouche (ml / cm³)",
+    labelDispensePeriod: "Période de Distribution Souhaitée",
+    autoDailyVolumeLabel: "Volume Quotidien de Lubrifiant Calculé:",
+    btnShowDimensions: "Voir la Fiche de Dimensions",
+    btnShowPhoto: "Voir la Photo de l'Appareil",
     selectLanguageLabel: "Choisissez votre langue",
     loginTitle: "Calculateur de Lubrification Interflon",
     loginSubtitle: "Saisissez le mot de passe pour accéder à l'application.",
@@ -1393,6 +1423,7 @@ function switchPage(pageId) {
     document.getElementById("menuAutomation").classList.add("active");
     if (targetTitle) targetTitle.setAttribute("data-i18n", "pageAutomationTitle");
     if (targetSubtitle) targetSubtitle.setAttribute("data-i18n", "pageAutomationSubtitle");
+    updateAutomationPage();
   } else if (pageId === 'info') {
     document.getElementById("pageInfo").classList.add("active");
     document.getElementById("menuInfo").classList.add("active");
@@ -4068,4 +4099,111 @@ function openProductInfoPage() {
 function openLagertypesPage() {
   const lang = currentLang || "nl";
   window.open(`lagertypes.html?lang=${lang}`, "_blank");
+}
+
+// ==========================================================================
+// AUTOMATISERING (AUTOMATION LUBRICATORS) LOGIC
+// ==========================================================================
+
+let isShowingDimensionsSheet = false;
+
+function updateAutomationPage() {
+  const select = document.getElementById("automationDeviceSelect");
+  if (!select) return;
+
+  const device = select.value;
+  const titleEl = document.getElementById("automationImageTitle");
+  const imgEl = document.getElementById("automationDeviceImg");
+  const descEl = document.getElementById("automationDeviceDesc");
+  const toggleWrapper = document.getElementById("automationDimToggleWrapper");
+  const toggleLabel = document.getElementById("dimToggleLabel");
+
+  isShowingDimensionsSheet = false;
+
+  if (device === "pulsarlube_msp") {
+    if (titleEl) titleEl.textContent = "Pulsarlube MSP";
+    if (imgEl) imgEl.src = "pulsarlube-msp.png";
+    if (descEl) {
+      descEl.innerHTML = "De <strong>Pulsarlube MSP</strong> is een extern gevoede, elektro-mechanische automatische smeerunit. Het toestel werkt synchroon met de machine en doseert enkel smeervet gedurende de actieve bedrijfsuren van de installatie.";
+    }
+    if (toggleWrapper) toggleWrapper.style.display = "none";
+  } else {
+    // Default: Single Point Lubricator
+    if (titleEl) titleEl.textContent = "Interflon Single Point Lubricator";
+    if (imgEl) imgEl.src = "interflon-single-point-lubricator.jpg";
+    if (descEl) {
+      descEl.innerHTML = "De <strong>Interflon Single Point Lubricator</strong> zorgt voor een continue, geautomatiseerde smering van uw lagers. Dit voorkomt onder- en oversmering en verlengt de levensduur van uw roterende apparatuur significant.";
+    }
+    if (toggleWrapper) toggleWrapper.style.display = "block";
+    if (toggleLabel) {
+      const lang = currentLang || "nl";
+      const key = "btnShowDimensions";
+      if (TRANSLATIONS[lang] && TRANSLATIONS[lang][key]) {
+        toggleLabel.textContent = TRANSLATIONS[lang][key];
+      } else {
+        toggleLabel.textContent = "Bekijk Afmetingen Sheet";
+      }
+    }
+  }
+
+  calculateAutomationLubrication();
+}
+
+function toggleAutomationDimensions() {
+  const imgEl = document.getElementById("automationDeviceImg");
+  const toggleLabel = document.getElementById("dimToggleLabel");
+  const lang = currentLang || "nl";
+
+  if (!imgEl) return;
+
+  if (!isShowingDimensionsSheet) {
+    imgEl.src = "interflon-single-point-dimensions.jpg";
+    isShowingDimensionsSheet = true;
+    if (toggleLabel) {
+      const key = "btnShowPhoto";
+      toggleLabel.textContent = (TRANSLATIONS[lang] && TRANSLATIONS[lang][key]) ? TRANSLATIONS[lang][key] : "Bekijk Foto Toestel";
+    }
+  } else {
+    imgEl.src = "interflon-single-point-lubricator.jpg";
+    isShowingDimensionsSheet = false;
+    if (toggleLabel) {
+      const key = "btnShowDimensions";
+      toggleLabel.textContent = (TRANSLATIONS[lang] && TRANSLATIONS[lang][key]) ? TRANSLATIONS[lang][key] : "Bekijk Afmetingen Sheet";
+    }
+  }
+}
+
+function calculateAutomationLubrication() {
+  const capSelect = document.getElementById("autoCartridgeCap");
+  const periodInput = document.getElementById("autoDispensePeriod");
+  const unitSelect = document.getElementById("autoDispenseUnit");
+
+  const resValEl = document.getElementById("autoDailyVolumeRes");
+  const hintEl = document.getElementById("autoDispenseRateHint");
+
+  if (!capSelect || !periodInput || !unitSelect || !resValEl) return;
+
+  const capMl = parseFloat(capSelect.value) || 120;
+  const periodVal = parseFloat(periodInput.value) || 1;
+  const unit = unitSelect.value || "months";
+
+  let totalDays = 30 * periodVal; // Default months
+  if (unit === "weeks") {
+    totalDays = 7 * periodVal;
+  } else if (unit === "days") {
+    totalDays = periodVal;
+  }
+
+  if (totalDays <= 0) totalDays = 1;
+
+  const dailyVolume = capMl / totalDays;
+  const monthlyVolume = dailyVolume * 30.4375;
+
+  const formattedDaily = dailyVolume.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const formattedMonthly = monthlyVolume.toLocaleString("nl-BE", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+
+  resValEl.textContent = `${formattedDaily} cm³/dag`;
+  if (hintEl) {
+    hintEl.textContent = `(~ ${formattedMonthly} cm³ / maand bij ${capMl} ml op ${periodVal} ${unit})`;
+  }
 }
