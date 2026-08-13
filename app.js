@@ -4181,18 +4181,13 @@ function openAutomationImageModal() {
     if (caption) caption.textContent = "Pulsarlube MSP - Afbeelding & Specificaties";
   }
 
-  modal.style.display = "flex";
-  document.body.style.overflow = "hidden";
+  modal.classList.remove("hidden");
 }
 
-function closeAutomationImageModal(event) {
-  if (event && event.target && event.target.id !== "automationImageModal" && !event.target.closest("button")) {
-    return;
-  }
+function closeAutomationImageModal() {
   const modal = document.getElementById("automationImageModal");
   if (modal) {
-    modal.style.display = "none";
-    document.body.style.overflow = "";
+    modal.classList.add("hidden");
   }
 }
 
