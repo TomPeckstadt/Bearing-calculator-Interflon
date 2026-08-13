@@ -4141,13 +4141,20 @@ function updateAutomationPage() {
 
   isShowingDimensionsSheet = false;
 
-  if (device === "pulsarlube_msp") {
+  if (device === "pulsarlube_m2") {
+    if (titleEl) titleEl.textContent = "Pulsarlube M";
+    if (imgEl) imgEl.src = "pulsarlube-m2.jpg";
+    if (descEl) {
+      descEl.innerHTML = "De <strong>Pulsarlube M</strong> is een elektro-mechanische automatische smeerunit die <strong>continu 24u/24u en 7d/7d doorsmeert</strong>, gestuurd door een interne micro-processor en pomp. Dit garandeert een uiterst nauwkeurige en constante vetdosering.";
+    }
+    if (toggleWrapper) toggleWrapper.style.display = "block";
+  } else if (device === "pulsarlube_msp") {
     if (titleEl) titleEl.textContent = "Pulsarlube MSP";
     if (imgEl) imgEl.src = "pulsarlube-msp.png";
     if (descEl) {
       descEl.innerHTML = "De <strong>Pulsarlube MSP</strong> is een extern gevoede, elektro-mechanische automatische smeerunit. Het toestel werkt synchroon met de machine en doseert enkel smeervet gedurende de actieve bedrijfsuren van de installatie.";
     }
-    if (toggleWrapper) toggleWrapper.style.display = "none";
+    if (toggleWrapper) toggleWrapper.style.display = "block";
   } else {
     // Default: Single Point Lubricator
     if (titleEl) titleEl.textContent = "Interflon Single Point Lubricator";
@@ -4156,14 +4163,15 @@ function updateAutomationPage() {
       descEl.innerHTML = "De <strong>Interflon Single Point Lubricator</strong> zorgt voor een continue, geautomatiseerde smering van uw lagers. Dit voorkomt onder- en oversmering en verlengt de levensduur van uw roterende apparatuur significant.";
     }
     if (toggleWrapper) toggleWrapper.style.display = "block";
-    if (toggleLabel) {
-      const lang = currentLang || "nl";
-      const key = "btnShowDimensions";
-      if (TRANSLATIONS[lang] && TRANSLATIONS[lang][key]) {
-        toggleLabel.textContent = TRANSLATIONS[lang][key];
-      } else {
-        toggleLabel.textContent = "Bekijk Afmetingen Sheet";
-      }
+  }
+
+  if (toggleLabel) {
+    const lang = currentLang || "nl";
+    const key = "btnShowDimensions";
+    if (TRANSLATIONS[lang] && TRANSLATIONS[lang][key]) {
+      toggleLabel.textContent = TRANSLATIONS[lang][key];
+    } else {
+      toggleLabel.textContent = "Bekijk afmetingen";
     }
   }
 
@@ -4184,8 +4192,8 @@ function openAutomationImageModal() {
     modalImg.src = "interflon-single-point-dimensions.jpg";
     if (caption) caption.textContent = "Interflon Single Point Lubricator - Afmetingen";
   } else {
-    modalImg.src = "pulsarlube-msp.png";
-    if (caption) caption.textContent = "Pulsarlube MSP - Afbeelding & Specificaties";
+    modalImg.src = "pulsarlube-dimensions.jpg";
+    if (caption) caption.textContent = "Pulsarlube M / MSP - Afmetingen & Maten";
   }
 
   modal.classList.remove("hidden");
