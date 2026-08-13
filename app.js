@@ -2010,9 +2010,13 @@ function calculateGrease() {
   if (omProdCons1El) omProdCons1El.value = refill_grams.toFixed(1);
   if (omProdCons2El) omProdCons2El.value = refill_grams.toFixed(1);
 
-  // Store current FC values globally for TCO frequency recalculations
+  // Store current FC and calculation values globally for TCO and Automatisering
   window.currentFc = fc;
   window.currentFcMicPol = fcMicPol;
+  window.currentRefillGrams = refill_grams;
+  window.currentMicPolDays = micPolDays;
+  window.currentMicPolHours = fcMicPol;
+  window.currentDailyNeedCm3 = (micPolDays > 0) ? (refill_grams / micPolDays) : 0;
 
   // Automatically update TCO frequency fields based on the active mode (formula vs practical)
   updateTcoFrequencies();
@@ -4173,6 +4177,18 @@ function toggleAutomationDimensions() {
   }
 }
 
+let userHasManuallyEditedAutoPeriod = false;
+
+function onAutoCartridgeCapChange() {
+  userHasManuallyEditedAutoPeriod = false;
+  calculateAutomationLubrication();
+}
+
+function onAutoPeriodInput() {
+  userHasManuallyEditedAutoPeriod = true;
+  calculateAutomationLubrication();
+}
+
 function calculateAutomationLubrication() {
   const capSelect = document.getElementById("autoCartridgeCap");
   const periodInput = document.getElementById("autoDispensePeriod");
@@ -4180,30 +4196,107 @@ function calculateAutomationLubrication() {
 
   const resValEl = document.getElementById("autoDailyVolumeRes");
   const hintEl = document.getElementById("autoDispenseRateHint");
+  const needBadgeEl = document.getElementById("autoBearingNeedBadge");
+  const matchNoticeEl = document.getElementById("autoMatchNotice");
 
   if (!capSelect || !periodInput || !unitSelect || !resValEl) return;
 
   const capMl = parseFloat(capSelect.value) || 120;
-  const periodVal = parseFloat(periodInput.value) || 1;
   const unit = unitSelect.value || "months";
 
-  let totalDays = 30 * periodVal; // Default months
+  // Check if we have a calculated daily requirement from Smeercalculatie
+  const hasDailyNeed = (typeof window.currentDailyNeedCm3 === "number" && window.currentDailyNeedCm3 > 0);
+  const dailyNeedCm3 = hasDailyNeed ? window.currentDailyNeedCm3 : 0;
+
+  // Render Smeercalculatie source summary badge if present
+  if (needBadgeEl) {
+    if (hasDailyNeed) {
+      const gqStr = (window.currentRefillGrams || 0).toLocaleString("nl-BE", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+      const daysStr = (window.currentMicPolDays || 0).toLocaleString("nl-BE", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+      const hoursStr = Math.round(window.currentMicPolHours || 0).toLocaleString("nl-BE");
+      const needRateStr = dailyNeedCm3.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 4 });
+
+      needBadgeEl.innerHTML = `
+        <div style="background-color: #f0fdf4; border: 1px solid #bbf7d0; border-radius: var(--border-radius-sm); padding: 12px 14px; margin-bottom: 14px;">
+          <div style="font-weight: 700; font-size: 13px; color: #166534; margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width: 16px; height: 16px; color: #166534;">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            Berekende Lagerbehoefte (uit 'Smeercalculatie'):
+          </div>
+          <div style="font-size: 12px; color: #15803d; line-height: 1.6;">
+            • Nasmeerhoeveelheid: <strong>${gqStr} g (cm³)</strong><br>
+            • Interflon MicPol® Smeerinterval: <strong>${daysStr} dagen</strong> (${hoursStr} uren)<br>
+            • Dagelijkse lagerbehoefte: <strong>${needRateStr} cm³/dag</strong>
+          </div>
+        </div>
+      `;
+    } else {
+      needBadgeEl.innerHTML = `
+        <div style="background-color: #fefce8; border: 1px solid #fef08a; border-radius: var(--border-radius-sm); padding: 10px 14px; margin-bottom: 14px; font-size: 12px; color: #854d0e;">
+          ℹ️ Tip: Voer eerst een berekening uit op de pagina <strong>'Smeercalculatie'</strong> om de exacte lagerbehoefte automatisch in te laden.
+        </div>
+      `;
+    }
+  }
+
+  // If we have a calculated daily requirement and user has NOT manually overridden period,
+  // automatically calculate the required period for the selected cartridge capacity!
+  if (hasDailyNeed && !userHasManuallyEditedAutoPeriod) {
+    const requiredDays = capMl / dailyNeedCm3;
+    let autoPeriod = requiredDays / 30.4375; // months
+    if (unit === "weeks") {
+      autoPeriod = requiredDays / 7;
+    } else if (unit === "days") {
+      autoPeriod = requiredDays;
+    }
+
+    // Round nicely: 1 decimal if months/weeks, whole number if > 10
+    const roundedPeriod = autoPeriod > 10 ? Math.round(autoPeriod) : Math.round(autoPeriod * 10) / 10;
+    periodInput.value = roundedPeriod;
+  }
+
+  // Calculate actual daily volume from current period input
+  const periodVal = parseFloat(periodInput.value) || 1;
+  let totalDays = 30.4375 * periodVal; // Default months
   if (unit === "weeks") {
     totalDays = 7 * periodVal;
   } else if (unit === "days") {
     totalDays = periodVal;
   }
-
   if (totalDays <= 0) totalDays = 1;
 
-  const dailyVolume = capMl / totalDays;
-  const monthlyVolume = dailyVolume * 30.4375;
+  const actualDailyVolume = capMl / totalDays;
+  const actualMonthlyVolume = actualDailyVolume * 30.4375;
 
-  const formattedDaily = dailyVolume.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-  const formattedMonthly = monthlyVolume.toLocaleString("nl-BE", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+  const formattedDaily = actualDailyVolume.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const formattedMonthly = actualMonthlyVolume.toLocaleString("nl-BE", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 
   resValEl.textContent = `${formattedDaily} cm³/dag`;
   if (hintEl) {
     hintEl.textContent = `(~ ${formattedMonthly} cm³ / maand bij ${capMl} ml op ${periodVal} ${unit})`;
+  }
+
+  // Show status notice comparing active dosage with bearing requirement
+  if (matchNoticeEl) {
+    if (hasDailyNeed) {
+      const diffRatio = Math.abs(actualDailyVolume - dailyNeedCm3) / dailyNeedCm3;
+      if (diffRatio < 0.08) {
+        const daysExact = (capMl / dailyNeedCm3).toFixed(0);
+        matchNoticeEl.innerHTML = `
+          <div style="margin-top: 10px; font-size: 11px; font-weight: 700; color: #166534; background-color: #dcfce7; border-radius: 4px; padding: 6px 10px; display: inline-flex; align-items: center; gap: 6px;">
+            <span>✅ Looptijd automatisch berekend op lagerbehoefte (${daysExact} dagen / ${(daysExact / 30.4375).toFixed(1)} mnd)</span>
+          </div>
+        `;
+      } else {
+        matchNoticeEl.innerHTML = `
+          <div style="margin-top: 10px; font-size: 11px; font-weight: 700; color: #b45309; background-color: #fef3c7; border-radius: 4px; padding: 6px 10px; display: inline-flex; align-items: center; gap: 6px;">
+            <span>⚠️ Handmatige aanpassing looptijd (Lagerbehoefte = ${dailyNeedCm3.toFixed(3)} cm³/dag)</span>
+          </div>
+        `;
+      }
+    } else {
+      matchNoticeEl.innerHTML = '';
+    }
   }
 }
