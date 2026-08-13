@@ -1320,15 +1320,122 @@
       <!-- ==========================================================================
            PAGE 5: AUTOMATISERING (AUTOMATION)
            ========================================================================== -->
+      <!-- ==========================================================================
+           PAGE 5: AUTOMATISERING (AUTOMATION)
+           ========================================================================== -->
       <section id="pageAutomation" class="page-section">
-        <div class="card">
-          <h3 class="card-title" style="border-bottom: 1px solid var(--accent-yellow-border-soft); padding-bottom: 10px;" data-i18n="automationTitle">
-            Automatisering
-          </h3>
-          <p style="line-height: 1.6; margin-bottom: 20px; color: var(--text-medium);" data-i18n="automationIntro">
-            Deze sectie is voorbereid voor geautomatiseerde functies en instellingen.
-          </p>
+        
+        <!-- Header / Device Selection Card -->
+        <div class="card" style="margin-bottom: 24px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; border-bottom: 1px solid var(--accent-yellow-border-soft); padding-bottom: 14px; margin-bottom: 18px;">
+            <div>
+              <h3 class="card-title" style="margin: 0;" data-i18n="automationTitle">
+                Automatisering: Automatische Smeertoestellen
+              </h3>
+              <p style="margin: 4px 0 0 0; font-size: 13px; color: var(--text-medium);" data-i18n="automationSubtitle">
+                Berekening & weergave bij inzet van automatische smeertoestellen.
+              </p>
+            </div>
+            
+            <!-- Selector Dropdown -->
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <label for="automationDeviceSelect" style="font-weight: 600; font-size: 13px; color: var(--text-dark); white-space: nowrap;" data-i18n="automationDeviceLabel">
+                Selecteer Toestel:
+              </label>
+              <select id="automationDeviceSelect" class="form-select" onchange="updateAutomationPage()" style="min-width: 280px; padding: 10px 14px; font-weight: 600; border-radius: var(--border-radius-md); border: 2px solid var(--primary-blue); background-color: #f8fafc; color: var(--primary-blue); font-size: 14px; cursor: pointer;">
+                <option value="single_point" data-i18n="deviceSinglePoint">Interflon Single Point Lubricator</option>
+                <option value="pulsarlube_msp" data-i18n="devicePulsarlube">Pulsarlube MSP</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Interactive Content Grid: Image + Details -->
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: start;">
+            
+            <!-- Image Display Box -->
+            <div class="card" style="background: #ffffff; border: 1px solid #e2e8f0; padding: 20px; text-align: center; border-radius: var(--border-radius-md); box-shadow: var(--shadow-sm);">
+              <h4 id="automationImageTitle" style="color: var(--primary-blue); font-family: 'Outfit', sans-serif; font-size: 1.1rem; margin-bottom: 15px; font-weight: 700;">
+                Interflon Single Point Lubricator
+              </h4>
+              <div style="min-height: 280px; display: flex; align-items: center; justify-content: center; background-color: #f8fafc; border-radius: var(--border-radius-sm); border: 1px solid #edf2f7; padding: 15px; margin-bottom: 12px;">
+                <img id="automationDeviceImg" src="interflon-single-point-lubricator.jpg" alt="Smeertoestel" style="max-width: 100%; max-height: 320px; object-fit: contain; border-radius: var(--border-radius-sm); transition: opacity 0.3s ease;">
+              </div>
+              <div id="automationDimToggleWrapper" style="display: block;">
+                <button type="button" class="btn-secondary" onclick="toggleAutomationDimensions()" style="font-size: 12px; padding: 6px 14px; display: inline-flex; align-items: center; gap: 6px;">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width: 14px; height: 14px;">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm10.5-11.25h.008v.008h-.008V8.25Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
+                  </svg>
+                  <span id="dimToggleLabel" data-i18n="btnShowDimensions">Bekijk Afmetingen Sheet</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Device Information & Calculator Settings -->
+            <div class="card" style="background: #ffffff; border: 1px solid #e2e8f0; padding: 20px; border-radius: var(--border-radius-md); box-shadow: var(--shadow-sm);">
+              <h4 style="color: var(--primary-blue); font-family: 'Outfit', sans-serif; font-size: 1.1rem; margin-bottom: 15px; font-weight: 700; border-bottom: 2px solid var(--accent-yellow); padding-bottom: 6px;" data-i18n="automationParamsTitle">
+                Toestel Parameters & Smeerinstelling
+              </h4>
+              
+              <div id="automationDeviceInfoText" style="line-height: 1.6; font-size: 13px; color: var(--text-medium); margin-bottom: 20px;">
+                <p id="automationDeviceDesc">
+                  De <strong>Interflon Single Point Lubricator</strong> zorgt voor een continue, geautomatiseerde smering van uw lagers. Dit voorkomt onder- en oversmering en verlengt de levensduur van uw roterende apparatuur significant.
+                </p>
+              </div>
+
+              <!-- Calculation Inputs for Lubricator -->
+              <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: var(--border-radius-sm); padding: 16px; margin-bottom: 16px;">
+                <h5 style="margin: 0 0 12px 0; font-size: 13px; font-weight: 700; color: var(--text-dark);" data-i18n="automationCalcHeader">
+                  Smeerinterval & Dosering
+                </h5>
+                
+                <div style="display: flex; flex-direction: column; gap: 12px;">
+                  <div>
+                    <label for="autoCartridgeCap" style="display: block; font-size: 12px; font-weight: 600; color: var(--text-dark); margin-bottom: 4px;" data-i18n="labelCartridgeCap">
+                      Patroon Capaciteit (ml / cm³)
+                    </label>
+                    <select id="autoCartridgeCap" class="form-select" onchange="calculateAutomationLubrication()" style="width: 100%; padding: 8px 12px; border-radius: var(--border-radius-sm); border: 1px solid #cbd5e1;">
+                      <option value="60">60 ml</option>
+                      <option value="120" selected>120 ml</option>
+                      <option value="250">250 ml</option>
+                      <option value="500">500 ml</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label for="autoDispensePeriod" style="display: block; font-size: 12px; font-weight: 600; color: var(--text-dark); margin-bottom: 4px;" data-i18n="labelDispensePeriod">
+                      Gewenste Looptijd / Leeglooptijd
+                    </label>
+                    <div style="display: flex; gap: 8px;">
+                      <input type="number" id="autoDispensePeriod" class="form-input" value="6" min="1" max="36" oninput="calculateAutomationLubrication()" style="flex: 1; padding: 8px 12px; border-radius: var(--border-radius-sm); border: 1px solid #cbd5e1;">
+                      <select id="autoDispenseUnit" class="form-select" onchange="calculateAutomationLubrication()" style="width: 120px; padding: 8px 12px; border-radius: var(--border-radius-sm); border: 1px solid #cbd5e1;">
+                        <option value="months" selected data-i18n="unitMonths">maanden</option>
+                        <option value="weeks" data-i18n="unitWeeks">weken</option>
+                        <option value="days" data-i18n="unitDays">dagen</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Output Results -->
+              <div style="background-color: #f1f5f9; border-left: 4px solid var(--primary-blue); border-radius: var(--border-radius-sm); padding: 14px;">
+                <div style="font-size: 12px; font-weight: 600; color: var(--text-medium);" data-i18n="autoDailyVolumeLabel">
+                  Berekend Dagelijks Smeervolume:
+                </div>
+                <div id="autoDailyVolumeRes" style="font-size: 20px; font-weight: 800; color: var(--primary-blue); margin: 4px 0 2px 0;">
+                  0,67 cm³/dag
+                </div>
+                <div id="autoDispenseRateHint" style="font-size: 11px; color: var(--text-medium);">
+                  (~ 20,0 cm³ / maand)
+                </div>
+              </div>
+
+            </div>
+
+          </div>
+
         </div>
+
       </section>
 
       <!-- ==========================================================================
@@ -1373,8 +1480,8 @@
 
   <!-- JavaScript logic imports -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="interflon-data.js?v=24"></script>
+  <script src="interflon-data.js?v=25"></script>
   <script src="bearings-db.js"></script>
-  <script src="app.js?v=24"></script>
+  <script src="app.js?v=25"></script>
 </body>
 </html>
