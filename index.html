@@ -361,7 +361,7 @@
       <nav style="flex: 1;">
         <ul class="sidebar-menu">
           <li>
-            <button id="menuSearch" class="menu-item-btn active" onclick="switchPage('search')">
+            <button type="button" id="menuSearch" class="menu-item-btn active" onclick="switchPage('search')">
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.637 10.637Z" />
               </svg>
@@ -369,7 +369,7 @@
             </button>
           </li>
           <li>
-            <button id="menuCalc" class="menu-item-btn" onclick="switchPage('calc')">
+            <button type="button" id="menuCalc" class="menu-item-btn" onclick="switchPage('calc')">
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 15.75V18a2.25 2.25 0 0 1-2.25 2.25h-6a2.25 2.25 0 0 1-2.25-2.25v-6a2.25 2.25 0 0 1 2.25-2.25h6a2.25 2.25 0 0 1 2.25 2.25v2.25m3 3H9m12 0-3-3m3 3-3 3M12 3v2.25m6.364.386-1.591 1.591M21 12h-2.25m-.386 6.364-1.591-1.591M12 21v-2.25m-6.364-.386 1.591-1.591M3 12h2.25m.386-6.364 1.591 1.591" />
               </svg>
@@ -377,7 +377,7 @@
             </button>
           </li>
           <li>
-            <button id="menuOm" class="menu-item-btn" onclick="switchPage('om')">
+            <button type="button" id="menuOm" class="menu-item-btn" onclick="switchPage('om')">
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18.75a60.07 60.07 0 0 1 15.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5h16.5c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125H3.75a1.125 1.125 0 0 1-1.125-1.125V5.625c0-.621.504-1.125 1.125-1.125Z" />
                 <path stroke-linecap="round" stroke-linejoin="round" d="M6 15V9m3 6v-3m3 3V7m3 9v-5m3 5V8" />
@@ -386,7 +386,7 @@
             </button>
           </li>
           <li>
-            <button id="menuAutomation" class="menu-item-btn" onclick="switchPage('automation')">
+            <button type="button" id="menuAutomation" class="menu-item-btn" onclick="switchPage('automation')">
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
               </svg>
@@ -394,7 +394,7 @@
             </button>
           </li>
           <li>
-            <button id="menuInfo" class="menu-item-btn" onclick="switchPage('info')">
+            <button type="button" id="menuInfo" class="menu-item-btn" onclick="switchPage('info')">
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 16v-4m0-4h.01M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
               </svg>
@@ -402,7 +402,7 @@
             </button>
           </li>
           <li style="padding: 6px 16px 8px 16px;">
-            <button id="btnExportPdf" onclick="showPdfModal()" class="btn-export-sidebar" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 10px 16px; background-color: var(--primary-blue); color: white; border: none; border-radius: var(--border-radius-md); font-family: inherit; font-size: 13px; font-weight: 700; cursor: pointer; box-shadow: 0 4px 6px -1px rgba(227, 6, 19, 0.2); transition: all 0.2s ease;">
+            <button type="button" id="btnExportPdf" onclick="showPdfModal()" class="btn-export-sidebar" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 10px 16px; background-color: var(--primary-blue); color: white; border: none; border-radius: var(--border-radius-md); font-family: inherit; font-size: 13px; font-weight: 700; cursor: pointer; box-shadow: 0 4px 6px -1px rgba(227, 6, 19, 0.2); transition: all 0.2s ease;">
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" style="width: 16px; height: 16px; color: white;">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
               </svg>
@@ -413,7 +413,7 @@
       </nav>
       
       <div class="sidebar-footer">
-        <button class="logout-btn" onclick="handleLogout()">
+        <button type="button" class="logout-btn" onclick="handleLogout()">
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width: 18px; height: 18px;">
             <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 9V5.25A2.25 2.25 0 0 1 10.5 3h6a2.25 2.25 0 0 1 2.25 2.25v13.5A2.25 2.25 0 0 1 16.5 21h-6a2.25 2.25 0 0 1-2.25-2.25V15m-3 0-3-3m0 0 3-3m-3 3H15" />
           </svg>
@@ -433,15 +433,15 @@
         </div>
         
         <div style="display: flex; gap: 10px; align-items: center;">
-          <button id="userBadgeBtn" class="user-badge" onclick="openOperatorModal()">
+          <button type="button" id="userBadgeBtn" class="user-badge" onclick="openOperatorModal()">
             <div id="userAvatar" class="user-avatar">IF</div>
             <span id="userName" class="user-name" data-i18n="operatorBadge">Interflon contactpersoon</span>
           </button>
-          <button id="clientBadgeBtn" class="user-badge" onclick="openClientModal()">
+          <button type="button" id="clientBadgeBtn" class="user-badge" onclick="openClientModal()">
             <div id="clientAvatar" class="user-avatar" style="background-color: var(--accent-yellow-light); color: var(--primary-blue);">KL</div>
             <span id="clientName" class="user-name" data-i18n="clientBadge">Klant</span>
           </button>
-          <button id="techBadgeBtn" class="user-badge" onclick="openTechModal()">
+          <button type="button" id="techBadgeBtn" class="user-badge" onclick="openTechModal()">
             <div id="techAvatar" class="user-avatar" style="background-color: #E0F2FE; color: #0369A1;">TD</div>
             <span id="techName" class="user-name" data-i18n="techBadge">Technical data</span>
           </button>
@@ -1508,8 +1508,8 @@
 
   <!-- JavaScript logic imports -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="interflon-data.js?v=31"></script>
+  <script src="interflon-data.js?v=32"></script>
   <script src="bearings-db.js"></script>
-  <script src="app.js?v=31"></script>
+  <script src="app.js?v=32"></script>
 </body>
 </html>
