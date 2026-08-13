@@ -2011,12 +2011,19 @@ function calculateGrease() {
   if (omProdCons2El) omProdCons2El.value = refill_grams.toFixed(1);
 
   // Store current FC and calculation values globally for TCO and Automatisering
+  const hDay = (typeof hoursPerDay === "number" && hoursPerDay > 0) ? hoursPerDay : 24;
+  const dWeek = (typeof daysPerWeek === "number" && daysPerWeek > 0) ? daysPerWeek : 7;
+  const weeklyOpHours = hDay * dWeek;
+  const totalCalendarDays = (weeklyOpHours > 0) ? (fcMicPol / weeklyOpHours) * 7 : micPolDays;
+
   window.currentFc = fc;
   window.currentFcMicPol = fcMicPol;
   window.currentRefillGrams = refill_grams;
-  window.currentMicPolDays = micPolDays;
+  window.currentMicPolDays = totalCalendarDays;
   window.currentMicPolHours = fcMicPol;
-  window.currentDailyNeedCm3 = (micPolDays > 0) ? (refill_grams / micPolDays) : 0;
+  window.currentHoursPerDay = hDay;
+  window.currentDaysPerWeek = dWeek;
+  window.currentDailyNeedCm3 = (totalCalendarDays > 0) ? (refill_grams / totalCalendarDays) : 0;
 
   // Automatically update TCO frequency fields based on the active mode (formula vs practical)
   updateTcoFrequencies();
@@ -4122,13 +4129,16 @@ function updateAutomationPage() {
   const toggleWrapper = document.getElementById("automationDimToggleWrapper");
   const toggleLabel = document.getElementById("dimToggleLabel");
 
+  const hDay = window.currentHoursPerDay || 24;
+  const dWeek = window.currentDaysPerWeek || 7;
+
   isShowingDimensionsSheet = false;
 
   if (device === "pulsarlube_msp") {
     if (titleEl) titleEl.textContent = "Pulsarlube MSP";
     if (imgEl) imgEl.src = "pulsarlube-msp.png";
     if (descEl) {
-      descEl.innerHTML = "De <strong>Pulsarlube MSP</strong> is een extern gevoede, elektro-mechanische automatische smeerunit. Het toestel werkt synchroon met de machine en doseert enkel smeervet gedurende de actieve bedrijfsuren van de installatie.";
+      descEl.innerHTML = `De <strong>Pulsarlube MSP</strong> is een extern gevoede, elektro-mechanische automatische smeerunit. Het toestel werkt <strong>synchroon met de machine</strong> en doseert uitsluitend gedurende de operationele uren (${hDay}u/dag, ${dWeek}d/week). Wanneer de machine stilstaat, stopt ook de dosering.`;
     }
     if (toggleWrapper) toggleWrapper.style.display = "none";
   } else {
@@ -4136,7 +4146,7 @@ function updateAutomationPage() {
     if (titleEl) titleEl.textContent = "Interflon Single Point Lubricator";
     if (imgEl) imgEl.src = "interflon-single-point-lubricator.jpg";
     if (descEl) {
-      descEl.innerHTML = "De <strong>Interflon Single Point Lubricator</strong> zorgt voor een continue, geautomatiseerde smering van uw lagers. Dit voorkomt onder- en oversmering en verlengt de levensduur van uw roterende apparatuur significant.";
+      descEl.innerHTML = "De <strong>Interflon Single Point Lubricator</strong> is een automatisch smeertoestel dat <strong>continu 24u/24u en 7d/7d doorsmeert</strong>, onafhankelijk van de ingestelde operationele uren van de machine. Het patroon doseert gestaag gedurende alle kalenderdagen.";
     }
     if (toggleWrapper) toggleWrapper.style.display = "block";
     if (toggleLabel) {
@@ -4193,6 +4203,7 @@ function calculateAutomationLubrication() {
   const capSelect = document.getElementById("autoCartridgeCap");
   const periodInput = document.getElementById("autoDispensePeriod");
   const unitSelect = document.getElementById("autoDispenseUnit");
+  const deviceSelect = document.getElementById("automationDeviceSelect");
 
   const resValEl = document.getElementById("autoDailyVolumeRes");
   const hintEl = document.getElementById("autoDispenseRateHint");
@@ -4203,6 +4214,10 @@ function calculateAutomationLubrication() {
 
   const capMl = parseFloat(capSelect.value) || 120;
   const unit = unitSelect.value || "months";
+  const device = deviceSelect ? deviceSelect.value : "single_point";
+
+  const hDay = window.currentHoursPerDay || 24;
+  const dWeek = window.currentDaysPerWeek || 7;
 
   // Check if we have a calculated daily requirement from Smeercalculatie
   const hasDailyNeed = (typeof window.currentDailyNeedCm3 === "number" && window.currentDailyNeedCm3 > 0);
@@ -4216,6 +4231,10 @@ function calculateAutomationLubrication() {
       const hoursStr = Math.round(window.currentMicPolHours || 0).toLocaleString("nl-BE");
       const needRateStr = dailyNeedCm3.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 4 });
 
+      const modeNote = (device === "pulsarlube_msp")
+        ? `• Smeermodus: <strong>Synchroon met machine</strong> (${hDay}u/dag, ${dWeek}d/week)`
+        : `• Smeermodus: <strong>24/24u & 7d/7d continu doorsmeren</strong> (onafhankelijk van bedrijfsuren)`;
+
       needBadgeEl.innerHTML = `
         <div style="background-color: #f0fdf4; border: 1px solid #bbf7d0; border-radius: var(--border-radius-sm); padding: 12px 14px; margin-bottom: 14px;">
           <div style="font-weight: 700; font-size: 13px; color: #166534; margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
@@ -4226,8 +4245,9 @@ function calculateAutomationLubrication() {
           </div>
           <div style="font-size: 12px; color: #15803d; line-height: 1.6;">
             • Nasmeerhoeveelheid: <strong>${gqStr} g (cm³)</strong><br>
-            • Interflon MicPol® Smeerinterval: <strong>${daysStr} dagen</strong> (${hoursStr} uren)<br>
-            • Dagelijkse lagerbehoefte: <strong>${needRateStr} cm³/dag</strong>
+            • Interflon MicPol® Smeerinterval: <strong>${daysStr} kalenderdagen</strong> (${hoursStr} uren bij ${hDay}u/dag, ${dWeek}d/wk)<br>
+            • Continuous 24/7 lagerbehoefte: <strong>${needRateStr} cm³/kalenderdag</strong><br>
+            ${modeNote}
           </div>
         </div>
       `;
@@ -4283,15 +4303,16 @@ function calculateAutomationLubrication() {
       const diffRatio = Math.abs(actualDailyVolume - dailyNeedCm3) / dailyNeedCm3;
       if (diffRatio < 0.08) {
         const daysExact = (capMl / dailyNeedCm3).toFixed(0);
+        const mndExact = (daysExact / 30.4375).toFixed(1);
         matchNoticeEl.innerHTML = `
           <div style="margin-top: 10px; font-size: 11px; font-weight: 700; color: #166534; background-color: #dcfce7; border-radius: 4px; padding: 6px 10px; display: inline-flex; align-items: center; gap: 6px;">
-            <span>✅ Looptijd automatisch berekend op lagerbehoefte (${daysExact} dagen / ${(daysExact / 30.4375).toFixed(1)} mnd)</span>
+            <span>✅ Looptijd (24/7) automatisch berekend op lagerbehoefte (${daysExact} kalenderdagen / ${mndExact} mnd)</span>
           </div>
         `;
       } else {
         matchNoticeEl.innerHTML = `
           <div style="margin-top: 10px; font-size: 11px; font-weight: 700; color: #b45309; background-color: #fef3c7; border-radius: 4px; padding: 6px 10px; display: inline-flex; align-items: center; gap: 6px;">
-            <span>⚠️ Handmatige aanpassing looptijd (Lagerbehoefte = ${dailyNeedCm3.toFixed(3)} cm³/dag)</span>
+            <span>⚠️ Handmatige aanpassing looptijd (Berekende behoefte = ${dailyNeedCm3.toFixed(3)} cm³/dag)</span>
           </div>
         `;
       }
