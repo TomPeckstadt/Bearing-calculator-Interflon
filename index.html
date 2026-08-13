@@ -1382,6 +1382,9 @@
                 </p>
               </div>
 
+              <!-- Smeercalculatie Source Summary Badge -->
+              <div id="autoBearingNeedBadge"></div>
+
               <!-- Calculation Inputs for Lubricator -->
               <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: var(--border-radius-sm); padding: 16px; margin-bottom: 16px;">
                 <h5 style="margin: 0 0 12px 0; font-size: 13px; font-weight: 700; color: var(--text-dark);" data-i18n="automationCalcHeader">
@@ -1393,7 +1396,7 @@
                     <label for="autoCartridgeCap" style="display: block; font-size: 12px; font-weight: 600; color: var(--text-dark); margin-bottom: 4px;" data-i18n="labelCartridgeCap">
                       Patroon Capaciteit (ml / cm³)
                     </label>
-                    <select id="autoCartridgeCap" class="form-select" onchange="calculateAutomationLubrication()" style="width: 100%; padding: 8px 12px; border-radius: var(--border-radius-sm); border: 1px solid #cbd5e1;">
+                    <select id="autoCartridgeCap" class="form-select" onchange="onAutoCartridgeCapChange()" style="width: 100%; padding: 8px 12px; border-radius: var(--border-radius-sm); border: 1px solid #cbd5e1;">
                       <option value="60">60 ml</option>
                       <option value="120" selected>120 ml</option>
                       <option value="250">250 ml</option>
@@ -1403,11 +1406,11 @@
 
                   <div>
                     <label for="autoDispensePeriod" style="display: block; font-size: 12px; font-weight: 600; color: var(--text-dark); margin-bottom: 4px;" data-i18n="labelDispensePeriod">
-                      Gewenste Looptijd / Leeglooptijd
+                      Automatische Looptijd / Leeglooptijd
                     </label>
                     <div style="display: flex; gap: 8px;">
-                      <input type="number" id="autoDispensePeriod" class="form-input" value="6" min="1" max="36" oninput="calculateAutomationLubrication()" style="flex: 1; padding: 8px 12px; border-radius: var(--border-radius-sm); border: 1px solid #cbd5e1;">
-                      <select id="autoDispenseUnit" class="form-select" onchange="calculateAutomationLubrication()" style="width: 120px; padding: 8px 12px; border-radius: var(--border-radius-sm); border: 1px solid #cbd5e1;">
+                      <input type="number" id="autoDispensePeriod" class="form-input" value="6" min="0.1" max="120" step="0.1" oninput="onAutoPeriodInput()" style="flex: 1; padding: 8px 12px; border-radius: var(--border-radius-sm); border: 1px solid #cbd5e1;">
+                      <select id="autoDispenseUnit" class="form-select" onchange="onAutoCartridgeCapChange()" style="width: 120px; padding: 8px 12px; border-radius: var(--border-radius-sm); border: 1px solid #cbd5e1;">
                         <option value="months" selected data-i18n="unitMonths">maanden</option>
                         <option value="weeks" data-i18n="unitWeeks">weken</option>
                         <option value="days" data-i18n="unitDays">dagen</option>
@@ -1428,6 +1431,7 @@
                 <div id="autoDispenseRateHint" style="font-size: 11px; color: var(--text-medium);">
                   (~ 20,0 cm³ / maand)
                 </div>
+                <div id="autoMatchNotice"></div>
               </div>
 
             </div>
@@ -1480,8 +1484,8 @@
 
   <!-- JavaScript logic imports -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="interflon-data.js?v=26"></script>
+  <script src="interflon-data.js?v=27"></script>
   <script src="bearings-db.js"></script>
-  <script src="app.js?v=26"></script>
+  <script src="app.js?v=27"></script>
 </body>
 </html>
