@@ -5,6 +5,13 @@ let activeBearing = null;
 let tcoUploadedImageBase64 = "";
 let currentLang = localStorage.getItem("bearing_calc_lang") || "nl";
 
+// Clean up trailing '?' from URL if present
+if (typeof window !== "undefined" && window.location && window.location.href.endsWith("?")) {
+  try {
+    window.history.replaceState(null, "", window.location.pathname);
+  } catch (e) {}
+}
+
 const TRANSLATIONS = {
   nl: {
     descGrease: "Bepaalt de maximale DN-factor en de vetdichtheid.",
