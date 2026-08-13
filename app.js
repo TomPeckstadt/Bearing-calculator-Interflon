@@ -4125,6 +4125,28 @@ function openLagertypesPage() {
 
 let isShowingDimensionsSheet = false;
 
+const DEVICE_CAPACITIES = {
+  single_point: [
+    { value: "15", label: "15 ml" },
+    { value: "30", label: "30 ml" },
+    { value: "60", label: "60 ml" },
+    { value: "120", label: "120 ml" },
+    { value: "250", label: "250 ml" }
+  ],
+  pulsarlube_m2: [
+    { value: "60", label: "60 ml" },
+    { value: "120", label: "120 ml" },
+    { value: "250", label: "250 ml" },
+    { value: "500", label: "500 ml" }
+  ],
+  pulsarlube_msp: [
+    { value: "60", label: "60 ml" },
+    { value: "120", label: "120 ml" },
+    { value: "250", label: "250 ml" },
+    { value: "500", label: "500 ml" }
+  ]
+};
+
 function updateAutomationPage() {
   const select = document.getElementById("automationDeviceSelect");
   if (!select) return;
@@ -4135,11 +4157,24 @@ function updateAutomationPage() {
   const descEl = document.getElementById("automationDeviceDesc");
   const toggleWrapper = document.getElementById("automationDimToggleWrapper");
   const toggleLabel = document.getElementById("dimToggleLabel");
+  const capSelect = document.getElementById("autoCartridgeCap");
 
   const hDay = window.currentHoursPerDay || 24;
   const dWeek = window.currentDaysPerWeek || 7;
 
   isShowingDimensionsSheet = false;
+
+  // Dynamically update Cartridge Capacities dropdown based on active device
+  if (capSelect) {
+    const prevVal = capSelect.value || "120";
+    const caps = DEVICE_CAPACITIES[device] || DEVICE_CAPACITIES.single_point;
+    capSelect.innerHTML = caps.map(c => `<option value="${c.value}">${c.label}</option>`).join("");
+    if (caps.some(c => c.value === prevVal)) {
+      capSelect.value = prevVal;
+    } else {
+      capSelect.value = "120";
+    }
+  }
 
   if (device === "pulsarlube_m2") {
     if (titleEl) titleEl.textContent = "Pulsarlube M";
