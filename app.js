@@ -4135,13 +4135,13 @@ const DEVICE_CAPACITIES = {
   ],
   pulsarlube_m2: [
     { value: "60", label: "60 ml" },
-    { value: "120", label: "120 ml" },
+    { value: "125", label: "125 ml" },
     { value: "250", label: "250 ml" },
     { value: "500", label: "500 ml" }
   ],
   pulsarlube_msp: [
     { value: "60", label: "60 ml" },
-    { value: "120", label: "120 ml" },
+    { value: "125", label: "125 ml" },
     { value: "250", label: "250 ml" },
     { value: "500", label: "500 ml" }
   ]
@@ -4171,8 +4171,12 @@ function updateAutomationPage() {
     capSelect.innerHTML = caps.map(c => `<option value="${c.value}">${c.label}</option>`).join("");
     if (caps.some(c => c.value === prevVal)) {
       capSelect.value = prevVal;
-    } else {
+    } else if (prevVal === "120" && caps.some(c => c.value === "125")) {
+      capSelect.value = "125";
+    } else if (prevVal === "125" && caps.some(c => c.value === "120")) {
       capSelect.value = "120";
+    } else {
+      capSelect.value = caps[0].value;
     }
   }
 
