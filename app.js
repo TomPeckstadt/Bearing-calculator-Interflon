@@ -36,8 +36,8 @@ const TRANSLATIONS = {
     labelCartridgeCap: "Patroon Capaciteit (ml / cm³)",
     labelDispensePeriod: "Gewenste Looptijd / Leeglooptijd",
     autoDailyVolumeLabel: "Berekend Dagelijks Smeervolume:",
-    btnShowDimensions: "Bekijk Afmetingen Sheet",
-    btnShowPhoto: "Bekijk Foto Toestel",
+    btnShowDimensions: "Bekijk afmetingen",
+    btnShowPhoto: "Bekijk foto toestel",
     selectLanguageLabel: "Selecteer uw taal",
     loginTitle: "Interflon Smeercalculator",
     loginSubtitle: "Voer het paswoord in om toegang te krijgen tot de applicatie.",
@@ -332,8 +332,8 @@ const TRANSLATIONS = {
     labelCartridgeCap: "Cartridge Capacity (ml / cm³)",
     labelDispensePeriod: "Desired Dispensing Period",
     autoDailyVolumeLabel: "Calculated Daily Lubricant Volume:",
-    btnShowDimensions: "View Dimensions Sheet",
-    btnShowPhoto: "View Device Photo",
+    btnShowDimensions: "View dimensions",
+    btnShowPhoto: "View device photo",
     selectLanguageLabel: "Select your language",
     loginTitle: "Interflon Lubrication Calculator",
     loginSubtitle: "Enter the password to access the application.",
@@ -628,8 +628,8 @@ const TRANSLATIONS = {
     labelCartridgeCap: "Capacité de la Cartouche (ml / cm³)",
     labelDispensePeriod: "Période de Distribution Souhaitée",
     autoDailyVolumeLabel: "Volume Quotidien de Lubrifiant Calculé:",
-    btnShowDimensions: "Voir la Fiche de Dimensions",
-    btnShowPhoto: "Voir la Photo de l'Appareil",
+    btnShowDimensions: "Voir dimensions",
+    btnShowPhoto: "Voir photo appareil",
     selectLanguageLabel: "Choisissez votre langue",
     loginTitle: "Calculateur de Lubrification Interflon",
     loginSubtitle: "Saisissez le mot de passe pour accéder à l'application.",
@@ -4163,27 +4163,36 @@ function updateAutomationPage() {
   calculateAutomationLubrication();
 }
 
-function toggleAutomationDimensions() {
-  const imgEl = document.getElementById("automationDeviceImg");
-  const toggleLabel = document.getElementById("dimToggleLabel");
-  const lang = currentLang || "nl";
+function openAutomationImageModal() {
+  const modal = document.getElementById("automationImageModal");
+  const modalImg = document.getElementById("automationModalImg");
+  const caption = document.getElementById("automationModalCaption");
+  const deviceSelect = document.getElementById("automationDeviceSelect");
+  
+  const device = deviceSelect ? deviceSelect.value : "single_point";
 
-  if (!imgEl) return;
+  if (!modal || !modalImg) return;
 
-  if (!isShowingDimensionsSheet) {
-    imgEl.src = "interflon-single-point-dimensions.jpg";
-    isShowingDimensionsSheet = true;
-    if (toggleLabel) {
-      const key = "btnShowPhoto";
-      toggleLabel.textContent = (TRANSLATIONS[lang] && TRANSLATIONS[lang][key]) ? TRANSLATIONS[lang][key] : "Bekijk Foto Toestel";
-    }
+  if (device === "single_point") {
+    modalImg.src = "interflon-single-point-dimensions.jpg";
+    if (caption) caption.textContent = "Interflon Single Point Lubricator - Afmetingen";
   } else {
-    imgEl.src = "interflon-single-point-lubricator.jpg";
-    isShowingDimensionsSheet = false;
-    if (toggleLabel) {
-      const key = "btnShowDimensions";
-      toggleLabel.textContent = (TRANSLATIONS[lang] && TRANSLATIONS[lang][key]) ? TRANSLATIONS[lang][key] : "Bekijk Afmetingen Sheet";
-    }
+    modalImg.src = "pulsarlube-msp.png";
+    if (caption) caption.textContent = "Pulsarlube MSP - Afbeelding & Specificaties";
+  }
+
+  modal.style.display = "flex";
+  document.body.style.overflow = "hidden";
+}
+
+function closeAutomationImageModal(event) {
+  if (event && event.target && event.target.id !== "automationImageModal" && !event.target.closest("button")) {
+    return;
+  }
+  const modal = document.getElementById("automationImageModal");
+  if (modal) {
+    modal.style.display = "none";
+    document.body.style.overflow = "";
   }
 }
 
