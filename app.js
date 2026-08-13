@@ -37,6 +37,7 @@ const TRANSLATIONS = {
     automationSubtitle: "Berekening bij inzet van automatische smeertoestellen",
     automationDeviceLabel: "Selecteer Toestel:",
     deviceSinglePoint: "Interflon Single Point Lubricator",
+    devicePulsarlubeM2: "Pulsarlube M2",
     devicePulsarlube: "Pulsarlube MSP",
     automationParamsTitle: "Toestel Parameters & Smeerinstelling",
     automationCalcHeader: "Smeerinterval & Dosering",
@@ -333,6 +334,7 @@ const TRANSLATIONS = {
     automationSubtitle: "Calculation for automatic lubrication units",
     automationDeviceLabel: "Select Device:",
     deviceSinglePoint: "Interflon Single Point Lubricator",
+    devicePulsarlubeM2: "Pulsarlube M2",
     devicePulsarlube: "Pulsarlube MSP",
     automationParamsTitle: "Device Parameters & Lubrication Setting",
     automationCalcHeader: "Lubrication Interval & Dosage",
@@ -629,6 +631,7 @@ const TRANSLATIONS = {
     automationSubtitle: "Calcul pour l'utilisation de graisseurs automatiques",
     automationDeviceLabel: "Sélectionner l'Appareil:",
     deviceSinglePoint: "Interflon Single Point Lubricator",
+    devicePulsarlubeM2: "Pulsarlube M2",
     devicePulsarlube: "Pulsarlube MSP",
     automationParamsTitle: "Paramètres de l'Appareil & Réglage",
     automationCalcHeader: "Intervalle & Dosage de Lubrification",
@@ -4181,10 +4184,10 @@ function updateAutomationPage() {
   }
 
   if (device === "pulsarlube_m2") {
-    if (titleEl) titleEl.textContent = "Pulsarlube M";
+    if (titleEl) titleEl.textContent = "Pulsarlube M2";
     if (imgEl) imgEl.src = "pulsarlube-m2.jpg";
     if (descEl) {
-      descEl.innerHTML = "De <strong>Pulsarlube M</strong> is een elektro-mechanische automatische smeerunit die <strong>continu 24u/24u en 7d/7d doorsmeert</strong>, gestuurd door een interne micro-processor en pomp. Dit garandeert een uiterst nauwkeurige en constante vetdosering.";
+      descEl.innerHTML = "De <strong>Pulsarlube M2</strong> is een elektro-mechanische automatische smeerunit die <strong>continu 24u/24u en 7d/7d doorsmeert</strong>, gestuurd door een interne micro-processor en pomp. Dit garandeert een uiterst nauwkeurige en constante vetdosering.";
     }
     if (toggleWrapper) toggleWrapper.style.display = "block";
   } else if (device === "pulsarlube_msp") {
