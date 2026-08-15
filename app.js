@@ -4782,7 +4782,7 @@ function calculateChainGrease() {
     resDaily.textContent = `${dailyCm3.toLocaleString("nl-BE", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} cm³/dag (${hoursPerDay}u/dag)`;
   }
   if (resHourly) {
-    resHourly.textContent = `${hourlyMl.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ml/uur (~ ${Math.max(1, Math.round(dropsPerMin))} druppels/min)`;
+    resHourly.textContent = `${hourlyMl.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ml/uur`;
   }
   if (resWeekly) {
     resWeekly.textContent = `${weeklyCm3.toLocaleString("nl-BE", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} cm³/wk (${daysPerWeek}d/wk)`;
