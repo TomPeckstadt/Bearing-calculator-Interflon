@@ -1798,18 +1798,372 @@
            PAGE: OPBRENGSTMODEL KETTINGEN (CHAIN OM)
            ========================================================================== -->
       <section id="pageChainOm" class="page-section">
-        <div class="card">
-          <h3 class="card-title">Opbrengstmodel Kettingsmering</h3>
-          <p style="font-size: 13px; color: var(--text-medium); margin-bottom: 20px;">
-            Bereken de besparing op slijtage, onderhoudsuren en kettingvervanging met Interflon MicPol® kettingproducten.
-          </p>
-
-          <div style="padding: 30px; text-align: center; background-color: #f8fafc; border: 1px dashed #cbd5e1; border-radius: var(--border-radius-md);">
-            <h4 style="color: var(--primary-blue); font-size: 16px; margin-bottom: 8px;">TCO & ROI Analyse Kettingaandrijvingen</h4>
-            <p style="font-size: 13px; color: var(--text-medium); max-width: 550px; margin: 0 auto 16px auto;">
-              Het kostenmodel vergelijkt het verbruik en de levensduur van uw kettingaandrijving bij conventionele oliën ten opzichte van de Interflon MicPol® kettingolie.
-            </p>
+        
+        <!-- Key Performance Savings Banner -->
+        <div class="om-savings-summary-grid">
+          <div class="card om-summary-card">
+            <div class="om-summary-icon" style="background-color: transparent; overflow: hidden; display: flex; align-items: center; justify-content: center; width: 52px; height: 52px;">
+              <img src="euro-magnifier.jpg" alt="Euro" style="width: 100%; height: 100%; object-fit: contain;">
+            </div>
+            <div class="om-summary-details">
+              <span class="om-summary-label" data-i18n="omAnnSavingsLabel">Kostenbesparing / Jaar (park)</span>
+              <h2 id="chainOmAnnSavingsSummary" class="om-summary-value text-success">€ 76.988,80</h2>
+            </div>
           </div>
+          
+          <div class="card om-summary-card">
+            <div class="om-summary-icon text-blue">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18.75a60.07 60.07 0 0 1 15.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5h16.5c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125H3.75a1.125 1.125 0 0 1-1.125-1.125V5.625c0-.621.504-1.125 1.125-1.125Z" />
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 15V9m3 6v-3m3 3V7m3 9v-5m3 5V8" />
+              </svg>
+            </div>
+            <div class="om-summary-details">
+              <span class="om-summary-label" data-i18n="omTotalSavingsLabel">Kostenbesparing na <span class="omTcoYearsVal">10</span> Jaar</span>
+              <h2 id="chainOmTotalSavingsSummary" class="om-summary-value text-blue">€ 769.888,00</h2>
+            </div>
+          </div>
+
+          <div class="card om-summary-card">
+            <div class="om-summary-icon text-warning">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M19 5 5 19M9 9a2 2 0 1 1-4 0 2 2 0 0 1 4 0Zm10 6a2 2 0 1 1-4 0 2 2 0 0 1 4 0Z" />
+              </svg>
+            </div>
+            <div class="om-summary-details">
+              <span class="om-summary-label" data-i18n="omProdCostPercentLabel">% Product / Totale Kost</span>
+              <h2 id="chainOmProdCostPercentSummary" class="om-summary-value text-warning">0,85%</h2>
+            </div>
+          </div>
+        </div>
+
+        <!-- Client & Application Metadata -->
+        <div class="card" style="margin-bottom: 24px;">
+          <h3 class="card-title" style="margin-bottom: 16px;">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
+            </svg>
+            <span data-i18n="omClientHeader">Algemene Projectgegevens</span>
+          </h3>
+          <div class="om-metadata-sections-grid">
+            <!-- Column 1: Interflon contactpersoon -->
+            <div class="metadata-column" style="background-color: var(--bg-main); padding: 16px; border-radius: var(--border-radius-md); border: 1px solid var(--accent-yellow-border-soft);">
+              <h4 style="font-weight: 700; font-size: 14px; color: var(--primary-blue); margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+                <span class="user-avatar" style="width: 24px; height: 24px; font-size: 10px; background-color: var(--accent-yellow-light); color: var(--accent-yellow); display: flex; align-items: center; justify-content: center; font-weight: 700; border-radius: 50%;">IF</span>
+                <span data-i18n="operatorBadge">Interflon contactpersoon</span>
+              </h4>
+              <div style="display: flex; flex-direction: column; gap: 10px;">
+                <div class="form-group" style="margin-bottom: 0;">
+                  <label style="font-size: 11px; font-weight: 600; color: var(--text-medium); margin-bottom: 4px;" data-i18n="opNameLabel">Naam</label>
+                  <input type="text" id="chainOmOpName" class="form-control" readonly style="padding-left: 12px; background-color: #ffffff; cursor: not-allowed; font-size: 13px; height: 36px;">
+                </div>
+                <div class="form-group" style="margin-bottom: 0;">
+                  <label style="font-size: 11px; font-weight: 600; color: var(--text-medium); margin-bottom: 4px;" data-i18n="opPhoneLabel">Telefoonnummer</label>
+                  <input type="text" id="chainOmOpPhone" class="form-control" readonly style="padding-left: 12px; background-color: #ffffff; cursor: not-allowed; font-size: 13px; height: 36px;">
+                </div>
+                <div class="form-group" style="margin-bottom: 0;">
+                  <label style="font-size: 11px; font-weight: 600; color: var(--text-medium); margin-bottom: 4px;" data-i18n="opEmailLabel">Emailadres</label>
+                  <input type="text" id="chainOmOpEmail" class="form-control" readonly style="padding-left: 12px; background-color: #ffffff; cursor: not-allowed; font-size: 13px; height: 36px;">
+                </div>
+              </div>
+            </div>
+
+            <!-- Column 2: Klant Gegevens -->
+            <div class="metadata-column" style="background-color: var(--bg-main); padding: 16px; border-radius: var(--border-radius-md); border: 1px solid var(--accent-yellow-border-soft);">
+              <h4 style="font-weight: 700; font-size: 14px; color: var(--primary-blue); margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+                <span class="user-avatar" style="width: 24px; height: 24px; font-size: 10px; background-color: var(--accent-yellow-light); color: var(--primary-blue); display: flex; align-items: center; justify-content: center; font-weight: 700; border-radius: 50%;">KL</span>
+                <span data-i18n="clientTitle">Klant Gegevens</span>
+              </h4>
+              <div style="display: flex; flex-direction: column; gap: 10px;">
+                <div class="form-group" style="margin-bottom: 0;">
+                  <label style="font-size: 11px; font-weight: 600; color: var(--text-medium); margin-bottom: 4px;" data-i18n="clientCompanyLabel">Bedrijf</label>
+                  <input type="text" id="chainOmClientCompany" class="form-control" readonly style="padding-left: 12px; background-color: #ffffff; cursor: not-allowed; font-size: 13px; height: 36px;">
+                </div>
+                <div class="form-group" style="margin-bottom: 0;">
+                  <label style="font-size: 11px; font-weight: 600; color: var(--text-medium); margin-bottom: 4px;" data-i18n="clientContactLabel">Naam contactpersoon</label>
+                  <input type="text" id="chainOmClientContact" class="form-control" readonly style="padding-left: 12px; background-color: #ffffff; cursor: not-allowed; font-size: 13px; height: 36px;">
+                </div>
+                <div class="form-group" style="margin-bottom: 0;">
+                  <label style="font-size: 11px; font-weight: 600; color: var(--text-medium); margin-bottom: 4px;" data-i18n="clientPhoneLabel">Telefoonnummer</label>
+                  <input type="text" id="chainOmClientPhone" class="form-control" readonly style="padding-left: 12px; background-color: #ffffff; cursor: not-allowed; font-size: 13px; height: 36px;">
+                </div>
+                <div class="form-group" style="margin-bottom: 0;">
+                  <label style="font-size: 11px; font-weight: 600; color: var(--text-medium); margin-bottom: 4px;" data-i18n="clientEmailLabel">Emailadres</label>
+                  <input type="text" id="chainOmClientEmail" class="form-control" readonly style="padding-left: 12px; background-color: #ffffff; cursor: not-allowed; font-size: 13px; height: 36px;">
+                </div>
+              </div>
+            </div>
+
+            <!-- Column 3: Technische Gegevens -->
+            <div class="metadata-column" style="background-color: var(--bg-main); padding: 16px; border-radius: var(--border-radius-md); border: 1px solid var(--accent-yellow-border-soft);">
+              <h4 style="font-weight: 700; font-size: 14px; color: var(--primary-blue); margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+                <span class="user-avatar" style="width: 24px; height: 24px; font-size: 10px; background-color: #E0F2FE; color: #0369A1; display: flex; align-items: center; justify-content: center; font-weight: 700; border-radius: 50%;">TD</span>
+                <span data-i18n="techTitle">Technische Gegevens</span>
+              </h4>
+              <div style="display: flex; flex-direction: column; gap: 10px;">
+                <div class="form-group" style="margin-bottom: 0;">
+                  <label style="font-size: 11px; font-weight: 600; color: var(--text-medium); margin-bottom: 4px;" data-i18n="techMachineLabel">Machine</label>
+                  <input type="text" id="chainOmTechMachine" class="form-control" readonly style="padding-left: 12px; background-color: #ffffff; cursor: not-allowed; font-size: 13px; height: 36px;">
+                </div>
+                <div class="form-group" style="margin-bottom: 0;">
+                  <label style="font-size: 11px; font-weight: 600; color: var(--text-medium); margin-bottom: 4px;" data-i18n="techAppLabel">Toepassingsomschrijving</label>
+                  <input type="text" id="chainOmTechApp" class="form-control" readonly style="padding-left: 12px; background-color: #ffffff; cursor: not-allowed; font-size: 13px; height: 36px;">
+                </div>
+                <div class="form-group" style="margin-bottom: 0;">
+                  <label style="font-size: 11px; font-weight: 600; color: var(--text-medium); margin-bottom: 4px;" data-i18n="techProductLabel">Huidig smeermiddel / product</label>
+                  <input type="text" id="chainOmTechProduct" class="form-control" readonly style="padding-left: 12px; background-color: #ffffff; cursor: not-allowed; font-size: 13px; height: 36px;">
+                </div>
+                <div class="form-group" style="margin-bottom: 0;">
+                  <label style="font-size: 11px; font-weight: 600; color: var(--text-medium); margin-bottom: 4px;" data-i18n="techIntervalLabel">Huidige smeerinterval (dagen)</label>
+                  <input type="text" id="chainOmTechInterval" class="form-control" readonly style="padding-left: 12px; background-color: #ffffff; cursor: not-allowed; font-size: 13px; height: 36px;">
+                </div>
+                <div class="form-group" style="margin-bottom: 0;">
+                  <label style="font-size: 11px; font-weight: 600; color: var(--text-medium); margin-bottom: 4px;" data-i18n="techPriceLabel">Prijs huidig product / L (€)</label>
+                  <input type="text" id="chainOmTechPrice" class="form-control" readonly style="padding-left: 12px; background-color: #ffffff; cursor: not-allowed; font-size: 13px; height: 36px;">
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- The Spreadsheet layout representation -->
+        <div class="card" style="overflow-x: auto; padding: 24px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+            <h3 class="card-title">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 5.25h16.5m-16.5 4.5h16.5m-16.5 4.5h16.5m-16.5 4.5h16.5" />
+              </svg>
+              <span data-i18n="omTableTitle">TCO Calculatie Model</span>
+            </h3>
+            <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+              <span id="chainOmInstructionBadge" style="font-size: 11px; color: var(--text-medium); font-weight: 600; padding: 4px 8px; background-color: #f3f4f6; border: 1px solid #e5e7eb; border-radius: var(--border-radius-sm); display: inline-flex; align-items: center; gap: 6px;">
+                <span style="width: 10px; height: 10px; background-color: #F3F4F6; border: 1px solid #cbd5e1; border-radius: 2px; display: inline-block;"></span>
+                <span data-i18n="omInstructionText">Vul de grijze cellen in</span>
+              </span>
+              <span style="font-size: 11px; color: var(--text-medium); font-weight: 600; padding: 4px 8px; background-color: #eff6ff; border: 1px solid #bfdbfe; border-radius: var(--border-radius-sm); display: inline-flex; align-items: center; gap: 6px;">
+                <span style="width: 10px; height: 10px; background-color: #DBEAFE; border: 1px solid #93c5fd; border-radius: 2px; display: inline-block;"></span>
+                <span data-i18n="omAutoInstructionText">De blauwe cellen zijn automatisch berekend maar kunnen handmatig aangepast worden</span>
+              </span>
+            </div>
+          </div>
+
+          <table class="om-spreadsheet-table">
+            <thead>
+              <tr class="header-row">
+                <th colspan="2" class="column-group-header current-group" style="padding: 8px 10px; position: relative;">
+                  <div style="display: flex; align-items: center; justify-content: center; gap: 8px; flex-wrap: wrap;">
+                    <span data-i18n="omGroupCurrent">Huidige situatie</span>
+                    <div class="tco-mode-selector-wrap" style="display: inline-flex;">
+                      <select id="chainTcoCalcModeSelect" onchange="setChainTcoCalcMode(this.value)" class="tco-mode-select" title="Kies berekeningsmethode voor Huidige situatie">
+                        <option value="formula" data-i18n="tcoModeFormula">Volgens formule</option>
+                        <option value="practical" data-i18n="tcoModePractical">Huidige praktijk</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div id="chainTcoModeHint" style="font-size: 10px; font-weight: 500; margin-top: 3px; color: #CBD5E1; text-transform: none; letter-spacing: normal; line-height: 1.1;">SKF Formule (FC)</div>
+                </th>
+                <th colspan="2" class="column-group-header interflon-group" data-i18n="omGroupInterflon">Nieuwe situatie (Interflon)</th>
+                <th colspan="2" class="column-group-header general-group" data-i18n="omGroupGeneral">Algemene info</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- Row: Product name -->
+              <tr class="section-label-row">
+                <td colspan="2" class="current-group"><span data-i18n="omProductLabel">PRODUCT</span></td>
+                <td colspan="2" class="interflon-group"><span data-i18n="omProductLabel">PRODUCT</span></td>
+                <td colspan="2" class="general-group"><span data-i18n="omGeneralLabel">Algemene info</span></td>
+              </tr>
+              <tr>
+                <td class="cell-label" data-i18n="omProdName">Productnaam</td>
+                <td class="cell-input-wrapper"><div id="chainOmProdName1" class="om-cell-input-div"></div></td>
+                <td class="cell-label" data-i18n="omProdName">Productnaam</td>
+                <td class="cell-input-wrapper"><div id="chainOmProdName2" class="om-cell-input-div"></div></td>
+                <td colspan="2" rowspan="4" class="om-image-upload-cell" style="vertical-align: middle; text-align: center; background-color: #f3f4f6; position: relative; padding: 12px; border-left: 1px solid #e5e7eb;">
+                  <!-- Hidden file input -->
+                  <input type="file" id="chainOmAppImageInput" accept="image/*" style="display: none;">
+                  
+                  <!-- Placeholder container (shows button) -->
+                  <div id="chainOmAppImagePlaceholder" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; min-height: 120px; gap: 8px;">
+                    <!-- Camera icon -->
+                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color: #9ca3af;">
+                      <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+                      <circle cx="12" cy="13" r="4"/>
+                    </svg>
+                    <button type="button" class="btn-add-photo" onclick="document.getElementById('omAppImageInput').click();" style="font-family: 'Outfit', sans-serif; font-weight: 600; font-size: 11px; color: white; background-color: var(--primary-blue); border: none; border-radius: 6px; padding: 8px 14px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); transition: all 0.2s;">
+                      <span data-i18n="omAddPhotoBtn">Voeg foto toe</span>
+                    </button>
+                  </div>
+
+                  <!-- Preview container -->
+                  <div id="chainOmAppImagePreviewContainer" style="display: none; width: 100%; height: 100%; max-height: 220px; position: relative; border-radius: 6px; overflow: hidden; background-color: #ffffff; padding: 6px; box-shadow: inset 0 1px 2px rgba(0,0,0,0.05); border: 1px solid #e5e7eb; display: flex; align-items: center; justify-content: center;">
+                    <img id="chainOmAppImagePreview" src="" alt="Toepassing" style="width: 100%; height: auto; max-height: 200px; object-fit: contain; border-radius: 4px;">
+                    <button type="button" id="chainOmAppImageDeleteBtn" style="position: absolute; top: 6px; right: 6px; background-color: rgba(239, 68, 68, 0.9); color: white; border: none; border-radius: 50%; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 13px; font-weight: bold; box-shadow: 0 1px 3px rgba(0,0,0,0.25); transition: background-color 0.2s; z-index: 10;">
+                      &times;
+                    </button>
+                  </div>
+                </td>
+              </tr>
+              <!-- Row: consumption -->
+              <tr>
+                <td class="cell-label" data-i18n="omConsumption">Productverbruik / smeerbeurt (g)</td>
+                <td class="cell-input-wrapper"><input type="number" id="chainOmProdCons1" class="om-cell-input numeric auto-filled" value="2850" step="0.1"></td>
+                <td class="cell-label" data-i18n="omConsumption">Productverbruik / smeerbeurt (g)</td>
+                <td class="cell-input-wrapper"><input type="number" id="chainOmProdCons2" class="om-cell-input numeric auto-filled" value="475" step="0.1"></td>
+              </tr>
+              <!-- Row: product price -->
+              <tr>
+                <td class="cell-label" data-i18n="omPricePerL">Kostprijs product / L (€)</td>
+                <td class="cell-input-wrapper"><input type="number" id="chainOmProdPrice1" class="om-cell-input numeric auto-filled" value="10.00" step="0.01"></td>
+                <td class="cell-label">
+                  <div style="display: flex; flex-direction: column; gap: 4px;">
+                    <span data-i18n="omPricePerL">Kostprijs product / L (€)</span>
+                    <button type="button" class="btn-select-pkg" id="chainOmBtnSelectPkg" onclick="openPricelistModal()" style="background: none; border: none; padding: 0; color: var(--primary-blue); font-size: 11px; text-decoration: underline; cursor: pointer; text-align: left; font-family: inherit;" data-i18n="selectPackaging">Kies verpakking</button>
+                  </div>
+                </td>
+                <td class="cell-input-wrapper"><input type="number" id="chainOmProdPrice2" class="om-cell-input numeric" value="38.60" step="0.01"></td>
+              </tr>
+              <!-- Row: calculated annual product cost -->
+              <tr class="calculated-row">
+                <td class="cell-label" data-i18n="omAnnProdCost">Kostprijs product / machine / jaar (€)</td>
+                <td class="cell-value" id="chainOmAnnProdCost1">€ 1.680,00</td>
+                <td class="cell-label" data-i18n="omAnnProdCost">Kostprijs product / machine / jaar (€)</td>
+                <td class="cell-value" id="chainOmAnnProdCost2">€ 1.080,80</td>
+              </tr>
+
+              <!-- Row: Tijdsbesteding section -->
+              <tr class="section-label-row">
+                <td colspan="2" class="current-group"><span data-i18n="omLaborLabel">TIJDSBESTEDING</span></td>
+                <td colspan="2" class="interflon-group"><span data-i18n="omLaborLabel">TIJDSBESTEDING</span></td>
+                <td colspan="2" class="general-group"></td>
+              </tr>
+              <tr>
+                <td class="cell-label" data-i18n="omLubesPerYear">Aantal smeerbeurten / jaar</td>
+                <td class="cell-input-wrapper"><input type="number" id="chainOmProdFreq1" class="om-cell-input numeric auto-filled" value="56" step="0.1"></td>
+                <td class="cell-label" data-i18n="omLubesPerYear">Aantal smeerbeurten / jaar</td>
+                <td class="cell-input-wrapper"><input type="number" id="chainOmProdFreq2" class="om-cell-input numeric auto-filled" value="56" step="0.1"></td>
+                <td class="cell-label" data-i18n="omWorktimePerLube">Werktijd / smeerbeurt (minuten)</td>
+                <td class="cell-input-wrapper"><input type="number" id="chainOmSharedWorktime" class="om-cell-input numeric" value="3" step="1"></td>
+              </tr>
+              <tr>
+                <td class="cell-label" data-i18n="omRepairFreq">Revisiefrequentie (maanden)</td>
+                <td class="cell-input-wrapper"><input type="number" id="chainOmRepairFreq1" class="om-cell-input numeric auto-filled" readonly value="12"></td>
+                <td class="cell-label" data-i18n="omRepairFreq">Revisiefrequentie (maanden)</td>
+                <td class="cell-input-wrapper"><input type="number" id="chainOmRepairFreq2" class="om-cell-input numeric auto-filled" readonly value="48"></td>
+                <td class="cell-label" data-i18n="omRepairDuration">Revisietijd / Downtime / H</td>
+                <td class="cell-input-wrapper"><input type="number" id="chainOmSharedRepairH" class="om-cell-input numeric" value="4" step="0.5"></td>
+              </tr>
+              <tr class="calculated-row">
+                <td class="cell-label" data-i18n="omAnnLaborCost">Kostprijs tijdsbesteding / machine / jaar (€)</td>
+                <td class="cell-value" id="chainOmAnnLaborCost1">€ 980,00</td>
+                <td class="cell-label" data-i18n="omAnnLaborCost">Kostprijs tijdsbesteding / machine / jaar (€)</td>
+                <td class="cell-value" id="chainOmAnnLaborCost2">€ 980,00</td>
+                <td class="cell-label" data-i18n="omLaborRate">Prijs werkuur / H (€)</td>
+                <td class="cell-input-wrapper"><input type="number" id="chainOmSharedLaborRate" class="om-cell-input numeric" value="35.00" step="0.5"></td>
+              </tr>
+
+              <!-- Row: Materiaal section -->
+              <tr class="section-label-row">
+                <td colspan="2" class="current-group"><span data-i18n="omMaterialLabel">MATERIAAL</span></td>
+                <td colspan="2" class="interflon-group"><span data-i18n="omMaterialLabel">MATERIAAL</span></td>
+                <td colspan="2" class="general-group"></td>
+              </tr>
+              <tr>
+                <td class="cell-label" data-i18n="omMaterialLifetime">Levensduur ketting (maanden)</td>
+                <td class="cell-input-wrapper"><input type="number" id="chainOmLifetime1" class="om-cell-input numeric" value="12"></td>
+                <td class="cell-label" data-i18n="omMaterialLifetime">Levensduur ketting (maanden)</td>
+                <td class="cell-input-wrapper"><input type="number" id="chainOmLifetime2" class="om-cell-input numeric" value="48"></td>
+                <td class="cell-label" data-i18n="omSparePartsCost">Kostprijs wisselstukken / set (€)</td>
+                <td class="cell-input-wrapper"><input type="number" id="chainOmSharedPartsCost" class="om-cell-input numeric" value="6000"></td>
+              </tr>
+              <tr>
+                <td colspan="4" class="empty-cell"></td>
+                <td class="cell-label" data-i18n="omSetsPerMachine">Aantal kettingen / machine</td>
+                <td class="cell-input-wrapper"><input type="number" id="chainOmSharedSetsPerMachine" class="om-cell-input numeric" value="1"></td>
+              </tr>
+              <tr class="calculated-row">
+                <td class="cell-label" data-i18n="omAnnMatCost">Kostprijs materiaal / machine / jaar (€)</td>
+                <td class="cell-value" id="chainOmAnnMaterialCost1">€ 6.000,00</td>
+                <td class="cell-label" data-i18n="omAnnMatCost">Kostprijs materiaal / machine / jaar (€)</td>
+                <td class="cell-value" id="chainOmAnnMaterialCost2">€ 1.500,00</td>
+                <td class="cell-label" data-i18n="omNumMachines">Aantal machines</td>
+                <td class="cell-input-wrapper"><input type="number" id="chainOmSharedNumMachines" class="om-cell-input numeric" value="14"></td>
+              </tr>
+
+              <!-- Row: Downtime section -->
+              <tr class="section-label-row">
+                <td colspan="2" class="current-group"><span data-i18n="omDowntimeLabel">DOWN-TIME</span></td>
+                <td colspan="2" class="interflon-group"><span data-i18n="omDowntimeLabel">DOWN-TIME</span></td>
+                <td colspan="2" class="general-group"></td>
+              </tr>
+              <tr>
+                <td class="cell-label" data-i18n="omDowntimeHours">Tijdsduur (H)</td>
+                <td class="cell-input-wrapper"><input type="number" id="chainOmDowntimeH1" class="om-cell-input numeric auto-filled" value="4" step="0.5"></td>
+                <td class="cell-label" data-i18n="omDowntimeHours">Tijdsduur (H)</td>
+                <td class="cell-input-wrapper"><input type="number" id="chainOmDowntimeH2" class="om-cell-input numeric auto-filled" value="4" step="0.5"></td>
+                <td class="cell-label" data-i18n="omDowntimeRate">Kostprijs down-time / H (€)</td>
+                <td class="cell-input-wrapper"><input type="number" id="chainOmSharedDowntimeRate" class="om-cell-input numeric" value="100"></td>
+              </tr>
+              <tr>
+                <td class="cell-label" data-i18n="omDowntimeFreq">Aantal / jaar</td>
+                <td class="cell-input-wrapper"><input type="number" id="chainOmDowntimeFreq1" class="om-cell-input numeric auto-filled" value="1"></td>
+                <td class="cell-label" data-i18n="omDowntimeFreq">Aantal / jaar</td>
+                <td class="cell-input-wrapper"><input type="number" id="chainOmDowntimeFreq2" class="om-cell-input numeric auto-filled" value="0.25" step="0.01"></td>
+                <td class="cell-label" data-i18n="omPrepDuration">Voorbereidingstijd revisie (H)</td>
+                <td class="cell-input-wrapper"><input type="number" id="chainOmSharedPrepH" class="om-cell-input numeric" value="1" step="0.5"></td>
+              </tr>
+              <tr class="calculated-row">
+                <td class="cell-label" data-i18n="omAnnDowntimeCost">Kostprijs downtime / machine / jaar (€)</td>
+                <td class="cell-value" id="chainOmAnnDowntimeCost1">€ 400,00</td>
+                <td class="cell-label" data-i18n="omAnnDowntimeCost">Kostprijs downtime / machine / jaar (€)</td>
+                <td class="cell-value" id="chainOmAnnDowntimeCost2">€ 0,00</td>
+                <td colspan="2" class="empty-cell"></td>
+              </tr>
+
+              <!-- Row: Besparing / TCO summary section -->
+              <tr class="section-label-row">
+                <td colspan="2" class="current-group"><span data-i18n="omCurrentCostLabel">Huidige kostprijs</span></td>
+                <td colspan="2" class="interflon-group"><span data-i18n="omNewCostLabel">Nieuwe kostprijs (Interflon)</span></td>
+                <td colspan="2" class="general-group"><span data-i18n="omSavingsParkLabel">Besparing / machinepark</span></td>
+              </tr>
+              <tr class="calculated-row highlighted-tco-row">
+                <td class="cell-label" data-i18n="omTotalCostPerMachine">Totale kostprijs / jaar / machine (€)</td>
+                <td class="cell-value" id="chainOmAnnTotalCost1">€ 9.060,00</td>
+                <td class="cell-label" data-i18n="omTotalCostPerMachine">Totale kostprijs / jaar / machine (€)</td>
+                <td class="cell-value" id="chainOmAnnTotalCost2">€ 3.560,80</td>
+                <td class="cell-label text-success" style="font-weight: 700;" data-i18n="omAnnSavingsMachineLabel">Kostenbesparing / jaar / machine (€)</td>
+                <td class="cell-value text-success" id="chainOmAnnSavingsMachine" style="font-weight: 700; font-size: 15px;">€ 0,00</td>
+              </tr>
+              <tr class="calculated-row highlighted-tco-row">
+                <td class="cell-label" data-i18n="omTotalCostPark">Totale kostprijs / jaar / park (€)</td>
+                <td class="cell-value" id="chainOmAnnParkCost1">€ 126.840,00</td>
+                <td class="cell-label" data-i18n="omTotalCostPark">Totale kostprijs / jaar / park (€)</td>
+                <td class="cell-value" id="chainOmAnnParkCost2">€ 49.851,20</td>
+                <td class="cell-label text-success" style="font-weight: 700;" data-i18n="omAnnSavingsLabel">Kostenbesparing / jaar (€)</td>
+                <td class="cell-value text-success" id="chainOmAnnSavingsPark" style="font-weight: 700; font-size: 15px;">€ 76.988,80</td>
+              </tr>
+              <tr class="calculated-row">
+                <td colspan="4" class="empty-cell"></td>
+                <td class="cell-label" data-i18n="omProdCostPercentLabel">% Product / totale kost</td>
+                <td class="cell-value" id="chainOmProdCostPercent">0,85%</td>
+              </tr>
+              <tr class="calculated-row highlighted-tco-row">
+                <td class="cell-label" data-i18n="omCostPerMachineYears">Kostprijs / machine na <span class="omTcoYearsVal">10</span> jaar (€)</td>
+                <td class="cell-value" id="chainOmTotalCostYears1">€ 90.600,00</td>
+                <td class="cell-label" data-i18n="omCostPerMachineYears">Kostprijs / machine na <span class="omTcoYearsVal">10</span> jaar (€)</td>
+                <td class="cell-value" id="chainOmTotalCostYears2">€ 35.608,00</td>
+                <td class="cell-label" data-i18n="omTcoPeriodLabel">Aantal jaren voor TCO</td>
+                <td class="cell-input-wrapper grey-input"><input type="number" id="chainOmTcoYears" class="om-cell-input numeric" value="10"></td>
+              </tr>
+              <tr class="calculated-row highlighted-tco-row">
+                <td class="cell-label" data-i18n="omCostParkYears">Kostprijs / machinepark na <span class="omTcoYearsVal">10</span> jaar (€)</td>
+                <td class="cell-value" id="chainOmTotalParkCostYears1">€ 1.268.400,00</td>
+                <td class="cell-label" data-i18n="omCostParkYears">Kostprijs / machinepark na <span class="omTcoYearsVal">10</span> jaar (€)</td>
+                <td class="cell-value" id="chainOmTotalParkCostYears2">€ 498.512,00</td>
+                <td class="cell-label text-success" style="font-weight: 700;" data-i18n="omSavingsYears">Kostenbesparing na <span class="omTcoYearsVal">10</span> jaar (€)</td>
+                <td class="cell-value text-success" id="chainOmTotalSavingsYears" style="font-weight: 700; font-size: 15px;">€ 769.888,00</td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </section>
 
@@ -1880,9 +2234,9 @@
 
   <!-- JavaScript logic imports -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="interflon-data.js?v=62"></script>
+  <script src="interflon-data.js?v=63"></script>
   <script src="bearings-db.js"></script>
   <script src="chains-db.js"></script>
-  <script src="app.js?v=62"></script>
+  <script src="app.js?v=63"></script>
 </body>
 </html>
