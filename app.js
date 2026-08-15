@@ -4014,7 +4014,8 @@ function calculateTcoForPrefix(prefix) {
     const grease = INTERFLON_GREASES[selectedGrease] || { density: 0.92 };
     density = grease.density || 0.92;
   } else {
-    density = 0.90;
+    // For chains, consumption is ALREADY calculated in milliliters (ml) of oil. 1000 ml = 1 Liter.
+    density = 1.0;
   }
 
   const p1_cons_Liters = p1_cons / (density * 1000);
@@ -5023,9 +5024,9 @@ function selectChain(chain) {
   const vRoller = document.getElementById("visualChainRollerText");
   const vPin = document.getElementById("visualChainPinText");
 
-  if (typeImg) typeImg.src = (chain.illustrationImg || "chain-simplex.png") + "?v=110";
+  if (typeImg) typeImg.src = (chain.illustrationImg || "chain-simplex.png") + "?v=112";
   if (typeSubtitle) typeSubtitle.textContent = chain.strand || "Simplex (1-sporig)";
-  if (dimImg) dimImg.src = (chain.dimensionsImg || "chain-dimensions.png") + "?v=110";
+  if (dimImg) dimImg.src = (chain.dimensionsImg || "chain-dimensions.png") + "?v=112";
 
   if (vPitch) vPitch.textContent = chain.pitch.toFixed(1);
   if (vWidth) vWidth.textContent = chain.width.toFixed(1);
