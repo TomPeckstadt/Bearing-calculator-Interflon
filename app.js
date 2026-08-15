@@ -4710,12 +4710,23 @@ function goToChainCalculator() {
 function calculateChainGrease() {
   const lengthInput = document.getElementById("chainLengthInput");
   const speedInput = document.getElementById("chainSpeedInput");
+  const hoursInput = document.getElementById("chainHoursPerDayInput");
+  const daysInput = document.getElementById("chainDaysPerWeekInput");
+  const tempInput = document.getElementById("chainTempInput");
+  const factorInput = document.getElementById("chainFactorInput");
   const envSelect = document.getElementById("chainEnvSelect");
+
   const resDaily = document.getElementById("chainResDaily");
   const resHourly = document.getElementById("chainResHourly");
+  const resWeekly = document.getElementById("chainResWeekly");
+  const resYearly = document.getElementById("chainResYearly");
 
   const lengthM = lengthInput ? (parseFloat(lengthInput.value) || 5.0) : 5.0;
   const speedMS = speedInput ? (parseFloat(speedInput.value) || 1.5) : 1.5;
+  const hoursPerDay = hoursInput ? (parseFloat(hoursInput.value) || 24) : 24;
+  const daysPerWeek = daysInput ? (parseFloat(daysInput.value) || 7) : 7;
+  const tempC = tempInput ? (parseFloat(tempInput.value) || 20) : 20;
+  const micpolFactor = factorInput ? (parseFloat(factorInput.value) || 4.0) : 4.0;
   const env = envSelect ? envSelect.value : "normal";
 
   // Pitch (mm) and Width (mm) from activeChain or default (1/2" chain)
@@ -4728,15 +4739,35 @@ function calculateChainGrease() {
   else if (env === "wet") envFactor = 1.5;
   else if (env === "severe") envFactor = 1.8;
 
-  // Interflon MicPol® high-adhesion lubricant requirement formula:
-  const dailyCm3 = (width * strands * lengthM * speedMS * envFactor * 0.08);
-  const hourlyMl = dailyCm3 / 24;
+  // Temperature correction factor (Tt)
+  let tempFactor = 1.0;
+  if (tempC > 50) {
+    tempFactor = 1.0 + Math.pow((tempC - 50) / 40, 1.2);
+  } else if (tempC < 0) {
+    tempFactor = 1.2;
+  }
+
+  // Base daily oil requirement for continuous 24h operation with MicPol® technology:
+  const baseDailyCm3 = (width * strands * lengthM * speedMS * envFactor * tempFactor * (0.32 / micpolFactor));
+
+  // Scaled by actual operational hours per day (hoursPerDay / 24):
+  const dailyCm3 = (baseDailyCm3 * (hoursPerDay / 24));
+  const hourlyMl = hoursPerDay > 0 ? (dailyCm3 / hoursPerDay) : 0;
   const dropsPerMin = (hourlyMl * 20) / 60; // 20 drops per ml standard oil
 
+  const weeklyCm3 = dailyCm3 * daysPerWeek;
+  const yearlyLiters = (weeklyCm3 * 52.14) / 1000;
+
   if (resDaily) {
-    resDaily.textContent = `${dailyCm3.toLocaleString("nl-BE", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} cm³/dag`;
+    resDaily.textContent = `${dailyCm3.toLocaleString("nl-BE", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} cm³/dag (${hoursPerDay}u/dag)`;
   }
   if (resHourly) {
     resHourly.textContent = `${hourlyMl.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ml/uur (~ ${Math.max(1, Math.round(dropsPerMin))} druppels/min)`;
+  }
+  if (resWeekly) {
+    resWeekly.textContent = `${weeklyCm3.toLocaleString("nl-BE", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} cm³/wk (${daysPerWeek}d/wk)`;
+  }
+  if (resYearly) {
+    resYearly.textContent = `${yearlyLiters.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} L/jaar`;
   }
 }
