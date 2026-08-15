@@ -4693,14 +4693,16 @@ function selectChain(chain) {
   const vPitch = document.getElementById("visualChainPitchText");
   const vWidth = document.getElementById("visualChainWidthText");
   const vRoller = document.getElementById("visualChainRollerText");
+  const vPin = document.getElementById("visualChainPinText");
 
-  if (typeImg) typeImg.src = (chain.illustrationImg || "chain-simplex.png") + "?v=55";
+  if (typeImg) typeImg.src = (chain.illustrationImg || "chain-simplex.png") + "?v=57";
   if (typeSubtitle) typeSubtitle.textContent = chain.strand || "Simplex (1-sporig)";
-  if (dimImg) dimImg.src = (chain.dimensionsImg || "chain-dimensions.png") + "?v=55";
+  if (dimImg) dimImg.src = (chain.dimensionsImg || "chain-dimensions.png") + "?v=57";
 
   if (vPitch) vPitch.textContent = chain.pitch.toFixed(1);
   if (vWidth) vWidth.textContent = chain.width.toFixed(1);
   if (vRoller) vRoller.textContent = chain.rollerDiameter.toFixed(1);
+  if (vPin) vPin.textContent = chain.pinDiameter ? chain.pinDiameter.toFixed(1) : "-";
 
   calculateChainGrease();
 }
