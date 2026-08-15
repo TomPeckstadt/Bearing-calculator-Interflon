@@ -2801,11 +2801,16 @@ function openPricelistModal() {
   const modal = document.getElementById("pricelistModal");
   if (!modal) return;
   
+  // Detect mode: chain or bearing
+  const isChain = document.querySelector('.nav-link[data-nav="chain"].active') || 
+                  (document.getElementById('pageChainOm') && document.getElementById('pageChainOm').classList.contains('active'));
+
   // Get selected product name
-  const prodNameDiv = document.getElementById("omProdName2");
+  const prodNameId = isChain ? "chainOmProdName2" : "omProdName2";
+  const prodNameDiv = document.getElementById(prodNameId);
   if (!prodNameDiv) return;
   
-  const productName = prodNameDiv.textContent.trim();
+  let productName = prodNameDiv.textContent.trim();
   
   // Set product name badge in modal
   const productBadge = document.getElementById("pricelistProductBadge");
@@ -2821,9 +2826,15 @@ function openPricelistModal() {
     const lang = currentLang || "nl";
     const noPkgsText = (TRANSLATIONS[lang] && TRANSLATIONS[lang].noPackagesFound) || "Geen verpakkingen gevonden voor dit product.";
     
-    // Look up in pricelist
-    const packages = INTERFLON_PRICELIST[productName];
+    // Look up in appropriate pricelist
+    const sourcePricelist = isChain ? (typeof INTERFLON_CHAIN_PRICELIST !== "undefined" ? INTERFLON_CHAIN_PRICELIST : {}) : INTERFLON_PRICELIST;
+    let packages = sourcePricelist[productName] || sourcePricelist[productName.toUpperCase()] || sourcePricelist["INTERFLON " + productName.toUpperCase()];
     
+    if (isChain && (!packages || packages.length === 0)) {
+      const cleanName = productName.replace(/^Interflon\s+/i, '').trim();
+      packages = sourcePricelist[cleanName] || sourcePricelist[cleanName.toUpperCase()] || sourcePricelist["Lube TF"];
+    }
+
     if (!packages || packages.length === 0) {
       container.innerHTML = `<div style="text-align: center; color: var(--text-medium); font-size: 13px; padding: 20px;">${noPkgsText}</div>`;
     } else {
@@ -2844,14 +2855,14 @@ function openPricelistModal() {
             </div>
           </div>
           <div class="pkg-option-price-block">
-            <div class="pkg-option-unit-price">€ ${pkg.unitPrice.toFixed(2).replace(".", ",")} ${isLubeShuttle ? "/st" : "/st"}</div>
+            <div class="pkg-option-unit-price">€ ${pkg.unitPrice.toFixed(2).replace(".", ",")} /st</div>
             <div class="pkg-option-liter-price">€ ${pkg.pricePerL.toFixed(2).replace(".", ",")} / L</div>
           </div>
         `;
         
         // Add click handler
         row.onclick = () => {
-          selectPackagePrice(pkg.pricePerL);
+          selectPackagePrice(pkg.pricePerL, isChain);
         };
         
         container.appendChild(row);
@@ -2877,16 +2888,23 @@ function closePdfViewerModal() {
   if (modal) modal.classList.add("hidden");
 }
 
-function selectPackagePrice(pricePerL) {
-  const priceInput = document.getElementById("omProdPrice2");
+function selectPackagePrice(pricePerL, isChain) {
+  if (isChain === undefined) {
+    isChain = document.querySelector('.nav-link[data-nav="chain"].active') || 
+              (document.getElementById('pageChainOm') && document.getElementById('pageChainOm').classList.contains('active'));
+  }
+  const inputId = isChain ? "chainOmProdPrice2" : "omProdPrice2";
+  const priceInput = document.getElementById(inputId);
   if (priceInput) {
     priceInput.value = pricePerL.toFixed(2);
     // Trigger calculations and saving
     if (typeof calculateTco === "function") {
       calculateTco();
     }
-    if (typeof saveTcoDetails === "function") {
-      saveTcoDetails();
+    if (isChain) {
+      if (typeof saveChainTcoDetails === "function") saveChainTcoDetails();
+    } else {
+      if (typeof saveBearingTcoDetails === "function") saveBearingTcoDetails();
     }
   }
   closePricelistModal();
@@ -4962,7 +4980,7 @@ function selectChain(chain) {
 
   if (typeImg) typeImg.src = (chain.illustrationImg || "chain-simplex.png") + "?v=70";
   if (typeSubtitle) typeSubtitle.textContent = chain.strand || "Simplex (1-sporig)";
-  if (dimImg) dimImg.src = (chain.dimensionsImg || "chain-dimensions.png") + "?v=98";
+  if (dimImg) dimImg.src = (chain.dimensionsImg || "chain-dimensions.png") + "?v=100";
 
   if (vPitch) vPitch.textContent = chain.pitch.toFixed(1);
   if (vWidth) vWidth.textContent = chain.width.toFixed(1);
