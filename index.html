@@ -351,17 +351,19 @@
        MODE SELECTION MODAL (WELCOME CHOICE: LAGERS VS KETTINGEN)
        ========================================================================== -->
   <div id="modeSelectionModal" class="modal-overlay hidden" style="z-index: 10010;">
-    <div class="modal-card" style="max-width: 680px; width: 92%; padding: 32px; text-align: center; border-radius: var(--border-radius-lg);">
-      <div style="margin-bottom: 20px; display: flex; justify-content: center; align-items: center; gap: 12px;">
-        <img src="interflon-logo.jpg" alt="Interflon Logo" style="height: 38px; object-fit: contain;">
-      </div>
+    <div class="modal-card" style="position: relative; overflow: hidden; max-width: 680px; width: 92%; padding: 36px 32px; text-align: center; border-radius: var(--border-radius-lg); background-color: #ffffff;">
       
-      <h2 style="font-size: 22px; font-weight: 800; color: var(--text-dark); margin: 0 0 6px 0;" data-i18n="modeModalTitle">
-        Welkom bij Interflon Berekeningsmodule
-      </h2>
-      <p style="font-size: 14px; color: var(--text-medium); margin: 0 0 28px 0;" data-i18n="modeModalSubtitle">
-        Maak uw keuze om de gewenste berekeningsomgeving te openen:
-      </p>
+      <!-- Interflon Logo Watermark Background for top half (up to cards section) -->
+      <div style="position: absolute; top: 0; left: 0; right: 0; height: 165px; pointer-events: none; opacity: 0.14; background-image: url('interflon-logo.jpg'); background-size: contain; background-position: center center; background-repeat: no-repeat; mix-blend-mode: multiply;"></div>
+
+      <div style="position: relative; z-index: 2; margin-top: 6px;">
+        <h2 style="font-size: 24px; font-weight: 800; color: var(--text-dark); margin: 0 0 8px 0; font-family: 'Outfit', sans-serif; letter-spacing: -0.3px;" data-i18n="modeModalTitle">
+          Welkom bij Interflon Berekeningsmodule
+        </h2>
+        <p style="font-size: 14.5px; color: var(--text-medium); margin: 0 0 28px 0; font-weight: 500;" data-i18n="modeModalSubtitle">
+          Maak uw keuze om de gewenste berekeningsomgeving te openen:
+        </p>
+      </div>
 
       <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: stretch;">
         <!-- Card 1: Lagerberekening -->
@@ -2234,9 +2236,9 @@
 
   <!-- JavaScript logic imports -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="interflon-data.js?v=120"></script>
+  <script src="interflon-data.js?v=125"></script>
   <script src="bearings-db.js"></script>
   <script src="chains-db.js"></script>
-  <script src="app.js?v=120"></script>
+  <script src="app.js?v=125"></script>
 </body>
 </html>
