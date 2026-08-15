@@ -489,12 +489,12 @@
         </div>
         
         <div style="display: flex; gap: 10px; align-items: center;">
-          <button type="button" id="modeSwitchBtn" onclick="openModeSelectionModal()" style="display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; background-color: var(--primary-red); color: white; border: none; border-radius: 50px; font-family: 'Outfit', sans-serif; font-size: 13px; font-weight: 700; cursor: pointer; box-shadow: 0 4px 12px rgba(227,6,19,0.25); transition: all 0.2s ease; white-space: nowrap;" onmouseover="this.style.transform='translateY(-1px)'; this.style.boxShadow='0 6px 16px rgba(227,6,19,0.35)';" onmouseout="this.style.transform='none'; this.style.boxShadow='0 4px 12px rgba(227,6,19,0.25)';">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width: 16px; height: 16px; color: white;">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
-            </svg>
-            <span id="modeSwitchBtnText" style="color: white; font-weight: 700;">⚙️ Lagerberekening</span>
-            <span style="font-size: 11px; opacity: 0.9; font-weight: 600; background: rgba(255,255,255,0.22); padding: 2px 8px; border-radius: 12px; margin-left: 2px;">Wisselen</span>
+          <button type="button" id="modeSwitchBtn" onclick="openModeSelectionModal()" class="user-badge" style="cursor: pointer; border: 1.5px solid var(--primary-red); background-color: #ffffff; padding: 6px 14px 6px 6px; box-shadow: 0 2px 6px rgba(227,6,19,0.15); transition: all 0.2s ease;">
+            <div id="modeIconAvatar" class="user-avatar" style="background-color: var(--primary-red); color: #ffffff; font-size: 14px; font-weight: 700; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">⚙️</div>
+            <div style="display: flex; flex-direction: column; align-items: flex-start; line-height: 1.25; margin-left: 2px;">
+              <span id="modeSwitchTitleText" style="font-size: 13px; font-weight: 800; color: var(--text-dark);">Lagerberekening</span>
+              <span style="font-size: 10px; font-weight: 700; color: var(--primary-red); letter-spacing: 0.5px; text-transform: uppercase;">Klik om te wisselen ⚙️/⛓️</span>
+            </div>
           </button>
           <button type="button" id="userBadgeBtn" class="user-badge" onclick="openOperatorModal()">
             <div id="userAvatar" class="user-avatar">IF</div>
@@ -1548,7 +1548,7 @@
       <!-- ==========================================================================
            PAGE: KETTING ZOEKEN (CHAIN SEARCH)
            ========================================================================== -->
-      <section id="pageChainSearch" class="page-section hidden">
+      <section id="pageChainSearch" class="page-section">
         <div class="search-container" style="max-width: 800px; display: flex; gap: 15px; align-items: center;">
           <div class="search-wrapper" style="flex: 1; position: relative;">
             <span class="search-icon-inside">
@@ -1652,7 +1652,7 @@
       <!-- ==========================================================================
            PAGE: KETTINGSMEERBEREKENING (CHAIN CALC)
            ========================================================================== -->
-      <section id="pageChainCalc" class="page-section hidden">
+      <section id="pageChainCalc" class="page-section">
         <div class="card">
           <h3 class="card-title">Kettingsmeercalculatie</h3>
           <p style="font-size: 13px; color: var(--text-medium); margin-bottom: 20px;">
@@ -1721,7 +1721,7 @@
       <!-- ==========================================================================
            PAGE: OPBRENGSTMODEL KETTINGEN (CHAIN OM)
            ========================================================================== -->
-      <section id="pageChainOm" class="page-section hidden">
+      <section id="pageChainOm" class="page-section">
         <div class="card">
           <h3 class="card-title">Opbrengstmodel Kettingsmering</h3>
           <p style="font-size: 13px; color: var(--text-medium); margin-bottom: 20px;">
@@ -1740,7 +1740,7 @@
       <!-- ==========================================================================
            PAGE: AUTOMATISERING KETTINGEN (CHAIN AUTOMATION - PLACEHOLDER)
            ========================================================================== -->
-      <section id="pageChainAutomation" class="page-section hidden">
+      <section id="pageChainAutomation" class="page-section">
         <div class="card" style="padding: 40px 24px; text-align: center;">
           <div style="width: 64px; height: 64px; border-radius: 50%; background-color: rgba(227,6,19,0.1); color: var(--primary-red); display: flex; align-items: center; justify-content: center; margin: 0 auto 20px auto;">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width: 32px; height: 32px;">
@@ -1759,7 +1759,7 @@
       <!-- ==========================================================================
            PAGE: INFORMATIE KETTINGEN (CHAIN INFO)
            ========================================================================== -->
-      <section id="pageChainInfo" class="page-section hidden">
+      <section id="pageChainInfo" class="page-section">
         <div class="card">
           <h3 class="card-title">Informatie Kettingsmering</h3>
           <p style="line-height: 1.6; color: var(--text-medium); margin-bottom: 20px;">
@@ -1804,9 +1804,9 @@
 
   <!-- JavaScript logic imports -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="interflon-data.js?v=42"></script>
+  <script src="interflon-data.js?v=43"></script>
   <script src="bearings-db.js"></script>
   <script src="chains-db.js"></script>
-  <script src="app.js?v=42"></script>
+  <script src="app.js?v=43"></script>
 </body>
 </html>
