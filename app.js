@@ -2827,12 +2827,31 @@ function openPricelistModal() {
     const noPkgsText = (TRANSLATIONS[lang] && TRANSLATIONS[lang].noPackagesFound) || "Geen verpakkingen gevonden voor dit product.";
     
     // Look up in appropriate pricelist
-    const sourcePricelist = isChain ? (typeof INTERFLON_CHAIN_PRICELIST !== "undefined" ? INTERFLON_CHAIN_PRICELIST : {}) : INTERFLON_PRICELIST;
-    let packages = sourcePricelist[productName] || sourcePricelist[productName.toUpperCase()] || sourcePricelist["INTERFLON " + productName.toUpperCase()];
-    
-    if (isChain && (!packages || packages.length === 0)) {
-      const cleanName = productName.replace(/^Interflon\s+/i, '').trim();
-      packages = sourcePricelist[cleanName] || sourcePricelist[cleanName.toUpperCase()] || sourcePricelist["Lube TF"];
+    let packages = null;
+
+    if (isChain) {
+      const sourcePricelist = (typeof INTERFLON_CHAIN_PRICELIST !== "undefined" ? INTERFLON_CHAIN_PRICELIST : {});
+      packages = sourcePricelist[productName] || sourcePricelist[productName.toUpperCase()];
+      
+      if (!packages || packages.length === 0) {
+        let clean = productName.replace(/^Interflon\s+/i, '').replace(/\s+spuitbus/i, '').replace(/\s*\([^)]*\)/g, '').trim();
+        packages = sourcePricelist[clean] || sourcePricelist[clean.toUpperCase()];
+        
+        if (!packages || packages.length === 0) {
+          const lowerClean = clean.toLowerCase();
+          const keys = Object.keys(sourcePricelist);
+          for (const k of keys) {
+            const lowerK = k.toLowerCase();
+            if (lowerK === lowerClean || lowerClean.includes(lowerK) || lowerK.includes(lowerClean)) {
+              packages = sourcePricelist[k];
+              break;
+            }
+          }
+        }
+      }
+    } else {
+      const sourcePricelist = INTERFLON_PRICELIST || {};
+      packages = sourcePricelist[productName] || sourcePricelist[productName.toUpperCase()] || sourcePricelist["INTERFLON " + productName.toUpperCase()];
     }
 
     if (!packages || packages.length === 0) {
@@ -4983,7 +5002,7 @@ function selectChain(chain) {
 
   if (typeImg) typeImg.src = (chain.illustrationImg || "chain-simplex.png") + "?v=70";
   if (typeSubtitle) typeSubtitle.textContent = chain.strand || "Simplex (1-sporig)";
-  if (dimImg) dimImg.src = (chain.dimensionsImg || "chain-dimensions.png") + "?v=102";
+  if (dimImg) dimImg.src = (chain.dimensionsImg || "chain-dimensions.png") + "?v=105";
 
   if (vPitch) vPitch.textContent = chain.pitch.toFixed(1);
   if (vWidth) vWidth.textContent = chain.width.toFixed(1);
@@ -5868,3 +5887,13 @@ function removeChainOmImage() {
 
   saveChainTcoDetails();
 }
+
+  const chainProductSelectEl = document.getElementById("chainProductSelect");
+  if (chainProductSelectEl) {
+    chainProductSelectEl.addEventListener("change", function() {
+      const p2El = document.getElementById("chainOmProdName2");
+      if (p2El) p2El.textContent = this.value;
+      if (typeof calculateChainGrease === "function") calculateChainGrease();
+    });
+  }
+  
