@@ -4523,7 +4523,8 @@ function closeModeSelectionModal() {
 }
 
 function updateModeUI() {
-  const modeBtnText = document.getElementById("modeSwitchBtnText");
+  const modeIcon = document.getElementById("modeIconAvatar");
+  const modeTitle = document.getElementById("modeSwitchTitleText");
   const menuSearchText = document.querySelector("#menuSearch span");
   const menuCalcText = document.querySelector("#menuCalc span");
   const menuOmText = document.querySelector("#menuOm span");
@@ -4531,7 +4532,8 @@ function updateModeUI() {
   const menuInfoText = document.querySelector("#menuInfo span");
 
   if (currentAppMode === "chain") {
-    if (modeBtnText) modeBtnText.textContent = "⛓️ Kettingberekening";
+    if (modeIcon) modeIcon.textContent = "⛓️";
+    if (modeTitle) modeTitle.textContent = "Kettingberekening";
     if (menuSearchText) {
       menuSearchText.textContent = "Ketting Zoeken";
       menuSearchText.removeAttribute("data-i18n");
@@ -4554,7 +4556,8 @@ function updateModeUI() {
     }
   } else {
     // Mode === "bearing"
-    if (modeBtnText) modeBtnText.textContent = "⚙️ Lagerberekening";
+    if (modeIcon) modeIcon.textContent = "⚙️";
+    if (modeTitle) modeTitle.textContent = "Lagerberekening";
     if (menuSearchText) {
       menuSearchText.setAttribute("data-i18n", "menuSearch");
       menuSearchText.textContent = "Lager Opzoeken";
