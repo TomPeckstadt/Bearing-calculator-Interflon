@@ -489,11 +489,11 @@
         </div>
         
         <div style="display: flex; gap: 10px; align-items: center;">
-          <button type="button" id="modeSwitchBtn" onclick="openModeSelectionModal()" class="user-badge" style="cursor: pointer; border: 1.5px solid var(--primary-red); background-color: #ffffff; padding: 6px 14px 6px 6px; box-shadow: 0 2px 6px rgba(227,6,19,0.15); transition: all 0.2s ease;">
-            <div id="modeIconAvatar" class="user-avatar" style="background-color: var(--primary-red); color: #ffffff; font-size: 14px; font-weight: 700; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">⚙️</div>
-            <div style="display: flex; flex-direction: column; align-items: flex-start; line-height: 1.25; margin-left: 2px;">
-              <span id="modeSwitchTitleText" style="font-size: 13px; font-weight: 800; color: var(--text-dark);">Lagerberekening</span>
-              <span style="font-size: 10px; font-weight: 700; color: var(--primary-red); letter-spacing: 0.5px; text-transform: uppercase;">Klik om te wisselen ⚙️/⛓️</span>
+          <button type="button" id="modeSwitchBtn" onclick="openModeSelectionModal()" class="mode-switch-badge">
+            <div id="modeIconAvatar" class="mode-avatar">⚙️</div>
+            <div class="mode-text-container">
+              <span id="modeSwitchTitleText" class="mode-title">Lagerberekening</span>
+              <span class="mode-subtitle">Klik om te wisselen ⚙️/⛓️</span>
             </div>
           </button>
           <button type="button" id="userBadgeBtn" class="user-badge" onclick="openOperatorModal()">
@@ -1556,8 +1556,8 @@
                 <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.637 10.637Z" />
               </svg>
             </span>
-            <input type="text" id="chainSearchInput" class="search-input" placeholder="Bijv. 08B-1, 12B-2, ANSI 40, ANSI 60..." oninput="handleChainSearchInput()" autocomplete="off">
-            <div id="chainSuggestionsBox" class="autocomplete-suggestions"></div>
+            <input type="text" id="chainSearchInput" class="search-input" placeholder="Bijv. 08B-1, 12B-2, ANSI 40, ANSI 60..." oninput="handleChainSearchInput()" onfocus="handleChainSearchInput()" autocomplete="off">
+            <div id="chainSuggestionsBox" class="autocomplete-suggestions" style="display: none;"></div>
           </div>
         </div>
 
@@ -1804,9 +1804,9 @@
 
   <!-- JavaScript logic imports -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="interflon-data.js?v=43"></script>
+  <script src="interflon-data.js?v=44"></script>
   <script src="bearings-db.js"></script>
   <script src="chains-db.js"></script>
-  <script src="app.js?v=43"></script>
+  <script src="app.js?v=44"></script>
 </body>
 </html>
