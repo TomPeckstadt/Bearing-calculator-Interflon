@@ -5024,9 +5024,9 @@ function selectChain(chain) {
   const vRoller = document.getElementById("visualChainRollerText");
   const vPin = document.getElementById("visualChainPinText");
 
-  if (typeImg) typeImg.src = (chain.illustrationImg || "chain-simplex.png") + "?v=118";
+  if (typeImg) typeImg.src = (chain.illustrationImg || "chain-simplex.png") + "?v=120";
   if (typeSubtitle) typeSubtitle.textContent = chain.strand || "Simplex (1-sporig)";
-  if (dimImg) dimImg.src = (chain.dimensionsImg || "chain-dimensions.png") + "?v=118";
+  if (dimImg) dimImg.src = (chain.dimensionsImg || "chain-dimensions.png") + "?v=120";
 
   if (vPitch) vPitch.textContent = chain.pitch.toFixed(1);
   if (vWidth) vWidth.textContent = chain.width.toFixed(1);
@@ -5378,7 +5378,7 @@ function runChainPdfExport(includeTco) {
           ["Omgevingsomstandigheden", env === "normal" ? "Normaal" : env === "dusty" ? "Stoffig" : env === "wet" ? "Nat" : "Zwaar verontreinigd"],
           ["Interflon MicPol® Reductiefactor", micpolFactor.toFixed(1) + "x langer smeerinterval"],
           ["Dagelijks olieverbruik (MicPol®)", dailyCm3.toFixed(1) + " ml/dag"],
-          ["Uurlijkse oliedosering", hourlyMl.toFixed(2) + " ml/uur (" + dropsPerMin + " druppels/min)"],
+          ["Oliedosering per uur", hourlyMl.toFixed(2) + " ml/uur"],
           ["Wekelijks olieverbruik", weeklyCm3.toFixed(1) + " ml/week"],
           ["Jaarlijks olieverbruik (Conventioneel)", yearlyLitersConv.toFixed(2) + " L/jaar"],
           ["Jaarlijks olieverbruik (Interflon MicPol®)", yearlyLitersInterflon.toFixed(2) + " L/jaar"]
