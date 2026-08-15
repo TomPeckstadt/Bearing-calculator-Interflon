@@ -4783,13 +4783,13 @@ function calculateChainGrease() {
   const yearlyLiters = (weeklyCm3 * 52.14) / 1000;
 
   if (resDaily) {
-    resDaily.textContent = `${dailyCm3.toLocaleString("nl-BE", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} cm³/dag (${hoursPerDay}u/dag)`;
+    resDaily.textContent = `${dailyCm3.toLocaleString("nl-BE", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} cm³/dag`;
   }
   if (resHourly) {
     resHourly.textContent = `${hourlyMl.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ml/uur`;
   }
   if (resWeekly) {
-    resWeekly.textContent = `${weeklyCm3.toLocaleString("nl-BE", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} cm³/wk (${daysPerWeek}d/wk)`;
+    resWeekly.textContent = `${weeklyCm3.toLocaleString("nl-BE", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} cm³/wk`;
   }
   if (resYearly) {
     resYearly.textContent = `${yearlyLiters.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} L/jaar`;
