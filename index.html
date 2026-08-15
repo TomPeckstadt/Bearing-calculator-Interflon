@@ -1219,21 +1219,21 @@
               <!-- Row: consumption -->
               <tr>
                 <td class="cell-label" data-i18n="omConsumption">Productverbruik / smeerbeurt (g)</td>
-                <td class="cell-input-wrapper"><input type="number" id="omProdCons1" class="om-cell-input numeric auto-filled" value="2850" step="0.1"></td>
+                <td class="cell-input-wrapper"><input type="number" id="omProdCons1" class="om-cell-input numeric auto-filled" value="2850" step="0.1" oninput="calculateTco()" onchange="calculateTco()"></td>
                 <td class="cell-label" data-i18n="omConsumption">Productverbruik / smeerbeurt (g)</td>
-                <td class="cell-input-wrapper"><input type="number" id="omProdCons2" class="om-cell-input numeric auto-filled" value="475" step="0.1"></td>
+                <td class="cell-input-wrapper"><input type="number" id="omProdCons2" class="om-cell-input numeric auto-filled" value="475" step="0.1" oninput="calculateTco()" onchange="calculateTco()"></td>
               </tr>
               <!-- Row: product price -->
               <tr>
                 <td class="cell-label" data-i18n="omPricePerL">Kostprijs product / L (€)</td>
-                <td class="cell-input-wrapper"><input type="number" id="omProdPrice1" class="om-cell-input numeric auto-filled" value="10.00" step="0.01"></td>
+                <td class="cell-input-wrapper"><input type="number" id="omProdPrice1" class="om-cell-input numeric auto-filled" value="10.00" step="0.01" oninput="calculateTco()" onchange="calculateTco()"></td>
                 <td class="cell-label">
                   <div style="display: flex; flex-direction: column; gap: 4px;">
                     <span data-i18n="omPricePerL">Kostprijs product / L (€)</span>
                     <button type="button" class="btn-select-pkg" id="omBtnSelectPkg" onclick="openPricelistModal()" style="background: none; border: none; padding: 0; color: var(--primary-blue); font-size: 11px; text-decoration: underline; cursor: pointer; text-align: left; font-family: inherit;" data-i18n="selectPackaging">Kies verpakking</button>
                   </div>
                 </td>
-                <td class="cell-input-wrapper"><input type="number" id="omProdPrice2" class="om-cell-input numeric" value="38.60" step="0.01"></td>
+                <td class="cell-input-wrapper"><input type="number" id="omProdPrice2" class="om-cell-input numeric" value="38.60" step="0.01" oninput="calculateTco()" onchange="calculateTco()"></td>
               </tr>
               <!-- Row: calculated annual product cost -->
               <tr class="calculated-row">
@@ -1251,19 +1251,19 @@
               </tr>
               <tr>
                 <td class="cell-label" data-i18n="omLubesPerYear">Aantal smeerbeurten / jaar</td>
-                <td class="cell-input-wrapper"><input type="number" id="omProdFreq1" class="om-cell-input numeric auto-filled" value="56" step="0.1"></td>
+                <td class="cell-input-wrapper"><input type="number" id="omProdFreq1" class="om-cell-input numeric auto-filled" value="56" step="0.1" oninput="calculateTco()" onchange="calculateTco()"></td>
                 <td class="cell-label" data-i18n="omLubesPerYear">Aantal smeerbeurten / jaar</td>
-                <td class="cell-input-wrapper"><input type="number" id="omProdFreq2" class="om-cell-input numeric auto-filled" value="56" step="0.1"></td>
+                <td class="cell-input-wrapper"><input type="number" id="omProdFreq2" class="om-cell-input numeric auto-filled" value="56" step="0.1" oninput="calculateTco()" onchange="calculateTco()"></td>
                 <td class="cell-label" data-i18n="omWorktimePerLube">Werktijd / smeerbeurt (minuten)</td>
-                <td class="cell-input-wrapper"><input type="number" id="omSharedWorktime" class="om-cell-input numeric" value="3" step="1"></td>
+                <td class="cell-input-wrapper"><input type="number" id="omSharedWorktime" class="om-cell-input numeric" value="3" step="1" oninput="calculateTco()" onchange="calculateTco()"></td>
               </tr>
               <tr>
                 <td class="cell-label" data-i18n="omRepairFreq">Revisiefrequentie (maanden)</td>
-                <td class="cell-input-wrapper"><input type="number" id="omRepairFreq1" class="om-cell-input numeric auto-filled" readonly value="12"></td>
+                <td class="cell-input-wrapper"><input type="number" id="omRepairFreq1" class="om-cell-input numeric auto-filled" readonly value="12" oninput="calculateTco()" onchange="calculateTco()"></td>
                 <td class="cell-label" data-i18n="omRepairFreq">Revisiefrequentie (maanden)</td>
-                <td class="cell-input-wrapper"><input type="number" id="omRepairFreq2" class="om-cell-input numeric auto-filled" readonly value="48"></td>
+                <td class="cell-input-wrapper"><input type="number" id="omRepairFreq2" class="om-cell-input numeric auto-filled" readonly value="48" oninput="calculateTco()" onchange="calculateTco()"></td>
                 <td class="cell-label" data-i18n="omRepairDuration">Revisietijd / Downtime / H</td>
-                <td class="cell-input-wrapper"><input type="number" id="omSharedRepairH" class="om-cell-input numeric" value="4" step="0.5"></td>
+                <td class="cell-input-wrapper"><input type="number" id="omSharedRepairH" class="om-cell-input numeric" value="4" step="0.5" oninput="calculateTco()" onchange="calculateTco()"></td>
               </tr>
               <tr class="calculated-row">
                 <td class="cell-label" data-i18n="omAnnLaborCost">Kostprijs tijdsbesteding / machine / jaar (€)</td>
@@ -1271,7 +1271,7 @@
                 <td class="cell-label" data-i18n="omAnnLaborCost">Kostprijs tijdsbesteding / machine / jaar (€)</td>
                 <td class="cell-value" id="omAnnLaborCost2">€ 980,00</td>
                 <td class="cell-label" data-i18n="omLaborRate">Prijs werkuur / H (€)</td>
-                <td class="cell-input-wrapper"><input type="number" id="omSharedLaborRate" class="om-cell-input numeric" value="35.00" step="0.5"></td>
+                <td class="cell-input-wrapper"><input type="number" id="omSharedLaborRate" class="om-cell-input numeric" value="35.00" step="0.5" oninput="calculateTco()" onchange="calculateTco()"></td>
               </tr>
 
               <!-- Row: Materiaal section -->
@@ -1282,16 +1282,16 @@
               </tr>
               <tr>
                 <td class="cell-label" data-i18n="omMaterialLifetime">Levensduur lager (maanden)</td>
-                <td class="cell-input-wrapper"><input type="number" id="omLifetime1" class="om-cell-input numeric" value="12"></td>
+                <td class="cell-input-wrapper"><input type="number" id="omLifetime1" class="om-cell-input numeric" value="12" oninput="calculateTco()" onchange="calculateTco()"></td>
                 <td class="cell-label" data-i18n="omMaterialLifetime">Levensduur lager (maanden)</td>
-                <td class="cell-input-wrapper"><input type="number" id="omLifetime2" class="om-cell-input numeric" value="48"></td>
+                <td class="cell-input-wrapper"><input type="number" id="omLifetime2" class="om-cell-input numeric" value="48" oninput="calculateTco()" onchange="calculateTco()"></td>
                 <td class="cell-label" data-i18n="omSparePartsCost">Kostprijs wisselstukken / set (€)</td>
-                <td class="cell-input-wrapper"><input type="number" id="omSharedPartsCost" class="om-cell-input numeric" value="6000"></td>
+                <td class="cell-input-wrapper"><input type="number" id="omSharedPartsCost" class="om-cell-input numeric" value="6000" oninput="calculateTco()" onchange="calculateTco()"></td>
               </tr>
               <tr>
                 <td colspan="4" class="empty-cell"></td>
                 <td class="cell-label" data-i18n="omSetsPerMachine">Aantal lagers / machine</td>
-                <td class="cell-input-wrapper"><input type="number" id="omSharedSetsPerMachine" class="om-cell-input numeric" value="1"></td>
+                <td class="cell-input-wrapper"><input type="number" id="omSharedSetsPerMachine" class="om-cell-input numeric" value="1" oninput="calculateTco()" onchange="calculateTco()"></td>
               </tr>
               <tr class="calculated-row">
                 <td class="cell-label" data-i18n="omAnnMatCost">Kostprijs materiaal / machine / jaar (€)</td>
@@ -1299,7 +1299,7 @@
                 <td class="cell-label" data-i18n="omAnnMatCost">Kostprijs materiaal / machine / jaar (€)</td>
                 <td class="cell-value" id="omAnnMaterialCost2">€ 1.500,00</td>
                 <td class="cell-label" data-i18n="omNumMachines">Aantal machines</td>
-                <td class="cell-input-wrapper"><input type="number" id="omSharedNumMachines" class="om-cell-input numeric" value="14"></td>
+                <td class="cell-input-wrapper"><input type="number" id="omSharedNumMachines" class="om-cell-input numeric" value="14" oninput="calculateTco()" onchange="calculateTco()"></td>
               </tr>
 
               <!-- Row: Downtime section -->
@@ -1310,19 +1310,19 @@
               </tr>
               <tr>
                 <td class="cell-label" data-i18n="omDowntimeHours">Tijdsduur (H)</td>
-                <td class="cell-input-wrapper"><input type="number" id="omDowntimeH1" class="om-cell-input numeric auto-filled" value="4" step="0.5"></td>
+                <td class="cell-input-wrapper"><input type="number" id="omDowntimeH1" class="om-cell-input numeric auto-filled" value="4" step="0.5" oninput="calculateTco()" onchange="calculateTco()"></td>
                 <td class="cell-label" data-i18n="omDowntimeHours">Tijdsduur (H)</td>
-                <td class="cell-input-wrapper"><input type="number" id="omDowntimeH2" class="om-cell-input numeric auto-filled" value="4" step="0.5"></td>
+                <td class="cell-input-wrapper"><input type="number" id="omDowntimeH2" class="om-cell-input numeric auto-filled" value="4" step="0.5" oninput="calculateTco()" onchange="calculateTco()"></td>
                 <td class="cell-label" data-i18n="omDowntimeRate">Kostprijs down-time / H (€)</td>
-                <td class="cell-input-wrapper"><input type="number" id="omSharedDowntimeRate" class="om-cell-input numeric" value="100"></td>
+                <td class="cell-input-wrapper"><input type="number" id="omSharedDowntimeRate" class="om-cell-input numeric" value="100" oninput="calculateTco()" onchange="calculateTco()"></td>
               </tr>
               <tr>
                 <td class="cell-label" data-i18n="omDowntimeFreq">Aantal / jaar</td>
-                <td class="cell-input-wrapper"><input type="number" id="omDowntimeFreq1" class="om-cell-input numeric auto-filled" value="1"></td>
+                <td class="cell-input-wrapper"><input type="number" id="omDowntimeFreq1" class="om-cell-input numeric auto-filled" value="1" oninput="calculateTco()" onchange="calculateTco()"></td>
                 <td class="cell-label" data-i18n="omDowntimeFreq">Aantal / jaar</td>
-                <td class="cell-input-wrapper"><input type="number" id="omDowntimeFreq2" class="om-cell-input numeric auto-filled" value="0.25" step="0.01"></td>
+                <td class="cell-input-wrapper"><input type="number" id="omDowntimeFreq2" class="om-cell-input numeric auto-filled" value="0.25" step="0.01" oninput="calculateTco()" onchange="calculateTco()"></td>
                 <td class="cell-label" data-i18n="omPrepDuration">Voorbereidingstijd revisie (H)</td>
-                <td class="cell-input-wrapper"><input type="number" id="omSharedPrepH" class="om-cell-input numeric" value="1" step="0.5"></td>
+                <td class="cell-input-wrapper"><input type="number" id="omSharedPrepH" class="om-cell-input numeric" value="1" step="0.5" oninput="calculateTco()" onchange="calculateTco()"></td>
               </tr>
               <tr class="calculated-row">
                 <td class="cell-label" data-i18n="omAnnDowntimeCost">Kostprijs downtime / machine / jaar (€)</td>
@@ -1365,7 +1365,7 @@
                 <td class="cell-label" data-i18n="omCostPerMachineYears">Kostprijs / machine na <span class="omTcoYearsVal">10</span> jaar (€)</td>
                 <td class="cell-value" id="omTotalCostYears2">€ 35.608,00</td>
                 <td class="cell-label" data-i18n="omTcoPeriodLabel">Aantal jaren voor TCO</td>
-                <td class="cell-input-wrapper grey-input"><input type="number" id="omTcoYears" class="om-cell-input numeric" value="10"></td>
+                <td class="cell-input-wrapper grey-input"><input type="number" id="omTcoYears" class="om-cell-input numeric" value="10" oninput="calculateTco()" onchange="calculateTco()"></td>
               </tr>
               <tr class="calculated-row highlighted-tco-row">
                 <td class="cell-label" data-i18n="omCostParkYears">Kostprijs / machinepark na <span class="omTcoYearsVal">10</span> jaar (€)</td>
@@ -2006,21 +2006,21 @@
               <!-- Row: consumption -->
               <tr>
                 <td class="cell-label" data-i18n="omConsumption">Productverbruik / smeerbeurt (g)</td>
-                <td class="cell-input-wrapper"><input type="number" id="chainOmProdCons1" class="om-cell-input numeric auto-filled" value="2850" step="0.1"></td>
+                <td class="cell-input-wrapper"><input type="number" id="chainOmProdCons1" class="om-cell-input numeric auto-filled" value="2850" step="0.1" oninput="calculateTco()" onchange="calculateTco()"></td>
                 <td class="cell-label" data-i18n="omConsumption">Productverbruik / smeerbeurt (g)</td>
-                <td class="cell-input-wrapper"><input type="number" id="chainOmProdCons2" class="om-cell-input numeric auto-filled" value="475" step="0.1"></td>
+                <td class="cell-input-wrapper"><input type="number" id="chainOmProdCons2" class="om-cell-input numeric auto-filled" value="475" step="0.1" oninput="calculateTco()" onchange="calculateTco()"></td>
               </tr>
               <!-- Row: product price -->
               <tr>
                 <td class="cell-label" data-i18n="omPricePerL">Kostprijs product / L (€)</td>
-                <td class="cell-input-wrapper"><input type="number" id="chainOmProdPrice1" class="om-cell-input numeric auto-filled" value="10.00" step="0.01"></td>
+                <td class="cell-input-wrapper"><input type="number" id="chainOmProdPrice1" class="om-cell-input numeric auto-filled" value="10.00" step="0.01" oninput="calculateTco()" onchange="calculateTco()"></td>
                 <td class="cell-label">
                   <div style="display: flex; flex-direction: column; gap: 4px;">
                     <span data-i18n="omPricePerL">Kostprijs product / L (€)</span>
                     <button type="button" class="btn-select-pkg" id="chainOmBtnSelectPkg" onclick="openPricelistModal()" style="background: none; border: none; padding: 0; color: var(--primary-blue); font-size: 11px; text-decoration: underline; cursor: pointer; text-align: left; font-family: inherit;" data-i18n="selectPackaging">Kies verpakking</button>
                   </div>
                 </td>
-                <td class="cell-input-wrapper"><input type="number" id="chainOmProdPrice2" class="om-cell-input numeric" value="38.60" step="0.01"></td>
+                <td class="cell-input-wrapper"><input type="number" id="chainOmProdPrice2" class="om-cell-input numeric" value="38.60" step="0.01" oninput="calculateTco()" onchange="calculateTco()"></td>
               </tr>
               <!-- Row: calculated annual product cost -->
               <tr class="calculated-row">
@@ -2038,19 +2038,19 @@
               </tr>
               <tr>
                 <td class="cell-label" data-i18n="omLubesPerYear">Aantal smeerbeurten / jaar</td>
-                <td class="cell-input-wrapper"><input type="number" id="chainOmProdFreq1" class="om-cell-input numeric auto-filled" value="56" step="0.1"></td>
+                <td class="cell-input-wrapper"><input type="number" id="chainOmProdFreq1" class="om-cell-input numeric auto-filled" value="56" step="0.1" oninput="calculateTco()" onchange="calculateTco()"></td>
                 <td class="cell-label" data-i18n="omLubesPerYear">Aantal smeerbeurten / jaar</td>
-                <td class="cell-input-wrapper"><input type="number" id="chainOmProdFreq2" class="om-cell-input numeric auto-filled" value="56" step="0.1"></td>
+                <td class="cell-input-wrapper"><input type="number" id="chainOmProdFreq2" class="om-cell-input numeric auto-filled" value="56" step="0.1" oninput="calculateTco()" onchange="calculateTco()"></td>
                 <td class="cell-label" data-i18n="omWorktimePerLube">Werktijd / smeerbeurt (minuten)</td>
-                <td class="cell-input-wrapper"><input type="number" id="chainOmSharedWorktime" class="om-cell-input numeric" value="3" step="1"></td>
+                <td class="cell-input-wrapper"><input type="number" id="chainOmSharedWorktime" class="om-cell-input numeric" value="3" step="1" oninput="calculateTco()" onchange="calculateTco()"></td>
               </tr>
               <tr>
                 <td class="cell-label" data-i18n="omRepairFreq">Revisiefrequentie (maanden)</td>
-                <td class="cell-input-wrapper"><input type="number" id="chainOmRepairFreq1" class="om-cell-input numeric auto-filled" readonly value="12"></td>
+                <td class="cell-input-wrapper"><input type="number" id="chainOmRepairFreq1" class="om-cell-input numeric auto-filled" readonly value="12" oninput="calculateTco()" onchange="calculateTco()"></td>
                 <td class="cell-label" data-i18n="omRepairFreq">Revisiefrequentie (maanden)</td>
-                <td class="cell-input-wrapper"><input type="number" id="chainOmRepairFreq2" class="om-cell-input numeric auto-filled" readonly value="48"></td>
+                <td class="cell-input-wrapper"><input type="number" id="chainOmRepairFreq2" class="om-cell-input numeric auto-filled" readonly value="48" oninput="calculateTco()" onchange="calculateTco()"></td>
                 <td class="cell-label" data-i18n="omRepairDuration">Revisietijd / Downtime / H</td>
-                <td class="cell-input-wrapper"><input type="number" id="chainOmSharedRepairH" class="om-cell-input numeric" value="4" step="0.5"></td>
+                <td class="cell-input-wrapper"><input type="number" id="chainOmSharedRepairH" class="om-cell-input numeric" value="4" step="0.5" oninput="calculateTco()" onchange="calculateTco()"></td>
               </tr>
               <tr class="calculated-row">
                 <td class="cell-label" data-i18n="omAnnLaborCost">Kostprijs tijdsbesteding / machine / jaar (€)</td>
@@ -2058,7 +2058,7 @@
                 <td class="cell-label" data-i18n="omAnnLaborCost">Kostprijs tijdsbesteding / machine / jaar (€)</td>
                 <td class="cell-value" id="chainOmAnnLaborCost2">€ 980,00</td>
                 <td class="cell-label" data-i18n="omLaborRate">Prijs werkuur / H (€)</td>
-                <td class="cell-input-wrapper"><input type="number" id="chainOmSharedLaborRate" class="om-cell-input numeric" value="35.00" step="0.5"></td>
+                <td class="cell-input-wrapper"><input type="number" id="chainOmSharedLaborRate" class="om-cell-input numeric" value="35.00" step="0.5" oninput="calculateTco()" onchange="calculateTco()"></td>
               </tr>
 
               <!-- Row: Materiaal section -->
@@ -2069,16 +2069,16 @@
               </tr>
               <tr>
                 <td class="cell-label" data-i18n="omMaterialLifetime">Levensduur ketting (maanden)</td>
-                <td class="cell-input-wrapper"><input type="number" id="chainOmLifetime1" class="om-cell-input numeric" value="12"></td>
+                <td class="cell-input-wrapper"><input type="number" id="chainOmLifetime1" class="om-cell-input numeric" value="12" oninput="calculateTco()" onchange="calculateTco()"></td>
                 <td class="cell-label" data-i18n="omMaterialLifetime">Levensduur ketting (maanden)</td>
-                <td class="cell-input-wrapper"><input type="number" id="chainOmLifetime2" class="om-cell-input numeric" value="48"></td>
+                <td class="cell-input-wrapper"><input type="number" id="chainOmLifetime2" class="om-cell-input numeric" value="48" oninput="calculateTco()" onchange="calculateTco()"></td>
                 <td class="cell-label" data-i18n="omSparePartsCost">Kostprijs wisselstukken / set (€)</td>
-                <td class="cell-input-wrapper"><input type="number" id="chainOmSharedPartsCost" class="om-cell-input numeric" value="6000"></td>
+                <td class="cell-input-wrapper"><input type="number" id="chainOmSharedPartsCost" class="om-cell-input numeric" value="6000" oninput="calculateTco()" onchange="calculateTco()"></td>
               </tr>
               <tr>
                 <td colspan="4" class="empty-cell"></td>
                 <td class="cell-label" data-i18n="omSetsPerMachine">Aantal kettingen / machine</td>
-                <td class="cell-input-wrapper"><input type="number" id="chainOmSharedSetsPerMachine" class="om-cell-input numeric" value="1"></td>
+                <td class="cell-input-wrapper"><input type="number" id="chainOmSharedSetsPerMachine" class="om-cell-input numeric" value="1" oninput="calculateTco()" onchange="calculateTco()"></td>
               </tr>
               <tr class="calculated-row">
                 <td class="cell-label" data-i18n="omAnnMatCost">Kostprijs materiaal / machine / jaar (€)</td>
@@ -2086,7 +2086,7 @@
                 <td class="cell-label" data-i18n="omAnnMatCost">Kostprijs materiaal / machine / jaar (€)</td>
                 <td class="cell-value" id="chainOmAnnMaterialCost2">€ 1.500,00</td>
                 <td class="cell-label" data-i18n="omNumMachines">Aantal machines</td>
-                <td class="cell-input-wrapper"><input type="number" id="chainOmSharedNumMachines" class="om-cell-input numeric" value="14"></td>
+                <td class="cell-input-wrapper"><input type="number" id="chainOmSharedNumMachines" class="om-cell-input numeric" value="14" oninput="calculateTco()" onchange="calculateTco()"></td>
               </tr>
 
               <!-- Row: Downtime section -->
@@ -2097,19 +2097,19 @@
               </tr>
               <tr>
                 <td class="cell-label" data-i18n="omDowntimeHours">Tijdsduur (H)</td>
-                <td class="cell-input-wrapper"><input type="number" id="chainOmDowntimeH1" class="om-cell-input numeric auto-filled" value="4" step="0.5"></td>
+                <td class="cell-input-wrapper"><input type="number" id="chainOmDowntimeH1" class="om-cell-input numeric auto-filled" value="4" step="0.5" oninput="calculateTco()" onchange="calculateTco()"></td>
                 <td class="cell-label" data-i18n="omDowntimeHours">Tijdsduur (H)</td>
-                <td class="cell-input-wrapper"><input type="number" id="chainOmDowntimeH2" class="om-cell-input numeric auto-filled" value="4" step="0.5"></td>
+                <td class="cell-input-wrapper"><input type="number" id="chainOmDowntimeH2" class="om-cell-input numeric auto-filled" value="4" step="0.5" oninput="calculateTco()" onchange="calculateTco()"></td>
                 <td class="cell-label" data-i18n="omDowntimeRate">Kostprijs down-time / H (€)</td>
-                <td class="cell-input-wrapper"><input type="number" id="chainOmSharedDowntimeRate" class="om-cell-input numeric" value="100"></td>
+                <td class="cell-input-wrapper"><input type="number" id="chainOmSharedDowntimeRate" class="om-cell-input numeric" value="100" oninput="calculateTco()" onchange="calculateTco()"></td>
               </tr>
               <tr>
                 <td class="cell-label" data-i18n="omDowntimeFreq">Aantal / jaar</td>
-                <td class="cell-input-wrapper"><input type="number" id="chainOmDowntimeFreq1" class="om-cell-input numeric auto-filled" value="1"></td>
+                <td class="cell-input-wrapper"><input type="number" id="chainOmDowntimeFreq1" class="om-cell-input numeric auto-filled" value="1" oninput="calculateTco()" onchange="calculateTco()"></td>
                 <td class="cell-label" data-i18n="omDowntimeFreq">Aantal / jaar</td>
-                <td class="cell-input-wrapper"><input type="number" id="chainOmDowntimeFreq2" class="om-cell-input numeric auto-filled" value="0.25" step="0.01"></td>
+                <td class="cell-input-wrapper"><input type="number" id="chainOmDowntimeFreq2" class="om-cell-input numeric auto-filled" value="0.25" step="0.01" oninput="calculateTco()" onchange="calculateTco()"></td>
                 <td class="cell-label" data-i18n="omPrepDuration">Voorbereidingstijd revisie (H)</td>
-                <td class="cell-input-wrapper"><input type="number" id="chainOmSharedPrepH" class="om-cell-input numeric" value="1" step="0.5"></td>
+                <td class="cell-input-wrapper"><input type="number" id="chainOmSharedPrepH" class="om-cell-input numeric" value="1" step="0.5" oninput="calculateTco()" onchange="calculateTco()"></td>
               </tr>
               <tr class="calculated-row">
                 <td class="cell-label" data-i18n="omAnnDowntimeCost">Kostprijs downtime / machine / jaar (€)</td>
@@ -2152,7 +2152,7 @@
                 <td class="cell-label" data-i18n="omCostPerMachineYears">Kostprijs / machine na <span class="omTcoYearsVal">10</span> jaar (€)</td>
                 <td class="cell-value" id="chainOmTotalCostYears2">€ 35.608,00</td>
                 <td class="cell-label" data-i18n="omTcoPeriodLabel">Aantal jaren voor TCO</td>
-                <td class="cell-input-wrapper grey-input"><input type="number" id="chainOmTcoYears" class="om-cell-input numeric" value="10"></td>
+                <td class="cell-input-wrapper grey-input"><input type="number" id="chainOmTcoYears" class="om-cell-input numeric" value="10" oninput="calculateTco()" onchange="calculateTco()"></td>
               </tr>
               <tr class="calculated-row highlighted-tco-row">
                 <td class="cell-label" data-i18n="omCostParkYears">Kostprijs / machinepark na <span class="omTcoYearsVal">10</span> jaar (€)</td>
@@ -2234,9 +2234,9 @@
 
   <!-- JavaScript logic imports -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="interflon-data.js?v=72"></script>
+  <script src="interflon-data.js?v=75"></script>
   <script src="bearings-db.js"></script>
   <script src="chains-db.js"></script>
-  <script src="app.js?v=72"></script>
+  <script src="app.js?v=75"></script>
 </body>
 </html>
