@@ -3,6 +3,7 @@
 
 let activeBearing = null;
 let tcoUploadedImageBase64 = "";
+let chainTcoUploadedImageBase64 = "";
 let currentLang = localStorage.getItem("bearing_calc_lang") || "nl";
 
 // Clean up trailing '?' from URL if present
@@ -1114,6 +1115,82 @@ document.addEventListener("DOMContentLoaded", () => {
       
       const placeholder = document.getElementById("omAppImagePlaceholder");
       const previewContainer = document.getElementById("omAppImagePreviewContainer");
+      if (placeholder) placeholder.style.display = "flex";
+      if (previewContainer) previewContainer.style.display = "none";
+
+      saveTcoDetails();
+    });
+  }
+
+  // Photo upload logic for Chain TCO application photo
+  const chainOmAppImageInput = document.getElementById("chainOmAppImageInput");
+  const chainOmAppImageDeleteBtn = document.getElementById("chainOmAppImageDeleteBtn");
+
+  function compressChainImageAndSave(file) {
+    const reader = new FileReader();
+    reader.onload = function(eEvent) {
+      const img = new Image();
+      img.onload = function() {
+        const canvas = document.createElement("canvas");
+        let width = img.width;
+        let height = img.height;
+        const max_size = 500;
+
+        if (width > height) {
+          if (width > max_size) {
+            height *= max_size / width;
+            width = max_size;
+          }
+        } else {
+          if (height > max_size) {
+            width *= max_size / height;
+            height = max_size;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0, width, height);
+
+        const compressedBase64 = canvas.toDataURL("image/jpeg", 0.7);
+        chainTcoUploadedImageBase64 = compressedBase64;
+
+        const previewImg = document.getElementById("chainOmAppImagePreview");
+        if (previewImg) {
+          previewImg.src = compressedBase64;
+        }
+        
+        const placeholder = document.getElementById("chainOmAppImagePlaceholder");
+        const previewContainer = document.getElementById("chainOmAppImagePreviewContainer");
+        if (placeholder) placeholder.style.display = "none";
+        if (previewContainer) previewContainer.style.display = "flex";
+
+        saveTcoDetails();
+      };
+      img.src = eEvent.target.result;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  if (chainOmAppImageInput) {
+    chainOmAppImageInput.addEventListener("change", function(e) {
+      if (e.target.files && e.target.files[0]) {
+        compressChainImageAndSave(e.target.files[0]);
+      }
+    });
+  }
+
+  if (chainOmAppImageDeleteBtn) {
+    chainOmAppImageDeleteBtn.addEventListener("click", function(e) {
+      e.stopPropagation();
+      chainTcoUploadedImageBase64 = "";
+      const previewImg = document.getElementById("chainOmAppImagePreview");
+      if (previewImg) previewImg.src = "";
+      if (chainOmAppImageInput) chainOmAppImageInput.value = "";
+      
+      const placeholder = document.getElementById("chainOmAppImagePlaceholder");
+      const previewContainer = document.getElementById("chainOmAppImagePreviewContainer");
       if (placeholder) placeholder.style.display = "flex";
       if (previewContainer) previewContainer.style.display = "none";
 
@@ -3412,8 +3489,9 @@ function runPdfExport(includeTco) {
         drawCell(startX2, curY, 54, 6.5, langData.omProdName || "Productnaam", p2_name, "grey");
 
         // Draw photo in Right Column
-        if (typeof tcoUploadedImageBase64 !== "undefined" && tcoUploadedImageBase64) {
-          doc.addImage(tcoUploadedImageBase64, "JPEG", 131, 59, 58, 24);
+        const activePdfImg = (document.getElementById("pageChainOm") && document.getElementById("pageChainOm").classList.contains("active")) ? chainTcoUploadedImageBase64 : tcoUploadedImageBase64;
+        if (typeof activePdfImg !== "undefined" && activePdfImg) {
+          doc.addImage(activePdfImg, "JPEG", 131, 59, 58, 24);
           doc.setDrawColor(229, 231, 235);
           doc.setLineWidth(0.25);
           doc.rect(startX3, 58, 60, 26, "D");
@@ -3691,6 +3769,7 @@ function saveTcoDetails() {
     }
   });
   data["omAppImage"] = tcoUploadedImageBase64;
+  data["chainOmAppImage"] = chainTcoUploadedImageBase64;
   localStorage.setItem("bearing_calc_tco_data", JSON.stringify(data));
 }
 
@@ -4837,7 +4916,7 @@ function selectChain(chain) {
 
   if (typeImg) typeImg.src = (chain.illustrationImg || "chain-simplex.png") + "?v=70";
   if (typeSubtitle) typeSubtitle.textContent = chain.strand || "Simplex (1-sporig)";
-  if (dimImg) dimImg.src = (chain.dimensionsImg || "chain-dimensions.png") + "?v=85";
+  if (dimImg) dimImg.src = (chain.dimensionsImg || "chain-dimensions.png") + "?v=88";
 
   if (vPitch) vPitch.textContent = chain.pitch.toFixed(1);
   if (vWidth) vWidth.textContent = chain.width.toFixed(1);
