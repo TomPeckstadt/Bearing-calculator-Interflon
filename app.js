@@ -5024,9 +5024,9 @@ function selectChain(chain) {
   const vRoller = document.getElementById("visualChainRollerText");
   const vPin = document.getElementById("visualChainPinText");
 
-  if (typeImg) typeImg.src = (chain.illustrationImg || "chain-simplex.png") + "?v=112";
+  if (typeImg) typeImg.src = (chain.illustrationImg || "chain-simplex.png") + "?v=115";
   if (typeSubtitle) typeSubtitle.textContent = chain.strand || "Simplex (1-sporig)";
-  if (dimImg) dimImg.src = (chain.dimensionsImg || "chain-dimensions.png") + "?v=112";
+  if (dimImg) dimImg.src = (chain.dimensionsImg || "chain-dimensions.png") + "?v=115";
 
   if (vPitch) vPitch.textContent = chain.pitch.toFixed(1);
   if (vWidth) vWidth.textContent = chain.width.toFixed(1);
@@ -5267,12 +5267,12 @@ function runChainPdfExport(includeTco) {
         doc.text(clientEmail, 58, 88);
 
         // Rechter kolom: Ketting details
-        let chainDesig = activeChain ? activeChain.designation : "08B-1";
-        let chainStrand = activeChain ? activeChain.strand : "Simplex (1-sporig)";
-        let pitchStr = activeChain ? (activeChain.pitch.toFixed(1) + " mm") : "12.7 mm";
-        let widthStr = activeChain ? (activeChain.width.toFixed(2) + " mm") : "7.75 mm";
-        let d1Str = activeChain ? (activeChain.d1.toFixed(2) + " mm") : "8.51 mm";
-        let d2Str = activeChain ? (activeChain.d2.toFixed(2) + " mm") : "4.45 mm";
+        let chainDesig = (activeChain && activeChain.designation) ? activeChain.designation : "08B-1";
+        let chainStrand = (activeChain && activeChain.strand) ? activeChain.strand : "Simplex (1-sporig)";
+        let pitchStr = (activeChain && typeof activeChain.pitch === 'number') ? (activeChain.pitch.toFixed(1) + " mm") : "12.7 mm";
+        let widthStr = (activeChain && typeof activeChain.width === 'number') ? (activeChain.width.toFixed(2) + " mm") : "7.75 mm";
+        let d1Str = (activeChain && typeof activeChain.rollerDiameter === 'number') ? (activeChain.rollerDiameter.toFixed(2) + " mm") : (activeChain && typeof activeChain.d1 === 'number') ? (activeChain.d1.toFixed(2) + " mm") : "8.51 mm";
+        let d2Str = (activeChain && typeof activeChain.pinDiameter === 'number') ? (activeChain.pinDiameter.toFixed(2) + " mm") : (activeChain && typeof activeChain.d2 === 'number') ? (activeChain.d2.toFixed(2) + " mm") : "4.45 mm";
 
         doc.setFont("helvetica", "bold");
         doc.setFontSize(11);
@@ -5323,7 +5323,7 @@ function runChainPdfExport(includeTco) {
         doc.text(techApp, 160, 90);
         doc.text(techProduct, 160, 95);
         doc.text(techInterval !== "-" ? (techInterval + " dagen") : "-", 160, 100);
-        doc.text(techPrice !== "-" ? ("€ " + parseFloat(techPrice).toFixed(2)) : "-", 160, 105);
+        const parsedTechPrice = parseFloat(techPrice); doc.text(techPrice !== "-" && !isNaN(parsedTechPrice) ? ("€ " + parsedTechPrice.toFixed(2)) : "-", 160, 105);
 
         // 4. Kettingsmeercalculatie & Oliedosering Tabel
         const lengthInput = document.getElementById("chainLengthInput");
@@ -5584,8 +5584,8 @@ function runChainPdfExport(includeTco) {
           const p2_cons = (document.getElementById("chainOmProdCons2") ? document.getElementById("chainOmProdCons2").value : "0") + " ml";
           const p1_freq = document.getElementById("chainOmProdFreq1") ? document.getElementById("chainOmProdFreq1").value : "0";
           const p2_freq = document.getElementById("chainOmProdFreq2") ? document.getElementById("chainOmProdFreq2").value : "0";
-          const p1_price = "€ " + parseFloat(document.getElementById("chainOmProdPrice1") ? document.getElementById("chainOmProdPrice1").value : 0).toFixed(2);
-          const p2_price = "€ " + parseFloat(document.getElementById("chainOmProdPrice2") ? document.getElementById("chainOmProdPrice2").value : 0).toFixed(2);
+          const p1_price_val = parseFloat(document.getElementById("chainOmProdPrice1") ? document.getElementById("chainOmProdPrice1").value : 0); const p1_price = "€ " + (isNaN(p1_price_val) ? "0.00" : p1_price_val.toFixed(2));
+          const p2_price_val = parseFloat(document.getElementById("chainOmProdPrice2") ? document.getElementById("chainOmProdPrice2").value : 0); const p2_price = "€ " + (isNaN(p2_price_val) ? "0.00" : p2_price_val.toFixed(2));
           const p1_ann_prod = document.getElementById("chainOmAnnProdCost1") ? document.getElementById("chainOmAnnProdCost1").textContent : "€ 0,00";
           const p2_ann_prod = document.getElementById("chainOmAnnProdCost2") ? document.getElementById("chainOmAnnProdCost2").textContent : "€ 0,00";
 
@@ -5593,14 +5593,14 @@ function runChainPdfExport(includeTco) {
           const p1_rep_freq = (document.getElementById("chainOmRepairFreq1") ? document.getElementById("chainOmRepairFreq1").value : "0") + " mnd";
           const p2_rep_freq = (document.getElementById("chainOmRepairFreq2") ? document.getElementById("chainOmRepairFreq2").value : "0") + " mnd";
           const shared_rep_h = (document.getElementById("chainOmSharedRepairH") ? document.getElementById("chainOmSharedRepairH").value : "0") + " uren";
-          const shared_labor_rate = "€ " + parseFloat(document.getElementById("chainOmSharedLaborRate") ? document.getElementById("chainOmSharedLaborRate").value : 0).toFixed(2);
+          const shared_labor_val = parseFloat(document.getElementById("chainOmSharedLaborRate") ? document.getElementById("chainOmSharedLaborRate").value : 0); const shared_labor_rate = "€ " + (isNaN(shared_labor_val) ? "0.00" : shared_labor_val.toFixed(2));
           const shared_prep_h = (document.getElementById("chainOmSharedPrepH") ? document.getElementById("chainOmSharedPrepH").value : "0") + " uren";
           const p1_ann_labor = document.getElementById("chainOmAnnLaborCost1") ? document.getElementById("chainOmAnnLaborCost1").textContent : "€ 0,00";
           const p2_ann_labor = document.getElementById("chainOmAnnLaborCost2") ? document.getElementById("chainOmAnnLaborCost2").textContent : "€ 0,00";
 
           const p1_lifetime = (document.getElementById("chainOmLifetime1") ? document.getElementById("chainOmLifetime1").value : "0") + " mnd";
           const p2_lifetime = (document.getElementById("chainOmLifetime2") ? document.getElementById("chainOmLifetime2").value : "0") + " mnd";
-          const shared_parts_cost = "€ " + parseFloat(document.getElementById("chainOmSharedPartsCost") ? document.getElementById("chainOmSharedPartsCost").value : 0).toFixed(2);
+          const shared_parts_val = parseFloat(document.getElementById("chainOmSharedPartsCost") ? document.getElementById("chainOmSharedPartsCost").value : 0); const shared_parts_cost = "€ " + (isNaN(shared_parts_val) ? "0.00" : shared_parts_val.toFixed(2));
           const shared_sets = document.getElementById("chainOmSharedSetsPerMachine") ? document.getElementById("chainOmSharedSetsPerMachine").value : "1";
           const p1_ann_mat = document.getElementById("chainOmAnnMaterialCost1") ? document.getElementById("chainOmAnnMaterialCost1").textContent : "€ 0,00";
           const p2_ann_mat = document.getElementById("chainOmAnnMaterialCost2") ? document.getElementById("chainOmAnnMaterialCost2").textContent : "€ 0,00";
@@ -5609,7 +5609,7 @@ function runChainPdfExport(includeTco) {
           const p2_dt_h = (document.getElementById("chainOmDowntimeH2") ? document.getElementById("chainOmDowntimeH2").value : "0") + " H";
           const p1_dt_freq = document.getElementById("chainOmDowntimeFreq1") ? document.getElementById("chainOmDowntimeFreq1").value : "0";
           const p2_dt_freq = document.getElementById("chainOmDowntimeFreq2") ? document.getElementById("chainOmDowntimeFreq2").value : "0";
-          const shared_dt_rate = "€ " + parseFloat(document.getElementById("chainOmSharedDowntimeRate") ? document.getElementById("chainOmSharedDowntimeRate").value : 0).toFixed(2);
+          const shared_dt_val = parseFloat(document.getElementById("chainOmSharedDowntimeRate") ? document.getElementById("chainOmSharedDowntimeRate").value : 0); const shared_dt_rate = "€ " + (isNaN(shared_dt_val) ? "0.00" : shared_dt_val.toFixed(2));
           const shared_machines = document.getElementById("chainOmSharedNumMachines") ? document.getElementById("chainOmSharedNumMachines").value : "1";
           const p1_ann_dt = document.getElementById("chainOmAnnDowntimeCost1") ? document.getElementById("chainOmAnnDowntimeCost1").textContent : "€ 0,00";
           const p2_ann_dt = document.getElementById("chainOmAnnDowntimeCost2") ? document.getElementById("chainOmAnnDowntimeCost2").textContent : "€ 0,00";
