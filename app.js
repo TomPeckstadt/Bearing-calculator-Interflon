@@ -4049,11 +4049,14 @@ function calculateTcoForPrefix(prefix) {
   setEl("TotalParkCostYears2", fmtCurrency(p2_total_cost_park_years));
   setEl("TotalSavingsYears", fmtCurrency(total_savings_years));
 
-  if (prefix === "om") {
-    setEl("omAnnSavingsSummary", fmtCurrency(ann_savings_park));
-    setEl("omTotalSavingsSummary", fmtCurrency(total_savings_years));
-    setEl("omProdCostPercentSummary", fmtPercent(prod_cost_percent));
-  }
+  const summaryPrefix = prefix === "om" ? "om" : "chainOm";
+  const setSummaryEl = (id, valStr) => {
+    const el = document.getElementById(summaryPrefix + id);
+    if (el) el.textContent = valStr;
+  };
+  setSummaryEl("AnnSavingsSummary", fmtCurrency(ann_savings_park));
+  setSummaryEl("TotalSavingsSummary", fmtCurrency(total_savings_years));
+  setSummaryEl("ProdCostPercentSummary", fmtPercent(prod_cost_percent));
 }
 
 function calculateTco() {
@@ -4980,7 +4983,7 @@ function selectChain(chain) {
 
   if (typeImg) typeImg.src = (chain.illustrationImg || "chain-simplex.png") + "?v=70";
   if (typeSubtitle) typeSubtitle.textContent = chain.strand || "Simplex (1-sporig)";
-  if (dimImg) dimImg.src = (chain.dimensionsImg || "chain-dimensions.png") + "?v=100";
+  if (dimImg) dimImg.src = (chain.dimensionsImg || "chain-dimensions.png") + "?v=102";
 
   if (vPitch) vPitch.textContent = chain.pitch.toFixed(1);
   if (vWidth) vWidth.textContent = chain.width.toFixed(1);
