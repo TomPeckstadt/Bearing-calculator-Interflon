@@ -2907,10 +2907,21 @@ function closePdfModal() {
 function confirmPdfExport() {
   const includeTco = document.querySelector('input[name="pdfTcoOption"]:checked').value === "true";
   closePdfModal();
-  runPdfExport(includeTco);
+  
+  const isChain = document.querySelector('.nav-link[data-nav="chain"].active') || 
+                  (document.getElementById('pageChainCalc') && document.getElementById('pageChainCalc').classList.contains('active')) ||
+                  (document.getElementById('pageChainSearch') && document.getElementById('pageChainSearch').classList.contains('active')) ||
+                  (document.getElementById('pageChainOm') && document.getElementById('pageChainOm').classList.contains('active')) ||
+                  (document.getElementById('pageChainAutomation') && document.getElementById('pageChainAutomation').classList.contains('active'));
+
+  if (isChain) {
+    runChainPdfExport(includeTco);
+  } else {
+    runBearingPdfExport(includeTco);
+  }
 }
 
-function runPdfExport(includeTco) {
+function runBearingPdfExport(includeTco) {
   const { jsPDF } = window.jspdf;
   const langData = TRANSLATIONS[currentLang] || TRANSLATIONS["nl"];
   
@@ -3489,9 +3500,8 @@ function runPdfExport(includeTco) {
         drawCell(startX2, curY, 54, 6.5, langData.omProdName || "Productnaam", p2_name, "grey");
 
         // Draw photo in Right Column
-        const activePdfImg = (document.getElementById("pageChainOm") && document.getElementById("pageChainOm").classList.contains("active")) ? chainTcoUploadedImageBase64 : tcoUploadedImageBase64;
-        if (typeof activePdfImg !== "undefined" && activePdfImg) {
-          doc.addImage(activePdfImg, "JPEG", 131, 59, 58, 24);
+        if (typeof tcoUploadedImageBase64 !== "undefined" && tcoUploadedImageBase64) {
+          doc.addImage(tcoUploadedImageBase64, "JPEG", 131, 59, 58, 24);
           doc.setDrawColor(229, 231, 235);
           doc.setLineWidth(0.25);
           doc.rect(startX3, 58, 60, 26, "D");
@@ -4916,7 +4926,7 @@ function selectChain(chain) {
 
   if (typeImg) typeImg.src = (chain.illustrationImg || "chain-simplex.png") + "?v=70";
   if (typeSubtitle) typeSubtitle.textContent = chain.strand || "Simplex (1-sporig)";
-  if (dimImg) dimImg.src = (chain.dimensionsImg || "chain-dimensions.png") + "?v=88";
+  if (dimImg) dimImg.src = (chain.dimensionsImg || "chain-dimensions.png") + "?v=90";
 
   if (vPitch) vPitch.textContent = chain.pitch.toFixed(1);
   if (vWidth) vWidth.textContent = chain.width.toFixed(1);
@@ -5038,4 +5048,643 @@ function calculateChainGrease() {
   if (typeof calculateTco === "function") {
     calculateTco();
   }
+}
+
+// ==========================================================================
+// SEPARATE CHAIN PDF REPORT GENERATION (Ketting Smeeradvies & Opbrengstmodel)
+// ==========================================================================
+function runChainPdfExport(includeTco) {
+  const { jsPDF } = window.jspdf;
+  const langData = TRANSLATIONS[currentLang] || TRANSLATIONS["nl"];
+  
+  if (!jsPDF) {
+    alert(langData.pdfErrorLib || "Fout: PDF-bibliotheek kon niet worden geladen. Controleer uw internetverbinding.");
+    return;
+  }
+
+  const exportBtn = document.getElementById("btnExportPdf");
+  const originalText = exportBtn ? exportBtn.innerHTML : "";
+  if (exportBtn) {
+    exportBtn.disabled = true;
+    exportBtn.innerHTML = langData.pdfGenerating || "Genereren...";
+  }
+
+  getTransparentLogo((watermarkDataUrl, aspectRatio) => {
+    getMicPolImageDataUrl((micpolDataUrl, micpolRatio) => {
+      try {
+        const doc = new jsPDF({
+          orientation: "portrait",
+          unit: "mm",
+          format: "a4"
+        });
+
+        const pageWidth = doc.internal.pageSize.getWidth();
+        const pageHeight = doc.internal.pageSize.getHeight();
+
+        // 1. Watermerk logo toevoegen (gecentreerd)
+        if (watermarkDataUrl && aspectRatio) {
+          const imgWidth = 160;
+          const imgHeight = 160 * aspectRatio;
+          const x = (pageWidth - imgWidth) / 2;
+          const y = (pageHeight - imgHeight) / 2;
+          doc.addImage(watermarkDataUrl, "JPEG", x, y, imgWidth, imgHeight);
+        }
+
+        // 2. Header Rapport
+        doc.setFillColor(227, 6, 19); // Interflon Rood
+        doc.rect(20, 20, 170, 2, "F");
+
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(20);
+        doc.setTextColor(227, 6, 19);
+        doc.text("INTERFLON KETTINGSMEERADVIES", 20, 32);
+
+        const now = new Date();
+        const dateLocale = currentLang === "nl" ? "nl-NL" : currentLang === "en" ? "en-US" : "fr-FR";
+        const dateString = now.toLocaleDateString(dateLocale) + " " + now.toLocaleTimeString(dateLocale, {hour: '2-digit', minute:'2-digit'});
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(9);
+        doc.setTextColor(100, 100, 100);
+        doc.text((langData.pdfReportGeneratedOn || "Rapport gegenereerd op: ") + dateString, 20, 38);
+
+        doc.setDrawColor(220, 220, 220);
+        doc.line(20, 42, 190, 42);
+
+        // 3. Twee kolommen: Linker kolom (Operator & Klant info), Rechter kolom (Ketting specs & Tech info)
+        const opName = localStorage.getItem("operator_name") || "-";
+        const opPhone = localStorage.getItem("operator_phone") || "-";
+        const opEmail = localStorage.getItem("operator_email") || "-";
+
+        const clientCompany = localStorage.getItem("client_company") || "-";
+        const clientContact = localStorage.getItem("client_contact") || "-";
+        const clientPhone = localStorage.getItem("client_phone") || "-";
+        const clientEmail = localStorage.getItem("client_email") || "-";
+
+        const techMachine = localStorage.getItem("tech_machine") || "-";
+        const techApp = localStorage.getItem("tech_app") || "-";
+        const techProduct = localStorage.getItem("tech_product") || "-";
+        const techInterval = localStorage.getItem("tech_interval") || "-";
+        const techPrice = localStorage.getItem("tech_price") || "-";
+
+        // Links: Operator Gegevens
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(11);
+        doc.setTextColor(11, 19, 43);
+        doc.text(langData.opTitle || "Interflon contactpersoon", 20, 46);
+
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(9);
+        doc.setTextColor(72, 84, 96);
+        doc.text((langData.opNameLabel || "Naam") + ":", 20, 51);
+        doc.text((langData.opPhoneLabel || "Telefoonnummer") + ":", 20, 56);
+        doc.text((langData.opEmailLabel || "Emailadres") + ":", 20, 61);
+
+        doc.setFont("helvetica", "bold");
+        doc.setTextColor(11, 19, 43);
+        doc.text(opName, 58, 51);
+        doc.text(opPhone, 58, 56);
+        doc.text(opEmail, 58, 61);
+
+        // Links: Klant Gegevens
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(11);
+        doc.setTextColor(11, 19, 43);
+        doc.text(langData.clientTitle || "Klant Gegevens", 20, 68);
+
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(9);
+        doc.setTextColor(72, 84, 96);
+        doc.text((langData.clientCompanyLabel || "Bedrijf") + ":", 20, 73);
+        doc.text((langData.clientContactLabel || "Contact") + ":", 20, 78);
+        doc.text((langData.clientPhoneLabel || "Telefoon") + ":", 20, 83);
+        doc.text((langData.clientEmailLabel || "E-mail") + ":", 20, 88);
+
+        doc.setFont("helvetica", "bold");
+        doc.setTextColor(11, 19, 43);
+        doc.text(clientCompany, 58, 73);
+        doc.text(clientContact, 58, 78);
+        doc.text(clientPhone, 58, 83);
+        doc.text(clientEmail, 58, 88);
+
+        // Rechter kolom: Ketting details
+        let chainDesig = activeChain ? activeChain.designation : "08B-1";
+        let chainStrand = activeChain ? activeChain.strand : "Simplex (1-sporig)";
+        let pitchStr = activeChain ? (activeChain.pitch.toFixed(1) + " mm") : "12.7 mm";
+        let widthStr = activeChain ? (activeChain.width.toFixed(2) + " mm") : "7.75 mm";
+        let d1Str = activeChain ? (activeChain.d1.toFixed(2) + " mm") : "8.51 mm";
+        let d2Str = activeChain ? (activeChain.d2.toFixed(2) + " mm") : "4.45 mm";
+
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(11);
+        doc.setTextColor(11, 19, 43);
+        doc.text("Ketting Specificaties", 110, 46);
+
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(9);
+        doc.setTextColor(72, 84, 96);
+        doc.text("Aanduiding / ISO:", 110, 51);
+        doc.text("Ketting Type / Sporen:", 110, 56);
+        doc.text("Steek (p):", 110, 61);
+        doc.text("Binnenbreedte (b1):", 110, 66);
+        doc.text("Roldiameter (d1):", 110, 71);
+        doc.text("Pendiameter (d2):", 110, 76);
+
+        doc.setFont("helvetica", "bold");
+        doc.setTextColor(11, 19, 43);
+        doc.text(chainDesig, 160, 51);
+        doc.text(chainStrand, 160, 56);
+        doc.text(pitchStr, 160, 61);
+        doc.text(widthStr, 160, 66);
+        doc.text(d1Str, 160, 71);
+        doc.text(d2Str, 160, 76);
+
+        // Rechter kolom: Technische Gegevens
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(11);
+        doc.setTextColor(11, 19, 43);
+        doc.text(langData.techTitle || "Technische Gegevens", 110, 82);
+
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(9);
+        doc.setTextColor(72, 84, 96);
+        doc.text((langData.techMachineLabel || "Machine") + ":", 110, 85);
+        doc.text((langData.techAppLabel || "Toepassing") + ":", 110, 90);
+        doc.text((langData.techProductLabel || "Huidig product") + ":", 110, 95);
+        
+        const techIntervalLabelShort = currentLang === "nl" ? "Huidig interval (dagen)" : currentLang === "en" ? "Current interval (days)" : "Intervalle actuel (jours)";
+        doc.text(techIntervalLabelShort + ":", 110, 100);
+
+        const techPriceLabelShort = currentLang === "nl" ? "Prijs huidig prod./L" : currentLang === "en" ? "Price current prod./L" : "Prix prod. actuel/L";
+        doc.text(techPriceLabelShort + ":", 110, 105);
+
+        doc.setFont("helvetica", "bold");
+        doc.setTextColor(11, 19, 43);
+        doc.text(techMachine, 160, 85);
+        doc.text(techApp, 160, 90);
+        doc.text(techProduct, 160, 95);
+        doc.text(techInterval !== "-" ? (techInterval + " dagen") : "-", 160, 100);
+        doc.text(techPrice !== "-" ? ("€ " + parseFloat(techPrice).toFixed(2)) : "-", 160, 105);
+
+        // 4. Kettingsmeercalculatie & Oliedosering Tabel
+        const lengthInput = document.getElementById("chainLengthInput");
+        const speedInput = document.getElementById("chainSpeedInput");
+        const hoursInput = document.getElementById("chainHoursPerDayInput");
+        const daysInput = document.getElementById("chainDaysPerWeekInput");
+        const tempInput = document.getElementById("chainTempInput");
+        const factorInput = document.getElementById("chainFactorInput");
+        const envSelect = document.getElementById("chainEnvSelect");
+
+        const lengthM = lengthInput ? (parseFloat(lengthInput.value) || 5.0) : 5.0;
+        const speedMS = speedInput ? (parseFloat(speedInput.value) || 1.5) : 1.5;
+        const hoursPerDay = hoursInput ? (parseFloat(hoursInput.value) || 24) : 24;
+        const daysPerWeek = daysInput ? (parseFloat(daysInput.value) || 7) : 7;
+        const tempC = tempInput ? (parseFloat(tempInput.value) || 20) : 20;
+        const micpolFactor = factorInput ? (parseFloat(factorInput.value) || 4.0) : 4.0;
+        const env = envSelect ? envSelect.value : "normal";
+
+        const pitch = activeChain ? activeChain.pitch : 12.7;
+        const width = activeChain ? activeChain.width : 7.75;
+        const strands = activeChain ? activeChain.strandsCount : 1;
+
+        let envFactor = 1.0;
+        if (env === "dusty") envFactor = 1.3;
+        else if (env === "wet") envFactor = 1.5;
+        else if (env === "severe") envFactor = 1.8;
+
+        let tempFactor = 1.0;
+        if (tempC > 50) tempFactor = 1.0 + Math.pow((tempC - 50) / 40, 1.2);
+        else if (tempC < 0) tempFactor = 1.2;
+
+        const baseDailyCm3 = (width * strands * lengthM * speedMS * envFactor * tempFactor * (0.32 / micpolFactor));
+        const dailyCm3 = (baseDailyCm3 * (hoursPerDay / 24));
+        const hourlyMl = hoursPerDay > 0 ? (dailyCm3 / hoursPerDay) : 0;
+        const dropsPerMin = Math.round((hourlyMl * 20) / 60);
+
+        const weeklyCm3 = dailyCm3 * daysPerWeek;
+        const yearlyLitersInterflon = (weeklyCm3 * 52.14) / 1000;
+        const yearlyLitersConv = yearlyLitersInterflon * micpolFactor;
+
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(12);
+        doc.setTextColor(11, 19, 43);
+        doc.text("Kettingsmeercalculatie & Oliedosering", 20, 114);
+
+        const rows = [
+          ["Kettinglengte (L)", lengthM.toFixed(1) + " m"],
+          ["Kettingsnelheid (v)", speedMS.toFixed(1) + " m/s"],
+          ["Bedrijfsuren per dag", hoursPerDay + " uren/dag"],
+          ["Bedrijfsdagen per week", daysPerWeek + " dagen/week"],
+          ["Bedrijfstemperatuur", tempC + " °C"],
+          ["Omgevingsomstandigheden", env === "normal" ? "Normaal" : env === "dusty" ? "Stoffig" : env === "wet" ? "Nat" : "Zwaar verontreinigd"],
+          ["Interflon MicPol® Reductiefactor", micpolFactor.toFixed(1) + "x langer smeerinterval"],
+          ["Dagelijks olieverbruik (MicPol®)", dailyCm3.toFixed(1) + " ml/dag"],
+          ["Uurlijkse oliedosering", hourlyMl.toFixed(2) + " ml/uur (" + dropsPerMin + " druppels/min)"],
+          ["Wekelijks olieverbruik", weeklyCm3.toFixed(1) + " ml/week"],
+          ["Jaarlijks olieverbruik (Conventioneel)", yearlyLitersConv.toFixed(2) + " L/jaar"],
+          ["Jaarlijks olieverbruik (Interflon MicPol®)", yearlyLitersInterflon.toFixed(2) + " L/jaar"]
+        ];
+
+        let currentY = 118;
+        rows.forEach((r, idx) => {
+          doc.setFillColor(idx % 2 === 0 ? 248 : 255, idx % 2 === 0 ? 249 : 255, idx % 2 === 0 ? 250 : 255);
+          doc.rect(20, currentY, 170, 5, "F");
+          doc.setDrawColor(240, 240, 240);
+          doc.line(20, currentY + 5, 190, currentY + 5);
+
+          const isHighlight = idx === 11;
+          if (isHighlight) {
+            doc.setFont("helvetica", "bold");
+            doc.setTextColor(22, 101, 52); // Groen
+          } else if (idx >= 7) {
+            doc.setFont("helvetica", "bold");
+            doc.setTextColor(11, 19, 43);
+          } else {
+            doc.setFont("helvetica", "normal");
+            doc.setTextColor(72, 84, 96);
+          }
+          doc.text(r[0], 24, currentY + 3.8);
+          doc.text(r[1], 186, currentY + 3.8, { align: "right" });
+
+          currentY += 5;
+        });
+
+        // 5. Recommended Interflon Chain Lubricant Card & MicPol Technology Section
+        const chainProductSelect = document.getElementById("chainProductSelect");
+        const chainProductName = (chainProductSelect && chainProductSelect.value) ? chainProductSelect.value : "Interflon Lube TF";
+
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(11);
+        doc.setTextColor(11, 19, 43);
+        doc.text("Aanbevolen Interflon Kettingproduct: " + chainProductName, 20, 186);
+
+        doc.setFillColor(243, 244, 246);
+        doc.rect(20, 190, 170, 25, "F");
+        doc.setDrawColor(220, 220, 220);
+        doc.rect(20, 190, 170, 25, "D");
+
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(9);
+        doc.setTextColor(227, 6, 19);
+        doc.text(chainProductName + " (Kettingolie met MicPol®)", 25, 196);
+
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(8.5);
+        doc.setTextColor(72, 84, 96);
+        doc.text("Temperatuurbereik: -20°C tot +150°C | Viscositeit: ISO VG 68 / 150", 25, 202);
+        doc.text("Hoogwaardige kruipolie met MicPol® technologie. Dringt diep door tot tussen de pennen en bussen,", 25, 207);
+        doc.text("stoot vuil en vocht af en vermindert wrijving en kettingrek met meer dan 75%.", 25, 211);
+
+        if (micpolDataUrl) {
+          doc.setFont("helvetica", "bold");
+          doc.setFontSize(11);
+          doc.setTextColor(11, 19, 43);
+          doc.text("MicPol® Technologie voor Kettingen", 20, 222);
+
+          const imgW = 170;
+          const imgH = micpolRatio ? (imgW * micpolRatio) : 38;
+          const maxH = 40;
+          const finalH = Math.min(imgH, maxH);
+          const finalW = micpolRatio ? (finalH / micpolRatio) : imgW;
+          const imgX = 20 + (170 - finalW) / 2;
+
+          doc.addImage(micpolDataUrl, "PNG", imgX, 225, finalW, finalH);
+        }
+
+        // Footer
+        doc.setFontSize(6.8);
+        doc.setTextColor(140, 140, 140);
+        const disclaimer = langData.legalDisclaimerText || "Dit rapport is gegenereerd door de Interflon Calculatietool.";
+        doc.text(disclaimer, 20, 271, { maxWidth: 170 });
+        
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(7.5);
+        doc.setTextColor(227, 6, 19);
+        doc.text("INTERFLON - A WORLD WITHOUT FRICTION", 20, 282);
+
+        // ==========================================================================
+        // PAGE 2: OPBRENGSTMODEL KETTINGSMEERING (TCO CALCULATIE)
+        // ==========================================================================
+        if (includeTco) {
+          doc.addPage();
+          
+          if (watermarkDataUrl && aspectRatio) {
+            const imgWidth = 160;
+            const imgHeight = 160 * aspectRatio;
+            const x = (pageWidth - imgWidth) / 2;
+            const y = (pageHeight - imgHeight) / 2;
+            doc.addImage(watermarkDataUrl, "JPEG", x, y, imgWidth, imgHeight);
+          }
+
+          doc.setFillColor(227, 6, 19);
+          doc.rect(20, 20, 170, 2, "F");
+
+          doc.setFont("helvetica", "bold");
+          doc.setFontSize(18);
+          doc.setTextColor(227, 6, 19);
+          doc.text("OPBRENGSTMODEL KETTINGSMEERING (TCO)", 20, 31);
+
+          doc.setFont("helvetica", "normal");
+          doc.setFontSize(8.5);
+          doc.setTextColor(100, 100, 100);
+          doc.text("Analysestructuur op basis van 14 parameters (Olieverbruik, onderhoudsuren, kettingvervanging en stilstandschade)", 20, 37);
+
+          doc.setDrawColor(220, 220, 220);
+          doc.line(20, 41, 190, 41);
+
+          const startX1 = 20;
+          const startX2 = 75;
+          const startX3 = 130;
+
+          function drawCell(x, y, w, h, label, value, bgType) {
+            if (bgType === "blue") {
+              doc.setFillColor(219, 234, 254);
+              doc.rect(x, y, w, h, "F");
+            } else if (bgType === "grey") {
+              doc.setFillColor(243, 244, 246);
+              doc.rect(x, y, w, h, "F");
+            } else if (bgType === "section") {
+              doc.setFillColor(224, 231, 255);
+              doc.rect(x, y, w, h, "F");
+            } else if (bgType === "slate-header1") {
+              doc.setFillColor(71, 85, 105);
+              doc.rect(x, y, w, h, "F");
+            } else if (bgType === "red-header") {
+              doc.setFillColor(227, 6, 19);
+              doc.rect(x, y, w, h, "F");
+            } else if (bgType === "slate-header2") {
+              doc.setFillColor(51, 65, 85);
+              doc.rect(x, y, w, h, "F");
+            } else if (bgType === "pink-total") {
+              doc.setFillColor(252, 231, 243);
+              doc.rect(x, y, w, h, "F");
+            } else if (bgType === "green-total") {
+              doc.setFillColor(220, 252, 231);
+              doc.rect(x, y, w, h, "F");
+            }
+
+            doc.setDrawColor(229, 231, 235);
+            doc.setLineWidth(0.15);
+            doc.rect(x, y, w, h, "D");
+
+            if (bgType && bgType.includes("header")) {
+              doc.setFont("helvetica", "bold");
+              doc.setFontSize(7.5);
+              doc.setTextColor(255, 255, 255);
+              doc.text(label, x + w / 2, y + h / 2 + 1.2, { align: "center" });
+              return;
+            }
+
+            if (bgType === "section") {
+              doc.setFont("helvetica", "bold");
+              doc.setFontSize(7.5);
+              doc.setTextColor(11, 19, 43);
+              doc.text(label, x + 2, y + h / 2 + 1.2);
+              return;
+            }
+
+            const isHighlight = bgType === "pink-total" || (bgType && bgType.includes("green"));
+            doc.setFont("helvetica", isHighlight ? "bold" : "normal");
+            doc.setFontSize(6.2);
+            
+            if (bgType === "pink-total") doc.setTextColor(11, 19, 43);
+            else if (bgType && bgType.includes("green")) doc.setTextColor(22, 101, 52);
+            else doc.setTextColor(72, 84, 96);
+
+            doc.text(label, x + 2, y + h / 2 + 1.2, { maxWidth: w - 12 });
+
+            if (value !== null && value !== undefined) {
+              doc.setFont("helvetica", isHighlight ? "bold" : "bold");
+              doc.setFontSize(6.5);
+              if (bgType && bgType.includes("green")) doc.setTextColor(22, 101, 52);
+              else doc.setTextColor(11, 19, 43);
+              doc.text(value.toString(), x + w - 2, y + h / 2 + 1.2, { align: "right" });
+            }
+          }
+
+          // Header blocks
+          const chainMode = localStorage.getItem("chain_tco_calc_mode") || "formula";
+          let chainHeaderLabel = "Huidige situatie";
+          if (chainMode === "practical") {
+            const techIntervalVal = localStorage.getItem("tech_interval");
+            const intervalDays = techIntervalVal ? parseFloat(techIntervalVal) : 0;
+            chainHeaderLabel += intervalDays > 0 ? ` (Praktijk: ${intervalDays}d)` : " (Praktijk)";
+          } else {
+            chainHeaderLabel += " (Formule)";
+          }
+
+          drawCell(startX1, 44, 54, 6, chainHeaderLabel, null, "slate-header1");
+          drawCell(startX2, 44, 54, 6, "Nieuwe situatie (Interflon)", null, "red-header");
+          drawCell(startX3, 44, 60, 6, "Algemene info", null, "slate-header2");
+
+          // Values from chainOm inputs
+          const p1_name = document.getElementById("chainOmProdName1") ? document.getElementById("chainOmProdName1").textContent : (localStorage.getItem("tech_product") || "Conventionele Kettingolie");
+          const p2_name = document.getElementById("chainOmProdName2") ? document.getElementById("chainOmProdName2").textContent : "Interflon Lube TF";
+
+          const p1_cons = (document.getElementById("chainOmProdCons1") ? document.getElementById("chainOmProdCons1").value : "0") + " ml";
+          const p2_cons = (document.getElementById("chainOmProdCons2") ? document.getElementById("chainOmProdCons2").value : "0") + " ml";
+          const p1_freq = document.getElementById("chainOmProdFreq1") ? document.getElementById("chainOmProdFreq1").value : "0";
+          const p2_freq = document.getElementById("chainOmProdFreq2") ? document.getElementById("chainOmProdFreq2").value : "0";
+          const p1_price = "€ " + parseFloat(document.getElementById("chainOmProdPrice1") ? document.getElementById("chainOmProdPrice1").value : 0).toFixed(2);
+          const p2_price = "€ " + parseFloat(document.getElementById("chainOmProdPrice2") ? document.getElementById("chainOmProdPrice2").value : 0).toFixed(2);
+          const p1_ann_prod = document.getElementById("chainOmAnnProdCost1") ? document.getElementById("chainOmAnnProdCost1").textContent : "€ 0,00";
+          const p2_ann_prod = document.getElementById("chainOmAnnProdCost2") ? document.getElementById("chainOmAnnProdCost2").textContent : "€ 0,00";
+
+          const shared_worktime = (document.getElementById("chainOmSharedWorktime") ? document.getElementById("chainOmSharedWorktime").value : "0") + " min";
+          const p1_rep_freq = (document.getElementById("chainOmRepairFreq1") ? document.getElementById("chainOmRepairFreq1").value : "0") + " mnd";
+          const p2_rep_freq = (document.getElementById("chainOmRepairFreq2") ? document.getElementById("chainOmRepairFreq2").value : "0") + " mnd";
+          const shared_rep_h = (document.getElementById("chainOmSharedRepairH") ? document.getElementById("chainOmSharedRepairH").value : "0") + " uren";
+          const shared_labor_rate = "€ " + parseFloat(document.getElementById("chainOmSharedLaborRate") ? document.getElementById("chainOmSharedLaborRate").value : 0).toFixed(2);
+          const shared_prep_h = (document.getElementById("chainOmSharedPrepH") ? document.getElementById("chainOmSharedPrepH").value : "0") + " uren";
+          const p1_ann_labor = document.getElementById("chainOmAnnLaborCost1") ? document.getElementById("chainOmAnnLaborCost1").textContent : "€ 0,00";
+          const p2_ann_labor = document.getElementById("chainOmAnnLaborCost2") ? document.getElementById("chainOmAnnLaborCost2").textContent : "€ 0,00";
+
+          const p1_lifetime = (document.getElementById("chainOmLifetime1") ? document.getElementById("chainOmLifetime1").value : "0") + " mnd";
+          const p2_lifetime = (document.getElementById("chainOmLifetime2") ? document.getElementById("chainOmLifetime2").value : "0") + " mnd";
+          const shared_parts_cost = "€ " + parseFloat(document.getElementById("chainOmSharedPartsCost") ? document.getElementById("chainOmSharedPartsCost").value : 0).toFixed(2);
+          const shared_sets = document.getElementById("chainOmSharedSetsPerMachine") ? document.getElementById("chainOmSharedSetsPerMachine").value : "1";
+          const p1_ann_mat = document.getElementById("chainOmAnnMaterialCost1") ? document.getElementById("chainOmAnnMaterialCost1").textContent : "€ 0,00";
+          const p2_ann_mat = document.getElementById("chainOmAnnMaterialCost2") ? document.getElementById("chainOmAnnMaterialCost2").textContent : "€ 0,00";
+
+          const p1_dt_h = (document.getElementById("chainOmDowntimeH1") ? document.getElementById("chainOmDowntimeH1").value : "0") + " H";
+          const p2_dt_h = (document.getElementById("chainOmDowntimeH2") ? document.getElementById("chainOmDowntimeH2").value : "0") + " H";
+          const p1_dt_freq = document.getElementById("chainOmDowntimeFreq1") ? document.getElementById("chainOmDowntimeFreq1").value : "0";
+          const p2_dt_freq = document.getElementById("chainOmDowntimeFreq2") ? document.getElementById("chainOmDowntimeFreq2").value : "0";
+          const shared_dt_rate = "€ " + parseFloat(document.getElementById("chainOmSharedDowntimeRate") ? document.getElementById("chainOmSharedDowntimeRate").value : 0).toFixed(2);
+          const shared_machines = document.getElementById("chainOmSharedNumMachines") ? document.getElementById("chainOmSharedNumMachines").value : "1";
+          const p1_ann_dt = document.getElementById("chainOmAnnDowntimeCost1") ? document.getElementById("chainOmAnnDowntimeCost1").textContent : "€ 0,00";
+          const p2_ann_dt = document.getElementById("chainOmAnnDowntimeCost2") ? document.getElementById("chainOmAnnDowntimeCost2").textContent : "€ 0,00";
+
+          const p1_total = document.getElementById("chainOmAnnTotalCost1") ? document.getElementById("chainOmAnnTotalCost1").textContent : "€ 0,00";
+          const p2_total = document.getElementById("chainOmAnnTotalCost2") ? document.getElementById("chainOmAnnTotalCost2").textContent : "€ 0,00";
+          const ann_savings = document.getElementById("chainOmAnnSavingsMachine") ? document.getElementById("chainOmAnnSavingsMachine").textContent : "€ 0,00";
+          const p1_park = document.getElementById("chainOmAnnParkCost1") ? document.getElementById("chainOmAnnParkCost1").textContent : "€ 0,00";
+          const p2_park = document.getElementById("chainOmAnnParkCost2") ? document.getElementById("chainOmAnnParkCost2").textContent : "€ 0,00";
+          const ann_park_savings = document.getElementById("chainOmAnnSavingsPark") ? document.getElementById("chainOmAnnSavingsPark").textContent : "€ 0,00";
+
+          const tco_years = document.getElementById("chainOmTcoYears") ? document.getElementById("chainOmTcoYears").value : "10";
+          const p1_years = document.getElementById("chainOmTotalCostYears1") ? document.getElementById("chainOmTotalCostYears1").textContent : "€ 0,00";
+          const p2_years = document.getElementById("chainOmTotalCostYears2") ? document.getElementById("chainOmTotalCostYears2").textContent : "€ 0,00";
+          const park_years1 = document.getElementById("chainOmTotalParkCostYears1") ? document.getElementById("chainOmTotalParkCostYears1").textContent : "€ 0,00";
+          const park_years2 = document.getElementById("chainOmTotalParkCostYears2") ? document.getElementById("chainOmTotalParkCostYears2").textContent : "€ 0,00";
+          const total_savings = document.getElementById("chainOmTotalSavingsYears") ? document.getElementById("chainOmTotalSavingsYears").textContent : "€ 0,00";
+          const prod_percent = document.getElementById("chainOmProdCostPercent") ? document.getElementById("chainOmProdCostPercent").textContent : "0%";
+
+          // PRODUCT SECTION
+          let curY = 51;
+          drawCell(startX1, curY, 54, 5, "PRODUCT", null, "section");
+          drawCell(startX2, curY, 54, 5, "PRODUCT", null, "section");
+          drawCell(startX3, curY, 60, 5, "Algemene info", null, "section");
+
+          curY = 56;
+          drawCell(startX1, curY, 54, 6, "Productnaam", p1_name, "grey");
+          drawCell(startX2, curY, 54, 6, "Productnaam", p2_name, "grey");
+
+          // Chain Application Photo
+          if (typeof chainTcoUploadedImageBase64 !== "undefined" && chainTcoUploadedImageBase64) {
+            doc.addImage(chainTcoUploadedImageBase64, "JPEG", 131, 57, 58, 24);
+            doc.setDrawColor(229, 231, 235);
+            doc.setLineWidth(0.25);
+            doc.rect(startX3, 56, 60, 26, "D");
+          } else {
+            doc.setFillColor(243, 244, 246);
+            doc.rect(startX3, 56, 60, 26, "F");
+            doc.setDrawColor(229, 231, 235);
+            doc.setLineWidth(0.25);
+            doc.rect(startX3, 56, 60, 26, "D");
+            doc.setFont("helvetica", "normal");
+            doc.setFontSize(7.5);
+            doc.setTextColor(140, 140, 140);
+            doc.text("Geen afbeelding", startX3 + 30, 70, { align: "center" });
+          }
+
+          curY += 6;
+          drawCell(startX1, curY, 54, 6, "Productverbruik / smeerbeurt", p1_cons, "blue");
+          drawCell(startX2, curY, 54, 6, "Productverbruik / smeerbeurt", p2_cons, "blue");
+          curY += 6;
+          drawCell(startX1, curY, 54, 6, "Smeerfrequentie / jaar", p1_freq, "blue");
+          drawCell(startX2, curY, 54, 6, "Smeerfrequentie / jaar", p2_freq, "blue");
+          curY += 6;
+          drawCell(startX1, curY, 54, 6, "Prijs product / L (€)", p1_price, "blue");
+          drawCell(startX2, curY, 54, 6, "Prijs product / L (€)", p2_price, "blue");
+          curY += 6;
+          drawCell(startX1, curY, 54, 6, "Jaarlijkse productkost / machine (€)", p1_ann_prod, "pink-total");
+          drawCell(startX2, curY, 54, 6, "Jaarlijkse productkost / machine (€)", p2_ann_prod, "green-total");
+
+          // ARBEID SECTION
+          curY += 8;
+          drawCell(startX1, curY, 54, 5, "ARBEID / ONDERHOUD", null, "section");
+          drawCell(startX2, curY, 54, 5, "ARBEID / ONDERHOUD", null, "section");
+          drawCell(startX3, curY, 60, 5, "Algemene info", null, "section");
+
+          curY += 5;
+          drawCell(startX1, curY, 54, 6, "Werktijd / smeerbeurt", shared_worktime, "grey");
+          drawCell(startX2, curY, 54, 6, "Werktijd / smeerbeurt", shared_worktime, "grey");
+          drawCell(startX3, curY, 60, 6, "Prijs werkuur / H (€)", shared_labor_rate, "blue");
+
+          curY += 6;
+          drawCell(startX1, curY, 54, 6, "Revisiefrequentie (maanden)", p1_rep_freq, "blue");
+          drawCell(startX2, curY, 54, 6, "Revisiefrequentie (maanden)", p2_rep_freq, "blue");
+          drawCell(startX3, curY, 60, 6, "Voorbereidingstijd revisie (H)", shared_prep_h, "blue");
+
+          curY += 6;
+          drawCell(startX1, curY, 54, 6, "Tijdsduur revisie (uren)", shared_rep_h, "grey");
+          drawCell(startX2, curY, 54, 6, "Tijdsduur revisie (uren)", shared_rep_h, "grey");
+
+          curY += 6;
+          drawCell(startX1, curY, 54, 6, "Jaarlijkse arbeidskost / machine (€)", p1_ann_labor, "pink-total");
+          drawCell(startX2, curY, 54, 6, "Jaarlijkse arbeidskost / machine (€)", p2_ann_labor, "green-total");
+
+          // MATERIAAL SECTION
+          curY += 8;
+          drawCell(startX1, curY, 54, 5, "MATERIAAL", null, "section");
+          drawCell(startX2, curY, 54, 5, "MATERIAAL", null, "section");
+          drawCell(startX3, curY, 60, 5, "Algemene info", null, "section");
+
+          curY += 5;
+          drawCell(startX1, curY, 54, 6, "Levensduur ketting (maanden)", p1_lifetime, "blue");
+          drawCell(startX2, curY, 54, 6, "Levensduur ketting (maanden)", p2_lifetime, "blue");
+          drawCell(startX3, curY, 60, 6, "Kostprijs wisselstukken / set (€)", shared_parts_cost, "blue");
+
+          curY += 6;
+          drawCell(startX1, curY, 54, 6, "Jaarlijkse materiaalkost / machine (€)", p1_ann_mat, "pink-total");
+          drawCell(startX2, curY, 54, 6, "Jaarlijkse materiaalkost / machine (€)", p2_ann_mat, "green-total");
+          drawCell(startX3, curY, 60, 6, "Aantal kettingen / machine", shared_sets, "blue");
+
+          curY += 6;
+          drawCell(startX3, curY, 60, 6, "Aantal machines", shared_machines, "blue");
+
+          // DOWN-TIME SECTION
+          curY += 8;
+          drawCell(startX1, curY, 54, 5, "DOWN-TIME", null, "section");
+          drawCell(startX2, curY, 54, 5, "DOWN-TIME", null, "section");
+          drawCell(startX3, curY, 60, 5, "Algemene info", null, "section");
+
+          curY += 5;
+          drawCell(startX1, curY, 54, 6, "Tijdsduur down-time (H)", p1_dt_h, "grey");
+          drawCell(startX2, curY, 54, 6, "Tijdsduur down-time (H)", p2_dt_h, "grey");
+          drawCell(startX3, curY, 60, 6, "Kostprijs down-time / H (€)", shared_dt_rate, "blue");
+
+          curY += 6;
+          drawCell(startX1, curY, 54, 6, "Downtime frequentie / jaar", p1_dt_freq, "grey");
+          drawCell(startX2, curY, 54, 6, "Downtime frequentie / jaar", p2_dt_freq, "grey");
+
+          curY += 6;
+          drawCell(startX1, curY, 54, 6, "Jaarlijkse downtimekost / machine (€)", p1_ann_dt, "pink-total");
+          drawCell(startX2, curY, 54, 6, "Jaarlijkse downtimekost / machine (€)", p2_ann_dt, "green-total");
+
+          // TOTALEN & BESPARINGEN SECTION
+          curY += 8;
+          drawCell(startX1, curY, 54, 5, "Huidige kostprijs", null, "section");
+          drawCell(startX2, curY, 54, 5, "Nieuwe kostprijs (Interflon)", null, "section");
+          drawCell(startX3, curY, 60, 5, "Besparing / machinepark", null, "section");
+
+          curY += 5;
+          drawCell(startX1, curY, 54, 6, "Totale kostprijs / jaar / machine (€)", p1_total, "pink-total");
+          drawCell(startX2, curY, 54, 6, "Totale kostprijs / jaar / machine (€)", p2_total, "green-total");
+          drawCell(startX3, curY, 60, 6, "Kostenbesparing / jaar / machine (€)", ann_savings, "green-total");
+
+          curY += 6;
+          drawCell(startX1, curY, 54, 6, "Totale kostprijs / jaar / park (€)", p1_park, "pink-total");
+          drawCell(startX2, curY, 54, 6, "Totale kostprijs / jaar / park (€)", p2_park, "green-total");
+          drawCell(startX3, curY, 60, 6, "Kostenbesparing / jaar (€)", ann_park_savings, "green-total");
+
+          curY += 6;
+          drawCell(startX3, curY, 60, 6, "% Product / totale kost", prod_percent, "grey");
+
+          curY += 6;
+          drawCell(startX1, curY, 54, 6, `Kostprijs / machine na ${tco_years} jaar (€)`, p1_years, "pink-total");
+          drawCell(startX2, curY, 54, 6, `Kostprijs / machine na ${tco_years} jaar (€)`, p2_years, "green-total");
+          drawCell(startX3, curY, 60, 6, "Aantal jaren voor TCO", tco_years + " jaar", "grey");
+
+          curY += 6;
+          drawCell(startX1, curY, 54, 6, `Kostprijs / park na ${tco_years} jaar (€)`, park_years1, "pink-total");
+          drawCell(startX2, curY, 54, 6, `Kostprijs / park na ${tco_years} jaar (€)`, park_years2, "green-total");
+          drawCell(startX3, curY, 60, 6, `Kostenbesparing na ${tco_years} jaar (€)`, total_savings, "green-total");
+
+          // Footer
+          doc.setFontSize(6.8);
+          doc.setTextColor(140, 140, 140);
+          doc.text(disclaimer, 20, 271, { maxWidth: 170 });
+          
+          doc.setFont("helvetica", "bold");
+          doc.setFontSize(7.5);
+          doc.setTextColor(227, 6, 19);
+          doc.text("INTERFLON - A WORLD WITHOUT FRICTION", 20, 282);
+        }
+
+        // Save PDF
+        const cleanFileName = clientCompany && clientCompany !== "-" ? clientCompany.replace(/[^a-z0-9]/gi, '_') : "Ketting";
+        doc.save(`Interflon_Ketting_Smeeradvies_${cleanFileName}.pdf`);
+
+      } catch (err) {
+        console.error("PDF Export error:", err);
+        alert("Fout bij genereren PDF rapport: " + err.message);
+      } finally {
+        if (exportBtn) {
+          exportBtn.disabled = false;
+          exportBtn.innerHTML = originalText;
+        }
+      }
+    });
+  });
 }
