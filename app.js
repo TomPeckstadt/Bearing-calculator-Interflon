@@ -5024,9 +5024,9 @@ function selectChain(chain) {
   const vRoller = document.getElementById("visualChainRollerText");
   const vPin = document.getElementById("visualChainPinText");
 
-  if (typeImg) typeImg.src = (chain.illustrationImg || "chain-simplex.png") + "?v=115";
+  if (typeImg) typeImg.src = (chain.illustrationImg || "chain-simplex.png") + "?v=118";
   if (typeSubtitle) typeSubtitle.textContent = chain.strand || "Simplex (1-sporig)";
-  if (dimImg) dimImg.src = (chain.dimensionsImg || "chain-dimensions.png") + "?v=115";
+  if (dimImg) dimImg.src = (chain.dimensionsImg || "chain-dimensions.png") + "?v=118";
 
   if (vPitch) vPitch.textContent = chain.pitch.toFixed(1);
   if (vWidth) vWidth.textContent = chain.width.toFixed(1);
@@ -5422,17 +5422,20 @@ function runChainPdfExport(includeTco) {
         doc.setDrawColor(220, 220, 220);
         doc.rect(20, 190, 170, 25, "D");
 
+        const chainSpecs = getChainProductSpecs(chainProductName);
+
         doc.setFont("helvetica", "bold");
         doc.setFontSize(9);
         doc.setTextColor(227, 6, 19);
-        doc.text(chainProductName + " (Kettingolie met MicPol®)", 25, 196);
+        doc.text(chainSpecs.name + " (" + chainSpecs.subtitle + ")", 25, 196);
 
         doc.setFont("helvetica", "normal");
         doc.setFontSize(8.5);
         doc.setTextColor(72, 84, 96);
-        doc.text("Temperatuurbereik: -20°C tot +150°C | Viscositeit: ISO VG 68 / 150", 25, 202);
-        doc.text("Hoogwaardige kruipolie met MicPol® technologie. Dringt diep door tot tussen de pennen en bussen,", 25, 207);
-        doc.text("stoot vuil en vocht af en vermindert wrijving en kettingrek met meer dan 75%.", 25, 211);
+        doc.text("Temperatuurbereik: " + chainSpecs.temp + " | Viscositeit: " + chainSpecs.viscosity, 25, 202);
+
+        const splitDesc = doc.splitTextToSize(chainSpecs.desc, 160);
+        doc.text(splitDesc, 25, 207);
 
         if (micpolDataUrl) {
           doc.setFont("helvetica", "bold");
