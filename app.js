@@ -5023,9 +5023,9 @@ function selectChain(chain) {
   const vRoller = document.getElementById("visualChainRollerText");
   const vPin = document.getElementById("visualChainPinText");
 
-  if (typeImg) typeImg.src = (chain.illustrationImg || "chain-simplex.png") + "?v=70";
+  if (typeImg) typeImg.src = (chain.illustrationImg || "chain-simplex.png") + "?v=110";
   if (typeSubtitle) typeSubtitle.textContent = chain.strand || "Simplex (1-sporig)";
-  if (dimImg) dimImg.src = (chain.dimensionsImg || "chain-dimensions.png") + "?v=108";
+  if (dimImg) dimImg.src = (chain.dimensionsImg || "chain-dimensions.png") + "?v=110";
 
   if (vPitch) vPitch.textContent = chain.pitch.toFixed(1);
   if (vWidth) vWidth.textContent = chain.width.toFixed(1);
