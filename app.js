@@ -15,7 +15,7 @@ if (typeof window !== "undefined" && window.location && window.location.href.end
 
 const TRANSLATIONS = {
   nl: {
-    descGrease: "Bepaalt de maximale DN-factor en de vetdichtheid.",
+    descGrease: "Bepaalt de maximale DN-factor en consistentie",
     descHoursPerDay: "Aantal uren dat de machine per dag operationeel is.",
     descDaysPerWeek: "Aantal dagen dat de machine per week operationeel is.",
     bearingDimensionsTitle: "Lager Afmetingen & Massa",
@@ -316,7 +316,7 @@ const TRANSLATIONS = {
     btnLagertypes: "Lagertypes"
   },
   en: {
-    descGrease: "Determines the maximum DN factor and grease density.",
+    descGrease: "Determines the maximum DN factor and consistency.",
     descHoursPerDay: "Number of hours the machine operates per day.",
     descDaysPerWeek: "Number of days the machine is operational per week.",
     bearingDimensionsTitle: "Bearing Dimensions & Mass",
@@ -617,7 +617,7 @@ const TRANSLATIONS = {
     btnLagertypes: "Bearing Types"
   },
   fr: {
-    descGrease: "Détermine le facteur DN maximum et la densité de la graisse.",
+    descGrease: "Détermine le facteur DN maximum et la consistance.",
     descHoursPerDay: "Nombre d'heures pendant lesquelles la machine fonctionne par jour.",
     descDaysPerWeek: "Nombre de jours pendant lesquels la machine est opérationnelle par semaine.",
     bearingDimensionsTitle: "Dimensions & Masse du Roulement",
@@ -5039,9 +5039,9 @@ function selectChain(chain) {
   const vRoller = document.getElementById("visualChainRollerText");
   const vPin = document.getElementById("visualChainPinText");
 
-  if (typeImg) typeImg.src = (chain.illustrationImg || "chain-simplex.png") + "?v=130";
+  if (typeImg) typeImg.src = (chain.illustrationImg || "chain-simplex.png") + "?v=132";
   if (typeSubtitle) typeSubtitle.textContent = chain.strand || "Simplex (1-sporig)";
-  if (dimImg) dimImg.src = (chain.dimensionsImg || "chain-dimensions.png") + "?v=130";
+  if (dimImg) dimImg.src = (chain.dimensionsImg || "chain-dimensions.png") + "?v=132";
 
   if (vPitch) vPitch.textContent = chain.pitch.toFixed(1);
   if (vWidth) vWidth.textContent = chain.width.toFixed(1);
