@@ -1651,8 +1651,7 @@
 
       <!-- ==========================================================================
            PAGE: KETTINGSMEERBEREKENING (CHAIN CALC)
-           ========================================================================== -->
-      <section id="pageChainCalc" class="page-section">
+<section id="pageChainCalc" class="page-section">
         <div class="card">
           <h3 class="card-title">Kettingsmeercalculatie</h3>
           <p style="font-size: 13px; color: var(--text-medium); margin-bottom: 20px;">
@@ -1661,16 +1660,46 @@
 
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
             <div>
-              <h4 style="font-size: 14px; font-weight: 700; color: var(--text-dark); margin-bottom: 12px;">Bedrijfsparameters Ketting</h4>
+              <h4 style="font-size: 14px; font-weight: 700; color: var(--text-dark); margin-bottom: 14px;">Bedrijfsparameters Ketting</h4>
               
-              <div class="form-group" style="margin-bottom: 12px;">
-                <label for="chainLengthInput" style="font-size: 12px; font-weight: 600;">Kettinglengte (meters)</label>
-                <input type="number" id="chainLengthInput" class="form-control" value="5.0" min="0.1" step="0.1" oninput="calculateChainGrease()">
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+                <div class="form-group">
+                  <label for="chainLengthInput" style="font-size: 12px; font-weight: 600;">Kettinglengte (meters)</label>
+                  <input type="number" id="chainLengthInput" class="form-control" value="5.0" min="0.1" step="0.1" oninput="calculateChainGrease()">
+                </div>
+
+                <div class="form-group">
+                  <label for="chainSpeedInput" style="font-size: 12px; font-weight: 600;">Kettingsnelheid (m/s)</label>
+                  <input type="number" id="chainSpeedInput" class="form-control" value="1.5" min="0.01" step="0.1" oninput="calculateChainGrease()">
+                </div>
               </div>
 
-              <div class="form-group" style="margin-bottom: 12px;">
-                <label for="chainSpeedInput" style="font-size: 12px; font-weight: 600;">Kettingsnelheid (m/s)</label>
-                <input type="number" id="chainSpeedInput" class="form-control" value="1.5" min="0.01" step="0.1" oninput="calculateChainGrease()">
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+                <div class="form-group">
+                  <label for="chainHoursPerDayInput" style="font-size: 12px; font-weight: 600;">Operationele uren/dag</label>
+                  <input type="number" id="chainHoursPerDayInput" class="form-control" value="24" min="1" max="24" step="1" oninput="calculateChainGrease()">
+                  <span style="font-size: 10.5px; color: var(--text-medium); display: block; margin-top: 2px;">Aantal uren dat de machine per dag operationeel is.</span>
+                </div>
+
+                <div class="form-group">
+                  <label for="chainDaysPerWeekInput" style="font-size: 12px; font-weight: 600;">Operationele dagen/week</label>
+                  <input type="number" id="chainDaysPerWeekInput" class="form-control" value="7" min="1" max="7" step="1" oninput="calculateChainGrease()">
+                  <span style="font-size: 10.5px; color: var(--text-medium); display: block; margin-top: 2px;">Aantal dagen dat de machine per week operationeel is.</span>
+                </div>
+              </div>
+
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+                <div class="form-group">
+                  <label for="chainTempInput" style="font-size: 12px; font-weight: 600;">Bedrijfstemperatuur (°C)</label>
+                  <input type="number" id="chainTempInput" class="form-control" value="20" min="-40" max="300" step="1" oninput="calculateChainGrease()">
+                  <span style="font-size: 10.5px; color: var(--text-medium); display: block; margin-top: 2px;">Temperatuur van de kettingaandrijving.</span>
+                </div>
+
+                <div class="form-group">
+                  <label for="chainFactorInput" style="font-size: 12px; font-weight: 600;">Convertiefactor MicPol®</label>
+                  <input type="number" id="chainFactorInput" class="form-control" value="4" min="1" max="10" step="0.5" oninput="calculateChainGrease()">
+                  <span style="font-size: 10.5px; color: var(--text-medium); display: block; margin-top: 2px;">Standtijdfactor t.o.v. conventionele olie.</span>
+                </div>
               </div>
 
               <div class="form-group" style="margin-bottom: 12px;">
@@ -1679,7 +1708,7 @@
                   <option value="normal">Normaal (Schoon, droog, 20°C)</option>
                   <option value="dusty">Stoffig / Vuil (+30% smeerbehoefte)</option>
                   <option value="wet">Vochtig / Nat (+50% smeerbehoefte)</option>
-                  <option value="severe">Hoge temperatuur / Zwaar belast (+80% smeerbehoefte)</option>
+                  <option value="severe">Zwaar belast / Buitenopstelling (+80% smeerbehoefte)</option>
                 </select>
               </div>
 
@@ -1727,20 +1756,31 @@
               <div>
                 <h4 style="font-size: 14px; font-weight: 700; color: var(--primary-red); margin-bottom: 14px;">Berekend Smeerdebiet Ketting</h4>
                 
-                <div style="margin-bottom: 14px; background: white; padding: 14px; border-radius: 8px; border: 1px solid #cbd5e1;">
-                  <div style="font-size: 12px; color: var(--text-medium); font-weight: 600;">Dagelijks smeervolume (24/7):</div>
-                  <div id="chainResDaily" style="font-size: 22px; font-weight: 800; color: var(--primary-red); margin-top: 4px;">0,00 cm³/dag</div>
+                <div style="margin-bottom: 12px; background: white; padding: 12px 14px; border-radius: 8px; border: 1px solid #cbd5e1;">
+                  <div style="font-size: 11.5px; color: var(--text-medium); font-weight: 600;">Dagelijks smeervolume:</div>
+                  <div id="chainResDaily" style="font-size: 20px; font-weight: 800; color: var(--primary-red); margin-top: 2px;">0,0 cm³/dag</div>
                 </div>
 
-                <div style="margin-bottom: 14px; background: white; padding: 14px; border-radius: 8px; border: 1px solid #cbd5e1;">
-                  <div style="font-size: 12px; color: var(--text-medium); font-weight: 600;">Uurlijks smeervolume & Druppelfrequentie:</div>
-                  <div id="chainResHourly" style="font-size: 18px; font-weight: 700; color: var(--primary-blue); margin-top: 4px;">0,00 ml/uur (~ 0 druppels/min)</div>
+                <div style="margin-bottom: 12px; background: white; padding: 12px 14px; border-radius: 8px; border: 1px solid #cbd5e1;">
+                  <div style="font-size: 11.5px; color: var(--text-medium); font-weight: 600;">Uurlijks smeervolume & Druppelfrequentie:</div>
+                  <div id="chainResHourly" style="font-size: 16.5px; font-weight: 700; color: var(--primary-blue); margin-top: 2px;">0,00 ml/uur (~ 0 druppels/min)</div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                  <div style="background: white; padding: 10px 12px; border-radius: 8px; border: 1px solid #cbd5e1;">
+                    <div style="font-size: 11px; color: var(--text-medium); font-weight: 600;">Wekelijks volume:</div>
+                    <div id="chainResWeekly" style="font-size: 14px; font-weight: 700; color: var(--text-dark); margin-top: 2px;">0,0 cm³/wk</div>
+                  </div>
+                  <div style="background: white; padding: 10px 12px; border-radius: 8px; border: 1px solid #cbd5e1;">
+                    <div style="font-size: 11px; color: var(--text-medium); font-weight: 600;">Jaarlijks verbruik:</div>
+                    <div id="chainResYearly" style="font-size: 14px; font-weight: 700; color: var(--text-dark); margin-top: 2px;">0,00 L/jaar</div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
         </div>
       </section>
-
       <!-- ==========================================================================
            PAGE: OPBRENGSTMODEL KETTINGEN (CHAIN OM)
            ========================================================================== -->
@@ -1827,9 +1867,9 @@
 
   <!-- JavaScript logic imports -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="interflon-data.js?v=47"></script>
+  <script src="interflon-data.js?v=48"></script>
   <script src="bearings-db.js"></script>
   <script src="chains-db.js"></script>
-  <script src="app.js?v=47"></script>
+  <script src="app.js?v=48"></script>
 </body>
 </html>
