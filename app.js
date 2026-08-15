@@ -1634,8 +1634,14 @@ function selectBearing(key) {
 document.addEventListener("click", (e) => {
   const suggestionsBox = document.getElementById("suggestionsBox");
   const searchInput = document.getElementById("bearingSearchInput");
-  if (e.target !== suggestionsBox && e.target !== searchInput) {
+  if (suggestionsBox && searchInput && e.target !== suggestionsBox && !suggestionsBox.contains(e.target) && e.target !== searchInput) {
     suggestionsBox.style.display = "none";
+  }
+
+  const chainBox = document.getElementById("chainSuggestionsBox");
+  const chainInput = document.getElementById("chainSearchInput");
+  if (chainBox && chainInput && e.target !== chainBox && !chainBox.contains(e.target) && e.target !== chainInput) {
+    chainBox.style.display = "none";
   }
 });
 
@@ -4597,44 +4603,51 @@ function selectAppMode(mode) {
 }
 
 function handleChainSearchInput() {
-  const input = document.getElementById("chainSearchInput");
-  const box = document.getElementById("chainSuggestionsBox");
-  if (!input || !box) return;
+  const inputEl = document.getElementById("chainSearchInput");
+  const suggestionsBox = document.getElementById("chainSuggestionsBox");
+  if (!inputEl || !suggestionsBox) return;
 
-  const query = input.value.trim().toLowerCase();
-  if (query.length === 0) {
-    box.innerHTML = "";
-    box.classList.remove("active");
-    return;
+  const input = inputEl.value.trim();
+  if (typeof CHAINS_DB === "undefined" || !CHAINS_DB.length) return;
+
+  let matches = [];
+  if (input.length < 1) {
+    matches = CHAINS_DB.slice(0, 8);
+  } else {
+    const cleanInput = input.toUpperCase().replace(/[\s-]/g, "");
+    matches = CHAINS_DB.filter(c => {
+      const cleanDesig = c.designation.toUpperCase().replace(/[\s-]/g, "");
+      const cleanNorm = c.norm.toUpperCase().replace(/[\s-]/g, "");
+      return cleanDesig.includes(cleanInput) || cleanNorm.includes(cleanInput);
+    }).slice(0, 8);
   }
-
-  if (typeof CHAINS_DB === "undefined") return;
-
-  const matches = CHAINS_DB.filter(c => 
-    c.designation.toLowerCase().includes(query) || 
-    c.norm.toLowerCase().includes(query) ||
-    c.strand.toLowerCase().includes(query)
-  ).slice(0, 8);
 
   if (matches.length === 0) {
-    box.innerHTML = `<div class="suggestion-item text-muted">Geen ketting gevonden voor "${query}"</div>`;
-    box.classList.add("active");
+    suggestionsBox.innerHTML = `
+      <div class="autocomplete-suggestion" style="cursor: default; padding: 12px 16px;">
+        <span class="suggestion-name" style="color: var(--text-medium); font-size: 13px;">Geen ketting gevonden voor "${input}"</span>
+      </div>
+    `;
+    suggestionsBox.style.display = "block";
     return;
   }
 
-  box.innerHTML = matches.map(c => `
-    <div class="suggestion-item" onclick="selectChainByDesignation('${c.designation}')">
-      <strong>${c.designation}</strong> - <span style="font-size: 12px; color: var(--text-medium);">${c.norm} (${c.strand})</span>
+  let html = matches.map(c => `
+    <div class="autocomplete-suggestion" onclick="selectChainByDesignation('${c.designation}')">
+      <span class="suggestion-name" style="color: var(--primary-red); font-weight: 700;">${c.designation}</span>
+      <span class="suggestion-meta">${c.norm} (${c.strand}) - Steek: ${c.pitch} mm, Breedte: ${c.width} mm</span>
     </div>
   `).join("");
-  box.classList.add("active");
+
+  suggestionsBox.innerHTML = html;
+  suggestionsBox.style.display = "block";
 }
 
 function selectChainByDesignation(designation) {
-  const box = document.getElementById("chainSuggestionsBox");
-  if (box) {
-    box.innerHTML = "";
-    box.classList.remove("active");
+  const suggestionsBox = document.getElementById("chainSuggestionsBox");
+  if (suggestionsBox) {
+    suggestionsBox.style.display = "none";
+    suggestionsBox.innerHTML = "";
   }
 
   if (typeof CHAINS_DB === "undefined") return;
