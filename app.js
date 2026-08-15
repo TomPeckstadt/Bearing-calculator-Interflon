@@ -263,6 +263,8 @@ const TRANSLATIONS = {
     omMaterialLifetime: "Levensduur lager (maanden)",
     omSparePartsCost: "Kostprijs wisselstukken / set (€)",
     omSetsPerMachine: "Aantal lagers / machine",
+    chainOmSetsPerMachine: "Aantal kettingen / machine",
+    chainOmMaterialLifetime: "Levensduur ketting (maanden)",
     omAnnMatCost: "Kostprijs materiaal / machine / jaar (€)",
     omNumMachines: "Aantal machines",
     omDowntimeLabel: "DOWN-TIME",
@@ -560,6 +562,8 @@ const TRANSLATIONS = {
     omMaterialLifetime: "Bearing lifetime (months)",
     omSparePartsCost: "Spare parts cost / set (€)",
     omSetsPerMachine: "Bearings / machine",
+    chainOmSetsPerMachine: "Chains / machine",
+    chainOmMaterialLifetime: "Chain lifetime (months)",
     omAnnMatCost: "Material cost / machine / year (€)",
     omNumMachines: "Number of machines",
     omDowntimeLabel: "DOWNTIME",
@@ -857,6 +861,8 @@ const TRANSLATIONS = {
     omMaterialLifetime: "Durée de vie roulement (mois)",
     omSparePartsCost: "Prix pièces / jeu (€)",
     omSetsPerMachine: "Roulements / machine",
+    chainOmSetsPerMachine: "Chaînes / machine",
+    chainOmMaterialLifetime: "Durée de vie chaîne (mois)",
     omAnnMatCost: "Coût matériel / machine / an (€)",
     omNumMachines: "Nombre de machines",
     omDowntimeLabel: "TEMPS D'ARRÊT",
@@ -4831,7 +4837,7 @@ function selectChain(chain) {
 
   if (typeImg) typeImg.src = (chain.illustrationImg || "chain-simplex.png") + "?v=70";
   if (typeSubtitle) typeSubtitle.textContent = chain.strand || "Simplex (1-sporig)";
-  if (dimImg) dimImg.src = (chain.dimensionsImg || "chain-dimensions.png") + "?v=82";
+  if (dimImg) dimImg.src = (chain.dimensionsImg || "chain-dimensions.png") + "?v=85";
 
   if (vPitch) vPitch.textContent = chain.pitch.toFixed(1);
   if (vWidth) vWidth.textContent = chain.width.toFixed(1);
