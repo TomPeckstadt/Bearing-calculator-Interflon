@@ -1263,7 +1263,10 @@ function playOpeningAnimation() {
         if (loginCard) {
           loginCard.classList.remove('fade-out');
         }
+        openModeSelectionModal();
       }, 500);
+    } else {
+      openModeSelectionModal();
     }
   };
 
@@ -1355,6 +1358,14 @@ function switchPage(pageId) {
   const targetTitle = document.getElementById("pageTitle");
   const targetSubtitle = document.getElementById("pageSubtitle");
 
+  if (typeof currentAppMode !== "undefined" && currentAppMode === "chain") {
+    if (pageId === "search") pageId = "chainSearch";
+    if (pageId === "calc") pageId = "chainCalc";
+    if (pageId === "om") pageId = "chainOm";
+    if (pageId === "automation") pageId = "chainAutomation";
+    if (pageId === "info") pageId = "chainInfo";
+  }
+
   if (pageId === 'search') {
     document.getElementById("pageSearch").classList.add("active");
     document.getElementById("menuSearch").classList.add("active");
@@ -1439,6 +1450,37 @@ function switchPage(pageId) {
     document.getElementById("menuInfo").classList.add("active");
     if (targetTitle) targetTitle.setAttribute("data-i18n", "pageInfoTitle");
     if (targetSubtitle) targetSubtitle.setAttribute("data-i18n", "pageInfoSubtitle");
+  } else if (pageId === 'chainSearch') {
+    const sec = document.getElementById("pageChainSearch");
+    if (sec) sec.classList.add("active");
+    document.getElementById("menuSearch").classList.add("active");
+    if (targetTitle) targetTitle.textContent = "Ketting Zoeken";
+    if (targetSubtitle) targetSubtitle.textContent = "Selecteer of zoek een industriële rollenketting om de maatspecificaties te tonen.";
+  } else if (pageId === 'chainCalc') {
+    const sec = document.getElementById("pageChainCalc");
+    if (sec) sec.classList.add("active");
+    document.getElementById("menuCalc").classList.add("active");
+    if (targetTitle) targetTitle.textContent = "Kettingsmeercalculatie";
+    if (targetSubtitle) targetSubtitle.textContent = "Bereken de optimale oliedosering (cm³/dag, ml/uur en druppels/minuut) voor uw kettingaandrijving.";
+    calculateChainGrease();
+  } else if (pageId === 'chainOm') {
+    const sec = document.getElementById("pageChainOm");
+    if (sec) sec.classList.add("active");
+    document.getElementById("menuOm").classList.add("active");
+    if (targetTitle) targetTitle.textContent = "Opbrengstmodel Kettingsmering";
+    if (targetSubtitle) targetSubtitle.textContent = "Bereken de besparing op slijtage, onderhoudsuren en kettingvervanging met Interflon MicPol®.";
+  } else if (pageId === 'chainAutomation') {
+    const sec = document.getElementById("pageChainAutomation");
+    if (sec) sec.classList.add("active");
+    document.getElementById("menuAutomation").classList.add("active");
+    if (targetTitle) targetTitle.textContent = "Automatische Kettingsmeersystemen";
+    if (targetSubtitle) targetSubtitle.textContent = "Overzicht van automatische kettingkwasten en doseerunits.";
+  } else if (pageId === 'chainInfo') {
+    const sec = document.getElementById("pageChainInfo");
+    if (sec) sec.classList.add("active");
+    document.getElementById("menuInfo").classList.add("active");
+    if (targetTitle) targetTitle.textContent = "Informatie Kettingsmering";
+    if (targetSubtitle) targetSubtitle.textContent = "Achtergrond en richtlijnen voor industriële kettingsmering met Interflon MicPol®.";
   }
 
   // Vertaling toepassen op deze dynamische elementen
@@ -4385,5 +4427,194 @@ function calculateAutomationLubrication() {
     } else {
       matchNoticeEl.innerHTML = '';
     }
+  }
+}
+
+// ==========================================================================
+// MODE SELECTION & CHAIN LOGIC (LAGERBEREKENING VS KETTINGBEREKENING)
+// ==========================================================================
+
+let currentAppMode = "bearing"; // "bearing" or "chain"
+let activeChain = null;
+
+function openModeSelectionModal() {
+  const modal = document.getElementById("modeSelectionModal");
+  if (modal) {
+    modal.classList.remove("hidden");
+  }
+}
+
+function closeModeSelectionModal() {
+  const modal = document.getElementById("modeSelectionModal");
+  if (modal) {
+    modal.classList.add("hidden");
+  }
+}
+
+function selectAppMode(mode) {
+  currentAppMode = mode;
+  closeModeSelectionModal();
+
+  const modeBtnText = document.getElementById("modeSwitchBtnText");
+  const menuSearchText = document.querySelector("#menuSearch span");
+  const menuCalcText = document.querySelector("#menuCalc span");
+  const menuOmText = document.querySelector("#menuOm span");
+  const menuAutomationText = document.querySelector("#menuAutomation span");
+  const menuInfoText = document.querySelector("#menuInfo span");
+
+  if (mode === "chain") {
+    if (modeBtnText) modeBtnText.textContent = "⚙️ Lagers / ⛓️ Kettingen";
+    if (menuSearchText) menuSearchText.textContent = "Ketting Zoeken";
+    if (menuCalcText) menuCalcText.textContent = "Berekening";
+    if (menuOmText) menuOmText.textContent = "Opbrengstmodel";
+    if (menuAutomationText) menuAutomationText.textContent = "Automatisering";
+    if (menuInfoText) menuInfoText.textContent = "Informatie";
+
+    switchPage("chainSearch");
+    if (typeof CHAINS_DB !== "undefined" && CHAINS_DB.length > 0 && !activeChain) {
+      selectChain(CHAINS_DB[3]); // Default 08B-1
+    }
+  } else {
+    // Mode === "bearing" (100% untouched current layout)
+    if (modeBtnText) modeBtnText.textContent = "⚙️ Lagers / ⛓️ Kettingen";
+    if (menuSearchText) menuSearchText.textContent = getTranslation("menuSearch", "Lager Opzoeken");
+    if (menuCalcText) menuCalcText.textContent = getTranslation("menuCalc", "Smeercalculatie");
+    if (menuOmText) menuOmText.textContent = getTranslation("menuOm", "Opbrengstmodel");
+    if (menuAutomationText) menuAutomationText.textContent = getTranslation("menuAutomation", "Automatisering");
+    if (menuInfoText) menuInfoText.textContent = getTranslation("menuInfo", "Informatie");
+
+    switchPage("search");
+  }
+}
+
+function handleChainSearchInput() {
+  const input = document.getElementById("chainSearchInput");
+  const box = document.getElementById("chainSuggestionsBox");
+  if (!input || !box) return;
+
+  const query = input.value.trim().toLowerCase();
+  if (query.length === 0) {
+    box.innerHTML = "";
+    box.classList.remove("active");
+    return;
+  }
+
+  if (typeof CHAINS_DB === "undefined") return;
+
+  const matches = CHAINS_DB.filter(c => 
+    c.designation.toLowerCase().includes(query) || 
+    c.norm.toLowerCase().includes(query) ||
+    c.strand.toLowerCase().includes(query)
+  ).slice(0, 8);
+
+  if (matches.length === 0) {
+    box.innerHTML = `<div class="suggestion-item text-muted">Geen ketting gevonden voor "${query}"</div>`;
+    box.classList.add("active");
+    return;
+  }
+
+  box.innerHTML = matches.map(c => `
+    <div class="suggestion-item" onclick="selectChainByDesignation('${c.designation}')">
+      <strong>${c.designation}</strong> - <span style="font-size: 12px; color: var(--text-medium);">${c.norm} (${c.strand})</span>
+    </div>
+  `).join("");
+  box.classList.add("active");
+}
+
+function selectChainByDesignation(designation) {
+  const box = document.getElementById("chainSuggestionsBox");
+  if (box) {
+    box.innerHTML = "";
+    box.classList.remove("active");
+  }
+
+  if (typeof CHAINS_DB === "undefined") return;
+  const chain = CHAINS_DB.find(c => c.designation === designation);
+  if (chain) {
+    selectChain(chain);
+  }
+}
+
+function selectChain(chain) {
+  activeChain = chain;
+
+  const input = document.getElementById("chainSearchInput");
+  if (input) input.value = chain.designation;
+
+  const emptyState = document.getElementById("emptyChainSearchState");
+  const resultsArea = document.getElementById("chainResultsArea");
+
+  if (emptyState) emptyState.classList.add("hidden");
+  if (resultsArea) resultsArea.classList.remove("hidden");
+
+  // Populate Specs
+  const specName = document.getElementById("specChainName");
+  const specNorm = document.getElementById("specChainNorm");
+  const specStrand = document.getElementById("specChainStrand");
+  const specPitch = document.getElementById("specChainPitch");
+  const specWidth = document.getElementById("specChainWidth");
+  const specRoller = document.getElementById("specChainRoller");
+  const specPin = document.getElementById("specChainPin");
+
+  if (specName) specName.textContent = chain.designation;
+  if (specNorm) specNorm.textContent = chain.norm;
+  if (specStrand) specStrand.textContent = chain.strand;
+  if (specPitch) specPitch.textContent = chain.pitch.toFixed(2);
+  if (specWidth) specWidth.textContent = chain.width.toFixed(2);
+  if (specRoller) specRoller.textContent = chain.rollerDiameter.toFixed(2);
+  if (specPin) specPin.textContent = chain.pinDiameter.toFixed(2);
+
+  // Update Visual Cards (Exact Mirror Layout)
+  const typeImg = document.getElementById("chainTypeImg");
+  const dimImg = document.getElementById("chainDimensionsImg");
+  const vPitch = document.getElementById("visualChainPitchText");
+  const vWidth = document.getElementById("visualChainWidthText");
+  const vRoller = document.getElementById("visualChainRollerText");
+
+  if (typeImg) typeImg.src = chain.illustrationImg || "chain-simplex.png";
+  if (dimImg) dimImg.src = chain.dimensionsImg || "chain-dimensions.png";
+
+  if (vPitch) vPitch.textContent = chain.pitch.toFixed(1);
+  if (vWidth) vWidth.textContent = chain.width.toFixed(1);
+  if (vRoller) vRoller.textContent = chain.rollerDiameter.toFixed(1);
+
+  calculateChainGrease();
+}
+
+function goToChainCalculator() {
+  switchPage("chainCalc");
+}
+
+function calculateChainGrease() {
+  const lengthInput = document.getElementById("chainLengthInput");
+  const speedInput = document.getElementById("chainSpeedInput");
+  const envSelect = document.getElementById("chainEnvSelect");
+  const resDaily = document.getElementById("chainResDaily");
+  const resHourly = document.getElementById("chainResHourly");
+
+  const lengthM = lengthInput ? (parseFloat(lengthInput.value) || 5.0) : 5.0;
+  const speedMS = speedInput ? (parseFloat(speedInput.value) || 1.5) : 1.5;
+  const env = envSelect ? envSelect.value : "normal";
+
+  // Pitch (mm) and Width (mm) from activeChain or default (1/2" chain)
+  const pitch = activeChain ? activeChain.pitch : 12.7;
+  const width = activeChain ? activeChain.width : 7.75;
+  const strands = activeChain ? activeChain.strandsCount : 1;
+
+  let envFactor = 1.0;
+  if (env === "dusty") envFactor = 1.3;
+  else if (env === "wet") envFactor = 1.5;
+  else if (env === "severe") envFactor = 1.8;
+
+  // Interflon MicPol® high-adhesion lubricant requirement formula:
+  const dailyCm3 = (width * strands * lengthM * speedMS * envFactor * 0.08);
+  const hourlyMl = dailyCm3 / 24;
+  const dropsPerMin = (hourlyMl * 20) / 60; // 20 drops per ml standard oil
+
+  if (resDaily) {
+    resDaily.textContent = `${dailyCm3.toLocaleString("nl-BE", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} cm³/dag`;
+  }
+  if (resHourly) {
+    resHourly.textContent = `${hourlyMl.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ml/uur (~ ${Math.max(1, Math.round(dropsPerMin))} druppels/min)`;
   }
 }
