@@ -5168,3 +5168,181 @@ const INTERFLON_CHAIN_PRICELIST = {
     }
   ]
 };
+
+// ==========================================================================
+// TECHNICAL SPECIFICATIONS DATABASE FOR INTERFLON CHAIN PRODUCTS
+// ==========================================================================
+const INTERFLON_CHAIN_PRODUCT_SPECS = {
+  "Lube TF": {
+    name: "Interflon Lube TF",
+    subtitle: "Multifunctionele MicPol® ketting- & droogolie",
+    temp: "-20°C tot +150°C",
+    viscosity: "ISO VG 15",
+    desc: "Hoogwaardige kruipolie met MicPol® technologie. Dringt diep door tot tussen pennen en bussen, stoot vuil en vocht af en vermindert wrijving en kettingrek met meer dan 75%."
+  },
+  "Fin Super": {
+    name: "Interflon Fin Super",
+    subtitle: "Droogsmeerspray met MicPol® technologie",
+    temp: "-43°C tot +170°C",
+    viscosity: "ISO VG 15",
+    desc: "Reinigt, verdrijft vocht, dringt door en smeert. Vormt een schone, droge smeerfilm die geen stof of vuil aantrekt."
+  },
+  "Lube EP+": {
+    name: "Interflon Lube EP+",
+    subtitle: "Sterk kruipende EP-kettingolie voor zware belastingen",
+    temp: "-15°C tot +180°C",
+    viscosity: "ISO VG 150",
+    desc: "Extreem drukbestendige kettingolie met MicPol®. Bestand tegen hoge schokbelastingen, stoot water en vuil af en voorkomt kettingrek en slijtage."
+  },
+  "Lube HT": {
+    name: "Interflon Lube HT",
+    subtitle: "Hoge temperatuur kettingolie tot +280°C",
+    temp: "0°C tot +280°C",
+    viscosity: "ISO VG 220",
+    desc: "Synthetische kettingolie voor ovens en droogtunnels. Verdampt zonder schadelijke of harde residu's na te laten."
+  },
+  "Lube HT/SF": {
+    name: "Interflon Lube HT/SF",
+    subtitle: "Hoge temperatuur kettingolie (solvent-free)",
+    temp: "0°C tot +280°C",
+    viscosity: "ISO VG 220",
+    desc: "Oplosmiddelvrije hoge temperatuur kettingolie. Hoge thermische stabiliteit, minimale rookontwikkeling."
+  },
+  "Lube EPR": {
+    name: "Interflon Lube EPR",
+    subtitle: "Zware buitenkettingen & spoorwissels",
+    temp: "-30°C tot +120°C",
+    viscosity: "ISO VG 150",
+    desc: "Klevende, waterbestendige kettingolie voor buitentoepassingen, kabelbanen en zware transportkettingen."
+  },
+  "Food Lube": {
+    name: "Interflon Food Lube",
+    subtitle: "NSF H1 universele voedselveilige kettingolie",
+    temp: "-20°C tot +140°C",
+    viscosity: "ISO VG 46",
+    desc: "NSF H1 goedgekeurde kettingolie voor de voedingsmiddelenindustrie. Uitstekende kruipeigenschappen en MicPol® slijtagebescherming."
+  },
+  "Food Lube 3H": {
+    name: "Interflon Food Lube 3H",
+    subtitle: "NSF 3H voor direct voedselcontact",
+    temp: "-10°C tot +120°C",
+    viscosity: "ISO VG 15",
+    desc: "Gecertificeerd volgens NSF 3H voor direct contact met voedingsmiddelen. Voorkomt aankleven en beschermt tegen corrosie."
+  },
+  "Food Lube G 150": {
+    name: "Interflon Food Lube G 150",
+    subtitle: "NSF H1 hoogwaardige ketting- & tandwielolie",
+    temp: "-15°C tot +140°C",
+    viscosity: "ISO VG 150",
+    desc: "NSF H1 goedgekeurde kettingolie met MicPol® voor zwaarbelaste transportkettingen in de voedingsindustrie."
+  },
+  "Food Lube G 220": {
+    name: "Interflon Food Lube G 220",
+    subtitle: "NSF H1 hoogwaardige ketting- & tandwielolie",
+    temp: "-15°C tot +140°C",
+    viscosity: "ISO VG 220",
+    desc: "NSF H1 goedgekeurde kettingolie met MicPol® voor zwaarbelaste transportkettingen in de voedingsindustrie."
+  },
+  "Food Lube G 320": {
+    name: "Interflon Food Lube G 320",
+    subtitle: "NSF H1 hoogwaardige ketting- & tandwielolie",
+    temp: "-15°C tot +140°C",
+    viscosity: "ISO VG 320",
+    desc: "NSF H1 goedgekeurde kettingolie met MicPol® voor zwaarbelaste transportkettingen in de voedingsindustrie."
+  },
+  "Food Lube G 460": {
+    name: "Interflon Food Lube G 460",
+    subtitle: "NSF H1 hoogwaardige ketting- & tandwielolie",
+    temp: "-10°C tot +140°C",
+    viscosity: "ISO VG 460",
+    desc: "NSF H1 goedgekeurde kettingolie met MicPol® voor zwaarbelaste transportkettingen in de voedingsindustrie."
+  },
+  "Food Lube G 680": {
+    name: "Interflon Food Lube G 680",
+    subtitle: "NSF H1 hoogwaardige ketting- & tandwielolie",
+    temp: "-10°C tot +140°C",
+    viscosity: "ISO VG 680",
+    desc: "NSF H1 goedgekeurde kettingolie met MicPol® voor zwaarbelaste transportkettingen in de voedingsindustrie."
+  },
+  "Food Lube HT": {
+    name: "Interflon Food Lube HT",
+    subtitle: "NSF H1 hoge temperatuur kettingolie",
+    temp: "-10°C tot +260°C",
+    viscosity: "ISO VG 220",
+    desc: "NSF H1 goedgekeurde kettingolie voor ovens en bakstraten in de voedingsindustrie."
+  },
+  "Food Lube LT": {
+    name: "Interflon Food Lube LT",
+    subtitle: "NSF H1 vriescelkettingolie tot -45°C",
+    temp: "-45°C tot +120°C",
+    viscosity: "ISO VG 32",
+    desc: "Speciaal geformuleerd voor kettingen in vriescellen en diepvriestunnels. Blijft vloeibaar bij extreem lage temperaturen."
+  },
+  "Food Lube H32": {
+    name: "Interflon Food Lube H32",
+    subtitle: "NSF H1 hydr. & lichte kettingolie ISO VG 32",
+    temp: "-20°C tot +120°C",
+    viscosity: "ISO VG 32",
+    desc: "NSF H1 goedgekeurde lichte kettingolie voor fijne mechanieken en lichtbelaste transportkettingen."
+  },
+  "Food Lube H46": {
+    name: "Interflon Food Lube H46",
+    subtitle: "NSF H1 hydr. & lichte kettingolie ISO VG 46",
+    temp: "-20°C tot +130°C",
+    viscosity: "ISO VG 46",
+    desc: "NSF H1 goedgekeurde lichte kettingolie voor transportbanden en verpakkingsmachines."
+  },
+  "Food Lube H68": {
+    name: "Interflon Food Lube H68",
+    subtitle: "NSF H1 hydr. & lichte kettingolie ISO VG 68",
+    temp: "-20°C tot +140°C",
+    viscosity: "ISO VG 68",
+    desc: "NSF H1 goedgekeurde kettingolie voor universeel gebruik in de voedingsindustrie."
+  },
+  "Lube PN32": {
+    name: "Interflon Lube PN32",
+    subtitle: "Pneumatische & lichte kettingolie ISO VG 32",
+    temp: "-20°C tot +120°C",
+    viscosity: "ISO VG 32",
+    desc: "Smeermiddel met MicPol® voor pneumatische gereedschappen en snellopende lichte kettingen."
+  },
+  "Lube PN46": {
+    name: "Interflon Lube PN46",
+    subtitle: "Pneumatische & lichte kettingolie ISO VG 46",
+    temp: "-20°C tot +130°C",
+    viscosity: "ISO VG 46",
+    desc: "Smeermiddel met MicPol® voor pneumatische gereedschappen en lichte transportkettingen."
+  },
+  "Lube PN68": {
+    name: "Interflon Lube PN68",
+    subtitle: "Pneumatische & lichte kettingolie ISO VG 68",
+    temp: "-20°C tot +140°C",
+    viscosity: "ISO VG 68",
+    desc: "Smeermiddel met MicPol® voor lichte en middelzware transportkettingen."
+  }
+};
+
+function getChainProductSpecs(productName) {
+  if (!productName) productName = "Interflon Lube TF";
+  const source = (typeof INTERFLON_CHAIN_PRODUCT_SPECS !== "undefined" ? INTERFLON_CHAIN_PRODUCT_SPECS : {});
+  
+  if (source[productName]) return source[productName];
+
+  let clean = productName.replace(/^Interflon\s+/i, '').replace(/\s+spuitbus/i, '').replace(/\s*\([^)]*\)/g, '').trim();
+  if (source[clean]) return source[clean];
+
+  const cleanLower = clean.toLowerCase();
+  for (const k in source) {
+    if (cleanLower.includes(k.toLowerCase()) || k.toLowerCase().includes(cleanLower)) {
+      return source[k];
+    }
+  }
+
+  return {
+    name: productName.startsWith("Interflon") ? productName : ("Interflon " + productName),
+    subtitle: "Kettingolie met MicPol® technologie",
+    temp: "-20°C tot +150°C",
+    viscosity: "ISO VG 46",
+    desc: "Hoogwaardige kettingolie met MicPol® technologie. Dringt diep door tot tussen de pennen en bussen, stoot vuil en vocht af en vermindert wrijving en kettingrek."
+  };
+}
