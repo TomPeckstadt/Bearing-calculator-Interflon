@@ -2620,18 +2620,21 @@ function saveClientDetails(event) {
 function loadTechDetails() {
   const machine = localStorage.getItem("tech_machine") || "";
   const application = localStorage.getItem("tech_app") || "";
+  const brand = localStorage.getItem("tech_brand") || "";
   const product = localStorage.getItem("tech_product") || "";
   const interval = localStorage.getItem("tech_interval") || "";
   const price = localStorage.getItem("tech_price") || "";
 
   const machineInput = document.getElementById("techMachineInput");
   const appInput = document.getElementById("techAppInput");
+  const brandInput = document.getElementById("techBrandInput");
   const productInput = document.getElementById("techProductInput");
   const intervalInput = document.getElementById("techIntervalInput");
   const priceInput = document.getElementById("techPriceInput");
 
   if (machineInput) machineInput.value = machine;
   if (appInput) appInput.value = application;
+  if (brandInput) brandInput.value = brand;
   if (productInput) productInput.value = product;
   if (intervalInput) intervalInput.value = interval;
   if (priceInput) priceInput.value = price;
@@ -2752,12 +2755,14 @@ function saveTechDetails(event) {
   event.preventDefault();
   const machine = document.getElementById("techMachineInput").value;
   const application = document.getElementById("techAppInput").value;
+  const brand = document.getElementById("techBrandInput") ? document.getElementById("techBrandInput").value : "";
   const product = document.getElementById("techProductInput").value;
   const interval = document.getElementById("techIntervalInput").value;
   const price = document.getElementById("techPriceInput").value;
 
   localStorage.setItem("tech_machine", machine);
   localStorage.setItem("tech_app", application);
+  localStorage.setItem("tech_brand", brand);
   localStorage.setItem("tech_product", product);
   localStorage.setItem("tech_interval", interval);
   localStorage.setItem("tech_price", price);
@@ -3048,6 +3053,7 @@ function runBearingPdfExport(includeTco) {
 
       const techMachine = localStorage.getItem("tech_machine") || "-";
       const techApp = localStorage.getItem("tech_app") || "-";
+      const techBrand = localStorage.getItem("tech_brand") || "-";
       const techProduct = localStorage.getItem("tech_product") || "-";
       const techInterval = localStorage.getItem("tech_interval") || "-";
       const techPrice = localStorage.getItem("tech_price") || "-";
@@ -3138,23 +3144,26 @@ function runBearingPdfExport(includeTco) {
       doc.setFont("helvetica", "normal");
       doc.setFontSize(9);
       doc.setTextColor(72, 84, 96);
-      doc.text((langData.techMachineLabel || "Machine") + ":", 110, 85);
-      doc.text((langData.techAppLabel || "Toepassing") + ":", 110, 90);
-      doc.text((langData.techProductLabel || "Huidig product") + ":", 110, 95);
+      doc.text((langData.techMachineLabel || "Machine") + ":", 110, 83);
+      doc.text((langData.techAppLabel || "Toepassing") + ":", 110, 87.5);
+      doc.text((langData.techBrandLabel || "Merk") + ":", 110, 92);
+      doc.text((langData.techProductLabel || "Huidig product") + ":", 110, 96.5);
       
       const techIntervalLabelShort = currentLang === "nl" ? "Huidig interval (dagen)" : currentLang === "en" ? "Current interval (days)" : "Intervalle actuel (jours)";
-      doc.text(techIntervalLabelShort + ":", 110, 100);
+      doc.text(techIntervalLabelShort + ":", 110, 101);
 
       const techPriceLabelShort = currentLang === "nl" ? "Prijs huidig prod./L" : currentLang === "en" ? "Price current prod./L" : "Prix prod. actuel/L";
-      doc.text(techPriceLabelShort + ":", 110, 105);
+      doc.text(techPriceLabelShort + ":", 110, 105.5);
 
       doc.setFont("helvetica", "bold");
       doc.setTextColor(11, 19, 43);
-      doc.text(techMachine, 160, 85);
-      doc.text(techApp, 160, 90);
-      doc.text(techProduct, 160, 95);
-      doc.text(techInterval + (techInterval !== "-" ? " " + (currentLang === "nl" ? "dagen" : currentLang === "en" ? "days" : "jours") : ""), 160, 100);
-      doc.text(techPrice !== "-" ? `€ ${parseFloat(techPrice).toFixed(2)}` : "-", 160, 105);
+      doc.text(techMachine, 160, 83);
+      doc.text(techApp, 160, 87.5);
+      doc.text(techBrand, 160, 92);
+      doc.text(techProduct, 160, 96.5);
+      doc.text(techInterval + (techInterval !== "-" ? " " + (currentLang === "nl" ? "dagen" : currentLang === "en" ? "days" : "jours") : ""), 160, 101);
+      const parsedBearingPrice = parseFloat(techPrice);
+      doc.text(techPrice !== "-" && !isNaN(parsedBearingPrice) ? `€ ${parsedBearingPrice.toFixed(2)}` : "-", 160, 105.5);
 
       // Horizontale scheidingslijn onder gegevens
       doc.line(20, 109, 190, 109);
@@ -5030,9 +5039,9 @@ function selectChain(chain) {
   const vRoller = document.getElementById("visualChainRollerText");
   const vPin = document.getElementById("visualChainPinText");
 
-  if (typeImg) typeImg.src = (chain.illustrationImg || "chain-simplex.png") + "?v=128";
+  if (typeImg) typeImg.src = (chain.illustrationImg || "chain-simplex.png") + "?v=130";
   if (typeSubtitle) typeSubtitle.textContent = chain.strand || "Simplex (1-sporig)";
-  if (dimImg) dimImg.src = (chain.dimensionsImg || "chain-dimensions.png") + "?v=128";
+  if (dimImg) dimImg.src = (chain.dimensionsImg || "chain-dimensions.png") + "?v=130";
 
   if (vPitch) vPitch.textContent = chain.pitch.toFixed(1);
   if (vWidth) vWidth.textContent = chain.width.toFixed(1);
@@ -5313,23 +5322,25 @@ function runChainPdfExport(includeTco) {
         doc.setFont("helvetica", "normal");
         doc.setFontSize(9);
         doc.setTextColor(72, 84, 96);
-        doc.text((langData.techMachineLabel || "Machine") + ":", 110, 85);
-        doc.text((langData.techAppLabel || "Toepassing") + ":", 110, 90);
-        doc.text((langData.techProductLabel || "Huidig product") + ":", 110, 95);
+        doc.text((langData.techMachineLabel || "Machine") + ":", 110, 83);
+        doc.text((langData.techAppLabel || "Toepassing") + ":", 110, 87.5);
+        doc.text((langData.techBrandLabel || "Merk") + ":", 110, 92);
+        doc.text((langData.techProductLabel || "Huidig product") + ":", 110, 96.5);
         
         const techIntervalLabelShort = currentLang === "nl" ? "Huidig interval (dagen)" : currentLang === "en" ? "Current interval (days)" : "Intervalle actuel (jours)";
-        doc.text(techIntervalLabelShort + ":", 110, 100);
+        doc.text(techIntervalLabelShort + ":", 110, 101);
 
         const techPriceLabelShort = currentLang === "nl" ? "Prijs huidig prod./L" : currentLang === "en" ? "Price current prod./L" : "Prix prod. actuel/L";
-        doc.text(techPriceLabelShort + ":", 110, 105);
+        doc.text(techPriceLabelShort + ":", 110, 105.5);
 
         doc.setFont("helvetica", "bold");
         doc.setTextColor(11, 19, 43);
-        doc.text(techMachine, 160, 85);
-        doc.text(techApp, 160, 90);
-        doc.text(techProduct, 160, 95);
-        doc.text(techInterval !== "-" ? (techInterval + " dagen") : "-", 160, 100);
-        const parsedTechPrice = parseFloat(techPrice); doc.text(techPrice !== "-" && !isNaN(parsedTechPrice) ? ("€ " + parsedTechPrice.toFixed(2)) : "-", 160, 105);
+        doc.text(techMachine, 160, 83);
+        doc.text(techApp, 160, 87.5);
+        doc.text(techBrand, 160, 92);
+        doc.text(techProduct, 160, 96.5);
+        doc.text(techInterval !== "-" ? (techInterval + " dagen") : "-", 160, 101);
+        const parsedTechPrice = parseFloat(techPrice); doc.text(techPrice !== "-" && !isNaN(parsedTechPrice) ? ("€ " + parsedTechPrice.toFixed(2)) : "-", 160, 105.5);
 
         // 4. Kettingsmeercalculatie & Oliedosering Tabel
         const lengthInput = document.getElementById("chainLengthInput");
