@@ -4707,7 +4707,27 @@ function goToChainCalculator() {
   switchPage("chainCalc");
 }
 
+function updateChainCalculatorFields() {
+  const bannerTitle = document.getElementById("chainCalcBannerTitle");
+  const bannerSubtitle = document.getElementById("chainCalcBannerSubtitle");
+  const bannerBadge = document.getElementById("chainCalcBannerBadge");
+
+  if (!bannerTitle || !bannerSubtitle || !bannerBadge) return;
+
+  if (activeChain) {
+    bannerTitle.textContent = `Geselecteerd: Ketting ${activeChain.designation}`;
+    bannerSubtitle.textContent = `Norm: ${activeChain.norm} (${activeChain.strand}). Bedrijfsparameters kunnen hieronder worden aangepast.`;
+    bannerBadge.textContent = `P: ${activeChain.pitch.toFixed(2)} mm | B: ${activeChain.width.toFixed(2)} mm`;
+  } else {
+    bannerTitle.textContent = `Geselecteerd: Ketting 08B-1 (ISO/BS Simplex)`;
+    bannerSubtitle.textContent = `Kettingtype: Standaard rollenketting. Bedrijfsparameters kunnen hieronder worden aangepast.`;
+    bannerBadge.textContent = `P: 12.70 mm | B: 7.75 mm`;
+  }
+}
+
 function calculateChainGrease() {
+  updateChainCalculatorFields();
+
   const lengthInput = document.getElementById("chainLengthInput");
   const speedInput = document.getElementById("chainSpeedInput");
   const hoursInput = document.getElementById("chainHoursPerDayInput");
