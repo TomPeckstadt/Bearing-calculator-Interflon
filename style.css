@@ -520,6 +520,63 @@ h1, h2, h3, h4, .brand-text {
   color: var(--text-medium);
 }
 
+.mode-switch-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background-color: #ffffff;
+  padding: 6px 16px 6px 6px;
+  border-radius: 50px;
+  border: 2px solid var(--primary-red);
+  box-shadow: 0 2px 8px rgba(227, 6, 19, 0.15);
+  cursor: pointer;
+  font-family: 'Outfit', sans-serif;
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+}
+
+.mode-switch-badge:hover {
+  background-color: #fff1f2;
+  border-color: var(--primary-red);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(227, 6, 19, 0.25);
+}
+
+.mode-switch-badge .mode-avatar {
+  width: 32px;
+  height: 32px;
+  background-color: var(--primary-red);
+  color: #ffffff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.mode-switch-badge .mode-text-container {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  line-height: 1.2;
+}
+
+.mode-switch-badge .mode-title {
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--text-dark);
+}
+
+.mode-switch-badge .mode-subtitle {
+  font-size: 9.5px;
+  font-weight: 700;
+  color: var(--primary-red);
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+}
+
 /* ==========================================================================
    DASHBOARD PAGES
    ========================================================================== */
