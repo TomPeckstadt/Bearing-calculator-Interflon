@@ -1528,6 +1528,23 @@ function switchPage(pageId) {
       targetSubtitle.removeAttribute("data-i18n");
       targetSubtitle.textContent = "Bereken de besparing op slijtage, onderhoudsuren en kettingvervanging met Interflon MicPol®.";
     }
+    
+    // Set Product Names for Chain OM
+    const p1NameEl = document.getElementById("chainOmProdName1");
+    const p2NameEl = document.getElementById("chainOmProdName2");
+    if (p1NameEl) p1NameEl.textContent = localStorage.getItem("tech_product") || "Conventionele Kettingolie";
+    if (p2NameEl) {
+      const chainProductSelect = document.getElementById("chainProductSelect");
+      p2NameEl.textContent = (chainProductSelect && chainProductSelect.value) ? chainProductSelect.value : "Interflon Lube TF";
+    }
+
+    // Set Chain Badge Title
+    const badgeTitleEl = document.getElementById("chainOmBadgeTitle");
+    if (badgeTitleEl) {
+      badgeTitleEl.textContent = activeChain ? `Ketting ${activeChain.designation} (${activeChain.strand})` : "Ketting 08B-1 (ISO/BS Simplex)";
+    }
+
+    calculateTco();
   } else if (pageId === 'chainAutomation') {
     const sec = document.getElementById("pageChainAutomation");
     if (sec) sec.classList.add("active");
@@ -3619,12 +3636,13 @@ function loadTcoDetails() {
   }
 }
 
-function calculateTco() {
-  // Sync Revisiefrequentie values with Levensduur materiaal values
-  const omRepairFreq1El = document.getElementById("omRepairFreq1");
-  const omRepairFreq2El = document.getElementById("omRepairFreq2");
-  const omLifetime1El = document.getElementById("omLifetime1");
-  const omLifetime2El = document.getElementById("omLifetime2");
+function calculateTcoForPrefix(prefix) {
+  const pId = (base) => prefix === "om" ? "om" + base : "chainOm" + base;
+
+  const omRepairFreq1El = document.getElementById(pId("RepairFreq1"));
+  const omRepairFreq2El = document.getElementById(pId("RepairFreq2"));
+  const omLifetime1El = document.getElementById(pId("Lifetime1"));
+  const omLifetime2El = document.getElementById(pId("Lifetime2"));
 
   if (omRepairFreq1El && omLifetime1El) {
     omRepairFreq1El.value = omLifetime1El.value;
@@ -3633,12 +3651,8 @@ function calculateTco() {
     omRepairFreq2El.value = omLifetime2El.value;
   }
 
-  if (typeof updateOmMetadata === "function") {
-    updateOmMetadata();
-  }
-
   const val = (id) => {
-    const el = document.getElementById(id);
+    const el = document.getElementById(pId(id));
     if (!el) return 0;
     const v = parseFloat(el.value);
     return isNaN(v) ? 0 : v;
@@ -3661,42 +3675,47 @@ function calculateTco() {
     }).format(n);
   };
 
-  const p1_cons = val("omProdCons1");
-  const p2_cons = val("omProdCons2");
-  const p1_price = val("omProdPrice1");
-  const p2_price = val("omProdPrice2");
+  const p1_cons = val("ProdCons1");
+  const p2_cons = val("ProdCons2");
+  const p1_price = val("ProdPrice1");
+  const p2_price = val("ProdPrice2");
   
-  const p1_freq = val("omProdFreq1");
-  const p2_freq = val("omProdFreq2");
-  const shared_worktime = val("omSharedWorktime");
+  const p1_freq = val("ProdFreq1");
+  const p2_freq = val("ProdFreq2");
+  const shared_worktime = val("SharedWorktime");
   
-  const p1_repair_freq = val("omRepairFreq1");
-  const p2_repair_freq = val("omRepairFreq2");
-  const shared_repair_h = val("omSharedRepairH");
-  const shared_labor_rate = val("omSharedLaborRate");
-  const shared_prep_h = val("omSharedPrepH");
+  const p1_repair_freq = val("RepairFreq1");
+  const p2_repair_freq = val("RepairFreq2");
+  const shared_repair_h = val("SharedRepairH");
+  const shared_labor_rate = val("SharedLaborRate");
+  const shared_prep_h = val("SharedPrepH");
   
-  const p1_lifetime = val("omLifetime1");
-  const p2_lifetime = val("omLifetime2");
-  const shared_parts_cost = val("omSharedPartsCost");
-  const shared_sets_per_machine = val("omSharedSetsPerMachine");
-  const shared_num_machines = val("omSharedNumMachines");
+  const p1_lifetime = val("Lifetime1");
+  const p2_lifetime = val("Lifetime2");
+  const shared_parts_cost = val("SharedPartsCost");
+  const shared_sets_per_machine = val("SharedSetsPerMachine");
+  const shared_num_machines = val("SharedNumMachines");
   
-  const p1_downtime_h = val("omDowntimeH1");
-  const p2_downtime_h = val("omDowntimeH2");
-  const shared_downtime_rate = val("omSharedDowntimeRate");
-  const p1_downtime_freq = val("omDowntimeFreq1");
-  const p2_downtime_freq = val("omDowntimeFreq2");
+  const p1_downtime_h = val("DowntimeH1");
+  const p2_downtime_h = val("DowntimeH2");
+  const shared_downtime_rate = val("SharedDowntimeRate");
+  const p1_downtime_freq = val("DowntimeFreq1");
+  const p2_downtime_freq = val("DowntimeFreq2");
   
-  const tco_years = val("omTcoYears");
+  const tco_years = val("TcoYears");
 
-  document.querySelectorAll(".omTcoYearsVal").forEach(el => {
+  document.querySelectorAll("." + pId("TcoYearsVal")).forEach(el => {
     el.textContent = tco_years.toString();
   });
 
-  const selectedGrease = document.getElementById("inputGrease").value;
-  const grease = INTERFLON_GREASES[selectedGrease] || { dnMax: 680000, density: 0.92, isHighTemp: false };
-  const density = grease.density;
+  let density = 0.92;
+  if (prefix === "om") {
+    const selectedGrease = document.getElementById("inputGrease") ? document.getElementById("inputGrease").value : "";
+    const grease = INTERFLON_GREASES[selectedGrease] || { density: 0.92 };
+    density = grease.density || 0.92;
+  } else {
+    density = 0.90;
+  }
 
   const p1_cons_Liters = p1_cons / (density * 1000);
   const p2_cons_Liters = p2_cons / (density * 1000);
@@ -3739,43 +3758,49 @@ function calculateTco() {
   const total_savings_years = p1_total_cost_park_years - p2_total_cost_park_years;
 
   const setEl = (id, valStr) => {
-    const el = document.getElementById(id);
+    const el = document.getElementById(pId(id));
     if (el) el.textContent = valStr;
   };
 
-  setEl("omAnnProdCost1", fmtCurrency(p1_ann_prod_cost));
-  setEl("omAnnProdCost2", fmtCurrency(p2_ann_prod_cost));
+  setEl("AnnProdCost1", fmtCurrency(p1_ann_prod_cost));
+  setEl("AnnProdCost2", fmtCurrency(p2_ann_prod_cost));
 
-  setEl("omAnnLaborCost1", fmtCurrency(p1_ann_labor_cost));
-  setEl("omAnnLaborCost2", fmtCurrency(p2_ann_labor_cost));
+  setEl("AnnLaborCost1", fmtCurrency(p1_ann_labor_cost));
+  setEl("AnnLaborCost2", fmtCurrency(p2_ann_labor_cost));
 
-  setEl("omAnnMaterialCost1", fmtCurrency(p1_ann_mat_cost));
-  setEl("omAnnMaterialCost2", fmtCurrency(p2_ann_mat_cost));
+  setEl("AnnMaterialCost1", fmtCurrency(p1_ann_mat_cost));
+  setEl("AnnMaterialCost2", fmtCurrency(p2_ann_mat_cost));
 
-  setEl("omAnnDowntimeCost1", fmtCurrency(p1_ann_downtime_cost));
-  setEl("omAnnDowntimeCost2", fmtCurrency(p2_ann_downtime_cost));
+  setEl("AnnDowntimeCost1", fmtCurrency(p1_ann_downtime_cost));
+  setEl("AnnDowntimeCost2", fmtCurrency(p2_ann_downtime_cost));
 
-  setEl("omAnnTotalCost1", fmtCurrency(p1_ann_total_cost_mach));
-  setEl("omAnnTotalCost2", fmtCurrency(p2_ann_total_cost_mach));
+  setEl("AnnTotalCost1", fmtCurrency(p1_ann_total_cost_mach));
+  setEl("AnnTotalCost2", fmtCurrency(p2_ann_total_cost_mach));
 
-  setEl("omAnnParkCost1", fmtCurrency(p1_ann_total_cost_park));
-  setEl("omAnnParkCost2", fmtCurrency(p2_ann_total_cost_park));
-  setEl("omAnnSavingsPark", fmtCurrency(ann_savings_park));
-  setEl("omAnnSavingsMachine", fmtCurrency(ann_savings_mach));
+  setEl("AnnParkCost1", fmtCurrency(p1_ann_total_cost_park));
+  setEl("AnnParkCost2", fmtCurrency(p2_ann_total_cost_park));
+  setEl("AnnSavingsPark", fmtCurrency(ann_savings_park));
+  setEl("AnnSavingsMachine", fmtCurrency(ann_savings_mach));
 
-  setEl("omProdCostPercent", fmtPercent(prod_cost_percent));
+  setEl("ProdCostPercent", fmtPercent(prod_cost_percent));
 
-  setEl("omTotalCostYears1", fmtCurrency(p1_total_cost_mach_years));
-  setEl("omTotalCostYears2", fmtCurrency(p2_total_cost_mach_years));
+  setEl("TotalCostYears1", fmtCurrency(p1_total_cost_mach_years));
+  setEl("TotalCostYears2", fmtCurrency(p2_total_cost_mach_years));
 
-  setEl("omTotalParkCostYears1", fmtCurrency(p1_total_cost_park_years));
-  setEl("omTotalParkCostYears2", fmtCurrency(p2_total_cost_park_years));
-  setEl("omTotalSavingsYears", fmtCurrency(total_savings_years));
+  setEl("TotalParkCostYears1", fmtCurrency(p1_total_cost_park_years));
+  setEl("TotalParkCostYears2", fmtCurrency(p2_total_cost_park_years));
+  setEl("TotalSavingsYears", fmtCurrency(total_savings_years));
 
-  // Top summary widgets
-  setEl("omAnnSavingsSummary", fmtCurrency(ann_savings_park));
-  setEl("omTotalSavingsSummary", fmtCurrency(total_savings_years));
-  setEl("omProdCostPercentSummary", fmtPercent(prod_cost_percent));
+  if (prefix === "om") {
+    setEl("omAnnSavingsSummary", fmtCurrency(ann_savings_park));
+    setEl("omTotalSavingsSummary", fmtCurrency(total_savings_years));
+    setEl("omProdCostPercentSummary", fmtPercent(prod_cost_percent));
+  }
+}
+
+function calculateTco() {
+  calculateTcoForPrefix("om");
+  calculateTcoForPrefix("chainOm");
 }
 
 // ==========================================================================
