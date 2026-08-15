@@ -348,6 +348,62 @@
   </div>
 
   <!-- ==========================================================================
+       MODE SELECTION MODAL (WELCOME CHOICE: LAGERS VS KETTINGEN)
+       ========================================================================== -->
+  <div id="modeSelectionModal" class="modal-overlay hidden" style="z-index: 10010;">
+    <div class="modal-card" style="max-width: 680px; width: 92%; padding: 32px; text-align: center; border-radius: var(--border-radius-lg);">
+      <div style="margin-bottom: 20px; display: flex; justify-content: center; align-items: center; gap: 12px;">
+        <img src="interflon-logo.jpg" alt="Interflon Logo" style="height: 38px; object-fit: contain;">
+      </div>
+      
+      <h2 style="font-size: 22px; font-weight: 800; color: var(--text-dark); margin: 0 0 6px 0;" data-i18n="modeModalTitle">
+        Welkom bij Interflon Berekeningsmodule
+      </h2>
+      <p style="font-size: 14px; color: var(--text-medium); margin: 0 0 28px 0;" data-i18n="modeModalSubtitle">
+        Maak uw keuze om de gewenste berekeningsomgeving te openen:
+      </p>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: stretch;">
+        <!-- Card 1: Lagerberekening -->
+        <div onclick="selectAppMode('bearing')" style="background-color: #f8fafc; border: 2px solid #e2e8f0; border-radius: var(--border-radius-md); padding: 24px 20px; text-align: left; cursor: pointer; transition: all 0.2s ease; display: flex; flex-direction: column; justify-content: space-between;" onmouseover="this.style.borderColor='var(--primary-red)'; this.style.transform='translateY(-3px)'; this.style.boxShadow='0 10px 25px -5px rgba(227,6,19,0.15)';" onmouseout="this.style.borderColor='#e2e8f0'; this.style.transform='none'; this.style.boxShadow='none';">
+          <div>
+            <div style="width: 48px; height: 48px; border-radius: 10px; background-color: rgba(227,6,19,0.1); color: var(--primary-red); display: flex; align-items: center; justify-content: center; font-size: 24px; margin-bottom: 14px;">
+              ⚙️
+            </div>
+            <h3 style="font-size: 18px; font-weight: 700; color: var(--text-dark); margin: 0 0 8px 0;">
+              ⚙️ Lagerberekening
+            </h3>
+            <p style="font-size: 13px; color: var(--text-medium); line-height: 1.5; margin: 0 0 16px 0;">
+              Bepaal type vet, nasmeervolumes, smeerintervallen en instellingen voor automatisatie
+            </p>
+          </div>
+          <button type="button" class="btn" style="width: 100%; justify-content: center; font-size: 13px; padding: 10px 14px;">
+            Open Lagerberekening
+          </button>
+        </div>
+
+        <!-- Card 2: Kettingberekening -->
+        <div onclick="selectAppMode('chain')" style="background-color: #f8fafc; border: 2px solid #e2e8f0; border-radius: var(--border-radius-md); padding: 24px 20px; text-align: left; cursor: pointer; transition: all 0.2s ease; display: flex; flex-direction: column; justify-content: space-between;" onmouseover="this.style.borderColor='var(--primary-red)'; this.style.transform='translateY(-3px)'; this.style.boxShadow='0 10px 25px -5px rgba(227,6,19,0.15)';" onmouseout="this.style.borderColor='#e2e8f0'; this.style.transform='none'; this.style.boxShadow='none';">
+          <div>
+            <div style="width: 48px; height: 48px; border-radius: 10px; background-color: rgba(227,6,19,0.1); color: var(--primary-red); display: flex; align-items: center; justify-content: center; font-size: 24px; margin-bottom: 14px;">
+              ⛓️
+            </div>
+            <h3 style="font-size: 18px; font-weight: 700; color: var(--text-dark); margin: 0 0 8px 0;">
+              ⛓️ Kettingberekening
+            </h3>
+            <p style="font-size: 13px; color: var(--text-medium); line-height: 1.5; margin: 0 0 16px 0;">
+              Bereken olie-doseringen, volume per minuut, smeerintervallen en instellingen voor automatisatie voor aandrijf- en transportkettingen.
+            </p>
+          </div>
+          <button type="button" class="btn" style="width: 100%; justify-content: center; font-size: 13px; padding: 10px 14px;">
+            Open Kettingberekening
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================================================
        MAIN DASHBOARD INTERFACE
        ========================================================================== -->
   <div class="app-container">
@@ -433,6 +489,10 @@
         </div>
         
         <div style="display: flex; gap: 10px; align-items: center;">
+          <button type="button" id="modeSwitchBtn" class="user-badge" onclick="openModeSelectionModal()" style="border: 2px solid var(--primary-red); background-color: #ffffff; color: var(--primary-red); font-weight: 700; cursor: pointer; transition: all 0.2s ease;">
+            <div id="modeAvatar" class="user-avatar" style="background-color: var(--primary-red); color: white;">⚙️</div>
+            <span id="modeSwitchBtnText" class="user-name">⚙️ Lagers / ⛓️ Kettingen</span>
+          </button>
           <button type="button" id="userBadgeBtn" class="user-badge" onclick="openOperatorModal()">
             <div id="userAvatar" class="user-avatar">IF</div>
             <span id="userName" class="user-name" data-i18n="operatorBadge">Interflon contactpersoon</span>
@@ -1482,6 +1542,235 @@
 
       </section>
 
+      <!-- ==========================================================================
+           PAGE: KETTING ZOEKEN (CHAIN SEARCH)
+           ========================================================================== -->
+      <section id="pageChainSearch" class="page-section hidden">
+        <div class="search-container" style="max-width: 800px; display: flex; gap: 15px; align-items: center;">
+          <div class="search-wrapper" style="flex: 1; position: relative;">
+            <span class="search-icon-inside">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.637 10.637Z" />
+              </svg>
+            </span>
+            <input type="text" id="chainSearchInput" class="search-input" placeholder="Bijv. 08B-1, 12B-2, ANSI 40, ANSI 60..." oninput="handleChainSearchInput()" autocomplete="off">
+            <div id="chainSuggestionsBox" class="autocomplete-suggestions"></div>
+          </div>
+        </div>
+
+        <div id="emptyChainSearchState" class="card text-center" style="padding: 60px 20px;">
+          <div style="color: var(--primary-red); margin-bottom: 20px;">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="currentColor" style="width: 72px; height: 72px; margin: 0 auto;">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 0 1 1.242 7.244l-4.5 4.5a4.5 4.5 0 0 1-6.364-6.364l1.757-1.757m13.35-.622 1.757-1.757a4.5 4.5 0 0 0-6.364-6.364l-4.5 4.5a4.5 4.5 0 0 0 1.242 7.244" />
+            </svg>
+          </div>
+          <h3>Geen ketting geselecteerd</h3>
+          <p style="color: var(--text-medium); max-width: 450px; margin: 10px auto 0;">
+            Typ hierboven een kettingaanduiding (bijvoorbeeld <strong>08B-1</strong>, <strong>12B-2</strong> of <strong>ANSI 40</strong>) en selecteer deze om de specificaties te laden.
+          </p>
+        </div>
+
+        <div id="chainResultsArea" class="results-grid hidden">
+          <!-- Left Specs Column -->
+          <div class="card">
+            <h3 class="card-title">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 0 1 1.242 7.244l-4.5 4.5a4.5 4.5 0 0 1-6.364-6.364l1.757-1.757m13.35-.622 1.757-1.757a4.5 4.5 0 0 0-6.364-6.364l-4.5 4.5a4.5 4.5 0 0 0 1.242 7.244" />
+              </svg>
+              <span>Kettingspecificaties:</span> <span id="specChainName" style="color: var(--primary-red); font-weight: 700;">-</span>
+            </h3>
+
+            <div class="details-list">
+              <div class="detail-row">
+                <span class="detail-label">Standaard / Norm</span>
+                <span id="specChainNorm" class="detail-value">-</span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label">Kettingtype / Uitvoering</span>
+                <span id="specChainStrand" class="detail-value">-</span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label">Steek / Pitch (p)</span>
+                <span class="detail-value"><span id="specChainPitch">-</span> mm</span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label">Binnenbreedte (b<sub>1</sub>)</span>
+                <span class="detail-value"><span id="specChainWidth">-</span> mm</span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label">Roldiameter (d<sub>1</sub>)</span>
+                <span class="detail-value"><span id="specChainRoller">-</span> mm</span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label">Pendiameter (d<sub>2</sub>)</span>
+                <span class="detail-value"><span id="specChainPin">-</span> mm</span>
+              </div>
+            </div>
+
+            <button type="button" class="btn" style="margin-top: 30px;" onclick="goToChainCalculator()">
+              <span>Start Kettingsmeerberekening</span>
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width: 20px; height: 20px;">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 15.75V18a2.25 2.25 0 0 1-2.25 2.25h-6a2.25 2.25 0 0 1-2.25-2.25v-6a2.25 2.25 0 0 1 2.25-2.25h6a2.25 2.25 0 0 1 2.25 2.25v2.25" />
+              </svg>
+            </button>
+          </div>
+
+          <!-- Right Visual Column (Exact Mirror Layout) -->
+          <div class="bearing-visual-container" style="gap: 20px; align-items: stretch; border: 1px solid var(--accent-yellow-border-soft); background-color: var(--bg-card); box-shadow: var(--shadow-sm);">
+            
+            <!-- Ketting Type Illustratie -->
+            <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%;">
+              <h4 style="margin-top: 0; margin-bottom: 15px; font-size: 13px; font-weight: 700; color: var(--primary-red); font-family: 'Outfit', sans-serif; text-transform: uppercase; letter-spacing: 1px; text-align: center;">Ketting Type Illustratie</h4>
+              <div style="height: 200px; width: 100%; display: flex; align-items: center; justify-content: center; background: white; border-radius: var(--border-radius-md); border: 1px solid rgba(226, 232, 240, 0.8); padding: 10px;">
+                <img id="chainTypeImg" src="chain-simplex.png" alt="Ketting type" style="max-height: 100%; max-width: 100%; object-fit: contain;">
+              </div>
+            </div>
+
+            <!-- Scheidingslijn -->
+            <div style="border-top: 1px solid var(--accent-yellow-border-soft); width: 100%; margin: 10px 0;"></div>
+
+            <!-- Visuele Afmetingen -->
+            <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%;">
+              <h4 style="margin-top: 0; margin-bottom: 15px; font-size: 13px; font-weight: 700; color: var(--primary-red); font-family: 'Outfit', sans-serif; text-transform: uppercase; letter-spacing: 1px; text-align: center;">Visuele Afmetingen</h4>
+              <div class="bearing-svg-wrapper" style="display: flex; align-items: center; justify-content: center; height: 280px; width: 100%; background: white; border-radius: var(--border-radius-md); border: 1px solid rgba(226, 232, 240, 0.8); padding: 10px; margin-bottom: 10px;">
+                <img id="chainDimensionsImg" src="chain-dimensions.png" alt="Ketting afmetingen" style="max-height: 100%; max-width: 100%; object-fit: contain; border-radius: var(--border-radius-md);">
+              </div>
+              
+              <div class="bearing-visual-note" style="margin-top: 10px; text-align: center; font-size: 12px; color: var(--text-medium);">
+                <strong>p</strong> = steek (<span id="visualChainPitchText">-</span>mm) | 
+                <strong>b<sub>1</sub></strong> = binnenbreedte (<span id="visualChainWidthText">-</span>mm) | 
+                <strong>d<sub>1</sub></strong> = roldiameter (<span id="visualChainRollerText">-</span>mm)
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==========================================================================
+           PAGE: KETTINGSMEERBEREKENING (CHAIN CALC)
+           ========================================================================== -->
+      <section id="pageChainCalc" class="page-section hidden">
+        <div class="card">
+          <h3 class="card-title">Kettingsmeercalculatie</h3>
+          <p style="font-size: 13px; color: var(--text-medium); margin-bottom: 20px;">
+            Bereken de optimale oliedosering (cm³/dag, ml/uur en druppels/minuut) en smeerintervallen voor uw kettingaandrijving.
+          </p>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+            <div>
+              <h4 style="font-size: 14px; font-weight: 700; color: var(--text-dark); margin-bottom: 12px;">Bedrijfsparameters Ketting</h4>
+              
+              <div class="form-group" style="margin-bottom: 12px;">
+                <label for="chainLengthInput" style="font-size: 12px; font-weight: 600;">Kettinglengte (meters)</label>
+                <input type="number" id="chainLengthInput" class="form-control" value="5.0" min="0.1" step="0.1" oninput="calculateChainGrease()">
+              </div>
+
+              <div class="form-group" style="margin-bottom: 12px;">
+                <label for="chainSpeedInput" style="font-size: 12px; font-weight: 600;">Kettingsnelheid (m/s)</label>
+                <input type="number" id="chainSpeedInput" class="form-control" value="1.5" min="0.01" step="0.1" oninput="calculateChainGrease()">
+              </div>
+
+              <div class="form-group" style="margin-bottom: 12px;">
+                <label for="chainEnvSelect" style="font-size: 12px; font-weight: 600;">Omgevingsomstandigheden</label>
+                <select id="chainEnvSelect" class="form-select" onchange="calculateChainGrease()">
+                  <option value="normal">Normaal (Schoon, droog, 20°C)</option>
+                  <option value="dusty">Stoffig / Vuil (+30% smeerbehoefte)</option>
+                  <option value="wet">Vochtig / Nat (+50% smeerbehoefte)</option>
+                  <option value="severe">Hoge temperatuur / Zwaar belast (+80% smeerbehoefte)</option>
+                </select>
+              </div>
+
+              <div class="form-group" style="margin-bottom: 12px;">
+                <label for="chainProductSelect" style="font-size: 12px; font-weight: 600;">Geselecteerd Interflon Product</label>
+                <select id="chainProductSelect" class="form-select" onchange="calculateChainGrease()">
+                  <option value="Lube TF">Interflon Lube TF (Met MicPol®)</option>
+                  <option value="Lube EP">Interflon Lube EP (Met MicPol®)</option>
+                  <option value="Food Lube">Interflon Food Lube (NSF H1, Met MicPol®)</option>
+                  <option value="Lube HT">Interflon Lube HT (Hoge Temperatuur)</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Output Card -->
+            <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: var(--border-radius-md); padding: 20px; display: flex; flex-direction: column; justify-content: space-between;">
+              <div>
+                <h4 style="font-size: 14px; font-weight: 700; color: var(--primary-red); margin-bottom: 14px;">Berekend Smeerdebiet Ketting</h4>
+                
+                <div style="margin-bottom: 14px; background: white; padding: 14px; border-radius: 8px; border: 1px solid #cbd5e1;">
+                  <div style="font-size: 12px; color: var(--text-medium); font-weight: 600;">Dagelijks smeervolume (24/7):</div>
+                  <div id="chainResDaily" style="font-size: 22px; font-weight: 800; color: var(--primary-red); margin-top: 4px;">0,00 cm³/dag</div>
+                </div>
+
+                <div style="margin-bottom: 14px; background: white; padding: 14px; border-radius: 8px; border: 1px solid #cbd5e1;">
+                  <div style="font-size: 12px; color: var(--text-medium); font-weight: 600;">Uurlijks smeervolume & Druppelfrequentie:</div>
+                  <div id="chainResHourly" style="font-size: 18px; font-weight: 700; color: var(--primary-blue); margin-top: 4px;">0,00 ml/uur (~ 0 druppels/min)</div>
+                </div>
+
+                <div style="background: #f0fdf4; border: 1px solid #bbf7d0; padding: 12px; border-radius: 8px; font-size: 12px; color: #166534;">
+                  <strong>💡 Interflon MicPol® Voordeel:</strong> Dankzij de MicPol® micro-polymeerfilm hecht het smeermiddel optimaal aan de kettingpennen. Dit levert een **besparing van ca. 60%** op ten opzichte van conventionele kettingolie.
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==========================================================================
+           PAGE: OPBRENGSTMODEL KETTINGEN (CHAIN OM)
+           ========================================================================== -->
+      <section id="pageChainOm" class="page-section hidden">
+        <div class="card">
+          <h3 class="card-title">Opbrengstmodel Kettingsmering</h3>
+          <p style="font-size: 13px; color: var(--text-medium); margin-bottom: 20px;">
+            Bereken de besparing op slijtage, onderhoudsuren en kettingvervanging met Interflon MicPol® kettingproducten.
+          </p>
+
+          <div style="padding: 30px; text-align: center; background-color: #f8fafc; border: 1px dashed #cbd5e1; border-radius: var(--border-radius-md);">
+            <h4 style="color: var(--primary-blue); font-size: 16px; margin-bottom: 8px;">TCO & ROI Analyse Kettingaandrijvingen</h4>
+            <p style="font-size: 13px; color: var(--text-medium); max-width: 550px; margin: 0 auto 16px auto;">
+              Het kostenmodel vergelijkt het verbruik en de levensduur van uw kettingaandrijving bij conventionele oliën ten opzichte van de Interflon MicPol® kettingolie.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==========================================================================
+           PAGE: AUTOMATISERING KETTINGEN (CHAIN AUTOMATION - PLACEHOLDER)
+           ========================================================================== -->
+      <section id="pageChainAutomation" class="page-section hidden">
+        <div class="card" style="padding: 40px 24px; text-align: center;">
+          <div style="width: 64px; height: 64px; border-radius: 50%; background-color: rgba(227,6,19,0.1); color: var(--primary-red); display: flex; align-items: center; justify-content: center; margin: 0 auto 20px auto;">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width: 32px; height: 32px;">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
+            </svg>
+          </div>
+          <h3 style="font-size: 20px; font-weight: 700; color: var(--text-dark); margin-bottom: 8px;">
+            Automatische Kettingsmeersystemen
+          </h3>
+          <p style="font-size: 14px; color: var(--text-medium); max-width: 500px; margin: 0 auto;">
+            De automatische smeersystemen en kwastdoseringen voor aandrijf- en transportkettingen zijn momenteel in voorbereiding en worden binnenkort beschikbaar gesteld.
+          </p>
+        </div>
+      </section>
+
+      <!-- ==========================================================================
+           PAGE: INFORMATIE KETTINGEN (CHAIN INFO)
+           ========================================================================== -->
+      <section id="pageChainInfo" class="page-section hidden">
+        <div class="card">
+          <h3 class="card-title">Informatie Kettingsmering</h3>
+          <p style="line-height: 1.6; color: var(--text-medium); margin-bottom: 20px;">
+            Welkom bij de Kettingsmeercalculator van Interflon. Kettingen bewegen onder hoge vlakdrukken en schokbelastingen. Zonder afdoende bescherming treedt kettingrek op door slijtage aan bussen en pennen.
+          </p>
+          <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: var(--border-radius-md); padding: 20px;">
+            <h4 style="color: var(--primary-red); font-size: 15px; font-weight: 700; margin-bottom: 10px;">Interflon MicPol® Technologie voor Kettingen</h4>
+            <p style="font-size: 13px; color: var(--text-medium); line-height: 1.6;">
+              Interflon kettingoliën kruipen tot diep in de kettingscharnieren en vormen een ijzersterke, droge smeerfilm die vuil, stof en water afstoot. Hierdoor verlengt de levensduur van de ketting aanzienlijk.
+            </p>
+          </div>
+        </div>
+      </section>
+
     </main>
 
   </div>
@@ -1512,8 +1801,9 @@
 
   <!-- JavaScript logic imports -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="interflon-data.js?v=39"></script>
+  <script src="interflon-data.js?v=40"></script>
   <script src="bearings-db.js"></script>
-  <script src="app.js?v=39"></script>
+  <script src="chains-db.js"></script>
+  <script src="app.js?v=40"></script>
 </body>
 </html>
