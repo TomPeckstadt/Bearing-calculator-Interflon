@@ -2806,11 +2806,26 @@ function openPricelistModal() {
                   (document.getElementById('pageChainOm') && document.getElementById('pageChainOm').classList.contains('active'));
 
   // Get selected product name
-  const prodNameId = isChain ? "chainOmProdName2" : "omProdName2";
-  const prodNameDiv = document.getElementById(prodNameId);
-  if (!prodNameDiv) return;
-  
-  let productName = prodNameDiv.textContent.trim();
+  let productName = "";
+  if (isChain) {
+    const chainSel = document.getElementById("chainProductSelect");
+    const prodNameDiv = document.getElementById("chainOmProdName2");
+    if (chainSel && chainSel.value) {
+      productName = chainSel.value.trim();
+      if (prodNameDiv) prodNameDiv.textContent = productName;
+    } else if (prodNameDiv) {
+      productName = prodNameDiv.textContent.trim();
+    }
+  } else {
+    const greaseSel = document.getElementById("inputGrease");
+    const prodNameDiv = document.getElementById("omProdName2");
+    if (greaseSel && greaseSel.value) {
+      productName = greaseSel.value.trim();
+      if (prodNameDiv) prodNameDiv.textContent = productName;
+    } else if (prodNameDiv) {
+      productName = prodNameDiv.textContent.trim();
+    }
+  }
   
   // Set product name badge in modal
   const productBadge = document.getElementById("pricelistProductBadge");
@@ -3883,6 +3898,14 @@ function loadChainTcoDetails() {
     CHAIN_TCO_INPUTS.forEach(id => {
       const el = document.getElementById(id);
       if (el && data[id] !== undefined) {
+        // Do not overwrite chainOmProdName2 with stale localStorage value if chainProductSelect exists
+        if (id === "chainOmProdName2") {
+          const chainSel = document.getElementById("chainProductSelect");
+          if (chainSel && chainSel.value) {
+            el.textContent = chainSel.value;
+            return;
+          }
+        }
         if (el.tagName === "INPUT" || el.tagName === "SELECT") {
           el.value = data[id];
         } else {
@@ -5002,7 +5025,7 @@ function selectChain(chain) {
 
   if (typeImg) typeImg.src = (chain.illustrationImg || "chain-simplex.png") + "?v=70";
   if (typeSubtitle) typeSubtitle.textContent = chain.strand || "Simplex (1-sporig)";
-  if (dimImg) dimImg.src = (chain.dimensionsImg || "chain-dimensions.png") + "?v=105";
+  if (dimImg) dimImg.src = (chain.dimensionsImg || "chain-dimensions.png") + "?v=108";
 
   if (vPitch) vPitch.textContent = chain.pitch.toFixed(1);
   if (vWidth) vWidth.textContent = chain.width.toFixed(1);
