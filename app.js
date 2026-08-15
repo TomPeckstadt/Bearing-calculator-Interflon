@@ -1513,7 +1513,7 @@ function switchPage(pageId) {
     }
     if (targetSubtitle) {
       targetSubtitle.removeAttribute("data-i18n");
-      targetSubtitle.textContent = "Bereken de optimale oliedosering (cm³/dag, ml/uur en druppels/minuut) voor uw kettingaandrijving.";
+      targetSubtitle.textContent = "Bereken de optimale oliedosering en frequentie voor uw ketting.";
     }
     calculateChainGrease();
   } else if (pageId === 'chainOm') {
