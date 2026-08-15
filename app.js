@@ -4497,14 +4497,14 @@ function calculateAutomationLubrication() {
   const formattedDaily = actualDailyVolume.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   const formattedMonthly = actualMonthlyVolume.toLocaleString("nl-BE", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 
-  resValEl.textContent = `${formattedDaily} cm³/dag`;
+  resValEl.textContent = `${formattedDaily} ml/dag`;
   let unitLabel = "maanden";
   if (unit === "weeks") unitLabel = "weken";
   else if (unit === "days") unitLabel = "dagen";
   else if (unit === "months") unitLabel = "maanden";
 
   if (hintEl) {
-    hintEl.textContent = `(~ ${formattedMonthly} cm³ / maand bij ${capMl} ml op ${periodVal} ${unitLabel})`;
+    hintEl.textContent = `(~ ${formattedMonthly} ml / maand bij ${capMl} ml op ${periodVal} ${unitLabel})`;
   }
 
   // Show status notice comparing active dosage with bearing requirement
@@ -4808,13 +4808,13 @@ function calculateChainGrease() {
   const yearlyLiters = (weeklyCm3 * 52.14) / 1000;
 
   if (resDaily) {
-    resDaily.textContent = `${dailyCm3.toLocaleString("nl-BE", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} cm³/dag`;
+    resDaily.textContent = `${dailyCm3.toLocaleString("nl-BE", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} ml/dag`;
   }
   if (resHourly) {
     resHourly.textContent = `${hourlyMl.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ml/uur`;
   }
   if (resWeekly) {
-    resWeekly.textContent = `${weeklyCm3.toLocaleString("nl-BE", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} cm³/wk`;
+    resWeekly.textContent = `${weeklyCm3.toLocaleString("nl-BE", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} ml/wk`;
   }
   if (resYearly) {
     resYearly.textContent = `${yearlyLiters.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} L/jaar`;
