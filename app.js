@@ -4688,13 +4688,15 @@ function selectChain(chain) {
 
   // Update Visual Cards (Exact Mirror Layout)
   const typeImg = document.getElementById("chainTypeImg");
+  const typeSubtitle = document.getElementById("chainTypeSubtitle");
   const dimImg = document.getElementById("chainDimensionsImg");
   const vPitch = document.getElementById("visualChainPitchText");
   const vWidth = document.getElementById("visualChainWidthText");
   const vRoller = document.getElementById("visualChainRollerText");
 
-  if (typeImg) typeImg.src = chain.illustrationImg || "chain-simplex.png";
-  if (dimImg) dimImg.src = chain.dimensionsImg || "chain-dimensions.png";
+  if (typeImg) typeImg.src = (chain.illustrationImg || "chain-simplex.png") + "?v=55";
+  if (typeSubtitle) typeSubtitle.textContent = chain.strand || "Simplex (1-sporig)";
+  if (dimImg) dimImg.src = (chain.dimensionsImg || "chain-dimensions.png") + "?v=55";
 
   if (vPitch) vPitch.textContent = chain.pitch.toFixed(1);
   if (vWidth) vWidth.textContent = chain.width.toFixed(1);
