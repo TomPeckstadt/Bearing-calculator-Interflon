@@ -1578,6 +1578,7 @@ function switchPage(pageId) {
       badgeTitleEl.textContent = activeChain ? `Ketting ${activeChain.designation} (${activeChain.strand})` : "Ketting 08B-1 (ISO/BS Simplex)";
     }
 
+    updateChainTcoFrequencies();
     calculateTco();
   } else if (pageId === 'chainAutomation') {
     const sec = document.getElementById("pageChainAutomation");
@@ -2234,6 +2235,69 @@ function setTcoCalcMode(mode) {
       saveTcoDetails();
     }
   }
+}
+
+function setChainTcoCalcMode(mode) {
+  localStorage.setItem("chain_tco_calc_mode", mode);
+  updateChainTcoFrequencies();
+  if (typeof calculateTco === "function") {
+    calculateTco();
+    if (typeof saveTcoDetails === "function") {
+      saveTcoDetails();
+    }
+  }
+}
+
+function updateChainTcoModeHint(mode) {
+  const hintEl = document.getElementById("chainTcoModeHint");
+  const selectEl = document.getElementById("chainTcoCalcModeSelect");
+  if (selectEl && selectEl.value !== mode) {
+    selectEl.value = mode;
+  }
+  if (!hintEl) return;
+
+  const langData = TRANSLATIONS[currentLang] || TRANSLATIONS["nl"];
+  if (mode === "practical") {
+    const techIntervalVal = localStorage.getItem("tech_interval");
+    const intervalDays = techIntervalVal ? parseFloat(techIntervalVal) : 0;
+    if (intervalDays > 0) {
+      const hintPattern = langData.tcoModeHintPractical || "Actueel: {days}d / smeerbeurt";
+      hintEl.textContent = hintPattern.replace("{days}", intervalDays);
+    } else {
+      hintEl.textContent = langData.tcoModeHintNoDays || "Vul interval in bij Tech. Gegevens";
+    }
+  } else {
+    hintEl.textContent = "Berekend smeerdebiet";
+  }
+}
+
+function updateChainTcoFrequencies() {
+  const chainOmProdFreq1El = document.getElementById("chainOmProdFreq1");
+  const chainOmProdFreq2El = document.getElementById("chainOmProdFreq2");
+  const mode = localStorage.getItem("chain_tco_calc_mode") || "formula";
+
+  updateChainTcoModeHint(mode);
+
+  if (!chainOmProdFreq1El || !chainOmProdFreq2El) return;
+
+  const daysPerWeekInput = document.getElementById("chainDaysPerWeekInput");
+  const daysPerWeek = daysPerWeekInput ? (parseFloat(daysPerWeekInput.value) || 7) : 7;
+  const formulaAnnualFreq = Math.round(daysPerWeek * 52.14);
+
+  if (mode === "practical") {
+    const techIntervalVal = localStorage.getItem("tech_interval");
+    const intervalDays = techIntervalVal ? parseFloat(techIntervalVal) : 0;
+    let pracFreq = 0;
+    if (intervalDays > 0) {
+      pracFreq = Math.round(365 / intervalDays);
+    } else {
+      pracFreq = formulaAnnualFreq;
+    }
+    chainOmProdFreq1El.value = pracFreq.toString();
+  } else {
+    chainOmProdFreq1El.value = formulaAnnualFreq.toString();
+  }
+  chainOmProdFreq2El.value = formulaAnnualFreq.toString();
 }
 
 function updateTcoModeHint(mode) {
@@ -4767,7 +4831,7 @@ function selectChain(chain) {
 
   if (typeImg) typeImg.src = (chain.illustrationImg || "chain-simplex.png") + "?v=70";
   if (typeSubtitle) typeSubtitle.textContent = chain.strand || "Simplex (1-sporig)";
-  if (dimImg) dimImg.src = (chain.dimensionsImg || "chain-dimensions.png") + "?v=80";
+  if (dimImg) dimImg.src = (chain.dimensionsImg || "chain-dimensions.png") + "?v=82";
 
   if (vPitch) vPitch.textContent = chain.pitch.toFixed(1);
   if (vWidth) vWidth.textContent = chain.width.toFixed(1);
