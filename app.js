@@ -48,6 +48,8 @@ const TRANSLATIONS = {
     btnShowDimensions: "Bekijk afmetingen",
     btnShowPhoto: "Bekijk foto toestel",
     selectLanguageLabel: "Selecteer uw taal",
+    modeModalTitle: "Welkom bij Interflon Berekeningsmodule",
+    modeModalSubtitle: "Maak uw keuze om de gewenste toepassing te openen:",
     loginTitle: "Interflon Smeercalculator",
     loginSubtitle: "Voer het paswoord in om toegang te krijgen tot de applicatie.",
     passwordLabel: "Paswoord",
@@ -347,6 +349,8 @@ const TRANSLATIONS = {
     btnShowDimensions: "View dimensions",
     btnShowPhoto: "View device photo",
     selectLanguageLabel: "Select your language",
+    modeModalTitle: "Welcome to Interflon Calculation Module",
+    modeModalSubtitle: "Make your choice to open the desired application:",
     loginTitle: "Interflon Lubrication Calculator",
     loginSubtitle: "Enter the password to access the application.",
     passwordLabel: "Password",
@@ -646,6 +650,8 @@ const TRANSLATIONS = {
     btnShowDimensions: "Voir dimensions",
     btnShowPhoto: "Voir photo appareil",
     selectLanguageLabel: "Choisissez votre langue",
+    modeModalTitle: "Bienvenue sur le Module de Calcul Interflon",
+    modeModalSubtitle: "Faites votre choix pour ouvrir l'application souhaitée:",
     loginTitle: "Calculateur de Lubrification Interflon",
     loginSubtitle: "Saisissez le mot de passe pour accéder à l'application.",
     passwordLabel: "Mot de passe",
@@ -5024,9 +5030,9 @@ function selectChain(chain) {
   const vRoller = document.getElementById("visualChainRollerText");
   const vPin = document.getElementById("visualChainPinText");
 
-  if (typeImg) typeImg.src = (chain.illustrationImg || "chain-simplex.png") + "?v=125";
+  if (typeImg) typeImg.src = (chain.illustrationImg || "chain-simplex.png") + "?v=128";
   if (typeSubtitle) typeSubtitle.textContent = chain.strand || "Simplex (1-sporig)";
-  if (dimImg) dimImg.src = (chain.dimensionsImg || "chain-dimensions.png") + "?v=125";
+  if (dimImg) dimImg.src = (chain.dimensionsImg || "chain-dimensions.png") + "?v=128";
 
   if (vPitch) vPitch.textContent = chain.pitch.toFixed(1);
   if (vWidth) vWidth.textContent = chain.width.toFixed(1);
