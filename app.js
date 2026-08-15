@@ -4767,7 +4767,7 @@ function selectChain(chain) {
 
   if (typeImg) typeImg.src = (chain.illustrationImg || "chain-simplex.png") + "?v=70";
   if (typeSubtitle) typeSubtitle.textContent = chain.strand || "Simplex (1-sporig)";
-  if (dimImg) dimImg.src = (chain.dimensionsImg || "chain-dimensions.png") + "?v=75";
+  if (dimImg) dimImg.src = (chain.dimensionsImg || "chain-dimensions.png") + "?v=76";
 
   if (vPitch) vPitch.textContent = chain.pitch.toFixed(1);
   if (vWidth) vWidth.textContent = chain.width.toFixed(1);
