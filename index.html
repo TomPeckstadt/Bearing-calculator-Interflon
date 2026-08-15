@@ -1193,7 +1193,7 @@
                 <td class="cell-input-wrapper"><div id="omProdName2" class="om-cell-input-div"></div></td>
                 <td colspan="2" rowspan="4" class="om-image-upload-cell" style="vertical-align: middle; text-align: center; background-color: #f3f4f6; position: relative; padding: 12px; border-left: 1px solid #e5e7eb;">
                   <!-- Hidden file input -->
-                  <input type="file" id="omAppImageInput" accept="image/*" style="display: none;">
+                  <input type="file" id="omAppImageInput" accept="image/*" style="display: none;" onchange="handleOmImageUpload(this)">
                   
                   <!-- Placeholder container (shows button) -->
                   <div id="omAppImagePlaceholder" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; min-height: 120px; gap: 8px;">
@@ -1210,7 +1210,7 @@
                   <!-- Preview container -->
                   <div id="omAppImagePreviewContainer" style="display: none; width: 100%; height: 100%; max-height: 220px; position: relative; border-radius: 6px; overflow: hidden; background-color: #ffffff; padding: 6px; box-shadow: inset 0 1px 2px rgba(0,0,0,0.05); border: 1px solid #e5e7eb; display: flex; align-items: center; justify-content: center;">
                     <img id="omAppImagePreview" src="" alt="" style="width: 100%; height: auto; max-height: 200px; object-fit: contain; border-radius: 4px;">
-                    <button type="button" id="omAppImageDeleteBtn" style="position: absolute; top: 6px; right: 6px; background-color: rgba(239, 68, 68, 0.9); color: white; border: none; border-radius: 50%; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 13px; font-weight: bold; box-shadow: 0 1px 3px rgba(0,0,0,0.25); transition: background-color 0.2s; z-index: 10;">
+                    <button type="button" id="omAppImageDeleteBtn" onclick="removeOmImage()" style="position: absolute; top: 6px; right: 6px; background-color: rgba(239, 68, 68, 0.9); color: white; border: none; border-radius: 50%; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 13px; font-weight: bold; box-shadow: 0 1px 3px rgba(0,0,0,0.25); transition: background-color 0.2s; z-index: 10;">
                       &times;
                     </button>
                   </div>
@@ -1980,7 +1980,7 @@
                 <td class="cell-input-wrapper"><div id="chainOmProdName2" class="om-cell-input-div"></div></td>
                 <td colspan="2" rowspan="4" class="om-image-upload-cell" style="vertical-align: middle; text-align: center; background-color: #f3f4f6; position: relative; padding: 12px; border-left: 1px solid #e5e7eb;">
                   <!-- Hidden file input -->
-                  <input type="file" id="chainOmAppImageInput" accept="image/*" style="display: none;">
+                  <input type="file" id="chainOmAppImageInput" accept="image/*" style="display: none;" onchange="handleChainOmImageUpload(this)">
                   
                   <!-- Placeholder container (shows button) -->
                   <div id="chainOmAppImagePlaceholder" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; min-height: 120px; gap: 8px;">
@@ -1997,7 +1997,7 @@
                   <!-- Preview container -->
                   <div id="chainOmAppImagePreviewContainer" style="display: none; width: 100%; height: 100%; max-height: 220px; position: relative; border-radius: 6px; overflow: hidden; background-color: #ffffff; padding: 6px; box-shadow: inset 0 1px 2px rgba(0,0,0,0.05); border: 1px solid #e5e7eb; display: flex; align-items: center; justify-content: center;">
                     <img id="chainOmAppImagePreview" src="" alt="" style="width: 100%; height: auto; max-height: 200px; object-fit: contain; border-radius: 4px;">
-                    <button type="button" id="chainOmAppImageDeleteBtn" style="position: absolute; top: 6px; right: 6px; background-color: rgba(239, 68, 68, 0.9); color: white; border: none; border-radius: 50%; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 13px; font-weight: bold; box-shadow: 0 1px 3px rgba(0,0,0,0.25); transition: background-color 0.2s; z-index: 10;">
+                    <button type="button" id="chainOmAppImageDeleteBtn" onclick="removeChainOmImage()" style="position: absolute; top: 6px; right: 6px; background-color: rgba(239, 68, 68, 0.9); color: white; border: none; border-radius: 50%; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 13px; font-weight: bold; box-shadow: 0 1px 3px rgba(0,0,0,0.25); transition: background-color 0.2s; z-index: 10;">
                       &times;
                     </button>
                   </div>
@@ -2234,9 +2234,9 @@
 
   <!-- JavaScript logic imports -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="interflon-data.js?v=92"></script>
+  <script src="interflon-data.js?v=95"></script>
   <script src="bearings-db.js"></script>
   <script src="chains-db.js"></script>
-  <script src="app.js?v=92"></script>
+  <script src="app.js?v=95"></script>
 </body>
 </html>
