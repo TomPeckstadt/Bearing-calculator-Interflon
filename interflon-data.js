@@ -502,3 +502,4669 @@ const INTERFLON_PRICELIST = {
   ]
 };
 
+
+
+const INTERFLON_CHAIN_PRICELIST = {
+  "Fin super": [
+    {
+      "artNo": "9606",
+      "content": "100 ml",
+      "packaging": "spuitbus",
+      "qty": 1,
+      "unitPrice": 13.1,
+      "pricePerL": 13.1
+    },
+    {
+      "artNo": "9606",
+      "content": "100 ml",
+      "packaging": "spuitbus",
+      "qty": 12,
+      "unitPrice": 10.8,
+      "pricePerL": 10.8
+    },
+    {
+      "artNo": "9606",
+      "content": "100 ml",
+      "packaging": "spuitbus",
+      "qty": 24,
+      "unitPrice": 9.7,
+      "pricePerL": 9.7
+    },
+    {
+      "artNo": "9606",
+      "content": "100 ml",
+      "packaging": "spuitbus",
+      "qty": 48,
+      "unitPrice": 9,
+      "pricePerL": 9
+    },
+    {
+      "artNo": "8019",
+      "content": "300 ml",
+      "packaging": "spuitbus",
+      "qty": 1,
+      "unitPrice": 18.6,
+      "pricePerL": 62
+    },
+    {
+      "artNo": "8019",
+      "content": "300 ml",
+      "packaging": "spuitbus",
+      "qty": 12,
+      "unitPrice": 16.7,
+      "pricePerL": 55.67
+    },
+    {
+      "artNo": "8019",
+      "content": "300 ml",
+      "packaging": "spuitbus",
+      "qty": 24,
+      "unitPrice": 16.2,
+      "pricePerL": 54
+    },
+    {
+      "artNo": "8019",
+      "content": "300 ml",
+      "packaging": "spuitbus",
+      "qty": 48,
+      "unitPrice": 15.5,
+      "pricePerL": 51.67
+    }
+  ],
+  "FIN SUPER": [
+    {
+      "artNo": "9606",
+      "content": "100 ml",
+      "packaging": "spuitbus",
+      "qty": 1,
+      "unitPrice": 13.1,
+      "pricePerL": 13.1
+    },
+    {
+      "artNo": "9606",
+      "content": "100 ml",
+      "packaging": "spuitbus",
+      "qty": 12,
+      "unitPrice": 10.8,
+      "pricePerL": 10.8
+    },
+    {
+      "artNo": "9606",
+      "content": "100 ml",
+      "packaging": "spuitbus",
+      "qty": 24,
+      "unitPrice": 9.7,
+      "pricePerL": 9.7
+    },
+    {
+      "artNo": "9606",
+      "content": "100 ml",
+      "packaging": "spuitbus",
+      "qty": 48,
+      "unitPrice": 9,
+      "pricePerL": 9
+    },
+    {
+      "artNo": "8019",
+      "content": "300 ml",
+      "packaging": "spuitbus",
+      "qty": 1,
+      "unitPrice": 18.6,
+      "pricePerL": 62
+    },
+    {
+      "artNo": "8019",
+      "content": "300 ml",
+      "packaging": "spuitbus",
+      "qty": 12,
+      "unitPrice": 16.7,
+      "pricePerL": 55.67
+    },
+    {
+      "artNo": "8019",
+      "content": "300 ml",
+      "packaging": "spuitbus",
+      "qty": 24,
+      "unitPrice": 16.2,
+      "pricePerL": 54
+    },
+    {
+      "artNo": "8019",
+      "content": "300 ml",
+      "packaging": "spuitbus",
+      "qty": 48,
+      "unitPrice": 15.5,
+      "pricePerL": 51.67
+    }
+  ],
+  "INTERFLON FIN SUPER": [
+    {
+      "artNo": "9606",
+      "content": "100 ml",
+      "packaging": "spuitbus",
+      "qty": 1,
+      "unitPrice": 13.1,
+      "pricePerL": 13.1
+    },
+    {
+      "artNo": "9606",
+      "content": "100 ml",
+      "packaging": "spuitbus",
+      "qty": 12,
+      "unitPrice": 10.8,
+      "pricePerL": 10.8
+    },
+    {
+      "artNo": "9606",
+      "content": "100 ml",
+      "packaging": "spuitbus",
+      "qty": 24,
+      "unitPrice": 9.7,
+      "pricePerL": 9.7
+    },
+    {
+      "artNo": "9606",
+      "content": "100 ml",
+      "packaging": "spuitbus",
+      "qty": 48,
+      "unitPrice": 9,
+      "pricePerL": 9
+    },
+    {
+      "artNo": "8019",
+      "content": "300 ml",
+      "packaging": "spuitbus",
+      "qty": 1,
+      "unitPrice": 18.6,
+      "pricePerL": 62
+    },
+    {
+      "artNo": "8019",
+      "content": "300 ml",
+      "packaging": "spuitbus",
+      "qty": 12,
+      "unitPrice": 16.7,
+      "pricePerL": 55.67
+    },
+    {
+      "artNo": "8019",
+      "content": "300 ml",
+      "packaging": "spuitbus",
+      "qty": 24,
+      "unitPrice": 16.2,
+      "pricePerL": 54
+    },
+    {
+      "artNo": "8019",
+      "content": "300 ml",
+      "packaging": "spuitbus",
+      "qty": 48,
+      "unitPrice": 15.5,
+      "pricePerL": 51.67
+    }
+  ],
+  "Lube TF": [
+    {
+      "artNo": "9231",
+      "content": "500 ml",
+      "packaging": "spuitbus",
+      "qty": 1,
+      "unitPrice": 27.4,
+      "pricePerL": 54.8
+    },
+    {
+      "artNo": "9231",
+      "content": "500 ml",
+      "packaging": "spuitbus",
+      "qty": 12,
+      "unitPrice": 26.2,
+      "pricePerL": 52.4
+    },
+    {
+      "artNo": "9231",
+      "content": "500 ml",
+      "packaging": "spuitbus",
+      "qty": 24,
+      "unitPrice": 25,
+      "pricePerL": 50
+    },
+    {
+      "artNo": "9231",
+      "content": "500 ml",
+      "packaging": "spuitbus",
+      "qty": 48,
+      "unitPrice": 24,
+      "pricePerL": 48
+    },
+    {
+      "artNo": "8101",
+      "content": "1 liter",
+      "packaging": "trickspray",
+      "qty": 1,
+      "unitPrice": 56.4,
+      "pricePerL": 56.4
+    },
+    {
+      "artNo": "8101",
+      "content": "1 liter",
+      "packaging": "trickspray",
+      "qty": 6,
+      "unitPrice": 53.7,
+      "pricePerL": 53.7
+    },
+    {
+      "artNo": "8101",
+      "content": "1 liter",
+      "packaging": "trickspray",
+      "qty": 12,
+      "unitPrice": 51.4,
+      "pricePerL": 51.4
+    },
+    {
+      "artNo": "8101",
+      "content": "1 liter",
+      "packaging": "trickspray",
+      "qty": 24,
+      "unitPrice": 51,
+      "pricePerL": 51
+    },
+    {
+      "artNo": "8102",
+      "content": "5 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 43.1,
+      "pricePerL": 43.1
+    },
+    {
+      "artNo": "8103",
+      "content": "10 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 41.6,
+      "pricePerL": 41.6
+    },
+    {
+      "artNo": "8104",
+      "content": "20 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 40,
+      "pricePerL": 40
+    },
+    {
+      "artNo": "8104",
+      "content": "20 liter",
+      "packaging": "jerrycan",
+      "qty": 3,
+      "unitPrice": 38.9,
+      "pricePerL": 38.9
+    }
+  ],
+  "LUBE TF": [
+    {
+      "artNo": "9231",
+      "content": "500 ml",
+      "packaging": "spuitbus",
+      "qty": 1,
+      "unitPrice": 27.4,
+      "pricePerL": 54.8
+    },
+    {
+      "artNo": "9231",
+      "content": "500 ml",
+      "packaging": "spuitbus",
+      "qty": 12,
+      "unitPrice": 26.2,
+      "pricePerL": 52.4
+    },
+    {
+      "artNo": "9231",
+      "content": "500 ml",
+      "packaging": "spuitbus",
+      "qty": 24,
+      "unitPrice": 25,
+      "pricePerL": 50
+    },
+    {
+      "artNo": "9231",
+      "content": "500 ml",
+      "packaging": "spuitbus",
+      "qty": 48,
+      "unitPrice": 24,
+      "pricePerL": 48
+    },
+    {
+      "artNo": "8101",
+      "content": "1 liter",
+      "packaging": "trickspray",
+      "qty": 1,
+      "unitPrice": 56.4,
+      "pricePerL": 56.4
+    },
+    {
+      "artNo": "8101",
+      "content": "1 liter",
+      "packaging": "trickspray",
+      "qty": 6,
+      "unitPrice": 53.7,
+      "pricePerL": 53.7
+    },
+    {
+      "artNo": "8101",
+      "content": "1 liter",
+      "packaging": "trickspray",
+      "qty": 12,
+      "unitPrice": 51.4,
+      "pricePerL": 51.4
+    },
+    {
+      "artNo": "8101",
+      "content": "1 liter",
+      "packaging": "trickspray",
+      "qty": 24,
+      "unitPrice": 51,
+      "pricePerL": 51
+    },
+    {
+      "artNo": "8102",
+      "content": "5 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 43.1,
+      "pricePerL": 43.1
+    },
+    {
+      "artNo": "8103",
+      "content": "10 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 41.6,
+      "pricePerL": 41.6
+    },
+    {
+      "artNo": "8104",
+      "content": "20 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 40,
+      "pricePerL": 40
+    },
+    {
+      "artNo": "8104",
+      "content": "20 liter",
+      "packaging": "jerrycan",
+      "qty": 3,
+      "unitPrice": 38.9,
+      "pricePerL": 38.9
+    }
+  ],
+  "INTERFLON LUBE TF": [
+    {
+      "artNo": "9231",
+      "content": "500 ml",
+      "packaging": "spuitbus",
+      "qty": 1,
+      "unitPrice": 27.4,
+      "pricePerL": 54.8
+    },
+    {
+      "artNo": "9231",
+      "content": "500 ml",
+      "packaging": "spuitbus",
+      "qty": 12,
+      "unitPrice": 26.2,
+      "pricePerL": 52.4
+    },
+    {
+      "artNo": "9231",
+      "content": "500 ml",
+      "packaging": "spuitbus",
+      "qty": 24,
+      "unitPrice": 25,
+      "pricePerL": 50
+    },
+    {
+      "artNo": "9231",
+      "content": "500 ml",
+      "packaging": "spuitbus",
+      "qty": 48,
+      "unitPrice": 24,
+      "pricePerL": 48
+    },
+    {
+      "artNo": "8101",
+      "content": "1 liter",
+      "packaging": "trickspray",
+      "qty": 1,
+      "unitPrice": 56.4,
+      "pricePerL": 56.4
+    },
+    {
+      "artNo": "8101",
+      "content": "1 liter",
+      "packaging": "trickspray",
+      "qty": 6,
+      "unitPrice": 53.7,
+      "pricePerL": 53.7
+    },
+    {
+      "artNo": "8101",
+      "content": "1 liter",
+      "packaging": "trickspray",
+      "qty": 12,
+      "unitPrice": 51.4,
+      "pricePerL": 51.4
+    },
+    {
+      "artNo": "8101",
+      "content": "1 liter",
+      "packaging": "trickspray",
+      "qty": 24,
+      "unitPrice": 51,
+      "pricePerL": 51
+    },
+    {
+      "artNo": "8102",
+      "content": "5 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 43.1,
+      "pricePerL": 43.1
+    },
+    {
+      "artNo": "8103",
+      "content": "10 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 41.6,
+      "pricePerL": 41.6
+    },
+    {
+      "artNo": "8104",
+      "content": "20 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 40,
+      "pricePerL": 40
+    },
+    {
+      "artNo": "8104",
+      "content": "20 liter",
+      "packaging": "jerrycan",
+      "qty": 3,
+      "unitPrice": 38.9,
+      "pricePerL": 38.9
+    }
+  ],
+  "Lube HT": [
+    {
+      "artNo": "9250",
+      "content": "500 ml",
+      "packaging": "spuitbus",
+      "qty": 1,
+      "unitPrice": 45.5,
+      "pricePerL": 91
+    },
+    {
+      "artNo": "9250",
+      "content": "500 ml",
+      "packaging": "spuitbus",
+      "qty": 12,
+      "unitPrice": 41.6,
+      "pricePerL": 83.2
+    },
+    {
+      "artNo": "9250",
+      "content": "500 ml",
+      "packaging": "spuitbus",
+      "qty": 24,
+      "unitPrice": 39.8,
+      "pricePerL": 79.6
+    },
+    {
+      "artNo": "9250",
+      "content": "500 ml",
+      "packaging": "spuitbus",
+      "qty": 48,
+      "unitPrice": 37.6,
+      "pricePerL": 75.2
+    },
+    {
+      "artNo": "8502",
+      "content": "5 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 50,
+      "pricePerL": 50
+    },
+    {
+      "artNo": "8501",
+      "content": "10 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 47,
+      "pricePerL": 47
+    },
+    {
+      "artNo": "8500",
+      "content": "20 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 44,
+      "pricePerL": 44
+    },
+    {
+      "artNo": "8500",
+      "content": "20 liter",
+      "packaging": "jerrycan",
+      "qty": 3,
+      "unitPrice": 42.3,
+      "pricePerL": 42.3
+    }
+  ],
+  "LUBE HT": [
+    {
+      "artNo": "9250",
+      "content": "500 ml",
+      "packaging": "spuitbus",
+      "qty": 1,
+      "unitPrice": 45.5,
+      "pricePerL": 91
+    },
+    {
+      "artNo": "9250",
+      "content": "500 ml",
+      "packaging": "spuitbus",
+      "qty": 12,
+      "unitPrice": 41.6,
+      "pricePerL": 83.2
+    },
+    {
+      "artNo": "9250",
+      "content": "500 ml",
+      "packaging": "spuitbus",
+      "qty": 24,
+      "unitPrice": 39.8,
+      "pricePerL": 79.6
+    },
+    {
+      "artNo": "9250",
+      "content": "500 ml",
+      "packaging": "spuitbus",
+      "qty": 48,
+      "unitPrice": 37.6,
+      "pricePerL": 75.2
+    },
+    {
+      "artNo": "8502",
+      "content": "5 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 50,
+      "pricePerL": 50
+    },
+    {
+      "artNo": "8501",
+      "content": "10 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 47,
+      "pricePerL": 47
+    },
+    {
+      "artNo": "8500",
+      "content": "20 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 44,
+      "pricePerL": 44
+    },
+    {
+      "artNo": "8500",
+      "content": "20 liter",
+      "packaging": "jerrycan",
+      "qty": 3,
+      "unitPrice": 42.3,
+      "pricePerL": 42.3
+    }
+  ],
+  "INTERFLON LUBE HT": [
+    {
+      "artNo": "9250",
+      "content": "500 ml",
+      "packaging": "spuitbus",
+      "qty": 1,
+      "unitPrice": 45.5,
+      "pricePerL": 91
+    },
+    {
+      "artNo": "9250",
+      "content": "500 ml",
+      "packaging": "spuitbus",
+      "qty": 12,
+      "unitPrice": 41.6,
+      "pricePerL": 83.2
+    },
+    {
+      "artNo": "9250",
+      "content": "500 ml",
+      "packaging": "spuitbus",
+      "qty": 24,
+      "unitPrice": 39.8,
+      "pricePerL": 79.6
+    },
+    {
+      "artNo": "9250",
+      "content": "500 ml",
+      "packaging": "spuitbus",
+      "qty": 48,
+      "unitPrice": 37.6,
+      "pricePerL": 75.2
+    },
+    {
+      "artNo": "8502",
+      "content": "5 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 50,
+      "pricePerL": 50
+    },
+    {
+      "artNo": "8501",
+      "content": "10 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 47,
+      "pricePerL": 47
+    },
+    {
+      "artNo": "8500",
+      "content": "20 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 44,
+      "pricePerL": 44
+    },
+    {
+      "artNo": "8500",
+      "content": "20 liter",
+      "packaging": "jerrycan",
+      "qty": 3,
+      "unitPrice": 42.3,
+      "pricePerL": 42.3
+    }
+  ],
+  "Lube HT/SF": [
+    {
+      "artNo": "9166",
+      "content": "1 liter",
+      "packaging": "fles",
+      "qty": 1,
+      "unitPrice": 83.4,
+      "pricePerL": 83.4
+    },
+    {
+      "artNo": "9166",
+      "content": "1 liter",
+      "packaging": "fles",
+      "qty": 6,
+      "unitPrice": 79.6,
+      "pricePerL": 79.6
+    },
+    {
+      "artNo": "9166",
+      "content": "1 liter",
+      "packaging": "fles",
+      "qty": 12,
+      "unitPrice": 75.9,
+      "pricePerL": 75.9
+    },
+    {
+      "artNo": "9166",
+      "content": "1 liter",
+      "packaging": "fles",
+      "qty": 24,
+      "unitPrice": 72.2,
+      "pricePerL": 72.2
+    },
+    {
+      "artNo": "9167",
+      "content": "5 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 69.2,
+      "pricePerL": 69.2
+    },
+    {
+      "artNo": "9168",
+      "content": "10 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 67.8,
+      "pricePerL": 67.8
+    },
+    {
+      "artNo": "9169",
+      "content": "20 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 65.9,
+      "pricePerL": 65.9
+    }
+  ],
+  "LUBE HT/SF": [
+    {
+      "artNo": "9166",
+      "content": "1 liter",
+      "packaging": "fles",
+      "qty": 1,
+      "unitPrice": 83.4,
+      "pricePerL": 83.4
+    },
+    {
+      "artNo": "9166",
+      "content": "1 liter",
+      "packaging": "fles",
+      "qty": 6,
+      "unitPrice": 79.6,
+      "pricePerL": 79.6
+    },
+    {
+      "artNo": "9166",
+      "content": "1 liter",
+      "packaging": "fles",
+      "qty": 12,
+      "unitPrice": 75.9,
+      "pricePerL": 75.9
+    },
+    {
+      "artNo": "9166",
+      "content": "1 liter",
+      "packaging": "fles",
+      "qty": 24,
+      "unitPrice": 72.2,
+      "pricePerL": 72.2
+    },
+    {
+      "artNo": "9167",
+      "content": "5 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 69.2,
+      "pricePerL": 69.2
+    },
+    {
+      "artNo": "9168",
+      "content": "10 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 67.8,
+      "pricePerL": 67.8
+    },
+    {
+      "artNo": "9169",
+      "content": "20 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 65.9,
+      "pricePerL": 65.9
+    }
+  ],
+  "INTERFLON LUBE HT/SF": [
+    {
+      "artNo": "9166",
+      "content": "1 liter",
+      "packaging": "fles",
+      "qty": 1,
+      "unitPrice": 83.4,
+      "pricePerL": 83.4
+    },
+    {
+      "artNo": "9166",
+      "content": "1 liter",
+      "packaging": "fles",
+      "qty": 6,
+      "unitPrice": 79.6,
+      "pricePerL": 79.6
+    },
+    {
+      "artNo": "9166",
+      "content": "1 liter",
+      "packaging": "fles",
+      "qty": 12,
+      "unitPrice": 75.9,
+      "pricePerL": 75.9
+    },
+    {
+      "artNo": "9166",
+      "content": "1 liter",
+      "packaging": "fles",
+      "qty": 24,
+      "unitPrice": 72.2,
+      "pricePerL": 72.2
+    },
+    {
+      "artNo": "9167",
+      "content": "5 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 69.2,
+      "pricePerL": 69.2
+    },
+    {
+      "artNo": "9168",
+      "content": "10 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 67.8,
+      "pricePerL": 67.8
+    },
+    {
+      "artNo": "9169",
+      "content": "20 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 65.9,
+      "pricePerL": 65.9
+    }
+  ],
+  "Lube PN32": [
+    {
+      "artNo": "8464",
+      "content": "1 liter",
+      "packaging": "fles",
+      "qty": 6,
+      "unitPrice": 49.6,
+      "pricePerL": 49.6
+    },
+    {
+      "artNo": "8429",
+      "content": "5 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 43.1,
+      "pricePerL": 43.1
+    },
+    {
+      "artNo": "8430",
+      "content": "10 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 41.6,
+      "pricePerL": 41.6
+    },
+    {
+      "artNo": "8431",
+      "content": "20 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 40,
+      "pricePerL": 40
+    },
+    {
+      "artNo": "8431",
+      "content": "20 liter",
+      "packaging": "jerrycan",
+      "qty": 3,
+      "unitPrice": 38.4,
+      "pricePerL": 38.4
+    },
+    {
+      "artNo": "8655",
+      "content": "200 liter",
+      "packaging": "vat",
+      "qty": 1,
+      "unitPrice": 35.7,
+      "pricePerL": 35.7
+    }
+  ],
+  "LUBE PN32": [
+    {
+      "artNo": "8464",
+      "content": "1 liter",
+      "packaging": "fles",
+      "qty": 6,
+      "unitPrice": 49.6,
+      "pricePerL": 49.6
+    },
+    {
+      "artNo": "8429",
+      "content": "5 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 43.1,
+      "pricePerL": 43.1
+    },
+    {
+      "artNo": "8430",
+      "content": "10 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 41.6,
+      "pricePerL": 41.6
+    },
+    {
+      "artNo": "8431",
+      "content": "20 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 40,
+      "pricePerL": 40
+    },
+    {
+      "artNo": "8431",
+      "content": "20 liter",
+      "packaging": "jerrycan",
+      "qty": 3,
+      "unitPrice": 38.4,
+      "pricePerL": 38.4
+    },
+    {
+      "artNo": "8655",
+      "content": "200 liter",
+      "packaging": "vat",
+      "qty": 1,
+      "unitPrice": 35.7,
+      "pricePerL": 35.7
+    }
+  ],
+  "INTERFLON LUBE PN32": [
+    {
+      "artNo": "8464",
+      "content": "1 liter",
+      "packaging": "fles",
+      "qty": 6,
+      "unitPrice": 49.6,
+      "pricePerL": 49.6
+    },
+    {
+      "artNo": "8429",
+      "content": "5 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 43.1,
+      "pricePerL": 43.1
+    },
+    {
+      "artNo": "8430",
+      "content": "10 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 41.6,
+      "pricePerL": 41.6
+    },
+    {
+      "artNo": "8431",
+      "content": "20 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 40,
+      "pricePerL": 40
+    },
+    {
+      "artNo": "8431",
+      "content": "20 liter",
+      "packaging": "jerrycan",
+      "qty": 3,
+      "unitPrice": 38.4,
+      "pricePerL": 38.4
+    },
+    {
+      "artNo": "8655",
+      "content": "200 liter",
+      "packaging": "vat",
+      "qty": 1,
+      "unitPrice": 35.7,
+      "pricePerL": 35.7
+    }
+  ],
+  "Lube PN46": [
+    {
+      "artNo": "8358",
+      "content": "5 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 43.1,
+      "pricePerL": 43.1
+    },
+    {
+      "artNo": "8359",
+      "content": "10 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 41.6,
+      "pricePerL": 41.6
+    },
+    {
+      "artNo": "8393",
+      "content": "20 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 40,
+      "pricePerL": 40
+    },
+    {
+      "artNo": "8393",
+      "content": "20 liter",
+      "packaging": "jerrycan",
+      "qty": 3,
+      "unitPrice": 38.4,
+      "pricePerL": 38.4
+    },
+    {
+      "artNo": "8653",
+      "content": "200 liter",
+      "packaging": "vat",
+      "qty": 1,
+      "unitPrice": 35.7,
+      "pricePerL": 35.7
+    }
+  ],
+  "LUBE PN46": [
+    {
+      "artNo": "8358",
+      "content": "5 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 43.1,
+      "pricePerL": 43.1
+    },
+    {
+      "artNo": "8359",
+      "content": "10 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 41.6,
+      "pricePerL": 41.6
+    },
+    {
+      "artNo": "8393",
+      "content": "20 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 40,
+      "pricePerL": 40
+    },
+    {
+      "artNo": "8393",
+      "content": "20 liter",
+      "packaging": "jerrycan",
+      "qty": 3,
+      "unitPrice": 38.4,
+      "pricePerL": 38.4
+    },
+    {
+      "artNo": "8653",
+      "content": "200 liter",
+      "packaging": "vat",
+      "qty": 1,
+      "unitPrice": 35.7,
+      "pricePerL": 35.7
+    }
+  ],
+  "INTERFLON LUBE PN46": [
+    {
+      "artNo": "8358",
+      "content": "5 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 43.1,
+      "pricePerL": 43.1
+    },
+    {
+      "artNo": "8359",
+      "content": "10 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 41.6,
+      "pricePerL": 41.6
+    },
+    {
+      "artNo": "8393",
+      "content": "20 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 40,
+      "pricePerL": 40
+    },
+    {
+      "artNo": "8393",
+      "content": "20 liter",
+      "packaging": "jerrycan",
+      "qty": 3,
+      "unitPrice": 38.4,
+      "pricePerL": 38.4
+    },
+    {
+      "artNo": "8653",
+      "content": "200 liter",
+      "packaging": "vat",
+      "qty": 1,
+      "unitPrice": 35.7,
+      "pricePerL": 35.7
+    }
+  ],
+  "Lube PN68": [
+    {
+      "artNo": "8196",
+      "content": "5 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 43.1,
+      "pricePerL": 43.1
+    },
+    {
+      "artNo": "8197",
+      "content": "10 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 41.6,
+      "pricePerL": 41.6
+    },
+    {
+      "artNo": "8394",
+      "content": "20 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 40,
+      "pricePerL": 40
+    },
+    {
+      "artNo": "8394",
+      "content": "20 liter",
+      "packaging": "jerrycan",
+      "qty": 3,
+      "unitPrice": 38.4,
+      "pricePerL": 38.4
+    },
+    {
+      "artNo": "8648",
+      "content": "200 liter",
+      "packaging": "vat",
+      "qty": 1,
+      "unitPrice": 35.7,
+      "pricePerL": 35.7
+    }
+  ],
+  "LUBE PN68": [
+    {
+      "artNo": "8196",
+      "content": "5 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 43.1,
+      "pricePerL": 43.1
+    },
+    {
+      "artNo": "8197",
+      "content": "10 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 41.6,
+      "pricePerL": 41.6
+    },
+    {
+      "artNo": "8394",
+      "content": "20 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 40,
+      "pricePerL": 40
+    },
+    {
+      "artNo": "8394",
+      "content": "20 liter",
+      "packaging": "jerrycan",
+      "qty": 3,
+      "unitPrice": 38.4,
+      "pricePerL": 38.4
+    },
+    {
+      "artNo": "8648",
+      "content": "200 liter",
+      "packaging": "vat",
+      "qty": 1,
+      "unitPrice": 35.7,
+      "pricePerL": 35.7
+    }
+  ],
+  "INTERFLON LUBE PN68": [
+    {
+      "artNo": "8196",
+      "content": "5 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 43.1,
+      "pricePerL": 43.1
+    },
+    {
+      "artNo": "8197",
+      "content": "10 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 41.6,
+      "pricePerL": 41.6
+    },
+    {
+      "artNo": "8394",
+      "content": "20 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 40,
+      "pricePerL": 40
+    },
+    {
+      "artNo": "8394",
+      "content": "20 liter",
+      "packaging": "jerrycan",
+      "qty": 3,
+      "unitPrice": 38.4,
+      "pricePerL": 38.4
+    },
+    {
+      "artNo": "8648",
+      "content": "200 liter",
+      "packaging": "vat",
+      "qty": 1,
+      "unitPrice": 35.7,
+      "pricePerL": 35.7
+    }
+  ],
+  "Lube EP+": [
+    {
+      "artNo": "9256",
+      "content": "500 ml",
+      "packaging": "spuitbus",
+      "qty": 1,
+      "unitPrice": 38.5,
+      "pricePerL": 77
+    },
+    {
+      "artNo": "9256",
+      "content": "500 ml",
+      "packaging": "spuitbus",
+      "qty": 12,
+      "unitPrice": 35.3,
+      "pricePerL": 70.6
+    },
+    {
+      "artNo": "9256",
+      "content": "500 ml",
+      "packaging": "spuitbus",
+      "qty": 24,
+      "unitPrice": 33.6,
+      "pricePerL": 67.2
+    },
+    {
+      "artNo": "9256",
+      "content": "500 ml",
+      "packaging": "spuitbus",
+      "qty": 48,
+      "unitPrice": 31.9,
+      "pricePerL": 63.8
+    },
+    {
+      "artNo": "8986",
+      "content": "1 liter",
+      "packaging": "fles",
+      "qty": 1,
+      "unitPrice": 66.4,
+      "pricePerL": 66.4
+    },
+    {
+      "artNo": "8986",
+      "content": "1 liter",
+      "packaging": "fles",
+      "qty": 6,
+      "unitPrice": 60.6,
+      "pricePerL": 60.6
+    },
+    {
+      "artNo": "8986",
+      "content": "1 liter",
+      "packaging": "fles",
+      "qty": 12,
+      "unitPrice": 57.6,
+      "pricePerL": 57.6
+    },
+    {
+      "artNo": "8986",
+      "content": "1 liter",
+      "packaging": "fles",
+      "qty": 24,
+      "unitPrice": 54.7,
+      "pricePerL": 54.7
+    },
+    {
+      "artNo": "8987",
+      "content": "5 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 55,
+      "pricePerL": 55
+    },
+    {
+      "artNo": "8988",
+      "content": "10 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 54.4,
+      "pricePerL": 54.4
+    },
+    {
+      "artNo": "8989",
+      "content": "20 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 52.3,
+      "pricePerL": 52.3
+    },
+    {
+      "artNo": "8989",
+      "content": "20 liter",
+      "packaging": "jerrycan",
+      "qty": 3,
+      "unitPrice": 51,
+      "pricePerL": 51
+    }
+  ],
+  "LUBE EP+": [
+    {
+      "artNo": "9256",
+      "content": "500 ml",
+      "packaging": "spuitbus",
+      "qty": 1,
+      "unitPrice": 38.5,
+      "pricePerL": 77
+    },
+    {
+      "artNo": "9256",
+      "content": "500 ml",
+      "packaging": "spuitbus",
+      "qty": 12,
+      "unitPrice": 35.3,
+      "pricePerL": 70.6
+    },
+    {
+      "artNo": "9256",
+      "content": "500 ml",
+      "packaging": "spuitbus",
+      "qty": 24,
+      "unitPrice": 33.6,
+      "pricePerL": 67.2
+    },
+    {
+      "artNo": "9256",
+      "content": "500 ml",
+      "packaging": "spuitbus",
+      "qty": 48,
+      "unitPrice": 31.9,
+      "pricePerL": 63.8
+    },
+    {
+      "artNo": "8986",
+      "content": "1 liter",
+      "packaging": "fles",
+      "qty": 1,
+      "unitPrice": 66.4,
+      "pricePerL": 66.4
+    },
+    {
+      "artNo": "8986",
+      "content": "1 liter",
+      "packaging": "fles",
+      "qty": 6,
+      "unitPrice": 60.6,
+      "pricePerL": 60.6
+    },
+    {
+      "artNo": "8986",
+      "content": "1 liter",
+      "packaging": "fles",
+      "qty": 12,
+      "unitPrice": 57.6,
+      "pricePerL": 57.6
+    },
+    {
+      "artNo": "8986",
+      "content": "1 liter",
+      "packaging": "fles",
+      "qty": 24,
+      "unitPrice": 54.7,
+      "pricePerL": 54.7
+    },
+    {
+      "artNo": "8987",
+      "content": "5 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 55,
+      "pricePerL": 55
+    },
+    {
+      "artNo": "8988",
+      "content": "10 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 54.4,
+      "pricePerL": 54.4
+    },
+    {
+      "artNo": "8989",
+      "content": "20 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 52.3,
+      "pricePerL": 52.3
+    },
+    {
+      "artNo": "8989",
+      "content": "20 liter",
+      "packaging": "jerrycan",
+      "qty": 3,
+      "unitPrice": 51,
+      "pricePerL": 51
+    }
+  ],
+  "INTERFLON LUBE EP+": [
+    {
+      "artNo": "9256",
+      "content": "500 ml",
+      "packaging": "spuitbus",
+      "qty": 1,
+      "unitPrice": 38.5,
+      "pricePerL": 77
+    },
+    {
+      "artNo": "9256",
+      "content": "500 ml",
+      "packaging": "spuitbus",
+      "qty": 12,
+      "unitPrice": 35.3,
+      "pricePerL": 70.6
+    },
+    {
+      "artNo": "9256",
+      "content": "500 ml",
+      "packaging": "spuitbus",
+      "qty": 24,
+      "unitPrice": 33.6,
+      "pricePerL": 67.2
+    },
+    {
+      "artNo": "9256",
+      "content": "500 ml",
+      "packaging": "spuitbus",
+      "qty": 48,
+      "unitPrice": 31.9,
+      "pricePerL": 63.8
+    },
+    {
+      "artNo": "8986",
+      "content": "1 liter",
+      "packaging": "fles",
+      "qty": 1,
+      "unitPrice": 66.4,
+      "pricePerL": 66.4
+    },
+    {
+      "artNo": "8986",
+      "content": "1 liter",
+      "packaging": "fles",
+      "qty": 6,
+      "unitPrice": 60.6,
+      "pricePerL": 60.6
+    },
+    {
+      "artNo": "8986",
+      "content": "1 liter",
+      "packaging": "fles",
+      "qty": 12,
+      "unitPrice": 57.6,
+      "pricePerL": 57.6
+    },
+    {
+      "artNo": "8986",
+      "content": "1 liter",
+      "packaging": "fles",
+      "qty": 24,
+      "unitPrice": 54.7,
+      "pricePerL": 54.7
+    },
+    {
+      "artNo": "8987",
+      "content": "5 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 55,
+      "pricePerL": 55
+    },
+    {
+      "artNo": "8988",
+      "content": "10 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 54.4,
+      "pricePerL": 54.4
+    },
+    {
+      "artNo": "8989",
+      "content": "20 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 52.3,
+      "pricePerL": 52.3
+    },
+    {
+      "artNo": "8989",
+      "content": "20 liter",
+      "packaging": "jerrycan",
+      "qty": 3,
+      "unitPrice": 51,
+      "pricePerL": 51
+    }
+  ],
+  "Lube EPR": [
+    {
+      "artNo": "9690",
+      "content": "1 liter",
+      "packaging": "trickspray",
+      "qty": 1,
+      "unitPrice": 56.9,
+      "pricePerL": 56.9
+    },
+    {
+      "artNo": "9690",
+      "content": "1 liter",
+      "packaging": "trickspray",
+      "qty": 6,
+      "unitPrice": 51.9,
+      "pricePerL": 51.9
+    },
+    {
+      "artNo": "9690",
+      "content": "1 liter",
+      "packaging": "trickspray",
+      "qty": 12,
+      "unitPrice": 49.5,
+      "pricePerL": 49.5
+    },
+    {
+      "artNo": "9690",
+      "content": "1 liter",
+      "packaging": "trickspray",
+      "qty": 24,
+      "unitPrice": 47,
+      "pricePerL": 47
+    },
+    {
+      "artNo": "9691",
+      "content": "5 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 45,
+      "pricePerL": 45
+    },
+    {
+      "artNo": "9692",
+      "content": "10 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 42.2,
+      "pricePerL": 42.2
+    },
+    {
+      "artNo": "9693",
+      "content": "20 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 39.8,
+      "pricePerL": 39.8
+    },
+    {
+      "artNo": "9693",
+      "content": "20 liter",
+      "packaging": "jerrycan",
+      "qty": 3,
+      "unitPrice": 38.1,
+      "pricePerL": 38.1
+    }
+  ],
+  "LUBE EPR": [
+    {
+      "artNo": "9690",
+      "content": "1 liter",
+      "packaging": "trickspray",
+      "qty": 1,
+      "unitPrice": 56.9,
+      "pricePerL": 56.9
+    },
+    {
+      "artNo": "9690",
+      "content": "1 liter",
+      "packaging": "trickspray",
+      "qty": 6,
+      "unitPrice": 51.9,
+      "pricePerL": 51.9
+    },
+    {
+      "artNo": "9690",
+      "content": "1 liter",
+      "packaging": "trickspray",
+      "qty": 12,
+      "unitPrice": 49.5,
+      "pricePerL": 49.5
+    },
+    {
+      "artNo": "9690",
+      "content": "1 liter",
+      "packaging": "trickspray",
+      "qty": 24,
+      "unitPrice": 47,
+      "pricePerL": 47
+    },
+    {
+      "artNo": "9691",
+      "content": "5 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 45,
+      "pricePerL": 45
+    },
+    {
+      "artNo": "9692",
+      "content": "10 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 42.2,
+      "pricePerL": 42.2
+    },
+    {
+      "artNo": "9693",
+      "content": "20 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 39.8,
+      "pricePerL": 39.8
+    },
+    {
+      "artNo": "9693",
+      "content": "20 liter",
+      "packaging": "jerrycan",
+      "qty": 3,
+      "unitPrice": 38.1,
+      "pricePerL": 38.1
+    }
+  ],
+  "INTERFLON LUBE EPR": [
+    {
+      "artNo": "9690",
+      "content": "1 liter",
+      "packaging": "trickspray",
+      "qty": 1,
+      "unitPrice": 56.9,
+      "pricePerL": 56.9
+    },
+    {
+      "artNo": "9690",
+      "content": "1 liter",
+      "packaging": "trickspray",
+      "qty": 6,
+      "unitPrice": 51.9,
+      "pricePerL": 51.9
+    },
+    {
+      "artNo": "9690",
+      "content": "1 liter",
+      "packaging": "trickspray",
+      "qty": 12,
+      "unitPrice": 49.5,
+      "pricePerL": 49.5
+    },
+    {
+      "artNo": "9690",
+      "content": "1 liter",
+      "packaging": "trickspray",
+      "qty": 24,
+      "unitPrice": 47,
+      "pricePerL": 47
+    },
+    {
+      "artNo": "9691",
+      "content": "5 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 45,
+      "pricePerL": 45
+    },
+    {
+      "artNo": "9692",
+      "content": "10 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 42.2,
+      "pricePerL": 42.2
+    },
+    {
+      "artNo": "9693",
+      "content": "20 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 39.8,
+      "pricePerL": 39.8
+    },
+    {
+      "artNo": "9693",
+      "content": "20 liter",
+      "packaging": "jerrycan",
+      "qty": 3,
+      "unitPrice": 38.1,
+      "pricePerL": 38.1
+    }
+  ],
+  "Food lube": [
+    {
+      "artNo": "9197",
+      "content": "500 ml",
+      "packaging": "spuitbus",
+      "qty": 1,
+      "unitPrice": 30.2,
+      "pricePerL": 60.4
+    },
+    {
+      "artNo": "9197",
+      "content": "500 ml",
+      "packaging": "spuitbus",
+      "qty": 12,
+      "unitPrice": 28.8,
+      "pricePerL": 57.6
+    },
+    {
+      "artNo": "9197",
+      "content": "500 ml",
+      "packaging": "spuitbus",
+      "qty": 24,
+      "unitPrice": 27.4,
+      "pricePerL": 54.8
+    },
+    {
+      "artNo": "9197",
+      "content": "500 ml",
+      "packaging": "spuitbus",
+      "qty": 48,
+      "unitPrice": 26,
+      "pricePerL": 52
+    },
+    {
+      "artNo": "8249",
+      "content": "1 liter",
+      "packaging": "trickspray",
+      "qty": 1,
+      "unitPrice": 61.2,
+      "pricePerL": 61.2
+    },
+    {
+      "artNo": "8249",
+      "content": "1 liter",
+      "packaging": "trickspray",
+      "qty": 6,
+      "unitPrice": 58.4,
+      "pricePerL": 58.4
+    },
+    {
+      "artNo": "8249",
+      "content": "1 liter",
+      "packaging": "trickspray",
+      "qty": 12,
+      "unitPrice": 55.6,
+      "pricePerL": 55.6
+    },
+    {
+      "artNo": "8249",
+      "content": "1 liter",
+      "packaging": "trickspray",
+      "qty": 24,
+      "unitPrice": 52.8,
+      "pricePerL": 52.8
+    },
+    {
+      "artNo": "8250",
+      "content": "5 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 53.9,
+      "pricePerL": 53.9
+    },
+    {
+      "artNo": "8194",
+      "content": "10 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 52.3,
+      "pricePerL": 52.3
+    },
+    {
+      "artNo": "8466",
+      "content": "20 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 50,
+      "pricePerL": 50
+    },
+    {
+      "artNo": "8466",
+      "content": "20 liter",
+      "packaging": "jerrycan",
+      "qty": 3,
+      "unitPrice": 48.6,
+      "pricePerL": 48.6
+    }
+  ],
+  "FOOD LUBE": [
+    {
+      "artNo": "9197",
+      "content": "500 ml",
+      "packaging": "spuitbus",
+      "qty": 1,
+      "unitPrice": 30.2,
+      "pricePerL": 60.4
+    },
+    {
+      "artNo": "9197",
+      "content": "500 ml",
+      "packaging": "spuitbus",
+      "qty": 12,
+      "unitPrice": 28.8,
+      "pricePerL": 57.6
+    },
+    {
+      "artNo": "9197",
+      "content": "500 ml",
+      "packaging": "spuitbus",
+      "qty": 24,
+      "unitPrice": 27.4,
+      "pricePerL": 54.8
+    },
+    {
+      "artNo": "9197",
+      "content": "500 ml",
+      "packaging": "spuitbus",
+      "qty": 48,
+      "unitPrice": 26,
+      "pricePerL": 52
+    },
+    {
+      "artNo": "8249",
+      "content": "1 liter",
+      "packaging": "trickspray",
+      "qty": 1,
+      "unitPrice": 61.2,
+      "pricePerL": 61.2
+    },
+    {
+      "artNo": "8249",
+      "content": "1 liter",
+      "packaging": "trickspray",
+      "qty": 6,
+      "unitPrice": 58.4,
+      "pricePerL": 58.4
+    },
+    {
+      "artNo": "8249",
+      "content": "1 liter",
+      "packaging": "trickspray",
+      "qty": 12,
+      "unitPrice": 55.6,
+      "pricePerL": 55.6
+    },
+    {
+      "artNo": "8249",
+      "content": "1 liter",
+      "packaging": "trickspray",
+      "qty": 24,
+      "unitPrice": 52.8,
+      "pricePerL": 52.8
+    },
+    {
+      "artNo": "8250",
+      "content": "5 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 53.9,
+      "pricePerL": 53.9
+    },
+    {
+      "artNo": "8194",
+      "content": "10 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 52.3,
+      "pricePerL": 52.3
+    },
+    {
+      "artNo": "8466",
+      "content": "20 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 50,
+      "pricePerL": 50
+    },
+    {
+      "artNo": "8466",
+      "content": "20 liter",
+      "packaging": "jerrycan",
+      "qty": 3,
+      "unitPrice": 48.6,
+      "pricePerL": 48.6
+    }
+  ],
+  "INTERFLON FOOD LUBE": [
+    {
+      "artNo": "9197",
+      "content": "500 ml",
+      "packaging": "spuitbus",
+      "qty": 1,
+      "unitPrice": 30.2,
+      "pricePerL": 60.4
+    },
+    {
+      "artNo": "9197",
+      "content": "500 ml",
+      "packaging": "spuitbus",
+      "qty": 12,
+      "unitPrice": 28.8,
+      "pricePerL": 57.6
+    },
+    {
+      "artNo": "9197",
+      "content": "500 ml",
+      "packaging": "spuitbus",
+      "qty": 24,
+      "unitPrice": 27.4,
+      "pricePerL": 54.8
+    },
+    {
+      "artNo": "9197",
+      "content": "500 ml",
+      "packaging": "spuitbus",
+      "qty": 48,
+      "unitPrice": 26,
+      "pricePerL": 52
+    },
+    {
+      "artNo": "8249",
+      "content": "1 liter",
+      "packaging": "trickspray",
+      "qty": 1,
+      "unitPrice": 61.2,
+      "pricePerL": 61.2
+    },
+    {
+      "artNo": "8249",
+      "content": "1 liter",
+      "packaging": "trickspray",
+      "qty": 6,
+      "unitPrice": 58.4,
+      "pricePerL": 58.4
+    },
+    {
+      "artNo": "8249",
+      "content": "1 liter",
+      "packaging": "trickspray",
+      "qty": 12,
+      "unitPrice": 55.6,
+      "pricePerL": 55.6
+    },
+    {
+      "artNo": "8249",
+      "content": "1 liter",
+      "packaging": "trickspray",
+      "qty": 24,
+      "unitPrice": 52.8,
+      "pricePerL": 52.8
+    },
+    {
+      "artNo": "8250",
+      "content": "5 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 53.9,
+      "pricePerL": 53.9
+    },
+    {
+      "artNo": "8194",
+      "content": "10 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 52.3,
+      "pricePerL": 52.3
+    },
+    {
+      "artNo": "8466",
+      "content": "20 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 50,
+      "pricePerL": 50
+    },
+    {
+      "artNo": "8466",
+      "content": "20 liter",
+      "packaging": "jerrycan",
+      "qty": 3,
+      "unitPrice": 48.6,
+      "pricePerL": 48.6
+    }
+  ],
+  "Food lube PN32": [
+    {
+      "artNo": "8443",
+      "content": "5 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 43.1,
+      "pricePerL": 43.1
+    },
+    {
+      "artNo": "8444",
+      "content": "10 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 41.6,
+      "pricePerL": 41.6
+    },
+    {
+      "artNo": "8445",
+      "content": "20 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 40,
+      "pricePerL": 40
+    },
+    {
+      "artNo": "8445",
+      "content": "20 liter",
+      "packaging": "jerrycan",
+      "qty": 3,
+      "unitPrice": 38.4,
+      "pricePerL": 38.4
+    },
+    {
+      "artNo": "8776",
+      "content": "200 liter",
+      "packaging": "vat",
+      "qty": 1,
+      "unitPrice": 35.7,
+      "pricePerL": 35.7
+    }
+  ],
+  "FOOD LUBE PN32": [
+    {
+      "artNo": "8443",
+      "content": "5 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 43.1,
+      "pricePerL": 43.1
+    },
+    {
+      "artNo": "8444",
+      "content": "10 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 41.6,
+      "pricePerL": 41.6
+    },
+    {
+      "artNo": "8445",
+      "content": "20 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 40,
+      "pricePerL": 40
+    },
+    {
+      "artNo": "8445",
+      "content": "20 liter",
+      "packaging": "jerrycan",
+      "qty": 3,
+      "unitPrice": 38.4,
+      "pricePerL": 38.4
+    },
+    {
+      "artNo": "8776",
+      "content": "200 liter",
+      "packaging": "vat",
+      "qty": 1,
+      "unitPrice": 35.7,
+      "pricePerL": 35.7
+    }
+  ],
+  "INTERFLON FOOD LUBE PN32": [
+    {
+      "artNo": "8443",
+      "content": "5 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 43.1,
+      "pricePerL": 43.1
+    },
+    {
+      "artNo": "8444",
+      "content": "10 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 41.6,
+      "pricePerL": 41.6
+    },
+    {
+      "artNo": "8445",
+      "content": "20 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 40,
+      "pricePerL": 40
+    },
+    {
+      "artNo": "8445",
+      "content": "20 liter",
+      "packaging": "jerrycan",
+      "qty": 3,
+      "unitPrice": 38.4,
+      "pricePerL": 38.4
+    },
+    {
+      "artNo": "8776",
+      "content": "200 liter",
+      "packaging": "vat",
+      "qty": 1,
+      "unitPrice": 35.7,
+      "pricePerL": 35.7
+    }
+  ],
+  "Food lube AL": [
+    {
+      "artNo": "6724",
+      "content": "1 liter",
+      "packaging": "trickspray",
+      "qty": 6,
+      "unitPrice": 60,
+      "pricePerL": 60
+    },
+    {
+      "artNo": "6724",
+      "content": "1 liter",
+      "packaging": "trickspray",
+      "qty": 12,
+      "unitPrice": 57.2,
+      "pricePerL": 57.2
+    },
+    {
+      "artNo": "6724",
+      "content": "1 liter",
+      "packaging": "trickspray",
+      "qty": 24,
+      "unitPrice": 54.3,
+      "pricePerL": 54.3
+    },
+    {
+      "artNo": "6725",
+      "content": "5 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 54,
+      "pricePerL": 54
+    },
+    {
+      "artNo": "6726",
+      "content": "10 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 52.3,
+      "pricePerL": 52.3
+    },
+    {
+      "artNo": "6727",
+      "content": "20 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 50,
+      "pricePerL": 50
+    },
+    {
+      "artNo": "6727",
+      "content": "20 liter",
+      "packaging": "jerrycan",
+      "qty": 3,
+      "unitPrice": 48.6,
+      "pricePerL": 48.6
+    }
+  ],
+  "FOOD LUBE AL": [
+    {
+      "artNo": "6724",
+      "content": "1 liter",
+      "packaging": "trickspray",
+      "qty": 6,
+      "unitPrice": 60,
+      "pricePerL": 60
+    },
+    {
+      "artNo": "6724",
+      "content": "1 liter",
+      "packaging": "trickspray",
+      "qty": 12,
+      "unitPrice": 57.2,
+      "pricePerL": 57.2
+    },
+    {
+      "artNo": "6724",
+      "content": "1 liter",
+      "packaging": "trickspray",
+      "qty": 24,
+      "unitPrice": 54.3,
+      "pricePerL": 54.3
+    },
+    {
+      "artNo": "6725",
+      "content": "5 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 54,
+      "pricePerL": 54
+    },
+    {
+      "artNo": "6726",
+      "content": "10 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 52.3,
+      "pricePerL": 52.3
+    },
+    {
+      "artNo": "6727",
+      "content": "20 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 50,
+      "pricePerL": 50
+    },
+    {
+      "artNo": "6727",
+      "content": "20 liter",
+      "packaging": "jerrycan",
+      "qty": 3,
+      "unitPrice": 48.6,
+      "pricePerL": 48.6
+    }
+  ],
+  "INTERFLON FOOD LUBE AL": [
+    {
+      "artNo": "6724",
+      "content": "1 liter",
+      "packaging": "trickspray",
+      "qty": 6,
+      "unitPrice": 60,
+      "pricePerL": 60
+    },
+    {
+      "artNo": "6724",
+      "content": "1 liter",
+      "packaging": "trickspray",
+      "qty": 12,
+      "unitPrice": 57.2,
+      "pricePerL": 57.2
+    },
+    {
+      "artNo": "6724",
+      "content": "1 liter",
+      "packaging": "trickspray",
+      "qty": 24,
+      "unitPrice": 54.3,
+      "pricePerL": 54.3
+    },
+    {
+      "artNo": "6725",
+      "content": "5 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 54,
+      "pricePerL": 54
+    },
+    {
+      "artNo": "6726",
+      "content": "10 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 52.3,
+      "pricePerL": 52.3
+    },
+    {
+      "artNo": "6727",
+      "content": "20 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 50,
+      "pricePerL": 50
+    },
+    {
+      "artNo": "6727",
+      "content": "20 liter",
+      "packaging": "jerrycan",
+      "qty": 3,
+      "unitPrice": 48.6,
+      "pricePerL": 48.6
+    }
+  ],
+  "Food lube G": [
+    {
+      "artNo": "9258",
+      "content": "500 ml",
+      "packaging": "spuitbus",
+      "qty": 1,
+      "unitPrice": 36.1,
+      "pricePerL": 72.2
+    },
+    {
+      "artNo": "9258",
+      "content": "500 ml",
+      "packaging": "spuitbus",
+      "qty": 12,
+      "unitPrice": 32.8,
+      "pricePerL": 65.6
+    },
+    {
+      "artNo": "9258",
+      "content": "500 ml",
+      "packaging": "spuitbus",
+      "qty": 24,
+      "unitPrice": 31.1,
+      "pricePerL": 62.2
+    },
+    {
+      "artNo": "9258",
+      "content": "500 ml",
+      "packaging": "spuitbus",
+      "qty": 48,
+      "unitPrice": 29.8,
+      "pricePerL": 59.6
+    }
+  ],
+  "FOOD LUBE G": [
+    {
+      "artNo": "9258",
+      "content": "500 ml",
+      "packaging": "spuitbus",
+      "qty": 1,
+      "unitPrice": 36.1,
+      "pricePerL": 72.2
+    },
+    {
+      "artNo": "9258",
+      "content": "500 ml",
+      "packaging": "spuitbus",
+      "qty": 12,
+      "unitPrice": 32.8,
+      "pricePerL": 65.6
+    },
+    {
+      "artNo": "9258",
+      "content": "500 ml",
+      "packaging": "spuitbus",
+      "qty": 24,
+      "unitPrice": 31.1,
+      "pricePerL": 62.2
+    },
+    {
+      "artNo": "9258",
+      "content": "500 ml",
+      "packaging": "spuitbus",
+      "qty": 48,
+      "unitPrice": 29.8,
+      "pricePerL": 59.6
+    }
+  ],
+  "INTERFLON FOOD LUBE G": [
+    {
+      "artNo": "9258",
+      "content": "500 ml",
+      "packaging": "spuitbus",
+      "qty": 1,
+      "unitPrice": 36.1,
+      "pricePerL": 72.2
+    },
+    {
+      "artNo": "9258",
+      "content": "500 ml",
+      "packaging": "spuitbus",
+      "qty": 12,
+      "unitPrice": 32.8,
+      "pricePerL": 65.6
+    },
+    {
+      "artNo": "9258",
+      "content": "500 ml",
+      "packaging": "spuitbus",
+      "qty": 24,
+      "unitPrice": 31.1,
+      "pricePerL": 62.2
+    },
+    {
+      "artNo": "9258",
+      "content": "500 ml",
+      "packaging": "spuitbus",
+      "qty": 48,
+      "unitPrice": 29.8,
+      "pricePerL": 59.6
+    }
+  ],
+  "Food lube LT": [
+    {
+      "artNo": "8934",
+      "content": "5 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 59.1,
+      "pricePerL": 59.1
+    },
+    {
+      "artNo": "8935",
+      "content": "10 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 57.5,
+      "pricePerL": 57.5
+    },
+    {
+      "artNo": "8936",
+      "content": "20 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 56.1,
+      "pricePerL": 56.1
+    },
+    {
+      "artNo": "8936",
+      "content": "20 liter",
+      "packaging": "jerrycan",
+      "qty": 3,
+      "unitPrice": 51.3,
+      "pricePerL": 51.3
+    }
+  ],
+  "FOOD LUBE LT": [
+    {
+      "artNo": "8934",
+      "content": "5 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 59.1,
+      "pricePerL": 59.1
+    },
+    {
+      "artNo": "8935",
+      "content": "10 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 57.5,
+      "pricePerL": 57.5
+    },
+    {
+      "artNo": "8936",
+      "content": "20 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 56.1,
+      "pricePerL": 56.1
+    },
+    {
+      "artNo": "8936",
+      "content": "20 liter",
+      "packaging": "jerrycan",
+      "qty": 3,
+      "unitPrice": 51.3,
+      "pricePerL": 51.3
+    }
+  ],
+  "INTERFLON FOOD LUBE LT": [
+    {
+      "artNo": "8934",
+      "content": "5 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 59.1,
+      "pricePerL": 59.1
+    },
+    {
+      "artNo": "8935",
+      "content": "10 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 57.5,
+      "pricePerL": 57.5
+    },
+    {
+      "artNo": "8936",
+      "content": "20 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 56.1,
+      "pricePerL": 56.1
+    },
+    {
+      "artNo": "8936",
+      "content": "20 liter",
+      "packaging": "jerrycan",
+      "qty": 3,
+      "unitPrice": 51.3,
+      "pricePerL": 51.3
+    }
+  ],
+  "Food lube HT": [
+    {
+      "artNo": "9284",
+      "content": "5 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 110.1,
+      "pricePerL": 110.1
+    },
+    {
+      "artNo": "9285",
+      "content": "10 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 108.6,
+      "pricePerL": 108.6
+    },
+    {
+      "artNo": "9286",
+      "content": "20 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 106.3,
+      "pricePerL": 106.3
+    },
+    {
+      "artNo": "9286",
+      "content": "20 liter",
+      "packaging": "jerrycan",
+      "qty": 3,
+      "unitPrice": 105.7,
+      "pricePerL": 105.7
+    }
+  ],
+  "FOOD LUBE HT": [
+    {
+      "artNo": "9284",
+      "content": "5 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 110.1,
+      "pricePerL": 110.1
+    },
+    {
+      "artNo": "9285",
+      "content": "10 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 108.6,
+      "pricePerL": 108.6
+    },
+    {
+      "artNo": "9286",
+      "content": "20 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 106.3,
+      "pricePerL": 106.3
+    },
+    {
+      "artNo": "9286",
+      "content": "20 liter",
+      "packaging": "jerrycan",
+      "qty": 3,
+      "unitPrice": 105.7,
+      "pricePerL": 105.7
+    }
+  ],
+  "INTERFLON FOOD LUBE HT": [
+    {
+      "artNo": "9284",
+      "content": "5 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 110.1,
+      "pricePerL": 110.1
+    },
+    {
+      "artNo": "9285",
+      "content": "10 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 108.6,
+      "pricePerL": 108.6
+    },
+    {
+      "artNo": "9286",
+      "content": "20 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 106.3,
+      "pricePerL": 106.3
+    },
+    {
+      "artNo": "9286",
+      "content": "20 liter",
+      "packaging": "jerrycan",
+      "qty": 3,
+      "unitPrice": 105.7,
+      "pricePerL": 105.7
+    }
+  ],
+  "Food lube G100": [
+    {
+      "artNo": "8595",
+      "content": "5 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 45.1,
+      "pricePerL": 45.1
+    },
+    {
+      "artNo": "8596",
+      "content": "10 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 44.8,
+      "pricePerL": 44.8
+    },
+    {
+      "artNo": "8597",
+      "content": "20 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 41.7,
+      "pricePerL": 41.7
+    },
+    {
+      "artNo": "8598",
+      "content": "30 liter",
+      "packaging": "vat",
+      "qty": 1,
+      "unitPrice": 41.2,
+      "pricePerL": 41.2
+    },
+    {
+      "artNo": "8599",
+      "content": "60 liter",
+      "packaging": "vat",
+      "qty": 1,
+      "unitPrice": 40.3,
+      "pricePerL": 40.3
+    },
+    {
+      "artNo": "8698",
+      "content": "200 liter",
+      "packaging": "vat",
+      "qty": 1,
+      "unitPrice": 36.7,
+      "pricePerL": 36.7
+    }
+  ],
+  "FOOD LUBE G100": [
+    {
+      "artNo": "8595",
+      "content": "5 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 45.1,
+      "pricePerL": 45.1
+    },
+    {
+      "artNo": "8596",
+      "content": "10 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 44.8,
+      "pricePerL": 44.8
+    },
+    {
+      "artNo": "8597",
+      "content": "20 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 41.7,
+      "pricePerL": 41.7
+    },
+    {
+      "artNo": "8598",
+      "content": "30 liter",
+      "packaging": "vat",
+      "qty": 1,
+      "unitPrice": 41.2,
+      "pricePerL": 41.2
+    },
+    {
+      "artNo": "8599",
+      "content": "60 liter",
+      "packaging": "vat",
+      "qty": 1,
+      "unitPrice": 40.3,
+      "pricePerL": 40.3
+    },
+    {
+      "artNo": "8698",
+      "content": "200 liter",
+      "packaging": "vat",
+      "qty": 1,
+      "unitPrice": 36.7,
+      "pricePerL": 36.7
+    }
+  ],
+  "INTERFLON FOOD LUBE G100": [
+    {
+      "artNo": "8595",
+      "content": "5 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 45.1,
+      "pricePerL": 45.1
+    },
+    {
+      "artNo": "8596",
+      "content": "10 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 44.8,
+      "pricePerL": 44.8
+    },
+    {
+      "artNo": "8597",
+      "content": "20 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 41.7,
+      "pricePerL": 41.7
+    },
+    {
+      "artNo": "8598",
+      "content": "30 liter",
+      "packaging": "vat",
+      "qty": 1,
+      "unitPrice": 41.2,
+      "pricePerL": 41.2
+    },
+    {
+      "artNo": "8599",
+      "content": "60 liter",
+      "packaging": "vat",
+      "qty": 1,
+      "unitPrice": 40.3,
+      "pricePerL": 40.3
+    },
+    {
+      "artNo": "8698",
+      "content": "200 liter",
+      "packaging": "vat",
+      "qty": 1,
+      "unitPrice": 36.7,
+      "pricePerL": 36.7
+    }
+  ],
+  "Food lube G150": [
+    {
+      "artNo": "8602",
+      "content": "5 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 45.1,
+      "pricePerL": 45.1
+    },
+    {
+      "artNo": "8603",
+      "content": "10 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 44.8,
+      "pricePerL": 44.8
+    },
+    {
+      "artNo": "8604",
+      "content": "20 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 41.7,
+      "pricePerL": 41.7
+    },
+    {
+      "artNo": "8605",
+      "content": "30 liter",
+      "packaging": "vat",
+      "qty": 1,
+      "unitPrice": 41.2,
+      "pricePerL": 41.2
+    },
+    {
+      "artNo": "8606",
+      "content": "60 liter",
+      "packaging": "vat",
+      "qty": 1,
+      "unitPrice": 40.3,
+      "pricePerL": 40.3
+    },
+    {
+      "artNo": "8794",
+      "content": "200 liter",
+      "packaging": "vat",
+      "qty": 1,
+      "unitPrice": 36.7,
+      "pricePerL": 36.7
+    }
+  ],
+  "FOOD LUBE G150": [
+    {
+      "artNo": "8602",
+      "content": "5 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 45.1,
+      "pricePerL": 45.1
+    },
+    {
+      "artNo": "8603",
+      "content": "10 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 44.8,
+      "pricePerL": 44.8
+    },
+    {
+      "artNo": "8604",
+      "content": "20 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 41.7,
+      "pricePerL": 41.7
+    },
+    {
+      "artNo": "8605",
+      "content": "30 liter",
+      "packaging": "vat",
+      "qty": 1,
+      "unitPrice": 41.2,
+      "pricePerL": 41.2
+    },
+    {
+      "artNo": "8606",
+      "content": "60 liter",
+      "packaging": "vat",
+      "qty": 1,
+      "unitPrice": 40.3,
+      "pricePerL": 40.3
+    },
+    {
+      "artNo": "8794",
+      "content": "200 liter",
+      "packaging": "vat",
+      "qty": 1,
+      "unitPrice": 36.7,
+      "pricePerL": 36.7
+    }
+  ],
+  "INTERFLON FOOD LUBE G150": [
+    {
+      "artNo": "8602",
+      "content": "5 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 45.1,
+      "pricePerL": 45.1
+    },
+    {
+      "artNo": "8603",
+      "content": "10 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 44.8,
+      "pricePerL": 44.8
+    },
+    {
+      "artNo": "8604",
+      "content": "20 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 41.7,
+      "pricePerL": 41.7
+    },
+    {
+      "artNo": "8605",
+      "content": "30 liter",
+      "packaging": "vat",
+      "qty": 1,
+      "unitPrice": 41.2,
+      "pricePerL": 41.2
+    },
+    {
+      "artNo": "8606",
+      "content": "60 liter",
+      "packaging": "vat",
+      "qty": 1,
+      "unitPrice": 40.3,
+      "pricePerL": 40.3
+    },
+    {
+      "artNo": "8794",
+      "content": "200 liter",
+      "packaging": "vat",
+      "qty": 1,
+      "unitPrice": 36.7,
+      "pricePerL": 36.7
+    }
+  ],
+  "Food lube G220": [
+    {
+      "artNo": "8470",
+      "content": "5 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 45.1,
+      "pricePerL": 45.1
+    },
+    {
+      "artNo": "8471",
+      "content": "10 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 44.8,
+      "pricePerL": 44.8
+    },
+    {
+      "artNo": "8472",
+      "content": "20 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 41.7,
+      "pricePerL": 41.7
+    },
+    {
+      "artNo": "8702",
+      "content": "30 liter",
+      "packaging": "vat",
+      "qty": 1,
+      "unitPrice": 41.2,
+      "pricePerL": 41.2
+    },
+    {
+      "artNo": "8701",
+      "content": "60 liter",
+      "packaging": "vat",
+      "qty": 1,
+      "unitPrice": 40.3,
+      "pricePerL": 40.3
+    },
+    {
+      "artNo": "8699",
+      "content": "200 liter",
+      "packaging": "vat",
+      "qty": 1,
+      "unitPrice": 36.7,
+      "pricePerL": 36.7
+    }
+  ],
+  "FOOD LUBE G220": [
+    {
+      "artNo": "8470",
+      "content": "5 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 45.1,
+      "pricePerL": 45.1
+    },
+    {
+      "artNo": "8471",
+      "content": "10 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 44.8,
+      "pricePerL": 44.8
+    },
+    {
+      "artNo": "8472",
+      "content": "20 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 41.7,
+      "pricePerL": 41.7
+    },
+    {
+      "artNo": "8702",
+      "content": "30 liter",
+      "packaging": "vat",
+      "qty": 1,
+      "unitPrice": 41.2,
+      "pricePerL": 41.2
+    },
+    {
+      "artNo": "8701",
+      "content": "60 liter",
+      "packaging": "vat",
+      "qty": 1,
+      "unitPrice": 40.3,
+      "pricePerL": 40.3
+    },
+    {
+      "artNo": "8699",
+      "content": "200 liter",
+      "packaging": "vat",
+      "qty": 1,
+      "unitPrice": 36.7,
+      "pricePerL": 36.7
+    }
+  ],
+  "INTERFLON FOOD LUBE G220": [
+    {
+      "artNo": "8470",
+      "content": "5 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 45.1,
+      "pricePerL": 45.1
+    },
+    {
+      "artNo": "8471",
+      "content": "10 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 44.8,
+      "pricePerL": 44.8
+    },
+    {
+      "artNo": "8472",
+      "content": "20 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 41.7,
+      "pricePerL": 41.7
+    },
+    {
+      "artNo": "8702",
+      "content": "30 liter",
+      "packaging": "vat",
+      "qty": 1,
+      "unitPrice": 41.2,
+      "pricePerL": 41.2
+    },
+    {
+      "artNo": "8701",
+      "content": "60 liter",
+      "packaging": "vat",
+      "qty": 1,
+      "unitPrice": 40.3,
+      "pricePerL": 40.3
+    },
+    {
+      "artNo": "8699",
+      "content": "200 liter",
+      "packaging": "vat",
+      "qty": 1,
+      "unitPrice": 36.7,
+      "pricePerL": 36.7
+    }
+  ],
+  "Food lube G320": [
+    {
+      "artNo": "8746",
+      "content": "5 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 45.1,
+      "pricePerL": 45.1
+    },
+    {
+      "artNo": "8747",
+      "content": "10 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 44.8,
+      "pricePerL": 44.8
+    },
+    {
+      "artNo": "8748",
+      "content": "20 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 41.7,
+      "pricePerL": 41.7
+    },
+    {
+      "artNo": "8749",
+      "content": "30 liter",
+      "packaging": "vat",
+      "qty": 1,
+      "unitPrice": 41.2,
+      "pricePerL": 41.2
+    },
+    {
+      "artNo": "8750",
+      "content": "60 liter",
+      "packaging": "vat",
+      "qty": 1,
+      "unitPrice": 40.3,
+      "pricePerL": 40.3
+    },
+    {
+      "artNo": "8751",
+      "content": "200 liter",
+      "packaging": "vat",
+      "qty": 1,
+      "unitPrice": 36.7,
+      "pricePerL": 36.7
+    }
+  ],
+  "FOOD LUBE G320": [
+    {
+      "artNo": "8746",
+      "content": "5 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 45.1,
+      "pricePerL": 45.1
+    },
+    {
+      "artNo": "8747",
+      "content": "10 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 44.8,
+      "pricePerL": 44.8
+    },
+    {
+      "artNo": "8748",
+      "content": "20 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 41.7,
+      "pricePerL": 41.7
+    },
+    {
+      "artNo": "8749",
+      "content": "30 liter",
+      "packaging": "vat",
+      "qty": 1,
+      "unitPrice": 41.2,
+      "pricePerL": 41.2
+    },
+    {
+      "artNo": "8750",
+      "content": "60 liter",
+      "packaging": "vat",
+      "qty": 1,
+      "unitPrice": 40.3,
+      "pricePerL": 40.3
+    },
+    {
+      "artNo": "8751",
+      "content": "200 liter",
+      "packaging": "vat",
+      "qty": 1,
+      "unitPrice": 36.7,
+      "pricePerL": 36.7
+    }
+  ],
+  "INTERFLON FOOD LUBE G320": [
+    {
+      "artNo": "8746",
+      "content": "5 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 45.1,
+      "pricePerL": 45.1
+    },
+    {
+      "artNo": "8747",
+      "content": "10 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 44.8,
+      "pricePerL": 44.8
+    },
+    {
+      "artNo": "8748",
+      "content": "20 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 41.7,
+      "pricePerL": 41.7
+    },
+    {
+      "artNo": "8749",
+      "content": "30 liter",
+      "packaging": "vat",
+      "qty": 1,
+      "unitPrice": 41.2,
+      "pricePerL": 41.2
+    },
+    {
+      "artNo": "8750",
+      "content": "60 liter",
+      "packaging": "vat",
+      "qty": 1,
+      "unitPrice": 40.3,
+      "pricePerL": 40.3
+    },
+    {
+      "artNo": "8751",
+      "content": "200 liter",
+      "packaging": "vat",
+      "qty": 1,
+      "unitPrice": 36.7,
+      "pricePerL": 36.7
+    }
+  ],
+  "Food lube G460": [
+    {
+      "artNo": "9218",
+      "content": "5 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 56.7,
+      "pricePerL": 56.7
+    },
+    {
+      "artNo": "9205",
+      "content": "10 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 55.8,
+      "pricePerL": 55.8
+    },
+    {
+      "artNo": "9206",
+      "content": "20 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 54,
+      "pricePerL": 54
+    },
+    {
+      "artNo": "9207",
+      "content": "30 liter",
+      "packaging": "vat",
+      "qty": 1,
+      "unitPrice": 53.8,
+      "pricePerL": 53.8
+    },
+    {
+      "artNo": "9208",
+      "content": "60 liter",
+      "packaging": "vat",
+      "qty": 1,
+      "unitPrice": 53.4,
+      "pricePerL": 53.4
+    },
+    {
+      "artNo": "9209",
+      "content": "200 liter",
+      "packaging": "vat",
+      "qty": 1,
+      "unitPrice": 51.7,
+      "pricePerL": 51.7
+    }
+  ],
+  "FOOD LUBE G460": [
+    {
+      "artNo": "9218",
+      "content": "5 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 56.7,
+      "pricePerL": 56.7
+    },
+    {
+      "artNo": "9205",
+      "content": "10 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 55.8,
+      "pricePerL": 55.8
+    },
+    {
+      "artNo": "9206",
+      "content": "20 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 54,
+      "pricePerL": 54
+    },
+    {
+      "artNo": "9207",
+      "content": "30 liter",
+      "packaging": "vat",
+      "qty": 1,
+      "unitPrice": 53.8,
+      "pricePerL": 53.8
+    },
+    {
+      "artNo": "9208",
+      "content": "60 liter",
+      "packaging": "vat",
+      "qty": 1,
+      "unitPrice": 53.4,
+      "pricePerL": 53.4
+    },
+    {
+      "artNo": "9209",
+      "content": "200 liter",
+      "packaging": "vat",
+      "qty": 1,
+      "unitPrice": 51.7,
+      "pricePerL": 51.7
+    }
+  ],
+  "INTERFLON FOOD LUBE G460": [
+    {
+      "artNo": "9218",
+      "content": "5 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 56.7,
+      "pricePerL": 56.7
+    },
+    {
+      "artNo": "9205",
+      "content": "10 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 55.8,
+      "pricePerL": 55.8
+    },
+    {
+      "artNo": "9206",
+      "content": "20 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 54,
+      "pricePerL": 54
+    },
+    {
+      "artNo": "9207",
+      "content": "30 liter",
+      "packaging": "vat",
+      "qty": 1,
+      "unitPrice": 53.8,
+      "pricePerL": 53.8
+    },
+    {
+      "artNo": "9208",
+      "content": "60 liter",
+      "packaging": "vat",
+      "qty": 1,
+      "unitPrice": 53.4,
+      "pricePerL": 53.4
+    },
+    {
+      "artNo": "9209",
+      "content": "200 liter",
+      "packaging": "vat",
+      "qty": 1,
+      "unitPrice": 51.7,
+      "pricePerL": 51.7
+    }
+  ],
+  "Food lube G680": [
+    {
+      "artNo": "9217",
+      "content": "5 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 56.7,
+      "pricePerL": 56.7
+    },
+    {
+      "artNo": "9212",
+      "content": "10 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 55.8,
+      "pricePerL": 55.8
+    },
+    {
+      "artNo": "9213",
+      "content": "20 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 54,
+      "pricePerL": 54
+    },
+    {
+      "artNo": "9214",
+      "content": "30 liter",
+      "packaging": "vat",
+      "qty": 1,
+      "unitPrice": 53.8,
+      "pricePerL": 53.8
+    },
+    {
+      "artNo": "9215",
+      "content": "60 liter",
+      "packaging": "vat",
+      "qty": 1,
+      "unitPrice": 53.4,
+      "pricePerL": 53.4
+    },
+    {
+      "artNo": "9216",
+      "content": "200 liter",
+      "packaging": "vat",
+      "qty": 1,
+      "unitPrice": 51.7,
+      "pricePerL": 51.7
+    }
+  ],
+  "FOOD LUBE G680": [
+    {
+      "artNo": "9217",
+      "content": "5 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 56.7,
+      "pricePerL": 56.7
+    },
+    {
+      "artNo": "9212",
+      "content": "10 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 55.8,
+      "pricePerL": 55.8
+    },
+    {
+      "artNo": "9213",
+      "content": "20 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 54,
+      "pricePerL": 54
+    },
+    {
+      "artNo": "9214",
+      "content": "30 liter",
+      "packaging": "vat",
+      "qty": 1,
+      "unitPrice": 53.8,
+      "pricePerL": 53.8
+    },
+    {
+      "artNo": "9215",
+      "content": "60 liter",
+      "packaging": "vat",
+      "qty": 1,
+      "unitPrice": 53.4,
+      "pricePerL": 53.4
+    },
+    {
+      "artNo": "9216",
+      "content": "200 liter",
+      "packaging": "vat",
+      "qty": 1,
+      "unitPrice": 51.7,
+      "pricePerL": 51.7
+    }
+  ],
+  "INTERFLON FOOD LUBE G680": [
+    {
+      "artNo": "9217",
+      "content": "5 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 56.7,
+      "pricePerL": 56.7
+    },
+    {
+      "artNo": "9212",
+      "content": "10 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 55.8,
+      "pricePerL": 55.8
+    },
+    {
+      "artNo": "9213",
+      "content": "20 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 54,
+      "pricePerL": 54
+    },
+    {
+      "artNo": "9214",
+      "content": "30 liter",
+      "packaging": "vat",
+      "qty": 1,
+      "unitPrice": 53.8,
+      "pricePerL": 53.8
+    },
+    {
+      "artNo": "9215",
+      "content": "60 liter",
+      "packaging": "vat",
+      "qty": 1,
+      "unitPrice": 53.4,
+      "pricePerL": 53.4
+    },
+    {
+      "artNo": "9216",
+      "content": "200 liter",
+      "packaging": "vat",
+      "qty": 1,
+      "unitPrice": 51.7,
+      "pricePerL": 51.7
+    }
+  ],
+  "Food lube H32": [
+    {
+      "artNo": "8754",
+      "content": "5 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 57.8,
+      "pricePerL": 57.8
+    },
+    {
+      "artNo": "8755",
+      "content": "10 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 52.8,
+      "pricePerL": 52.8
+    },
+    {
+      "artNo": "8756",
+      "content": "20 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 49.9,
+      "pricePerL": 49.9
+    },
+    {
+      "artNo": "8757",
+      "content": "30 liter",
+      "packaging": "vat",
+      "qty": 1,
+      "unitPrice": 48.8,
+      "pricePerL": 48.8
+    },
+    {
+      "artNo": "8758",
+      "content": "60 liter",
+      "packaging": "vat",
+      "qty": 1,
+      "unitPrice": 47.6,
+      "pricePerL": 47.6
+    },
+    {
+      "artNo": "8759",
+      "content": "200 liter",
+      "packaging": "vat",
+      "qty": 1,
+      "unitPrice": 46.7,
+      "pricePerL": 46.7
+    }
+  ],
+  "FOOD LUBE H32": [
+    {
+      "artNo": "8754",
+      "content": "5 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 57.8,
+      "pricePerL": 57.8
+    },
+    {
+      "artNo": "8755",
+      "content": "10 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 52.8,
+      "pricePerL": 52.8
+    },
+    {
+      "artNo": "8756",
+      "content": "20 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 49.9,
+      "pricePerL": 49.9
+    },
+    {
+      "artNo": "8757",
+      "content": "30 liter",
+      "packaging": "vat",
+      "qty": 1,
+      "unitPrice": 48.8,
+      "pricePerL": 48.8
+    },
+    {
+      "artNo": "8758",
+      "content": "60 liter",
+      "packaging": "vat",
+      "qty": 1,
+      "unitPrice": 47.6,
+      "pricePerL": 47.6
+    },
+    {
+      "artNo": "8759",
+      "content": "200 liter",
+      "packaging": "vat",
+      "qty": 1,
+      "unitPrice": 46.7,
+      "pricePerL": 46.7
+    }
+  ],
+  "INTERFLON FOOD LUBE H32": [
+    {
+      "artNo": "8754",
+      "content": "5 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 57.8,
+      "pricePerL": 57.8
+    },
+    {
+      "artNo": "8755",
+      "content": "10 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 52.8,
+      "pricePerL": 52.8
+    },
+    {
+      "artNo": "8756",
+      "content": "20 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 49.9,
+      "pricePerL": 49.9
+    },
+    {
+      "artNo": "8757",
+      "content": "30 liter",
+      "packaging": "vat",
+      "qty": 1,
+      "unitPrice": 48.8,
+      "pricePerL": 48.8
+    },
+    {
+      "artNo": "8758",
+      "content": "60 liter",
+      "packaging": "vat",
+      "qty": 1,
+      "unitPrice": 47.6,
+      "pricePerL": 47.6
+    },
+    {
+      "artNo": "8759",
+      "content": "200 liter",
+      "packaging": "vat",
+      "qty": 1,
+      "unitPrice": 46.7,
+      "pricePerL": 46.7
+    }
+  ],
+  "Food lube H46": [
+    {
+      "artNo": "8538",
+      "content": "5 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 57.8,
+      "pricePerL": 57.8
+    },
+    {
+      "artNo": "8510",
+      "content": "10 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 52.8,
+      "pricePerL": 52.8
+    },
+    {
+      "artNo": "8539",
+      "content": "20 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 49.9,
+      "pricePerL": 49.9
+    },
+    {
+      "artNo": "8666",
+      "content": "60 liter",
+      "packaging": "vat",
+      "qty": 1,
+      "unitPrice": 47.6,
+      "pricePerL": 47.6
+    },
+    {
+      "artNo": "8704",
+      "content": "200 liter",
+      "packaging": "vat",
+      "qty": 1,
+      "unitPrice": 46.7,
+      "pricePerL": 46.7
+    }
+  ],
+  "FOOD LUBE H46": [
+    {
+      "artNo": "8538",
+      "content": "5 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 57.8,
+      "pricePerL": 57.8
+    },
+    {
+      "artNo": "8510",
+      "content": "10 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 52.8,
+      "pricePerL": 52.8
+    },
+    {
+      "artNo": "8539",
+      "content": "20 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 49.9,
+      "pricePerL": 49.9
+    },
+    {
+      "artNo": "8666",
+      "content": "60 liter",
+      "packaging": "vat",
+      "qty": 1,
+      "unitPrice": 47.6,
+      "pricePerL": 47.6
+    },
+    {
+      "artNo": "8704",
+      "content": "200 liter",
+      "packaging": "vat",
+      "qty": 1,
+      "unitPrice": 46.7,
+      "pricePerL": 46.7
+    }
+  ],
+  "INTERFLON FOOD LUBE H46": [
+    {
+      "artNo": "8538",
+      "content": "5 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 57.8,
+      "pricePerL": 57.8
+    },
+    {
+      "artNo": "8510",
+      "content": "10 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 52.8,
+      "pricePerL": 52.8
+    },
+    {
+      "artNo": "8539",
+      "content": "20 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 49.9,
+      "pricePerL": 49.9
+    },
+    {
+      "artNo": "8666",
+      "content": "60 liter",
+      "packaging": "vat",
+      "qty": 1,
+      "unitPrice": 47.6,
+      "pricePerL": 47.6
+    },
+    {
+      "artNo": "8704",
+      "content": "200 liter",
+      "packaging": "vat",
+      "qty": 1,
+      "unitPrice": 46.7,
+      "pricePerL": 46.7
+    }
+  ],
+  "Food lube H68": [
+    {
+      "artNo": "8762",
+      "content": "5 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 57.8,
+      "pricePerL": 57.8
+    },
+    {
+      "artNo": "8763",
+      "content": "10 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 52.8,
+      "pricePerL": 52.8
+    },
+    {
+      "artNo": "8764",
+      "content": "20 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 49.9,
+      "pricePerL": 49.9
+    },
+    {
+      "artNo": "8765",
+      "content": "30 liter",
+      "packaging": "vat",
+      "qty": 1,
+      "unitPrice": 48.8,
+      "pricePerL": 48.8
+    },
+    {
+      "artNo": "8766",
+      "content": "60 liter",
+      "packaging": "vat",
+      "qty": 1,
+      "unitPrice": 47.6,
+      "pricePerL": 47.6
+    },
+    {
+      "artNo": "8767",
+      "content": "200 liter",
+      "packaging": "vat",
+      "qty": 1,
+      "unitPrice": 46.7,
+      "pricePerL": 46.7
+    }
+  ],
+  "FOOD LUBE H68": [
+    {
+      "artNo": "8762",
+      "content": "5 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 57.8,
+      "pricePerL": 57.8
+    },
+    {
+      "artNo": "8763",
+      "content": "10 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 52.8,
+      "pricePerL": 52.8
+    },
+    {
+      "artNo": "8764",
+      "content": "20 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 49.9,
+      "pricePerL": 49.9
+    },
+    {
+      "artNo": "8765",
+      "content": "30 liter",
+      "packaging": "vat",
+      "qty": 1,
+      "unitPrice": 48.8,
+      "pricePerL": 48.8
+    },
+    {
+      "artNo": "8766",
+      "content": "60 liter",
+      "packaging": "vat",
+      "qty": 1,
+      "unitPrice": 47.6,
+      "pricePerL": 47.6
+    },
+    {
+      "artNo": "8767",
+      "content": "200 liter",
+      "packaging": "vat",
+      "qty": 1,
+      "unitPrice": 46.7,
+      "pricePerL": 46.7
+    }
+  ],
+  "INTERFLON FOOD LUBE H68": [
+    {
+      "artNo": "8762",
+      "content": "5 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 57.8,
+      "pricePerL": 57.8
+    },
+    {
+      "artNo": "8763",
+      "content": "10 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 52.8,
+      "pricePerL": 52.8
+    },
+    {
+      "artNo": "8764",
+      "content": "20 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 49.9,
+      "pricePerL": 49.9
+    },
+    {
+      "artNo": "8765",
+      "content": "30 liter",
+      "packaging": "vat",
+      "qty": 1,
+      "unitPrice": 48.8,
+      "pricePerL": 48.8
+    },
+    {
+      "artNo": "8766",
+      "content": "60 liter",
+      "packaging": "vat",
+      "qty": 1,
+      "unitPrice": 47.6,
+      "pricePerL": 47.6
+    },
+    {
+      "artNo": "8767",
+      "content": "200 liter",
+      "packaging": "vat",
+      "qty": 1,
+      "unitPrice": 46.7,
+      "pricePerL": 46.7
+    }
+  ],
+  "Food lube 3H": [
+    {
+      "artNo": "845201844",
+      "content": "500 ml",
+      "packaging": "spuitbus",
+      "qty": 1,
+      "unitPrice": 45,
+      "pricePerL": 90
+    },
+    {
+      "artNo": "845201844",
+      "content": "500 ml",
+      "packaging": "spuitbus",
+      "qty": 12,
+      "unitPrice": 41.1,
+      "pricePerL": 82.2
+    },
+    {
+      "artNo": "845201844",
+      "content": "500 ml",
+      "packaging": "spuitbus",
+      "qty": 24,
+      "unitPrice": 39.1,
+      "pricePerL": 78.2
+    },
+    {
+      "artNo": "845201844",
+      "content": "500 ml",
+      "packaging": "spuitbus",
+      "qty": 48,
+      "unitPrice": 37.1,
+      "pricePerL": 74.2
+    },
+    {
+      "artNo": "845202162",
+      "content": "1 liter",
+      "packaging": "trickspray",
+      "qty": 1,
+      "unitPrice": 84.2,
+      "pricePerL": 84.2
+    },
+    {
+      "artNo": "845202162",
+      "content": "1 liter",
+      "packaging": "trickspray",
+      "qty": 6,
+      "unitPrice": 76.9,
+      "pricePerL": 76.9
+    },
+    {
+      "artNo": "845202162",
+      "content": "1 liter",
+      "packaging": "trickspray",
+      "qty": 12,
+      "unitPrice": 73.2,
+      "pricePerL": 73.2
+    },
+    {
+      "artNo": "845202162",
+      "content": "1 liter",
+      "packaging": "trickspray",
+      "qty": 24,
+      "unitPrice": 69.5,
+      "pricePerL": 69.5
+    },
+    {
+      "artNo": "845202462",
+      "content": "5 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 69.4,
+      "pricePerL": 69.4
+    },
+    {
+      "artNo": "845202562",
+      "content": "10 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 65.5,
+      "pricePerL": 65.5
+    },
+    {
+      "artNo": "845202862",
+      "content": "20 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 61.7,
+      "pricePerL": 61.7
+    },
+    {
+      "artNo": "845203562",
+      "content": "60 liter",
+      "packaging": "vat",
+      "qty": 1,
+      "unitPrice": 54.7,
+      "pricePerL": 54.7
+    },
+    {
+      "artNo": "845203862",
+      "content": "200 liter",
+      "packaging": "vat",
+      "qty": 1,
+      "unitPrice": 50.9,
+      "pricePerL": 50.9
+    }
+  ],
+  "FOOD LUBE 3H": [
+    {
+      "artNo": "845201844",
+      "content": "500 ml",
+      "packaging": "spuitbus",
+      "qty": 1,
+      "unitPrice": 45,
+      "pricePerL": 90
+    },
+    {
+      "artNo": "845201844",
+      "content": "500 ml",
+      "packaging": "spuitbus",
+      "qty": 12,
+      "unitPrice": 41.1,
+      "pricePerL": 82.2
+    },
+    {
+      "artNo": "845201844",
+      "content": "500 ml",
+      "packaging": "spuitbus",
+      "qty": 24,
+      "unitPrice": 39.1,
+      "pricePerL": 78.2
+    },
+    {
+      "artNo": "845201844",
+      "content": "500 ml",
+      "packaging": "spuitbus",
+      "qty": 48,
+      "unitPrice": 37.1,
+      "pricePerL": 74.2
+    },
+    {
+      "artNo": "845202162",
+      "content": "1 liter",
+      "packaging": "trickspray",
+      "qty": 1,
+      "unitPrice": 84.2,
+      "pricePerL": 84.2
+    },
+    {
+      "artNo": "845202162",
+      "content": "1 liter",
+      "packaging": "trickspray",
+      "qty": 6,
+      "unitPrice": 76.9,
+      "pricePerL": 76.9
+    },
+    {
+      "artNo": "845202162",
+      "content": "1 liter",
+      "packaging": "trickspray",
+      "qty": 12,
+      "unitPrice": 73.2,
+      "pricePerL": 73.2
+    },
+    {
+      "artNo": "845202162",
+      "content": "1 liter",
+      "packaging": "trickspray",
+      "qty": 24,
+      "unitPrice": 69.5,
+      "pricePerL": 69.5
+    },
+    {
+      "artNo": "845202462",
+      "content": "5 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 69.4,
+      "pricePerL": 69.4
+    },
+    {
+      "artNo": "845202562",
+      "content": "10 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 65.5,
+      "pricePerL": 65.5
+    },
+    {
+      "artNo": "845202862",
+      "content": "20 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 61.7,
+      "pricePerL": 61.7
+    },
+    {
+      "artNo": "845203562",
+      "content": "60 liter",
+      "packaging": "vat",
+      "qty": 1,
+      "unitPrice": 54.7,
+      "pricePerL": 54.7
+    },
+    {
+      "artNo": "845203862",
+      "content": "200 liter",
+      "packaging": "vat",
+      "qty": 1,
+      "unitPrice": 50.9,
+      "pricePerL": 50.9
+    }
+  ],
+  "INTERFLON FOOD LUBE 3H": [
+    {
+      "artNo": "845201844",
+      "content": "500 ml",
+      "packaging": "spuitbus",
+      "qty": 1,
+      "unitPrice": 45,
+      "pricePerL": 90
+    },
+    {
+      "artNo": "845201844",
+      "content": "500 ml",
+      "packaging": "spuitbus",
+      "qty": 12,
+      "unitPrice": 41.1,
+      "pricePerL": 82.2
+    },
+    {
+      "artNo": "845201844",
+      "content": "500 ml",
+      "packaging": "spuitbus",
+      "qty": 24,
+      "unitPrice": 39.1,
+      "pricePerL": 78.2
+    },
+    {
+      "artNo": "845201844",
+      "content": "500 ml",
+      "packaging": "spuitbus",
+      "qty": 48,
+      "unitPrice": 37.1,
+      "pricePerL": 74.2
+    },
+    {
+      "artNo": "845202162",
+      "content": "1 liter",
+      "packaging": "trickspray",
+      "qty": 1,
+      "unitPrice": 84.2,
+      "pricePerL": 84.2
+    },
+    {
+      "artNo": "845202162",
+      "content": "1 liter",
+      "packaging": "trickspray",
+      "qty": 6,
+      "unitPrice": 76.9,
+      "pricePerL": 76.9
+    },
+    {
+      "artNo": "845202162",
+      "content": "1 liter",
+      "packaging": "trickspray",
+      "qty": 12,
+      "unitPrice": 73.2,
+      "pricePerL": 73.2
+    },
+    {
+      "artNo": "845202162",
+      "content": "1 liter",
+      "packaging": "trickspray",
+      "qty": 24,
+      "unitPrice": 69.5,
+      "pricePerL": 69.5
+    },
+    {
+      "artNo": "845202462",
+      "content": "5 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 69.4,
+      "pricePerL": 69.4
+    },
+    {
+      "artNo": "845202562",
+      "content": "10 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 65.5,
+      "pricePerL": 65.5
+    },
+    {
+      "artNo": "845202862",
+      "content": "20 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 61.7,
+      "pricePerL": 61.7
+    },
+    {
+      "artNo": "845203562",
+      "content": "60 liter",
+      "packaging": "vat",
+      "qty": 1,
+      "unitPrice": 54.7,
+      "pricePerL": 54.7
+    },
+    {
+      "artNo": "845203862",
+      "content": "200 liter",
+      "packaging": "vat",
+      "qty": 1,
+      "unitPrice": 50.9,
+      "pricePerL": 50.9
+    }
+  ],
+  "Interflon Lube TF": [
+    {
+      "artNo": "9231",
+      "content": "500 ml",
+      "packaging": "spuitbus",
+      "qty": 1,
+      "unitPrice": 27.4,
+      "pricePerL": 54.8
+    },
+    {
+      "artNo": "9231",
+      "content": "500 ml",
+      "packaging": "spuitbus",
+      "qty": 12,
+      "unitPrice": 26.2,
+      "pricePerL": 52.4
+    },
+    {
+      "artNo": "9231",
+      "content": "500 ml",
+      "packaging": "spuitbus",
+      "qty": 24,
+      "unitPrice": 25,
+      "pricePerL": 50
+    },
+    {
+      "artNo": "9231",
+      "content": "500 ml",
+      "packaging": "spuitbus",
+      "qty": 48,
+      "unitPrice": 24,
+      "pricePerL": 48
+    },
+    {
+      "artNo": "8101",
+      "content": "1 liter",
+      "packaging": "trickspray",
+      "qty": 1,
+      "unitPrice": 56.4,
+      "pricePerL": 56.4
+    },
+    {
+      "artNo": "8101",
+      "content": "1 liter",
+      "packaging": "trickspray",
+      "qty": 6,
+      "unitPrice": 53.7,
+      "pricePerL": 53.7
+    },
+    {
+      "artNo": "8101",
+      "content": "1 liter",
+      "packaging": "trickspray",
+      "qty": 12,
+      "unitPrice": 51.4,
+      "pricePerL": 51.4
+    },
+    {
+      "artNo": "8101",
+      "content": "1 liter",
+      "packaging": "trickspray",
+      "qty": 24,
+      "unitPrice": 51,
+      "pricePerL": 51
+    },
+    {
+      "artNo": "8102",
+      "content": "5 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 43.1,
+      "pricePerL": 43.1
+    },
+    {
+      "artNo": "8103",
+      "content": "10 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 41.6,
+      "pricePerL": 41.6
+    },
+    {
+      "artNo": "8104",
+      "content": "20 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 40,
+      "pricePerL": 40
+    },
+    {
+      "artNo": "8104",
+      "content": "20 liter",
+      "packaging": "jerrycan",
+      "qty": 3,
+      "unitPrice": 38.9,
+      "pricePerL": 38.9
+    }
+  ],
+  "Fin Lube TF": [
+    {
+      "artNo": "9231",
+      "content": "500 ml",
+      "packaging": "spuitbus",
+      "qty": 1,
+      "unitPrice": 27.4,
+      "pricePerL": 54.8
+    },
+    {
+      "artNo": "9231",
+      "content": "500 ml",
+      "packaging": "spuitbus",
+      "qty": 12,
+      "unitPrice": 26.2,
+      "pricePerL": 52.4
+    },
+    {
+      "artNo": "9231",
+      "content": "500 ml",
+      "packaging": "spuitbus",
+      "qty": 24,
+      "unitPrice": 25,
+      "pricePerL": 50
+    },
+    {
+      "artNo": "9231",
+      "content": "500 ml",
+      "packaging": "spuitbus",
+      "qty": 48,
+      "unitPrice": 24,
+      "pricePerL": 48
+    },
+    {
+      "artNo": "8101",
+      "content": "1 liter",
+      "packaging": "trickspray",
+      "qty": 1,
+      "unitPrice": 56.4,
+      "pricePerL": 56.4
+    },
+    {
+      "artNo": "8101",
+      "content": "1 liter",
+      "packaging": "trickspray",
+      "qty": 6,
+      "unitPrice": 53.7,
+      "pricePerL": 53.7
+    },
+    {
+      "artNo": "8101",
+      "content": "1 liter",
+      "packaging": "trickspray",
+      "qty": 12,
+      "unitPrice": 51.4,
+      "pricePerL": 51.4
+    },
+    {
+      "artNo": "8101",
+      "content": "1 liter",
+      "packaging": "trickspray",
+      "qty": 24,
+      "unitPrice": 51,
+      "pricePerL": 51
+    },
+    {
+      "artNo": "8102",
+      "content": "5 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 43.1,
+      "pricePerL": 43.1
+    },
+    {
+      "artNo": "8103",
+      "content": "10 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 41.6,
+      "pricePerL": 41.6
+    },
+    {
+      "artNo": "8104",
+      "content": "20 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 40,
+      "pricePerL": 40
+    },
+    {
+      "artNo": "8104",
+      "content": "20 liter",
+      "packaging": "jerrycan",
+      "qty": 3,
+      "unitPrice": 38.9,
+      "pricePerL": 38.9
+    }
+  ],
+  "Interflon Fin Super": [
+    {
+      "artNo": "9606",
+      "content": "100 ml",
+      "packaging": "spuitbus",
+      "qty": 1,
+      "unitPrice": 13.1,
+      "pricePerL": 13.1
+    },
+    {
+      "artNo": "9606",
+      "content": "100 ml",
+      "packaging": "spuitbus",
+      "qty": 12,
+      "unitPrice": 10.8,
+      "pricePerL": 10.8
+    },
+    {
+      "artNo": "9606",
+      "content": "100 ml",
+      "packaging": "spuitbus",
+      "qty": 24,
+      "unitPrice": 9.7,
+      "pricePerL": 9.7
+    },
+    {
+      "artNo": "9606",
+      "content": "100 ml",
+      "packaging": "spuitbus",
+      "qty": 48,
+      "unitPrice": 9,
+      "pricePerL": 9
+    },
+    {
+      "artNo": "8019",
+      "content": "300 ml",
+      "packaging": "spuitbus",
+      "qty": 1,
+      "unitPrice": 18.6,
+      "pricePerL": 62
+    },
+    {
+      "artNo": "8019",
+      "content": "300 ml",
+      "packaging": "spuitbus",
+      "qty": 12,
+      "unitPrice": 16.7,
+      "pricePerL": 55.67
+    },
+    {
+      "artNo": "8019",
+      "content": "300 ml",
+      "packaging": "spuitbus",
+      "qty": 24,
+      "unitPrice": 16.2,
+      "pricePerL": 54
+    },
+    {
+      "artNo": "8019",
+      "content": "300 ml",
+      "packaging": "spuitbus",
+      "qty": 48,
+      "unitPrice": 15.5,
+      "pricePerL": 51.67
+    }
+  ],
+  "Interflon Food Lube": [
+    {
+      "artNo": "9197",
+      "content": "500 ml",
+      "packaging": "spuitbus",
+      "qty": 1,
+      "unitPrice": 30.2,
+      "pricePerL": 60.4
+    },
+    {
+      "artNo": "9197",
+      "content": "500 ml",
+      "packaging": "spuitbus",
+      "qty": 12,
+      "unitPrice": 28.8,
+      "pricePerL": 57.6
+    },
+    {
+      "artNo": "9197",
+      "content": "500 ml",
+      "packaging": "spuitbus",
+      "qty": 24,
+      "unitPrice": 27.4,
+      "pricePerL": 54.8
+    },
+    {
+      "artNo": "9197",
+      "content": "500 ml",
+      "packaging": "spuitbus",
+      "qty": 48,
+      "unitPrice": 26,
+      "pricePerL": 52
+    },
+    {
+      "artNo": "8249",
+      "content": "1 liter",
+      "packaging": "trickspray",
+      "qty": 1,
+      "unitPrice": 61.2,
+      "pricePerL": 61.2
+    },
+    {
+      "artNo": "8249",
+      "content": "1 liter",
+      "packaging": "trickspray",
+      "qty": 6,
+      "unitPrice": 58.4,
+      "pricePerL": 58.4
+    },
+    {
+      "artNo": "8249",
+      "content": "1 liter",
+      "packaging": "trickspray",
+      "qty": 12,
+      "unitPrice": 55.6,
+      "pricePerL": 55.6
+    },
+    {
+      "artNo": "8249",
+      "content": "1 liter",
+      "packaging": "trickspray",
+      "qty": 24,
+      "unitPrice": 52.8,
+      "pricePerL": 52.8
+    },
+    {
+      "artNo": "8250",
+      "content": "5 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 53.9,
+      "pricePerL": 53.9
+    },
+    {
+      "artNo": "8194",
+      "content": "10 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 52.3,
+      "pricePerL": 52.3
+    },
+    {
+      "artNo": "8466",
+      "content": "20 liter",
+      "packaging": "jerrycan",
+      "qty": 1,
+      "unitPrice": 50,
+      "pricePerL": 50
+    },
+    {
+      "artNo": "8466",
+      "content": "20 liter",
+      "packaging": "jerrycan",
+      "qty": 3,
+      "unitPrice": 48.6,
+      "pricePerL": 48.6
+    }
+  ]
+};
