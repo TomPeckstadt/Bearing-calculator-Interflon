@@ -1364,18 +1364,41 @@ function switchPage(pageId) {
     if (pageId === "om") pageId = "chainOm";
     if (pageId === "automation") pageId = "chainAutomation";
     if (pageId === "info") pageId = "chainInfo";
+  } else {
+    if (pageId === "chainSearch") pageId = "search";
+    if (pageId === "chainCalc") pageId = "calc";
+    if (pageId === "chainOm") pageId = "om";
+    if (pageId === "chainAutomation") pageId = "automation";
+    if (pageId === "chainInfo") pageId = "info";
+  }
+
+  // Ensure sidebar labels & mode button text match active mode
+  if (typeof updateModeUI === "function") {
+    updateModeUI();
   }
 
   if (pageId === 'search') {
     document.getElementById("pageSearch").classList.add("active");
     document.getElementById("menuSearch").classList.add("active");
-    if (targetTitle) targetTitle.setAttribute("data-i18n", "pageSearchTitle");
-    if (targetSubtitle) targetSubtitle.setAttribute("data-i18n", "pageSearchSubtitle");
+    if (targetTitle) {
+      targetTitle.setAttribute("data-i18n", "pageSearchTitle");
+      targetTitle.textContent = "Lager Opzoeken";
+    }
+    if (targetSubtitle) {
+      targetSubtitle.setAttribute("data-i18n", "pageSearchSubtitle");
+      targetSubtitle.textContent = "Geef een SKF lagernummer op om alle technische specificaties te tonen.";
+    }
   } else if (pageId === 'calc') {
     document.getElementById("pageCalc").classList.add("active");
     document.getElementById("menuCalc").classList.add("active");
-    if (targetTitle) targetTitle.setAttribute("data-i18n", "pageCalcTitle");
-    if (targetSubtitle) targetSubtitle.setAttribute("data-i18n", "pageCalcSubtitle");
+    if (targetTitle) {
+      targetTitle.setAttribute("data-i18n", "pageCalcTitle");
+      targetTitle.textContent = "Smeercalculatie";
+    }
+    if (targetSubtitle) {
+      targetSubtitle.setAttribute("data-i18n", "pageCalcSubtitle");
+      targetSubtitle.textContent = "Bereken de optimale smeerbehoefte en nasmeer-intervallen voor uw lager.";
+    }
     updateCalculatorFields();
 
     // Trigger zoom pulse animation when the instruction badge becomes visible on scroll
@@ -1408,8 +1431,14 @@ function switchPage(pageId) {
   } else if (pageId === 'om') {
     document.getElementById("pageOm").classList.add("active");
     document.getElementById("menuOm").classList.add("active");
-    if (targetTitle) targetTitle.setAttribute("data-i18n", "pageOmTitle");
-    if (targetSubtitle) targetSubtitle.setAttribute("data-i18n", "pageOmSubtitle");
+    if (targetTitle) {
+      targetTitle.setAttribute("data-i18n", "pageOmTitle");
+      targetTitle.textContent = "Opbrengstmodel";
+    }
+    if (targetSubtitle) {
+      targetSubtitle.setAttribute("data-i18n", "pageOmSubtitle");
+      targetSubtitle.textContent = "Bereken de financiële en operationele besparing door overstap naar Interflon vetten.";
+    }
     calculateTco();
 
     // Trigger zoom pulse animation when the instruction badge becomes visible on scroll
@@ -1442,55 +1471,97 @@ function switchPage(pageId) {
   } else if (pageId === 'automation') {
     document.getElementById("pageAutomation").classList.add("active");
     document.getElementById("menuAutomation").classList.add("active");
-    if (targetTitle) targetTitle.setAttribute("data-i18n", "pageAutomationTitle");
-    if (targetSubtitle) targetSubtitle.setAttribute("data-i18n", "pageAutomationSubtitle");
+    if (targetTitle) {
+      targetTitle.setAttribute("data-i18n", "pageAutomationTitle");
+      targetTitle.textContent = "Automatisering";
+    }
+    if (targetSubtitle) {
+      targetSubtitle.setAttribute("data-i18n", "pageAutomationSubtitle");
+      targetSubtitle.textContent = "Bereken de instellingen en standtijd voor uw automatische Interflon smeerpotten.";
+    }
     updateAutomationPage();
   } else if (pageId === 'info') {
     document.getElementById("pageInfo").classList.add("active");
     document.getElementById("menuInfo").classList.add("active");
-    if (targetTitle) targetTitle.setAttribute("data-i18n", "pageInfoTitle");
-    if (targetSubtitle) targetSubtitle.setAttribute("data-i18n", "pageInfoSubtitle");
+    if (targetTitle) {
+      targetTitle.setAttribute("data-i18n", "pageInfoTitle");
+      targetTitle.textContent = "Informatie";
+    }
+    if (targetSubtitle) {
+      targetSubtitle.setAttribute("data-i18n", "pageInfoSubtitle");
+      targetSubtitle.textContent = "Achtergrondinformatie over Interflon producten en de MicPol® technologie.";
+    }
   } else if (pageId === 'chainSearch') {
     const sec = document.getElementById("pageChainSearch");
     if (sec) sec.classList.add("active");
     document.getElementById("menuSearch").classList.add("active");
-    if (targetTitle) targetTitle.textContent = "Ketting Zoeken";
-    if (targetSubtitle) targetSubtitle.textContent = "Selecteer of zoek een industriële rollenketting om de maatspecificaties te tonen.";
+    if (targetTitle) {
+      targetTitle.removeAttribute("data-i18n");
+      targetTitle.textContent = "Ketting Zoeken";
+    }
+    if (targetSubtitle) {
+      targetSubtitle.removeAttribute("data-i18n");
+      targetSubtitle.textContent = "Selecteer of zoek een industriële rollenketting om de maatspecificaties te tonen.";
+    }
   } else if (pageId === 'chainCalc') {
     const sec = document.getElementById("pageChainCalc");
     if (sec) sec.classList.add("active");
     document.getElementById("menuCalc").classList.add("active");
-    if (targetTitle) targetTitle.textContent = "Kettingsmeercalculatie";
-    if (targetSubtitle) targetSubtitle.textContent = "Bereken de optimale oliedosering (cm³/dag, ml/uur en druppels/minuut) voor uw kettingaandrijving.";
+    if (targetTitle) {
+      targetTitle.removeAttribute("data-i18n");
+      targetTitle.textContent = "Kettingsmeercalculatie";
+    }
+    if (targetSubtitle) {
+      targetSubtitle.removeAttribute("data-i18n");
+      targetSubtitle.textContent = "Bereken de optimale oliedosering (cm³/dag, ml/uur en druppels/minuut) voor uw kettingaandrijving.";
+    }
     calculateChainGrease();
   } else if (pageId === 'chainOm') {
     const sec = document.getElementById("pageChainOm");
     if (sec) sec.classList.add("active");
     document.getElementById("menuOm").classList.add("active");
-    if (targetTitle) targetTitle.textContent = "Opbrengstmodel Kettingsmering";
-    if (targetSubtitle) targetSubtitle.textContent = "Bereken de besparing op slijtage, onderhoudsuren en kettingvervanging met Interflon MicPol®.";
+    if (targetTitle) {
+      targetTitle.removeAttribute("data-i18n");
+      targetTitle.textContent = "Opbrengstmodel Kettingsmering";
+    }
+    if (targetSubtitle) {
+      targetSubtitle.removeAttribute("data-i18n");
+      targetSubtitle.textContent = "Bereken de besparing op slijtage, onderhoudsuren en kettingvervanging met Interflon MicPol®.";
+    }
   } else if (pageId === 'chainAutomation') {
     const sec = document.getElementById("pageChainAutomation");
     if (sec) sec.classList.add("active");
     document.getElementById("menuAutomation").classList.add("active");
-    if (targetTitle) targetTitle.textContent = "Automatische Kettingsmeersystemen";
-    if (targetSubtitle) targetSubtitle.textContent = "Overzicht van automatische kettingkwasten en doseerunits.";
+    if (targetTitle) {
+      targetTitle.removeAttribute("data-i18n");
+      targetTitle.textContent = "Automatische Kettingsmeersystemen";
+    }
+    if (targetSubtitle) {
+      targetSubtitle.removeAttribute("data-i18n");
+      targetSubtitle.textContent = "Overzicht van automatische kettingkwasten en doseerunits.";
+    }
   } else if (pageId === 'chainInfo') {
     const sec = document.getElementById("pageChainInfo");
     if (sec) sec.classList.add("active");
     document.getElementById("menuInfo").classList.add("active");
-    if (targetTitle) targetTitle.textContent = "Informatie Kettingsmering";
-    if (targetSubtitle) targetSubtitle.textContent = "Achtergrond en richtlijnen voor industriële kettingsmering met Interflon MicPol®.";
+    if (targetTitle) {
+      targetTitle.removeAttribute("data-i18n");
+      targetTitle.textContent = "Informatie Kettingsmering";
+    }
+    if (targetSubtitle) {
+      targetSubtitle.removeAttribute("data-i18n");
+      targetSubtitle.textContent = "Achtergrond en richtlijnen voor industriële kettingsmering met Interflon MicPol®.";
+    }
   }
 
-  // Vertaling toepassen op deze dynamische elementen
-  const lang = currentLang || "nl";
-  if (TRANSLATIONS[lang]) {
-    if (targetTitle) {
+  // Vertaling toepassen op deze dynamische elementen (ALLEEN als data-i18n aanwezig is!)
+  const lang = typeof currentLang !== "undefined" ? currentLang : "nl";
+  if (typeof TRANSLATIONS !== "undefined" && TRANSLATIONS[lang]) {
+    if (targetTitle && targetTitle.hasAttribute("data-i18n")) {
       const key = targetTitle.getAttribute("data-i18n");
       if (TRANSLATIONS[lang][key]) targetTitle.textContent = TRANSLATIONS[lang][key];
     }
-    if (targetSubtitle) {
+    if (targetSubtitle && targetSubtitle.hasAttribute("data-i18n")) {
       const key = targetSubtitle.getAttribute("data-i18n");
       if (TRANSLATIONS[lang][key]) targetSubtitle.textContent = TRANSLATIONS[lang][key];
     }
@@ -4451,10 +4522,7 @@ function closeModeSelectionModal() {
   }
 }
 
-function selectAppMode(mode) {
-  currentAppMode = mode;
-  closeModeSelectionModal();
-
+function updateModeUI() {
   const modeBtnText = document.getElementById("modeSwitchBtnText");
   const menuSearchText = document.querySelector("#menuSearch span");
   const menuCalcText = document.querySelector("#menuCalc span");
@@ -4462,27 +4530,65 @@ function selectAppMode(mode) {
   const menuAutomationText = document.querySelector("#menuAutomation span");
   const menuInfoText = document.querySelector("#menuInfo span");
 
-  if (mode === "chain") {
-    if (modeBtnText) modeBtnText.textContent = "⚙️ Lagers / ⛓️ Kettingen";
-    if (menuSearchText) menuSearchText.textContent = "Ketting Zoeken";
-    if (menuCalcText) menuCalcText.textContent = "Berekening";
-    if (menuOmText) menuOmText.textContent = "Opbrengstmodel";
-    if (menuAutomationText) menuAutomationText.textContent = "Automatisering";
-    if (menuInfoText) menuInfoText.textContent = "Informatie";
+  if (currentAppMode === "chain") {
+    if (modeBtnText) modeBtnText.textContent = "⛓️ Kettingberekening";
+    if (menuSearchText) {
+      menuSearchText.textContent = "Ketting Zoeken";
+      menuSearchText.removeAttribute("data-i18n");
+    }
+    if (menuCalcText) {
+      menuCalcText.textContent = "Berekening";
+      menuCalcText.removeAttribute("data-i18n");
+    }
+    if (menuOmText) {
+      menuOmText.textContent = "Opbrengstmodel";
+      menuOmText.removeAttribute("data-i18n");
+    }
+    if (menuAutomationText) {
+      menuAutomationText.textContent = "Automatisering";
+      menuAutomationText.removeAttribute("data-i18n");
+    }
+    if (menuInfoText) {
+      menuInfoText.textContent = "Informatie";
+      menuInfoText.removeAttribute("data-i18n");
+    }
+  } else {
+    // Mode === "bearing"
+    if (modeBtnText) modeBtnText.textContent = "⚙️ Lagerberekening";
+    if (menuSearchText) {
+      menuSearchText.setAttribute("data-i18n", "menuSearch");
+      menuSearchText.textContent = "Lager Opzoeken";
+    }
+    if (menuCalcText) {
+      menuCalcText.setAttribute("data-i18n", "menuCalc");
+      menuCalcText.textContent = "Smeercalculatie";
+    }
+    if (menuOmText) {
+      menuOmText.setAttribute("data-i18n", "menuOm");
+      menuOmText.textContent = "Opbrengstmodel";
+    }
+    if (menuAutomationText) {
+      menuAutomationText.setAttribute("data-i18n", "menuAutomation");
+      menuAutomationText.textContent = "Automatisering";
+    }
+    if (menuInfoText) {
+      menuInfoText.setAttribute("data-i18n", "menuInfo");
+      menuInfoText.textContent = "Informatie";
+    }
+  }
+}
 
+function selectAppMode(mode) {
+  currentAppMode = mode;
+  closeModeSelectionModal();
+  updateModeUI();
+
+  if (mode === "chain") {
     switchPage("chainSearch");
     if (typeof CHAINS_DB !== "undefined" && CHAINS_DB.length > 0 && !activeChain) {
       selectChain(CHAINS_DB[3]); // Default 08B-1
     }
   } else {
-    // Mode === "bearing" (100% untouched current layout)
-    if (modeBtnText) modeBtnText.textContent = "⚙️ Lagers / ⛓️ Kettingen";
-    if (menuSearchText) menuSearchText.textContent = getTranslation("menuSearch", "Lager Opzoeken");
-    if (menuCalcText) menuCalcText.textContent = getTranslation("menuCalc", "Smeercalculatie");
-    if (menuOmText) menuOmText.textContent = getTranslation("menuOm", "Opbrengstmodel");
-    if (menuAutomationText) menuAutomationText.textContent = getTranslation("menuAutomation", "Automatisering");
-    if (menuInfoText) menuInfoText.textContent = getTranslation("menuInfo", "Informatie");
-
     switchPage("search");
   }
 }
