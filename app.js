@@ -1556,6 +1556,7 @@ function switchPage(pageId) {
       targetSubtitle.setAttribute("data-i18n", "pageOmSubtitle");
       targetSubtitle.textContent = "Bereken de financiële en operationele besparing door overstap naar Interflon vetten.";
     }
+    loadTcoDetails();
     calculateTco();
 
     // Trigger zoom pulse animation when the instruction badge becomes visible on scroll
@@ -1661,6 +1662,7 @@ function switchPage(pageId) {
       badgeTitleEl.textContent = activeChain ? `Ketting ${activeChain.designation} (${activeChain.strand})` : "Ketting 08B-1 (ISO/BS Simplex)";
     }
 
+    loadTcoDetails();
     updateChainTcoFrequencies();
     calculateTco();
   } else if (pageId === 'chainAutomation') {
@@ -3818,22 +3820,34 @@ function loadTcoDetails() {
         }
       }
     });
-    // Load application photo
+    // Load bearing application photo
     tcoUploadedImageBase64 = data["omAppImage"] || "";
     const placeholder = document.getElementById("omAppImagePlaceholder");
     const previewContainer = document.getElementById("omAppImagePreviewContainer");
+    const previewImg = document.getElementById("omAppImagePreview");
     if (tcoUploadedImageBase64 && tcoUploadedImageBase64.startsWith("data:image")) {
-      const previewImg = document.getElementById("omAppImagePreview");
-      if (previewImg) {
-        previewImg.src = tcoUploadedImageBase64;
-        if (placeholder) placeholder.style.display = "none";
-        if (previewContainer) previewContainer.style.display = "flex";
-      }
+      if (previewImg) previewImg.src = tcoUploadedImageBase64;
+      if (placeholder) placeholder.style.display = "none";
+      if (previewContainer) previewContainer.style.display = "flex";
     } else {
       if (placeholder) placeholder.style.display = "flex";
       if (previewContainer) previewContainer.style.display = "none";
-      const previewImg = document.getElementById("omAppImagePreview");
       if (previewImg) previewImg.src = "";
+    }
+
+    // Load chain application photo
+    chainTcoUploadedImageBase64 = data["chainOmAppImage"] || "";
+    const chainPlaceholder = document.getElementById("chainOmAppImagePlaceholder");
+    const chainPreviewContainer = document.getElementById("chainOmAppImagePreviewContainer");
+    const chainPreviewImg = document.getElementById("chainOmAppImagePreview");
+    if (chainTcoUploadedImageBase64 && chainTcoUploadedImageBase64.startsWith("data:image")) {
+      if (chainPreviewImg) chainPreviewImg.src = chainTcoUploadedImageBase64;
+      if (chainPlaceholder) chainPlaceholder.style.display = "none";
+      if (chainPreviewContainer) chainPreviewContainer.style.display = "flex";
+    } else {
+      if (chainPlaceholder) chainPlaceholder.style.display = "flex";
+      if (chainPreviewContainer) chainPreviewContainer.style.display = "none";
+      if (chainPreviewImg) chainPreviewImg.src = "";
     }
   } catch (e) {
     console.error("Fout bij laden TCO data:", e);
@@ -4926,7 +4940,7 @@ function selectChain(chain) {
 
   if (typeImg) typeImg.src = (chain.illustrationImg || "chain-simplex.png") + "?v=70";
   if (typeSubtitle) typeSubtitle.textContent = chain.strand || "Simplex (1-sporig)";
-  if (dimImg) dimImg.src = (chain.dimensionsImg || "chain-dimensions.png") + "?v=90";
+  if (dimImg) dimImg.src = (chain.dimensionsImg || "chain-dimensions.png") + "?v=92";
 
   if (vPitch) vPitch.textContent = chain.pitch.toFixed(1);
   if (vWidth) vWidth.textContent = chain.width.toFixed(1);
