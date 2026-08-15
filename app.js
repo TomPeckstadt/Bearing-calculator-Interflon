@@ -1556,7 +1556,7 @@ function switchPage(pageId) {
       targetSubtitle.setAttribute("data-i18n", "pageOmSubtitle");
       targetSubtitle.textContent = "Bereken de financiële en operationele besparing door overstap naar Interflon vetten.";
     }
-    loadTcoDetails();
+    loadBearingTcoDetails();
     calculateTco();
 
     // Trigger zoom pulse animation when the instruction badge becomes visible on scroll
@@ -1662,7 +1662,7 @@ function switchPage(pageId) {
       badgeTitleEl.textContent = activeChain ? `Ketting ${activeChain.designation} (${activeChain.strand})` : "Ketting 08B-1 (ISO/BS Simplex)";
     }
 
-    loadTcoDetails();
+    loadChainTcoDetails();
     updateChainTcoFrequencies();
     calculateTco();
   } else if (pageId === 'chainAutomation') {
@@ -3772,44 +3772,44 @@ const CHAIN_TCO_INPUTS = [
   "chainOmDowntimeFreq1", "chainOmDowntimeFreq2", "chainOmTcoYears"
 ];
 
-function saveTcoDetails() {
+
+// ==========================================================================
+// SEPARATE SAVE & LOAD FUNCTIONS (LAGERS VS KETTINGEN)
+// ==========================================================================
+function saveBearingTcoDetails() {
   const data = {};
-  [...TCO_INPUTS, ...CHAIN_TCO_INPUTS].forEach(id => {
+  TCO_INPUTS.forEach(id => {
     const el = document.getElementById(id);
     if (el) {
       data[id] = el.tagName === "INPUT" || el.tagName === "SELECT" ? el.value : el.textContent;
     }
   });
   data["omAppImage"] = tcoUploadedImageBase64;
-  data["chainOmAppImage"] = chainTcoUploadedImageBase64;
-  localStorage.setItem("bearing_calc_tco_data", JSON.stringify(data));
+  localStorage.setItem("bearing_tco_data", JSON.stringify(data));
 }
 
-function loadTcoDetails() {
-  const dataStr = localStorage.getItem("bearing_calc_tco_data");
+function saveChainTcoDetails() {
+  const data = {};
+  CHAIN_TCO_INPUTS.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) {
+      data[id] = el.tagName === "INPUT" || el.tagName === "SELECT" ? el.value : el.textContent;
+    }
+  });
+  data["chainOmAppImage"] = chainTcoUploadedImageBase64;
+  localStorage.setItem("chain_tco_data", JSON.stringify(data));
+}
+
+function saveTcoDetails() {
+  saveBearingTcoDetails();
+  saveChainTcoDetails();
+}
+
+function loadBearingTcoDetails() {
+  const dataStr = localStorage.getItem("bearing_tco_data") || localStorage.getItem("bearing_calc_tco_data");
   if (!dataStr) return;
   try {
     const data = JSON.parse(dataStr);
-    
-    // Migrate old default worktime of 30 minutes to 3 minutes
-    if (data["omSharedWorktime"] === "30" || data["omSharedWorktime"] === 30) {
-      data["omSharedWorktime"] = 3;
-    }
-
-    // Migrate old default downtime frequencies to match material lifetime
-    if (data["omDowntimeFreq1"] === "0.5" || data["omDowntimeFreq1"] === 0.5) {
-      data["omDowntimeFreq1"] = 1;
-    }
-    if (data["omDowntimeFreq2"] === "0" || data["omDowntimeFreq2"] === 0 || data["omDowntimeFreq2"] === "0.00" || data["omDowntimeFreq2"] === 0.00) {
-      data["omDowntimeFreq2"] = 0.25;
-    }
-
-    // Always prioritize the price from Technical Details
-    const techPrice = localStorage.getItem("tech_price");
-    if (techPrice) {
-      data["omProdPrice1"] = techPrice;
-    }
-
     TCO_INPUTS.forEach(id => {
       const el = document.getElementById(id);
       if (el && data[id] !== undefined) {
@@ -3820,7 +3820,6 @@ function loadTcoDetails() {
         }
       }
     });
-    // Load bearing application photo
     tcoUploadedImageBase64 = data["omAppImage"] || "";
     const placeholder = document.getElementById("omAppImagePlaceholder");
     const previewContainer = document.getElementById("omAppImagePreviewContainer");
@@ -3834,8 +3833,26 @@ function loadTcoDetails() {
       if (previewContainer) previewContainer.style.display = "none";
       if (previewImg) previewImg.src = "";
     }
+  } catch (e) {
+    console.error("Fout bij laden Bearing TCO data:", e);
+  }
+}
 
-    // Load chain application photo
+function loadChainTcoDetails() {
+  const dataStr = localStorage.getItem("chain_tco_data") || localStorage.getItem("bearing_calc_tco_data");
+  if (!dataStr) return;
+  try {
+    const data = JSON.parse(dataStr);
+    CHAIN_TCO_INPUTS.forEach(id => {
+      const el = document.getElementById(id);
+      if (el && data[id] !== undefined) {
+        if (el.tagName === "INPUT" || el.tagName === "SELECT") {
+          el.value = data[id];
+        } else {
+          el.textContent = data[id];
+        }
+      }
+    });
     chainTcoUploadedImageBase64 = data["chainOmAppImage"] || "";
     const chainPlaceholder = document.getElementById("chainOmAppImagePlaceholder");
     const chainPreviewContainer = document.getElementById("chainOmAppImagePreviewContainer");
@@ -3850,8 +3867,13 @@ function loadTcoDetails() {
       if (chainPreviewImg) chainPreviewImg.src = "";
     }
   } catch (e) {
-    console.error("Fout bij laden TCO data:", e);
+    console.error("Fout bij laden Chain TCO data:", e);
   }
+}
+
+function loadTcoDetails() {
+  loadBearingTcoDetails();
+  loadChainTcoDetails();
 }
 
 function calculateTcoForPrefix(prefix) {
@@ -4940,7 +4962,7 @@ function selectChain(chain) {
 
   if (typeImg) typeImg.src = (chain.illustrationImg || "chain-simplex.png") + "?v=70";
   if (typeSubtitle) typeSubtitle.textContent = chain.strand || "Simplex (1-sporig)";
-  if (dimImg) dimImg.src = (chain.dimensionsImg || "chain-dimensions.png") + "?v=92";
+  if (dimImg) dimImg.src = (chain.dimensionsImg || "chain-dimensions.png") + "?v=95";
 
   if (vPitch) vPitch.textContent = chain.pitch.toFixed(1);
   if (vWidth) vWidth.textContent = chain.width.toFixed(1);
@@ -5701,4 +5723,127 @@ function runChainPdfExport(includeTco) {
       }
     });
   });
+}
+
+// ==========================================================================
+// SEPARATE PHOTO UPLOAD & STORAGE LOGIC (LAGERS VS KETTINGEN)
+// ==========================================================================
+function handleOmImageUpload(input) {
+  if (!input || !input.files || !input.files[0]) return;
+  const file = input.files[0];
+  const reader = new FileReader();
+  reader.onload = function(eEvent) {
+    const img = new Image();
+    img.onload = function() {
+      const canvas = document.createElement("canvas");
+      let width = img.width;
+      let height = img.height;
+      const max_size = 500;
+      if (width > height) {
+        if (width > max_size) {
+          height *= max_size / width;
+          width = max_size;
+        }
+      } else {
+        if (height > max_size) {
+          width *= max_size / height;
+          height = max_size;
+        }
+      }
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(img, 0, 0, width, height);
+
+      const compressedBase64 = canvas.toDataURL("image/jpeg", 0.7);
+      tcoUploadedImageBase64 = compressedBase64;
+
+      const previewImg = document.getElementById("omAppImagePreview");
+      const placeholder = document.getElementById("omAppImagePlaceholder");
+      const previewContainer = document.getElementById("omAppImagePreviewContainer");
+
+      if (previewImg) previewImg.src = compressedBase64;
+      if (placeholder) placeholder.style.display = "none";
+      if (previewContainer) previewContainer.style.display = "flex";
+
+      saveBearingTcoDetails();
+    };
+    img.src = eEvent.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function removeOmImage() {
+  tcoUploadedImageBase64 = "";
+  const previewImg = document.getElementById("omAppImagePreview");
+  const placeholder = document.getElementById("omAppImagePlaceholder");
+  const previewContainer = document.getElementById("omAppImagePreviewContainer");
+  const input = document.getElementById("omAppImageInput");
+
+  if (previewImg) previewImg.src = "";
+  if (input) input.value = "";
+  if (placeholder) placeholder.style.display = "flex";
+  if (previewContainer) previewContainer.style.display = "none";
+
+  saveBearingTcoDetails();
+}
+
+function handleChainOmImageUpload(input) {
+  if (!input || !input.files || !input.files[0]) return;
+  const file = input.files[0];
+  const reader = new FileReader();
+  reader.onload = function(eEvent) {
+    const img = new Image();
+    img.onload = function() {
+      const canvas = document.createElement("canvas");
+      let width = img.width;
+      let height = img.height;
+      const max_size = 500;
+      if (width > height) {
+        if (width > max_size) {
+          height *= max_size / width;
+          width = max_size;
+        }
+      } else {
+        if (height > max_size) {
+          width *= max_size / height;
+          height = max_size;
+        }
+      }
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(img, 0, 0, width, height);
+
+      const compressedBase64 = canvas.toDataURL("image/jpeg", 0.7);
+      chainTcoUploadedImageBase64 = compressedBase64;
+
+      const previewImg = document.getElementById("chainOmAppImagePreview");
+      const placeholder = document.getElementById("chainOmAppImagePlaceholder");
+      const previewContainer = document.getElementById("chainOmAppImagePreviewContainer");
+
+      if (previewImg) previewImg.src = compressedBase64;
+      if (placeholder) placeholder.style.display = "none";
+      if (previewContainer) previewContainer.style.display = "flex";
+
+      saveChainTcoDetails();
+    };
+    img.src = eEvent.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function removeChainOmImage() {
+  chainTcoUploadedImageBase64 = "";
+  const previewImg = document.getElementById("chainOmAppImagePreview");
+  const placeholder = document.getElementById("chainOmAppImagePlaceholder");
+  const previewContainer = document.getElementById("chainOmAppImagePreviewContainer");
+  const input = document.getElementById("chainOmAppImageInput");
+
+  if (previewImg) previewImg.src = "";
+  if (input) input.value = "";
+  if (placeholder) placeholder.style.display = "flex";
+  if (previewContainer) previewContainer.style.display = "none";
+
+  saveChainTcoDetails();
 }
