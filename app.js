@@ -1166,22 +1166,56 @@ document.addEventListener("DOMContentLoaded", () => {
     omSharedRepairHEl.addEventListener("change", syncDowntimeH);
   }
 
-  // Voeg event listeners toe voor TCO
-  if (typeof TCO_INPUTS !== "undefined") {
-    TCO_INPUTS.forEach(id => {
-      const el = document.getElementById(id);
-      if (el) {
-        el.addEventListener("input", () => {
-          calculateTco();
-          saveTcoDetails();
-        });
-        el.addEventListener("change", () => {
-          calculateTco();
-          saveTcoDetails();
-        });
+  // Sync downtime frequency with material lifetime in real-time for Chain OM
+  const chainOmLifetime1El = document.getElementById("chainOmLifetime1");
+  const chainOmLifetime2El = document.getElementById("chainOmLifetime2");
+  if (chainOmLifetime1El) {
+    chainOmLifetime1El.addEventListener("input", () => {
+      const freqEl = document.getElementById("chainOmDowntimeFreq1");
+      if (freqEl) {
+        const val = parseFloat(chainOmLifetime1El.value) || 0;
+        freqEl.value = val > 0 ? parseFloat((12 / val).toFixed(2)) : 0;
       }
     });
   }
+  if (chainOmLifetime2El) {
+    chainOmLifetime2El.addEventListener("input", () => {
+      const freqEl = document.getElementById("chainOmDowntimeFreq2");
+      if (freqEl) {
+        const val = parseFloat(chainOmLifetime2El.value) || 0;
+        freqEl.value = val > 0 ? parseFloat((12 / val).toFixed(2)) : 0;
+      }
+    });
+  }
+
+  // Sync downtime duration with repair hours in real-time for Chain OM
+  const chainOmSharedRepairHEl = document.getElementById("chainOmSharedRepairH");
+  if (chainOmSharedRepairHEl) {
+    const syncChainDowntimeH = () => {
+      const dtH1El = document.getElementById("chainOmDowntimeH1");
+      const dtH2El = document.getElementById("chainOmDowntimeH2");
+      if (dtH1El) dtH1El.value = chainOmSharedRepairHEl.value;
+      if (dtH2El) dtH2El.value = chainOmSharedRepairHEl.value;
+    };
+    chainOmSharedRepairHEl.addEventListener("input", syncChainDowntimeH);
+    chainOmSharedRepairHEl.addEventListener("change", syncChainDowntimeH);
+  }
+
+  // Voeg event listeners toe voor TCO (zowel Lager als Ketting)
+  const allTcoInputs = [...(typeof TCO_INPUTS !== "undefined" ? TCO_INPUTS : []), ...(typeof CHAIN_TCO_INPUTS !== "undefined" ? CHAIN_TCO_INPUTS : [])];
+  allTcoInputs.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.addEventListener("input", () => {
+        calculateTco();
+        saveTcoDetails();
+      });
+      el.addEventListener("change", () => {
+        calculateTco();
+        saveTcoDetails();
+      });
+    }
+  });
 
   // Initialiseer de taal
   changeLanguage(currentLang);
@@ -2484,65 +2518,64 @@ function updateTechBadge(machine, application) {
 }
 
 function updateOmMetadata() {
-  // Column 1: Interflon contactpersoon
-  const omOpName = document.getElementById("omOpName");
-  const omOpPhone = document.getElementById("omOpPhone");
-  const omOpEmail = document.getElementById("omOpEmail");
-  if (omOpName) omOpName.value = localStorage.getItem("operator_name") || "";
-  if (omOpPhone) omOpPhone.value = localStorage.getItem("operator_phone") || "";
-  if (omOpEmail) omOpEmail.value = localStorage.getItem("operator_email") || "";
+  const setVal = (id, val) => {
+    const el = document.getElementById(id);
+    if (el) el.value = val;
+  };
+  const setTxt = (id, txt) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = txt;
+  };
 
-  // Column 2: Klant Gegevens
-  const omClientCompany = document.getElementById("omClientCompany");
-  const omClientContact = document.getElementById("omClientContact");
-  const omClientPhone = document.getElementById("omClientPhone");
-  const omClientEmail = document.getElementById("omClientEmail");
-  if (omClientCompany) omClientCompany.value = localStorage.getItem("client_company") || "";
-  if (omClientContact) omClientContact.value = localStorage.getItem("client_contact") || "";
-  if (omClientPhone) omClientPhone.value = localStorage.getItem("client_phone") || "";
-  if (omClientEmail) omClientEmail.value = localStorage.getItem("client_email") || "";
+  const opName = localStorage.getItem("operator_name") || "";
+  const opPhone = localStorage.getItem("operator_phone") || "";
+  const opEmail = localStorage.getItem("operator_email") || "";
 
-  // Column 3: Technische Gegevens
-  const omTechMachine = document.getElementById("omTechMachine");
-  const omTechApp = document.getElementById("omTechApp");
-  const omTechProduct = document.getElementById("omTechProduct");
-  const omTechInterval = document.getElementById("omTechInterval");
-  const omTechPrice = document.getElementById("omTechPrice");
-  if (omTechMachine) omTechMachine.value = localStorage.getItem("tech_machine") || "";
-  if (omTechApp) omTechApp.value = localStorage.getItem("tech_app") || "";
-  if (omTechProduct) omTechProduct.value = localStorage.getItem("tech_product") || "";
-  
-  if (omTechInterval) {
-    const val = localStorage.getItem("tech_interval");
-    if (val) {
-      const suffix = currentLang === "nl" ? " dagen" : currentLang === "fr" ? " jours" : " days";
-      omTechInterval.value = `${val}${suffix}`;
-    } else {
-      omTechInterval.value = "";
-    }
-  }
+  setVal("omOpName", opName); setVal("chainOmOpName", opName);
+  setVal("omOpPhone", opPhone); setVal("chainOmOpPhone", opPhone);
+  setVal("omOpEmail", opEmail); setVal("chainOmOpEmail", opEmail);
 
-  if (omTechPrice) {
-    const priceVal = localStorage.getItem("tech_price");
-    if (priceVal) {
-      omTechPrice.value = `€ ${parseFloat(priceVal).toFixed(2)}`;
-    } else {
-      omTechPrice.value = "";
-    }
+  const clientCompany = localStorage.getItem("client_company") || "";
+  const clientContact = localStorage.getItem("client_contact") || "";
+  const clientPhone = localStorage.getItem("client_phone") || "";
+  const clientEmail = localStorage.getItem("client_email") || "";
+
+  setVal("omClientCompany", clientCompany); setVal("chainOmClientCompany", clientCompany);
+  setVal("omClientContact", clientContact); setVal("chainOmClientContact", clientContact);
+  setVal("omClientPhone", clientPhone); setVal("chainOmClientPhone", clientPhone);
+  setVal("omClientEmail", clientEmail); setVal("chainOmClientEmail", clientEmail);
+
+  const techMachine = localStorage.getItem("tech_machine") || "";
+  const techApp = localStorage.getItem("tech_app") || "";
+  const techProduct = localStorage.getItem("tech_product") || "";
+
+  setVal("omTechMachine", techMachine); setVal("chainOmTechMachine", techMachine);
+  setVal("omTechApp", techApp); setVal("chainOmTechApp", techApp);
+  setVal("omTechProduct", techProduct); setVal("chainOmTechProduct", techProduct);
+
+  const intervalVal = localStorage.getItem("tech_interval");
+  const suffix = currentLang === "nl" ? " dagen" : currentLang === "fr" ? " jours" : " days";
+  const formattedInterval = intervalVal ? `${intervalVal}${suffix}` : "";
+  setVal("omTechInterval", formattedInterval); setVal("chainOmTechInterval", formattedInterval);
+
+  const priceVal = localStorage.getItem("tech_price");
+  const formattedPrice = priceVal ? `€ ${parseFloat(priceVal).toFixed(2)}` : "";
+  setVal("omTechPrice", formattedPrice); setVal("chainOmTechPrice", formattedPrice);
+
+  if (priceVal) {
+    setVal("omProdPrice1", parseFloat(priceVal).toFixed(2));
+    setVal("chainOmProdPrice1", parseFloat(priceVal).toFixed(2));
   }
 
   // Product Names
-  const omProdName1 = document.getElementById("omProdName1");
-  const omProdName2 = document.getElementById("omProdName2");
-  if (omProdName1) {
-    omProdName1.textContent = localStorage.getItem("tech_product") || "";
-  }
-  if (omProdName2) {
-    const greaseSelect = document.getElementById("inputGrease");
-    if (greaseSelect) {
-      omProdName2.textContent = greaseSelect.value || "";
-    }
-  }
+  setTxt("omProdName1", techProduct || "Conventioneel Vet");
+  setTxt("chainOmProdName1", techProduct || "Conventionele Kettingolie");
+
+  const greaseSelect = document.getElementById("inputGrease");
+  if (greaseSelect) setTxt("omProdName2", greaseSelect.value || "Interflon Vet");
+
+  const chainProductSelect = document.getElementById("chainProductSelect");
+  if (chainProductSelect) setTxt("chainOmProdName2", chainProductSelect.value || "Interflon Lube TF");
 }
 
 function openTechModal() {
@@ -3565,17 +3598,29 @@ const TCO_INPUTS = [
   "omDowntimeH2", "omSharedDowntimeRate", "omDowntimeFreq1", "omDowntimeFreq2", "omTcoYears"
 ];
 
+const CHAIN_TCO_INPUTS = [
+  "chainOmOpName", "chainOmOpPhone", "chainOmOpEmail",
+  "chainOmClientCompany", "chainOmClientContact", "chainOmClientPhone", "chainOmClientEmail",
+  "chainOmTechMachine", "chainOmTechApp", "chainOmTechProduct", "chainOmTechInterval", "chainOmTechPrice",
+  "chainOmProdName1", "chainOmProdName2", "chainOmProdCons1", "chainOmProdCons2",
+  "chainOmProdPrice1", "chainOmProdPrice2", "chainOmProdFreq1", "chainOmProdFreq2",
+  "chainOmSharedWorktime", "chainOmRepairFreq1", "chainOmRepairFreq2",
+  "chainOmSharedRepairH", "chainOmSharedLaborRate", "chainOmSharedPrepH",
+  "chainOmLifetime1", "chainOmLifetime2", "chainOmSharedPartsCost",
+  "chainOmSharedSetsPerMachine", "chainOmSharedNumMachines",
+  "chainOmDowntimeH1", "chainOmDowntimeH2", "chainOmSharedDowntimeRate",
+  "chainOmDowntimeFreq1", "chainOmDowntimeFreq2", "chainOmTcoYears"
+];
+
 function saveTcoDetails() {
   const data = {};
-  TCO_INPUTS.forEach(id => {
+  [...TCO_INPUTS, ...CHAIN_TCO_INPUTS].forEach(id => {
     const el = document.getElementById(id);
     if (el) {
       data[id] = el.tagName === "INPUT" || el.tagName === "SELECT" ? el.value : el.textContent;
     }
   });
-  // Save application photo
   data["omAppImage"] = tcoUploadedImageBase64;
-
   localStorage.setItem("bearing_calc_tco_data", JSON.stringify(data));
 }
 
@@ -4722,7 +4767,7 @@ function selectChain(chain) {
 
   if (typeImg) typeImg.src = (chain.illustrationImg || "chain-simplex.png") + "?v=70";
   if (typeSubtitle) typeSubtitle.textContent = chain.strand || "Simplex (1-sporig)";
-  if (dimImg) dimImg.src = (chain.dimensionsImg || "chain-dimensions.png") + "?v=72";
+  if (dimImg) dimImg.src = (chain.dimensionsImg || "chain-dimensions.png") + "?v=75";
 
   if (vPitch) vPitch.textContent = chain.pitch.toFixed(1);
   if (vWidth) vWidth.textContent = chain.width.toFixed(1);
@@ -4818,5 +4863,30 @@ function calculateChainGrease() {
   }
   if (resYearly) {
     resYearly.textContent = `${yearlyLiters.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} L/jaar`;
+  }
+
+  // Sync with Ketting Opbrengstmodel TCO table
+  const interflonYearlyMl = (weeklyCm3 * 52.14);
+  const convYearlyMl = interflonYearlyMl * micpolFactor;
+  const annualFreq = Math.round(daysPerWeek * 52.14);
+  
+  const convConsPerApp = annualFreq > 0 ? (convYearlyMl / annualFreq) : 0;
+  const interflonConsPerApp = annualFreq > 0 ? (interflonYearlyMl / annualFreq) : 0;
+
+  const chainCons1El = document.getElementById("chainOmProdCons1");
+  const chainCons2El = document.getElementById("chainOmProdCons2");
+  const chainFreq1El = document.getElementById("chainOmProdFreq1");
+  const chainFreq2El = document.getElementById("chainOmProdFreq2");
+
+  if (chainCons1El) chainCons1El.value = convConsPerApp.toFixed(1);
+  if (chainCons2El) chainCons2El.value = interflonConsPerApp.toFixed(1);
+  if (chainFreq1El) chainFreq1El.value = annualFreq.toString();
+  if (chainFreq2El) chainFreq2El.value = annualFreq.toString();
+
+  if (typeof updateOmMetadata === "function") {
+    updateOmMetadata();
+  }
+  if (typeof calculateTco === "function") {
+    calculateTco();
   }
 }
