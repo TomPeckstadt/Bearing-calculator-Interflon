@@ -365,37 +365,37 @@
 
       <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: stretch;">
         <!-- Card 1: Lagerberekening -->
-        <div onclick="selectAppMode('bearing')" style="background-color: #f8fafc; border: 2px solid #e2e8f0; border-radius: var(--border-radius-md); padding: 24px 20px; text-align: left; cursor: pointer; transition: all 0.2s ease; display: flex; flex-direction: column; justify-content: space-between;" onmouseover="this.style.borderColor='var(--primary-red)'; this.style.transform='translateY(-3px)'; this.style.boxShadow='0 10px 25px -5px rgba(227,6,19,0.15)';" onmouseout="this.style.borderColor='#e2e8f0'; this.style.transform='none'; this.style.boxShadow='none';">
-          <div>
-            <div style="width: 48px; height: 48px; border-radius: 10px; background-color: rgba(227,6,19,0.1); color: var(--primary-red); display: flex; align-items: center; justify-content: center; font-size: 24px; margin-bottom: 14px;">
-              ⚙️
-            </div>
-            <h3 style="font-size: 18px; font-weight: 700; color: var(--text-dark); margin: 0 0 8px 0;">
-              ⚙️ Lagerberekening
+        <div onclick="selectAppMode('bearing')" style="position: relative; overflow: hidden; background-color: #ffffff; border: 2px solid #e2e8f0; border-radius: var(--border-radius-md); padding: 28px 22px; text-align: left; cursor: pointer; transition: all 0.25s ease; display: flex; flex-direction: column; justify-content: space-between;" onmouseover="this.style.borderColor='var(--primary-red)'; this.style.transform='translateY(-3px)'; this.style.boxShadow='0 12px 30px -5px rgba(227,6,19,0.18)';" onmouseout="this.style.borderColor='#e2e8f0'; this.style.transform='none'; this.style.boxShadow='none';">
+          <!-- Background image layer -->
+          <div style="position: absolute; top: -10%; right: -10%; width: 110%; height: 110%; pointer-events: none; opacity: 0.15; background-image: url('card-bg-bearing.jpg'); background-size: cover; background-position: center; mix-blend-mode: multiply;"></div>
+
+          <div style="position: relative; z-index: 1;">
+            <h3 style="font-size: 20px; font-weight: 800; color: var(--text-dark); margin: 0 0 10px 0; font-family: 'Outfit', sans-serif;">
+              Lagerberekening
             </h3>
-            <p style="font-size: 13px; color: var(--text-medium); line-height: 1.5; margin: 0 0 16px 0;">
+            <p style="font-size: 13.5px; color: var(--text-medium); line-height: 1.55; margin: 0 0 20px 0; font-weight: 500;">
               Bepaal type vet, nasmeervolumes, smeerintervallen en instellingen voor automatisatie
             </p>
           </div>
-          <button type="button" class="btn" style="width: 100%; justify-content: center; font-size: 13px; padding: 10px 14px;">
+          <button type="button" class="btn" style="position: relative; z-index: 1; width: 100%; justify-content: center; font-size: 13px; font-weight: 700; padding: 11px 16px; box-shadow: 0 4px 10px rgba(227,6,19,0.25);">
             Open Lagerberekening
           </button>
         </div>
 
         <!-- Card 2: Kettingberekening -->
-        <div onclick="selectAppMode('chain')" style="background-color: #f8fafc; border: 2px solid #e2e8f0; border-radius: var(--border-radius-md); padding: 24px 20px; text-align: left; cursor: pointer; transition: all 0.2s ease; display: flex; flex-direction: column; justify-content: space-between;" onmouseover="this.style.borderColor='var(--primary-red)'; this.style.transform='translateY(-3px)'; this.style.boxShadow='0 10px 25px -5px rgba(227,6,19,0.15)';" onmouseout="this.style.borderColor='#e2e8f0'; this.style.transform='none'; this.style.boxShadow='none';">
-          <div>
-            <div style="width: 48px; height: 48px; border-radius: 10px; background-color: rgba(227,6,19,0.1); color: var(--primary-red); display: flex; align-items: center; justify-content: center; font-size: 24px; margin-bottom: 14px;">
-              ⛓️
-            </div>
-            <h3 style="font-size: 18px; font-weight: 700; color: var(--text-dark); margin: 0 0 8px 0;">
-              ⛓️ Kettingberekening
+        <div onclick="selectAppMode('chain')" style="position: relative; overflow: hidden; background-color: #ffffff; border: 2px solid #e2e8f0; border-radius: var(--border-radius-md); padding: 28px 22px; text-align: left; cursor: pointer; transition: all 0.25s ease; display: flex; flex-direction: column; justify-content: space-between;" onmouseover="this.style.borderColor='var(--primary-red)'; this.style.transform='translateY(-3px)'; this.style.boxShadow='0 12px 30px -5px rgba(227,6,19,0.18)';" onmouseout="this.style.borderColor='#e2e8f0'; this.style.transform='none'; this.style.boxShadow='none';">
+          <!-- Background image layer -->
+          <div style="position: absolute; top: -10%; right: -10%; width: 110%; height: 110%; pointer-events: none; opacity: 0.15; background-image: url('card-bg-chain.jpg'); background-size: cover; background-position: center; mix-blend-mode: multiply;"></div>
+
+          <div style="position: relative; z-index: 1;">
+            <h3 style="font-size: 20px; font-weight: 800; color: var(--text-dark); margin: 0 0 10px 0; font-family: 'Outfit', sans-serif;">
+              Kettingberekening
             </h3>
-            <p style="font-size: 13px; color: var(--text-medium); line-height: 1.5; margin: 0 0 16px 0;">
+            <p style="font-size: 13.5px; color: var(--text-medium); line-height: 1.55; margin: 0 0 20px 0; font-weight: 500;">
               Bereken olie-doseringen, volume per minuut, smeerintervallen en instellingen voor automatisatie voor aandrijf- en transportkettingen.
             </p>
           </div>
-          <button type="button" class="btn" style="width: 100%; justify-content: center; font-size: 13px; padding: 10px 14px;">
+          <button type="button" class="btn" style="position: relative; z-index: 1; width: 100%; justify-content: center; font-size: 13px; font-weight: 700; padding: 11px 16px; box-shadow: 0 4px 10px rgba(227,6,19,0.25);">
             Open Kettingberekening
           </button>
         </div>
@@ -1801,9 +1801,9 @@
 
   <!-- JavaScript logic imports -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="interflon-data.js?v=40"></script>
+  <script src="interflon-data.js?v=41"></script>
   <script src="bearings-db.js"></script>
   <script src="chains-db.js"></script>
-  <script src="app.js?v=40"></script>
+  <script src="app.js?v=41"></script>
 </body>
 </html>
