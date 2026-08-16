@@ -2,10 +2,10 @@
 <html lang="nl">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Interflon Lager Smeercalculator</title>
   <meta name="description" content="Bereken eenvoudig de smeerfrequentie en smeerhoeveelheid voor lagers op basis van specificaties met Interflon smeermiddelen.">
-  <link rel="stylesheet" href="style.css?v=16">
+  <link rel="stylesheet" href="style.css?v=140">
 </head>
 <body>
 
@@ -415,9 +415,15 @@
   <div class="app-container">
     
     <!-- Sidebar Navigation -->
-    <aside class="sidebar">
+    <div id="sidebarBackdrop" class="sidebar-backdrop hidden" onclick="closeMobileSidebar()"></div>
+    <aside class="sidebar" id="appSidebar">
       <div class="sidebar-header">
         <img src="interflon-logo.jpg" alt="Interflon" class="sidebar-logo-img">
+        <button type="button" class="sidebar-close-btn" onclick="closeMobileSidebar()" aria-label="Sluit menu">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
       </div>
       
       <nav style="flex: 1;">
@@ -489,6 +495,11 @@
       
       <!-- Top header bar -->
       <header class="main-header">
+        <button type="button" id="sidebarToggleBtn" class="mobile-hamburger-btn" onclick="toggleMobileSidebar()" aria-label="Open menu">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+          </svg>
+        </button>
         <div class="header-title">
           <h1 id="pageTitle" data-i18n="pageSearchTitle">Lager Opzoeken</h1>
           <p id="pageSubtitle" data-i18n="pageSearchSubtitle">Geef een SKF lagernummer op om alle technische specificaties te tonen.</p>
@@ -2240,9 +2251,9 @@
 
   <!-- JavaScript logic imports -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="interflon-data.js?v=135"></script>
+  <script src="interflon-data.js?v=140"></script>
   <script src="bearings-db.js"></script>
   <script src="chains-db.js"></script>
-  <script src="app.js?v=135"></script>
+  <script src="app.js?v=140"></script>
 </body>
 </html>
