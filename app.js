@@ -1458,7 +1458,22 @@ function togglePasswordVisibility() {
 // PAGINA NAVIGATIE
 // ==========================================================================
 
+function toggleMobileSidebar() {
+  const sidebar = document.getElementById("appSidebar");
+  const backdrop = document.getElementById("sidebarBackdrop");
+  if (sidebar) sidebar.classList.toggle("mobile-open");
+  if (backdrop) backdrop.classList.toggle("hidden");
+}
+
+function closeMobileSidebar() {
+  const sidebar = document.getElementById("appSidebar");
+  const backdrop = document.getElementById("sidebarBackdrop");
+  if (sidebar) sidebar.classList.remove("mobile-open");
+  if (backdrop) backdrop.classList.add("hidden");
+}
+
 function switchPage(pageId) {
+  closeMobileSidebar();
   // Reset scrollpositie naar de top van de pagina
   window.scrollTo(0, 0);
   const mainContent = document.querySelector(".main-content");
@@ -5039,9 +5054,9 @@ function selectChain(chain) {
   const vRoller = document.getElementById("visualChainRollerText");
   const vPin = document.getElementById("visualChainPinText");
 
-  if (typeImg) typeImg.src = (chain.illustrationImg || "chain-simplex.png") + "?v=135";
+  if (typeImg) typeImg.src = (chain.illustrationImg || "chain-simplex.png") + "?v=140";
   if (typeSubtitle) typeSubtitle.textContent = chain.strand || "Simplex (1-sporig)";
-  if (dimImg) dimImg.src = (chain.dimensionsImg || "chain-dimensions.png") + "?v=135";
+  if (dimImg) dimImg.src = (chain.dimensionsImg || "chain-dimensions.png") + "?v=140";
 
   if (vPitch) vPitch.textContent = chain.pitch.toFixed(1);
   if (vWidth) vWidth.textContent = chain.width.toFixed(1);
