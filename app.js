@@ -1012,6 +1012,10 @@ document.addEventListener("DOMContentLoaded", () => {
   // Vul de vetselectie dropdown
   const greaseSelect = document.getElementById("inputGrease");
   if (greaseSelect && typeof INTERFLON_GREASES !== "undefined") {
+    const savedThickener = localStorage.getItem("selected_thickener");
+    const thickenerSel = document.getElementById("thickenerSelect");
+    if (thickenerSel && savedThickener) thickenerSel.value = savedThickener;
+    setTimeout(updateThickenerCompatibility, 100);
     greaseSelect.innerHTML = Object.keys(INTERFLON_GREASES).map(name => {
       return `<option value="${name}">${name}</option>`;
     }).join("");
@@ -1028,7 +1032,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Voeg event listeners toe voor automatische herberekening
   const inputs = [
-    "inputGrease", "inputTemperature", "inputSpeed", "inputLimitingSpeed",
+    "inputGrease", "thickenerSelect", "inputTemperature", "inputSpeed", "inputLimitingSpeed",
     "inputBoreManual", "inputOuterManual", "inputWidthManual", "inputMassManual",
     "inputTe", "inputTa", "inputHoursPerDay", "inputDaysPerWeek", "inputMicPolFactor"
   ];
@@ -2047,6 +2051,7 @@ function updateCalculatorFields() {
 // ==========================================================================
 
 function calculateGrease() {
+  updateThickenerCompatibility();
   const tempInput = document.getElementById("inputTemperature");
   const speedInput = document.getElementById("inputSpeed");
   const limitInput = document.getElementById("inputLimitingSpeed");
@@ -5055,9 +5060,9 @@ function selectChain(chain) {
   const vRoller = document.getElementById("visualChainRollerText");
   const vPin = document.getElementById("visualChainPinText");
 
-  if (typeImg) typeImg.src = (chain.illustrationImg || "chain-simplex.png") + "?v=145";
+  if (typeImg) typeImg.src = (chain.illustrationImg || "chain-simplex.png") + "?v=150";
   if (typeSubtitle) typeSubtitle.textContent = chain.strand || "Simplex (1-sporig)";
-  if (dimImg) dimImg.src = (chain.dimensionsImg || "chain-dimensions.png") + "?v=145";
+  if (dimImg) dimImg.src = (chain.dimensionsImg || "chain-dimensions.png") + "?v=150";
 
   if (vPitch) vPitch.textContent = chain.pitch.toFixed(1);
   if (vWidth) vWidth.textContent = chain.width.toFixed(1);
@@ -5958,3 +5963,124 @@ function removeChainOmImage() {
     });
   }
   
+
+// ==========================================================================
+// THICKENER COMPATIBILITY MATRIX & LOOKUP LOGIC
+// ==========================================================================
+const INTERFLON_GREASE_GROUPS = {
+  // Group 0: Lithium-complex
+  "INTERFLON GREASE MP2/3": 0,
+  "INTERFLON GREASE MP1": 0,
+  "INTERFLON GREASE MP00": 0,
+  
+  // Group 1: Calcium
+  "INTERFLON BIO GREASE MP2": 1,
+  
+  // Group 2: Silica
+  "INTERFLON FIN GREASE": 2,
+  "INTERFLON FOOD GREASE 2": 2,
+  "INTERFLON FOOD GREASE 00": 2,
+  "INTERFLON FOOD GREASE 000": 2,
+  "INTERFLON FOOD GREASE S1/2": 2,
+  "INTERFLON FOOD GREASE 3H": 2,
+  
+  // Group 3: Aluminium-complex
+  "INTERFLON FOOD GREASE LT2": 3,
+  "INTERFLON FOOD GREASE MP2": 3,
+  "INTERFLON FOOD GREASE EP": 3,
+  
+  // Group 4: Calcium/Lithium-complex
+  "INTERFLON GREASE LS1": 4,
+  "INTERFLON GREASE LS2": 4,
+  "INTERFLON GREASE LS1/2": 4,
+  "INTERFLON GREASE OG": 4,
+  
+  // Group 5: Calcium-sulfonate
+  "INTERFLON GREASE HD2": 5,
+  "INTERFLON FOOD GREASE HD2": 5,
+  "INTERFLON FOOD GREASE HD00": 5,
+  "INTERFLON FOOD GREASE HD000": 5,
+  
+  // Group 6: Polymer
+  "INTERFLON GREASE HS2": 6,
+  "INTERFLON FOOD GREASE HS1": 6,
+  
+  // Group 7: Bentonite
+  "INTERFLON GREASE HTG": 7,
+  
+  // Group 8: PTFE-Teflon®
+  "INTERFLON FLUOR GREASE 2": 8
+};
+
+// Matrix: Rows = 21 Thickener Types, Cols = 9 Interflon Grease Groups
+// "C" = Compatibel, "T" = Mengbaarheidstest vereist, "N" = Niet compatibel
+const THICKENER_COMPATIBILITY_MATRIX = {
+  "Aluminium complex":           ["C", "N", "N", "C", "N", "N", "C", "N", "N"],
+  "Al-stearate":                 ["N", "T", "N", "C", "N", "N", "C", "N", "N"],
+  "Barium":                      ["N", "C", "N", "N", "N", "N", "C", "N", "N"],
+  "Barium-complex":              ["T", "T", "C", "C", "T", "T", "C", "N", "N"],
+  "Calcium":                     ["C", "C", "C", "N", "N", "C", "C", "C", "N"],
+  "Calcium-12-Hydroxystearate":  ["C", "C", "C", "C", "N", "C", "C", "C", "N"],
+  "Calcium-complex":             ["C", "T", "C", "N", "C", "C", "C", "N", "N"],
+  "Calcium/Lithium":             ["C", "C", "C", "N", "C", "C", "C", "N", "N"],
+  "Calcium/Lithium-complex":     ["C", "N", "C", "N", "C", "C", "C", "N", "N"],
+  "Calcium-sulfonate":           ["C", "T", "N", "N", "C", "C", "C", "N", "N"],
+  "Calcium-sulfonate-complex":   ["C", "C", "N", "N", "C", "C", "C", "N", "N"],
+  "Silica":                      ["C", "C", "C", "N", "C", "N", "C", "N", "N"],
+  "Lithium-stearate":            ["C", "C", "N", "N", "C", "C", "C", "N", "N"],
+  "Lithium-12-Hydroxystearate": ["C", "T", "C", "N", "C", "C", "C", "N", "N"],
+  "Lithium-complex":             ["C", "T", "C", "C", "C", "C", "C", "N", "N"],
+  "Sodium":                      ["N", "N", "C", "N", "N", "N", "N", "N", "N"],
+  "Urea/polyurea":              ["N", "N", "C", "N", "N", "C", "C", "N", "N"],
+  "Organoclay/Bentonite":        ["N", "T", "N", "N", "N", "N", "N", "C", "N"],
+  "PTFE/Teflon®":                ["N", "C", "N", "N", "N", "N", "N", "N", "C"],
+  "Non soap":                    ["N", "N", "C", "N", "N", "N", "C", "N", "N"],
+  "Polymer":                     ["N", "N", "C", "N", "N", "N", "C", "N", "N"]
+};
+
+function updateThickenerCompatibility() {
+  const greaseSelect = document.getElementById("inputGrease");
+  const thickenerSelect = document.getElementById("thickenerSelect");
+  const badge = document.getElementById("thickenerCompatibilityBadge");
+  const iconEl = document.getElementById("thickenerCompatIcon");
+  const textEl = document.getElementById("thickenerCompatText");
+
+  if (!greaseSelect || !thickenerSelect || !badge || !iconEl || !textEl) return;
+
+  const selectedGrease = greaseSelect.value;
+  const selectedThickener = thickenerSelect.value;
+  
+  if (selectedThickener) {
+    localStorage.setItem("selected_thickener", selectedThickener);
+  }
+
+  const groupIndex = INTERFLON_GREASE_GROUPS[selectedGrease] !== undefined ? INTERFLON_GREASE_GROUPS[selectedGrease] : 0;
+  const matrixRow = THICKENER_COMPATIBILITY_MATRIX[selectedThickener] || ["C", "N", "N", "C", "N", "N", "C", "N", "N"];
+  const code = matrixRow[groupIndex] || "N";
+
+  if (code === "C") {
+    // Compatibel
+    badge.style.backgroundColor = "#F0FDF4";
+    badge.style.borderColor = "#BBF7D0";
+    iconEl.style.color = "#15803D";
+    iconEl.textContent = "✓";
+    textEl.style.color = "#15803D";
+    textEl.textContent = currentLang === "en" ? "Compatible" : currentLang === "fr" ? "Compatible" : "Compatibel";
+  } else if (code === "T") {
+    // Mengbaarheidstest vereist
+    badge.style.backgroundColor = "#FEF3C7";
+    badge.style.borderColor = "#FDE68A";
+    iconEl.style.color = "#B45309";
+    iconEl.textContent = "⚠️";
+    textEl.style.color = "#B45309";
+    textEl.textContent = currentLang === "en" ? "Miscibility test required" : currentLang === "fr" ? "Test de mélange requis" : "Mengbaarheidstest vereist";
+  } else {
+    // Niet compatibel
+    badge.style.backgroundColor = "#FEF2F2";
+    badge.style.borderColor = "#FECACA";
+    iconEl.style.color = "#B91C1C";
+    iconEl.textContent = "✕";
+    textEl.style.color = "#B91C1C";
+    textEl.textContent = currentLang === "en" ? "Not compatible" : currentLang === "fr" ? "Non compatible" : "Niet compatibel";
+  }
+}
