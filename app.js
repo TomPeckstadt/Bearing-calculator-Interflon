@@ -2988,7 +2988,8 @@ function confirmPdfExport() {
   const includeTco = document.querySelector('input[name="pdfTcoOption"]:checked').value === "true";
   closePdfModal();
   
-  const isChain = document.querySelector('.nav-link[data-nav="chain"].active') || 
+  const isChain = (typeof currentAppMode !== "undefined" && currentAppMode === "chain") ||
+                  document.querySelector('.nav-link[data-nav="chain"].active') || 
                   (document.getElementById('pageChainCalc') && document.getElementById('pageChainCalc').classList.contains('active')) ||
                   (document.getElementById('pageChainSearch') && document.getElementById('pageChainSearch').classList.contains('active')) ||
                   (document.getElementById('pageChainOm') && document.getElementById('pageChainOm').classList.contains('active')) ||
@@ -5054,9 +5055,9 @@ function selectChain(chain) {
   const vRoller = document.getElementById("visualChainRollerText");
   const vPin = document.getElementById("visualChainPinText");
 
-  if (typeImg) typeImg.src = (chain.illustrationImg || "chain-simplex.png") + "?v=140";
+  if (typeImg) typeImg.src = (chain.illustrationImg || "chain-simplex.png") + "?v=145";
   if (typeSubtitle) typeSubtitle.textContent = chain.strand || "Simplex (1-sporig)";
-  if (dimImg) dimImg.src = (chain.dimensionsImg || "chain-dimensions.png") + "?v=140";
+  if (dimImg) dimImg.src = (chain.dimensionsImg || "chain-dimensions.png") + "?v=145";
 
   if (vPitch) vPitch.textContent = chain.pitch.toFixed(1);
   if (vWidth) vWidth.textContent = chain.width.toFixed(1);
@@ -5252,6 +5253,7 @@ function runChainPdfExport(includeTco) {
 
         const techMachine = localStorage.getItem("tech_machine") || "-";
         const techApp = localStorage.getItem("tech_app") || "-";
+        const techBrand = localStorage.getItem("tech_brand") || "-";
         const techProduct = localStorage.getItem("tech_product") || "-";
         const techInterval = localStorage.getItem("tech_interval") || "-";
         const techPrice = localStorage.getItem("tech_price") || "-";
