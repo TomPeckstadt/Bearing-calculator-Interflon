@@ -758,6 +758,34 @@
                   </svg>
                   <span data-i18n="btnProductInfo">Ga naar productinfo</span>
                 </button>
+
+                <!-- Selecteer verdikker huidig vet -->
+                <div class="form-group" style="margin-top: 14px; margin-bottom: 5px;">
+                  <label for="thickenerSelect" data-i18n="thickenerSelectLabel" style="font-weight: 700; color: var(--text-dark);">Selecteer verdikker huidig vet</label>
+                  <select id="thickenerSelect" class="form-control" onchange="updateThickenerCompatibility()" style="padding-left: 16px;">
+                    <option value="Lithium-complex">Lithium-complex</option>
+                    <option value="Lithium-12-Hydroxystearate">Lithium-12-Hydroxystearate</option>
+                    <option value="Lithium-stearate">Lithium-stearate</option>
+                    <option value="Aluminium complex">Aluminium complex</option>
+                    <option value="Al-stearate">Al-stearate</option>
+                    <option value="Barium">Barium</option>
+                    <option value="Barium-complex">Barium-complex</option>
+                    <option value="Calcium">Calcium</option>
+                    <option value="Calcium-12-Hydroxystearate">Calcium-12-Hydroxystearate</option>
+                    <option value="Calcium-complex">Calcium-complex</option>
+                    <option value="Calcium/Lithium">Calcium/Lithium</option>
+                    <option value="Calcium/Lithium-complex">Calcium/Lithium-complex</option>
+                    <option value="Calcium-sulfonate">Calcium-sulfonate</option>
+                    <option value="Calcium-sulfonate-complex">Calcium-sulfonate-complex</option>
+                    <option value="Silica">Silica</option>
+                    <option value="Sodium">Sodium</option>
+                    <option value="Urea/polyurea">Urea/polyurea</option>
+                    <option value="Organoclay/Bentonite">Organoclay/Bentonite</option>
+                    <option value="PTFE/Teflon®">PTFE/Teflon®</option>
+                    <option value="Non soap">Non soap</option>
+                    <option value="Polymer">Polymer</option>
+                  </select>
+                </div>
               </div>
 
               <div class="form-group">
@@ -1016,6 +1044,12 @@
               <div id="bearingAnimStatusText" style="margin-top: 12px; font-size: 11.5px; font-weight: 600; color: var(--text-medium); display: flex; align-items: center; gap: 6px;">
                 <span id="bearingAnimStatusDot" style="width: 8px; height: 8px; border-radius: 50%; background-color: #94a3b8; display: inline-block;"></span>
                 <span id="bearingAnimStatusLabel">-</span>
+              </div>
+
+              <!-- Thickener Compatibility Status Badge -->
+              <div id="thickenerCompatibilityBadge" style="margin-top: 14px; width: 100%; max-width: 320px; padding: 10px 14px; border-radius: var(--border-radius-sm); border: 1px solid #BBF7D0; background-color: #F0FDF4; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.3s ease; text-align: center;">
+                <span id="thickenerCompatIcon" style="font-size: 14px; font-weight: 800; color: #15803D;">✓</span>
+                <span id="thickenerCompatText" style="font-size: 12.5px; font-weight: 700; color: #15803D; font-family: 'Outfit', sans-serif;">Compatibel</span>
               </div>
             </div>
           </div>
@@ -2251,9 +2285,9 @@
 
   <!-- JavaScript logic imports -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="interflon-data.js?v=145"></script>
+  <script src="interflon-data.js?v=150"></script>
   <script src="bearings-db.js"></script>
   <script src="chains-db.js"></script>
-  <script src="app.js?v=145"></script>
+  <script src="app.js?v=150"></script>
 </body>
 </html>
