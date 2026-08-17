@@ -2435,20 +2435,17 @@ function updateChainTcoFrequencies() {
   const daysPerWeek = daysPerWeekInput ? (parseFloat(daysPerWeekInput.value) || 7) : 7;
   const formulaAnnualFreq = Math.round(daysPerWeek * 52.14);
 
+  let activeFreq = formulaAnnualFreq;
   if (mode === "practical") {
     const techIntervalVal = localStorage.getItem("tech_interval");
     const intervalDays = techIntervalVal ? parseFloat(techIntervalVal) : 0;
-    let pracFreq = 0;
     if (intervalDays > 0) {
-      pracFreq = Math.round(365 / intervalDays);
-    } else {
-      pracFreq = formulaAnnualFreq;
+      activeFreq = Math.round(365 / intervalDays);
     }
-    chainOmProdFreq1El.value = pracFreq.toString();
-  } else {
-    chainOmProdFreq1El.value = formulaAnnualFreq.toString();
   }
-  chainOmProdFreq2El.value = formulaAnnualFreq.toString();
+
+  chainOmProdFreq1El.value = activeFreq.toString();
+  chainOmProdFreq2El.value = activeFreq.toString();
 
   if (typeof calculateChainGrease === "function") {
     calculateChainGrease();
@@ -5342,13 +5339,11 @@ function calculateChainGrease() {
     if (chainFreq1El) chainFreq1El.value = freq1.toString();
   }
 
-  let freq2 = chainFreq2El ? parseFloat(chainFreq2El.value) : 0;
-  if (!freq2 || freq2 <= 0) {
-    freq2 = annualFreq;
-    if (chainFreq2El) chainFreq2El.value = freq2.toString();
-  }
+  // Right column frequency (Nieuwe situatie Interflon) syncs with left column (Huidige situatie)
+  let freq2 = freq1;
+  if (chainFreq2El) chainFreq2El.value = freq2.toString();
 
-  // Volume per lube = Total yearly demand / annual number of lube events
+  // Volume per lube event: Convertiefactor is applied (Interflon volume per event = Conv volume per event / micpolFactor)
   const convConsPerApp = (convYearlyMl / freq1);
   const interflonConsPerApp = (interflonYearlyMl / freq2);
 
