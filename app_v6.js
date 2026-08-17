@@ -5326,19 +5326,30 @@ function calculateChainGrease() {
   const interflonYearlyMl = (weeklyCm3 * 52.14);
   const convYearlyMl = interflonYearlyMl * micpolFactor;
   const annualFreq = Math.round(daysPerWeek * 52.14);
-  
-  const convConsPerApp = annualFreq > 0 ? (convYearlyMl / annualFreq) : 0;
-  const interflonConsPerApp = annualFreq > 0 ? (interflonYearlyMl / annualFreq) : 0;
 
   const chainCons1El = document.getElementById("chainOmProdCons1");
   const chainCons2El = document.getElementById("chainOmProdCons2");
   const chainFreq1El = document.getElementById("chainOmProdFreq1");
   const chainFreq2El = document.getElementById("chainOmProdFreq2");
 
+  // Allow user to maintain custom manual lubrication frequencies (e.g. 52 for weekly, 12 for monthly)
+  let freq1 = chainFreq1El ? parseFloat(chainFreq1El.value) : 0;
+  if (!freq1 || freq1 <= 0) {
+    freq1 = annualFreq;
+    if (chainFreq1El) chainFreq1El.value = freq1.toString();
+  }
+
+  let freq2 = chainFreq2El ? parseFloat(chainFreq2El.value) : 0;
+  if (!freq2 || freq2 <= 0) {
+    freq2 = annualFreq;
+    if (chainFreq2El) chainFreq2El.value = freq2.toString();
+  }
+
+  const convConsPerApp = freq1 > 0 ? (convYearlyMl / freq1) : 0;
+  const interflonConsPerApp = freq2 > 0 ? (interflonYearlyMl / freq2) : 0;
+
   if (chainCons1El) chainCons1El.value = convConsPerApp.toFixed(1);
   if (chainCons2El) chainCons2El.value = interflonConsPerApp.toFixed(1);
-  if (chainFreq1El) chainFreq1El.value = annualFreq.toString();
-  if (chainFreq2El) chainFreq2El.value = annualFreq.toString();
 
   if (typeof updateOmMetadata === "function") {
     updateOmMetadata();
