@@ -2705,6 +2705,10 @@ function loadTechDetails() {
   if (omProdPrice1El && price) {
     omProdPrice1El.value = price;
   }
+  const chainOmProdPrice1El = document.getElementById("chainOmProdPrice1");
+  if (chainOmProdPrice1El && price) {
+    chainOmProdPrice1El.value = price;
+  }
 
   updateTechBadge(machine, application);
 }
@@ -2833,13 +2837,23 @@ function saveTechDetails(event) {
   if (omProdPrice1El) {
     omProdPrice1El.value = price;
   }
+  const chainOmProdPrice1El = document.getElementById("chainOmProdPrice1");
+  if (chainOmProdPrice1El) {
+    chainOmProdPrice1El.value = price;
+  }
 
   updateTechBadge(machine, application);
   closeTechModal();
 
-  // Trigger recalculations and TCO save
+  // Trigger recalculations and TCO save for both Lagers and Kettingen in real-time
   if (typeof updateTcoFrequencies === "function") {
     updateTcoFrequencies();
+  }
+  if (typeof updateChainTcoFrequencies === "function") {
+    updateChainTcoFrequencies();
+  }
+  if (typeof calculateChainGrease === "function") {
+    calculateChainGrease();
   }
   if (typeof calculateTco === "function") {
     calculateTco();
