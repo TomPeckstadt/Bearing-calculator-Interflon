@@ -5078,14 +5078,30 @@ function selectChain(chain) {
   const vRoller = document.getElementById("visualChainRollerText");
   const vPin = document.getElementById("visualChainPinText");
 
-  if (typeImg) typeImg.src = (chain.illustrationImg || "chain-simplex.png") + "?v=155";
+  if (typeImg) typeImg.src = (chain.illustrationImg || "chain-simplex.png") + "?v=160";
   if (typeSubtitle) typeSubtitle.textContent = chain.strand || "Simplex (1-sporig)";
-  if (dimImg) dimImg.src = (chain.dimensionsImg || "chain-dimensions.png") + "?v=155";
+  if (dimImg) dimImg.src = (chain.dimensionsImg || "chain-dimensions.png") + "?v=160";
 
   if (vPitch) vPitch.textContent = chain.pitch.toFixed(1);
   if (vWidth) vWidth.textContent = chain.width.toFixed(1);
   if (vRoller) vRoller.textContent = chain.rollerDiameter.toFixed(1);
   if (vPin) vPin.textContent = chain.pinDiameter ? chain.pinDiameter.toFixed(1) : "-";
+
+  // Dynamic SVG Callout Values
+  const svgP = document.getElementById("svgChainPitchVal");
+  const svgW = document.getElementById("svgChainWidthVal");
+  const svgR = document.getElementById("svgChainRollerVal");
+  const svgPin = document.getElementById("svgChainPinVal");
+
+  const pInch = (chain.pitch / 25.4).toFixed(chain.pitch % 25.4 === 0 ? 2 : 3);
+  const wInch = (chain.width / 25.4).toFixed(2);
+  const rInch = (chain.rollerDiameter / 25.4).toFixed(3);
+  const pinInch = chain.pinDiameter ? (chain.pinDiameter / 25.4).toFixed(3) : "0";
+
+  if (svgP) svgP.textContent = `${chain.pitch.toFixed(2)} mm / ${pInch}"`;
+  if (svgW) svgW.textContent = `${chain.width.toFixed(2)} mm / ${wInch}"`;
+  if (svgR) svgR.textContent = `${chain.rollerDiameter.toFixed(2)} mm / ${rInch}"`;
+  if (svgPin) svgPin.textContent = chain.pinDiameter ? `${chain.pinDiameter.toFixed(2)} mm / ${pinInch}"` : "-";
 
   calculateChainGrease();
 }
