@@ -5194,9 +5194,9 @@ function selectChain(chain) {
   const vRoller = document.getElementById("visualChainRollerText");
   const vPin = document.getElementById("visualChainPinText");
 
-  if (typeImg) typeImg.src = (chain.illustrationImg || "chain-simplex.png") + "?v=255";
+  if (typeImg) typeImg.src = (chain.illustrationImg || "chain-simplex.png") + "?v=260";
   if (typeSubtitle) typeSubtitle.textContent = chain.strand || "Simplex (1-sporig)";
-  if (dimImg) dimImg.src = (chain.dimensionsImg || "chain-dimensions.png") + "?v=255";
+  if (dimImg) dimImg.src = (chain.dimensionsImg || "chain-dimensions.png") + "?v=260";
 
   if (vPitch) vPitch.textContent = chain.pitch.toFixed(1);
   if (vWidth) vWidth.textContent = chain.width.toFixed(1);
@@ -6278,6 +6278,15 @@ const CHAIN_AUTOMATION_DEVICES = {
     capacities: [60, 120, 240, 500],
     defaultCap: 120,
     isContinuous: false
+  },
+  interflon_oil_dispenser: {
+    title: "Interflon Oil Dispenser",
+    img: "interflon-oil-dispenser.jpg",
+    dimImg: "oil-dispenser-info",
+    desc: "De <strong>Interflon Oil Dispenser</strong> beschikt over een <strong>2 Liter oliereservoir</strong> en is ontworpen voor precieze dosering en meervoudige smeerpunten (via Rotalube LC/EP, borstels of Nozzles). Zowel manueel als PLC-gestuurd inzetbaar.",
+    capacities: [2000],
+    defaultCap: 2000,
+    isContinuous: true
   }
 };
 
@@ -6300,10 +6309,23 @@ function updateChainAutomationPage() {
 
   currentChainAutomationModalImg = device.dimImg;
 
+  // Dynamic Button Text & Onclick Handler
+  const btn = document.getElementById("chainAutoActionButton");
+  const btnText = document.getElementById("chainAutoActionButtonText");
+  if (btn && btnText) {
+    if (deviceKey === "interflon_oil_dispenser") {
+      btnText.textContent = "Informatie over Interflon Oil dispenser";
+      btn.onclick = openOilDispenserInfoModal;
+    } else {
+      btnText.textContent = "Bekijk afmetingen";
+      btn.onclick = openChainAutomationImageModal;
+    }
+  }
+
   const capSelect = document.getElementById("chainAutoCartridgeCap");
   if (capSelect) {
     const curVal = parseInt(capSelect.value, 10);
-    capSelect.innerHTML = device.capacities.map(c => `<option value="${c}">${c} ml</option>`).join("");
+    capSelect.innerHTML = device.capacities.map(c => `<option value="${c}">${c >= 1000 ? (c / 1000) + ' Liter (' + c + ' ml)' : c + ' ml'}</option>`).join("");
     if (device.capacities.includes(curVal)) {
       capSelect.value = curVal;
     } else if (device.capacities.includes(device.defaultCap)) {
@@ -6314,6 +6336,16 @@ function updateChainAutomationPage() {
   }
 
   calculateChainAutomation();
+}
+
+function openOilDispenserInfoModal() {
+  const modal = document.getElementById("oilDispenserInfoModal");
+  if (modal) modal.classList.remove("hidden");
+}
+
+function closeOilDispenserInfoModal() {
+  const modal = document.getElementById("oilDispenserInfoModal");
+  if (modal) modal.classList.add("hidden");
 }
 
 let userHasManuallyEditedChainAutoPeriod = false;
