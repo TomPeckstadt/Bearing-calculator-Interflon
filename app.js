@@ -5198,9 +5198,9 @@ function selectChain(chain) {
   const vRoller = document.getElementById("visualChainRollerText");
   const vPin = document.getElementById("visualChainPinText");
 
-  if (typeImg) typeImg.src = (chain.illustrationImg || "chain-simplex.png") + "?v=500";
+  if (typeImg) typeImg.src = (chain.illustrationImg || "chain-simplex.png") + "?v=600";
   if (typeSubtitle) typeSubtitle.textContent = chain.strand || "Simplex (1-sporig)";
-  if (dimImg) dimImg.src = (chain.dimensionsImg || "chain-dimensions.png") + "?v=500";
+  if (dimImg) dimImg.src = (chain.dimensionsImg || "chain-dimensions.png") + "?v=600";
 
   if (vPitch) vPitch.textContent = chain.pitch.toFixed(1);
   if (vWidth) vWidth.textContent = chain.width.toFixed(1);
@@ -6627,16 +6627,15 @@ function calculateChainAutomation() {
   if (matchNoticeEl && targetDailyMl > 0) {
     const ratio = dailyMl / targetDailyMl;
     const isSufficientCap = (recMonths >= 0.70);
-    const isRecommendedSetting = (unit === "months" && Math.round(periodVal) === recSetting.months && isSufficientCap);
-    const isGoodRatioMatch = (ratio >= 0.75 && ratio <= 1.25 && isSufficientCap);
+    const isMatchingSetting = (unit === "months" && Math.round(periodVal) === recSetting.months && isSufficientCap);
 
-    if (isRecommendedSetting || isGoodRatioMatch) {
+    if (isMatchingSetting) {
       matchNoticeEl.innerHTML = `
         <div style="padding: 8px 12px; background-color: #ECFDF5; border: 1px solid #A7F3D0; border-radius: 4px; color: #065F46; font-size: 11px; font-weight: 600;">
           ✓ Uitstekende match! De ingestelde looptijd (${activeSettingLabel}) op het toestel sluit optimaal aan bij de kettingbehoefte (${targetDailyMl.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ml/dag).
         </div>
       `;
-    } else if (ratio < 0.75 || !isSufficientCap || (unit === "months" && periodVal > recSetting.months)) {
+    } else if ((unit === "months" && periodVal > recSetting.months) || !isSufficientCap || ratio < 0.75) {
       matchNoticeEl.innerHTML = `
         <div style="padding: 8px 12px; background-color: #FEF3C7; border: 1px solid #FDE68A; border-radius: 4px; color: #92400E; font-size: 11px; font-weight: 600;">
           ⚠️ Ondersmering risico: Ingesteld op <strong>${activeSettingLabel}</strong> levert het ${capMl} ml ${containerNoun} slechts ${dailyMl.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ml/dag af (behoefte is ${targetDailyMl.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ml/dag). Bekijk de opties Pulsarlube, Interflon Oil dispenser of Graco.
