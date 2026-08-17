@@ -5065,7 +5065,7 @@ function updateModeUI() {
     }
   } else {
     // Mode === "bearing"
-    if (modeIcon) modeIcon.textContent = "⚙️";
+    if (modeIcon) modeIcon.textContent = "🔘";
     if (modeTitle) modeTitle.textContent = "Lagerberekening";
     if (menuSearchText) {
       menuSearchText.setAttribute("data-i18n", "menuSearch");
@@ -5198,9 +5198,9 @@ function selectChain(chain) {
   const vRoller = document.getElementById("visualChainRollerText");
   const vPin = document.getElementById("visualChainPinText");
 
-  if (typeImg) typeImg.src = (chain.illustrationImg || "chain-simplex.png") + "?v=350";
+  if (typeImg) typeImg.src = (chain.illustrationImg || "chain-simplex.png") + "?v=360";
   if (typeSubtitle) typeSubtitle.textContent = chain.strand || "Simplex (1-sporig)";
-  if (dimImg) dimImg.src = (chain.dimensionsImg || "chain-dimensions.png") + "?v=350";
+  if (dimImg) dimImg.src = (chain.dimensionsImg || "chain-dimensions.png") + "?v=360";
 
   if (vPitch) vPitch.textContent = chain.pitch.toFixed(1);
   if (vWidth) vWidth.textContent = chain.width.toFixed(1);
