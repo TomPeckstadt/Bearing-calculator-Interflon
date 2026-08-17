@@ -2421,6 +2421,7 @@
                 <option value="interflon_single_point_oil">Interflon Single Point Lubricator (Olie)</option>
                 <option value="pulsarlube_oil">Pulsarlube Oil</option>
                 <option value="pulsarlube_msp_oil">Pulsarlube MSP Oil</option>
+                <option value="interflon_oil_dispenser">Interflon Oil Dispenser (2 Liter)</option>
               </select>
             </div>
           </div>
@@ -2437,11 +2438,11 @@
                 <img id="chainAutomationDeviceImg" src="interflon-single-point-lubricator.jpg" alt="Smeertoestel" style="max-width: 100%; max-height: 320px; object-fit: contain; border-radius: var(--border-radius-sm); transition: opacity 0.3s ease;">
               </div>
               <div id="chainAutomationDimToggleWrapper" style="display: block; margin-top: 15px;">
-                <button type="button" class="btn-action-red" onclick="openChainAutomationImageModal()">
+                <button id="chainAutoActionButton" type="button" class="btn-action-red" onclick="openChainAutomationImageModal()">
                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm10.5-11.25h.008v.008h-.008V8.25Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
                   </svg>
-                  <span>Bekijk afmetingen</span>
+                  <span id="chainAutoActionButtonText">Bekijk afmetingen</span>
                 </button>
               </div>
             </div>
@@ -2621,9 +2622,136 @@
 
   <!-- JavaScript logic imports -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="interflon-data.js?v=255"></script>
+  <script src="interflon-data.js?v=260"></script>
   <script src="bearings-db.js"></script>
   <script src="chains-db.js"></script>
-  <script src="app.js?v=255"></script>
+  <script src="app.js?v=260"></script>
+
+  <!-- Interflon Oil Dispenser Information Modal -->
+  <div id="oilDispenserInfoModal" class="modal-overlay hidden">
+    <div class="modal-content" style="max-width: 850px; width: 92%; max-height: 90vh; overflow-y: auto; padding: 24px; border-radius: var(--border-radius-md);">
+      
+      <!-- Modal Header -->
+      <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid var(--primary-red); padding-bottom: 12px; margin-bottom: 20px;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <div style="width: 36px; height: 36px; border-radius: 50%; background-color: #FEF2F2; border: 1px solid #FECACA; display: flex; align-items: center; justify-content: center;">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="var(--primary-red)" style="width: 20px; height: 20px;">
+              <path stroke-linecap="round" stroke-linejoin="round" d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z" />
+            </svg>
+          </div>
+          <div>
+            <h3 style="font-family: 'Outfit', sans-serif; font-size: 1.25rem; font-weight: 800; color: var(--primary-red); margin: 0;">
+              Interflon Oil Dispenser (2 Liter)
+            </h3>
+            <div style="font-size: 12px; color: var(--text-medium);">
+              Productinformatie, afstelling & specificaties
+            </div>
+          </div>
+        </div>
+        <button type="button" onclick="closeOilDispenserInfoModal()" style="background: none; border: none; font-size: 24px; color: var(--text-medium); cursor: pointer; padding: 0 6px;">&times;</button>
+      </div>
+
+      <!-- Modal Body Grid -->
+      <div style="display: grid; grid-template-columns: 280px 1fr; gap: 20px; align-items: start;">
+        
+        <!-- Left Column: Product Image & Quick Specs -->
+        <div style="background-color: #F8FAFC; border: 1px solid #E2E8F0; border-radius: var(--border-radius-sm); padding: 15px; text-align: center;">
+          <img src="interflon-oil-dispenser.jpg" alt="Interflon Oil Dispenser" style="max-width: 100%; max-height: 280px; object-fit: contain; border-radius: 6px; margin-bottom: 12px; box-shadow: var(--shadow-sm);">
+          <div style="background-color: #ffffff; border: 1px solid #CBD5E1; border-radius: 6px; padding: 10px; text-align: left; font-size: 11.5px; line-height: 1.5;">
+            <div style="font-weight: 700; color: var(--primary-red); margin-bottom: 4px;">🛢️ Inhoud / Capaciteit:</div>
+            <div style="font-weight: 800; font-size: 13px; color: var(--text-dark); margin-bottom: 8px;">2 Liter (2000 ml)</div>
+            <div style="font-weight: 700; color: var(--primary-red); margin-bottom: 4px;">📐 Afmetingen behuizing:</div>
+            <div>Breedte: 30 cm | Hoogte: 47 cm | Diepte: 5 cm</div>
+            <div style="font-weight: 700; color: var(--primary-red); margin-top: 8px; margin-bottom: 4px;">⚡ Werkdruk:</div>
+            <div>Oliedruk: ± 1,3 bar | Luchtdruk: max 3 bar</div>
+          </div>
+        </div>
+
+        <!-- Right Column: Tabbed / Structured Details -->
+        <div style="display: flex; flex-direction: column; gap: 16px; font-size: 12.5px; color: var(--text-dark); line-height: 1.5;">
+          
+          <!-- Box 1: Voordelen -->
+          <div style="background-color: #FEF2F2; border: 1px solid #FECACA; border-radius: var(--border-radius-sm); padding: 14px;">
+            <h4 style="font-weight: 700; color: var(--primary-red); font-size: 13px; margin: 0 0 8px 0; display: flex; align-items: center; gap: 6px;">
+              <span>✅ Voordelen van de Interflon Oil Dispenser</span>
+            </h4>
+            <ul style="margin: 0; padding-left: 18px; line-height: 1.5;">
+              <li><strong>Perfect voor zware applicaties:</strong> Wanneer een aerosol onvoldoende is en een centraal smeersysteem te kostbaar.</li>
+              <li><strong>Geen onderhoud:</strong> Enkel eenmalig afstellen, smeren en bijvullen.</li>
+              <li><strong>Flexibele bediening:</strong> Zowel PLC-gestuurd als handmatig bediend (M1 / M2).</li>
+              <li><strong>Minimale olienevel:</strong> Olie en lucht stromen gescheiden door coaxiale slangen en mixen pas bij het smeerpunt.</li>
+              <li><strong>Geschikt voor brede viscositeit:</strong> Voor kettingoliën van 22 cSt tot 680 cSt (inclusief Interflon Food Lube HT).</li>
+              <li><strong>Compatibel met applicators:</strong> Uitstekend voor Rotalube LC/EP, smeerborstels of Nozzles.</li>
+            </ul>
+          </div>
+
+          <!-- Box 2: Werking & Afstelling -->
+          <div style="background-color: #FFFFFF; border: 1px solid #E2E8F0; border-radius: var(--border-radius-sm); padding: 14px;">
+            <h4 style="font-weight: 700; color: var(--primary-dark); font-size: 13px; margin: 0 0 8px 0;">
+              ⚙️ Werking & Afstelling
+            </h4>
+            <p style="margin: 0 0 8px 0;">
+              Na het openen van de hand- of PLC-bediende klep wordt het 2L reservoir op druk gebracht (standaard <strong>1,3 bar</strong>). De druk perst de olie via coaxiale slangen naar het verdeelblok.
+            </p>
+            <p style="margin: 0;">
+              Met de fijnregelingsstelschroeven op het verdeelblok wordt het gewenste smeervolume per punt exact ingesteld. Luchtdruk kan tot max. 3 bar worden afgesteld of op 0 bar worden gezet voor puur olie-borstelsmering.
+            </p>
+          </div>
+
+          <!-- Box 3: Bestelcodes & Modellen -->
+          <div style="background-color: #F8FAFC; border: 1px solid #E2E8F0; border-radius: var(--border-radius-sm); padding: 14px;">
+            <h4 style="font-weight: 700; color: var(--primary-dark); font-size: 13px; margin: 0 0 8px 0;">
+              📋 Beschikbare Uitvoeringen & Artikelnummers
+            </h4>
+            <table style="width: 100%; border-collapse: collapse; font-size: 11.5px; margin-top: 4px;">
+              <thead>
+                <tr style="background-color: #EDF2F7; text-align: left;">
+                  <th style="padding: 6px 8px; border: 1px solid #CBD5E1;">Type</th>
+                  <th style="padding: 6px 8px; border: 1px solid #CBD5E1;">Bediening</th>
+                  <th style="padding: 6px 8px; border: 1px solid #CBD5E1;">Uitgangen</th>
+                  <th style="padding: 6px 8px; border: 1px solid #CBD5E1;">Art.nr.</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="padding: 5px 8px; border: 1px solid #E2E8F0;">Standaard Verdeelblok</td>
+                  <td style="padding: 5px 8px; border: 1px solid #E2E8F0;">PLC bediend</td>
+                  <td style="padding: 5px 8px; border: 1px solid #E2E8F0;">1 of 2 punten</td>
+                  <td style="padding: 5px 8px; border: 1px solid #E2E8F0; font-weight:700;">7265 (PLC1) / 7266 (PLC2)</td>
+                </tr>
+                <tr style="background-color: #F1F5F9;">
+                  <td style="padding: 5px 8px; border: 1px solid #E2E8F0;">Standaard Verdeelblok</td>
+                  <td style="padding: 5px 8px; border: 1px solid #E2E8F0;">Hand bediend</td>
+                  <td style="padding: 5px 8px; border: 1px solid #E2E8F0;">1 of 2 punten</td>
+                  <td style="padding: 5px 8px; border: 1px solid #E2E8F0; font-weight:700;">7263 (M1) / 7264 (M2)</td>
+                </tr>
+                <tr>
+                  <td style="padding: 5px 8px; border: 1px solid #E2E8F0;">Met Spray Nozzle</td>
+                  <td style="padding: 5px 8px; border: 1px solid #E2E8F0;">PLC bediend</td>
+                  <td style="padding: 5px 8px; border: 1px solid #E2E8F0;">1 of 2 Nozzles</td>
+                  <td style="padding: 5px 8px; border: 1px solid #E2E8F0; font-weight:700;">7274 (PLC1) / 7275 (PLC2)</td>
+                </tr>
+                <tr style="background-color: #F1F5F9;">
+                  <td style="padding: 5px 8px; border: 1px solid #E2E8F0;">Met Spray Nozzle</td>
+                  <td style="padding: 5px 8px; border: 1px solid #E2E8F0;">Hand bediend</td>
+                  <td style="padding: 5px 8px; border: 1px solid #E2E8F0;">1 of 2 Nozzles</td>
+                  <td style="padding: 5px 8px; border: 1px solid #E2E8F0; font-weight:700;">7272 (M1) / 7273 (M2)</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- Modal Footer -->
+      <div style="margin-top: 20px; pt: 12px; border-top: 1px solid #E2E8F0; text-align: right;">
+        <button type="button" onclick="closeOilDispenserInfoModal()" style="background-color: var(--primary-red); color: #ffffff; border: none; padding: 8px 18px; border-radius: var(--border-radius-sm); font-weight: 700; cursor: pointer;">Sluiten</button>
+      </div>
+
+    </div>
+  </div>
+
 </body>
 </html>
