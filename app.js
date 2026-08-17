@@ -5139,9 +5139,9 @@ function selectChain(chain) {
   const vRoller = document.getElementById("visualChainRollerText");
   const vPin = document.getElementById("visualChainPinText");
 
-  if (typeImg) typeImg.src = (chain.illustrationImg || "chain-simplex.png") + "?v=190";
+  if (typeImg) typeImg.src = (chain.illustrationImg || "chain-simplex.png") + "?v=195";
   if (typeSubtitle) typeSubtitle.textContent = chain.strand || "Simplex (1-sporig)";
-  if (dimImg) dimImg.src = (chain.dimensionsImg || "chain-dimensions.png") + "?v=190";
+  if (dimImg) dimImg.src = (chain.dimensionsImg || "chain-dimensions.png") + "?v=195";
 
   if (vPitch) vPitch.textContent = chain.pitch.toFixed(1);
   if (vWidth) vWidth.textContent = chain.width.toFixed(1);
@@ -5278,6 +5278,9 @@ function calculateChainGrease() {
   }
   if (typeof calculateTco === "function") {
     calculateTco();
+  }
+  if (typeof calculateChainAutomation === "function") {
+    calculateChainAutomation();
   }
 }
 
@@ -6322,23 +6325,41 @@ function calculateChainAutomation() {
   if (tempC > 50) tempFactor = 1.0 + Math.pow((tempC - 50) / 40, 1.2);
   else if (tempC < 0) tempFactor = 1.2;
 
+  // Base 24/7 continuous oil requirement (cm3/day if machine ran 24h/day, 7d/week):
   const baseDailyCm3 = (width * strands * lengthM * speedMS * envFactor * tempFactor * (0.32 / micpolFactor));
 
-  // Required Daily Oil Volume (ml/day)
-  let reqDailyMl = baseDailyCm3;
-  if (!device.isContinuous) {
-    reqDailyMl = baseDailyCm3 * (hoursPerDay / 24);
-  }
+  // Actual chain requirement per operating day (when running hoursPerDay h/day):
+  const operatingDailyCm3 = baseDailyCm3 * (hoursPerDay / 24);
 
+  // Actual chain requirement per operating week (running hoursPerDay h/day, daysPerWeek d/week):
+  const weeklyCm3 = operatingDailyCm3 * daysPerWeek;
+
+  // Average daily demand over 7 calendar days:
+  const avgCalendarDailyMl = weeklyCm3 / 7;
+
+  // Render chain requirement badge text
   if (needValEl) {
-    const modeLabel = device.isContinuous ? "Continue 24/7 smeerbehoefte" : `Machinetijd smeerbehoefte (${hoursPerDay}u/dag, ${daysPerWeek}d/wk)`;
-    needValEl.textContent = `${reqDailyMl.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ml/dag (${modeLabel})`;
+    if (device.isContinuous) {
+      needValEl.textContent = `${avgCalendarDailyMl.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ml/dag (${hoursPerDay}u/dag, ${daysPerWeek}d/wk — Continue 24/7 smeerbehoefte)`;
+    } else {
+      needValEl.textContent = `${operatingDailyCm3.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ml/draaidag (${hoursPerDay}u/dag, ${daysPerWeek}d/wk — Machinetijd smeerbehoefte)`;
+    }
   }
 
-  // Calculate RECOMMENDED RUNTIME for the selected Cartridge Capacity
-  const recDays = reqDailyMl > 0 ? (capMl / reqDailyMl) : 0;
-  let recMonths = recDays / 30.4375;
-  let recWeeks = recDays / 7;
+  // Calculate RECOMMENDED RUNTIME (in calendar days, weeks, months) for selected Cartridge Capacity capMl
+  let recDays = 0;
+  if (device.isContinuous) {
+    // 24/7 Lubricator runs continuously all 7 calendar days a week
+    recDays = avgCalendarDailyMl > 0 ? (capMl / avgCalendarDailyMl) : 0;
+  } else {
+    // Machine Synchronized (MSP) Lubricator only dispenses during operating hours
+    const operatingDaysNeeded = operatingDailyCm3 > 0 ? (capMl / operatingDailyCm3) : 0;
+    const calendarWeeksNeeded = daysPerWeek > 0 ? (operatingDaysNeeded / daysPerWeek) : 0;
+    recDays = calendarWeeksNeeded * 7;
+  }
+
+  const recMonths = recDays / 30.4375;
+  const recWeeks = recDays / 7;
 
   let recPeriodVal = recMonths;
   let recTitleText = "";
@@ -6358,7 +6379,10 @@ function calculateChainAutomation() {
 
   if (recTitleEl) recTitleEl.textContent = recTitleText;
   if (recSubtextEl) {
-    recSubtextEl.innerHTML = `Bij een patroon van <strong>${capMl} ml</strong> levert deze looptijd op het toestel exact de berekende behoefte van <strong>${reqDailyMl.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ml/dag</strong>.`;
+    const reqText = device.isContinuous
+      ? `${avgCalendarDailyMl.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ml/dag`
+      : `${operatingDailyCm3.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ml/draaidag (${hoursPerDay}u/dag, ${daysPerWeek}d/wk)`;
+    recSubtextEl.innerHTML = `Bij een patroon van <strong>${capMl} ml</strong> levert deze leeglooptijd op het toestel exact de berekende behoefte van <strong>${reqText}</strong>.`;
   }
 
   // AUTO-FILL period input if user hasn't manually overridden it
@@ -6367,7 +6391,7 @@ function calculateChainAutomation() {
     periodInput.value = roundedVal;
   }
 
-  // Calculate actual output from periodInput.value
+  // Calculate actual output from current periodInput.value on device
   const periodVal = parseFloat(periodInput.value) || 1;
   let periodDays = periodVal;
   if (unit === "months") periodDays = periodVal * 30.4375;
@@ -6378,11 +6402,12 @@ function calculateChainAutomation() {
   const monthlyMl = capMl / (periodDays / 30.4375);
 
   if (resDailyEl) resDailyEl.textContent = `${dailyMl.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ml/dag`;
-  if (resHintEl) resHintEl.textContent = `(~ ${monthlyMl.toLocaleString("nl-BE", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} ml / maand)`;
+  if (resHintEl) resHintEl.textContent = `(~ ${monthlyMl.toLocaleString("nl-BE", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} ml / maand bij ${capMl} ml op ${periodVal} ${unit})`;
 
-  // Match notice
-  if (matchNoticeEl) {
-    const ratio = dailyMl / reqDailyMl;
+  // Match Notice Comparison
+  const targetDailyMl = avgCalendarDailyMl;
+  if (matchNoticeEl && targetDailyMl > 0) {
+    const ratio = dailyMl / targetDailyMl;
     const recFormattedShort = (unit === "months")
       ? `${(Math.round(recMonths * 10) / 10).toLocaleString("nl-BE")} maanden`
       : (unit === "weeks")
@@ -6398,21 +6423,20 @@ function calculateChainAutomation() {
     } else if (ratio < 0.85) {
       matchNoticeEl.innerHTML = `
         <div style="padding: 8px 12px; background-color: #FEF3C7; border: 1px solid #FDE68A; border-radius: 4px; color: #92400E; font-size: 11px; font-weight: 600;">
-          ⚠️ Ondersmering risico: Ingesteld op <strong>${periodVal} ${unit}</strong> geeft het ${capMl} ml patroon slechts ${dailyMl.toFixed(2)} ml/dag af (behoefte is ${reqDailyMl.toFixed(2)} ml/dag).<br>
+          ⚠️ Ondersmering risico: Ingesteld op <strong>${periodVal} ${unit}</strong> geeft het ${capMl} ml patroon slechts ${dailyMl.toFixed(2)} ml/dag af (behoefte is ${targetDailyMl.toFixed(2)} ml/dag).<br>
           <strong>Advies:</strong> Stel het toestel in op <strong>${recFormattedShort}</strong> (of kies een groter patroon).
         </div>
       `;
     } else {
       matchNoticeEl.innerHTML = `
         <div style="padding: 8px 12px; background-color: #EFF6FF; border: 1px solid #BFDBFE; border-radius: 4px; color: #1E40AF; font-size: 11px; font-weight: 600;">
-          ℹ️ Ruime oliedosering: Ingesteld op <strong>${periodVal} ${unit}</strong> geeft het ${capMl} ml patroon ${dailyMl.toFixed(2)} ml/dag af (behoefte is ${reqDailyMl.toFixed(2)} ml/dag).<br>
+          ℹ️ Ruime oliedosering: Ingesteld op <strong>${periodVal} ${unit}</strong> geeft het ${capMl} ml patroon ${dailyMl.toFixed(2)} ml/dag af (behoefte is ${targetDailyMl.toFixed(2)} ml/dag).<br>
           <strong>Advies:</strong> Stel het toestel in op <strong>${recFormattedShort}</strong> om exact de behoefte af te dekken.
         </div>
       `;
     }
   }
 }
-
 function openChainAutomationImageModal() {
   const modal = document.getElementById("automationImageModal");
   const imgEl = document.getElementById("automationModalImg");
