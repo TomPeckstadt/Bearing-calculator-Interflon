@@ -5194,9 +5194,9 @@ function selectChain(chain) {
   const vRoller = document.getElementById("visualChainRollerText");
   const vPin = document.getElementById("visualChainPinText");
 
-  if (typeImg) typeImg.src = (chain.illustrationImg || "chain-simplex.png") + "?v=270";
+  if (typeImg) typeImg.src = (chain.illustrationImg || "chain-simplex.png") + "?v=280";
   if (typeSubtitle) typeSubtitle.textContent = chain.strand || "Simplex (1-sporig)";
-  if (dimImg) dimImg.src = (chain.dimensionsImg || "chain-dimensions.png") + "?v=270";
+  if (dimImg) dimImg.src = (chain.dimensionsImg || "chain-dimensions.png") + "?v=280";
 
   if (vPitch) vPitch.textContent = chain.pitch.toFixed(1);
   if (vWidth) vWidth.textContent = chain.width.toFixed(1);
@@ -6338,15 +6338,83 @@ function updateChainAutomationPage() {
   calculateChainAutomation();
 }
 
+
+// PowerPoint Viewer Logic for Interflon Oil Dispenser
+let currentOilDispenserSlide = 1;
+const totalOilDispenserSlides = 14;
+
+const OIL_DISPENSER_SLIDE_TITLES = [
+  "Dia 1: Interflon Oil Dispenser - Overzicht",
+  "Dia 2: Interflon Oil Dispenser - Evolutie",
+  "Dia 3: Applicatiewijzen (Rotalube, Borstel, Nozzle)",
+  "Dia 4: Voordelen & Eigenschappen van het systeem",
+  "Dia 5: Werking & Drukregeling (1.3 bar oliedruk / max 3 bar luchtdruk)",
+  "Dia 6: Afstelling van druk & flow per viscositeit (22 - 680 cSt)",
+  "Dia 7: Accessoires & Verdeelblokken (1 of 2 uitgangen)",
+  "Dia 8: Uitvoeringen PLC-bediend & Handbediend (7263, 7264, 7265, 7266)",
+  "Dia 9: Uitvoeringen met Spray Nozzle (7272, 7273, 7274, 7275)",
+  "Dia 10: Uitvoeringen met Borstel of Rotalube",
+  "Dia 11: Onderdelen & Drukregelaars Diagram",
+  "Dia 12: Afmetingen & Coaxiale Tubing (30 x 47 x 5 cm)",
+  "Dia 13: Praktijkvoorbeeld Pin Oven Machine",
+  "Dia 14: Handleiding & Documentatie"
+];
+
 function openOilDispenserInfoModal() {
   const modal = document.getElementById("oilDispenserInfoModal");
-  if (modal) modal.classList.remove("hidden");
+  if (modal) {
+    modal.classList.remove("hidden");
+    currentOilDispenserSlide = 1;
+    renderOilDispenserSlide();
+  }
 }
 
 function closeOilDispenserInfoModal() {
   const modal = document.getElementById("oilDispenserInfoModal");
   if (modal) modal.classList.add("hidden");
 }
+
+function changeOilDispenserSlide(delta) {
+  currentOilDispenserSlide += delta;
+  if (currentOilDispenserSlide < 1) currentOilDispenserSlide = totalOilDispenserSlides;
+  if (currentOilDispenserSlide > totalOilDispenserSlides) currentOilDispenserSlide = 1;
+  renderOilDispenserSlide();
+}
+
+function goToOilDispenserSlide(slideNum) {
+  currentOilDispenserSlide = slideNum;
+  renderOilDispenserSlide();
+}
+
+function renderOilDispenserSlide() {
+  const imgEl = document.getElementById("oilDispenserSlideImg");
+  const counterEl = document.getElementById("oilDispenserSlideCounter");
+  const titleEl = document.getElementById("oilDispenserSlideTitle");
+  const pillsEl = document.getElementById("oilDispenserSlidePills");
+
+  if (imgEl) {
+    imgEl.src = `slides/oil-dispenser-slide-${currentOilDispenserSlide}.jpg?v=280`;
+  }
+  if (counterEl) {
+    counterEl.textContent = `Dia ${currentOilDispenserSlide} van ${totalOilDispenserSlides}`;
+  }
+  if (titleEl) {
+    titleEl.textContent = OIL_DISPENSER_SLIDE_TITLES[currentOilDispenserSlide - 1] || `Dia ${currentOilDispenserSlide}`;
+  }
+
+  if (pillsEl) {
+    let pillsHtml = "";
+    for (let i = 1; i <= totalOilDispenserSlides; i++) {
+      const isActive = (i === currentOilDispenserSlide);
+      const bg = isActive ? "var(--primary-red)" : "#F1F5F9";
+      const color = isActive ? "#ffffff" : "var(--text-dark)";
+      const border = isActive ? "1px solid var(--primary-red)" : "1px solid #CBD5E1";
+      pillsHtml += `<button type="button" onclick="goToOilDispenserSlide(${i})" style="background-color: ${bg}; color: ${color}; border: ${border}; padding: 4px 10px; border-radius: 4px; font-weight: ${isActive ? '800' : '600'}; font-size: 11.5px; cursor: pointer;">${i}</button>`;
+    }
+    pillsEl.innerHTML = pillsHtml;
+  }
+}
+
 
 let userHasManuallyEditedChainAutoPeriod = false;
 
