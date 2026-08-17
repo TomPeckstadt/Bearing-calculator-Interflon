@@ -1735,51 +1735,69 @@ function switchPage(pageId) {
 // ==========================================================================
 
 function handleSearchInput() {
-  const input = document.getElementById("bearingSearchInput").value.trim();
+  const inputEl = document.getElementById("bearingSearchInput");
   const suggestionsBox = document.getElementById("suggestionsBox");
+  if (!inputEl || !suggestionsBox || typeof bearingDatabase === "undefined") return;
 
+  const input = inputEl.value.trim();
+  const cleanInput = input.toUpperCase().replace(/[\s-]/g, "");
+  const dbKeys = Object.keys(bearingDatabase);
+
+  let matches = [];
   if (input.length < 1) {
-    suggestionsBox.style.display = "none";
-    suggestionsBox.innerHTML = "";
+    // Toon ALLE lagers uit de database in het keuzemenu
+    matches = dbKeys;
+  } else {
+    // Filter overeenkomsten op basis van zoekinvoer
+    for (const key of dbKeys) {
+      const cleanKey = key.toUpperCase().replace(/[\s-]/g, "");
+      if (cleanKey.includes(cleanInput) || key.includes(input.toUpperCase())) {
+        matches.push(key);
+      }
+    }
+  }
+
+  if (matches.length === 0) {
+    let html = `
+      <div class="autocomplete-suggestion" style="cursor: default; padding: 12px 16px;">
+        <span class="suggestion-name" style="color: var(--text-medium); font-size: 13px;">Geen lager gevonden voor "${input}"</span>
+      </div>
+    `;
+    if (input.length >= 2) {
+      html += `
+        <div class="autocomplete-suggestion" style="border-top: 1px dashed var(--accent-yellow-border-soft);" onclick="selectBearing('${input}')">
+          <span class="suggestion-name" style="color: var(--primary-blue); font-weight: 600;">Analyseer "${input}"...</span>
+          <span class="suggestion-meta">Dynamische Parser</span>
+        </div>
+      `;
+    }
+    suggestionsBox.innerHTML = html;
+    suggestionsBox.style.display = "block";
     return;
   }
 
-  const cleanInput = input.toUpperCase().replace(/[\s-]/g, "");
-  
-  // Zoek naar overeenkomsten in database
-  const matches = [];
-  const dbKeys = Object.keys(bearingDatabase);
-  
-  // Zoek exact matchend begin of substring
-  for (const key of dbKeys) {
-    if (key.startsWith(cleanInput) || key.includes(cleanInput)) {
-      matches.push(key);
-    }
-    if (matches.length >= 6) break; // Limiteer suggesties tot 6
-  }
-
-  // Render suggesties en de Analyseer optie
+  // Render suggesties
   let html = matches.map(key => {
     const bearing = bearingDatabase[key];
     return `
       <div class="autocomplete-suggestion" onclick="selectBearing('${key}')">
-        <span class="suggestion-name">${key}</span>
+        <span class="suggestion-name" style="color: var(--primary-blue); font-weight: 700;">${key}</span>
         <span class="suggestion-meta">${bearing.type} (${bearing.d}x${bearing.D}x${bearing.B} mm)</span>
       </div>
     `;
   }).join("");
 
-  // Voeg ALTIJD de "Analyseer..." optie toe als fallback onder de suggesties,
-  // tenzij de invoer exact overeenkomt met een van de database keys.
-  const exactMatchExists = matches.some(key => key.toUpperCase() === cleanInput);
-  if (!exactMatchExists && (matches.length === 0 || input.length >= 3)) {
-    const borderStyle = matches.length > 0 ? 'border-top: 1px dashed var(--accent-yellow-border-soft);' : '';
-    html += `
-      <div class="autocomplete-suggestion" style="${borderStyle}" onclick="selectBearing('${input}')">
-        <span class="suggestion-name" style="color: var(--primary-blue); font-weight: 600;">Analyseer "${input}"...</span>
-        <span class="suggestion-meta">Dynamische Parser</span>
-      </div>
-    `;
+  // Voeg Analyseer optie toe als er geen exacte match is en de gebruiker typt
+  if (input.length > 0) {
+    const exactMatchExists = matches.some(key => key.toUpperCase() === cleanInput);
+    if (!exactMatchExists && input.length >= 2) {
+      html += `
+        <div class="autocomplete-suggestion" style="border-top: 1px dashed var(--accent-yellow-border-soft);" onclick="selectBearing('${input}')">
+          <span class="suggestion-name" style="color: var(--primary-blue); font-weight: 600;">Analyseer "${input}"...</span>
+          <span class="suggestion-meta">Dynamische Parser</span>
+        </div>
+      `;
+    }
   }
 
   suggestionsBox.innerHTML = html;
@@ -4970,21 +4988,21 @@ function selectAppMode(mode) {
 function handleChainSearchInput() {
   const inputEl = document.getElementById("chainSearchInput");
   const suggestionsBox = document.getElementById("chainSuggestionsBox");
-  if (!inputEl || !suggestionsBox) return;
+  if (!inputEl || !suggestionsBox || typeof CHAINS_DB === "undefined" || !CHAINS_DB.length) return;
 
   const input = inputEl.value.trim();
-  if (typeof CHAINS_DB === "undefined" || !CHAINS_DB.length) return;
 
   let matches = [];
   if (input.length < 1) {
-    matches = CHAINS_DB.slice(0, 8);
+    // Toon ALLE kettingen uit de database in het keuzemenu
+    matches = CHAINS_DB;
   } else {
     const cleanInput = input.toUpperCase().replace(/[\s-]/g, "");
     matches = CHAINS_DB.filter(c => {
       const cleanDesig = c.designation.toUpperCase().replace(/[\s-]/g, "");
       const cleanNorm = c.norm.toUpperCase().replace(/[\s-]/g, "");
       return cleanDesig.includes(cleanInput) || cleanNorm.includes(cleanInput);
-    }).slice(0, 8);
+    });
   }
 
   if (matches.length === 0) {
@@ -5060,9 +5078,9 @@ function selectChain(chain) {
   const vRoller = document.getElementById("visualChainRollerText");
   const vPin = document.getElementById("visualChainPinText");
 
-  if (typeImg) typeImg.src = (chain.illustrationImg || "chain-simplex.png") + "?v=150";
+  if (typeImg) typeImg.src = (chain.illustrationImg || "chain-simplex.png") + "?v=155";
   if (typeSubtitle) typeSubtitle.textContent = chain.strand || "Simplex (1-sporig)";
-  if (dimImg) dimImg.src = (chain.dimensionsImg || "chain-dimensions.png") + "?v=150";
+  if (dimImg) dimImg.src = (chain.dimensionsImg || "chain-dimensions.png") + "?v=155";
 
   if (vPitch) vPitch.textContent = chain.pitch.toFixed(1);
   if (vWidth) vWidth.textContent = chain.width.toFixed(1);
