@@ -2,12 +2,16 @@
 // Helper to calculate recommended lubricator setting months (1..12):
 // Decimals <= 0.7 round DOWN, decimals > 0.7 round UP
 function getRecommendedSettingMonths(recMonths) {
-  if (recMonths <= 1) {
+  if (recMonths <= 0) {
     return { months: 1, roundedUp: false };
   }
-  const whole = Math.floor(recMonths);
-  const frac = recMonths - whole;
-  if (frac > 0.7001) {
+  // Round to 1 decimal place to align with displayed theoretical months (e.g. 1.7)
+  const rounded1Dec = Math.round(recMonths * 10) / 10;
+  const whole = Math.floor(rounded1Dec);
+  const frac = Math.round((rounded1Dec - whole) * 10) / 10;
+
+  // Vanaf 0.7 (frac >= 0.7) round UP to whole + 1, otherwise round DOWN to whole
+  if (frac >= 0.7) {
     const m = Math.min(12, whole + 1);
     return { months: m, roundedUp: true };
   } else {
@@ -4943,7 +4947,7 @@ function calculateAutomationLubrication() {
       recTitleText = `${dialLabel} (${settingTerm}) | Theoretisch: ${roundedD.toLocaleString("nl-BE")} dagen`;
     }
 
-    const roundReason = recSetting.roundedUp ? "afgerond naar boven bij > 0,7" : "afgerond naar beneden bij ≤ 0,7";
+    const roundReason = recSetting.roundedUp ? "afgerond naar boven bij ≥ 0,7" : "afgerond naar beneden bij < 0,7";
 
     if (recTitleEl) recTitleEl.textContent = recTitleText;
     if (recSubtextEl) {
@@ -5194,9 +5198,9 @@ function selectChain(chain) {
   const vRoller = document.getElementById("visualChainRollerText");
   const vPin = document.getElementById("visualChainPinText");
 
-  if (typeImg) typeImg.src = (chain.illustrationImg || "chain-simplex.png") + "?v=320";
+  if (typeImg) typeImg.src = (chain.illustrationImg || "chain-simplex.png") + "?v=330";
   if (typeSubtitle) typeSubtitle.textContent = chain.strand || "Simplex (1-sporig)";
-  if (dimImg) dimImg.src = (chain.dimensionsImg || "chain-dimensions.png") + "?v=320";
+  if (dimImg) dimImg.src = (chain.dimensionsImg || "chain-dimensions.png") + "?v=330";
 
   if (vPitch) vPitch.textContent = chain.pitch.toFixed(1);
   if (vWidth) vWidth.textContent = chain.width.toFixed(1);
@@ -6575,7 +6579,7 @@ function calculateChainAutomation() {
     recTitleText = `${dialLabel} (${settingTerm}) | Theoretisch: ${Math.round(recDays)} dagen`;
   }
 
-  const roundReason = recSetting.roundedUp ? "afgerond naar boven bij > 0,7" : "afgerond naar beneden bij ≤ 0,7";
+  const roundReason = recSetting.roundedUp ? "afgerond naar boven bij ≥ 0,7" : "afgerond naar beneden bij < 0,7";
 
   if (recTitleEl) recTitleEl.textContent = recTitleText;
   if (recSubtextEl) {
