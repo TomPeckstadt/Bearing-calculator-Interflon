@@ -5194,9 +5194,9 @@ function selectChain(chain) {
   const vRoller = document.getElementById("visualChainRollerText");
   const vPin = document.getElementById("visualChainPinText");
 
-  if (typeImg) typeImg.src = (chain.illustrationImg || "chain-simplex.png") + "?v=285";
+  if (typeImg) typeImg.src = (chain.illustrationImg || "chain-simplex.png") + "?v=290";
   if (typeSubtitle) typeSubtitle.textContent = chain.strand || "Simplex (1-sporig)";
-  if (dimImg) dimImg.src = (chain.dimensionsImg || "chain-dimensions.png") + "?v=285";
+  if (dimImg) dimImg.src = (chain.dimensionsImg || "chain-dimensions.png") + "?v=290";
 
   if (vPitch) vPitch.textContent = chain.pitch.toFixed(1);
   if (vWidth) vWidth.textContent = chain.width.toFixed(1);
@@ -6646,3 +6646,18 @@ function openChainAutomationImageModal() {
     modal.classList.remove("hidden");
   }
 }
+
+
+// Keyboard navigation for PowerPoint modal
+document.addEventListener("keydown", function(e) {
+  const modal = document.getElementById("oilDispenserInfoModal");
+  if (modal && !modal.classList.contains("hidden")) {
+    if (e.key === "ArrowRight" || e.key === "PageDown") {
+      changeOilDispenserSlide(1);
+    } else if (e.key === "ArrowLeft" || e.key === "PageUp") {
+      changeOilDispenserSlide(-1);
+    } else if (e.key === "Escape") {
+      closeOilDispenserInfoModal();
+    }
+  }
+});
