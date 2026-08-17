@@ -1,5 +1,5 @@
 // Database met industriële kettingen volgens internationale normen (ISO 606, ANSI B29.1, DIN 8187, DIN 8188, ISO 4347, DIN 8181, DIN 8167, EN 818).
-// Bevat complete specificaties voor aandrijf-, transport-, hijs-, fleyer-, scharnierband- en ronde schalmkettingen.
+// Bevat specifieke illustraties voor elke kettingfamilie (Simplex, Duplex, Triplex, Fleyer/Leaf, Double Pitch, Heavy Conveyor, Slatband, Ronde Schalm).
 
 const CHAINS_DB = [
   {
@@ -818,7 +818,7 @@ const CHAINS_DB = [
     "rollerDiameter": 0,
     "pinDiameter": 4.45,
     "innerPlateHeight": 10.6,
-    "illustrationImg": "chain-simplex.png",
+    "illustrationImg": "chain-fleyer.png",
     "dimensionsImg": "chain-dimensions.png"
   },
   {
@@ -831,7 +831,7 @@ const CHAINS_DB = [
     "rollerDiameter": 0,
     "pinDiameter": 4.45,
     "innerPlateHeight": 10.6,
-    "illustrationImg": "chain-simplex.png",
+    "illustrationImg": "chain-fleyer.png",
     "dimensionsImg": "chain-dimensions.png"
   },
   {
@@ -844,7 +844,7 @@ const CHAINS_DB = [
     "rollerDiameter": 0,
     "pinDiameter": 4.45,
     "innerPlateHeight": 10.6,
-    "illustrationImg": "chain-simplex.png",
+    "illustrationImg": "chain-fleyer.png",
     "dimensionsImg": "chain-dimensions.png"
   },
   {
@@ -857,7 +857,7 @@ const CHAINS_DB = [
     "rollerDiameter": 0,
     "pinDiameter": 4.45,
     "innerPlateHeight": 10.6,
-    "illustrationImg": "chain-simplex.png",
+    "illustrationImg": "chain-fleyer.png",
     "dimensionsImg": "chain-dimensions.png"
   },
   {
@@ -870,7 +870,7 @@ const CHAINS_DB = [
     "rollerDiameter": 0,
     "pinDiameter": 5.08,
     "innerPlateHeight": 13.5,
-    "illustrationImg": "chain-simplex.png",
+    "illustrationImg": "chain-fleyer.png",
     "dimensionsImg": "chain-dimensions.png"
   },
   {
@@ -883,7 +883,7 @@ const CHAINS_DB = [
     "rollerDiameter": 0,
     "pinDiameter": 5.08,
     "innerPlateHeight": 13.5,
-    "illustrationImg": "chain-simplex.png",
+    "illustrationImg": "chain-fleyer.png",
     "dimensionsImg": "chain-dimensions.png"
   },
   {
@@ -896,7 +896,7 @@ const CHAINS_DB = [
     "rollerDiameter": 0,
     "pinDiameter": 5.08,
     "innerPlateHeight": 13.5,
-    "illustrationImg": "chain-simplex.png",
+    "illustrationImg": "chain-fleyer.png",
     "dimensionsImg": "chain-dimensions.png"
   },
   {
@@ -909,7 +909,7 @@ const CHAINS_DB = [
     "rollerDiameter": 0,
     "pinDiameter": 5.72,
     "innerPlateHeight": 16.1,
-    "illustrationImg": "chain-simplex.png",
+    "illustrationImg": "chain-fleyer.png",
     "dimensionsImg": "chain-dimensions.png"
   },
   {
@@ -922,7 +922,7 @@ const CHAINS_DB = [
     "rollerDiameter": 0,
     "pinDiameter": 5.72,
     "innerPlateHeight": 16.1,
-    "illustrationImg": "chain-simplex.png",
+    "illustrationImg": "chain-fleyer.png",
     "dimensionsImg": "chain-dimensions.png"
   },
   {
@@ -935,7 +935,7 @@ const CHAINS_DB = [
     "rollerDiameter": 0,
     "pinDiameter": 5.72,
     "innerPlateHeight": 16.1,
-    "illustrationImg": "chain-simplex.png",
+    "illustrationImg": "chain-fleyer.png",
     "dimensionsImg": "chain-dimensions.png"
   },
   {
@@ -948,7 +948,7 @@ const CHAINS_DB = [
     "rollerDiameter": 0,
     "pinDiameter": 8.28,
     "innerPlateHeight": 21,
-    "illustrationImg": "chain-simplex.png",
+    "illustrationImg": "chain-fleyer.png",
     "dimensionsImg": "chain-dimensions.png"
   },
   {
@@ -961,7 +961,7 @@ const CHAINS_DB = [
     "rollerDiameter": 0,
     "pinDiameter": 8.28,
     "innerPlateHeight": 21,
-    "illustrationImg": "chain-simplex.png",
+    "illustrationImg": "chain-fleyer.png",
     "dimensionsImg": "chain-dimensions.png"
   },
   {
@@ -974,7 +974,7 @@ const CHAINS_DB = [
     "rollerDiameter": 0,
     "pinDiameter": 8.28,
     "innerPlateHeight": 21,
-    "illustrationImg": "chain-simplex.png",
+    "illustrationImg": "chain-fleyer.png",
     "dimensionsImg": "chain-dimensions.png"
   },
   {
@@ -987,7 +987,7 @@ const CHAINS_DB = [
     "rollerDiameter": 0,
     "pinDiameter": 10.19,
     "innerPlateHeight": 26,
-    "illustrationImg": "chain-simplex.png",
+    "illustrationImg": "chain-fleyer.png",
     "dimensionsImg": "chain-dimensions.png"
   },
   {
@@ -1000,7 +1000,7 @@ const CHAINS_DB = [
     "rollerDiameter": 0,
     "pinDiameter": 10.19,
     "innerPlateHeight": 26,
-    "illustrationImg": "chain-simplex.png",
+    "illustrationImg": "chain-fleyer.png",
     "dimensionsImg": "chain-dimensions.png"
   },
   {
@@ -1013,7 +1013,7 @@ const CHAINS_DB = [
     "rollerDiameter": 0,
     "pinDiameter": 14.63,
     "innerPlateHeight": 33.4,
-    "illustrationImg": "chain-simplex.png",
+    "illustrationImg": "chain-fleyer.png",
     "dimensionsImg": "chain-dimensions.png"
   },
   {
@@ -1026,7 +1026,7 @@ const CHAINS_DB = [
     "rollerDiameter": 0,
     "pinDiameter": 14.63,
     "innerPlateHeight": 33.4,
-    "illustrationImg": "chain-simplex.png",
+    "illustrationImg": "chain-fleyer.png",
     "dimensionsImg": "chain-dimensions.png"
   },
   {
@@ -1039,7 +1039,7 @@ const CHAINS_DB = [
     "rollerDiameter": 0,
     "pinDiameter": 15.9,
     "innerPlateHeight": 37,
-    "illustrationImg": "chain-simplex.png",
+    "illustrationImg": "chain-fleyer.png",
     "dimensionsImg": "chain-dimensions.png"
   },
   {
@@ -1052,7 +1052,7 @@ const CHAINS_DB = [
     "rollerDiameter": 0,
     "pinDiameter": 17.81,
     "innerPlateHeight": 42.2,
-    "illustrationImg": "chain-simplex.png",
+    "illustrationImg": "chain-fleyer.png",
     "dimensionsImg": "chain-dimensions.png"
   },
   {
@@ -1065,7 +1065,7 @@ const CHAINS_DB = [
     "rollerDiameter": 0,
     "pinDiameter": 3.58,
     "innerPlateHeight": 8.6,
-    "illustrationImg": "chain-simplex.png",
+    "illustrationImg": "chain-fleyer.png",
     "dimensionsImg": "chain-dimensions.png"
   },
   {
@@ -1078,7 +1078,7 @@ const CHAINS_DB = [
     "rollerDiameter": 0,
     "pinDiameter": 3.96,
     "innerPlateHeight": 10.4,
-    "illustrationImg": "chain-simplex.png",
+    "illustrationImg": "chain-fleyer.png",
     "dimensionsImg": "chain-dimensions.png"
   },
   {
@@ -1091,7 +1091,7 @@ const CHAINS_DB = [
     "rollerDiameter": 0,
     "pinDiameter": 5.08,
     "innerPlateHeight": 13,
-    "illustrationImg": "chain-simplex.png",
+    "illustrationImg": "chain-fleyer.png",
     "dimensionsImg": "chain-dimensions.png"
   },
   {
@@ -1104,7 +1104,7 @@ const CHAINS_DB = [
     "rollerDiameter": 0,
     "pinDiameter": 5.94,
     "innerPlateHeight": 15.6,
-    "illustrationImg": "chain-simplex.png",
+    "illustrationImg": "chain-fleyer.png",
     "dimensionsImg": "chain-dimensions.png"
   },
   {
@@ -1117,7 +1117,7 @@ const CHAINS_DB = [
     "rollerDiameter": 0,
     "pinDiameter": 7.92,
     "innerPlateHeight": 20.8,
-    "illustrationImg": "chain-simplex.png",
+    "illustrationImg": "chain-fleyer.png",
     "dimensionsImg": "chain-dimensions.png"
   },
   {
@@ -1130,7 +1130,7 @@ const CHAINS_DB = [
     "rollerDiameter": 0,
     "pinDiameter": 5.08,
     "innerPlateHeight": 12,
-    "illustrationImg": "chain-simplex.png",
+    "illustrationImg": "chain-fleyer.png",
     "dimensionsImg": "chain-dimensions.png"
   },
   {
@@ -1143,7 +1143,7 @@ const CHAINS_DB = [
     "rollerDiameter": 0,
     "pinDiameter": 5.08,
     "innerPlateHeight": 12,
-    "illustrationImg": "chain-simplex.png",
+    "illustrationImg": "chain-fleyer.png",
     "dimensionsImg": "chain-dimensions.png"
   },
   {
@@ -1156,7 +1156,7 @@ const CHAINS_DB = [
     "rollerDiameter": 0,
     "pinDiameter": 5.94,
     "innerPlateHeight": 15,
-    "illustrationImg": "chain-simplex.png",
+    "illustrationImg": "chain-fleyer.png",
     "dimensionsImg": "chain-dimensions.png"
   },
   {
@@ -1169,7 +1169,7 @@ const CHAINS_DB = [
     "rollerDiameter": 0,
     "pinDiameter": 7.92,
     "innerPlateHeight": 18.1,
-    "illustrationImg": "chain-simplex.png",
+    "illustrationImg": "chain-fleyer.png",
     "dimensionsImg": "chain-dimensions.png"
   },
   {
@@ -1182,7 +1182,7 @@ const CHAINS_DB = [
     "rollerDiameter": 0,
     "pinDiameter": 9.53,
     "innerPlateHeight": 24.1,
-    "illustrationImg": "chain-simplex.png",
+    "illustrationImg": "chain-fleyer.png",
     "dimensionsImg": "chain-dimensions.png"
   },
   {
@@ -1195,7 +1195,7 @@ const CHAINS_DB = [
     "rollerDiameter": 0,
     "pinDiameter": 9.53,
     "innerPlateHeight": 24.1,
-    "illustrationImg": "chain-simplex.png",
+    "illustrationImg": "chain-fleyer.png",
     "dimensionsImg": "chain-dimensions.png"
   },
   {
@@ -1208,7 +1208,7 @@ const CHAINS_DB = [
     "rollerDiameter": 0,
     "pinDiameter": 11.11,
     "innerPlateHeight": 30.1,
-    "illustrationImg": "chain-simplex.png",
+    "illustrationImg": "chain-fleyer.png",
     "dimensionsImg": "chain-dimensions.png"
   },
   {
@@ -1221,7 +1221,7 @@ const CHAINS_DB = [
     "rollerDiameter": 0,
     "pinDiameter": 12.7,
     "innerPlateHeight": 36.2,
-    "illustrationImg": "chain-simplex.png",
+    "illustrationImg": "chain-fleyer.png",
     "dimensionsImg": "chain-dimensions.png"
   },
   {
@@ -1234,7 +1234,7 @@ const CHAINS_DB = [
     "rollerDiameter": 7.92,
     "pinDiameter": 3.96,
     "innerPlateHeight": 12,
-    "illustrationImg": "chain-simplex.png",
+    "illustrationImg": "chain-double-pitch.png",
     "dimensionsImg": "chain-dimensions.png"
   },
   {
@@ -1247,7 +1247,7 @@ const CHAINS_DB = [
     "rollerDiameter": 10.16,
     "pinDiameter": 5.08,
     "innerPlateHeight": 15,
-    "illustrationImg": "chain-simplex.png",
+    "illustrationImg": "chain-double-pitch.png",
     "dimensionsImg": "chain-dimensions.png"
   },
   {
@@ -1260,7 +1260,7 @@ const CHAINS_DB = [
     "rollerDiameter": 11.91,
     "pinDiameter": 5.94,
     "innerPlateHeight": 18,
-    "illustrationImg": "chain-simplex.png",
+    "illustrationImg": "chain-double-pitch.png",
     "dimensionsImg": "chain-dimensions.png"
   },
   {
@@ -1273,7 +1273,7 @@ const CHAINS_DB = [
     "rollerDiameter": 15.88,
     "pinDiameter": 7.92,
     "innerPlateHeight": 24,
-    "illustrationImg": "chain-simplex.png",
+    "illustrationImg": "chain-double-pitch.png",
     "dimensionsImg": "chain-dimensions.png"
   },
   {
@@ -1286,7 +1286,7 @@ const CHAINS_DB = [
     "rollerDiameter": 7.92,
     "pinDiameter": 3.96,
     "innerPlateHeight": 12,
-    "illustrationImg": "chain-simplex.png",
+    "illustrationImg": "chain-double-pitch.png",
     "dimensionsImg": "chain-dimensions.png"
   },
   {
@@ -1299,7 +1299,7 @@ const CHAINS_DB = [
     "rollerDiameter": 10.16,
     "pinDiameter": 5.08,
     "innerPlateHeight": 15,
-    "illustrationImg": "chain-simplex.png",
+    "illustrationImg": "chain-double-pitch.png",
     "dimensionsImg": "chain-dimensions.png"
   },
   {
@@ -1312,7 +1312,7 @@ const CHAINS_DB = [
     "rollerDiameter": 11.91,
     "pinDiameter": 5.94,
     "innerPlateHeight": 18,
-    "illustrationImg": "chain-simplex.png",
+    "illustrationImg": "chain-double-pitch.png",
     "dimensionsImg": "chain-dimensions.png"
   },
   {
@@ -1325,7 +1325,7 @@ const CHAINS_DB = [
     "rollerDiameter": 15.88,
     "pinDiameter": 7.92,
     "innerPlateHeight": 24,
-    "illustrationImg": "chain-simplex.png",
+    "illustrationImg": "chain-double-pitch.png",
     "dimensionsImg": "chain-dimensions.png"
   },
   {
@@ -1338,7 +1338,7 @@ const CHAINS_DB = [
     "rollerDiameter": 19.05,
     "pinDiameter": 9.53,
     "innerPlateHeight": 30,
-    "illustrationImg": "chain-simplex.png",
+    "illustrationImg": "chain-double-pitch.png",
     "dimensionsImg": "chain-dimensions.png"
   },
   {
@@ -1351,7 +1351,7 @@ const CHAINS_DB = [
     "rollerDiameter": 22.23,
     "pinDiameter": 11.11,
     "innerPlateHeight": 36,
-    "illustrationImg": "chain-simplex.png",
+    "illustrationImg": "chain-double-pitch.png",
     "dimensionsImg": "chain-dimensions.png"
   },
   {
@@ -1364,7 +1364,7 @@ const CHAINS_DB = [
     "rollerDiameter": 28.58,
     "pinDiameter": 14.27,
     "innerPlateHeight": 48,
-    "illustrationImg": "chain-simplex.png",
+    "illustrationImg": "chain-double-pitch.png",
     "dimensionsImg": "chain-dimensions.png"
   },
   {
@@ -1377,7 +1377,7 @@ const CHAINS_DB = [
     "rollerDiameter": 15.88,
     "pinDiameter": 3.96,
     "innerPlateHeight": 12,
-    "illustrationImg": "chain-simplex.png",
+    "illustrationImg": "chain-double-pitch.png",
     "dimensionsImg": "chain-dimensions.png"
   },
   {
@@ -1390,7 +1390,7 @@ const CHAINS_DB = [
     "rollerDiameter": 19.05,
     "pinDiameter": 5.08,
     "innerPlateHeight": 15,
-    "illustrationImg": "chain-simplex.png",
+    "illustrationImg": "chain-double-pitch.png",
     "dimensionsImg": "chain-dimensions.png"
   },
   {
@@ -1403,7 +1403,7 @@ const CHAINS_DB = [
     "rollerDiameter": 22.23,
     "pinDiameter": 5.94,
     "innerPlateHeight": 18,
-    "illustrationImg": "chain-simplex.png",
+    "illustrationImg": "chain-double-pitch.png",
     "dimensionsImg": "chain-dimensions.png"
   },
   {
@@ -1416,7 +1416,7 @@ const CHAINS_DB = [
     "rollerDiameter": 28.58,
     "pinDiameter": 7.92,
     "innerPlateHeight": 24,
-    "illustrationImg": "chain-simplex.png",
+    "illustrationImg": "chain-double-pitch.png",
     "dimensionsImg": "chain-dimensions.png"
   },
   {
@@ -1429,7 +1429,7 @@ const CHAINS_DB = [
     "rollerDiameter": 39.68,
     "pinDiameter": 9.53,
     "innerPlateHeight": 30,
-    "illustrationImg": "chain-simplex.png",
+    "illustrationImg": "chain-double-pitch.png",
     "dimensionsImg": "chain-dimensions.png"
   },
   {
@@ -1442,7 +1442,7 @@ const CHAINS_DB = [
     "rollerDiameter": 44.45,
     "pinDiameter": 11.11,
     "innerPlateHeight": 36,
-    "illustrationImg": "chain-simplex.png",
+    "illustrationImg": "chain-double-pitch.png",
     "dimensionsImg": "chain-dimensions.png"
   },
   {
@@ -1455,7 +1455,7 @@ const CHAINS_DB = [
     "rollerDiameter": 57.15,
     "pinDiameter": 14.27,
     "innerPlateHeight": 48,
-    "illustrationImg": "chain-simplex.png",
+    "illustrationImg": "chain-double-pitch.png",
     "dimensionsImg": "chain-dimensions.png"
   },
   {
@@ -1468,7 +1468,7 @@ const CHAINS_DB = [
     "rollerDiameter": 11.91,
     "pinDiameter": 5.94,
     "innerPlateHeight": 18,
-    "illustrationImg": "chain-simplex.png",
+    "illustrationImg": "chain-double-pitch.png",
     "dimensionsImg": "chain-dimensions.png"
   },
   {
@@ -1481,7 +1481,7 @@ const CHAINS_DB = [
     "rollerDiameter": 22.23,
     "pinDiameter": 5.94,
     "innerPlateHeight": 18,
-    "illustrationImg": "chain-simplex.png",
+    "illustrationImg": "chain-double-pitch.png",
     "dimensionsImg": "chain-dimensions.png"
   },
   {
@@ -1494,7 +1494,7 @@ const CHAINS_DB = [
     "rollerDiameter": 15.88,
     "pinDiameter": 7.92,
     "innerPlateHeight": 24,
-    "illustrationImg": "chain-simplex.png",
+    "illustrationImg": "chain-double-pitch.png",
     "dimensionsImg": "chain-dimensions.png"
   },
   {
@@ -1507,7 +1507,7 @@ const CHAINS_DB = [
     "rollerDiameter": 28.58,
     "pinDiameter": 7.92,
     "innerPlateHeight": 24,
-    "illustrationImg": "chain-simplex.png",
+    "illustrationImg": "chain-double-pitch.png",
     "dimensionsImg": "chain-dimensions.png"
   },
   {
@@ -1520,7 +1520,7 @@ const CHAINS_DB = [
     "rollerDiameter": 25,
     "pinDiameter": 6,
     "innerPlateHeight": 25,
-    "illustrationImg": "chain-simplex.png",
+    "illustrationImg": "chain-conveyor-m.png",
     "dimensionsImg": "chain-dimensions.png"
   },
   {
@@ -1533,7 +1533,7 @@ const CHAINS_DB = [
     "rollerDiameter": 30,
     "pinDiameter": 7,
     "innerPlateHeight": 30,
-    "illustrationImg": "chain-simplex.png",
+    "illustrationImg": "chain-conveyor-m.png",
     "dimensionsImg": "chain-dimensions.png"
   },
   {
@@ -1546,7 +1546,7 @@ const CHAINS_DB = [
     "rollerDiameter": 36,
     "pinDiameter": 8,
     "innerPlateHeight": 35,
-    "illustrationImg": "chain-simplex.png",
+    "illustrationImg": "chain-conveyor-m.png",
     "dimensionsImg": "chain-dimensions.png"
   },
   {
@@ -1559,7 +1559,7 @@ const CHAINS_DB = [
     "rollerDiameter": 42,
     "pinDiameter": 10,
     "innerPlateHeight": 40,
-    "illustrationImg": "chain-simplex.png",
+    "illustrationImg": "chain-conveyor-m.png",
     "dimensionsImg": "chain-dimensions.png"
   },
   {
@@ -1572,7 +1572,7 @@ const CHAINS_DB = [
     "rollerDiameter": 50,
     "pinDiameter": 12,
     "innerPlateHeight": 50,
-    "illustrationImg": "chain-simplex.png",
+    "illustrationImg": "chain-conveyor-m.png",
     "dimensionsImg": "chain-dimensions.png"
   },
   {
@@ -1585,7 +1585,7 @@ const CHAINS_DB = [
     "rollerDiameter": 60,
     "pinDiameter": 15,
     "innerPlateHeight": 60,
-    "illustrationImg": "chain-simplex.png",
+    "illustrationImg": "chain-conveyor-m.png",
     "dimensionsImg": "chain-dimensions.png"
   },
   {
@@ -1598,7 +1598,7 @@ const CHAINS_DB = [
     "rollerDiameter": 70,
     "pinDiameter": 18,
     "innerPlateHeight": 70,
-    "illustrationImg": "chain-simplex.png",
+    "illustrationImg": "chain-conveyor-m.png",
     "dimensionsImg": "chain-dimensions.png"
   },
   {
@@ -1611,7 +1611,7 @@ const CHAINS_DB = [
     "rollerDiameter": 85,
     "pinDiameter": 21,
     "innerPlateHeight": 80,
-    "illustrationImg": "chain-simplex.png",
+    "illustrationImg": "chain-conveyor-m.png",
     "dimensionsImg": "chain-dimensions.png"
   },
   {
@@ -1624,7 +1624,7 @@ const CHAINS_DB = [
     "rollerDiameter": 100,
     "pinDiameter": 25,
     "innerPlateHeight": 90,
-    "illustrationImg": "chain-simplex.png",
+    "illustrationImg": "chain-conveyor-m.png",
     "dimensionsImg": "chain-dimensions.png"
   },
   {
@@ -1637,7 +1637,7 @@ const CHAINS_DB = [
     "rollerDiameter": 120,
     "pinDiameter": 30,
     "innerPlateHeight": 100,
-    "illustrationImg": "chain-simplex.png",
+    "illustrationImg": "chain-conveyor-m.png",
     "dimensionsImg": "chain-dimensions.png"
   },
   {
@@ -1650,7 +1650,7 @@ const CHAINS_DB = [
     "rollerDiameter": 140,
     "pinDiameter": 36,
     "innerPlateHeight": 120,
-    "illustrationImg": "chain-simplex.png",
+    "illustrationImg": "chain-conveyor-m.png",
     "dimensionsImg": "chain-dimensions.png"
   },
   {
@@ -1663,7 +1663,7 @@ const CHAINS_DB = [
     "rollerDiameter": 170,
     "pinDiameter": 44,
     "innerPlateHeight": 140,
-    "illustrationImg": "chain-simplex.png",
+    "illustrationImg": "chain-conveyor-m.png",
     "dimensionsImg": "chain-dimensions.png"
   },
   {
@@ -1676,7 +1676,7 @@ const CHAINS_DB = [
     "rollerDiameter": 36,
     "pinDiameter": 12,
     "innerPlateHeight": 35,
-    "illustrationImg": "chain-simplex.png",
+    "illustrationImg": "chain-conveyor-m.png",
     "dimensionsImg": "chain-dimensions.png"
   },
   {
@@ -1689,7 +1689,7 @@ const CHAINS_DB = [
     "rollerDiameter": 42,
     "pinDiameter": 14,
     "innerPlateHeight": 40,
-    "illustrationImg": "chain-simplex.png",
+    "illustrationImg": "chain-conveyor-m.png",
     "dimensionsImg": "chain-dimensions.png"
   },
   {
@@ -1702,7 +1702,7 @@ const CHAINS_DB = [
     "rollerDiameter": 50,
     "pinDiameter": 16.5,
     "innerPlateHeight": 50,
-    "illustrationImg": "chain-simplex.png",
+    "illustrationImg": "chain-conveyor-m.png",
     "dimensionsImg": "chain-dimensions.png"
   },
   {
@@ -1715,7 +1715,7 @@ const CHAINS_DB = [
     "rollerDiameter": 60,
     "pinDiameter": 20.5,
     "innerPlateHeight": 60,
-    "illustrationImg": "chain-simplex.png",
+    "illustrationImg": "chain-conveyor-m.png",
     "dimensionsImg": "chain-dimensions.png"
   },
   {
@@ -1728,7 +1728,7 @@ const CHAINS_DB = [
     "rollerDiameter": 70,
     "pinDiameter": 24.5,
     "innerPlateHeight": 70,
-    "illustrationImg": "chain-simplex.png",
+    "illustrationImg": "chain-conveyor-m.png",
     "dimensionsImg": "chain-dimensions.png"
   },
   {
@@ -1741,7 +1741,7 @@ const CHAINS_DB = [
     "rollerDiameter": 85,
     "pinDiameter": 28.5,
     "innerPlateHeight": 80,
-    "illustrationImg": "chain-simplex.png",
+    "illustrationImg": "chain-conveyor-m.png",
     "dimensionsImg": "chain-dimensions.png"
   },
   {
@@ -1754,7 +1754,7 @@ const CHAINS_DB = [
     "rollerDiameter": 100,
     "pinDiameter": 33.5,
     "innerPlateHeight": 90,
-    "illustrationImg": "chain-simplex.png",
+    "illustrationImg": "chain-conveyor-m.png",
     "dimensionsImg": "chain-dimensions.png"
   },
   {
@@ -1767,7 +1767,7 @@ const CHAINS_DB = [
     "rollerDiameter": 30,
     "pinDiameter": 10,
     "innerPlateHeight": 35,
-    "illustrationImg": "chain-simplex.png",
+    "illustrationImg": "chain-conveyor-m.png",
     "dimensionsImg": "chain-dimensions.png"
   },
   {
@@ -1780,7 +1780,7 @@ const CHAINS_DB = [
     "rollerDiameter": 40,
     "pinDiameter": 12,
     "innerPlateHeight": 40,
-    "illustrationImg": "chain-simplex.png",
+    "illustrationImg": "chain-conveyor-m.png",
     "dimensionsImg": "chain-dimensions.png"
   },
   {
@@ -1793,7 +1793,7 @@ const CHAINS_DB = [
     "rollerDiameter": 48,
     "pinDiameter": 14,
     "innerPlateHeight": 45,
-    "illustrationImg": "chain-simplex.png",
+    "illustrationImg": "chain-conveyor-m.png",
     "dimensionsImg": "chain-dimensions.png"
   },
   {
@@ -1806,7 +1806,7 @@ const CHAINS_DB = [
     "rollerDiameter": 55,
     "pinDiameter": 16,
     "innerPlateHeight": 50,
-    "illustrationImg": "chain-simplex.png",
+    "illustrationImg": "chain-conveyor-m.png",
     "dimensionsImg": "chain-dimensions.png"
   },
   {
@@ -1819,7 +1819,7 @@ const CHAINS_DB = [
     "rollerDiameter": 65,
     "pinDiameter": 18,
     "innerPlateHeight": 60,
-    "illustrationImg": "chain-simplex.png",
+    "illustrationImg": "chain-conveyor-m.png",
     "dimensionsImg": "chain-dimensions.png"
   },
   {
@@ -1832,7 +1832,7 @@ const CHAINS_DB = [
     "rollerDiameter": 80,
     "pinDiameter": 20,
     "innerPlateHeight": 70,
-    "illustrationImg": "chain-simplex.png",
+    "illustrationImg": "chain-conveyor-m.png",
     "dimensionsImg": "chain-dimensions.png"
   },
   {
@@ -1845,7 +1845,7 @@ const CHAINS_DB = [
     "rollerDiameter": 90,
     "pinDiameter": 26,
     "innerPlateHeight": 80,
-    "illustrationImg": "chain-simplex.png",
+    "illustrationImg": "chain-conveyor-m.png",
     "dimensionsImg": "chain-dimensions.png"
   },
   {
@@ -1858,7 +1858,7 @@ const CHAINS_DB = [
     "rollerDiameter": 100,
     "pinDiameter": 30,
     "innerPlateHeight": 90,
-    "illustrationImg": "chain-simplex.png",
+    "illustrationImg": "chain-conveyor-m.png",
     "dimensionsImg": "chain-dimensions.png"
   },
   {
@@ -1871,7 +1871,7 @@ const CHAINS_DB = [
     "rollerDiameter": 120,
     "pinDiameter": 36,
     "innerPlateHeight": 100,
-    "illustrationImg": "chain-simplex.png",
+    "illustrationImg": "chain-conveyor-m.png",
     "dimensionsImg": "chain-dimensions.png"
   },
   {
@@ -1884,7 +1884,7 @@ const CHAINS_DB = [
     "rollerDiameter": 140,
     "pinDiameter": 42,
     "innerPlateHeight": 120,
-    "illustrationImg": "chain-simplex.png",
+    "illustrationImg": "chain-conveyor-m.png",
     "dimensionsImg": "chain-dimensions.png"
   },
   {
@@ -1897,7 +1897,7 @@ const CHAINS_DB = [
     "rollerDiameter": 40,
     "pinDiameter": 18,
     "innerPlateHeight": 40,
-    "illustrationImg": "chain-simplex.png",
+    "illustrationImg": "chain-conveyor-m.png",
     "dimensionsImg": "chain-dimensions.png"
   },
   {
@@ -1910,7 +1910,7 @@ const CHAINS_DB = [
     "rollerDiameter": 48,
     "pinDiameter": 20,
     "innerPlateHeight": 45,
-    "illustrationImg": "chain-simplex.png",
+    "illustrationImg": "chain-conveyor-m.png",
     "dimensionsImg": "chain-dimensions.png"
   },
   {
@@ -1923,7 +1923,7 @@ const CHAINS_DB = [
     "rollerDiameter": 55,
     "pinDiameter": 22,
     "innerPlateHeight": 50,
-    "illustrationImg": "chain-simplex.png",
+    "illustrationImg": "chain-conveyor-m.png",
     "dimensionsImg": "chain-dimensions.png"
   },
   {
@@ -1936,7 +1936,7 @@ const CHAINS_DB = [
     "rollerDiameter": 65,
     "pinDiameter": 26,
     "innerPlateHeight": 60,
-    "illustrationImg": "chain-simplex.png",
+    "illustrationImg": "chain-conveyor-m.png",
     "dimensionsImg": "chain-dimensions.png"
   },
   {
@@ -1949,7 +1949,7 @@ const CHAINS_DB = [
     "rollerDiameter": 80,
     "pinDiameter": 30,
     "innerPlateHeight": 70,
-    "illustrationImg": "chain-simplex.png",
+    "illustrationImg": "chain-conveyor-m.png",
     "dimensionsImg": "chain-dimensions.png"
   },
   {
@@ -1962,7 +1962,7 @@ const CHAINS_DB = [
     "rollerDiameter": 90,
     "pinDiameter": 36,
     "innerPlateHeight": 80,
-    "illustrationImg": "chain-simplex.png",
+    "illustrationImg": "chain-conveyor-m.png",
     "dimensionsImg": "chain-dimensions.png"
   },
   {
@@ -1975,7 +1975,7 @@ const CHAINS_DB = [
     "rollerDiameter": 100,
     "pinDiameter": 42,
     "innerPlateHeight": 90,
-    "illustrationImg": "chain-simplex.png",
+    "illustrationImg": "chain-conveyor-m.png",
     "dimensionsImg": "chain-dimensions.png"
   },
   {
@@ -1988,7 +1988,7 @@ const CHAINS_DB = [
     "rollerDiameter": 0,
     "pinDiameter": 6.35,
     "innerPlateHeight": 3,
-    "illustrationImg": "chain-simplex.png",
+    "illustrationImg": "chain-slatband.png",
     "dimensionsImg": "chain-dimensions.png"
   },
   {
@@ -2001,7 +2001,7 @@ const CHAINS_DB = [
     "rollerDiameter": 0,
     "pinDiameter": 6.35,
     "innerPlateHeight": 3,
-    "illustrationImg": "chain-simplex.png",
+    "illustrationImg": "chain-slatband.png",
     "dimensionsImg": "chain-dimensions.png"
   },
   {
@@ -2014,7 +2014,7 @@ const CHAINS_DB = [
     "rollerDiameter": 0,
     "pinDiameter": 6.35,
     "innerPlateHeight": 3,
-    "illustrationImg": "chain-simplex.png",
+    "illustrationImg": "chain-slatband.png",
     "dimensionsImg": "chain-dimensions.png"
   },
   {
@@ -2027,7 +2027,7 @@ const CHAINS_DB = [
     "rollerDiameter": 0,
     "pinDiameter": 6.35,
     "innerPlateHeight": 3,
-    "illustrationImg": "chain-simplex.png",
+    "illustrationImg": "chain-slatband.png",
     "dimensionsImg": "chain-dimensions.png"
   },
   {
@@ -2040,7 +2040,7 @@ const CHAINS_DB = [
     "rollerDiameter": 0,
     "pinDiameter": 6.35,
     "innerPlateHeight": 3,
-    "illustrationImg": "chain-simplex.png",
+    "illustrationImg": "chain-slatband.png",
     "dimensionsImg": "chain-dimensions.png"
   },
   {
@@ -2053,7 +2053,7 @@ const CHAINS_DB = [
     "rollerDiameter": 0,
     "pinDiameter": 6.35,
     "innerPlateHeight": 3,
-    "illustrationImg": "chain-simplex.png",
+    "illustrationImg": "chain-slatband.png",
     "dimensionsImg": "chain-dimensions.png"
   },
   {
@@ -2066,7 +2066,7 @@ const CHAINS_DB = [
     "rollerDiameter": 0,
     "pinDiameter": 6.35,
     "innerPlateHeight": 4,
-    "illustrationImg": "chain-simplex.png",
+    "illustrationImg": "chain-slatband.png",
     "dimensionsImg": "chain-dimensions.png"
   },
   {
@@ -2079,7 +2079,7 @@ const CHAINS_DB = [
     "rollerDiameter": 0,
     "pinDiameter": 6.35,
     "innerPlateHeight": 4,
-    "illustrationImg": "chain-simplex.png",
+    "illustrationImg": "chain-slatband.png",
     "dimensionsImg": "chain-dimensions.png"
   },
   {
@@ -2092,7 +2092,7 @@ const CHAINS_DB = [
     "rollerDiameter": 0,
     "pinDiameter": 6.35,
     "innerPlateHeight": 4,
-    "illustrationImg": "chain-simplex.png",
+    "illustrationImg": "chain-slatband.png",
     "dimensionsImg": "chain-dimensions.png"
   },
   {
@@ -2105,7 +2105,7 @@ const CHAINS_DB = [
     "rollerDiameter": 0,
     "pinDiameter": 7.94,
     "innerPlateHeight": 4.5,
-    "illustrationImg": "chain-simplex.png",
+    "illustrationImg": "chain-slatband.png",
     "dimensionsImg": "chain-dimensions.png"
   },
   {
@@ -2118,7 +2118,7 @@ const CHAINS_DB = [
     "rollerDiameter": 0,
     "pinDiameter": 6.35,
     "innerPlateHeight": 4,
-    "illustrationImg": "chain-simplex.png",
+    "illustrationImg": "chain-slatband.png",
     "dimensionsImg": "chain-dimensions.png"
   },
   {
@@ -2131,7 +2131,7 @@ const CHAINS_DB = [
     "rollerDiameter": 4,
     "pinDiameter": 4,
     "innerPlateHeight": 4,
-    "illustrationImg": "chain-simplex.png",
+    "illustrationImg": "chain-round-link.png",
     "dimensionsImg": "chain-dimensions.png"
   },
   {
@@ -2144,7 +2144,7 @@ const CHAINS_DB = [
     "rollerDiameter": 5,
     "pinDiameter": 5,
     "innerPlateHeight": 5,
-    "illustrationImg": "chain-simplex.png",
+    "illustrationImg": "chain-round-link.png",
     "dimensionsImg": "chain-dimensions.png"
   },
   {
@@ -2157,7 +2157,7 @@ const CHAINS_DB = [
     "rollerDiameter": 6,
     "pinDiameter": 6,
     "innerPlateHeight": 6,
-    "illustrationImg": "chain-simplex.png",
+    "illustrationImg": "chain-round-link.png",
     "dimensionsImg": "chain-dimensions.png"
   },
   {
@@ -2170,7 +2170,7 @@ const CHAINS_DB = [
     "rollerDiameter": 7,
     "pinDiameter": 7,
     "innerPlateHeight": 7,
-    "illustrationImg": "chain-simplex.png",
+    "illustrationImg": "chain-round-link.png",
     "dimensionsImg": "chain-dimensions.png"
   },
   {
@@ -2183,7 +2183,7 @@ const CHAINS_DB = [
     "rollerDiameter": 8,
     "pinDiameter": 8,
     "innerPlateHeight": 8,
-    "illustrationImg": "chain-simplex.png",
+    "illustrationImg": "chain-round-link.png",
     "dimensionsImg": "chain-dimensions.png"
   },
   {
@@ -2196,7 +2196,7 @@ const CHAINS_DB = [
     "rollerDiameter": 10,
     "pinDiameter": 10,
     "innerPlateHeight": 10,
-    "illustrationImg": "chain-simplex.png",
+    "illustrationImg": "chain-round-link.png",
     "dimensionsImg": "chain-dimensions.png"
   },
   {
@@ -2209,7 +2209,7 @@ const CHAINS_DB = [
     "rollerDiameter": 13,
     "pinDiameter": 13,
     "innerPlateHeight": 13,
-    "illustrationImg": "chain-simplex.png",
+    "illustrationImg": "chain-round-link.png",
     "dimensionsImg": "chain-dimensions.png"
   },
   {
@@ -2222,7 +2222,7 @@ const CHAINS_DB = [
     "rollerDiameter": 16,
     "pinDiameter": 16,
     "innerPlateHeight": 16,
-    "illustrationImg": "chain-simplex.png",
+    "illustrationImg": "chain-round-link.png",
     "dimensionsImg": "chain-dimensions.png"
   },
   {
@@ -2235,7 +2235,7 @@ const CHAINS_DB = [
     "rollerDiameter": 18,
     "pinDiameter": 18,
     "innerPlateHeight": 18,
-    "illustrationImg": "chain-simplex.png",
+    "illustrationImg": "chain-round-link.png",
     "dimensionsImg": "chain-dimensions.png"
   },
   {
@@ -2248,7 +2248,7 @@ const CHAINS_DB = [
     "rollerDiameter": 20,
     "pinDiameter": 20,
     "innerPlateHeight": 20,
-    "illustrationImg": "chain-simplex.png",
+    "illustrationImg": "chain-round-link.png",
     "dimensionsImg": "chain-dimensions.png"
   },
   {
@@ -2261,7 +2261,7 @@ const CHAINS_DB = [
     "rollerDiameter": 22,
     "pinDiameter": 22,
     "innerPlateHeight": 22,
-    "illustrationImg": "chain-simplex.png",
+    "illustrationImg": "chain-round-link.png",
     "dimensionsImg": "chain-dimensions.png"
   },
   {
@@ -2274,7 +2274,7 @@ const CHAINS_DB = [
     "rollerDiameter": 26,
     "pinDiameter": 26,
     "innerPlateHeight": 26,
-    "illustrationImg": "chain-simplex.png",
+    "illustrationImg": "chain-round-link.png",
     "dimensionsImg": "chain-dimensions.png"
   },
   {
@@ -2287,7 +2287,7 @@ const CHAINS_DB = [
     "rollerDiameter": 32,
     "pinDiameter": 32,
     "innerPlateHeight": 32,
-    "illustrationImg": "chain-simplex.png",
+    "illustrationImg": "chain-round-link.png",
     "dimensionsImg": "chain-dimensions.png"
   },
   {
@@ -2300,7 +2300,7 @@ const CHAINS_DB = [
     "rollerDiameter": 6,
     "pinDiameter": 6,
     "innerPlateHeight": 6,
-    "illustrationImg": "chain-simplex.png",
+    "illustrationImg": "chain-round-link.png",
     "dimensionsImg": "chain-dimensions.png"
   },
   {
@@ -2313,7 +2313,7 @@ const CHAINS_DB = [
     "rollerDiameter": 8,
     "pinDiameter": 8,
     "innerPlateHeight": 8,
-    "illustrationImg": "chain-simplex.png",
+    "illustrationImg": "chain-round-link.png",
     "dimensionsImg": "chain-dimensions.png"
   },
   {
@@ -2326,7 +2326,7 @@ const CHAINS_DB = [
     "rollerDiameter": 10,
     "pinDiameter": 10,
     "innerPlateHeight": 10,
-    "illustrationImg": "chain-simplex.png",
+    "illustrationImg": "chain-round-link.png",
     "dimensionsImg": "chain-dimensions.png"
   },
   {
@@ -2339,7 +2339,7 @@ const CHAINS_DB = [
     "rollerDiameter": 13,
     "pinDiameter": 13,
     "innerPlateHeight": 13,
-    "illustrationImg": "chain-simplex.png",
+    "illustrationImg": "chain-round-link.png",
     "dimensionsImg": "chain-dimensions.png"
   },
   {
@@ -2352,7 +2352,7 @@ const CHAINS_DB = [
     "rollerDiameter": 16,
     "pinDiameter": 16,
     "innerPlateHeight": 16,
-    "illustrationImg": "chain-simplex.png",
+    "illustrationImg": "chain-round-link.png",
     "dimensionsImg": "chain-dimensions.png"
   },
   {
@@ -2365,7 +2365,7 @@ const CHAINS_DB = [
     "rollerDiameter": 8,
     "pinDiameter": 8,
     "innerPlateHeight": 8,
-    "illustrationImg": "chain-simplex.png",
+    "illustrationImg": "chain-round-link.png",
     "dimensionsImg": "chain-dimensions.png"
   },
   {
@@ -2378,7 +2378,7 @@ const CHAINS_DB = [
     "rollerDiameter": 10,
     "pinDiameter": 10,
     "innerPlateHeight": 10,
-    "illustrationImg": "chain-simplex.png",
+    "illustrationImg": "chain-round-link.png",
     "dimensionsImg": "chain-dimensions.png"
   },
   {
@@ -2391,7 +2391,7 @@ const CHAINS_DB = [
     "rollerDiameter": 13,
     "pinDiameter": 13,
     "innerPlateHeight": 13,
-    "illustrationImg": "chain-simplex.png",
+    "illustrationImg": "chain-round-link.png",
     "dimensionsImg": "chain-dimensions.png"
   }
 ];
