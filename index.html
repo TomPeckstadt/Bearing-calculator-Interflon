@@ -722,7 +722,7 @@
           
           <!-- Parameter Invoer Card -->
           <div class="card">
-            <h3 class="card-title" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; width: 100%; gap: 10px;">
+            <h3 class="card-title" style="margin-bottom: 10px;">
               <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
                 <div style="display: flex; align-items: center; gap: 10px;">
                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
@@ -735,13 +735,16 @@
                   <span data-i18n="omInstructionText">Vul de grijze cellen in</span>
                 </span>
               </div>
-              <button type="button" onclick="openPdfViewerModal()" class="btn" style="padding: 6px 12px; font-size: 12px; height: auto; width: auto !important; max-width: fit-content; flex-shrink: 0; white-space: nowrap; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; font-family: 'Outfit', sans-serif;">
+            </h3>
+            
+            <div style="margin-bottom: 14px;">
+              <button type="button" onclick="openPdfViewerModal()" class="btn-action-red" style="padding: 6px 14px; font-size: 12px; height: auto; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; font-family: 'Outfit', sans-serif;">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width: 16px; height: 16px; color: inherit;">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m.75 12 3 3m0 0 3-3m-3 3v-6m-1.5-9H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
                 </svg>
                 <span data-i18n="btnCheckCompatibility">Check compatibiliteit</span>
               </button>
-            </h3>
+            </div>
             
             <form onsubmit="event.preventDefault()">
               <div class="form-group">
@@ -1844,7 +1847,7 @@
         </div>
 
         <div class="card">
-          <h3 class="card-title" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; width: 100%; gap: 10px;">
+          <h3 class="card-title" style="margin-bottom: 10px;">
             <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
               <div style="display: flex; align-items: center; gap: 10px;">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
@@ -1857,16 +1860,19 @@
                 <span>Vul de grijze cellen in</span>
               </span>
             </div>
-            <button type="button" onclick="openPdfViewerModal()" class="btn" style="padding: 6px 12px; font-size: 12px; height: auto; width: auto !important; max-width: fit-content; flex-shrink: 0; white-space: nowrap; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; font-family: 'Outfit', sans-serif;">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width: 16px; height: 16px; color: inherit;">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m.75 12 3 3m0 0 3-3m-3 3v-6m-1.5-9H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
-              </svg>
-              <span>Check compatibiliteit</span>
-            </button>
           </h3>
 
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
             <div>
+              <div style="margin-bottom: 14px;">
+                <button type="button" onclick="openPdfViewerModal()" class="btn-action-red" style="padding: 6px 14px; font-size: 12px; height: auto; display: inline-flex; align-items: center; gap: 6px; font-family: 'Outfit', sans-serif;">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width: 16px; height: 16px; color: inherit;">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m.75 12 3 3m0 0 3-3m-3 3v-6m-1.5-9H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+                  </svg>
+                  <span>Check compatibiliteit</span>
+                </button>
+              </div>
+              
               <!-- Selecteer Interflon Kettingolie op exact dezelfde locatie & vorm als bij lagers -->
               <div class="form-group" style="margin-bottom: 18px;">
                 <label for="chainProductSelect" style="font-weight: 700; color: var(--text-dark);">Selecteer Interflon Kettingolie</label>
@@ -2565,9 +2571,9 @@
 
   <!-- JavaScript logic imports -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="interflon-data.js?v=185"></script>
+  <script src="interflon-data.js?v=190"></script>
   <script src="bearings-db.js"></script>
   <script src="chains-db.js"></script>
-  <script src="app.js?v=185"></script>
+  <script src="app.js?v=190"></script>
 </body>
 </html>
