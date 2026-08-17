@@ -4850,6 +4850,7 @@ function calculateAutomationLubrication() {
         ? `• Smeermodus: <strong>Synchroon met machine</strong> (${hDay}u/dag, ${dWeek}d/week)`
         : `• Smeermodus: <strong>24/24u & 7d/7d continu doorsmeren</strong> (onafhankelijk van bedrijfsuren)`;
 
+      const roundedDaysStr = Math.round(window.currentMicPolDays || 0).toLocaleString("nl-BE");
       needBadgeEl.innerHTML = `
         <div style="margin-bottom: 16px; background-color: #f8fafc; border: 1px solid #e2e8f0; border-left: 4px solid var(--primary-red); border-radius: var(--border-radius-sm); padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.03);">
           <div style="display: flex; align-items: center; gap: 10px;">
@@ -4864,8 +4865,10 @@ function calculateAutomationLubrication() {
                 Berekende Lagerbehoefte
               </div>
               <div style="font-size: 14px; font-weight: 800; color: var(--primary-dark); margin-top: 1px;">
-                <span>${needRateStr} cm³/dag</span>
-                <span style="font-size: 12px; font-weight: 500; color: var(--text-medium); margin-left: 6px;">(Gq: ${gqStr} g, interval: ${daysStr}d. bij ${hDay}u/dag, ${dWeek}d/wk)</span>
+                ${needRateStr} cm³/dag
+              </div>
+              <div style="font-size: 11.5px; color: var(--text-medium); margin-top: 3px;">
+                Nasmeerhoeveelheid: <strong>${gqStr} g</strong> &bull; Smeerinterval: <strong>${roundedDaysStr} dagen</strong> (${hDay} uur/dag, ${dWeek} dagen/week)
               </div>
             </div>
           </div>
@@ -5187,9 +5190,9 @@ function selectChain(chain) {
   const vRoller = document.getElementById("visualChainRollerText");
   const vPin = document.getElementById("visualChainPinText");
 
-  if (typeImg) typeImg.src = (chain.illustrationImg || "chain-simplex.png") + "?v=240";
+  if (typeImg) typeImg.src = (chain.illustrationImg || "chain-simplex.png") + "?v=245";
   if (typeSubtitle) typeSubtitle.textContent = chain.strand || "Simplex (1-sporig)";
-  if (dimImg) dimImg.src = (chain.dimensionsImg || "chain-dimensions.png") + "?v=240";
+  if (dimImg) dimImg.src = (chain.dimensionsImg || "chain-dimensions.png") + "?v=245";
 
   if (vPitch) vPitch.textContent = chain.pitch.toFixed(1);
   if (vWidth) vWidth.textContent = chain.width.toFixed(1);
@@ -6402,7 +6405,7 @@ function calculateChainAutomation() {
   }
   const needSubValEl = document.getElementById("chainAutoNeedSubVal");
   if (needSubValEl) {
-    needSubValEl.textContent = `(bij ${hoursPerDay}u/dag, ${daysPerWeek}d/wk)`;
+    needSubValEl.textContent = `(bij ${hoursPerDay} uur/dag, ${daysPerWeek} dagen/week)`;
   }
 
   // Calculate RECOMMENDED RUNTIME (in calendar days, weeks, months) for selected Cartridge Capacity capMl
