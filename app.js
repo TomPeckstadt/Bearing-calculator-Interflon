@@ -4739,7 +4739,7 @@ function updateAutomationPage() {
 
   if (device === "pulsarlube_m2") {
     if (titleEl) titleEl.textContent = "Pulsarlube M2";
-    if (imgEl) imgEl.src = "pulsarlube-m2.jpg";
+    if (imgEl) imgEl.src = "pulsarlube-m2.png";
     if (descEl) {
       descEl.innerHTML = "De <strong>Pulsarlube M2</strong> is een elektro-mechanische automatische smeerunit die <strong>continu 24u/24u en 7d/7d doorsmeert</strong>, gestuurd door een interne micro-processor en pomp. Dit garandeert een uiterst nauwkeurige en constante vetdosering.";
     }
@@ -4754,7 +4754,7 @@ function updateAutomationPage() {
   } else {
     // Default: Single Point Lubricator
     if (titleEl) titleEl.textContent = "Interflon Single Point Lubricator";
-    if (imgEl) imgEl.src = "interflon-single-point-lubricator.jpg";
+    if (imgEl) imgEl.src = "interflon-single-point-lubricator.png";
     if (descEl) {
       descEl.innerHTML = "De <strong>Interflon Single Point Lubricator</strong> zorgt voor een continue, geautomatiseerde smering van uw lagers. Dit voorkomt onder- en oversmering en verlengt de levensduur van uw roterende apparatuur significant.";
     }
@@ -5194,9 +5194,9 @@ function selectChain(chain) {
   const vRoller = document.getElementById("visualChainRollerText");
   const vPin = document.getElementById("visualChainPinText");
 
-  if (typeImg) typeImg.src = (chain.illustrationImg || "chain-simplex.png") + "?v=310";
+  if (typeImg) typeImg.src = (chain.illustrationImg || "chain-simplex.png") + "?v=320";
   if (typeSubtitle) typeSubtitle.textContent = chain.strand || "Simplex (1-sporig)";
-  if (dimImg) dimImg.src = (chain.dimensionsImg || "chain-dimensions.png") + "?v=310";
+  if (dimImg) dimImg.src = (chain.dimensionsImg || "chain-dimensions.png") + "?v=320";
 
   if (vPitch) vPitch.textContent = chain.pitch.toFixed(1);
   if (vWidth) vWidth.textContent = chain.width.toFixed(1);
@@ -6254,7 +6254,7 @@ function updateThickenerCompatibility() {
 const CHAIN_AUTOMATION_DEVICES = {
   interflon_single_point_oil: {
     title: "Interflon Single Point Lubricator (Olie)",
-    img: "interflon-single-point-lubricator.jpg",
+    img: "interflon-single-point-lubricator.png",
     dimImg: "interflon-single-point-dimensions.jpg",
     desc: "De <strong>Interflon Single Point Lubricator (Olie)</strong> zorgt voor een continue (24/7), geautomatiseerde smering van uw ketting. Dit voorkomt onder- en over-oliesmering en verlengt de levensduur van uw aandrijf- en transportkettingen significant.",
     capacities: [30, 60, 125, 250],
@@ -6263,7 +6263,7 @@ const CHAIN_AUTOMATION_DEVICES = {
   },
   pulsarlube_oil: {
     title: "Pulsarlube Oil",
-    img: "pulsarlube-oil.jpg",
+    img: "pulsarlube-oil.png",
     dimImg: "pulsarlube-dimensions.jpg",
     desc: "De <strong>Pulsarlube Oil</strong> smeert <strong>continue (24/7)</strong> en levert een constante, gecontroleerde hoeveelheid kettingolie. Ideaal voor continue kettingsystemen in zware productieomstandigheden.",
     capacities: [60, 120, 240, 500],
@@ -6272,7 +6272,7 @@ const CHAIN_AUTOMATION_DEVICES = {
   },
   pulsarlube_msp_oil: {
     title: "Pulsarlube MSP Oil",
-    img: "pulsarlube-msp-oil.jpg",
+    img: "pulsarlube-msp-oil.png",
     dimImg: "pulsarlube-dimensions.jpg",
     desc: "De <strong>Pulsarlube MSP Oil</strong> is gesynchroniseerd met de machine en smeert <strong>exclusief wanneer de machine in werking is</strong>. Hierdoor wordt olieverspilling tijdens stilstand en stop-intervallen 100% voorkomen.",
     capacities: [60, 120, 240, 500],
