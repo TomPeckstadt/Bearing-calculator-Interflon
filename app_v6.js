@@ -6314,13 +6314,19 @@ function updateChainAutomationPage() {
   currentChainAutomationModalImg = device.dimImg;
 
   // Dynamic Button Text & Onclick Handler
+  const btnWrapper = document.getElementById("chainAutomationDimToggleWrapper");
   const btn = document.getElementById("chainAutoActionButton");
   const btnText = document.getElementById("chainAutoActionButtonText");
   if (btn && btnText) {
     if (deviceKey === "interflon_oil_dispenser") {
+      if (btnWrapper) btnWrapper.style.display = "block";
       btnText.textContent = "Informatie over Interflon Oil dispenser";
       btn.onclick = openOilDispenserInfoModal;
+    } else if (deviceKey === "pulsarlube_oil" || deviceKey === "pulsarlube_msp_oil") {
+      // User request: Hide "Bekijk afmetingen" for Pulsarlube Oil & Pulsarlube MSP Oil under Kettingen
+      if (btnWrapper) btnWrapper.style.display = "none";
     } else {
+      if (btnWrapper) btnWrapper.style.display = "block";
       btnText.textContent = "Bekijk afmetingen";
       btn.onclick = openChainAutomationImageModal;
     }
