@@ -4834,18 +4834,26 @@ function calculateAutomationLubrication() {
         : `• Smeermodus: <strong>24/24u & 7d/7d continu doorsmeren</strong> (onafhankelijk van bedrijfsuren)`;
 
       needBadgeEl.innerHTML = `
-        <div style="background-color: #f0fdf4; border: 1px solid #bbf7d0; border-radius: var(--border-radius-sm); padding: 12px 14px; margin-bottom: 14px;">
-          <div style="font-weight: 700; font-size: 13px; color: #166534; margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width: 16px; height: 16px; color: #166534;">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            Berekende Lagerbehoefte (uit 'Smeercalculatie'):
+        <div style="margin-bottom: 16px; background-color: #f8fafc; border: 1px solid #e2e8f0; border-left: 4px solid var(--primary-red); border-radius: var(--border-radius-sm); padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.03);">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <div style="width: 32px; height: 32px; border-radius: 50%; background-color: #fef2f2; border: 1px solid #fecaca; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="var(--primary-red)" style="width: 16px; height: 16px;">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6a7.5 7.5 0 1 0 7.5 7.5h-7.5V6z" />
+                <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 10.5H21A7.5 7.5 0 0 0 13.5 3v7.5z" />
+              </svg>
+            </div>
+            <div>
+              <div style="font-size: 11px; font-weight: 700; color: var(--text-medium); text-transform: uppercase; letter-spacing: 0.5px;">
+                Berekende Lagerbehoefte
+              </div>
+              <div style="font-size: 14px; font-weight: 800; color: var(--primary-dark); margin-top: 1px;">
+                <span>${needRateStr} cm³/dag</span>
+                <span style="font-size: 12px; font-weight: 500; color: var(--text-medium); margin-left: 6px;">(Gq: ${gqStr} g, interval: ${daysStr}d. bij ${hDay}u/dag, ${dWeek}d/wk)</span>
+              </div>
+            </div>
           </div>
-          <div style="font-size: 12px; color: #15803d; line-height: 1.6;">
-            • Nasmeerhoeveelheid: <strong>${gqStr} g (cm³)</strong><br>
-            • Interflon MicPol® Smeerinterval: <strong>${daysStr} kalenderdagen</strong> (${hoursStr} uren bij ${hDay}u/dag, ${dWeek}d/wk)<br>
-            • Continuous 24/7 lagerbehoefte: <strong>${needRateStr} cm³/kalenderdag</strong><br>
-            ${modeNote}
+          <div style="background-color: #ffffff; border: 1px solid #cbd5e1; border-radius: 20px; padding: 4px 12px; font-size: 11.5px; font-weight: 600; color: var(--text-dark);">
+            Afkomstig uit 'Smeercalculatie'
           </div>
         </div>
       `;
@@ -5147,9 +5155,9 @@ function selectChain(chain) {
   const vRoller = document.getElementById("visualChainRollerText");
   const vPin = document.getElementById("visualChainPinText");
 
-  if (typeImg) typeImg.src = (chain.illustrationImg || "chain-simplex.png") + "?v=220";
+  if (typeImg) typeImg.src = (chain.illustrationImg || "chain-simplex.png") + "?v=225";
   if (typeSubtitle) typeSubtitle.textContent = chain.strand || "Simplex (1-sporig)";
-  if (dimImg) dimImg.src = (chain.dimensionsImg || "chain-dimensions.png") + "?v=220";
+  if (dimImg) dimImg.src = (chain.dimensionsImg || "chain-dimensions.png") + "?v=225";
 
   if (vPitch) vPitch.textContent = chain.pitch.toFixed(1);
   if (vWidth) vWidth.textContent = chain.width.toFixed(1);
@@ -6355,11 +6363,14 @@ function calculateChainAutomation() {
 
   // Render chain requirement badge text
   if (needValEl) {
-    if (device.isContinuous) {
-      needValEl.textContent = `${avgCalendarDailyMl.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ml/dag (${hoursPerDay}u/dag, ${daysPerWeek}d/wk — Continue 24/7 smeerbehoefte)`;
-    } else {
-      needValEl.textContent = `${operatingDailyCm3.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ml/draaidag (${hoursPerDay}u/dag, ${daysPerWeek}d/wk — Machinetijd smeerbehoefte)`;
-    }
+    const valText = device.isContinuous
+      ? `${avgCalendarDailyMl.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ml/dag`
+      : `${operatingDailyCm3.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ml/draaidag`;
+    needValEl.textContent = valText;
+  }
+  const needSubValEl = document.getElementById("chainAutoNeedSubVal");
+  if (needSubValEl) {
+    needSubValEl.textContent = `(bij ${hoursPerDay}u/dag, ${daysPerWeek}d/wk)`;
   }
 
   // Calculate RECOMMENDED RUNTIME (in calendar days, weeks, months) for selected Cartridge Capacity capMl
