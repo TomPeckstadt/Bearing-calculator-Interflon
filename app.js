@@ -1924,7 +1924,7 @@ function updateBearingImage(type) {
     src = "bearing-thrust-ball.png";
   }
   
-  imgEl.src = src + "?v=500";
+  imgEl.src = src + "?v=20260817_1410";
 }
 
 function updateBearingSvg(d, D, B) {
@@ -3853,7 +3853,7 @@ function getTransparentLogo(callback) {
 function getMicPolImageDataUrl(callback) {
   const img = new Image();
   img.crossOrigin = "Anonymous";
-  img.src = "micpol-tech.png?v=500";
+  img.src = "micpol-tech.png?v=20260817_1410";
   img.onload = function () {
     const canvas = document.createElement("canvas");
     canvas.width = img.width;
@@ -4930,7 +4930,7 @@ function calculateAutomationLubrication() {
     const dialContainer = document.getElementById("autoDialLabelContainer");
     if (dialContainer) {
       if (isDialDevice) {
-        dialContainer.innerHTML = `<img src="draaiknop.png?v=500" alt="Draaiknop" style="width: 22px; height: 22px; object-fit: contain;"><span>Instelstand draaiknop toestel:</span>`;
+        dialContainer.innerHTML = `<img src="draaiknop.png?v=20260817_1410" alt="Draaiknop" style="width: 22px; height: 22px; object-fit: contain;"><span>Instelstand draaiknop toestel:</span>`;
       } else {
         dialContainer.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="var(--primary-red)" style="width: 18px; height: 18px; flex-shrink: 0;"><path stroke-linecap="round" stroke-linejoin="round" d="M6 6.75A2.25 2.25 0 0 1 8.25 4.5h7.5A2.25 2.25 0 0 1 18 6.75v10.5A2.25 2.25 0 0 1 15.75 19.5h-7.5A2.25 2.25 0 0 1 6 17.25V6.75z" /><path stroke-linecap="round" stroke-linejoin="round" d="M9 8.25h6v3.75H9V8.25z" /></svg><span>Display instelling op toestel:</span>`;
       }
@@ -5198,9 +5198,9 @@ function selectChain(chain) {
   const vRoller = document.getElementById("visualChainRollerText");
   const vPin = document.getElementById("visualChainPinText");
 
-  if (typeImg) typeImg.src = (chain.illustrationImg || "chain-simplex.png") + "?v=600";
+  if (typeImg) typeImg.src = (chain.illustrationImg || "chain-simplex.png") + "?v=20260817_1410";
   if (typeSubtitle) typeSubtitle.textContent = chain.strand || "Simplex (1-sporig)";
-  if (dimImg) dimImg.src = (chain.dimensionsImg || "chain-dimensions.png") + "?v=600";
+  if (dimImg) dimImg.src = (chain.dimensionsImg || "chain-dimensions.png") + "?v=20260817_1410";
 
   if (vPitch) vPitch.textContent = chain.pitch.toFixed(1);
   if (vWidth) vWidth.textContent = chain.width.toFixed(1);
@@ -6403,7 +6403,7 @@ function renderOilDispenserSlide() {
   const pillsEl = document.getElementById("oilDispenserSlidePills");
 
   if (imgEl) {
-    imgEl.src = `slides/oil-dispenser-slide-${currentOilDispenserSlide}.jpg?v=500`;
+    imgEl.src = `slides/oil-dispenser-slide-${currentOilDispenserSlide}.jpg?v=20260817_1410`;
   }
   if (counterEl) {
     counterEl.textContent = `Dia ${currentOilDispenserSlide} van ${totalOilDispenserSlides}`;
@@ -6562,7 +6562,7 @@ function calculateChainAutomation() {
   const chainDialContainer = document.getElementById("chainAutoDialLabelContainer");
   if (chainDialContainer) {
     if (isDialDevice) {
-      chainDialContainer.innerHTML = `<img src="draaiknop.png?v=500" alt="Draaiknop" style="width: 22px; height: 22px; object-fit: contain;"><span>Instelstand draaiknop toestel:</span>`;
+      chainDialContainer.innerHTML = `<img src="draaiknop.png?v=20260817_1410" alt="Draaiknop" style="width: 22px; height: 22px; object-fit: contain;"><span>Instelstand draaiknop toestel:</span>`;
     } else if (isPlcDevice) {
       chainDialContainer.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="var(--primary-red)" style="width: 18px; height: 18px; flex-shrink: 0;"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 3v1.5m6-1.5v1.5m-12 6h1.5m15 0h1.5m-15 6h1.5m15 0h1.5M8.25 19.5V21m6-2.175V21M9 6.75h6A2.25 2.25 0 0 1 17.25 9v6A2.25 2.25 0 0 1 15 17.25H9A2.25 2.25 0 0 1 6.75 15V9A2.25 2.25 0 0 1 9 6.75z" /></svg><span>PLC instelling op toestel:</span>`;
     } else {
