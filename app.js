@@ -5194,9 +5194,9 @@ function selectChain(chain) {
   const vRoller = document.getElementById("visualChainRollerText");
   const vPin = document.getElementById("visualChainPinText");
 
-  if (typeImg) typeImg.src = (chain.illustrationImg || "chain-simplex.png") + "?v=265";
+  if (typeImg) typeImg.src = (chain.illustrationImg || "chain-simplex.png") + "?v=270";
   if (typeSubtitle) typeSubtitle.textContent = chain.strand || "Simplex (1-sporig)";
-  if (dimImg) dimImg.src = (chain.dimensionsImg || "chain-dimensions.png") + "?v=265";
+  if (dimImg) dimImg.src = (chain.dimensionsImg || "chain-dimensions.png") + "?v=270";
 
   if (vPitch) vPitch.textContent = chain.pitch.toFixed(1);
   if (vWidth) vWidth.textContent = chain.width.toFixed(1);
@@ -6283,7 +6283,7 @@ const CHAIN_AUTOMATION_DEVICES = {
     title: "Interflon Oil Dispenser",
     img: "interflon-oil-dispenser.jpg",
     dimImg: "oil-dispenser-info",
-    desc: "De <strong>Interflon Oil Dispenser</strong> beschikt over een <strong>2 Liter oliereservoir</strong> en is ontworpen voor precieze dosering en meervoudige smeerpunten (via Rotalube LC/EP, borstels of Nozzles). Zowel manueel als PLC-gestuurd inzetbaar.",
+    desc: "De <strong>Interflon Oil Dispenser</strong> beschikt over een <strong>2 Liter oliereservoir</strong> en is ontworpen voor precieze dosering en meervoudige smeerpunten (via borstels of Nozzles). Zowel manueel als PLC-gestuurd inzetbaar.",
     capacities: [2000],
     defaultCap: 2000,
     isContinuous: true
