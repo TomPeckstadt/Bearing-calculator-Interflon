@@ -2449,6 +2449,10 @@ function updateChainTcoFrequencies() {
     chainOmProdFreq1El.value = formulaAnnualFreq.toString();
   }
   chainOmProdFreq2El.value = formulaAnnualFreq.toString();
+
+  if (typeof calculateChainGrease === "function") {
+    calculateChainGrease();
+  }
 }
 
 function updateTcoModeHint(mode) {
@@ -5332,7 +5336,6 @@ function calculateChainGrease() {
   const chainFreq1El = document.getElementById("chainOmProdFreq1");
   const chainFreq2El = document.getElementById("chainOmProdFreq2");
 
-  // Allow user to maintain custom manual lubrication frequencies (e.g. 52 for weekly, 12 for monthly)
   let freq1 = chainFreq1El ? parseFloat(chainFreq1El.value) : 0;
   if (!freq1 || freq1 <= 0) {
     freq1 = annualFreq;
@@ -5345,8 +5348,9 @@ function calculateChainGrease() {
     if (chainFreq2El) chainFreq2El.value = freq2.toString();
   }
 
-  const convConsPerApp = freq1 > 0 ? (convYearlyMl / freq1) : 0;
-  const interflonConsPerApp = freq2 > 0 ? (interflonYearlyMl / freq2) : 0;
+  // Volume per lube = Total yearly demand / annual number of lube events
+  const convConsPerApp = (convYearlyMl / freq1);
+  const interflonConsPerApp = (interflonYearlyMl / freq2);
 
   if (chainCons1El) chainCons1El.value = convConsPerApp.toFixed(1);
   if (chainCons2El) chainCons2El.value = interflonConsPerApp.toFixed(1);
