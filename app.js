@@ -5198,9 +5198,9 @@ function selectChain(chain) {
   const vRoller = document.getElementById("visualChainRollerText");
   const vPin = document.getElementById("visualChainPinText");
 
-  if (typeImg) typeImg.src = (chain.illustrationImg || "chain-simplex.png") + "?v=370";
+  if (typeImg) typeImg.src = (chain.illustrationImg || "chain-simplex.png") + "?v=380";
   if (typeSubtitle) typeSubtitle.textContent = chain.strand || "Simplex (1-sporig)";
-  if (dimImg) dimImg.src = (chain.dimensionsImg || "chain-dimensions.png") + "?v=370";
+  if (dimImg) dimImg.src = (chain.dimensionsImg || "chain-dimensions.png") + "?v=380";
 
   if (vPitch) vPitch.textContent = chain.pitch.toFixed(1);
   if (vWidth) vWidth.textContent = chain.width.toFixed(1);
@@ -6537,7 +6537,6 @@ function calculateChainAutomation() {
 
   const chainDialValEl = document.getElementById("chainAutoDialValue");
   const chainTheoValEl = document.getElementById("chainAutoTheoValue");
-  if (chainDialValEl) chainDialValEl.textContent = dialLabel;
   if (chainTheoValEl) chainTheoValEl.textContent = theoMonthsStr;
 
   const isDialDevice = (deviceKey === "interflon_single_point_oil");
@@ -6617,35 +6616,36 @@ function calculateChainAutomation() {
   else if (unit === "days") unitLabel = periodVal === 1 ? "dag" : "dagen";
   else if (unit === "months") unitLabel = periodVal === 1 ? "maand" : "maanden";
 
+  const activeSettingLabel = `${periodVal.toLocaleString("nl-BE", { maximumFractionDigits: 1 })} ${unitLabel}`;
+  if (chainDialValEl) chainDialValEl.textContent = activeSettingLabel;
+
   if (resDailyEl) resDailyEl.textContent = `${dailyMl.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ml/dag`;
-  if (resHintEl) resHintEl.textContent = `(~ ${monthlyMl.toLocaleString("nl-BE", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} ml / maand bij ${capMl} ml op ${periodVal} ${unitLabel})`;
+  if (resHintEl) resHintEl.textContent = `(~ ${monthlyMl.toLocaleString("nl-BE", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} ml / maand bij ${capMl} ml op ${activeSettingLabel})`;
 
   // Match Notice Comparison
   const targetDailyMl = avgCalendarDailyMl;
   if (matchNoticeEl && targetDailyMl > 0) {
     const ratio = dailyMl / targetDailyMl;
-    // An excellent match requires that the delivered daily volume is within reasonable range (>= 75% of demand)
-    // and recMonths is at least 0.70 (sufficient capacity for at least ~20 days).
     const isSufficientCap = (recMonths >= 0.70);
-    const isRecommendedSetting = (unit === "months" && Math.round(periodVal) === recSetting.months && isSufficientCap && ratio >= 0.75);
+    const isExactRecSetting = (unit === "months" && Math.round(periodVal) === recSetting.months && isSufficientCap && ratio >= 0.85);
 
-    if (isRecommendedSetting || (ratio >= 0.75 && ratio <= 1.25 && isSufficientCap)) {
+    if (isExactRecSetting || (ratio >= 0.85 && ratio <= 1.15 && isSufficientCap)) {
       matchNoticeEl.innerHTML = `
         <div style="padding: 8px 12px; background-color: #ECFDF5; border: 1px solid #A7F3D0; border-radius: 4px; color: #065F46; font-size: 11px; font-weight: 600;">
-          ✓ Uitstekende match! De ingestelde looptijd (${periodVal} ${unitLabel}) op het toestel sluit optimaal aan bij de kettingbehoefte (${targetDailyMl.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ml/dag).
+          ✓ Uitstekende match! De ingestelde looptijd (${activeSettingLabel}) op het toestel sluit optimaal aan bij de kettingbehoefte (${targetDailyMl.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ml/dag).
         </div>
       `;
-    } else if (ratio < 0.75 || !isSufficientCap || (unit === "months" && periodVal > recSetting.months)) {
+    } else if (ratio < 0.85 || !isSufficientCap || (unit === "months" && periodVal > recSetting.months)) {
       matchNoticeEl.innerHTML = `
         <div style="padding: 8px 12px; background-color: #FEF3C7; border: 1px solid #FDE68A; border-radius: 4px; color: #92400E; font-size: 11px; font-weight: 600;">
-          ⚠️ Ondersmering risico: Ingesteld op <strong>${periodVal} ${unitLabel}</strong> levert het ${capMl} ml ${containerNoun} slechts ${dailyMl.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ml/dag af (behoefte is ${targetDailyMl.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ml/dag). Bekijk de opties Pulsarlube, Interflon Oil dispenser of Graco.
+          ⚠️ Ondersmering risico: Ingesteld op <strong>${activeSettingLabel}</strong> levert het ${capMl} ml ${containerNoun} slechts ${dailyMl.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ml/dag af (behoefte is ${targetDailyMl.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ml/dag). Bekijk de opties Pulsarlube, Interflon Oil dispenser of Graco.
         </div>
       `;
     } else {
       matchNoticeEl.innerHTML = `
         <div style="padding: 8px 12px; background-color: #EFF6FF; border: 1px solid #BFDBFE; border-radius: 4px; color: #1E40AF; font-size: 11px; font-weight: 600;">
-          ℹ️ Ruime oliedosering: Ingesteld op <strong>${periodVal} ${unitLabel}</strong> levert het ${capMl} ml ${containerNoun} ${dailyMl.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ml/dag af (behoefte is ${targetDailyMl.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ml/dag).<br>
-          <strong>Advies:</strong> Stel het toestel in op <strong>${recSetting.months} ${recSetting.months === 1 ? 'maand' : 'maanden'}</strong> om exact de behoefte af te dekken.
+          ℹ️ Ruime oliedosering: Ingesteld op <strong>${activeSettingLabel}</strong> levert het ${capMl} ml ${containerNoun} ${dailyMl.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ml/dag af (behoefte is ${targetDailyMl.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ml/dag).<br>
+          <strong>Advies:</strong> Stel het toestel in op <strong>${dialLabel}</strong> om exact de behoefte af te dekken.
         </div>
       `;
     }
