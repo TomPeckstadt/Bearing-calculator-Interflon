@@ -2708,5 +2708,206 @@
 
     </div>
   </div>
+
+  <script>
+    // Inline override to guarantee latest chain automation logic is executed without browser cache delay
+    function calculateChainAutomation() {
+      const deviceSelect = document.getElementById("chainAutomationDeviceSelect");
+      const capSelect = document.getElementById("chainAutoCartridgeCap");
+      const periodInput = document.getElementById("chainAutoDispensePeriod");
+      const unitSelect = document.getElementById("chainAutoDispenseUnit");
+
+      const resDailyEl = document.getElementById("chainAutoDailyVolumeRes");
+      const resHintEl = document.getElementById("chainAutoDispenseRateHint");
+      const matchNoticeEl = document.getElementById("chainAutoMatchNotice");
+      const needValEl = document.getElementById("chainAutoNeedVal");
+
+      const recTitleEl = document.getElementById("chainAutoRecTitle");
+      const recSubtextEl = document.getElementById("chainAutoRecSubtext");
+
+      if (!capSelect || !periodInput || !unitSelect || !resDailyEl) return;
+
+      const deviceKey = deviceSelect ? deviceSelect.value : "interflon_single_point_oil";
+      const device = (typeof CHAIN_AUTOMATION_DEVICES !== 'undefined' && CHAIN_AUTOMATION_DEVICES[deviceKey]) ? CHAIN_AUTOMATION_DEVICES[deviceKey] : { isContinuous: true };
+
+      const capMl = parseFloat(capSelect.value) || 125;
+      const unit = unitSelect.value || "months";
+
+      const lengthInput = document.getElementById("chainLengthInput");
+      const speedInput = document.getElementById("chainSpeedInput");
+      const hoursInput = document.getElementById("chainHoursPerDayInput");
+      const daysInput = document.getElementById("chainDaysPerWeekInput");
+      const tempInput = document.getElementById("chainTempInput");
+      const factorInput = document.getElementById("chainFactorInput");
+      const envSelect = document.getElementById("chainEnvSelect");
+
+      const lengthM = lengthInput ? (parseFloat(lengthInput.value) || 5.0) : 5.0;
+      const speedMS = speedInput ? (parseFloat(speedInput.value) || 1.5) : 1.5;
+      const hoursPerDay = hoursInput ? (parseFloat(hoursInput.value) || 24) : 24;
+      const daysPerWeek = daysInput ? (parseFloat(daysInput.value) || 7) : 7;
+      const tempC = tempInput ? (parseFloat(tempInput.value) || 20) : 20;
+      const micpolFactor = factorInput ? (parseFloat(factorInput.value) || 4.0) : 4.0;
+      const env = envSelect ? envSelect.value : "normal";
+
+      const width = (typeof activeChain !== 'undefined' && activeChain) ? activeChain.width : 7.75;
+      const strands = (typeof activeChain !== 'undefined' && activeChain) ? activeChain.strandsCount : 1;
+
+      let envFactor = 1.0;
+      if (env === "dusty") envFactor = 1.3;
+      else if (env === "wet") envFactor = 1.5;
+      else if (env === "severe") envFactor = 1.8;
+
+      let tempFactor = 1.0;
+      if (tempC > 50) tempFactor = 1.0 + Math.pow((tempC - 50) / 40, 1.2);
+      else if (tempC < 0) tempFactor = 1.2;
+
+      const baseDailyCm3 = (width * strands * lengthM * speedMS * envFactor * tempFactor * (0.32 / micpolFactor));
+      const operatingDailyCm3 = baseDailyCm3 * (hoursPerDay / 24);
+      const weeklyCm3 = operatingDailyCm3 * daysPerWeek;
+      const avgCalendarDailyMl = weeklyCm3 / 7;
+
+      if (needValEl) {
+        const valText = device.isContinuous
+          ? `${avgCalendarDailyMl.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ml/dag`
+          : `${operatingDailyCm3.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ml/draaidag`;
+        needValEl.textContent = valText;
+      }
+      const needSubValEl = document.getElementById("chainAutoNeedSubVal");
+      if (needSubValEl) {
+        needSubValEl.textContent = `(bij ${hoursPerDay} uur/dag, ${daysPerWeek} dagen/week)`;
+      }
+
+      let recDays = 0;
+      if (device.isContinuous) {
+        recDays = avgCalendarDailyMl > 0 ? (capMl / avgCalendarDailyMl) : 0;
+      } else {
+        const operatingDaysNeeded = operatingDailyCm3 > 0 ? (capMl / operatingDailyCm3) : 0;
+        const calendarWeeksNeeded = daysPerWeek > 0 ? (operatingDaysNeeded / daysPerWeek) : 0;
+        recDays = calendarWeeksNeeded * 7;
+      }
+
+      const recMonths = recDays / 30.4375;
+      const recWeeks = recDays / 7;
+
+      const recSetting = (typeof getRecommendedSettingMonths === 'function') ? getRecommendedSettingMonths(recMonths) : { months: Math.round(recMonths) || 1, roundedUp: false };
+      const dialLabel = `${recSetting.months} ${recSetting.months === 1 ? 'maand' : 'maanden'}`;
+      const theoMonthsStr = recMonths > 10 ? `${Math.round(recMonths)} maanden` : `${recMonths.toLocaleString("nl-BE", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} maanden`;
+
+      const chainDialValEl = document.getElementById("chainAutoDialValue");
+      const chainTheoValEl = document.getElementById("chainAutoTheoValue");
+      if (chainTheoValEl) chainTheoValEl.textContent = theoMonthsStr;
+
+      const isDialDevice = (deviceKey === "interflon_single_point_oil");
+      const isPlcDevice = (deviceKey === "interflon_oil_dispenser");
+
+      let settingTerm = "display instelling";
+      let settingLabel = "Display instelling op toestel:";
+
+      if (isDialDevice) {
+        settingTerm = "draaiknopstand";
+        settingLabel = "Instelstand op toestel:";
+      } else if (isPlcDevice) {
+        settingTerm = "PLC instelling";
+        settingLabel = "PLC instelling op toestel:";
+      }
+
+      const chainDialContainer = document.getElementById("chainAutoDialLabelContainer");
+      if (chainDialContainer) {
+        if (isDialDevice) {
+          chainDialContainer.innerHTML = `<img src="draaiknop.png?v=500" alt="Draaiknop" style="width: 22px; height: 22px; object-fit: contain;"><span>Instelstand draaiknop toestel:</span>`;
+        } else if (isPlcDevice) {
+          chainDialContainer.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="var(--primary-red)" style="width: 18px; height: 18px; flex-shrink: 0;"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 3v1.5m6-1.5v1.5m-12 6h1.5m15 0h1.5m-15 6h1.5m15 0h1.5M8.25 19.5V21m6-2.175V21M9 6.75h6A2.25 2.25 0 0 1 17.25 9v6A2.25 2.25 0 0 1 15 17.25H9A2.25 2.25 0 0 1 6.75 15V9A2.25 2.25 0 0 1 9 6.75z" /></svg><span>PLC instelling op toestel:</span>`;
+        } else {
+          chainDialContainer.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="var(--primary-red)" style="width: 18px; height: 18px; flex-shrink: 0;"><path stroke-linecap="round" stroke-linejoin="round" d="M6 6.75A2.25 2.25 0 0 1 8.25 4.5h7.5A2.25 2.25 0 0 1 18 6.75v10.5A2.25 2.25 0 0 1 15.75 19.5h-7.5A2.25 2.25 0 0 1 6 17.25V6.75z" /><path stroke-linecap="round" stroke-linejoin="round" d="M9 8.25h6v3.75H9V8.25z" /></svg><span>Display instelling op toestel:</span>`;
+        }
+      }
+
+      let recPeriodVal = recMonths;
+      let recTitleText = "";
+      if (unit === "months") {
+        recPeriodVal = recMonths;
+        recTitleText = `${dialLabel} (${settingTerm}) | Theoretisch: ${theoMonthsStr}`;
+      } else if (unit === "weeks") {
+        recPeriodVal = recWeeks;
+        const roundedW = recWeeks > 10 ? Math.round(recWeeks) : Math.round(recWeeks * 10) / 10;
+        recTitleText = `${dialLabel} (${settingTerm}) | Theoretisch: ${roundedW.toLocaleString("nl-BE")} weken`;
+      } else {
+        recPeriodVal = recDays;
+        recTitleText = `${dialLabel} (${settingTerm}) | Theoretisch: ${Math.round(recDays)} dagen`;
+      }
+
+      const roundReason = recSetting.roundedUp ? "afgerond naar boven bij ≥ 0,7" : "afgerond naar beneden bij < 0,7";
+
+      if (recTitleEl) recTitleEl.textContent = recTitleText;
+      if (recSubtextEl) {
+        const reqText = device.isContinuous
+          ? `${avgCalendarDailyMl.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ml/dag`
+          : `${operatingDailyCm3.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ml/draaidag (${hoursPerDay}u/dag, ${daysPerWeek}d/wk)`;
+        const containerNoun = (deviceKey === "interflon_oil_dispenser") ? "reservoir" : "patroon";
+        const containerNounCap = (deviceKey === "interflon_oil_dispenser") ? "Reservoir" : "Patroon";
+
+        const capLabelEl = document.getElementById("chainAutoCapLabel");
+        if (capLabelEl) {
+          capLabelEl.textContent = `${containerNounCap} Capaciteit (ml / cm³)`;
+        }
+
+        recSubtextEl.innerHTML = `${settingLabel} <strong>${dialLabel}</strong> (${roundReason}).<br>• Theoretisch berekende looptijd: <strong>${theoMonthsStr}</strong> (~ ${Math.round(recWeeks)} weken / ${Math.round(recDays)} dagen) bij ${capMl} ml ${containerNoun} (behoefte: ${reqText}).`;
+      }
+
+      if (typeof userHasManuallyEditedChainAutoPeriod !== 'undefined' && !userHasManuallyEditedChainAutoPeriod) {
+        periodInput.value = recSetting.months;
+      }
+
+      const periodVal = parseFloat(periodInput.value) || 1;
+      let periodDays = periodVal;
+      if (unit === "months") periodDays = periodVal * 30.4375;
+      else if (unit === "weeks") periodDays = periodVal * 7;
+      if (periodDays <= 0) periodDays = 1;
+
+      const dailyMl = capMl / periodDays;
+      const monthlyMl = capMl / (periodDays / 30.4375);
+
+      let unitLabel = "maanden";
+      if (unit === "weeks") unitLabel = periodVal === 1 ? "week" : "weken";
+      else if (unit === "days") unitLabel = periodVal === 1 ? "dag" : "dagen";
+      else if (unit === "months") unitLabel = periodVal === 1 ? "maand" : "maanden";
+
+      const activeSettingLabel = `${periodVal.toLocaleString("nl-BE", { maximumFractionDigits: 1 })} ${unitLabel}`;
+      if (chainDialValEl) chainDialValEl.textContent = activeSettingLabel;
+
+      if (resDailyEl) resDailyEl.textContent = `${dailyMl.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ml/dag`;
+      if (resHintEl) resHintEl.textContent = `(~~ ${monthlyMl.toLocaleString("nl-BE", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} ml / maand bij ${capMl} ml op ${activeSettingLabel})`;
+
+      const targetDailyMl = avgCalendarDailyMl;
+      if (matchNoticeEl && targetDailyMl > 0) {
+        const ratio = dailyMl / targetDailyMl;
+        const isSufficientCap = (recMonths >= 0.70);
+        const isMatchingSetting = (unit === "months" && Math.round(periodVal) === recSetting.months && isSufficientCap);
+
+        const containerNoun = (deviceKey === "interflon_oil_dispenser") ? "reservoir" : "patroon";
+
+        if (isMatchingSetting) {
+          matchNoticeEl.innerHTML = `
+            <div style="padding: 8px 12px; background-color: #ECFDF5; border: 1px solid #A7F3D0; border-radius: 4px; color: #065F46; font-size: 11px; font-weight: 600;">
+              ✓ Uitstekende match! De ingestelde looptijd (${activeSettingLabel}) op het toestel sluit optimaal aan bij de kettingbehoefte (${targetDailyMl.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ml/dag).
+            </div>
+          `;
+        } else if ((unit === "months" && periodVal > recSetting.months) || !isSufficientCap || ratio < 0.75) {
+          matchNoticeEl.innerHTML = `
+            <div style="padding: 8px 12px; background-color: #FEF3C7; border: 1px solid #FDE68A; border-radius: 4px; color: #92400E; font-size: 11px; font-weight: 600;">
+              ⚠️ Ondersmering risico: Ingesteld op <strong>${activeSettingLabel}</strong> levert het ${capMl} ml ${containerNoun} slechts ${dailyMl.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ml/dag af (behoefte is ${targetDailyMl.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ml/dag). Bekijk de opties Pulsarlube, Interflon Oil dispenser of Graco.
+            </div>
+          `;
+        } else {
+          matchNoticeEl.innerHTML = `
+            <div style="padding: 8px 12px; background-color: #EFF6FF; border: 1px solid #BFDBFE; border-radius: 4px; color: #1E40AF; font-size: 11px; font-weight: 600;">
+              ℹ️ Ruime oliedosering: Ingesteld op <strong>${activeSettingLabel}</strong> levert het ${capMl} ml ${containerNoun} ${dailyMl.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ml/dag af (behoefte is ${targetDailyMl.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ml/dag).<br>
+              <strong>Advies:</strong> Stel het toestel in op <strong>${dialLabel}</strong> om exact de behoefte af te dekken.
+            </div>
+          `;
+        }
+      }
+    }
+  </script>
 </body>
 </html>
