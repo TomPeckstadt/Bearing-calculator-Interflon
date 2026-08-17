@@ -1504,19 +1504,19 @@
               <div id="autoBearingNeedBadge"></div>
 
               <!-- Highlighted Recommended Period Card for Bearing Automation -->
-              <div id="autoRecCard" style="background: #EFF6FF; border: 2px solid var(--primary-blue); border-radius: var(--border-radius-sm); padding: 14px; margin-bottom: 16px; box-shadow: 0 2px 6px rgba(30, 58, 138, 0.08);">
+              <div id="autoRecCard" style="background: #FEF2F2; border: 2px solid var(--primary-red); border-radius: var(--border-radius-sm); padding: 14px; margin-bottom: 16px; box-shadow: 0 2px 6px rgba(227, 6, 19, 0.08);">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; flex-wrap: wrap; gap: 8px;">
-                  <span style="font-size: 11px; font-weight: 800; color: var(--primary-blue); text-transform: uppercase; letter-spacing: 0.5px;">
-                    🎯 Geadviseerde Instelling op Toestel
+                  <span style="font-size: 11px; font-weight: 800; color: var(--primary-red); text-transform: uppercase; letter-spacing: 0.5px;">
+                    GEADVISEERDE INSTELLING OP TOESTEL
                   </span>
-                  <button type="button" onclick="applyAutoRecommendation()" class="btn" style="font-size: 11px; padding: 4px 10px; height: auto; border-radius: 4px; display: inline-flex; align-items: center; gap: 4px;">
+                  <button type="button" onclick="applyAutoRecommendation()" class="btn-action-red" style="font-size: 11px; padding: 4px 10px; height: auto; border-radius: 4px; display: inline-flex; align-items: center; gap: 4px;">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width: 14px; height: 14px;">
                       <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
                     </svg>
                     <span>Neem advies over</span>
                   </button>
                 </div>
-                <div id="autoRecTitle" style="font-size: 22px; font-weight: 800; color: var(--primary-blue); margin: 2px 0 4px 0;">
+                <div id="autoRecTitle" style="font-size: 22px; font-weight: 800; color: var(--primary-red); margin: 2px 0 4px 0;">
                   -
                 </div>
                 <div id="autoRecSubtext" style="font-size: 12px; color: var(--text-dark); line-height: 1.4;">
@@ -1560,7 +1560,10 @@
                     </div>
                     <div id="autoDialBadge" style="margin-top: 8px; background-color: #ffffff; border: 1px solid #cbd5e1; border-radius: var(--border-radius-sm); padding: 8px 10px; font-size: 11.5px; color: var(--text-dark); line-height: 1.4;">
                       <div style="font-weight: 700; color: var(--primary-red); display: flex; align-items: center; justify-content: space-between; gap: 6px;">
-                        <span>⚙️ Instelstand draaiknop toestel:</span>
+                        <span style="display: inline-flex; align-items: center; gap: 4px;">
+                          <img src="draaiknop.png?v=220" alt="Draaiknop" style="width: 22px; height: 22px; object-fit: contain;">
+                          <span>Instelstand draaiknop toestel:</span>
+                        </span>
                         <span id="autoDialValue" style="font-size: 12.5px; font-weight: 800; background-color: #FEF2F2; color: var(--primary-red); padding: 2px 8px; border-radius: 4px; border: 1px solid #FECACA;">1 maand</span>
                       </div>
                       <div style="color: var(--text-medium); font-size: 11px; margin-top: 4px; display: flex; justify-content: space-between;">
@@ -2464,7 +2467,7 @@
               <div id="chainAutoRecCard" style="background: #FEF2F2; border: 2px solid var(--primary-red); border-radius: var(--border-radius-sm); padding: 14px; margin-bottom: 16px; box-shadow: 0 2px 6px rgba(227, 6, 19, 0.08);">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; flex-wrap: wrap; gap: 8px;">
                   <span style="font-size: 11px; font-weight: 800; color: var(--primary-red); text-transform: uppercase; letter-spacing: 0.5px;">
-                    🎯 Geadviseerde Instelling op Toestel
+                    GEADVISEERDE INSTELLING OP TOESTEL
                   </span>
                   <button type="button" onclick="applyChainAutoRecommendation()" class="btn-action-red" style="font-size: 11px; padding: 4px 10px; height: auto; border-radius: 4px; display: inline-flex; align-items: center; gap: 4px;">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width: 14px; height: 14px;">
@@ -2514,7 +2517,10 @@
                     </div>
                     <div id="chainAutoDialBadge" style="margin-top: 8px; background-color: #ffffff; border: 1px solid #cbd5e1; border-radius: var(--border-radius-sm); padding: 8px 10px; font-size: 11.5px; color: var(--text-dark); line-height: 1.4;">
                       <div style="font-weight: 700; color: var(--primary-red); display: flex; align-items: center; justify-content: space-between; gap: 6px;">
-                        <span>⚙️ Instelstand draaiknop toestel:</span>
+                        <span style="display: inline-flex; align-items: center; gap: 4px;">
+                          <img src="draaiknop.png?v=220" alt="Draaiknop" style="width: 22px; height: 22px; object-fit: contain;">
+                          <span>Instelstand draaiknop toestel:</span>
+                        </span>
                         <span id="chainAutoDialValue" style="font-size: 12.5px; font-weight: 800; background-color: #FEF2F2; color: var(--primary-red); padding: 2px 8px; border-radius: 4px; border: 1px solid #FECACA;">1 maand</span>
                       </div>
                       <div style="color: var(--text-medium); font-size: 11px; margin-top: 4px; display: flex; justify-content: space-between;">
@@ -2596,9 +2602,9 @@
 
   <!-- JavaScript logic imports -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="interflon-data.js?v=215"></script>
+  <script src="interflon-data.js?v=220"></script>
   <script src="bearings-db.js"></script>
   <script src="chains-db.js"></script>
-  <script src="app.js?v=215"></script>
+  <script src="app.js?v=220"></script>
 </body>
 </html>
