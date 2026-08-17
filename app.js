@@ -4951,6 +4951,10 @@ function calculateAutomationLubrication() {
     }
   }
 
+  if (!userHasManuallyEditedAutoPeriod && hasDailyNeed) {
+    periodInput.value = recSetting.months;
+  }
+
   // Calculate actual daily volume from current period input
   const periodVal = parseFloat(periodInput.value) || 1;
   let totalDays = 30.4375 * periodVal; // Default months
@@ -5190,9 +5194,9 @@ function selectChain(chain) {
   const vRoller = document.getElementById("visualChainRollerText");
   const vPin = document.getElementById("visualChainPinText");
 
-  if (typeImg) typeImg.src = (chain.illustrationImg || "chain-simplex.png") + "?v=245";
+  if (typeImg) typeImg.src = (chain.illustrationImg || "chain-simplex.png") + "?v=250";
   if (typeSubtitle) typeSubtitle.textContent = chain.strand || "Simplex (1-sporig)";
-  if (dimImg) dimImg.src = (chain.dimensionsImg || "chain-dimensions.png") + "?v=245";
+  if (dimImg) dimImg.src = (chain.dimensionsImg || "chain-dimensions.png") + "?v=250";
 
   if (vPitch) vPitch.textContent = chain.pitch.toFixed(1);
   if (vWidth) vWidth.textContent = chain.width.toFixed(1);
@@ -6469,10 +6473,9 @@ function calculateChainAutomation() {
     recSubtextEl.innerHTML = `${settingLabel} <strong>${dialLabel}</strong> (${roundReason}).<br>• Theoretisch berekende looptijd: <strong>${theoMonthsStr}</strong> (~ ${Math.round(recWeeks)} weken / ${Math.round(recDays)} dagen) bij ${capMl} ml patroon (behoefte: ${reqText}).`;
   }
 
-  // AUTO-FILL period input if user hasn't manually overridden it
+  // AUTO-FILL period input with recommended device setting position if user hasn't manually overridden it
   if (!userHasManuallyEditedChainAutoPeriod) {
-    const roundedVal = recPeriodVal > 10 ? Math.round(recPeriodVal) : Math.round(recPeriodVal * 10) / 10;
-    periodInput.value = roundedVal;
+    periodInput.value = recSetting.months;
   }
 
   // Calculate actual output from current periodInput.value on device
@@ -6501,21 +6504,23 @@ function calculateChainAutomation() {
     if (ratio >= 0.85 && ratio <= 1.15) {
       matchNoticeEl.innerHTML = `
         <div style="padding: 8px 12px; background-color: #ECFDF5; border: 1px solid #A7F3D0; border-radius: 4px; color: #065F46; font-size: 11px; font-weight: 600;">
-          ✓ Uitstekende match! De ingestelde looptijd op de draaiknop van het toestel sluit optimaal aan bij de kettingbehoefte.
+          ✓ Uitstekende match! De ingestelde looptijd (${periodVal} ${unit}) op het toestel sluit optimaal aan bij de kettingbehoefte (${targetDailyMl.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ml/dag).
         </div>
       `;
     } else if (ratio < 0.85) {
+      const daysEmpty = (capMl / targetDailyMl).toFixed(0);
+      const isTooSmall = recMonths < 1.0;
+      const extraWarning = isTooSmall ? `<br><strong>Let op:</strong> Bij een behoefte van ${targetDailyMl.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ml/dag (${(targetDailyMl * 30.4375).toLocaleString("nl-BE", { minimumFractionDigits: 0, maximumFractionDigits: 0 })} ml/maand) is het ${capMl} ml patroon al na ~ ${daysEmpty} dagen leeg! Stand 1 maand levert slechts ${dailyMl.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ml/dag. Kies een grotere patroongrootte.` : '';
       matchNoticeEl.innerHTML = `
         <div style="padding: 8px 12px; background-color: #FEF3C7; border: 1px solid #FDE68A; border-radius: 4px; color: #92400E; font-size: 11px; font-weight: 600;">
-          ⚠️ Ondersmering risico: Ingesteld op <strong>${periodVal} ${unit}</strong> geeft het ${capMl} ml patroon slechts ${dailyMl.toFixed(2)} ml/dag af (behoefte is ${targetDailyMl.toFixed(2)} ml/dag).<br>
-          <strong>Advies:</strong> Stel het toestel in op <strong>${recFormattedShort}</strong> (of kies een groter patroon).
+          ⚠️ Ondersmering risico: Ingesteld op <strong>${periodVal} ${unit}</strong> levert het ${capMl} ml patroon slechts ${dailyMl.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ml/dag af (behoefte is ${targetDailyMl.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ml/dag).${extraWarning}
         </div>
       `;
     } else {
       matchNoticeEl.innerHTML = `
         <div style="padding: 8px 12px; background-color: #EFF6FF; border: 1px solid #BFDBFE; border-radius: 4px; color: #1E40AF; font-size: 11px; font-weight: 600;">
-          ℹ️ Ruime oliedosering: Ingesteld op <strong>${periodVal} ${unit}</strong> geeft het ${capMl} ml patroon ${dailyMl.toFixed(2)} ml/dag af (behoefte is ${targetDailyMl.toFixed(2)} ml/dag).<br>
-          <strong>Advies:</strong> Stel het toestel in op <strong>${recFormattedShort}</strong> om exact de behoefte af te dekken.
+          ℹ️ Ruime oliedosering: Ingesteld op <strong>${periodVal} ${unit}</strong> levert het ${capMl} ml patroon ${dailyMl.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ml/dag af (behoefte is ${targetDailyMl.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ml/dag).<br>
+          <strong>Advies:</strong> Stel het toestel in op <strong>${recSetting.months} ${recSetting.months === 1 ? 'maand' : 'maanden'}</strong> om exact de behoefte af te dekken.
         </div>
       `;
     }
