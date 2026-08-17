@@ -5139,9 +5139,9 @@ function selectChain(chain) {
   const vRoller = document.getElementById("visualChainRollerText");
   const vPin = document.getElementById("visualChainPinText");
 
-  if (typeImg) typeImg.src = (chain.illustrationImg || "chain-simplex.png") + "?v=195";
+  if (typeImg) typeImg.src = (chain.illustrationImg || "chain-simplex.png") + "?v=200";
   if (typeSubtitle) typeSubtitle.textContent = chain.strand || "Simplex (1-sporig)";
-  if (dimImg) dimImg.src = (chain.dimensionsImg || "chain-dimensions.png") + "?v=195";
+  if (dimImg) dimImg.src = (chain.dimensionsImg || "chain-dimensions.png") + "?v=200";
 
   if (vPitch) vPitch.textContent = chain.pitch.toFixed(1);
   if (vWidth) vWidth.textContent = chain.width.toFixed(1);
@@ -5203,6 +5203,7 @@ function calculateChainGrease() {
   const resDaily = document.getElementById("chainResDaily");
   const resHourly = document.getElementById("chainResHourly");
   const resWeekly = document.getElementById("chainResWeekly");
+  const resMonthly = document.getElementById("chainResMonthly");
   const resYearly = document.getElementById("chainResYearly");
 
   const lengthM = lengthInput ? (parseFloat(lengthInput.value) || 5.0) : 5.0;
@@ -5250,6 +5251,13 @@ function calculateChainGrease() {
   }
   if (resWeekly) {
     resWeekly.textContent = `${weeklyCm3.toLocaleString("nl-BE", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} ml/wk`;
+  }
+  if (resMonthly) {
+    const monthlyMl = (weeklyCm3 * 52.14) / 12;
+    const formattedMonthly = monthlyMl >= 1000 
+      ? `${(monthlyMl / 1000).toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} L/maand`
+      : `${monthlyMl.toLocaleString("nl-BE", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} ml/maand`;
+    resMonthly.textContent = formattedMonthly;
   }
   if (resYearly) {
     resYearly.textContent = `${yearlyLiters.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} L/jaar`;
