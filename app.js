@@ -1,3 +1,20 @@
+
+// Helper to calculate recommended lubricator setting months (1..12):
+// Decimals <= 0.7 round DOWN, decimals > 0.7 round UP
+function getRecommendedSettingMonths(recMonths) {
+  if (recMonths <= 1) {
+    return { months: 1, roundedUp: false };
+  }
+  const whole = Math.floor(recMonths);
+  const frac = recMonths - whole;
+  if (frac > 0.7001) {
+    const m = Math.min(12, whole + 1);
+    return { months: m, roundedUp: true };
+  } else {
+    const m = Math.max(1, whole);
+    return { months: m, roundedUp: false };
+  }
+}
 // App Logic - SKF Lager Smeercalculator
 // Beheert inloggen, paginanavigatie, zoeken naar lagers en dynamische visualisatie.
 
@@ -4890,8 +4907,8 @@ function calculateAutomationLubrication() {
     const recMonths = recDays / 30.4375;
     const recWeeks = recDays / 7;
 
-    const ceilMonths = Math.max(1, Math.ceil(recMonths));
-    const dialLabel = `${ceilMonths} ${ceilMonths === 1 ? 'maand' : 'maanden'}`;
+    const recSetting = getRecommendedSettingMonths(recMonths);
+    const dialLabel = `${recSetting.months} ${recSetting.months === 1 ? 'maand' : 'maanden'}`;
     const theoMonthsStr = recMonths > 10 ? `${Math.round(recMonths)} maanden` : `${recMonths.toLocaleString("nl-BE", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} maanden`;
 
     const dialValEl = document.getElementById("autoDialValue");
@@ -4923,9 +4940,11 @@ function calculateAutomationLubrication() {
       recTitleText = `${dialLabel} (${settingTerm}) | Theoretisch: ${roundedD.toLocaleString("nl-BE")} dagen`;
     }
 
+    const roundReason = recSetting.roundedUp ? "afgerond naar boven bij > 0,7" : "afgerond naar beneden bij ≤ 0,7";
+
     if (recTitleEl) recTitleEl.textContent = recTitleText;
     if (recSubtextEl) {
-      recSubtextEl.innerHTML = `${settingLabel} <strong>${dialLabel}</strong> (afgerond naar boven voor gegarandeerde smering).<br>• Theoretisch berekende looptijd: <strong>${theoMonthsStr}</strong> (~ ${Math.round(recWeeks)} weken / ${Math.round(recDays)} dagen) bij ${capMl} cm³ patroon.`;
+      recSubtextEl.innerHTML = `${settingLabel} <strong>${dialLabel}</strong> (${roundReason}).<br>• Theoretisch berekende looptijd: <strong>${theoMonthsStr}</strong> (~ ${Math.round(recWeeks)} weken / ${Math.round(recDays)} dagen) bij ${capMl} cm³ patroon.`;
     }
   }
 
@@ -5168,9 +5187,9 @@ function selectChain(chain) {
   const vRoller = document.getElementById("visualChainRollerText");
   const vPin = document.getElementById("visualChainPinText");
 
-  if (typeImg) typeImg.src = (chain.illustrationImg || "chain-simplex.png") + "?v=235";
+  if (typeImg) typeImg.src = (chain.illustrationImg || "chain-simplex.png") + "?v=240";
   if (typeSubtitle) typeSubtitle.textContent = chain.strand || "Simplex (1-sporig)";
-  if (dimImg) dimImg.src = (chain.dimensionsImg || "chain-dimensions.png") + "?v=235";
+  if (dimImg) dimImg.src = (chain.dimensionsImg || "chain-dimensions.png") + "?v=240";
 
   if (vPitch) vPitch.textContent = chain.pitch.toFixed(1);
   if (vWidth) vWidth.textContent = chain.width.toFixed(1);
@@ -6401,8 +6420,8 @@ function calculateChainAutomation() {
   const recMonths = recDays / 30.4375;
   const recWeeks = recDays / 7;
 
-  const ceilMonths = Math.max(1, Math.ceil(recMonths));
-  const dialLabel = `${ceilMonths} ${ceilMonths === 1 ? 'maand' : 'maanden'}`;
+  const recSetting = getRecommendedSettingMonths(recMonths);
+  const dialLabel = `${recSetting.months} ${recSetting.months === 1 ? 'maand' : 'maanden'}`;
   const theoMonthsStr = recMonths > 10 ? `${Math.round(recMonths)} maanden` : `${recMonths.toLocaleString("nl-BE", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} maanden`;
 
   const chainDialValEl = document.getElementById("chainAutoDialValue");
@@ -6437,12 +6456,14 @@ function calculateChainAutomation() {
     recTitleText = `${dialLabel} (${settingTerm}) | Theoretisch: ${Math.round(recDays)} dagen`;
   }
 
+  const roundReason = recSetting.roundedUp ? "afgerond naar boven bij > 0,7" : "afgerond naar beneden bij ≤ 0,7";
+
   if (recTitleEl) recTitleEl.textContent = recTitleText;
   if (recSubtextEl) {
     const reqText = device.isContinuous
       ? `${avgCalendarDailyMl.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ml/dag`
       : `${operatingDailyCm3.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ml/draaidag (${hoursPerDay}u/dag, ${daysPerWeek}d/wk)`;
-    recSubtextEl.innerHTML = `${settingLabel} <strong>${dialLabel}</strong> (afgerond naar boven voor gegarandeerde smering).<br>• Theoretisch berekende looptijd: <strong>${theoMonthsStr}</strong> (~ ${Math.round(recWeeks)} weken / ${Math.round(recDays)} dagen) bij ${capMl} ml patroon (behoefte: ${reqText}).`;
+    recSubtextEl.innerHTML = `${settingLabel} <strong>${dialLabel}</strong> (${roundReason}).<br>• Theoretisch berekende looptijd: <strong>${theoMonthsStr}</strong> (~ ${Math.round(recWeeks)} weken / ${Math.round(recDays)} dagen) bij ${capMl} ml patroon (behoefte: ${reqText}).`;
   }
 
   // AUTO-FILL period input if user hasn't manually overridden it
