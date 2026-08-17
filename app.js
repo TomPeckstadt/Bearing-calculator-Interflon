@@ -4839,6 +4839,32 @@ function calculateAutomationLubrication() {
     const roundedPeriod = autoPeriod > 10 ? Math.round(autoPeriod) : Math.round(autoPeriod * 10) / 10;
     periodInput.value = roundedPeriod;
   }
+  // Calculate & Render Recommended Runtime for Bearing Automation
+  const recTitleEl = document.getElementById("autoRecTitle");
+  const recSubtextEl = document.getElementById("autoRecSubtext");
+
+  if (hasDailyNeed) {
+    const recDays = capMl / dailyNeedCm3;
+    const recMonths = recDays / 30.4375;
+    const recWeeks = recDays / 7;
+
+    let recTitleText = "";
+    if (unit === "months") {
+      const roundedM = recMonths > 10 ? Math.round(recMonths) : Math.round(recMonths * 10) / 10;
+      recTitleText = `${roundedM.toLocaleString("nl-BE")} maanden (~ ${Math.round(recWeeks)} weken / ${Math.round(recDays)} dagen)`;
+    } else if (unit === "weeks") {
+      const roundedW = recWeeks > 10 ? Math.round(recWeeks) : Math.round(recWeeks * 10) / 10;
+      recTitleText = `${roundedW.toLocaleString("nl-BE")} weken (~ ${Math.round(recDays)} dagen)`;
+    } else {
+      const roundedD = Math.round(recDays);
+      recTitleText = `${roundedD.toLocaleString("nl-BE")} dagen (~ ${recMonths.toFixed(1)} maanden)`;
+    }
+
+    if (recTitleEl) recTitleEl.textContent = recTitleText;
+    if (recSubtextEl) {
+      recSubtextEl.innerHTML = `Bij een patroon van <strong>${capMl} cm³</strong> levert deze leeglooptijd op het toestel exact de berekende lagerbehoefte van <strong>${dailyNeedCm3.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} cm³/dag</strong>.`;
+    }
+  }
 
   // Calculate actual daily volume from current period input
   const periodVal = parseFloat(periodInput.value) || 1;
@@ -5079,9 +5105,9 @@ function selectChain(chain) {
   const vRoller = document.getElementById("visualChainRollerText");
   const vPin = document.getElementById("visualChainPinText");
 
-  if (typeImg) typeImg.src = (chain.illustrationImg || "chain-simplex.png") + "?v=170";
+  if (typeImg) typeImg.src = (chain.illustrationImg || "chain-simplex.png") + "?v=175";
   if (typeSubtitle) typeSubtitle.textContent = chain.strand || "Simplex (1-sporig)";
-  if (dimImg) dimImg.src = (chain.dimensionsImg || "chain-dimensions.png") + "?v=170";
+  if (dimImg) dimImg.src = (chain.dimensionsImg || "chain-dimensions.png") + "?v=175";
 
   if (vPitch) vPitch.textContent = chain.pitch.toFixed(1);
   if (vWidth) vWidth.textContent = chain.width.toFixed(1);
@@ -6190,12 +6216,26 @@ function updateChainAutomationPage() {
   calculateChainAutomation();
 }
 
+let userHasManuallyEditedChainAutoPeriod = false;
+
 function onChainAutoCartridgeCapChange() {
+  userHasManuallyEditedChainAutoPeriod = false;
   calculateChainAutomation();
 }
 
 function onChainAutoPeriodInput() {
+  userHasManuallyEditedChainAutoPeriod = true;
   calculateChainAutomation();
+}
+
+function applyChainAutoRecommendation() {
+  userHasManuallyEditedChainAutoPeriod = false;
+  calculateChainAutomation();
+}
+
+function applyAutoRecommendation() {
+  userHasManuallyEditedAutoPeriod = false;
+  calculateAutomationLubrication();
 }
 
 function calculateChainAutomation() {
@@ -6209,26 +6249,16 @@ function calculateChainAutomation() {
   const matchNoticeEl = document.getElementById("chainAutoMatchNotice");
   const needValEl = document.getElementById("chainAutoNeedVal");
 
+  const recTitleEl = document.getElementById("chainAutoRecTitle");
+  const recSubtextEl = document.getElementById("chainAutoRecSubtext");
+
   if (!capSelect || !periodInput || !unitSelect || !resDailyEl) return;
 
   const deviceKey = deviceSelect ? deviceSelect.value : "interflon_single_point_oil";
   const device = CHAIN_AUTOMATION_DEVICES[deviceKey] || CHAIN_AUTOMATION_DEVICES.interflon_single_point_oil;
 
   const capMl = parseFloat(capSelect.value) || 125;
-  const periodVal = parseFloat(periodInput.value) || 6;
-  const unit = unitSelect.value;
-
-  let periodDays = periodVal;
-  if (unit === "months") periodDays = periodVal * 30.4375;
-  else if (unit === "weeks") periodDays = periodVal * 7;
-
-  if (periodDays <= 0) periodDays = 1;
-
-  const dailyMl = capMl / periodDays;
-  const monthlyMl = capMl / (periodDays / 30.4375);
-
-  if (resDailyEl) resDailyEl.textContent = `${dailyMl.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ml/dag`;
-  if (resHintEl) resHintEl.textContent = `(~ ${monthlyMl.toLocaleString("nl-BE", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} ml / maand)`;
+  const unit = unitSelect.value || "months";
 
   const lengthInput = document.getElementById("chainLengthInput");
   const speedInput = document.getElementById("chainSpeedInput");
@@ -6260,36 +6290,89 @@ function calculateChainAutomation() {
 
   const baseDailyCm3 = (width * strands * lengthM * speedMS * envFactor * tempFactor * (0.32 / micpolFactor));
 
+  // Required Daily Oil Volume (ml/day)
   let reqDailyMl = baseDailyCm3;
-  if (device.isContinuous) {
-    reqDailyMl = baseDailyCm3;
-  } else {
+  if (!device.isContinuous) {
     reqDailyMl = baseDailyCm3 * (hoursPerDay / 24);
   }
 
   if (needValEl) {
     const modeLabel = device.isContinuous ? "Continue 24/7 smeerbehoefte" : `Machinetijd smeerbehoefte (${hoursPerDay}u/dag, ${daysPerWeek}d/wk)`;
-    needValEl.textContent = `${reqDailyMl.toFixed(2)} ml/dag (${modeLabel})`;
+    needValEl.textContent = `${reqDailyMl.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ml/dag (${modeLabel})`;
   }
 
+  // Calculate RECOMMENDED RUNTIME for the selected Cartridge Capacity
+  const recDays = reqDailyMl > 0 ? (capMl / reqDailyMl) : 0;
+  let recMonths = recDays / 30.4375;
+  let recWeeks = recDays / 7;
+
+  let recPeriodVal = recMonths;
+  let recTitleText = "";
+  if (unit === "months") {
+    recPeriodVal = recMonths;
+    const roundedM = recMonths > 10 ? Math.round(recMonths) : Math.round(recMonths * 10) / 10;
+    recTitleText = `${roundedM.toLocaleString("nl-BE")} maanden (~ ${Math.round(recWeeks)} weken / ${Math.round(recDays)} dagen)`;
+  } else if (unit === "weeks") {
+    recPeriodVal = recWeeks;
+    const roundedW = recWeeks > 10 ? Math.round(recWeeks) : Math.round(recWeeks * 10) / 10;
+    recTitleText = `${roundedW.toLocaleString("nl-BE")} weken (~ ${Math.round(recDays)} dagen)`;
+  } else {
+    recPeriodVal = recDays;
+    const roundedD = Math.round(recDays);
+    recTitleText = `${roundedD.toLocaleString("nl-BE")} dagen (~ ${recMonths.toFixed(1)} maanden)`;
+  }
+
+  if (recTitleEl) recTitleEl.textContent = recTitleText;
+  if (recSubtextEl) {
+    recSubtextEl.innerHTML = `Bij een patroon van <strong>${capMl} ml</strong> levert deze looptijd op het toestel exact de berekende behoefte van <strong>${reqDailyMl.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ml/dag</strong>.`;
+  }
+
+  // AUTO-FILL period input if user hasn't manually overridden it
+  if (!userHasManuallyEditedChainAutoPeriod) {
+    const roundedVal = recPeriodVal > 10 ? Math.round(recPeriodVal) : Math.round(recPeriodVal * 10) / 10;
+    periodInput.value = roundedVal;
+  }
+
+  // Calculate actual output from periodInput.value
+  const periodVal = parseFloat(periodInput.value) || 1;
+  let periodDays = periodVal;
+  if (unit === "months") periodDays = periodVal * 30.4375;
+  else if (unit === "weeks") periodDays = periodVal * 7;
+  if (periodDays <= 0) periodDays = 1;
+
+  const dailyMl = capMl / periodDays;
+  const monthlyMl = capMl / (periodDays / 30.4375);
+
+  if (resDailyEl) resDailyEl.textContent = `${dailyMl.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ml/dag`;
+  if (resHintEl) resHintEl.textContent = `(~ ${monthlyMl.toLocaleString("nl-BE", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} ml / maand)`;
+
+  // Match notice
   if (matchNoticeEl) {
     const ratio = dailyMl / reqDailyMl;
-    if (ratio >= 0.75 && ratio <= 1.25) {
+    const recFormattedShort = (unit === "months")
+      ? `${(Math.round(recMonths * 10) / 10).toLocaleString("nl-BE")} maanden`
+      : (unit === "weeks")
+      ? `${(Math.round(recWeeks * 10) / 10).toLocaleString("nl-BE")} weken`
+      : `${Math.round(recDays)} dagen`;
+
+    if (ratio >= 0.85 && ratio <= 1.15) {
       matchNoticeEl.innerHTML = `
         <div style="padding: 8px 12px; background-color: #ECFDF5; border: 1px solid #A7F3D0; border-radius: 4px; color: #065F46; font-size: 11px; font-weight: 600;">
-          ✓ Uitstekende match! De ingestelde leeglooptijd sluit uitstekend aan bij de kettingbehoefte.
+          ✓ Uitstekende match! De ingestelde looptijd op de draaiknop van het toestel sluit optimaal aan bij de kettingbehoefte.
         </div>
       `;
-    } else if (ratio < 0.75) {
+    } else if (ratio < 0.85) {
       matchNoticeEl.innerHTML = `
         <div style="padding: 8px 12px; background-color: #FEF3C7; border: 1px solid #FDE68A; border-radius: 4px; color: #92400E; font-size: 11px; font-weight: 600;">
-          ⚠️ Ondersmering risico: Ingesteld volume (${dailyMl.toFixed(2)} ml/dag) is lager dan de berekende behoefte (${reqDailyMl.toFixed(2)} ml/dag). Verkort de looptijd.
+          ⚠️ Ondersmering risico: Ingesteld op <strong>${periodVal} ${unit}</strong> geeft het ${capMl} ml patroon slechts ${dailyMl.toFixed(2)} ml/dag af (behoefte is ${reqDailyMl.toFixed(2)} ml/dag).<br>
+          <strong>Advies:</strong> Stel het toestel in op <strong>${recFormattedShort}</strong> (of kies een groter patroon).
         </div>
       `;
     } else {
       matchNoticeEl.innerHTML = `
         <div style="padding: 8px 12px; background-color: #EFF6FF; border: 1px solid #BFDBFE; border-radius: 4px; color: #1E40AF; font-size: 11px; font-weight: 600;">
-          ℹ️ Ruime oliedosering: Ingesteld volume (${dailyMl.toFixed(2)} ml/dag) is hoger dan de berekende behoefte (${reqDailyMl.toFixed(2)} ml/dag). Verleng de looptijd indien gewenst.
+          ℹ️ Ruime oliedosering: Ingesteld op <strong>${periodVal} ${unit}</strong> geeft het ${capMl} ml patroon ${dailyMl.toFixed(2)} ml/dag af (behoefte is ${reqDailyMl.toFixed(2)} ml/dag).<br>
+          <strong>Advies:</strong> Stel het toestel in op <strong>${recFormattedShort}</strong> om exact de behoefte af te dekken.
         </div>
       `;
     }
