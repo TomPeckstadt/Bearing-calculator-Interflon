@@ -1456,7 +1456,7 @@
               <label for="automationDeviceSelect" style="font-weight: 600; font-size: 13px; color: var(--text-dark); white-space: nowrap;" data-i18n="automationDeviceLabel">
                 Selecteer Toestel:
               </label>
-              <select id="automationDeviceSelect" class="form-select" onchange="updateAutomationPage()" style="min-width: 280px; padding: 10px 14px; font-weight: 600; border-radius: var(--border-radius-md); border: 2px solid var(--primary-blue); background-color: #f8fafc; color: var(--primary-blue); font-size: 14px; cursor: pointer;">
+              <select id="automationDeviceSelect" class="form-select" onchange="updateAutomationPage()" style="min-width: 280px; padding: 10px 14px; font-weight: 600; border-radius: var(--border-radius-md); border: 2px solid var(--primary-red); background-color: #f8fafc; color: var(--primary-red); font-size: 14px; cursor: pointer;">
                 <option value="single_point" data-i18n="deviceSinglePoint">Interflon Single Point Lubricator</option>
                 <option value="pulsarlube_m2" data-i18n="devicePulsarlubeM2">Pulsarlube M2</option>
                 <option value="pulsarlube_msp" data-i18n="devicePulsarlube">Pulsarlube MSP</option>
@@ -1469,7 +1469,7 @@
             
             <!-- Image Display Box -->
             <div class="card" style="background: #ffffff; border: 1px solid #e2e8f0; padding: 20px; text-align: center; border-radius: var(--border-radius-md); box-shadow: var(--shadow-sm);">
-              <h4 id="automationImageTitle" style="color: var(--primary-blue); font-family: 'Outfit', sans-serif; font-size: 1.1rem; margin-bottom: 15px; font-weight: 700;">
+              <h4 id="automationImageTitle" style="color: var(--primary-red); font-family: 'Outfit', sans-serif; font-size: 1.1rem; margin-bottom: 15px; font-weight: 700;">
                 Interflon Single Point Lubricator
               </h4>
               <div style="min-height: 280px; display: flex; align-items: center; justify-content: center; background-color: #f8fafc; border-radius: var(--border-radius-sm); border: 1px solid #edf2f7; padding: 15px; margin-bottom: 12px;">
@@ -2376,20 +2376,19 @@
            ========================================================================== -->
       <section id="pageChainAutomation" class="page-section">
         
-        <div class="card" style="padding: 24px;">
-          
-          <!-- Header Banner -->
-          <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--primary-red); padding-bottom: 14px; margin-bottom: 24px; flex-wrap: wrap; gap: 15px;">
+        <!-- Header / Device Selection Card -->
+        <div class="card" style="margin-bottom: 24px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; border-bottom: 1px solid var(--accent-yellow-border-soft); padding-bottom: 14px; margin-bottom: 18px;">
             <div>
-              <h3 style="color: var(--primary-red); font-family: 'Outfit', sans-serif; font-size: 1.35rem; font-weight: 700; margin: 0;">
+              <h3 class="card-title" style="margin: 0;">
                 Automatische Kettingsmeersystemen
               </h3>
-              <p style="font-size: 13px; color: var(--text-medium); margin: 4px 0 0 0;">
+              <p style="margin: 4px 0 0 0; font-size: 13px; color: var(--text-medium);">
                 Berekening bij inzet van automatische kettingsmeertoestellen & oliedoseringen
               </p>
             </div>
             
-            <!-- Selector Dropdown for Chain Lubricators -->
+            <!-- Selector Dropdown -->
             <div style="display: flex; align-items: center; gap: 10px;">
               <label for="chainAutomationDeviceSelect" style="font-weight: 600; font-size: 13px; color: var(--text-dark); white-space: nowrap;">
                 Selecteer Toestel:
@@ -2566,9 +2565,9 @@
 
   <!-- JavaScript logic imports -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="interflon-data.js?v=180"></script>
+  <script src="interflon-data.js?v=185"></script>
   <script src="bearings-db.js"></script>
   <script src="chains-db.js"></script>
-  <script src="app.js?v=180"></script>
+  <script src="app.js?v=185"></script>
 </body>
 </html>
