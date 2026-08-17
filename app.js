@@ -5194,9 +5194,9 @@ function selectChain(chain) {
   const vRoller = document.getElementById("visualChainRollerText");
   const vPin = document.getElementById("visualChainPinText");
 
-  if (typeImg) typeImg.src = (chain.illustrationImg || "chain-simplex.png") + "?v=250";
+  if (typeImg) typeImg.src = (chain.illustrationImg || "chain-simplex.png") + "?v=255";
   if (typeSubtitle) typeSubtitle.textContent = chain.strand || "Simplex (1-sporig)";
-  if (dimImg) dimImg.src = (chain.dimensionsImg || "chain-dimensions.png") + "?v=250";
+  if (dimImg) dimImg.src = (chain.dimensionsImg || "chain-dimensions.png") + "?v=255";
 
   if (vPitch) vPitch.textContent = chain.pitch.toFixed(1);
   if (vWidth) vWidth.textContent = chain.width.toFixed(1);
@@ -6510,7 +6510,7 @@ function calculateChainAutomation() {
     } else if (ratio < 0.85) {
       const daysEmpty = (capMl / targetDailyMl).toFixed(0);
       const isTooSmall = recMonths < 1.0;
-      const extraWarning = isTooSmall ? `<br><strong>Let op:</strong> Bij een behoefte van ${targetDailyMl.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ml/dag (${(targetDailyMl * 30.4375).toLocaleString("nl-BE", { minimumFractionDigits: 0, maximumFractionDigits: 0 })} ml/maand) is het ${capMl} ml patroon al na ~ ${daysEmpty} dagen leeg! Stand 1 maand levert slechts ${dailyMl.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ml/dag. Kies een grotere patroongrootte.` : '';
+      const extraWarning = isTooSmall ? `<br><strong>Let op:</strong> Bij een behoefte van ${targetDailyMl.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ml/dag (${(targetDailyMl * 30.4375).toLocaleString("nl-BE", { minimumFractionDigits: 0, maximumFractionDigits: 0 })} ml/maand) is het ${capMl} ml patroon al na ~ ${daysEmpty} dagen leeg! Stand 1 maand levert slechts ${dailyMl.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ml/dag. Bekijk de opties Pulsarlube, Interflon Oil dispenser of Graco.` : '';
       matchNoticeEl.innerHTML = `
         <div style="padding: 8px 12px; background-color: #FEF3C7; border: 1px solid #FDE68A; border-radius: 4px; color: #92400E; font-size: 11px; font-weight: 600;">
           ⚠️ Ondersmering risico: Ingesteld op <strong>${periodVal} ${unit}</strong> levert het ${capMl} ml patroon slechts ${dailyMl.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ml/dag af (behoefte is ${targetDailyMl.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ml/dag).${extraWarning}
