@@ -8,7 +8,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <link rel="stylesheet" href="style.css?v=20260817_1410">
+  <link rel="stylesheet" href="style.css?v=20260817_1615">
 </head>
 <body>
 
@@ -2260,9 +2260,9 @@
               </tr>
               <tr>
                 <td class="cell-label" data-i18n="omLubesPerYear">Aantal smeerbeurten / jaar</td>
-                <td class="cell-input-wrapper"><input type="number" id="chainOmProdFreq1" class="om-cell-input numeric auto-filled" value="56" step="0.1" oninput="calculateTco()" onchange="calculateTco()"></td>
+                <td class="cell-input-wrapper"><input type="number" id="chainOmProdFreq1" class="om-cell-input numeric auto-filled" value="365" step="0.1" oninput="calculateChainGrease(); calculateTco();" onchange="calculateChainGrease(); calculateTco();"></td>
                 <td class="cell-label" data-i18n="omLubesPerYear">Aantal smeerbeurten / jaar</td>
-                <td class="cell-input-wrapper"><input type="number" id="chainOmProdFreq2" class="om-cell-input numeric auto-filled" value="56" step="0.1" oninput="calculateTco()" onchange="calculateTco()"></td>
+                <td class="cell-input-wrapper"><input type="number" id="chainOmProdFreq2" class="om-cell-input numeric auto-filled" value="365" step="0.1" oninput="calculateChainGrease(); calculateTco();" onchange="calculateChainGrease(); calculateTco();"></td>
                 <td class="cell-label" data-i18n="omWorktimePerLube">Werktijd / smeerbeurt (minuten)</td>
                 <td class="cell-input-wrapper"><input type="number" id="chainOmSharedWorktime" class="om-cell-input numeric" value="3" step="1" oninput="calculateTco()" onchange="calculateTco()"></td>
               </tr>
@@ -2616,10 +2616,10 @@
 
   <!-- JavaScript logic imports -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="interflon-data.js?v=20260817_1410"></script>
+  <script src="interflon-data.js?v=20260817_1615"></script>
   <script src="bearings-db.js"></script>
-  <script src="chains-db.js?v=20260817_1410"></script>
-  <script src="app_v6.js?v=20260817_1410"></script>
+  <script src="chains-db.js?v=20260817_1615"></script>
+  <script src="app_v6.js?v=20260817_1615"></script>
 
   <!-- Interflon Oil Dispenser Information Modal (PowerPoint Viewer) -->
   <div id="oilDispenserInfoModal" class="modal-overlay hidden" style="z-index: 99999;">
