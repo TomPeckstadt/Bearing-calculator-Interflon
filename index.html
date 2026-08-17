@@ -735,7 +735,7 @@
                   <span data-i18n="omInstructionText">Vul de grijze cellen in</span>
                 </span>
               </div>
-              <button type="button" onclick="openPdfViewerModal()" class="btn" style="padding: 6px 12px; font-size: 12px; height: auto; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; font-family: 'Outfit', sans-serif;">
+              <button type="button" onclick="openPdfViewerModal()" class="btn" style="padding: 6px 12px; font-size: 12px; height: auto; width: auto !important; max-width: fit-content; flex-shrink: 0; white-space: nowrap; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; font-family: 'Outfit', sans-serif;">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width: 16px; height: 16px; color: inherit;">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m.75 12 3 3m0 0 3-3m-3 3v-6m-1.5-9H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
                 </svg>
@@ -1857,7 +1857,7 @@
                 <span>Vul de grijze cellen in</span>
               </span>
             </div>
-            <button type="button" onclick="openPdfViewerModal()" class="btn" style="padding: 6px 12px; font-size: 12px; height: auto; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; font-family: 'Outfit', sans-serif;">
+            <button type="button" onclick="openPdfViewerModal()" class="btn" style="padding: 6px 12px; font-size: 12px; height: auto; width: auto !important; max-width: fit-content; flex-shrink: 0; white-space: nowrap; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; font-family: 'Outfit', sans-serif;">
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width: 16px; height: 16px; color: inherit;">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m.75 12 3 3m0 0 3-3m-3 3v-6m-1.5-9H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
               </svg>
@@ -1906,7 +1906,7 @@
                 <span class="input-label-description">Hoogwaardige Interflon kettingolie met MicPol® technologie</span>
                 
                 <!-- Ga naar productinfo knop -->
-                <button type="button" id="btnChainProductInfo" onclick="openPricelistModal()" class="btn" style="margin-top: 10px; width: 100%; display: inline-flex; align-items: center; justify-content: center; gap: 6px; font-family: 'Outfit', sans-serif; font-size: 12px; padding: 6px 12px; height: auto;">
+                <button type="button" id="btnChainProductInfo" onclick="openProductInfoPage()" class="btn" style="margin-top: 10px; width: 100%; display: inline-flex; align-items: center; justify-content: center; gap: 6px; font-family: 'Outfit', sans-serif; font-size: 12px; padding: 6px 12px; height: auto;">
                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width: 16px; height: 16px; color: inherit;">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 0 0 3 8.25v10.5A2.25 2.25 0 0 0 5.25 21h10.5A2.25 2.25 0 0 0 18 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
                   </svg>
@@ -2566,9 +2566,9 @@
 
   <!-- JavaScript logic imports -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="interflon-data.js?v=175"></script>
+  <script src="interflon-data.js?v=180"></script>
   <script src="bearings-db.js"></script>
   <script src="chains-db.js"></script>
-  <script src="app.js?v=175"></script>
+  <script src="app.js?v=180"></script>
 </body>
 </html>
