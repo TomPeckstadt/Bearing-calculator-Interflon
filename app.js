@@ -1721,7 +1721,7 @@ function switchPage(pageId) {
     }
     if (targetSubtitle) {
       targetSubtitle.removeAttribute("data-i18n");
-      targetSubtitle.textContent = "Berekening bij inzet van automatische kettingsmeertoestellen & oliedoseringen";
+      targetSubtitle.textContent = "Berekening instellingen/dosering bij inzet van automatische smeerunits";
     }
     updateChainAutomationPage();
   } else if (pageId === 'chainInfo') {
@@ -5198,9 +5198,9 @@ function selectChain(chain) {
   const vRoller = document.getElementById("visualChainRollerText");
   const vPin = document.getElementById("visualChainPinText");
 
-  if (typeImg) typeImg.src = (chain.illustrationImg || "chain-simplex.png") + "?v=410";
+  if (typeImg) typeImg.src = (chain.illustrationImg || "chain-simplex.png") + "?v=420";
   if (typeSubtitle) typeSubtitle.textContent = chain.strand || "Simplex (1-sporig)";
-  if (dimImg) dimImg.src = (chain.dimensionsImg || "chain-dimensions.png") + "?v=410";
+  if (dimImg) dimImg.src = (chain.dimensionsImg || "chain-dimensions.png") + "?v=420";
 
   if (vPitch) vPitch.textContent = chain.pitch.toFixed(1);
   if (vWidth) vWidth.textContent = chain.width.toFixed(1);
