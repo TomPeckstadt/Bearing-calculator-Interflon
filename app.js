@@ -4599,24 +4599,58 @@ const INTERFLON_PRODUCT_URLS = {
   "INTERFLON FOOD GREASE 3H": "https://interflon.com/be/nl/producten/interflon-food-grease-3h",
   "INTERFLON FOOD GREASE HD00": "https://interflon.com/be/nl/producten/interflon-food-grease-hd00",
   "INTERFLON FOOD GREASE HD2": "https://interflon.com/be/nl/producten/interflon-food-grease-hd2",
-  "INTERFLON FOOD GREASE S1/2": "https://interflon.com/be/nl/producten/interflon-food-grease-s1-2"
+  "INTERFLON FOOD GREASE S1/2": "https://interflon.com/be/nl/producten/interflon-food-grease-s1-2",
+  "Interflon Lube TF": "https://interflon.com/be/nl/producten/interflon-lube-tf",
+  "Interflon Lube EP+": "https://interflon.com/be/nl/producten/interflon-lube-ep",
+  "Interflon Fin Super": "https://interflon.com/be/nl/producten/interflon-fin-super",
+  "Interflon Lube HT": "https://interflon.com/be/nl/producten/interflon-lube-ht",
+  "Interflon Lube HT/SF": "https://interflon.com/be/nl/producten/interflon-lube-ht-sf",
+  "Interflon Lube EPR": "https://interflon.com/be/nl/producten/interflon-lube-epr",
+  "Interflon Food Lube": "https://interflon.com/be/nl/producten/interflon-food-lube",
+  "Interflon Food Lube 3H": "https://interflon.com/be/nl/producten/interflon-food-lube-3h",
+  "Interflon Food Lube G spuitbus": "https://interflon.com/be/nl/producten/interflon-food-lube-g",
+  "Interflon Food Lube HT": "https://interflon.com/be/nl/producten/interflon-food-lube-ht",
+  "Interflon Food Lube LT": "https://interflon.com/be/nl/producten/interflon-food-lube-lt",
+  "Interflon Food Lube H32": "https://interflon.com/be/nl/producten/interflon-food-lube-h32",
+  "Interflon Food Lube H46": "https://interflon.com/be/nl/producten/interflon-food-lube-h46",
+  "Interflon Food Lube H68": "https://interflon.com/be/nl/producten/interflon-food-lube-h68",
+  "Interflon Lube PN32": "https://interflon.com/be/nl/producten/interflon-lube-pn32",
+  "Interflon Lube PN46": "https://interflon.com/be/nl/producten/interflon-lube-pn46",
+  "Interflon Lube PN68": "https://interflon.com/be/nl/producten/interflon-lube-pn68",
+  "Interflon Food Lube PN32": "https://interflon.com/be/nl/producten/interflon-food-lube-pn32",
+  "Interflon Food Lube G 150": "https://interflon.com/be/nl/producten/interflon-food-lube-g-150",
+  "Interflon Food Lube G 220": "https://interflon.com/be/nl/producten/interflon-food-lube-g-220",
+  "Interflon Food Lube G 320": "https://interflon.com/be/nl/producten/interflon-food-lube-g-320",
+  "Interflon Food Lube G 460": "https://interflon.com/be/nl/producten/interflon-food-lube-g-460",
+  "Interflon Food Lube G 680": "https://interflon.com/be/nl/producten/interflon-food-lube-g-680"
 };
 
 function openProductInfoPage() {
-  const greaseSelect = document.getElementById("inputGrease");
-  if (!greaseSelect) return;
-  const greaseName = greaseSelect.value;
-  if (!greaseName) return;
-  
-  let url = INTERFLON_PRODUCT_URLS[greaseName];
+  const isChainMode = (typeof currentAppMode !== "undefined" && currentAppMode === "chain") ||
+                      (document.getElementById("pageChainCalc") && document.getElementById("pageChainCalc").classList.contains("active"));
+
+  let productName = "";
+
+  if (isChainMode) {
+    const chainSelect = document.getElementById("chainProductSelect");
+    if (chainSelect) productName = chainSelect.value.trim();
+  } else {
+    const greaseSelect = document.getElementById("inputGrease");
+    if (greaseSelect) productName = greaseSelect.value.trim();
+  }
+
+  if (!productName) return;
+
+  let url = INTERFLON_PRODUCT_URLS[productName] || INTERFLON_PRODUCT_URLS[productName.toUpperCase()];
   if (!url) {
-    const slug = greaseName.toLowerCase()
+    let clean = productName.replace(/^Interflon\s+/i, '').replace(/\s+spuitbus/i, '').replace(/\s*\([^)]*\)/g, '').trim();
+    const slug = clean.toLowerCase()
       .replace(/\//g, '-')
       .replace(/[^a-z0-9\-]/g, '-')
       .replace(/-+/g, '-');
-    url = `https://interflon.com/be/nl/producten/${slug}`;
+    url = `https://interflon.com/be/nl/producten/interflon-${slug}`;
   }
-  
+
   window.open(url, "_blank");
 }
 
@@ -5105,9 +5139,9 @@ function selectChain(chain) {
   const vRoller = document.getElementById("visualChainRollerText");
   const vPin = document.getElementById("visualChainPinText");
 
-  if (typeImg) typeImg.src = (chain.illustrationImg || "chain-simplex.png") + "?v=175";
+  if (typeImg) typeImg.src = (chain.illustrationImg || "chain-simplex.png") + "?v=180";
   if (typeSubtitle) typeSubtitle.textContent = chain.strand || "Simplex (1-sporig)";
-  if (dimImg) dimImg.src = (chain.dimensionsImg || "chain-dimensions.png") + "?v=175";
+  if (dimImg) dimImg.src = (chain.dimensionsImg || "chain-dimensions.png") + "?v=180";
 
   if (vPitch) vPitch.textContent = chain.pitch.toFixed(1);
   if (vWidth) vWidth.textContent = chain.width.toFixed(1);
