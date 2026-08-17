@@ -4882,21 +4882,29 @@ function calculateAutomationLubrication() {
     const recMonths = recDays / 30.4375;
     const recWeeks = recDays / 7;
 
+    const ceilMonths = Math.max(1, Math.ceil(recMonths));
+    const dialLabel = `${ceilMonths} ${ceilMonths === 1 ? 'maand' : 'maanden'}`;
+    const theoMonthsStr = recMonths > 10 ? `${Math.round(recMonths)} maanden` : `${recMonths.toLocaleString("nl-BE", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} maanden`;
+
+    const dialValEl = document.getElementById("autoDialValue");
+    const theoValEl = document.getElementById("autoTheoValue");
+    if (dialValEl) dialValEl.textContent = dialLabel;
+    if (theoValEl) theoValEl.textContent = theoMonthsStr;
+
     let recTitleText = "";
     if (unit === "months") {
-      const roundedM = recMonths > 10 ? Math.round(recMonths) : Math.round(recMonths * 10) / 10;
-      recTitleText = `${roundedM.toLocaleString("nl-BE")} maanden (~ ${Math.round(recWeeks)} weken / ${Math.round(recDays)} dagen)`;
+      recTitleText = `${dialLabel} (draaiknopstand) | Theo: ${theoMonthsStr}`;
     } else if (unit === "weeks") {
       const roundedW = recWeeks > 10 ? Math.round(recWeeks) : Math.round(recWeeks * 10) / 10;
-      recTitleText = `${roundedW.toLocaleString("nl-BE")} weken (~ ${Math.round(recDays)} dagen)`;
+      recTitleText = `${dialLabel} (draaiknopstand) | Theo: ${roundedW.toLocaleString("nl-BE")} weken`;
     } else {
       const roundedD = Math.round(recDays);
-      recTitleText = `${roundedD.toLocaleString("nl-BE")} dagen (~ ${recMonths.toFixed(1)} maanden)`;
+      recTitleText = `${dialLabel} (draaiknopstand) | Theo: ${roundedD.toLocaleString("nl-BE")} dagen`;
     }
 
     if (recTitleEl) recTitleEl.textContent = recTitleText;
     if (recSubtextEl) {
-      recSubtextEl.innerHTML = `Bij een patroon van <strong>${capMl} cm³</strong> levert deze leeglooptijd op het toestel exact de berekende lagerbehoefte van <strong>${dailyNeedCm3.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} cm³/dag</strong>.`;
+      recSubtextEl.innerHTML = `Instelstand op toestel: <strong>${dialLabel}</strong> (afgerond naar boven voor gegarandeerde smering).<br>• Theoretisch berekende looptijd: <strong>${theoMonthsStr}</strong> (~ ${Math.round(recWeeks)} weken / ${Math.round(recDays)} dagen) bij ${capMl} cm³ patroon.`;
     }
   }
 
@@ -5139,9 +5147,9 @@ function selectChain(chain) {
   const vRoller = document.getElementById("visualChainRollerText");
   const vPin = document.getElementById("visualChainPinText");
 
-  if (typeImg) typeImg.src = (chain.illustrationImg || "chain-simplex.png") + "?v=200";
+  if (typeImg) typeImg.src = (chain.illustrationImg || "chain-simplex.png") + "?v=205";
   if (typeSubtitle) typeSubtitle.textContent = chain.strand || "Simplex (1-sporig)";
-  if (dimImg) dimImg.src = (chain.dimensionsImg || "chain-dimensions.png") + "?v=200";
+  if (dimImg) dimImg.src = (chain.dimensionsImg || "chain-dimensions.png") + "?v=205";
 
   if (vPitch) vPitch.textContent = chain.pitch.toFixed(1);
   if (vWidth) vWidth.textContent = chain.width.toFixed(1);
@@ -6369,20 +6377,27 @@ function calculateChainAutomation() {
   const recMonths = recDays / 30.4375;
   const recWeeks = recDays / 7;
 
+  const ceilMonths = Math.max(1, Math.ceil(recMonths));
+  const dialLabel = `${ceilMonths} ${ceilMonths === 1 ? 'maand' : 'maanden'}`;
+  const theoMonthsStr = recMonths > 10 ? `${Math.round(recMonths)} maanden` : `${recMonths.toLocaleString("nl-BE", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} maanden`;
+
+  const chainDialValEl = document.getElementById("chainAutoDialValue");
+  const chainTheoValEl = document.getElementById("chainAutoTheoValue");
+  if (chainDialValEl) chainDialValEl.textContent = dialLabel;
+  if (chainTheoValEl) chainTheoValEl.textContent = theoMonthsStr;
+
   let recPeriodVal = recMonths;
   let recTitleText = "";
   if (unit === "months") {
     recPeriodVal = recMonths;
-    const roundedM = recMonths > 10 ? Math.round(recMonths) : Math.round(recMonths * 10) / 10;
-    recTitleText = `${roundedM.toLocaleString("nl-BE")} maanden (~ ${Math.round(recWeeks)} weken / ${Math.round(recDays)} dagen)`;
+    recTitleText = `${dialLabel} (draaiknopstand) | Theo: ${theoMonthsStr}`;
   } else if (unit === "weeks") {
     recPeriodVal = recWeeks;
     const roundedW = recWeeks > 10 ? Math.round(recWeeks) : Math.round(recWeeks * 10) / 10;
-    recTitleText = `${roundedW.toLocaleString("nl-BE")} weken (~ ${Math.round(recDays)} dagen)`;
+    recTitleText = `${dialLabel} (draaiknopstand) | Theo: ${roundedW.toLocaleString("nl-BE")} weken`;
   } else {
     recPeriodVal = recDays;
-    const roundedD = Math.round(recDays);
-    recTitleText = `${roundedD.toLocaleString("nl-BE")} dagen (~ ${recMonths.toFixed(1)} maanden)`;
+    recTitleText = `${dialLabel} (draaiknopstand) | Theo: ${Math.round(recDays)} dagen`;
   }
 
   if (recTitleEl) recTitleEl.textContent = recTitleText;
@@ -6390,7 +6405,7 @@ function calculateChainAutomation() {
     const reqText = device.isContinuous
       ? `${avgCalendarDailyMl.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ml/dag`
       : `${operatingDailyCm3.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ml/draaidag (${hoursPerDay}u/dag, ${daysPerWeek}d/wk)`;
-    recSubtextEl.innerHTML = `Bij een patroon van <strong>${capMl} ml</strong> levert deze leeglooptijd op het toestel exact de berekende behoefte van <strong>${reqText}</strong>.`;
+    recSubtextEl.innerHTML = `Instelstand op toestel: <strong>${dialLabel}</strong> (afgerond naar boven voor gegarandeerde smering).<br>• Theoretisch berekende looptijd: <strong>${theoMonthsStr}</strong> (~ ${Math.round(recWeeks)} weken / ${Math.round(recDays)} dagen) bij ${capMl} ml patroon (behoefte: ${reqText}).`;
   }
 
   // AUTO-FILL period input if user hasn't manually overridden it
