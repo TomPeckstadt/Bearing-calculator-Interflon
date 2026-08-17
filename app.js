@@ -4893,13 +4893,13 @@ function calculateAutomationLubrication() {
 
     let recTitleText = "";
     if (unit === "months") {
-      recTitleText = `${dialLabel} (draaiknopstand) | Theo: ${theoMonthsStr}`;
+      recTitleText = `${dialLabel} (draaiknopstand) | Theoretisch: ${theoMonthsStr}`;
     } else if (unit === "weeks") {
       const roundedW = recWeeks > 10 ? Math.round(recWeeks) : Math.round(recWeeks * 10) / 10;
-      recTitleText = `${dialLabel} (draaiknopstand) | Theo: ${roundedW.toLocaleString("nl-BE")} weken`;
+      recTitleText = `${dialLabel} (draaiknopstand) | Theoretisch: ${roundedW.toLocaleString("nl-BE")} weken`;
     } else {
       const roundedD = Math.round(recDays);
-      recTitleText = `${dialLabel} (draaiknopstand) | Theo: ${roundedD.toLocaleString("nl-BE")} dagen`;
+      recTitleText = `${dialLabel} (draaiknopstand) | Theoretisch: ${roundedD.toLocaleString("nl-BE")} dagen`;
     }
 
     if (recTitleEl) recTitleEl.textContent = recTitleText;
@@ -5147,9 +5147,9 @@ function selectChain(chain) {
   const vRoller = document.getElementById("visualChainRollerText");
   const vPin = document.getElementById("visualChainPinText");
 
-  if (typeImg) typeImg.src = (chain.illustrationImg || "chain-simplex.png") + "?v=210";
+  if (typeImg) typeImg.src = (chain.illustrationImg || "chain-simplex.png") + "?v=215";
   if (typeSubtitle) typeSubtitle.textContent = chain.strand || "Simplex (1-sporig)";
-  if (dimImg) dimImg.src = (chain.dimensionsImg || "chain-dimensions.png") + "?v=210";
+  if (dimImg) dimImg.src = (chain.dimensionsImg || "chain-dimensions.png") + "?v=215";
 
   if (vPitch) vPitch.textContent = chain.pitch.toFixed(1);
   if (vWidth) vWidth.textContent = chain.width.toFixed(1);
@@ -6390,14 +6390,14 @@ function calculateChainAutomation() {
   let recTitleText = "";
   if (unit === "months") {
     recPeriodVal = recMonths;
-    recTitleText = `${dialLabel} (draaiknopstand) | Theo: ${theoMonthsStr}`;
+    recTitleText = `${dialLabel} (draaiknopstand) | Theoretisch: ${theoMonthsStr}`;
   } else if (unit === "weeks") {
     recPeriodVal = recWeeks;
     const roundedW = recWeeks > 10 ? Math.round(recWeeks) : Math.round(recWeeks * 10) / 10;
-    recTitleText = `${dialLabel} (draaiknopstand) | Theo: ${roundedW.toLocaleString("nl-BE")} weken`;
+    recTitleText = `${dialLabel} (draaiknopstand) | Theoretisch: ${roundedW.toLocaleString("nl-BE")} weken`;
   } else {
     recPeriodVal = recDays;
-    recTitleText = `${dialLabel} (draaiknopstand) | Theo: ${Math.round(recDays)} dagen`;
+    recTitleText = `${dialLabel} (draaiknopstand) | Theoretisch: ${Math.round(recDays)} dagen`;
   }
 
   if (recTitleEl) recTitleEl.textContent = recTitleText;
