@@ -1500,6 +1500,27 @@
               <!-- Smeercalculatie Source Summary Badge -->
               <div id="autoBearingNeedBadge"></div>
 
+              <!-- Highlighted Recommended Period Card for Bearing Automation -->
+              <div id="autoRecCard" style="background: #EFF6FF; border: 2px solid var(--primary-blue); border-radius: var(--border-radius-sm); padding: 14px; margin-bottom: 16px; box-shadow: 0 2px 6px rgba(30, 58, 138, 0.08);">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; flex-wrap: wrap; gap: 8px;">
+                  <span style="font-size: 11px; font-weight: 800; color: var(--primary-blue); text-transform: uppercase; letter-spacing: 0.5px;">
+                    🎯 Geadviseerde Instelling op Toestel
+                  </span>
+                  <button type="button" onclick="applyAutoRecommendation()" class="btn" style="font-size: 11px; padding: 4px 10px; height: auto; border-radius: 4px; display: inline-flex; align-items: center; gap: 4px;">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width: 14px; height: 14px;">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                    </svg>
+                    <span>Neem advies over</span>
+                  </button>
+                </div>
+                <div id="autoRecTitle" style="font-size: 22px; font-weight: 800; color: var(--primary-blue); margin: 2px 0 4px 0;">
+                  -
+                </div>
+                <div id="autoRecSubtext" style="font-size: 12px; color: var(--text-dark); line-height: 1.4;">
+                  -
+                </div>
+              </div>
+
               <!-- Calculation Inputs for Lubricator -->
               <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: var(--border-radius-sm); padding: 16px; margin-bottom: 16px;">
                 <h5 style="margin: 0 0 12px 0; font-size: 13px; font-weight: 700; color: var(--text-dark);" data-i18n="automationCalcHeader">
@@ -2415,8 +2436,29 @@
               </div>
 
               <!-- Chain Smeercalculatie Source Summary Badge -->
-              <div id="chainAutoNeedBadge" style="margin-bottom: 16px; padding: 10px 14px; background-color: #FEF2F2; border-left: 4px solid var(--primary-red); border-radius: 4px; font-size: 12px; color: var(--text-dark);">
+              <div id="chainAutoNeedBadge" style="margin-bottom: 14px; padding: 10px 14px; background-color: #FEF2F2; border-left: 4px solid var(--primary-red); border-radius: 4px; font-size: 12px; color: var(--text-dark);">
                 <strong>Ketting behoefte (uit berekening):</strong> <span id="chainAutoNeedVal">-</span>
+              </div>
+
+              <!-- Highlighted Recommended Period Card for Chain Automation -->
+              <div id="chainAutoRecCard" style="background: #FEF2F2; border: 2px solid var(--primary-red); border-radius: var(--border-radius-sm); padding: 14px; margin-bottom: 16px; box-shadow: 0 2px 6px rgba(227, 6, 19, 0.08);">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; flex-wrap: wrap; gap: 8px;">
+                  <span style="font-size: 11px; font-weight: 800; color: var(--primary-red); text-transform: uppercase; letter-spacing: 0.5px;">
+                    🎯 Geadviseerde Instelling op Toestel
+                  </span>
+                  <button type="button" onclick="applyChainAutoRecommendation()" class="btn-action-red" style="font-size: 11px; padding: 4px 10px; height: auto; border-radius: 4px; display: inline-flex; align-items: center; gap: 4px;">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width: 14px; height: 14px;">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                    </svg>
+                    <span>Neem advies over</span>
+                  </button>
+                </div>
+                <div id="chainAutoRecTitle" style="font-size: 22px; font-weight: 800; color: var(--primary-red); margin: 2px 0 4px 0;">
+                  -
+                </div>
+                <div id="chainAutoRecSubtext" style="font-size: 12px; color: var(--text-dark); line-height: 1.4;">
+                  -
+                </div>
               </div>
 
               <!-- Calculation Inputs for Lubricator -->
@@ -2524,9 +2566,9 @@
 
   <!-- JavaScript logic imports -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="interflon-data.js?v=170"></script>
+  <script src="interflon-data.js?v=175"></script>
   <script src="bearings-db.js"></script>
   <script src="chains-db.js"></script>
-  <script src="app.js?v=170"></script>
+  <script src="app.js?v=175"></script>
 </body>
 </html>
