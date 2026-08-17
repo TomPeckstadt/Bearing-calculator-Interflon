@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Interflon Lager Smeercalculator</title>
   <meta name="description" content="Bereken eenvoudig de smeerfrequentie en smeerhoeveelheid voor lagers op basis van specificaties met Interflon smeermiddelen.">
-  <link rel="stylesheet" href="style.css?v=140">
+  <link rel="stylesheet" href="style.css?v=210">
 </head>
 <body>
 
@@ -1459,7 +1459,7 @@
               <label for="automationDeviceSelect" style="font-weight: 600; font-size: 13px; color: var(--text-dark); white-space: nowrap;" data-i18n="automationDeviceLabel">
                 Selecteer Toestel:
               </label>
-              <select id="automationDeviceSelect" class="form-select" onchange="updateAutomationPage()" style="min-width: 280px; padding: 10px 14px; font-weight: 600; border-radius: var(--border-radius-md); border: 2px solid var(--primary-red); background-color: #f8fafc; color: var(--primary-red); font-size: 14px; cursor: pointer;">
+              <select id="automationDeviceSelect" class="form-select device-select-pill" onchange="updateAutomationPage()">
                 <option value="single_point" data-i18n="deviceSinglePoint">Interflon Single Point Lubricator</option>
                 <option value="pulsarlube_m2" data-i18n="devicePulsarlubeM2">Pulsarlube M2</option>
                 <option value="pulsarlube_msp" data-i18n="devicePulsarlube">Pulsarlube MSP</option>
@@ -2414,7 +2414,7 @@
               <label for="chainAutomationDeviceSelect" style="font-weight: 600; font-size: 13px; color: var(--text-dark); white-space: nowrap;">
                 Selecteer Toestel:
               </label>
-              <select id="chainAutomationDeviceSelect" class="form-select" onchange="updateChainAutomationPage()" style="min-width: 280px; padding: 10px 14px; font-weight: 600; border-radius: var(--border-radius-md); border: 2px solid var(--primary-red); background-color: #f8fafc; color: var(--primary-red); font-size: 14px; cursor: pointer;">
+              <select id="chainAutomationDeviceSelect" class="form-select device-select-pill" onchange="updateChainAutomationPage()">
                 <option value="interflon_single_point_oil">Interflon Single Point Lubricator (Olie)</option>
                 <option value="pulsarlube_oil">Pulsarlube Oil</option>
                 <option value="pulsarlube_msp_oil">Pulsarlube MSP Oil</option>
@@ -2596,9 +2596,9 @@
 
   <!-- JavaScript logic imports -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="interflon-data.js?v=205"></script>
+  <script src="interflon-data.js?v=210"></script>
   <script src="bearings-db.js"></script>
   <script src="chains-db.js"></script>
-  <script src="app.js?v=205"></script>
+  <script src="app.js?v=210"></script>
 </body>
 </html>
