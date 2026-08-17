@@ -2435,17 +2435,22 @@ function updateChainTcoFrequencies() {
   const daysPerWeek = daysPerWeekInput ? (parseFloat(daysPerWeekInput.value) || 7) : 7;
   const formulaAnnualFreq = Math.round(daysPerWeek * 52.14);
 
-  let activeFreq = formulaAnnualFreq;
+  const micPolInput = document.getElementById("chainFactorInput");
+  const micpolFactor = micPolInput ? (parseFloat(micPolInput.value) || 4.0) : 4.0;
+
+  let activeFreq1 = formulaAnnualFreq;
   if (mode === "practical") {
     const techIntervalVal = localStorage.getItem("tech_interval");
     const intervalDays = techIntervalVal ? parseFloat(techIntervalVal) : 0;
     if (intervalDays > 0) {
-      activeFreq = Math.round(365 / intervalDays);
+      activeFreq1 = Math.round(365 / intervalDays);
     }
   }
 
-  chainOmProdFreq1El.value = activeFreq.toString();
-  chainOmProdFreq2El.value = activeFreq.toString();
+  const activeFreq2 = micpolFactor > 0 ? (activeFreq1 / micpolFactor) : activeFreq1;
+
+  chainOmProdFreq1El.value = (Math.round(activeFreq1 * 10) / 10).toString();
+  chainOmProdFreq2El.value = (Math.round(activeFreq2 * 10) / 10).toString();
 
   if (typeof calculateChainGrease === "function") {
     calculateChainGrease();
@@ -5353,13 +5358,14 @@ function calculateChainGrease() {
     if (chainFreq1El) chainFreq1El.value = freq1.toString();
   }
 
-  // Right column frequency (Nieuwe situatie Interflon) syncs with left column (Huidige situatie)
-  let freq2 = freq1;
-  if (chainFreq2El) chainFreq2El.value = freq2.toString();
-
-  // Volume per lube event: Convertiefactor is applied (Interflon volume per event = Conv volume per event / micpolFactor)
+  // Interflon Standtijdverlenging / Frequentiereductie logic:
+  // Volume per smeerbeurt is EQUAL for both conventional and Interflon (same oil volume needed to lube the chain)
   const convConsPerApp = (convYearlyMl / freq1);
-  const interflonConsPerApp = (interflonYearlyMl / freq2);
+  const interflonConsPerApp = convConsPerApp;
+
+  // Interflon lubrication frequency is reduced by micpolFactor (e.g. 12 lubes/year -> 3 lubes/year)
+  let freq2 = micpolFactor > 0 ? (freq1 / micpolFactor) : freq1;
+  if (chainFreq2El) chainFreq2El.value = (Math.round(freq2 * 10) / 10).toString();
 
   if (chainCons1El) chainCons1El.value = convConsPerApp.toFixed(1);
   if (chainCons2El) chainCons2El.value = interflonConsPerApp.toFixed(1);
