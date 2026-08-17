@@ -4899,20 +4899,33 @@ function calculateAutomationLubrication() {
     if (dialValEl) dialValEl.textContent = dialLabel;
     if (theoValEl) theoValEl.textContent = theoMonthsStr;
 
+    const isDialDevice = (device === "single_point");
+    const settingTerm = isDialDevice ? "draaiknopstand" : "display instelling";
+    const settingLabel = isDialDevice ? "Instelstand op toestel:" : "Display instelling op toestel:";
+
+    const dialContainer = document.getElementById("autoDialLabelContainer");
+    if (dialContainer) {
+      if (isDialDevice) {
+        dialContainer.innerHTML = `<img src="draaiknop.png?v=230" alt="Draaiknop" style="width: 22px; height: 22px; object-fit: contain;"><span>Instelstand draaiknop toestel:</span>`;
+      } else {
+        dialContainer.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="var(--primary-red)" style="width: 18px; height: 18px; flex-shrink: 0;"><path stroke-linecap="round" stroke-linejoin="round" d="M6 6.75A2.25 2.25 0 0 1 8.25 4.5h7.5A2.25 2.25 0 0 1 18 6.75v10.5A2.25 2.25 0 0 1 15.75 19.5h-7.5A2.25 2.25 0 0 1 6 17.25V6.75z" /><path stroke-linecap="round" stroke-linejoin="round" d="M9 8.25h6v3.75H9V8.25z" /></svg><span>Display instelling op toestel:</span>`;
+      }
+    }
+
     let recTitleText = "";
     if (unit === "months") {
-      recTitleText = `${dialLabel} (draaiknopstand) | Theoretisch: ${theoMonthsStr}`;
+      recTitleText = `${dialLabel} (${settingTerm}) | Theoretisch: ${theoMonthsStr}`;
     } else if (unit === "weeks") {
       const roundedW = recWeeks > 10 ? Math.round(recWeeks) : Math.round(recWeeks * 10) / 10;
-      recTitleText = `${dialLabel} (draaiknopstand) | Theoretisch: ${roundedW.toLocaleString("nl-BE")} weken`;
+      recTitleText = `${dialLabel} (${settingTerm}) | Theoretisch: ${roundedW.toLocaleString("nl-BE")} weken`;
     } else {
       const roundedD = Math.round(recDays);
-      recTitleText = `${dialLabel} (draaiknopstand) | Theoretisch: ${roundedD.toLocaleString("nl-BE")} dagen`;
+      recTitleText = `${dialLabel} (${settingTerm}) | Theoretisch: ${roundedD.toLocaleString("nl-BE")} dagen`;
     }
 
     if (recTitleEl) recTitleEl.textContent = recTitleText;
     if (recSubtextEl) {
-      recSubtextEl.innerHTML = `Instelstand op toestel: <strong>${dialLabel}</strong> (afgerond naar boven voor gegarandeerde smering).<br>• Theoretisch berekende looptijd: <strong>${theoMonthsStr}</strong> (~ ${Math.round(recWeeks)} weken / ${Math.round(recDays)} dagen) bij ${capMl} cm³ patroon.`;
+      recSubtextEl.innerHTML = `${settingLabel} <strong>${dialLabel}</strong> (afgerond naar boven voor gegarandeerde smering).<br>• Theoretisch berekende looptijd: <strong>${theoMonthsStr}</strong> (~ ${Math.round(recWeeks)} weken / ${Math.round(recDays)} dagen) bij ${capMl} cm³ patroon.`;
     }
   }
 
@@ -5155,9 +5168,9 @@ function selectChain(chain) {
   const vRoller = document.getElementById("visualChainRollerText");
   const vPin = document.getElementById("visualChainPinText");
 
-  if (typeImg) typeImg.src = (chain.illustrationImg || "chain-simplex.png") + "?v=230";
+  if (typeImg) typeImg.src = (chain.illustrationImg || "chain-simplex.png") + "?v=235";
   if (typeSubtitle) typeSubtitle.textContent = chain.strand || "Simplex (1-sporig)";
-  if (dimImg) dimImg.src = (chain.dimensionsImg || "chain-dimensions.png") + "?v=230";
+  if (dimImg) dimImg.src = (chain.dimensionsImg || "chain-dimensions.png") + "?v=235";
 
   if (vPitch) vPitch.textContent = chain.pitch.toFixed(1);
   if (vWidth) vWidth.textContent = chain.width.toFixed(1);
@@ -6397,18 +6410,31 @@ function calculateChainAutomation() {
   if (chainDialValEl) chainDialValEl.textContent = dialLabel;
   if (chainTheoValEl) chainTheoValEl.textContent = theoMonthsStr;
 
+  const isDialDevice = (deviceKey === "interflon_single_point_oil");
+  const settingTerm = isDialDevice ? "draaiknopstand" : "display instelling";
+  const settingLabel = isDialDevice ? "Instelstand op toestel:" : "Display instelling op toestel:";
+
+  const chainDialContainer = document.getElementById("chainAutoDialLabelContainer");
+  if (chainDialContainer) {
+    if (isDialDevice) {
+      chainDialContainer.innerHTML = `<img src="draaiknop.png?v=230" alt="Draaiknop" style="width: 22px; height: 22px; object-fit: contain;"><span>Instelstand draaiknop toestel:</span>`;
+    } else {
+      chainDialContainer.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="var(--primary-red)" style="width: 18px; height: 18px; flex-shrink: 0;"><path stroke-linecap="round" stroke-linejoin="round" d="M6 6.75A2.25 2.25 0 0 1 8.25 4.5h7.5A2.25 2.25 0 0 1 18 6.75v10.5A2.25 2.25 0 0 1 15.75 19.5h-7.5A2.25 2.25 0 0 1 6 17.25V6.75z" /><path stroke-linecap="round" stroke-linejoin="round" d="M9 8.25h6v3.75H9V8.25z" /></svg><span>Display instelling op toestel:</span>`;
+    }
+  }
+
   let recPeriodVal = recMonths;
   let recTitleText = "";
   if (unit === "months") {
     recPeriodVal = recMonths;
-    recTitleText = `${dialLabel} (draaiknopstand) | Theoretisch: ${theoMonthsStr}`;
+    recTitleText = `${dialLabel} (${settingTerm}) | Theoretisch: ${theoMonthsStr}`;
   } else if (unit === "weeks") {
     recPeriodVal = recWeeks;
     const roundedW = recWeeks > 10 ? Math.round(recWeeks) : Math.round(recWeeks * 10) / 10;
-    recTitleText = `${dialLabel} (draaiknopstand) | Theoretisch: ${roundedW.toLocaleString("nl-BE")} weken`;
+    recTitleText = `${dialLabel} (${settingTerm}) | Theoretisch: ${roundedW.toLocaleString("nl-BE")} weken`;
   } else {
     recPeriodVal = recDays;
-    recTitleText = `${dialLabel} (draaiknopstand) | Theoretisch: ${Math.round(recDays)} dagen`;
+    recTitleText = `${dialLabel} (${settingTerm}) | Theoretisch: ${Math.round(recDays)} dagen`;
   }
 
   if (recTitleEl) recTitleEl.textContent = recTitleText;
@@ -6416,7 +6442,7 @@ function calculateChainAutomation() {
     const reqText = device.isContinuous
       ? `${avgCalendarDailyMl.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ml/dag`
       : `${operatingDailyCm3.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ml/draaidag (${hoursPerDay}u/dag, ${daysPerWeek}d/wk)`;
-    recSubtextEl.innerHTML = `Instelstand op toestel: <strong>${dialLabel}</strong> (afgerond naar boven voor gegarandeerde smering).<br>• Theoretisch berekende looptijd: <strong>${theoMonthsStr}</strong> (~ ${Math.round(recWeeks)} weken / ${Math.round(recDays)} dagen) bij ${capMl} ml patroon (behoefte: ${reqText}).`;
+    recSubtextEl.innerHTML = `${settingLabel} <strong>${dialLabel}</strong> (afgerond naar boven voor gegarandeerde smering).<br>• Theoretisch berekende looptijd: <strong>${theoMonthsStr}</strong> (~ ${Math.round(recWeeks)} weken / ${Math.round(recDays)} dagen) bij ${capMl} ml patroon (behoefte: ${reqText}).`;
   }
 
   // AUTO-FILL period input if user hasn't manually overridden it
