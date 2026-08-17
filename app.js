@@ -5194,9 +5194,9 @@ function selectChain(chain) {
   const vRoller = document.getElementById("visualChainRollerText");
   const vPin = document.getElementById("visualChainPinText");
 
-  if (typeImg) typeImg.src = (chain.illustrationImg || "chain-simplex.png") + "?v=300";
+  if (typeImg) typeImg.src = (chain.illustrationImg || "chain-simplex.png") + "?v=310";
   if (typeSubtitle) typeSubtitle.textContent = chain.strand || "Simplex (1-sporig)";
-  if (dimImg) dimImg.src = (chain.dimensionsImg || "chain-dimensions.png") + "?v=300";
+  if (dimImg) dimImg.src = (chain.dimensionsImg || "chain-dimensions.png") + "?v=310";
 
   if (vPitch) vPitch.textContent = chain.pitch.toFixed(1);
   if (vWidth) vWidth.textContent = chain.width.toFixed(1);
@@ -6281,7 +6281,7 @@ const CHAIN_AUTOMATION_DEVICES = {
   },
   interflon_oil_dispenser: {
     title: "Interflon Oil Dispenser",
-    img: "interflon-oil-dispenser.jpg",
+    img: "interflon-oil-dispenser.png",
     dimImg: "oil-dispenser-info",
     desc: "De <strong>Interflon Oil Dispenser</strong> beschikt over een <strong>2 Liter oliereservoir</strong> en is ontworpen voor precieze dosering en meervoudige smeerpunten (via borstels of Nozzles). Zowel manueel als PLC-gestuurd inzetbaar.",
     capacities: [2000],
