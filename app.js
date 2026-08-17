@@ -5198,9 +5198,9 @@ function selectChain(chain) {
   const vRoller = document.getElementById("visualChainRollerText");
   const vPin = document.getElementById("visualChainPinText");
 
-  if (typeImg) typeImg.src = (chain.illustrationImg || "chain-simplex.png") + "?v=380";
+  if (typeImg) typeImg.src = (chain.illustrationImg || "chain-simplex.png") + "?v=410";
   if (typeSubtitle) typeSubtitle.textContent = chain.strand || "Simplex (1-sporig)";
-  if (dimImg) dimImg.src = (chain.dimensionsImg || "chain-dimensions.png") + "?v=380";
+  if (dimImg) dimImg.src = (chain.dimensionsImg || "chain-dimensions.png") + "?v=410";
 
   if (vPitch) vPitch.textContent = chain.pitch.toFixed(1);
   if (vWidth) vWidth.textContent = chain.width.toFixed(1);
@@ -6627,9 +6627,10 @@ function calculateChainAutomation() {
   if (matchNoticeEl && targetDailyMl > 0) {
     const ratio = dailyMl / targetDailyMl;
     const isSufficientCap = (recMonths >= 0.70);
-    const isExactRecSetting = (unit === "months" && Math.round(periodVal) === recSetting.months && isSufficientCap && ratio >= 0.85);
+    const isSameSetting = (unit === "months" && Math.round(periodVal) === recSetting.months);
+    const isGoodRatio = (ratio >= 0.85 && ratio <= 1.15);
 
-    if (isExactRecSetting || (ratio >= 0.85 && ratio <= 1.15 && isSufficientCap)) {
+    if (isSameSetting && isGoodRatio && isSufficientCap) {
       matchNoticeEl.innerHTML = `
         <div style="padding: 8px 12px; background-color: #ECFDF5; border: 1px solid #A7F3D0; border-radius: 4px; color: #065F46; font-size: 11px; font-weight: 600;">
           ✓ Uitstekende match! De ingestelde looptijd (${activeSettingLabel}) op het toestel sluit optimaal aan bij de kettingbehoefte (${targetDailyMl.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ml/dag).
