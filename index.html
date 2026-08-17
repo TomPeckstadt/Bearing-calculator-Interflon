@@ -549,7 +549,7 @@
                 <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.637 10.637Z" />
               </svg>
             </span>
-            <input type="text" id="bearingSearchInput" class="search-input" placeholder="Bijv. 6204, 22220, NU210..." data-i18n-placeholder="searchInputPlaceholder" oninput="handleSearchInput()" autocomplete="off">
+            <input type="text" id="bearingSearchInput" class="search-input" placeholder="Bijv. 6204, 22220, NU210..." data-i18n-placeholder="searchInputPlaceholder" oninput="handleSearchInput()" onfocus="handleSearchInput()" onclick="handleSearchInput()" autocomplete="off">
             <div id="suggestionsBox" class="autocomplete-suggestions"></div>
           </div>
         </div>
@@ -1607,7 +1607,7 @@
                 <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.637 10.637Z" />
               </svg>
             </span>
-            <input type="text" id="chainSearchInput" class="search-input" placeholder="Bijv. 08B-1, 12B-2, ANSI 40, ANSI 60..." oninput="handleChainSearchInput()" onfocus="handleChainSearchInput()" autocomplete="off">
+            <input type="text" id="chainSearchInput" class="search-input" placeholder="Bijv. 08B-1, 12B-2, ANSI 40, ANSI 60..." oninput="handleChainSearchInput()" onfocus="handleChainSearchInput()" onclick="handleChainSearchInput()" autocomplete="off">
             <div id="chainSuggestionsBox" class="autocomplete-suggestions" style="display: none;"></div>
           </div>
         </div>
@@ -2285,9 +2285,9 @@
 
   <!-- JavaScript logic imports -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="interflon-data.js?v=150"></script>
+  <script src="interflon-data.js?v=155"></script>
   <script src="bearings-db.js"></script>
   <script src="chains-db.js"></script>
-  <script src="app.js?v=150"></script>
+  <script src="app.js?v=155"></script>
 </body>
 </html>
