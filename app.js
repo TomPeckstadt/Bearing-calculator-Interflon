@@ -5194,9 +5194,9 @@ function selectChain(chain) {
   const vRoller = document.getElementById("visualChainRollerText");
   const vPin = document.getElementById("visualChainPinText");
 
-  if (typeImg) typeImg.src = (chain.illustrationImg || "chain-simplex.png") + "?v=260";
+  if (typeImg) typeImg.src = (chain.illustrationImg || "chain-simplex.png") + "?v=265";
   if (typeSubtitle) typeSubtitle.textContent = chain.strand || "Simplex (1-sporig)";
-  if (dimImg) dimImg.src = (chain.dimensionsImg || "chain-dimensions.png") + "?v=260";
+  if (dimImg) dimImg.src = (chain.dimensionsImg || "chain-dimensions.png") + "?v=265";
 
   if (vPitch) vPitch.textContent = chain.pitch.toFixed(1);
   if (vWidth) vWidth.textContent = chain.width.toFixed(1);
@@ -6520,38 +6520,35 @@ function calculateChainAutomation() {
   const dailyMl = capMl / periodDays;
   const monthlyMl = capMl / (periodDays / 30.4375);
 
+  let unitLabel = "maanden";
+  if (unit === "weeks") unitLabel = periodVal === 1 ? "week" : "weken";
+  else if (unit === "days") unitLabel = periodVal === 1 ? "dag" : "dagen";
+  else if (unit === "months") unitLabel = periodVal === 1 ? "maand" : "maanden";
+
   if (resDailyEl) resDailyEl.textContent = `${dailyMl.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ml/dag`;
-  if (resHintEl) resHintEl.textContent = `(~ ${monthlyMl.toLocaleString("nl-BE", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} ml / maand bij ${capMl} ml op ${periodVal} ${unit})`;
+  if (resHintEl) resHintEl.textContent = `(~ ${monthlyMl.toLocaleString("nl-BE", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} ml / maand bij ${capMl} ml op ${periodVal} ${unitLabel})`;
 
   // Match Notice Comparison
   const targetDailyMl = avgCalendarDailyMl;
   if (matchNoticeEl && targetDailyMl > 0) {
     const ratio = dailyMl / targetDailyMl;
-    const recFormattedShort = (unit === "months")
-      ? `${(Math.round(recMonths * 10) / 10).toLocaleString("nl-BE")} maanden`
-      : (unit === "weeks")
-      ? `${(Math.round(recWeeks * 10) / 10).toLocaleString("nl-BE")} weken`
-      : `${Math.round(recDays)} dagen`;
 
     if (ratio >= 0.85 && ratio <= 1.15) {
       matchNoticeEl.innerHTML = `
         <div style="padding: 8px 12px; background-color: #ECFDF5; border: 1px solid #A7F3D0; border-radius: 4px; color: #065F46; font-size: 11px; font-weight: 600;">
-          ✓ Uitstekende match! De ingestelde looptijd (${periodVal} ${unit}) op het toestel sluit optimaal aan bij de kettingbehoefte (${targetDailyMl.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ml/dag).
+          ✓ Uitstekende match! De ingestelde looptijd (${periodVal} ${unitLabel}) op het toestel sluit optimaal aan bij de kettingbehoefte (${targetDailyMl.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ml/dag).
         </div>
       `;
     } else if (ratio < 0.85) {
-      const daysEmpty = (capMl / targetDailyMl).toFixed(0);
-      const isTooSmall = recMonths < 1.0;
-      const extraWarning = isTooSmall ? `<br><strong>Let op:</strong> Bij een behoefte van ${targetDailyMl.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ml/dag (${(targetDailyMl * 30.4375).toLocaleString("nl-BE", { minimumFractionDigits: 0, maximumFractionDigits: 0 })} ml/maand) is het ${capMl} ml patroon al na ~ ${daysEmpty} dagen leeg! Stand 1 maand levert slechts ${dailyMl.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ml/dag. Bekijk de opties Pulsarlube, Interflon Oil dispenser of Graco.` : '';
       matchNoticeEl.innerHTML = `
         <div style="padding: 8px 12px; background-color: #FEF3C7; border: 1px solid #FDE68A; border-radius: 4px; color: #92400E; font-size: 11px; font-weight: 600;">
-          ⚠️ Ondersmering risico: Ingesteld op <strong>${periodVal} ${unit}</strong> levert het ${capMl} ml patroon slechts ${dailyMl.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ml/dag af (behoefte is ${targetDailyMl.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ml/dag).${extraWarning}
+          ⚠️ Ondersmering risico: Ingesteld op <strong>${periodVal} ${unitLabel}</strong> levert het ${capMl} ml patroon slechts ${dailyMl.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ml/dag af (behoefte is ${targetDailyMl.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ml/dag). Bekijk de opties Pulsarlube, Interflon Oil dispenser of Graco.
         </div>
       `;
     } else {
       matchNoticeEl.innerHTML = `
         <div style="padding: 8px 12px; background-color: #EFF6FF; border: 1px solid #BFDBFE; border-radius: 4px; color: #1E40AF; font-size: 11px; font-weight: 600;">
-          ℹ️ Ruime oliedosering: Ingesteld op <strong>${periodVal} ${unit}</strong> levert het ${capMl} ml patroon ${dailyMl.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ml/dag af (behoefte is ${targetDailyMl.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ml/dag).<br>
+          ℹ️ Ruime oliedosering: Ingesteld op <strong>${periodVal} ${unitLabel}</strong> levert het ${capMl} ml patroon ${dailyMl.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ml/dag af (behoefte is ${targetDailyMl.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ml/dag).<br>
           <strong>Advies:</strong> Stel het toestel in op <strong>${recSetting.months} ${recSetting.months === 1 ? 'maand' : 'maanden'}</strong> om exact de behoefte af te dekken.
         </div>
       `;
