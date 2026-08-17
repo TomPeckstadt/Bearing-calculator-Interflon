@@ -1700,8 +1700,9 @@ function switchPage(pageId) {
     }
     if (targetSubtitle) {
       targetSubtitle.removeAttribute("data-i18n");
-      targetSubtitle.textContent = "Overzicht van automatische kettingkwasten en doseerunits.";
+      targetSubtitle.textContent = "Berekening bij inzet van automatische kettingsmeertoestellen & oliedoseringen";
     }
+    updateChainAutomationPage();
   } else if (pageId === 'chainInfo') {
     const sec = document.getElementById("pageChainInfo");
     if (sec) sec.classList.add("active");
@@ -5078,9 +5079,9 @@ function selectChain(chain) {
   const vRoller = document.getElementById("visualChainRollerText");
   const vPin = document.getElementById("visualChainPinText");
 
-  if (typeImg) typeImg.src = (chain.illustrationImg || "chain-simplex.png") + "?v=160";
+  if (typeImg) typeImg.src = (chain.illustrationImg || "chain-simplex.png") + "?v=165";
   if (typeSubtitle) typeSubtitle.textContent = chain.strand || "Simplex (1-sporig)";
-  if (dimImg) dimImg.src = (chain.dimensionsImg || "chain-dimensions.png") + "?v=160";
+  if (dimImg) dimImg.src = (chain.dimensionsImg || "chain-dimensions.png") + "?v=165";
 
   if (vPitch) vPitch.textContent = chain.pitch.toFixed(1);
   if (vWidth) vWidth.textContent = chain.width.toFixed(1);
@@ -6116,5 +6117,193 @@ function updateThickenerCompatibility() {
     iconEl.textContent = "✕";
     textEl.style.color = "#B91C1C";
     textEl.textContent = currentLang === "en" ? "Not compatible" : currentLang === "fr" ? "Non compatible" : "Niet compatibel";
+  }
+}
+
+
+// ==========================================================================
+// KETTING AUTOMATISERING (CHAIN AUTOMATION LOGIC)
+// ==========================================================================
+
+const CHAIN_AUTOMATION_DEVICES = {
+  interflon_single_point_oil: {
+    title: "Interflon Single Point Lubricator (Olie)",
+    img: "interflon-single-point-lubricator.jpg",
+    dimImg: "interflon-single-point-dimensions.jpg",
+    desc: "De <strong>Interflon Single Point Lubricator (Olie)</strong> zorgt voor een continue (24/7), geautomatiseerde smering van uw ketting. Dit voorkomt onder- en over-oliesmering en verlengt de levensduur van uw aandrijf- en transportkettingen significant.",
+    capacities: [30, 60, 125, 250],
+    defaultCap: 125,
+    isContinuous: true
+  },
+  pulsarlube_oil: {
+    title: "Pulsarlube Oil",
+    img: "pulsarlube-oil.jpg",
+    dimImg: "pulsarlube-dimensions.jpg",
+    desc: "De <strong>Pulsarlube Oil</strong> smeert <strong>continue (24/7)</strong> en levert een constante, gecontroleerde hoeveelheid kettingolie. Ideaal voor continue kettingsystemen in zware productieomstandigheden.",
+    capacities: [60, 120, 240, 500],
+    defaultCap: 120,
+    isContinuous: true
+  },
+  pulsarlube_msp_oil: {
+    title: "Pulsarlube MSP Oil",
+    img: "pulsarlube-msp-oil.jpg",
+    dimImg: "pulsarlube-dimensions.jpg",
+    desc: "De <strong>Pulsarlube MSP Oil</strong> is gesynchroniseerd met de machine en smeert <strong>exclusief wanneer de machine in werking is</strong>. Hierdoor wordt olieverspilling tijdens stilstand en stop-intervallen 100% voorkomen.",
+    capacities: [60, 120, 240, 500],
+    defaultCap: 120,
+    isContinuous: false
+  }
+};
+
+let currentChainAutomationModalImg = "interflon-single-point-dimensions.jpg";
+
+function updateChainAutomationPage() {
+  const deviceSelect = document.getElementById("chainAutomationDeviceSelect");
+  if (!deviceSelect) return;
+
+  const deviceKey = deviceSelect.value;
+  const device = CHAIN_AUTOMATION_DEVICES[deviceKey] || CHAIN_AUTOMATION_DEVICES.interflon_single_point_oil;
+
+  const titleEl = document.getElementById("chainAutomationImageTitle");
+  const imgEl = document.getElementById("chainAutomationDeviceImg");
+  const descEl = document.getElementById("chainAutomationDeviceDesc");
+
+  if (titleEl) titleEl.textContent = device.title;
+  if (imgEl) imgEl.src = device.img;
+  if (descEl) descEl.innerHTML = device.desc;
+
+  currentChainAutomationModalImg = device.dimImg;
+
+  const capSelect = document.getElementById("chainAutoCartridgeCap");
+  if (capSelect) {
+    const curVal = parseInt(capSelect.value, 10);
+    capSelect.innerHTML = device.capacities.map(c => `<option value="${c}">${c} ml</option>`).join("");
+    if (device.capacities.includes(curVal)) {
+      capSelect.value = curVal;
+    } else if (device.capacities.includes(device.defaultCap)) {
+      capSelect.value = device.defaultCap;
+    } else {
+      capSelect.value = device.capacities[0];
+    }
+  }
+
+  calculateChainAutomation();
+}
+
+function onChainAutoCartridgeCapChange() {
+  calculateChainAutomation();
+}
+
+function onChainAutoPeriodInput() {
+  calculateChainAutomation();
+}
+
+function calculateChainAutomation() {
+  const deviceSelect = document.getElementById("chainAutomationDeviceSelect");
+  const capSelect = document.getElementById("chainAutoCartridgeCap");
+  const periodInput = document.getElementById("chainAutoDispensePeriod");
+  const unitSelect = document.getElementById("chainAutoDispenseUnit");
+
+  const resDailyEl = document.getElementById("chainAutoDailyVolumeRes");
+  const resHintEl = document.getElementById("chainAutoDispenseRateHint");
+  const matchNoticeEl = document.getElementById("chainAutoMatchNotice");
+  const needValEl = document.getElementById("chainAutoNeedVal");
+
+  if (!capSelect || !periodInput || !unitSelect || !resDailyEl) return;
+
+  const deviceKey = deviceSelect ? deviceSelect.value : "interflon_single_point_oil";
+  const device = CHAIN_AUTOMATION_DEVICES[deviceKey] || CHAIN_AUTOMATION_DEVICES.interflon_single_point_oil;
+
+  const capMl = parseFloat(capSelect.value) || 125;
+  const periodVal = parseFloat(periodInput.value) || 6;
+  const unit = unitSelect.value;
+
+  let periodDays = periodVal;
+  if (unit === "months") periodDays = periodVal * 30.4375;
+  else if (unit === "weeks") periodDays = periodVal * 7;
+
+  if (periodDays <= 0) periodDays = 1;
+
+  const dailyMl = capMl / periodDays;
+  const monthlyMl = capMl / (periodDays / 30.4375);
+
+  if (resDailyEl) resDailyEl.textContent = `${dailyMl.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ml/dag`;
+  if (resHintEl) resHintEl.textContent = `(~ ${monthlyMl.toLocaleString("nl-BE", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} ml / maand)`;
+
+  const lengthInput = document.getElementById("chainLengthInput");
+  const speedInput = document.getElementById("chainSpeedInput");
+  const hoursInput = document.getElementById("chainHoursPerDayInput");
+  const daysInput = document.getElementById("chainDaysPerWeekInput");
+  const tempInput = document.getElementById("chainTempInput");
+  const factorInput = document.getElementById("chainFactorInput");
+  const envSelect = document.getElementById("chainEnvSelect");
+
+  const lengthM = lengthInput ? (parseFloat(lengthInput.value) || 5.0) : 5.0;
+  const speedMS = speedInput ? (parseFloat(speedInput.value) || 1.5) : 1.5;
+  const hoursPerDay = hoursInput ? (parseFloat(hoursInput.value) || 24) : 24;
+  const daysPerWeek = daysInput ? (parseFloat(daysInput.value) || 7) : 7;
+  const tempC = tempInput ? (parseFloat(tempInput.value) || 20) : 20;
+  const micpolFactor = factorInput ? (parseFloat(factorInput.value) || 4.0) : 4.0;
+  const env = envSelect ? envSelect.value : "normal";
+
+  const width = activeChain ? activeChain.width : 7.75;
+  const strands = activeChain ? activeChain.strandsCount : 1;
+
+  let envFactor = 1.0;
+  if (env === "dusty") envFactor = 1.3;
+  else if (env === "wet") envFactor = 1.5;
+  else if (env === "severe") envFactor = 1.8;
+
+  let tempFactor = 1.0;
+  if (tempC > 50) tempFactor = 1.0 + Math.pow((tempC - 50) / 40, 1.2);
+  else if (tempC < 0) tempFactor = 1.2;
+
+  const baseDailyCm3 = (width * strands * lengthM * speedMS * envFactor * tempFactor * (0.32 / micpolFactor));
+
+  let reqDailyMl = baseDailyCm3;
+  if (device.isContinuous) {
+    reqDailyMl = baseDailyCm3;
+  } else {
+    reqDailyMl = baseDailyCm3 * (hoursPerDay / 24);
+  }
+
+  if (needValEl) {
+    const modeLabel = device.isContinuous ? "Continue 24/7 smeerbehoefte" : `Machinetijd smeerbehoefte (${hoursPerDay}u/dag, ${daysPerWeek}d/wk)`;
+    needValEl.textContent = `${reqDailyMl.toFixed(2)} ml/dag (${modeLabel})`;
+  }
+
+  if (matchNoticeEl) {
+    const ratio = dailyMl / reqDailyMl;
+    if (ratio >= 0.75 && ratio <= 1.25) {
+      matchNoticeEl.innerHTML = `
+        <div style="padding: 8px 12px; background-color: #ECFDF5; border: 1px solid #A7F3D0; border-radius: 4px; color: #065F46; font-size: 11px; font-weight: 600;">
+          ✓ Uitstekende match! De ingestelde leeglooptijd sluit uitstekend aan bij de kettingbehoefte.
+        </div>
+      `;
+    } else if (ratio < 0.75) {
+      matchNoticeEl.innerHTML = `
+        <div style="padding: 8px 12px; background-color: #FEF3C7; border: 1px solid #FDE68A; border-radius: 4px; color: #92400E; font-size: 11px; font-weight: 600;">
+          ⚠️ Ondersmering risico: Ingesteld volume (${dailyMl.toFixed(2)} ml/dag) is lager dan de berekende behoefte (${reqDailyMl.toFixed(2)} ml/dag). Verkort de looptijd.
+        </div>
+      `;
+    } else {
+      matchNoticeEl.innerHTML = `
+        <div style="padding: 8px 12px; background-color: #EFF6FF; border: 1px solid #BFDBFE; border-radius: 4px; color: #1E40AF; font-size: 11px; font-weight: 600;">
+          ℹ️ Ruime oliedosering: Ingesteld volume (${dailyMl.toFixed(2)} ml/dag) is hoger dan de berekende behoefte (${reqDailyMl.toFixed(2)} ml/dag). Verleng de looptijd indien gewenst.
+        </div>
+      `;
+    }
+  }
+}
+
+function openChainAutomationImageModal() {
+  const modal = document.getElementById("automationImageModal");
+  const imgEl = document.getElementById("automationModalImg");
+  const captionEl = document.getElementById("automationModalCaption");
+
+  if (modal && imgEl) {
+    imgEl.src = currentChainAutomationModalImg || "interflon-single-point-dimensions.jpg";
+    if (captionEl) captionEl.textContent = "Afmetingen Smeertoestel Kettingen";
+    modal.classList.remove("hidden");
   }
 }
