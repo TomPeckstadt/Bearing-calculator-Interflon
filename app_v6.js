@@ -1884,28 +1884,28 @@ function loadBearingDetails(designation) {
   if (typeEl) typeEl.textContent = translateBearingType(result.type);
 
   const boreEl = document.getElementById("specBore");
-  if (boreEl) boreEl.textContent = result.d + " mm";
+  if (boreEl) boreEl.textContent = result.d;
 
   const outerEl = document.getElementById("specOuter");
-  if (outerEl) outerEl.textContent = result.D + " mm";
+  if (outerEl) outerEl.textContent = result.D;
 
   const widthEl = document.getElementById("specWidth");
-  if (widthEl) widthEl.textContent = result.B + " mm";
+  if (widthEl) widthEl.textContent = result.B;
 
   const dynEl = document.getElementById("specDyn");
-  if (dynEl) dynEl.textContent = result.C ? result.C + " kN" : "N/A";
+  if (dynEl) dynEl.textContent = result.C ? result.C : "N/A";
 
   const statEl = document.getElementById("specStat");
-  if (statEl) statEl.textContent = result.C0 ? result.C0 + " kN" : "N/A";
+  if (statEl) statEl.textContent = result.C0 ? result.C0 : "N/A";
 
   const refEl = document.getElementById("specRefSpeed");
-  if (refEl) refEl.textContent = result.refSpeed ? result.refSpeed.toLocaleString() + " omw/min" : "N/A";
+  if (refEl) refEl.textContent = result.refSpeed ? result.refSpeed.toLocaleString() : "N/A";
 
   const limEl = document.getElementById("specLimitSpeed");
-  if (limEl) limEl.textContent = result.limitSpeed ? result.limitSpeed.toLocaleString() + " omw/min" : "N/A";
+  if (limEl) limEl.textContent = result.limitSpeed ? result.limitSpeed.toLocaleString() : "N/A";
 
   const massEl = document.getElementById("specMass");
-  if (massEl) massEl.textContent = result.mass ? result.mass + " kg" : "N/A";
+  if (massEl) massEl.textContent = result.mass ? result.mass : "N/A";
 
   // Toon waarschuwing indien geschat
   const warningNote = document.getElementById("estimatedNote");
