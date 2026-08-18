@@ -1775,10 +1775,10 @@ function handleSearchInput() {
     // Toon ALLE lagers uit de database in het keuzemenu
     matches = dbKeys;
   } else {
-    // Filter overeenkomsten op basis van zoekinvoer
+    // Filter overeenkomsten op basis van zoekinvoer (inclusief omgekeerde match voor 6-cijferige of uitgebreide typen)
     for (const key of dbKeys) {
       const cleanKey = key.toUpperCase().replace(/[\s-]/g, "");
-      if (cleanKey.includes(cleanInput) || key.includes(input.toUpperCase())) {
+      if (cleanKey.includes(cleanInput) || key.includes(input.toUpperCase()) || (cleanInput.length >= 4 && cleanInput.includes(cleanKey))) {
         matches.push(key);
       }
     }
