@@ -88,6 +88,7 @@ const bearingDatabase = {
   "22210": { d: 50, D: 90, B: 23, C: 107.0, C0: 108.0, refSpeed: 7500, limitSpeed: 10000, mass: 0.63, type: BEARING_TYPES.SPHERICAL_ROLLER },
   "22211": { d: 55, D: 100, B: 25, C: 125.0, C0: 127.0, refSpeed: 6700, limitSpeed: 9000, mass: 0.85, type: BEARING_TYPES.SPHERICAL_ROLLER },
   "22212": { d: 60, D: 110, B: 28, C: 159.0, C0: 166.0, refSpeed: 6000, limitSpeed: 8000, mass: 1.20, type: BEARING_TYPES.SPHERICAL_ROLLER },
+  "222125": { d: 60, D: 110, B: 28, C: 159.0, C0: 166.0, refSpeed: 6000, limitSpeed: 8000, mass: 1.20, type: BEARING_TYPES.SPHERICAL_ROLLER },
   "22225": { d: 125, D: 225, B: 68, C: 710.0, C0: 930.0, refSpeed: 2400, limitSpeed: 3400, mass: 11.50, type: BEARING_TYPES.SPHERICAL_ROLLER },
   "22213": { d: 65, D: 120, B: 31, C: 193.0, C0: 208.0, refSpeed: 5600, limitSpeed: 7500, mass: 1.55, type: BEARING_TYPES.SPHERICAL_ROLLER },
   "22214": { d: 70, D: 125, B: 31, C: 200.0, C0: 220.0, refSpeed: 5300, limitSpeed: 7000, mass: 1.60, type: BEARING_TYPES.SPHERICAL_ROLLER },
@@ -216,7 +217,18 @@ function parseBearingDesignation(input) {
   if (bearingDatabase[baseStr]) {
     const data = bearingDatabase[baseStr];
     return {
-      designation: baseStr,
+      designation: input,
+      foundInDb: true,
+      ...data
+    };
+  }
+
+  // 6-cijferige varianten fallback naar 5-cijferig basissleutel (bijv. 222125 -> 22212)
+  if (baseStr.length === 6 && bearingDatabase[baseStr.slice(0, 5)]) {
+    const coreKey = baseStr.slice(0, 5);
+    const data = bearingDatabase[coreKey];
+    return {
+      designation: input,
       foundInDb: true,
       ...data
     };
