@@ -4346,8 +4346,9 @@ function animateBearing(timestamp) {
   let targetRpm = bearingAnimState.rpm || 0;
   if (isNaN(targetRpm) || targetRpm < 0) targetRpm = 0;
   
-  // Incrementeer rotatiehoek gebaseerd op toerental (RPM)
-  const radPerSec = (targetRpm * Math.PI) / 30;
+  // Visual speed scaling to eliminate stroboscopic wagon-wheel aliasing at 60Hz
+  // Maps RPM smoothly from 0 to 7.5 rad/sec so rotation is ALWAYS visibly smooth
+  const radPerSec = (targetRpm <= 0) ? 0 : Math.min(7.5, 0.8 + Math.sqrt(targetRpm) * 0.08);
   bearingAnimState.angle += radPerSec * dt;
   if (bearingAnimState.angle > 2 * Math.PI) {
     bearingAnimState.angle -= 2 * Math.PI;
