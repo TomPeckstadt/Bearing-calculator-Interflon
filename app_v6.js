@@ -2874,6 +2874,7 @@ function updateOmMetadata() {
 
   setVal("omTechMachine", techMachine); setVal("chainOmTechMachine", techMachine);
   setVal("omTechApp", techApp); setVal("chainOmTechApp", techApp);
+  setVal("omTechBrand", techBrand); setVal("chainOmTechBrand", techBrand);
   setVal("omTechProduct", techProduct); setVal("chainOmTechProduct", techProduct);
 
   const intervalVal = localStorage.getItem("tech_interval");
