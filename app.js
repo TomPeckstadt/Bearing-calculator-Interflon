@@ -4943,22 +4943,24 @@ function onAutoPeriodInput() {
 }
 
 function calculateAutomationLubrication() {
-  const capSelect = document.getElementById("autoCartridgeCap");
+  const deviceSelect = document.getElementById("autoDeviceSelect");
+  const cartridgeCapSelect = document.getElementById("autoCartridgeCap");
   const periodInput = document.getElementById("autoDispensePeriod");
-  const unitSelect = document.getElementById("autoDispenseUnit");
-  const deviceSelect = document.getElementById("automationDeviceSelect");
-
+  const periodUnitSelect = document.getElementById("autoPeriodUnit");
   const resValEl = document.getElementById("autoDailyVolumeRes");
-  const hintEl = document.getElementById("autoDispenseRateHint");
-  const needBadgeEl = document.getElementById("autoBearingNeedBadge");
+  const monthValEl = document.getElementById("autoMonthlyVolumeRes");
+  const yearValEl = document.getElementById("autoYearlyVolumeRes");
+  const hintEl = document.getElementById("autoLubricatorHint");
   const matchNoticeEl = document.getElementById("autoMatchNotice");
+  const needBadgeEl = document.getElementById("autoBearingNeedBadge");
 
-  if (!capSelect || !periodInput || !unitSelect || !resValEl) return;
+  if (!deviceSelect || !cartridgeCapSelect || !periodInput || !periodUnitSelect || !resValEl) {
+    return;
+  }
 
-  const capMl = parseFloat(capSelect.value) || 120;
-  const unit = unitSelect.value || "months";
-  const device = deviceSelect ? deviceSelect.value : "single_point";
-
+  const device = deviceSelect.value;
+  const capMl = parseFloat(cartridgeCapSelect.value) || 120;
+  const unit = periodUnitSelect.value;
   const hDay = window.currentHoursPerDay || 24;
   const dWeek = window.currentDaysPerWeek || 7;
 
@@ -4983,19 +4985,13 @@ function calculateAutomationLubrication() {
   const hasDailyNeed = (typeof window.currentDailyNeedCm3 === "number" && window.currentDailyNeedCm3 > 0);
   const dailyNeedCm3 = hasDailyNeed ? window.currentDailyNeedCm3 : 0;
 
-  // Render Smeercalculatie source summary badge if present
+  // 1. Render Smeercalculatie source summary badge if present
   if (needBadgeEl) {
     if (hasDailyNeed) {
       const gqStr = (window.currentRefillGrams || 0).toLocaleString("nl-BE", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
-      const daysStr = (window.currentMicPolDays || 0).toLocaleString("nl-BE", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
-      const hoursStr = Math.round(window.currentMicPolHours || 0).toLocaleString("nl-BE");
       const needRateStr = dailyNeedCm3.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 4 });
-
-      const modeNote = (device === "pulsarlube_msp")
-        ? `• Smeermodus: <strong>Synchroon met machine</strong> (${hDay}u/dag, ${dWeek}d/week)`
-        : `• Smeermodus: <strong>24/24u & 7d/7d continu doorsmeren</strong> (onafhankelijk van bedrijfsuren)`;
-
       const roundedDaysStr = Math.round(window.currentMicPolDays || 0).toLocaleString("nl-BE");
+
       needBadgeEl.innerHTML = `
         <div style="margin-bottom: 16px; background-color: #f8fafc; border: 1px solid #e2e8f0; border-left: 4px solid var(--primary-red); border-radius: var(--border-radius-sm); padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.03);">
           <div style="display: flex; align-items: center; gap: 10px;">
@@ -5031,31 +5027,14 @@ function calculateAutomationLubrication() {
     }
   }
 
-  // If we have a calculated daily requirement and user has NOT manually overridden period,
-  // automatically calculate the required period for the selected cartridge capacity!
-  if (hasDailyNeed && !userHasManuallyEditedAutoPeriod) {
-    const requiredDays = capMl / dailyNeedCm3;
-    let autoPeriod = requiredDays / 30.4375; // months
-    if (unit === "weeks") {
-      autoPeriod = requiredDays / 7;
-    } else if (unit === "days") {
-      autoPeriod = requiredDays;
-    }
-
-    // Round nicely: 1 decimal if months/weeks, whole number if > 10
-    const roundedPeriod = autoPeriod > 10 ? Math.round(autoPeriod) : Math.round(autoPeriod * 10) / 10;
-    periodInput.value = roundedPeriod;
-  }
-  // Calculate & Render Recommended Runtime for Bearing Automation
-  const recTitleEl = document.getElementById("autoRecTitle");
-  const recSubtextEl = document.getElementById("autoRecSubtext");
-
+  // 2. Compute recommendation & auto-set period if not manually edited
+  let recSetting = { months: 6, roundedUp: false };
   if (hasDailyNeed) {
     const recDays = capMl / dailyNeedCm3;
     const recMonths = recDays / 30.4375;
     const recWeeks = recDays / 7;
 
-    const recSetting = getRecommendedSettingMonths(recMonths);
+    recSetting = getRecommendedSettingMonths(recMonths);
     const dialLabel = `${recSetting.months} ${recSetting.months === 1 ? 'maand' : 'maanden'}`;
     const theoMonthsStr = recMonths > 10 ? `${Math.round(recMonths)} maanden` : `${recMonths.toLocaleString("nl-BE", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} maanden`;
 
@@ -5077,32 +5056,23 @@ function calculateAutomationLubrication() {
       }
     }
 
-    let recTitleText = "";
-    if (unit === "months") {
-      recTitleText = `${dialLabel} (${settingTerm}) | Theoretisch: ${theoMonthsStr}`;
-    } else if (unit === "weeks") {
-      const roundedW = recWeeks > 10 ? Math.round(recWeeks) : Math.round(recWeeks * 10) / 10;
-      recTitleText = `${dialLabel} (${settingTerm}) | Theoretisch: ${roundedW.toLocaleString("nl-BE")} weken`;
-    } else {
-      const roundedD = Math.round(recDays);
-      recTitleText = `${dialLabel} (${settingTerm}) | Theoretisch: ${roundedD.toLocaleString("nl-BE")} dagen`;
-    }
-
+    const recTitleEl = document.getElementById("autoRecTitle");
+    const recSubtextEl = document.getElementById("autoRecSubtext");
     const roundReason = recSetting.roundedUp ? "afgerond naar boven bij ≥ 0,7" : "afgerond naar beneden bij < 0,7";
 
-    if (recTitleEl) recTitleEl.textContent = recTitleText;
+    if (recTitleEl) recTitleEl.textContent = `${dialLabel} (${settingTerm}) | Theoretisch: ${theoMonthsStr}`;
     if (recSubtextEl) {
       recSubtextEl.innerHTML = `${settingLabel} <strong>${dialLabel}</strong> (${roundReason}).<br>• Theoretisch berekende looptijd: <strong>${theoMonthsStr}</strong> (~ ${Math.round(recWeeks)} weken / ${Math.round(recDays)} dagen) bij ${capMl} cm³ patroon.`;
     }
+
+    if (!userHasManuallyEditedAutoPeriod) {
+      periodInput.value = recSetting.months;
+    }
   }
 
-  if (!userHasManuallyEditedAutoPeriod && hasDailyNeed) {
-    periodInput.value = recSetting.months;
-  }
-
-  // Calculate actual daily volume from current period input
+  // 3. REBUILT BOTTOM VOLUME CALCULATION & DISPLAY
   const periodVal = parseFloat(periodInput.value) || 1;
-  let totalDays = 30.4375 * periodVal; // Default months
+  let totalDays = 30.4375 * periodVal;
   if (unit === "weeks") {
     totalDays = 7 * periodVal;
   } else if (unit === "days") {
@@ -5111,8 +5081,8 @@ function calculateAutomationLubrication() {
   if (totalDays <= 0) totalDays = 1;
 
   const actualDailyVolume = capMl / totalDays;
-  
-  // Base bottom volume displays DIRECTLY on Lagerbehoefte when available
+
+  // Primary volume values are 100% DIRECTLY linked to Lagerbehoefte when available
   const displayDailyVol = hasDailyNeed ? dailyNeedCm3 : actualDailyVolume;
   const displayMonthlyVol = displayDailyVol * 30.4375;
   const displayYearlyVol = displayDailyVol * 365.25;
@@ -5121,9 +5091,7 @@ function calculateAutomationLubrication() {
   const formattedMonthly = displayMonthlyVol.toLocaleString("nl-BE", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
   const formattedYearly = displayYearlyVol.toLocaleString("nl-BE", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 
-  const monthValEl = document.getElementById("autoMonthlyVolumeRes");
-  const yearValEl = document.getElementById("autoYearlyVolumeRes");
-
+  // Update DOM elements cleanly
   resValEl.textContent = `${formattedDaily} cm³/dag`;
   if (monthValEl) monthValEl.textContent = `${formattedMonthly} cm³/maand`;
   if (yearValEl) yearValEl.textContent = `${formattedYearly} cm³/jaar`;
@@ -5131,7 +5099,6 @@ function calculateAutomationLubrication() {
   let unitLabel = "maanden";
   if (unit === "weeks") unitLabel = "weken";
   else if (unit === "days") unitLabel = "dagen";
-  else if (unit === "months") unitLabel = "maanden";
 
   const formattedActualDaily = actualDailyVolume.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
@@ -5143,27 +5110,31 @@ function calculateAutomationLubrication() {
     }
   }
 
-  // Show status notice comparing active dosage with bearing requirement
+  // 4. Match Notice
   if (matchNoticeEl) {
     if (hasDailyNeed) {
       const diffRatio = Math.abs(actualDailyVolume - dailyNeedCm3) / dailyNeedCm3;
-      if (diffRatio < 0.08) {
-        const daysExact = (capMl / dailyNeedCm3).toFixed(0);
-        const mndExact = (daysExact / 30.4375).toFixed(1);
-        matchNoticeEl.innerHTML = `
-          <div style="margin-top: 10px; font-size: 11px; font-weight: 700; color: #166534; background-color: #dcfce7; border-radius: 4px; padding: 6px 10px; display: inline-flex; align-items: center; gap: 6px;">
-            <span>✅ Looptijd (24/7) automatisch berekend op lagerbehoefte (${daysExact} kalenderdagen / ${mndExact} mnd)</span>
-          </div>
-        `;
+      if (diffRatio <= 0.15) {
+        matchNoticeEl.style.display = "block";
+        matchNoticeEl.style.backgroundColor = "#ecfdf5";
+        matchNoticeEl.style.border = "1px solid #a7f3d0";
+        matchNoticeEl.style.color = "#047857";
+        matchNoticeEl.innerHTML = `✅ <strong>Uitstekende match!</strong> De gekozen instelling op het toestel (${formattedActualDaily} cm³/dag) sluit optimaal aan bij de berekende lagerbehoefte (${formattedDaily} cm³/dag).`;
+      } else if (actualDailyVolume > dailyNeedCm3) {
+        matchNoticeEl.style.display = "block";
+        matchNoticeEl.style.backgroundColor = "#fffbeb";
+        matchNoticeEl.style.border = "1px solid #fde68a";
+        matchNoticeEl.style.color = "#b45309";
+        matchNoticeEl.innerHTML = `⚠️ <strong>Lichte oversmering (${Math.round(diffRatio * 100)}% hoger)</strong>. Het toestel doseert ${formattedActualDaily} cm³/dag versus berekende behoefte van ${formattedDaily} cm³/dag. Dit is een veilige marge.`;
       } else {
-        matchNoticeEl.innerHTML = `
-          <div style="margin-top: 10px; font-size: 11px; font-weight: 700; color: #b45309; background-color: #fef3c7; border-radius: 4px; padding: 6px 10px; display: inline-flex; align-items: center; gap: 6px;">
-            <span>⚠️ Handmatige aanpassing looptijd (Berekende behoefte = ${dailyNeedCm3.toFixed(3)} cm³/dag)</span>
-          </div>
-        `;
+        matchNoticeEl.style.display = "block";
+        matchNoticeEl.style.backgroundColor = "#fef2f2";
+        matchNoticeEl.style.border = "1px solid #fecaca";
+        matchNoticeEl.style.color = "#b91c1c";
+        matchNoticeEl.innerHTML = `⚠️ <strong>Lichte ondersmering (${Math.round(diffRatio * 100)}% lager)</strong>. Het toestel doseert ${formattedActualDaily} cm³/dag versus berekende behoefte van ${formattedDaily} cm³/dag. Kies een kortere looptijd op de draaiknop.`;
       }
     } else {
-      matchNoticeEl.innerHTML = '';
+      matchNoticeEl.style.display = "none";
     }
   }
 }
