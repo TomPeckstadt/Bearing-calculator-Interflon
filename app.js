@@ -2211,6 +2211,16 @@ function calculateGrease() {
   if (greaseDNElement) greaseDNElement.textContent = dnMax.toLocaleString("nl-NL");
   if (densityElement) densityElement.textContent = density.toFixed(2);
 
+  // 1.5. Bepaal type lager voor lookup
+  let bearingType = "Groove Ball";
+  if (activeBearing && activeBearing.d === d && activeBearing.D === D && activeBearing.B === B) {
+    bearingType = activeBearing.type;
+  } else {
+    if (B / D > 0.28) {
+      bearingType = "Spherical Roller";
+    }
+  }
+
   // 2. Lager DN-factor conform Facteur DN sheet in Rekenblad lagers.xlsx
   let dnTypeMultiplier = 1;
   const bTypeCheckDn = bearingType.toLowerCase();
@@ -2255,16 +2265,6 @@ function calculateGrease() {
   if (fillPercentElement) fillPercentElement.textContent = fillPercent;
   if (initFillCmElement) initFillCmElement.textContent = Math.round(fill_cm3);
   if (initFillGramsElement) initFillGramsElement.textContent = Math.round(fill_grams);
-
-  // 5. Bepaal type lager voor lookup
-  let bearingType = "Groove Ball";
-  if (activeBearing && activeBearing.d === d && activeBearing.D === D && activeBearing.B === B) {
-    bearingType = activeBearing.type;
-  } else {
-    if (B / D > 0.28) {
-      bearingType = "Spherical Roller";
-    }
-  }
 
   // 6. Basis frequentie (FB) met Lagertype Factor conform Rekenblad lagers.xlsx
   let typeFactor = 1.0;
