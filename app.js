@@ -2211,9 +2211,20 @@ function calculateGrease() {
   if (greaseDNElement) greaseDNElement.textContent = dnMax.toLocaleString("nl-NL");
   if (densityElement) densityElement.textContent = density.toFixed(2);
 
-  // 2. Lager DN-factor
+  // 2. Lager DN-factor conform Facteur DN sheet in Rekenblad lagers.xlsx
+  let dnTypeMultiplier = 1;
+  const bTypeCheckDn = bearingType.toLowerCase();
+  if (bTypeCheckDn.includes("spherical") || bTypeCheckDn.includes("sferisch") || bTypeCheckDn.includes("pendelrol") || bTypeCheckDn.includes("ton") || bTypeCheckDn.includes("naald")) {
+    dnTypeMultiplier = 3;
+  } else if (bTypeCheckDn.includes("cylindrical") || bTypeCheckDn.includes("cylindrisch") || bTypeCheckDn.includes("cilinder") || bTypeCheckDn.includes("tapered") || bTypeCheckDn.includes("conisch") || bTypeCheckDn.includes("kegel")) {
+    dnTypeMultiplier = 2;
+  } else {
+    dnTypeMultiplier = 1;
+  }
+
   const dm = (d + D) / 2;
-  const ndm = (isNaN(speed) || speed < 0) ? 0 : speed * dm;
+  const ndm_raw = (isNaN(speed) || speed < 0) ? 0 : speed * dm;
+  const ndm = ndm_raw * dnTypeMultiplier;
   if (sfElement) sfElement.textContent = Math.round(ndm).toLocaleString("nl-NL");
 
   // Show/hide DN factor warning
