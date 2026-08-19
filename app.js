@@ -5065,14 +5065,24 @@ function calculateAutomationLubrication() {
   const actualYearlyVolume = actualDailyVolume * 365.25;
   const formattedYearly = actualYearlyVolume.toLocaleString("nl-BE", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 
+  const monthValEl = document.getElementById("autoMonthlyVolumeRes");
+  const yearValEl = document.getElementById("autoYearlyVolumeRes");
+
   resValEl.textContent = `${formattedDaily} cm³/dag`;
+  if (monthValEl) monthValEl.textContent = `${formattedMonthly} cm³/maand`;
+  if (yearValEl) yearValEl.textContent = `${formattedYearly} cm³/jaar`;
+
   let unitLabel = "maanden";
   if (unit === "weeks") unitLabel = "weken";
   else if (unit === "days") unitLabel = "dagen";
   else if (unit === "months") unitLabel = "maanden";
 
   if (hintEl) {
-    hintEl.textContent = `(~ ${formattedMonthly} cm³/maand | ${formattedYearly} cm³/jaar — afgestemd op Smeercalculatie)`;
+    if (hasDailyNeed) {
+      hintEl.innerHTML = `ℹ️ Instelling op ${periodVal} ${unitLabel} bij ${capMl} cm³ patroon. Sluit <strong>100% aan op Smeercalculatie</strong> (${formattedYearly} g/jaar).`;
+    } else {
+      hintEl.textContent = `(~ ${formattedMonthly} cm³/maand | ${formattedYearly} cm³/jaar bij ${capMl} ml op ${periodVal} ${unitLabel})`;
+    }
   }
 
   // Show status notice comparing active dosage with bearing requirement
