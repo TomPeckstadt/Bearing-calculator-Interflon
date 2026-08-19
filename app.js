@@ -4296,6 +4296,9 @@ function initBearingAnimation() {
   bearingAnimState.ctx = canvas.getContext("2d");
   bearingAnimState.lastTime = performance.now();
   
+  // Draw initial state
+  drawBearing(bearingAnimState.rpm || 0);
+
   // Start the animation loop
   requestAnimationFrame(animateBearing);
 }
@@ -4364,9 +4367,9 @@ function drawBearing(rpm) {
     secondaryRingColor = "#ef4444";   // Lichter rood
     shadowColor = "rgba(220, 38, 38, 0.4)";
   } else if (isNormal) {
-    primaryRingColor = "#0284c7";     // Hemelsblauw
-    secondaryRingColor = "#bae6fd";   // Lichtblauw
-    shadowColor = "rgba(2, 132, 199, 0.25)";
+    primaryRingColor = "#10b981";     // Emerald Groen (Normaal)
+    secondaryRingColor = "#34d399";   // Helder Groen
+    shadowColor = "rgba(16, 185, 129, 0.35)";
   }
   
   // Breng een subtiele gloed aan rond het lager
@@ -4450,9 +4453,9 @@ function drawBearing(rpm) {
       grad.addColorStop(0.3, "#fca5a5");
       grad.addColorStop(1, "#b91c1c");
     } else if (isNormal) {
-      grad.addColorStop(0, "#e0f2fe");
-      grad.addColorStop(0.3, "#bae6fd");
-      grad.addColorStop(1, "#0284c7");
+      grad.addColorStop(0, "#ecfdf5");
+      grad.addColorStop(0.3, "#a7f3d0");
+      grad.addColorStop(1, "#059669");
     } else {
       grad.addColorStop(0, "#f8fafc");
       grad.addColorStop(0.3, "#cbd5e1");
@@ -4682,6 +4685,16 @@ function updateBearingAnimation(speed, limitingSpeed, ndm, dnMax, fc, temp, temp
       if (el) el.textContent = ticks[id] + "°";
     }
   }
+
+  // Ensure canvas is bound and render bearing animation immediately
+  if (!bearingAnimState.canvas) {
+    const canvasEl = document.getElementById("bearingAnimCanvas");
+    if (canvasEl) {
+      bearingAnimState.canvas = canvasEl;
+      bearingAnimState.ctx = canvasEl.getContext("2d");
+    }
+  }
+  drawBearing(bearingAnimState.rpm || 0);
 }
 
 // ==========================================================================
