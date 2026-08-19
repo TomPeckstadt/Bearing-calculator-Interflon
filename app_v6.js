@@ -2316,8 +2316,17 @@ function calculateGrease() {
   }
   if (TtElement) TtElement.textContent = Tt.toFixed(1);
 
-  // 8. Gecorrigeerd Smeerinterval (FC)
-  const fc = fb * Te * Ta * Tt;
+  // 8. Gecorrigeerd Smeerinterval conform Rekenblad lagers.xlsx
+  // De formule uit het rekenblad (FC = FB x Te x Ta x Tt) is het INTERFLON MICPOL® interval!
+  const micPolInput = document.getElementById("inputMicPolFactor");
+  let micPolFactor = micPolInput ? parseFloat(micPolInput.value) : 4;
+  if (isNaN(micPolFactor) || micPolFactor < 1 || micPolFactor > 50) {
+    micPolFactor = 4;
+  }
+
+  const fcMicPol = fb * Te * Ta * Tt; // Interflon MicPol® interval (bijv. 600 uren / 25 dagen)
+  const fc = fcMicPol / micPolFactor; // Conventioneel interval (bijv. 150 uren / 6.25 dagen)
+
   if (iElement) iElement.textContent = Math.round(fc).toLocaleString("nl-NL");
 
   const weeks = fc / (hoursPerDay * daysPerWeek);
@@ -2328,13 +2337,6 @@ function calculateGrease() {
   if (intervalWeeksElement) intervalWeeksElement.textContent = weeks.toFixed(1);
   if (intervalMonthsElement) intervalMonthsElement.textContent = months.toFixed(1);
 
-  // 8.5. Smeerinterval met Interflon MicPol® technologie (F-MicPol)
-  const micPolInput = document.getElementById("inputMicPolFactor");
-  let micPolFactor = micPolInput ? parseFloat(micPolInput.value) : 4;
-  if (isNaN(micPolFactor) || micPolFactor < 1 || micPolFactor > 50) {
-    micPolFactor = 4;
-  }
-  const fcMicPol = fc * micPolFactor;
   if (intervalMicPolElement) intervalMicPolElement.textContent = Math.round(fcMicPol).toLocaleString("nl-NL");
 
   const micPolWeeks = fcMicPol / (hoursPerDay * daysPerWeek);
