@@ -2431,9 +2431,9 @@ function calculateGrease() {
     }
   }
 
-  // Update the visual bearing animation
+  // Update the visual bearing animation with Interflon MicPol® interval (fcMicPol)
   if (typeof updateBearingAnimation === "function") {
-    updateBearingAnimation(speed, limitingSpeed, ndm, dnMax, fc, temp, grease.tempMin, grease.tempMax);
+    updateBearingAnimation(speed, limitingSpeed, ndm, dnMax, fcMicPol, temp, grease.tempMin, grease.tempMax);
   }
 
   // Auto-update Automatisering lubricator calculation
