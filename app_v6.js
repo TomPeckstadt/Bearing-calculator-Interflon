@@ -2221,17 +2221,41 @@ function calculateGrease() {
     }
   }
 
-  // 2. Lager DN-factor conform Facteur DN sheet in Rekenblad lagers.xlsx
-  let dnTypeMultiplier = 1;
-  const bTypeCheckDn = bearingType.toLowerCase();
-  if (bTypeCheckDn.includes("spherical") || bTypeCheckDn.includes("sferisch") || bTypeCheckDn.includes("pendelrol") || bTypeCheckDn.includes("ton") || bTypeCheckDn.includes("naald")) {
-    dnTypeMultiplier = 3;
-  } else if (bTypeCheckDn.includes("cylindrical") || bTypeCheckDn.includes("cylindrisch") || bTypeCheckDn.includes("cilinder") || bTypeCheckDn.includes("tapered") || bTypeCheckDn.includes("conisch") || bTypeCheckDn.includes("kegel")) {
-    dnTypeMultiplier = 2;
+  // 1.6 SKF Hoofdgroepen (x1, x2, x3) met SKF nuance voor dubbelrijige uitvoeringen (+20% kogel, +40% rollen)
+  const bTypeCheck = bearingType.toLowerCase();
+  let baseTypeFactor = 1.0;
+  let baseDnMultiplier = 1;
+
+  if (bTypeCheck.includes("spherical") || bTypeCheck.includes("sferisch") || bTypeCheck.includes("pendelrol") || bTypeCheck.includes("ton") || bTypeCheck.includes("naald")) {
+    baseTypeFactor = 2.6;
+    baseDnMultiplier = 3;
+  } else if (bTypeCheck.includes("tapered") || bTypeCheck.includes("conisch") || bTypeCheck.includes("kegel")) {
+    baseTypeFactor = 2.0;
+    baseDnMultiplier = 2;
+  } else if (bTypeCheck.includes("cylindrical") || bTypeCheck.includes("cylindrisch") || bTypeCheck.includes("cilinder")) {
+    baseTypeFactor = 1.7;
+    baseDnMultiplier = 2;
   } else {
-    dnTypeMultiplier = 1;
+    baseTypeFactor = 1.0;
+    baseDnMultiplier = 1;
   }
 
+  const isDoubleRow = bTypeCheck.includes("dubbel") || bTypeCheck.includes("double") || bTypeCheck.includes("2-rij") || bTypeCheck.includes("twee") || bTypeCheck.includes("pendelkogel");
+  const isSpherical = bTypeCheck.includes("spherical") || bTypeCheck.includes("sferisch") || bTypeCheck.includes("pendelrol");
+
+  let rowMultiplier = 1.0;
+  if (isDoubleRow && !isSpherical) {
+    if (bTypeCheck.includes("kogel") || bTypeCheck.includes("ball")) {
+      rowMultiplier = 1.2; // +20% voor dubbelrijige kogellagers
+    } else {
+      rowMultiplier = 1.4; // +40% voor dubbelrijige rollagers (cilinder/kegel)
+    }
+  }
+
+  const typeFactor = baseTypeFactor * rowMultiplier;
+  const dnTypeMultiplier = baseDnMultiplier * rowMultiplier;
+
+  // 2. Lager DN-factor conform Facteur DN sheet in Rekenblad lagers.xlsx
   const dm = (d + D) / 2;
   const ndm_raw = (isNaN(speed) || speed < 0) ? 0 : speed * dm;
   const ndm = ndm_raw * dnTypeMultiplier;
@@ -2265,19 +2289,6 @@ function calculateGrease() {
   if (fillPercentElement) fillPercentElement.textContent = fillPercent;
   if (initFillCmElement) initFillCmElement.textContent = Math.round(fill_cm3);
   if (initFillGramsElement) initFillGramsElement.textContent = Math.round(fill_grams);
-
-  // 6. Basis frequentie (FB) met Lagertype Factor conform Rekenblad lagers.xlsx
-  let typeFactor = 1.0;
-  const bTypeCheck = bearingType.toLowerCase();
-  if (bTypeCheck.includes("spherical") || bTypeCheck.includes("sferisch") || bTypeCheck.includes("pendelrol") || bTypeCheck.includes("ton")) {
-    typeFactor = 2.6;
-  } else if (bTypeCheck.includes("tapered") || bTypeCheck.includes("conisch") || bTypeCheck.includes("kegel")) {
-    typeFactor = 2.0;
-  } else if (bTypeCheck.includes("cylindrical") || bTypeCheck.includes("cylindrisch") || bTypeCheck.includes("cilinder") || bTypeCheck.includes("naald")) {
-    typeFactor = 1.7;
-  } else {
-    typeFactor = 1.0;
-  }
 
   const rawRatio = (isNaN(speed) || speed <= 0 || isNaN(limitingSpeed) || limitingSpeed <= 0) 
     ? 0.01 
