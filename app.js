@@ -4285,7 +4285,8 @@ let bearingAnimState = {
   state: "idle", // "idle", "normal", "warning"
   lastTime: null,
   canvas: null,
-  ctx: null
+  ctx: null,
+  animating: false
 };
 
 function initBearingAnimation() {
@@ -4296,30 +4297,29 @@ function initBearingAnimation() {
   bearingAnimState.ctx = canvas.getContext("2d");
   bearingAnimState.lastTime = performance.now();
   
-  // Draw initial state
-  drawBearing(bearingAnimState.rpm || 0);
-
-  // Start the animation loop
-  requestAnimationFrame(animateBearing);
+  if (!bearingAnimState.animating) {
+    bearingAnimState.animating = true;
+    requestAnimationFrame(animateBearing);
+  }
 }
 
 function animateBearing(timestamp) {
   if (!bearingAnimState.canvas || !bearingAnimState.ctx) {
-    requestAnimationFrame(animateBearing);
+    bearingAnimState.animating = false;
     return;
   }
   
-  const elapsed = timestamp - bearingAnimState.lastTime;
+  const elapsed = timestamp - (bearingAnimState.lastTime || timestamp);
   bearingAnimState.lastTime = timestamp;
   
-  const dt = elapsed / 1000; // in seconds
+  // Guard against large time jumps
+  const dt = Math.min(0.1, elapsed / 1000);
   
-  // Target RPM (make sure it's valid)
+  // Target RPM
   let targetRpm = bearingAnimState.rpm || 0;
   if (isNaN(targetRpm) || targetRpm < 0) targetRpm = 0;
   
   // Incrementeer rotatiehoek gebaseerd op toerental (RPM)
-  // 1 RPM = 1/60 r/s = 2pi / 60 rad/s = pi / 30 rad/s
   const radPerSec = (targetRpm * Math.PI) / 30;
   bearingAnimState.angle += radPerSec * dt;
   if (bearingAnimState.angle > 2 * Math.PI) {
@@ -4686,13 +4686,9 @@ function updateBearingAnimation(speed, limitingSpeed, ndm, dnMax, fc, temp, temp
     }
   }
 
-  // Ensure canvas is bound and render bearing animation immediately
-  if (!bearingAnimState.canvas) {
-    const canvasEl = document.getElementById("bearingAnimCanvas");
-    if (canvasEl) {
-      bearingAnimState.canvas = canvasEl;
-      bearingAnimState.ctx = canvasEl.getContext("2d");
-    }
+  // Ensure animation loop is active and canvas is bound
+  if (!bearingAnimState.animating || !bearingAnimState.canvas) {
+    initBearingAnimation();
   }
   drawBearing(bearingAnimState.rpm || 0);
 }
