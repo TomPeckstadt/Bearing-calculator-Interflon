@@ -1334,6 +1334,20 @@ document.addEventListener("DOMContentLoaded", () => {
   // Initialiseer de taal
   changeLanguage(currentLang);
 
+  // Init real-time event listeners for calculation inputs
+  const calcInputs = ["inputSpeed", "inputTemp", "inputBore", "inputOuter", "inputWidth", "bearingType", "greaseSelect", "hoursPerDay", "daysPerWeek", "calculationModeSelect"];
+  calcInputs.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.addEventListener("input", () => {
+        if (typeof calculateGrease === "function") calculateGrease();
+      });
+      el.addEventListener("change", () => {
+        if (typeof calculateGrease === "function") calculateGrease();
+      });
+    }
+  });
+
   // Initialiseer de lageranimatie
   initBearingAnimation();
 });
@@ -4513,7 +4527,7 @@ function updateBearingAnimation(speed, limitingSpeed, ndm, dnMax, fc, temp, temp
   if (bearingAnimState.rpm > 0) {
     let limitExceeded = bearingAnimState.rpm > bearingAnimState.limitingSpeed;
     let dnExceeded = bearingAnimState.ndm > bearingAnimState.dnMax;
-    let lifespanTooLow = bearingAnimState.fc < 250 && bearingAnimState.fc > 0;
+    let lifespanTooLow = bearingAnimState.fc < 40 && bearingAnimState.fc > 0;
     
     // Check vet temperatuurgrenzen
     let tempVal = parseFloat(temp);
