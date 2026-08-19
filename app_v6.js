@@ -5118,7 +5118,7 @@ function calculateAutomationLubrication() {
 
   if (hintEl) {
     if (hasDailyNeed) {
-      hintEl.innerHTML = `✅ Smeervolumes (dag, maand, jaar) zijn <strong>100% synchroon met de berekende lagerbehoefte</strong>.<br>• Gekozen toestelinstelling: <strong>${capMl} cm³ patroon</strong> op <strong>${periodVal} ${unitLabel}</strong> (uitstroom: ${formattedActualDaily} ml/dag).`;
+      hintEl.innerHTML = `✅ Smeervolumes (dag, maand, jaar) zijn <strong>100% synchroon met de berekende lagerbehoefte</strong>.<br>• Gekozen toestelinstelling: <strong>${capMl} ml patroon</strong> op <strong>${periodVal} ${unitLabel}</strong> (uitstroom: ${formattedActualDaily} ml/dag).`;
     } else {
       hintEl.textContent = `(~ ${formattedMonthly} ml/maand | ${formattedYearly} ml/jaar bij ${capMl} ml op ${periodVal} ${unitLabel})`;
     }
@@ -5133,7 +5133,7 @@ function calculateAutomationLubrication() {
         matchNoticeEl.style.backgroundColor = "#ecfdf5";
         matchNoticeEl.style.border = "1px solid #a7f3d0";
         matchNoticeEl.style.color = "#047857";
-        matchNoticeEl.innerHTML = `✅ <strong>Uitstekende match!</strong> De gekozen instelling op het toestel (${formattedActualDaily} cm³/dag) sluit optimaal aan bij de berekende lagerbehoefte (${formattedDaily} ml/dag).`;
+        matchNoticeEl.innerHTML = `✅ <strong>Uitstekende match!</strong> De gekozen instelling op het toestel (${formattedActualDaily} ml/dag) sluit optimaal aan bij de berekende lagerbehoefte (${formattedDaily} ml/dag).`;
       } else if (actualDailyVolume > dailyNeedCm3) {
         matchNoticeEl.style.display = "block";
         matchNoticeEl.style.backgroundColor = "#fffbeb";
