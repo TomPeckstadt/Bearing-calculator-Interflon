@@ -2418,7 +2418,20 @@ function calculateGrease() {
   window.currentMicPolHours = fcMicPol;
   window.currentHoursPerDay = hDay;
   window.currentDaysPerWeek = dWeek;
-  window.currentDailyNeedCm3 = (totalCalendarDays > 0) ? (refill_grams / totalCalendarDays) : 0;
+  const calcDailyNeed = (totalCalendarDays > 0) ? (refill_grams / totalCalendarDays) : 0;
+  window.currentDailyNeedCm3 = calcDailyNeed;
+
+  // Persist in localStorage so data survives page refresh
+  try {
+    localStorage.setItem("calc_daily_need", calcDailyNeed.toString());
+    localStorage.setItem("calc_refill_grams", refill_grams.toString());
+    localStorage.setItem("calc_micpol_days", totalCalendarDays.toString());
+    localStorage.setItem("calc_micpol_hours", fcMicPol.toString());
+    localStorage.setItem("calc_hours_per_day", hDay.toString());
+    localStorage.setItem("calc_days_per_week", dWeek.toString());
+  } catch (e) {
+    console.warn("Could not save calc data to localStorage", e);
+  }
 
   // Automatically update TCO frequency fields based on the active mode (formula vs practical)
   updateTcoFrequencies();
@@ -4934,6 +4947,23 @@ function calculateAutomationLubrication() {
 
   const hDay = window.currentHoursPerDay || 24;
   const dWeek = window.currentDaysPerWeek || 7;
+
+  // Restore from localStorage if RAM variables are empty after page reload
+  if ((typeof window.currentDailyNeedCm3 !== "number" || window.currentDailyNeedCm3 <= 0)) {
+    try {
+      const storedNeed = parseFloat(localStorage.getItem("calc_daily_need"));
+      if (!isNaN(storedNeed) && storedNeed > 0) {
+        window.currentDailyNeedCm3 = storedNeed;
+        window.currentRefillGrams = parseFloat(localStorage.getItem("calc_refill_grams")) || 0;
+        window.currentMicPolDays = parseFloat(localStorage.getItem("calc_micpol_days")) || 0;
+        window.currentMicPolHours = parseFloat(localStorage.getItem("calc_micpol_hours")) || 0;
+        window.currentHoursPerDay = parseFloat(localStorage.getItem("calc_hours_per_day")) || 24;
+        window.currentDaysPerWeek = parseFloat(localStorage.getItem("calc_days_per_week")) || 7;
+      }
+    } catch (e) {
+      console.warn("Could not read calc data from localStorage", e);
+    }
+  }
 
   // Check if we have a calculated daily requirement from Smeercalculatie
   const hasDailyNeed = (typeof window.currentDailyNeedCm3 === "number" && window.currentDailyNeedCm3 > 0);
