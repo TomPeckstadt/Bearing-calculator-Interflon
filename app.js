@@ -2266,11 +2266,11 @@ function calculateGrease() {
     const entry = BASE_FREQUENCY_TABLE.find(e => Math.abs(e.ratio - roundedRatio) < 0.001) || BASE_FREQUENCY_TABLE[0];
     
     const bTypeLower = bearingType.toLowerCase();
-    if (bTypeLower.includes("spherical") || bTypeLower.includes("sferisch")) {
+    if (bTypeLower.includes("spherical") || bTypeLower.includes("sferisch") || bTypeLower.includes("pendelrol") || bTypeLower.includes("ton")) {
       fb = entry.sph;
-    } else if (bTypeLower.includes("cylindrical") || bTypeLower.includes("cylindrisch")) {
+    } else if (bTypeLower.includes("cylindrical") || bTypeLower.includes("cylindrisch") || bTypeLower.includes("cilinder") || bTypeLower.includes("naald")) {
       fb = entry.cyl;
-    } else if (bTypeLower.includes("tapered") || bTypeLower.includes("conisch")) {
+    } else if (bTypeLower.includes("tapered") || bTypeLower.includes("conisch") || bTypeLower.includes("kegel")) {
       fb = entry.cone;
     } else {
       fb = entry.ball;
@@ -2332,10 +2332,10 @@ function calculateGrease() {
   if (intervalMicPolWeeksElement) intervalMicPolWeeksElement.textContent = micPolWeeks.toFixed(1);
   if (intervalMicPolMonthsElement) intervalMicPolMonthsElement.textContent = micPolMonths.toFixed(1);
 
-  // 9. Coefficient C en Nasmeervolume
-  let coefC = 0.00483;
+  // 9. Coefficient C en Nasmeervolume (Vastgesteld op 0.00440 conform Rekenblad lagers.xlsx)
+  let coefC = 0.00440;
   if (typeof CORRECTED_FREQUENCY_TABLE !== "undefined") {
-    const lookupVal = fb;
+    const lookupVal = fc;
     const table = CORRECTED_FREQUENCY_TABLE;
     if (lookupVal >= table[table.length - 1].freq) {
       coefC = table[table.length - 1].c;
@@ -2352,6 +2352,8 @@ function calculateGrease() {
       }
     }
   }
+  // Gebruik 0.00440 als standaard tenzij specifieke tabelmatch is gemaakt
+  if (!coefC || coefC < 0.001) coefC = 0.00440;
   if (coefCElement) coefCElement.textContent = coefC.toFixed(5);
 
   const refill_grams = D * B * coefC;
