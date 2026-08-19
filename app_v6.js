@@ -4944,14 +4944,14 @@ function onAutoPeriodInput() {
 }
 
 function calculateAutomationLubrication() {
-  const deviceSelect = document.getElementById("autoDeviceSelect");
+  const deviceSelect = document.getElementById("automationDeviceSelect") || document.getElementById("autoDeviceSelect");
   const cartridgeCapSelect = document.getElementById("autoCartridgeCap");
   const periodInput = document.getElementById("autoDispensePeriod");
-  const periodUnitSelect = document.getElementById("autoPeriodUnit");
+  const periodUnitSelect = document.getElementById("autoDispenseUnit") || document.getElementById("autoPeriodUnit");
   const resValEl = document.getElementById("autoDailyVolumeRes");
   const monthValEl = document.getElementById("autoMonthlyVolumeRes");
   const yearValEl = document.getElementById("autoYearlyVolumeRes");
-  const hintEl = document.getElementById("autoLubricatorHint");
+  const hintEl = document.getElementById("autoDispenseRateHint") || document.getElementById("autoLubricatorHint");
   const matchNoticeEl = document.getElementById("autoMatchNotice");
   const needBadgeEl = document.getElementById("autoBearingNeedBadge");
 
