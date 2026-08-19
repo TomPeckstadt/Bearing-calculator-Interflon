@@ -2435,6 +2435,11 @@ function calculateGrease() {
   if (typeof updateBearingAnimation === "function") {
     updateBearingAnimation(speed, limitingSpeed, ndm, dnMax, fc, temp, grease.tempMin, grease.tempMax);
   }
+
+  // Auto-update Automatisering lubricator calculation
+  if (typeof calculateAutomationLubrication === "function") {
+    calculateAutomationLubrication();
+  }
 }
 
 // ==========================================================================
@@ -5057,15 +5062,17 @@ function calculateAutomationLubrication() {
 
   const formattedDaily = actualDailyVolume.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   const formattedMonthly = actualMonthlyVolume.toLocaleString("nl-BE", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+  const actualYearlyVolume = actualDailyVolume * 365.25;
+  const formattedYearly = actualYearlyVolume.toLocaleString("nl-BE", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 
-  resValEl.textContent = `${formattedDaily} ml/dag`;
+  resValEl.textContent = `${formattedDaily} cm³/dag`;
   let unitLabel = "maanden";
   if (unit === "weeks") unitLabel = "weken";
   else if (unit === "days") unitLabel = "dagen";
   else if (unit === "months") unitLabel = "maanden";
 
   if (hintEl) {
-    hintEl.textContent = `(~ ${formattedMonthly} ml / maand bij ${capMl} ml op ${periodVal} ${unitLabel})`;
+    hintEl.textContent = `(~ ${formattedMonthly} cm³/maand | ${formattedYearly} cm³/jaar — afgestemd op Smeercalculatie)`;
   }
 
   // Show status notice comparing active dosage with bearing requirement
