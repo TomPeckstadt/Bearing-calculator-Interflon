@@ -2369,10 +2369,10 @@ function calculateGrease() {
   if (intervalMicPolWeeksElement) intervalMicPolWeeksElement.textContent = micPolWeeks.toFixed(1);
   if (intervalMicPolMonthsElement) intervalMicPolMonthsElement.textContent = micPolMonths.toFixed(1);
 
-  // 9. Coefficient C en Nasmeervolume (Vastgesteld op 0.00440 conform Rekenblad lagers.xlsx)
+  // 9. Coefficient C en Nasmeervolume (Vastgesteld op 0.00440 conform Rekenblad lagers.xlsx op basis van fcMicPol)
   let coefC = 0.00440;
   if (typeof CORRECTED_FREQUENCY_TABLE !== "undefined") {
-    const lookupVal = fc;
+    const lookupVal = fcMicPol;
     const table = CORRECTED_FREQUENCY_TABLE;
     if (lookupVal >= table[table.length - 1].freq) {
       coefC = table[table.length - 1].c;
