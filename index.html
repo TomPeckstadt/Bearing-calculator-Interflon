@@ -8,7 +8,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <link rel="stylesheet" href="style.css?v=20260819_2042">
+  <link rel="stylesheet" href="style.css?v=20260819_2046">
 </head>
 <body>
 
@@ -1578,16 +1578,36 @@
                 </div>
               </div>
 
-              <!-- Output Results -->
-              <div style="background-color: #f1f5f9; border-left: 4px solid var(--primary-blue); border-radius: var(--border-radius-sm); padding: 14px;">
-                <div style="font-size: 12px; font-weight: 600; color: var(--text-medium);" data-i18n="autoDailyVolumeLabel">
-                  Berekend Dagelijks Smeervolume:
+              <!-- Output Results (Dagelijks, Maandelijks, Jaarlijks) -->
+              <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-left: 4px solid var(--primary-red); border-radius: var(--border-radius-sm); padding: 14px 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.03);">
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; margin-bottom: 6px;">
+                  <div>
+                    <div style="font-size: 11px; font-weight: 700; color: var(--text-medium); text-transform: uppercase; letter-spacing: 0.4px;" data-i18n="autoDailyVolumeLabel">
+                      Berekend Dagelijks Smeervolume:
+                    </div>
+                    <div id="autoDailyVolumeRes" style="font-size: 20px; font-weight: 800; color: var(--primary-red); margin-top: 2px;">
+                      0,39 cm³/dag
+                    </div>
+                  </div>
+                  <div>
+                    <div style="font-size: 11px; font-weight: 700; color: var(--text-medium); text-transform: uppercase; letter-spacing: 0.4px;">
+                      Berekend Maandelijks Smeervolume:
+                    </div>
+                    <div id="autoMonthlyVolumeRes" style="font-size: 18px; font-weight: 800; color: var(--primary-dark); margin-top: 2px;">
+                      11,9 cm³/maand
+                    </div>
+                  </div>
+                  <div>
+                    <div style="font-size: 11px; font-weight: 700; color: var(--text-medium); text-transform: uppercase; letter-spacing: 0.4px;">
+                      Berekend Jaarlijks Smeervolume:
+                    </div>
+                    <div id="autoYearlyVolumeRes" style="font-size: 18px; font-weight: 800; color: var(--primary-dark); margin-top: 2px;">
+                      145,5 cm³/jaar
+                    </div>
+                  </div>
                 </div>
-                <div id="autoDailyVolumeRes" style="font-size: 20px; font-weight: 800; color: var(--primary-blue); margin: 4px 0 2px 0;">
-                  0,67 cm³/dag
-                </div>
-                <div id="autoDispenseRateHint" style="font-size: 11px; color: var(--text-medium);">
-                  (~ 20,0 cm³ / maand)
+                <div id="autoDispenseRateHint" style="font-size: 11px; color: var(--text-medium); border-top: 1px dashed #cbd5e1; padding-top: 6px; margin-top: 4px;">
+                  (~ afgestemd op Smeercalculatie)
                 </div>
                 <div id="autoMatchNotice"></div>
               </div>
@@ -2616,10 +2636,10 @@
 
   <!-- JavaScript logic imports -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="interflon-data.js?v=20260819_2042"></script>
+  <script src="interflon-data.js?v=20260819_2046"></script>
   <script src="bearings-db.js"></script>
-  <script src="chains-db.js?v=20260819_2042"></script>
-  <script src="app_v6.js?v=20260819_2042"></script>
+  <script src="chains-db.js?v=20260819_2046"></script>
+  <script src="app_v6.js?v=20260819_2046"></script>
 
   <!-- Interflon Oil Dispenser Information Modal (PowerPoint Viewer) -->
   <div id="oilDispenserInfoModal" class="modal-overlay hidden" style="z-index: 99999;">
