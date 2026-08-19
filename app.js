@@ -2255,10 +2255,23 @@ function calculateGrease() {
     }
   }
 
-  // 6. Basis frequentie (FB)
-  const ratio = (isNaN(speed) || speed <= 0 || isNaN(limitingSpeed) || limitingSpeed <= 0) 
+  // 6. Basis frequentie (FB) met Lagertype Factor conform Rekenblad lagers.xlsx
+  let typeFactor = 1.0;
+  const bTypeCheck = bearingType.toLowerCase();
+  if (bTypeCheck.includes("spherical") || bTypeCheck.includes("sferisch") || bTypeCheck.includes("pendelrol") || bTypeCheck.includes("ton")) {
+    typeFactor = 2.6;
+  } else if (bTypeCheck.includes("tapered") || bTypeCheck.includes("conisch") || bTypeCheck.includes("kegel")) {
+    typeFactor = 2.0;
+  } else if (bTypeCheck.includes("cylindrical") || bTypeCheck.includes("cylindrisch") || bTypeCheck.includes("cilinder") || bTypeCheck.includes("naald")) {
+    typeFactor = 1.7;
+  } else {
+    typeFactor = 1.0;
+  }
+
+  const rawRatio = (isNaN(speed) || speed <= 0 || isNaN(limitingSpeed) || limitingSpeed <= 0) 
     ? 0.01 
     : (speed / limitingSpeed);
+  const ratio = Math.min(1.0, rawRatio * typeFactor);
   
   let fb = 20000;
   if (typeof BASE_FREQUENCY_TABLE !== "undefined") {
