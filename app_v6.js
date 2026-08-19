@@ -2870,6 +2870,7 @@ function updateOmMetadata() {
 
   const techMachine = localStorage.getItem("tech_machine") || "";
   const techApp = localStorage.getItem("tech_app") || "";
+  const techBrand = localStorage.getItem("tech_brand") || "";
   const techProduct = localStorage.getItem("tech_product") || "";
 
   setVal("omTechMachine", techMachine); setVal("chainOmTechMachine", techMachine);
