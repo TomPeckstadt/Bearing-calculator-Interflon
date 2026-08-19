@@ -6593,11 +6593,19 @@ function onChainAutoPeriodInput() {
 
 function applyChainAutoRecommendation() {
   userHasManuallyEditedChainAutoPeriod = false;
+  const unitSelect = document.getElementById("chainAutoDispenseUnit");
+  if (unitSelect) {
+    unitSelect.value = "months";
+  }
   calculateChainAutomation();
 }
 
 function applyAutoRecommendation() {
   userHasManuallyEditedAutoPeriod = false;
+  const unitSelect = document.getElementById("autoDispenseUnit") || document.getElementById("autoPeriodUnit");
+  if (unitSelect) {
+    unitSelect.value = "months";
+  }
   calculateAutomationLubrication();
 }
 
