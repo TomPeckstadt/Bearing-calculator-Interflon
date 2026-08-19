@@ -5071,12 +5071,15 @@ function calculateAutomationLubrication() {
   if (totalDays <= 0) totalDays = 1;
 
   const actualDailyVolume = capMl / totalDays;
-  const actualMonthlyVolume = actualDailyVolume * 30.4375;
+  
+  // Base bottom volume displays DIRECTLY on Lagerbehoefte when available
+  const displayDailyVol = hasDailyNeed ? dailyNeedCm3 : actualDailyVolume;
+  const displayMonthlyVol = displayDailyVol * 30.4375;
+  const displayYearlyVol = displayDailyVol * 365.25;
 
-  const formattedDaily = actualDailyVolume.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-  const formattedMonthly = actualMonthlyVolume.toLocaleString("nl-BE", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
-  const actualYearlyVolume = actualDailyVolume * 365.25;
-  const formattedYearly = actualYearlyVolume.toLocaleString("nl-BE", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+  const formattedDaily = displayDailyVol.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const formattedMonthly = displayMonthlyVol.toLocaleString("nl-BE", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+  const formattedYearly = displayYearlyVol.toLocaleString("nl-BE", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 
   const monthValEl = document.getElementById("autoMonthlyVolumeRes");
   const yearValEl = document.getElementById("autoYearlyVolumeRes");
@@ -5090,9 +5093,11 @@ function calculateAutomationLubrication() {
   else if (unit === "days") unitLabel = "dagen";
   else if (unit === "months") unitLabel = "maanden";
 
+  const formattedActualDaily = actualDailyVolume.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
   if (hintEl) {
     if (hasDailyNeed) {
-      hintEl.innerHTML = `ℹ️ Instelling op ${periodVal} ${unitLabel} bij ${capMl} cm³ patroon. Sluit <strong>100% aan op Smeercalculatie</strong> (${formattedYearly} g/jaar).`;
+      hintEl.innerHTML = `✅ Smeervolumes (dag, maand, jaar) zijn <strong>100% synchroon met de berekende lagerbehoefte</strong>.<br>• Gekozen toestelinstelling: <strong>${capMl} cm³ patroon</strong> op <strong>${periodVal} ${unitLabel}</strong> (uitstroom: ${formattedActualDaily} cm³/dag).`;
     } else {
       hintEl.textContent = `(~ ${formattedMonthly} cm³/maand | ${formattedYearly} cm³/jaar bij ${capMl} ml op ${periodVal} ${unitLabel})`;
     }
