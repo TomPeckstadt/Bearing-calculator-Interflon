@@ -4965,26 +4965,39 @@ function calculateAutomationLubrication() {
   const hDay = window.currentHoursPerDay || 24;
   const dWeek = window.currentDaysPerWeek || 7;
 
-  // Restore from localStorage if RAM variables are empty after page reload
+  // Restore from localStorage or set sensible default (22215 lager: 17.6g / 25d = 0.704 cm3/dag)
   if ((typeof window.currentDailyNeedCm3 !== "number" || window.currentDailyNeedCm3 <= 0)) {
     try {
       const storedNeed = parseFloat(localStorage.getItem("calc_daily_need"));
       if (!isNaN(storedNeed) && storedNeed > 0) {
         window.currentDailyNeedCm3 = storedNeed;
-        window.currentRefillGrams = parseFloat(localStorage.getItem("calc_refill_grams")) || 0;
-        window.currentMicPolDays = parseFloat(localStorage.getItem("calc_micpol_days")) || 0;
-        window.currentMicPolHours = parseFloat(localStorage.getItem("calc_micpol_hours")) || 0;
+        window.currentRefillGrams = parseFloat(localStorage.getItem("calc_refill_grams")) || 17.6;
+        window.currentMicPolDays = parseFloat(localStorage.getItem("calc_micpol_days")) || 25.0;
+        window.currentMicPolHours = parseFloat(localStorage.getItem("calc_micpol_hours")) || 600;
         window.currentHoursPerDay = parseFloat(localStorage.getItem("calc_hours_per_day")) || 24;
         window.currentDaysPerWeek = parseFloat(localStorage.getItem("calc_days_per_week")) || 7;
+      } else {
+        // Fallback default: 17.6g / 25d = 0.704 cm3/dag
+        window.currentDailyNeedCm3 = 0.704;
+        window.currentRefillGrams = 17.6;
+        window.currentMicPolDays = 25.0;
+        window.currentMicPolHours = 600;
+        window.currentHoursPerDay = 24;
+        window.currentDaysPerWeek = 7;
       }
     } catch (e) {
-      console.warn("Could not read calc data from localStorage", e);
+      window.currentDailyNeedCm3 = 0.704;
+      window.currentRefillGrams = 17.6;
+      window.currentMicPolDays = 25.0;
+      window.currentMicPolHours = 600;
+      window.currentHoursPerDay = 24;
+      window.currentDaysPerWeek = 7;
     }
   }
 
   // Check if we have a calculated daily requirement from Smeercalculatie
-  const hasDailyNeed = (typeof window.currentDailyNeedCm3 === "number" && window.currentDailyNeedCm3 > 0);
-  const dailyNeedCm3 = hasDailyNeed ? window.currentDailyNeedCm3 : 0;
+  const hasDailyNeed = true; // Always active with calculated or default bearing need
+  const dailyNeedCm3 = window.currentDailyNeedCm3 || 0.704;
 
   // 1. Render Smeercalculatie source summary badge if present
   if (needBadgeEl) {
