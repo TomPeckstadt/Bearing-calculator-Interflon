@@ -2790,15 +2790,17 @@ function calculateGrease() {
   if (TtElement) TtElement.textContent = Tt.toFixed(1);
 
   // 8. Gecorrigeerd Smeerinterval conform Rekenblad lagers.xlsx
-  // De formule uit het rekenblad (FC = FB x Te x Ta x Tt) is het INTERFLON MICPOL® interval!
+  // Het conventionele smeerinterval (FC) is het basissmeerinterval voor standaard vet.
+  // Het Interflon MicPol® interval schaalt met de gekozen MicPol® convertiefactor!
   const micPolInput = document.getElementById("inputMicPolFactor");
   let micPolFactor = micPolInput ? parseFloat(micPolInput.value) : 4;
   if (isNaN(micPolFactor) || micPolFactor < 1 || micPolFactor > 50) {
     micPolFactor = 4;
   }
 
-  const fcMicPol = fb * Te * Ta * Tt; // Interflon MicPol® interval (bijv. 600 uren / 25 dagen)
-  const fc = fcMicPol / micPolFactor; // Conventioneel interval (bijv. 150 uren / 6.25 dagen)
+  const fcBase = (fb * Te * Ta * Tt) / 4.0; // Basissmeerinterval conventioneel (bijv. 66.56 uren / 5.2 dagen)
+  const fc = fcBase;
+  const fcMicPol = fcBase * micPolFactor; // Interflon MicPol® interval (bijv. 266.24 uren / 20.7 dagen bij 4x)
 
   if (iElement) iElement.textContent = Math.round(fc).toLocaleString("nl-NL");
 
