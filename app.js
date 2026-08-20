@@ -1,3 +1,73 @@
+// ==========================================================================
+// UNIVERSAL INPUT FIELD PERSISTENCE (PERSIST ALL GRAY/EDITABLE FIELDS ON DEVICE)
+// ==========================================================================
+function initUniversalInputPersistence() {
+  try {
+    const allInputs = document.querySelectorAll("input[id], select[id]");
+    allInputs.forEach(el => {
+      if (el.id === "passwordInput" || el.type === "hidden" || el.type === "file") return;
+
+      const savedVal = localStorage.getItem("app_field_" + el.id);
+      if (savedVal !== null && savedVal !== "") {
+        el.value = savedVal;
+      }
+
+      const saveHandler = (e) => {
+        try {
+          localStorage.setItem("app_field_" + el.id, e.target.value);
+        } catch (err) {
+          console.warn("Could not save field to localStorage:", el.id, err);
+        }
+      };
+
+      el.addEventListener("input", saveHandler);
+      el.addEventListener("change", saveHandler);
+    });
+
+    // Also sync legacy metadata keys if set
+    const metaSyncMap = [
+      ["opNameInput", "operator_name"],
+      ["opPhoneInput", "operator_phone"],
+      ["opEmailInput", "operator_email"],
+      ["clientCompanyInput", "client_company"],
+      ["clientContactInput", "client_contact"],
+      ["clientPhoneInput", "client_phone"],
+      ["clientEmailInput", "client_email"],
+      ["techMachineInput", "tech_machine"],
+      ["techAppInput", "tech_app"],
+      ["techBrandInput", "tech_brand"],
+      ["techProductInput", "tech_product"],
+      ["techIntervalInput", "tech_interval"],
+      ["techPriceInput", "tech_price"]
+    ];
+
+    metaSyncMap.forEach(([fieldId, storageKey]) => {
+      const el = document.getElementById(fieldId);
+      if (el && el.value) {
+        localStorage.setItem(storageKey, el.value);
+      }
+    });
+
+    if (typeof updateOmMetadata === "function") updateOmMetadata();
+    if (typeof updateChainOmMetadata === "function") updateChainOmMetadata();
+    if (typeof calculateBearingRelubrication === "function") calculateBearingRelubrication();
+    if (typeof recalculateTcoModel === "function") recalculateTcoModel();
+    if (typeof recalculateChainTcoModel === "function") recalculateChainTcoModel();
+    if (typeof calculateAutomationLubrication === "function") calculateAutomationLubrication();
+    if (typeof calculateChainAutomationLubrication === "function") calculateChainAutomationLubrication();
+
+    console.log("Universal input persistence initialized successfully.");
+  } catch (e) {
+    console.warn("Error initializing universal input persistence:", e);
+  }
+}
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", initUniversalInputPersistence);
+} else {
+  setTimeout(initUniversalInputPersistence, 100);
+}
+
 
 function parseDutchFloat(str) {
   if (typeof str === "number") return str;
@@ -260,7 +330,7 @@ function renderPdfAutomationExtraPage(doc, autoData, autoDataUrl, autoRatio, wat
   doc.setFont("helvetica", "normal");
   doc.setFontSize(7);
   doc.setTextColor(72, 84, 96);
-  doc.text("Exact afgemeten dosering voorkomt vetverspilling, beschadigde afdichtingen en milieuverontreiniging.", c3X, botY + 21, { maxWidth: colW });
+  doc.text("Exact afgemeten dosering voorkomt vetverspilling, beschadigde afdichtingen en milieubevuilering.", c3X, botY + 21, { maxWidth: colW });
 
   // Extra Page Footer
   doc.setFont("helvetica", "normal");
@@ -305,256 +375,6 @@ function getAutomationDeviceImageDataUrl(imageSrc, callback) {
     callback(null, 1.0);
   };
   img.src = imageSrc;
-}
-
-function renderPdfAutomationExtraPage(doc, autoData, autoDataUrl, autoRatio, watermarkDataUrl, aspectRatio, langData, isChain = false) {
-  doc.addPage();
-
-  const pageWidth = doc.internal.pageSize.getWidth();
-  const pageHeight = doc.internal.pageSize.getHeight();
-
-  // 1. Watermerk logo
-  if (watermarkDataUrl && aspectRatio) {
-    const imgWidth = 160;
-    const imgHeight = 160 * aspectRatio;
-    const x = (pageWidth - imgWidth) / 2;
-    const y = (pageHeight - imgHeight) / 2;
-    doc.addImage(watermarkDataUrl, "JPEG", x, y, imgWidth, imgHeight);
-  }
-
-  // 2. Header
-  doc.setFillColor(227, 6, 19); // Interflon Rood
-  doc.rect(20, 20, 170, 2, "F");
-
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(15);
-  doc.setTextColor(227, 6, 19);
-  const mainTitle = isChain 
-    ? (langData.pdfAutoChainExtraTitle || "INTERFLON AUTOMATISCHE KETTINGSMEERING")
-    : (langData.pdfAutoBearingExtraTitle || "INTERFLON AUTOMATISCHE LAGERSMEERING");
-  doc.text(mainTitle, 20, 31);
-
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(8.5);
-  doc.setTextColor(72, 84, 96);
-  const subTitle = isChain
-    ? "Continu geautomatiseerde kettingsmering & bescherming tegen kettingrek en slijtage"
-    : "Continu geautomatiseerde lagersmering & bescherming van uw roterende apparatuur";
-  doc.text(subTitle, 20, 36);
-
-  // Divider line
-  doc.setDrawColor(226, 232, 240);
-  doc.setLineWidth(0.3);
-  doc.line(20, 40, 190, 40);
-
-  // LEFT PANEL: Product Photo Showcase Card
-  const leftX = 20;
-  const leftY = 44;
-  const leftW = 75;
-  const leftH = 150;
-
-  doc.setFillColor(248, 250, 252);
-  doc.setDrawColor(226, 232, 240);
-  doc.setLineWidth(0.3);
-  doc.roundedRect(leftX, leftY, leftW, leftH, 3, 3, "FD");
-
-  // Device Image Spotlight Frame
-  if (autoDataUrl && autoRatio) {
-    const frameX = leftX + 5;
-    const frameY = leftY + 5;
-    const frameW = 65;
-    const frameH = 65;
-
-    doc.setFillColor(255, 255, 255);
-    doc.setDrawColor(241, 245, 249);
-    doc.roundedRect(frameX, frameY, frameW, frameH, 2, 2, "FD");
-
-    const imgMaxW = 58;
-    const imgMaxH = 58;
-    let imgW = imgMaxW;
-    let imgH = imgW * autoRatio;
-    if (imgH > imgMaxH) {
-      imgH = imgMaxH;
-      imgW = imgH / autoRatio;
-    }
-    const imgX = frameX + (frameW - imgW) / 2;
-    const imgY = frameY + (frameH - imgH) / 2;
-    try {
-      doc.addImage(autoDataUrl, "PNG", imgX, imgY, imgW, imgH);
-    } catch (e) {
-      console.warn("Error embedding device photo on extra page:", e);
-    }
-  }
-
-  // Device Title & Specs Box
-  const textStartY = leftY + 76;
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(11);
-  doc.setTextColor(11, 19, 43);
-  doc.text(autoData.deviceName, leftX + 5, textStartY, { maxWidth: 65 });
-
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(8);
-  doc.setTextColor(72, 84, 96);
-  doc.text(`Inhoud: ${autoData.cartridgeCap} | Period: ${autoData.dispensePeriod}`, leftX + 5, textStartY + 6, { maxWidth: 65 });
-
-  // Match / Status Badge (Pill Container)
-  if (autoData.matchNotice) {
-    const badgeY = textStartY + 12;
-    doc.setFillColor(220, 252, 231); // Soft green
-    doc.setDrawColor(187, 247, 208);
-    doc.roundedRect(leftX + 5, badgeY, 65, 14, 2, 2, "FD");
-
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(7.5);
-    doc.setTextColor(22, 101, 52);
-    doc.text(autoData.matchNotice, leftX + 7, badgeY + 5.5, { maxWidth: 61 });
-  }
-
-  // Feature Bullet Highlights
-  const featureY = textStartY + 33;
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(8.5);
-  doc.setTextColor(11, 19, 43);
-  doc.text("Eigenschappen & Voordelen:", leftX + 5, featureY);
-
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(7.5);
-  doc.setTextColor(72, 84, 96);
-  const bullets = [
-    "• Continu 24u/24u nauwkeurige dosering",
-    "• Voorkomt over- en ondersmering",
-    "• Beter bestand tegen vocht & vuil",
-    "• Veilig te monteren op afstand"
-  ];
-  bullets.forEach((b, i) => {
-    doc.text(b, leftX + 5, featureY + 5 + (i * 4.5));
-  });
-
-
-  // RIGHT PANEL: Calculation & Operating Metrics Grid
-  const rightX = 100;
-  const rightY = 44;
-  const rightW = 90;
-  const rightH = 150;
-
-  doc.setFillColor(248, 250, 252);
-  doc.setDrawColor(226, 232, 240);
-  doc.setLineWidth(0.3);
-  doc.roundedRect(rightX, rightY, rightW, rightH, 3, 3, "FD");
-
-  // Title Right Card
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(11);
-  doc.setTextColor(227, 6, 19);
-  doc.text("DOSERINGS- & VERBRUIKSPARAMETERS", rightX + 6, rightY + 9);
-
-  doc.setDrawColor(226, 232, 240);
-  doc.line(rightX + 6, rightY + 12, rightX + rightW - 6, rightY + 12);
-
-  // Parameter Rows Table
-  const rows = [
-    ["Gekozen Smeerunit", autoData.deviceName, false, false],
-    ["Inhoud Smeerpatroon", autoData.cartridgeCap, false, false],
-    ["Ingestelde Leeglooptijd", autoData.dispensePeriod, true, "green"],
-    ["Dagelijks Verbruik", autoData.dailyVol, false, false],
-    ["Maandelijks Verbruik", autoData.monthlyVol, false, false],
-    ["Jaarlijks Verbruik / Behoefte", autoData.yearlyVol, true, "red"],
-    ["Patronen per Jaar", autoData.cartridgesYear, true, "dark"]
-  ];
-
-  let rowY = rightY + 20;
-  rows.forEach((r) => {
-    // Cell container
-    doc.setFillColor(255, 255, 255);
-    doc.setDrawColor(241, 245, 249);
-    doc.roundedRect(rightX + 5, rowY, rightW - 10, 14, 2, 2, "FD");
-
-    doc.setFont("helvetica", r[2] ? "bold" : "normal");
-    doc.setFontSize(8);
-    doc.setTextColor(72, 84, 96);
-    doc.text(r[0], rightX + 9, rowY + 8.5);
-
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(9);
-
-    if (r[3] === "red") {
-      doc.setTextColor(227, 6, 19);
-    } else if (r[3] === "green") {
-      doc.setTextColor(22, 101, 52);
-    } else {
-      doc.setTextColor(11, 19, 43);
-    }
-
-    doc.text(r[1], rightX + rightW - 9, rowY + 8.5, { align: "right" });
-    rowY += 17;
-  });
-
-  // BOTTOM CARD: 3 Pillars of Automatic Lubrication
-  const botY = 199;
-  const botW = 170;
-  const botH = 46;
-
-  doc.setFillColor(248, 250, 252);
-  doc.setDrawColor(226, 232, 240);
-  doc.setLineWidth(0.3);
-  doc.roundedRect(20, botY, botW, botH, 3, 3, "FD");
-
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(9.5);
-  doc.setTextColor(11, 19, 43);
-  doc.text("WAAROM KIEZEN VOOR INTERFLON AUTOMATISCHE DOSERING?", 26, botY + 8);
-
-  const colW = 50;
-  const c1X = 26;
-  const c2X = 81;
-  const c3X = 136;
-
-  // Col 1
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(8);
-  doc.setTextColor(227, 6, 19);
-  doc.text("1. Maximale Levensduur", c1X, botY + 16);
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(7);
-  doc.setTextColor(72, 84, 96);
-  doc.text("Continu verse smeerfilm met MicPol® voorkomt wrijving, slijtage en indringen van vuil of vocht.", c1X, botY + 21, { maxWidth: colW });
-
-  // Col 2
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(8);
-  doc.setTextColor(227, 6, 19);
-  doc.text("2. Besparing op Arbeid", c2X, botY + 16);
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(7);
-  doc.setTextColor(72, 84, 96);
-  doc.text("Tot 90% minder manuele smeerbeurten en inspectierondes. Verhoogt de veiligheid op lastige plekken.", c2X, botY + 21, { maxWidth: colW });
-
-  // Col 3
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(8);
-  doc.setTextColor(227, 6, 19);
-  doc.text("3. Duurzaam & Schoon", c3X, botY + 16);
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(7);
-  doc.setTextColor(72, 84, 96);
-  doc.text("Exact afgemeten dosering voorkomt vetverspilling, beschadigde afdichtingen en milieuverontreiniging.", c3X, botY + 21, { maxWidth: colW });
-
-  // Extra Page Footer
-  doc.setFont("helvetica", "normal");
-  doc.setDrawColor(200, 200, 200);
-  doc.setLineWidth(0.25);
-  doc.line(20, 267, 190, 267);
-
-  doc.setFontSize(6.8);
-  doc.setTextColor(140, 140, 140);
-  const disclaimer = langData.legalDisclaimerText || "De gegenereerde gegevens bieden een betrouwbare indicatie, maar vormen geen expliciete garantie dat een product of dosering geschikt is voor elke specifieke toepassing.";
-  doc.text(disclaimer, 20, 271, { maxWidth: 170 });
-  
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(7.5);
-  doc.setTextColor(227, 6, 19);
-  doc.text("INTERFLON - " + (langData.pdfWatermarkText || "A WORLD WITHOUT FRICTION").toUpperCase(), 20, 282);
 }
 
 
@@ -4549,7 +4369,7 @@ function runBearingPdfExport(includeTco) {
       const autoNoticeEl = document.getElementById("autoMatchNotice");
 
       const capMlVal = autoCapEl ? (autoCapEl.value || "125") : "125";
-      const yearlyValNum = autoYearlyEl ? parseFloat(autoYearlyEl.textContent.replace(/[^0-9.,]/g, "").replace(",", ".")) : 0;
+      const yearlyValNum = autoYearlyEl ? parseDutchFloat(autoYearlyEl.textContent) : 0;
       let calculatedCartridges = "--";
       if (!isNaN(yearlyValNum) && yearlyValNum > 0 && parseFloat(capMlVal) > 0) {
         calculatedCartridges = (yearlyValNum / parseFloat(capMlVal)).toLocaleString("nl-BE", { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + " patronen/jaar";
@@ -6804,7 +6624,7 @@ function runChainPdfExport(includeTco) {
         const chainAutoNoticeEl = document.getElementById("chainAutoMatchNotice");
 
         const chainCapMlVal = chainAutoCapEl ? (chainAutoCapEl.value || "125") : "125";
-        const chainYearlyValNum = chainAutoYearlyEl ? parseFloat(chainAutoYearlyEl.textContent.replace(/[^0-9.,]/g, "").replace(",", ".")) : 0;
+        const chainYearlyValNum = chainAutoYearlyEl ? parseDutchFloat(chainAutoYearlyEl.textContent) : 0;
         let chainCalculatedCartridges = "--";
         if (!isNaN(chainYearlyValNum) && chainYearlyValNum > 0 && parseFloat(chainCapMlVal) > 0) {
           chainCalculatedCartridges = (chainYearlyValNum / parseFloat(chainCapMlVal)).toLocaleString("nl-BE", { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + " patronen/jaar";
@@ -7537,45 +7357,3 @@ document.addEventListener("keydown", function(e) {
     }
   }
 });
-
-
-function initUniversalInputPersistence() {
-  try {
-    const allInputs = document.querySelectorAll("input[id], select[id]");
-    allInputs.forEach(el => {
-      if (el.id === "passwordInput" || el.type === "hidden" || el.type === "file") return;
-
-      const savedVal = localStorage.getItem("app_field_" + el.id);
-      if (savedVal !== null && savedVal !== "") {
-        el.value = savedVal;
-      }
-
-      const saveHandler = (e) => {
-        try {
-          localStorage.setItem("app_field_" + el.id, e.target.value);
-        } catch (err) {
-          console.warn("Could not save field to localStorage:", el.id, err);
-        }
-      };
-
-      el.addEventListener("input", saveHandler);
-      el.addEventListener("change", saveHandler);
-    });
-
-    if (typeof updateOmMetadata === "function") updateOmMetadata();
-    if (typeof updateChainOmMetadata === "function") updateChainOmMetadata();
-    if (typeof calculateBearingRelubrication === "function") calculateBearingRelubrication();
-    if (typeof recalculateTcoModel === "function") recalculateTcoModel();
-    if (typeof recalculateChainTcoModel === "function") recalculateChainTcoModel();
-    if (typeof calculateAutomationLubrication === "function") calculateAutomationLubrication();
-    if (typeof calculateChainAutomationLubrication === "function") calculateChainAutomationLubrication();
-  } catch (e) {
-    console.warn("Error initializing universal input persistence:", e);
-  }
-}
-
-if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", initUniversalInputPersistence);
-} else {
-  setTimeout(initUniversalInputPersistence, 100);
-}
