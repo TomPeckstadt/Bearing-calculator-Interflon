@@ -222,7 +222,7 @@ const TRANSLATIONS = {
     techAppPlaceholder: "Bijv. Ventilator",
     techProductLabel: "Huidig product",
     techProductPlaceholder: "Bijv. Standaard EP2 vet",
-    techIntervalLabel: "Huidige smeerinterval (dagen)",
+    techIntervalLabel: "Huidige smeerinterval (kalenderdagen)",
     techPriceLabel: "Prijs huidig product / L (€)",
     techIntervalPlaceholder: "Bijv. 30",
     inputMicPolFactorLabel: "Selecteer convertiefactor naar Interflon MicPol® technologie",
@@ -523,7 +523,7 @@ const TRANSLATIONS = {
     techAppPlaceholder: "E.g. Fan",
     techProductLabel: "Current product",
     techProductPlaceholder: "E.g. Standard EP2 grease",
-    techIntervalLabel: "Current lubrication interval (days)",
+    techIntervalLabel: "Current lubrication interval (calendar days)",
     techPriceLabel: "Price current product / L (€)",
     techIntervalPlaceholder: "E.g. 30",
     inputMicPolFactorLabel: "Select conversion factor to Interflon MicPol® technology",
@@ -824,7 +824,7 @@ const TRANSLATIONS = {
     techAppPlaceholder: "Ex. Ventilateur",
     techProductLabel: "Produit actuel",
     techProductPlaceholder: "Ex. Graisse EP2 standard",
-    techIntervalLabel: "Intervalle de lubrification actuel (jours)",
+    techIntervalLabel: "Intervalle de lubrification actuel (jours calendaires)",
     techPriceLabel: "Prix produit actuel / L (€)",
     techIntervalPlaceholder: "Ex. 30",
     inputMicPolFactorLabel: "Sélectionnez le facteur de conversion vers la technologie Interflon MicPol®",
@@ -3360,7 +3360,7 @@ function runBearingPdfExport(includeTco) {
       doc.text((langData.techBrandLabel || "Merk") + ":", 110, 93.5);
       doc.text((langData.techProductLabel || "Huidig product") + ":", 110, 98);
       
-      const techIntervalLabelShort = currentLang === "nl" ? "Huidig interval (dagen)" : currentLang === "en" ? "Current interval (days)" : "Intervalle actuel (jours)";
+      const techIntervalLabelShort = currentLang === "nl" ? "Huidig interval (kalenderdagen)" : currentLang === "en" ? "Current interval (calendar days)" : "Intervalle actuel (jours calendaires)";
       doc.text(techIntervalLabelShort + ":", 110, 102.5);
 
       const techPriceLabelShort = currentLang === "nl" ? "Prijs huidig prod./L" : currentLang === "en" ? "Price current prod./L" : "Prix prod. actuel/L";
