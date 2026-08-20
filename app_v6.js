@@ -27,99 +27,261 @@ function getAutomationDeviceImageDataUrl(imageSrc, callback) {
   img.src = imageSrc;
 }
 
-function drawPdfAutomationSection(doc, startY, autoData, autoDataUrl, autoRatio, langData, isChain = false) {
-  let currentY = startY;
+function renderPdfAutomationExtraPage(doc, autoData, autoDataUrl, autoRatio, watermarkDataUrl, aspectRatio, langData, isChain = false) {
+  doc.addPage();
+
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const pageHeight = doc.internal.pageSize.getHeight();
+
+  // 1. Watermerk logo
+  if (watermarkDataUrl && aspectRatio) {
+    const imgWidth = 160;
+    const imgHeight = 160 * aspectRatio;
+    const x = (pageWidth - imgWidth) / 2;
+    const y = (pageHeight - imgHeight) / 2;
+    doc.addImage(watermarkDataUrl, "JPEG", x, y, imgWidth, imgHeight);
+  }
+
+  // 2. Header
+  doc.setFillColor(227, 6, 19); // Interflon Rood
+  doc.rect(20, 20, 170, 2, "F");
 
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(10);
+  doc.setFontSize(15);
   doc.setTextColor(227, 6, 19);
-  const sectionTitle = isChain 
-    ? (langData.pdfAutoChainTitle || "AUTOMATISCHE KETTINGSMEERING (AUTOMATISERING)")
-    : (langData.pdfAutoBearingTitle || "AUTOMATISCHE LAGERSMEERING (AUTOMATISERING)");
-  doc.text(sectionTitle, 20, currentY);
+  const mainTitle = isChain 
+    ? (langData.pdfAutoChainExtraTitle || "INTERFLON AUTOMATISCHE KETTINGSMEERING")
+    : (langData.pdfAutoBearingExtraTitle || "INTERFLON AUTOMATISCHE LAGERSMEERING");
+  doc.text(mainTitle, 20, 31);
 
-  currentY += 3;
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(8.5);
+  doc.setTextColor(72, 84, 96);
+  const subTitle = isChain
+    ? "Continu geautomatiseerde kettingsmering & bescherming tegen kettingrek en slijtage"
+    : "Continu geautomatiseerde lagersmering & bescherming van uw roterende apparatuur";
+  doc.text(subTitle, 20, 36);
 
-  const boxX = 20;
-  const boxY = currentY;
-  const boxW = 170;
-  const boxH = 38;
+  // Divider line
+  doc.setDrawColor(226, 232, 240);
+  doc.setLineWidth(0.3);
+  doc.line(20, 40, 190, 40);
+
+  // LEFT PANEL: Product Photo Showcase Card
+  const leftX = 20;
+  const leftY = 44;
+  const leftW = 75;
+  const leftH = 150;
 
   doc.setFillColor(248, 250, 252);
   doc.setDrawColor(226, 232, 240);
   doc.setLineWidth(0.3);
-  doc.roundedRect(boxX, boxY, boxW, boxH, 2, 2, "FD");
+  doc.roundedRect(leftX, leftY, leftW, leftH, 3, 3, "FD");
 
+  // Device Image Spotlight Frame
   if (autoDataUrl && autoRatio) {
-    const imgMaxW = 28;
-    const imgMaxH = 28;
+    const frameX = leftX + 5;
+    const frameY = leftY + 5;
+    const frameW = 65;
+    const frameH = 65;
+
+    doc.setFillColor(255, 255, 255);
+    doc.setDrawColor(241, 245, 249);
+    doc.roundedRect(frameX, frameY, frameW, frameH, 2, 2, "FD");
+
+    const imgMaxW = 58;
+    const imgMaxH = 58;
     let imgW = imgMaxW;
     let imgH = imgW * autoRatio;
     if (imgH > imgMaxH) {
       imgH = imgMaxH;
       imgW = imgH / autoRatio;
     }
-    const imgX = boxX + 4 + (imgMaxW - imgW) / 2;
-    const imgY = boxY + 4 + (imgMaxH - imgH) / 2;
+    const imgX = frameX + (frameW - imgW) / 2;
+    const imgY = frameY + (frameH - imgH) / 2;
     try {
       doc.addImage(autoDataUrl, "PNG", imgX, imgY, imgW, imgH);
     } catch (e) {
-      console.warn("Could not render device image in PDF:", e);
+      console.warn("Error embedding device photo on extra page:", e);
     }
   }
 
+  // Device Title & Specs Box
+  const textStartY = leftY + 76;
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(11);
+  doc.setTextColor(11, 19, 43);
+  doc.text(autoData.deviceName, leftX + 5, textStartY, { maxWidth: 65 });
+
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(8);
+  doc.setTextColor(72, 84, 96);
+  doc.text(`Inhoud: ${autoData.cartridgeCap} | Period: ${autoData.dispensePeriod}`, leftX + 5, textStartY + 6, { maxWidth: 65 });
+
+  // Match / Status Badge (Pill Container)
+  if (autoData.matchNotice) {
+    const badgeY = textStartY + 12;
+    doc.setFillColor(220, 252, 231); // Soft green
+    doc.setDrawColor(187, 247, 208);
+    doc.roundedRect(leftX + 5, badgeY, 65, 14, 2, 2, "FD");
+
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(7.5);
+    doc.setTextColor(22, 101, 52);
+    doc.text(autoData.matchNotice, leftX + 7, badgeY + 5.5, { maxWidth: 61 });
+  }
+
+  // Feature Bullet Highlights
+  const featureY = textStartY + 33;
   doc.setFont("helvetica", "bold");
   doc.setFontSize(8.5);
   doc.setTextColor(11, 19, 43);
-  doc.text(autoData.deviceName, boxX + 36, boxY + 7, { maxWidth: 52 });
-
-  if (autoData.matchNotice) {
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(7.5);
-    doc.setTextColor(22, 101, 52);
-    doc.text(autoData.matchNotice, boxX + 36, boxY + 13, { maxWidth: 52 });
-  }
+  doc.text("Eigenschappen & Voordelen:", leftX + 5, featureY);
 
   doc.setFont("helvetica", "normal");
   doc.setFontSize(7.5);
   doc.setTextColor(72, 84, 96);
-  doc.text(`Inhoud: ${autoData.cartridgeCap} | Period: ${autoData.dispensePeriod}`, boxX + 36, boxY + 18, { maxWidth: 52 });
+  const bullets = [
+    "• Continu 24u/24u nauwkeurige dosering",
+    "• Voorkomt over- en ondersmering",
+    "• Beter bestand tegen vocht & vuil",
+    "• Veilig te monteren op afstand"
+  ];
+  bullets.forEach((b, i) => {
+    doc.text(b, leftX + 5, featureY + 5 + (i * 4.5));
+  });
 
-  const gridX = boxX + 92;
-  const gridW = 72;
-  
+
+  // RIGHT PANEL: Calculation & Operating Metrics Grid
+  const rightX = 100;
+  const rightY = 44;
+  const rightW = 90;
+  const rightH = 150;
+
+  doc.setFillColor(248, 250, 252);
+  doc.setDrawColor(226, 232, 240);
+  doc.setLineWidth(0.3);
+  doc.roundedRect(rightX, rightY, rightW, rightH, 3, 3, "FD");
+
+  // Title Right Card
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(11);
+  doc.setTextColor(227, 6, 19);
+  doc.text("DOSERINGS- & VERBRUIKSPARAMETERS", rightX + 6, rightY + 9);
+
+  doc.setDrawColor(226, 232, 240);
+  doc.line(rightX + 6, rightY + 12, rightX + rightW - 6, rightY + 12);
+
+  // Parameter Rows Table
   const rows = [
-    [langData.pdfAutoDeviceLabel || "Gekozen Smeerunit:", autoData.deviceName],
-    [langData.pdfAutoCapLabel || "Inhoud Smeerpatroon:", autoData.cartridgeCap],
-    [langData.pdfAutoPeriodLabel || "Ingestelde Leeglooptijd:", autoData.dispensePeriod],
-    [langData.pdfAutoDailyLabel || "Dagelijks Verbruik:", autoData.dailyVol],
-    [langData.pdfAutoMonthlyLabel || "Maandelijks Verbruik:", autoData.monthlyVol],
-    [langData.pdfAutoYearlyLabel || "Jaarlijks Verbruik:", autoData.yearlyVol],
-    [langData.pdfAutoCartridgesLabel || "Patronen per Jaar:", autoData.cartridgesYear]
+    ["Gekozen Smeerunit", autoData.deviceName, false, false],
+    ["Inhoud Smeerpatroon", autoData.cartridgeCap, false, false],
+    ["Ingestelde Leeglooptijd", autoData.dispensePeriod, true, "green"],
+    ["Dagelijks Verbruik", autoData.dailyVol, false, false],
+    ["Maandelijks Verbruik", autoData.monthlyVol, false, false],
+    ["Jaarlijks Verbruik / Behoefte", autoData.yearlyVol, true, "red"],
+    ["Patronen per Jaar", autoData.cartridgesYear, true, "dark"]
   ];
 
-  let gridY = boxY + 5;
-  rows.forEach((r, idx) => {
-    doc.setFont("helvetica", idx === 0 || idx === 2 || idx === 5 ? "bold" : "normal");
-    doc.setFontSize(7.1);
-    doc.setTextColor(72, 84, 96);
-    doc.text(r[0], gridX, gridY);
+  let rowY = rightY + 20;
+  rows.forEach((r) => {
+    // Cell container
+    doc.setFillColor(255, 255, 255);
+    doc.setDrawColor(241, 245, 249);
+    doc.roundedRect(rightX + 5, rowY, rightW - 10, 14, 2, 2, "FD");
 
-    if (idx === 5 || idx === 6) {
+    doc.setFont("helvetica", r[2] ? "bold" : "normal");
+    doc.setFontSize(8);
+    doc.setTextColor(72, 84, 96);
+    doc.text(r[0], rightX + 9, rowY + 8.5);
+
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(9);
+
+    if (r[3] === "red") {
       doc.setTextColor(227, 6, 19);
-      doc.setFont("helvetica", "bold");
-    } else if (idx === 2) {
+    } else if (r[3] === "green") {
       doc.setTextColor(22, 101, 52);
-      doc.setFont("helvetica", "bold");
     } else {
       doc.setTextColor(11, 19, 43);
     }
-    doc.text(r[1], gridX + gridW, gridY, { align: "right" });
-    gridY += 4.5;
+
+    doc.text(r[1], rightX + rightW - 9, rowY + 8.5, { align: "right" });
+    rowY += 17;
   });
 
-  return boxY + boxH + 4;
+  // BOTTOM CARD: 3 Pillars of Automatic Lubrication
+  const botY = 199;
+  const botW = 170;
+  const botH = 46;
+
+  doc.setFillColor(248, 250, 252);
+  doc.setDrawColor(226, 232, 240);
+  doc.setLineWidth(0.3);
+  doc.roundedRect(20, botY, botW, botH, 3, 3, "FD");
+
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(9.5);
+  doc.setTextColor(11, 19, 43);
+  doc.text("WAAROM KIEZEN VOOR INTERFLON AUTOMATISCHE DOSERING?", 26, botY + 8);
+
+  const colW = 50;
+  const c1X = 26;
+  const c2X = 81;
+  const c3X = 136;
+
+  // Col 1
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(8);
+  doc.setTextColor(227, 6, 19);
+  doc.text("1. Maximale Levensduur", c1X, botY + 16);
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(7);
+  doc.setTextColor(72, 84, 96);
+  doc.text("Continu verse smeerfilm met MicPol® voorkomt wrijving, slijtage en indringen van vuil of vocht.", c1X, botY + 21, { maxWidth: colW });
+
+  // Col 2
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(8);
+  doc.setTextColor(227, 6, 19);
+  doc.text("2. Besparing op Arbeid", c2X, botY + 16);
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(7);
+  doc.setTextColor(72, 84, 96);
+  doc.text("Tot 90% minder manuele smeerrunderen en inspectierondes. Verhoogt de veiligheid op lastige plekken.", c2X, botY + 21, { maxWidth: colW });
+
+  // Col 3
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(8);
+  doc.setTextColor(227, 6, 19);
+  doc.text("3. Duurzaam & Schoon", c3X, botY + 16);
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(7);
+  doc.setTextColor(72, 84, 96);
+  doc.text("Exact afgemeten dosering voorkomt vetverspilling, beschadigde afdichtingen en milieubevuilering.", c3X, botY + 21, { maxWidth: colW });
+
+  // Extra Page Footer
+  doc.setFont("helvetica", "normal");
+  doc.setDrawColor(200, 200, 200);
+  doc.setLineWidth(0.25);
+  doc.line(20, 267, 190, 267);
+
+  doc.setFontSize(6.8);
+  doc.setTextColor(140, 140, 140);
+  const disclaimer = langData.legalDisclaimerText || "De gegenereerde gegevens bieden een betrouwbare indicatie, maar vormen geen expliciete garantie dat een product of dosering geschikt is voor elke specifieke toepassing.";
+  doc.text(disclaimer, 20, 271, { maxWidth: 170 });
+  
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(7.5);
+  doc.setTextColor(227, 6, 19);
+  doc.text("INTERFLON - " + (langData.pdfWatermarkText || "A WORLD WITHOUT FRICTION").toUpperCase(), 20, 282);
 }
+
+
+
+
+
+
 
 
 
@@ -3662,34 +3824,7 @@ function runBearingPdfExport(includeTco) {
       doc.setLineWidth(0.25);
       doc.line(20, currentY + 2.5, 190, currentY + 2.5);
 
-      // Automatisering Sectie op Pagina 1
-      const autoDeviceTitleEl = document.getElementById("automationTitle");
-      const autoCapEl = document.getElementById("autoCartridgeCap");
-      const autoPeriodEl = document.getElementById("autoDispensePeriod");
-      const autoUnitEl = document.getElementById("autoDispenseUnit");
-      const autoDailyEl = document.getElementById("autoDailyVolumeRes");
-      const autoMonthlyEl = document.getElementById("autoMonthlyVolumeRes");
-      const autoYearlyEl = document.getElementById("autoYearlyVolumeRes");
-      const autoCartridgesEl = document.getElementById("autoCartridgesYearRes");
-      const autoNoticeEl = document.getElementById("autoMatchNotice");
 
-      const autoBearingData = {
-        deviceName: autoDeviceTitleEl ? autoDeviceTitleEl.textContent.trim() : "Interflon Single Point Lubricator",
-        cartridgeCap: autoCapEl ? (autoCapEl.value || "125 ml") : "125 ml",
-        dispensePeriod: (autoPeriodEl && autoUnitEl) ? (autoPeriodEl.value + " " + autoUnitEl.options[autoUnitEl.selectedIndex].text) : "3 maanden",
-        dailyVol: autoDailyEl ? autoDailyEl.textContent.trim() : "--",
-        monthlyVol: autoMonthlyEl ? autoMonthlyEl.textContent.trim() : "--",
-        yearlyVol: autoYearlyEl ? autoYearlyEl.textContent.trim() : "--",
-        cartridgesYear: autoCartridgesEl ? autoCartridgesEl.textContent.trim() : "--",
-        matchNotice: autoNoticeEl ? autoNoticeEl.textContent.trim() : ""
-      };
-
-      let autoStartY = Math.max(currentY + 6, 218);
-      if (autoStartY + 42 > 265 && !includeTco) {
-        doc.addPage();
-        autoStartY = 25;
-      }
-      currentY = drawPdfAutomationSection(doc, autoStartY, autoBearingData, autoDataUrl, autoRatio, langData, false);
 
       // MicPol® Technologie Sectie op Pagina 1 (als TCO niet wordt geëxporteerd)
       if (!includeTco) {
@@ -4116,6 +4251,30 @@ function runBearingPdfExport(includeTco) {
         doc.setTextColor(227, 6, 19);
         doc.text("INTERFLON - " + (langData.pdfWatermarkText || "A WORLD WITHOUT FRICTION").toUpperCase(), 20, 282);
       }
+
+      // Render Automatisering als Extra Pagina helemaal onderaan de PDF
+      const autoDeviceTitleEl = document.getElementById("automationTitle");
+      const autoCapEl = document.getElementById("autoCartridgeCap");
+      const autoPeriodEl = document.getElementById("autoDispensePeriod");
+      const autoUnitEl = document.getElementById("autoDispenseUnit");
+      const autoDailyEl = document.getElementById("autoDailyVolumeRes");
+      const autoMonthlyEl = document.getElementById("autoMonthlyVolumeRes");
+      const autoYearlyEl = document.getElementById("autoYearlyVolumeRes");
+      const autoCartridgesEl = document.getElementById("autoCartridgesYearRes");
+      const autoNoticeEl = document.getElementById("autoMatchNotice");
+
+      const autoBearingData = {
+        deviceName: autoDeviceTitleEl ? autoDeviceTitleEl.textContent.trim() : "Interflon Single Point Lubricator",
+        cartridgeCap: autoCapEl ? (autoCapEl.value || "125 ml") : "125 ml",
+        dispensePeriod: (autoPeriodEl && autoUnitEl) ? (autoPeriodEl.value + " " + autoUnitEl.options[autoUnitEl.selectedIndex].text) : "3 maanden",
+        dailyVol: autoDailyEl ? autoDailyEl.textContent.trim() : "--",
+        monthlyVol: autoMonthlyEl ? autoMonthlyEl.textContent.trim() : "--",
+        yearlyVol: autoYearlyEl ? autoYearlyEl.textContent.trim() : "--",
+        cartridgesYear: autoCartridgesEl ? autoCartridgesEl.textContent.trim() : "--",
+        matchNotice: autoNoticeEl ? autoNoticeEl.textContent.trim() : ""
+      };
+
+      renderPdfAutomationExtraPage(doc, autoBearingData, autoDataUrl, autoRatio, watermarkDataUrl, aspectRatio, langData, false);
 
       const filePrefix = currentLang === "nl" ? "Interflon_Smeeradvies_" : currentLang === "en" ? "Interflon_Lubrication_Advice_" : "Interflon_Conseil_Lubrification_";
       doc.save(filePrefix + bearingNum.replace(/[\/\\?%*:|"<>\s]/g, "_") + ".pdf");
@@ -6329,6 +6488,30 @@ function runChainPdfExport(includeTco) {
         }
 
         // Save PDF
+        // Render Automatisering als Extra Pagina helemaal onderaan de PDF
+        const chainAutoTitleEl = document.getElementById("chainAutomationTitle");
+        const chainAutoCapEl = document.getElementById("chainAutoCartridgeCap");
+        const chainAutoPeriodEl = document.getElementById("chainAutoDispensePeriod");
+        const chainAutoUnitEl = document.getElementById("chainAutoDispenseUnit");
+        const chainAutoDailyEl = document.getElementById("chainAutoDailyVolumeRes");
+        const chainAutoMonthlyEl = document.getElementById("chainAutoMonthlyVolumeRes");
+        const chainAutoYearlyEl = document.getElementById("chainAutoYearlyVolumeRes");
+        const chainAutoCartridgesEl = document.getElementById("chainAutoCartridgesYearRes");
+        const chainAutoNoticeEl = document.getElementById("chainAutoMatchNotice");
+
+        const autoChainData = {
+          deviceName: chainAutoTitleEl ? chainAutoTitleEl.textContent.trim() : "Interflon Oil Dispenser",
+          cartridgeCap: chainAutoCapEl ? (chainAutoCapEl.value || "125 ml") : "125 ml",
+          dispensePeriod: (chainAutoPeriodEl && chainAutoUnitEl) ? (chainAutoPeriodEl.value + " " + chainAutoUnitEl.options[chainAutoUnitEl.selectedIndex].text) : "3 maanden",
+          dailyVol: chainAutoDailyEl ? chainAutoDailyEl.textContent.trim() : "--",
+          monthlyVol: chainAutoMonthlyEl ? chainAutoMonthlyEl.textContent.trim() : "--",
+          yearlyVol: chainAutoYearlyEl ? chainAutoYearlyEl.textContent.trim() : "--",
+          cartridgesYear: chainAutoCartridgesEl ? chainAutoCartridgesEl.textContent.trim() : "--",
+          matchNotice: chainAutoNoticeEl ? chainAutoNoticeEl.textContent.trim() : ""
+        };
+
+        renderPdfAutomationExtraPage(doc, autoChainData, autoDataUrl, autoRatio, watermarkDataUrl, aspectRatio, langData, true);
+
         const cleanFileName = clientCompany && clientCompany !== "-" ? clientCompany.replace(/[^a-z0-9]/gi, '_') : "Ketting";
         doc.save(`Interflon_Ketting_Smeeradvies_${cleanFileName}.pdf`);
 
