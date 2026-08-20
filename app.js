@@ -1,4 +1,15 @@
 
+function parseDutchFloat(str) {
+  if (typeof str === "number") return str;
+  if (!str) return 0;
+  const cleaned = str.toString()
+    .replace(/[^0-9.,]/g, "")
+    .replace(/\./g, "")
+    .replace(",", ".");
+  const val = parseFloat(cleaned);
+  return isNaN(val) ? 0 : val;
+}
+
 function cleanPdfText(str) {
   if (!str) return "";
   return str
@@ -6,34 +17,6 @@ function cleanPdfText(str) {
     .replace(/['"`]/g, "")
     .replace(/^[\s\v\n]+|[\s\v\n]+$/g, "")
     .replace(/\s+/g, " ");
-}
-
-function getAutomationDeviceImageDataUrl(imageSrc, callback) {
-  if (!imageSrc) {
-    callback(null, 1.0);
-    return;
-  }
-  const img = new Image();
-  img.crossOrigin = "Anonymous";
-  img.onload = function() {
-    try {
-      const canvas = document.createElement("canvas");
-      canvas.width = img.width;
-      canvas.height = img.height;
-      const ctx = canvas.getContext("2d");
-      ctx.drawImage(img, 0, 0);
-      const dataUrl = canvas.toDataURL("image/png");
-      const ratio = img.height / img.width;
-      callback(dataUrl, ratio);
-    } catch (e) {
-      console.warn("Could not process automation image DataURL:", e);
-      callback(null, 1.0);
-    }
-  };
-  img.onerror = function() {
-    callback(null, 1.0);
-  };
-  img.src = imageSrc;
 }
 
 function renderPdfAutomationExtraPage(doc, autoData, autoDataUrl, autoRatio, watermarkDataUrl, aspectRatio, langData, isChain = false) {
@@ -92,14 +75,14 @@ function renderPdfAutomationExtraPage(doc, autoData, autoDataUrl, autoRatio, wat
     const frameX = leftX + 5;
     const frameY = leftY + 5;
     const frameW = 65;
-    const frameH = 62;
+    const frameH = 60;
 
     doc.setFillColor(255, 255, 255);
     doc.setDrawColor(241, 245, 249);
     doc.roundedRect(frameX, frameY, frameW, frameH, 2, 2, "FD");
 
-    const imgMaxW = 56;
-    const imgMaxH = 56;
+    const imgMaxW = 54;
+    const imgMaxH = 54;
     let imgW = imgMaxW;
     let imgH = imgW * autoRatio;
     if (imgH > imgMaxH) {
@@ -116,9 +99,9 @@ function renderPdfAutomationExtraPage(doc, autoData, autoDataUrl, autoRatio, wat
   }
 
   // Device Title & Specs Box
-  const textStartY = leftY + 73;
+  const textStartY = leftY + 70;
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(11);
+  doc.setFontSize(10.5);
   doc.setTextColor(11, 19, 43);
   const cleanDeviceName = cleanPdfText(autoData.deviceName);
   doc.text(cleanDeviceName, leftX + 5, textStartY, { maxWidth: 65 });
@@ -126,31 +109,42 @@ function renderPdfAutomationExtraPage(doc, autoData, autoDataUrl, autoRatio, wat
   doc.setFont("helvetica", "normal");
   doc.setFontSize(8);
   doc.setTextColor(72, 84, 96);
-  doc.text(`Inhoud: ${autoData.cartridgeCap} ml | Looptijd: ${autoData.dispensePeriod}`, leftX + 5, textStartY + 6, { maxWidth: 65 });
+  doc.text(`Inhoud: ${autoData.cartridgeCap} ml | Looptijd: ${autoData.dispensePeriod}`, leftX + 5, textStartY + 5.5, { maxWidth: 65 });
 
-  // Match / Status Badge (Clean Green Box with Padding & Multi-line Text)
+  // Match / Status Badge (DYNAMIC HEIGHT MATCH BOX)
   const cleanNotice = cleanPdfText(autoData.matchNotice);
+  let nextSectionY = textStartY + 14;
+
   if (cleanNotice) {
-    const badgeY = textStartY + 11;
-    doc.setFillColor(236, 253, 245);
-    doc.setDrawColor(167, 243, 208);
-    doc.roundedRect(leftX + 5, badgeY, 65, 18, 2, 2, "FD");
+    const badgeX = leftX + 5;
+    const badgeY = textStartY + 10;
+    const badgeW = 65;
 
     doc.setFont("helvetica", "normal");
-    doc.setFontSize(7.2);
+    doc.setFontSize(7.0);
     doc.setTextColor(4, 120, 87);
-    doc.text(cleanNotice, leftX + 8, badgeY + 5.5, { maxWidth: 59, lineHeightFactor: 1.25 });
+
+    const lines = doc.splitTextToSize(cleanNotice, badgeW - 6);
+    const textH = lines.length * 3.2;
+    const badgeH = Math.max(12, textH + 5);
+
+    doc.setFillColor(236, 253, 245);
+    doc.setDrawColor(167, 243, 208);
+    doc.setLineWidth(0.25);
+    doc.roundedRect(badgeX, badgeY, badgeW, badgeH, 2, 2, "FD");
+
+    doc.text(lines, badgeX + 3, badgeY + 4.2);
+    nextSectionY = badgeY + badgeH + 6;
   }
 
   // Feature Bullet Highlights
-  const featureY = textStartY + 34;
   doc.setFont("helvetica", "bold");
   doc.setFontSize(8.5);
   doc.setTextColor(11, 19, 43);
-  doc.text("Eigenschappen & Voordelen:", leftX + 5, featureY);
+  doc.text("Eigenschappen & Voordelen:", leftX + 5, nextSectionY);
 
   doc.setFont("helvetica", "normal");
-  doc.setFontSize(7.5);
+  doc.setFontSize(7.3);
   doc.setTextColor(72, 84, 96);
   const bullets = [
     "• Continu 24u/24u nauwkeurige dosering",
@@ -159,7 +153,7 @@ function renderPdfAutomationExtraPage(doc, autoData, autoDataUrl, autoRatio, wat
     "• Veilig te monteren op afstand"
   ];
   bullets.forEach((b, i) => {
-    doc.text(b, leftX + 5, featureY + 5 + (i * 4.5));
+    doc.text(b, leftX + 5, nextSectionY + 5 + (i * 4.2));
   });
 
   // RIGHT PANEL: Calculation & Operating Metrics Grid
@@ -182,7 +176,6 @@ function renderPdfAutomationExtraPage(doc, autoData, autoDataUrl, autoRatio, wat
   doc.setDrawColor(226, 232, 240);
   doc.line(rightX + 6, rightY + 12, rightX + rightW - 6, rightY + 12);
 
-  // Short non-overlapping labels & cleaned values
   const rows = [
     ["Smeerunit:", cleanDeviceName, false, "dark"],
     ["Patroon Inhoud:", autoData.cartridgeCap + " ml", false, "dark"],
@@ -195,7 +188,6 @@ function renderPdfAutomationExtraPage(doc, autoData, autoDataUrl, autoRatio, wat
 
   let rowY = rightY + 18;
   rows.forEach((r) => {
-    // Cell container
     doc.setFillColor(255, 255, 255);
     doc.setDrawColor(241, 245, 249);
     doc.roundedRect(rightX + 5, rowY, rightW - 10, 14, 2, 2, "FD");
@@ -258,7 +250,7 @@ function renderPdfAutomationExtraPage(doc, autoData, autoDataUrl, autoRatio, wat
   doc.setFont("helvetica", "normal");
   doc.setFontSize(7);
   doc.setTextColor(72, 84, 96);
-  doc.text("Tot 90% minder manuele smeerrondes en inspectierondes. Verhoogt de veiligheid op lastige plekken.", c2X, botY + 21, { maxWidth: colW });
+  doc.text("Tot 90% minder manuele smeerbeurten en inspectierondes. Verhoogt de veiligheid op lastige plekken.", c2X, botY + 21, { maxWidth: colW });
 
   // Col 3
   doc.setFont("helvetica", "bold");
