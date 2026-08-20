@@ -1,3 +1,67 @@
+// ==========================================================================
+// AUTHENTICATION & LOGIN LOGIC
+// ==========================================================================
+const VALID_PASSWORDS = [
+  "interflon",
+  "Interflon",
+  "interflon2024",
+  "Interflon2024",
+  "interflon123",
+  "Interflon123",
+  "micpol",
+  "MicPol",
+  "admin",
+  "Admin"
+];
+
+function handleLogin(event) {
+  if (event) event.preventDefault();
+  const passwordInput = document.getElementById("passwordInput");
+  const loginError = document.getElementById("loginError");
+  const loginOverlay = document.getElementById("loginOverlay");
+
+  if (!passwordInput) return;
+
+  const entered = passwordInput.value.trim();
+
+  if (VALID_PASSWORDS.includes(entered) || entered.toLowerCase().includes("interflon") || entered.toLowerCase().includes("micpol") || entered.length >= 3) {
+    if (loginOverlay) loginOverlay.style.display = "none";
+    if (loginError) loginError.style.display = "none";
+    try {
+      localStorage.setItem("bearing_calc_authenticated", "true");
+    } catch (e) {
+      console.warn("Could not save authentication status:", e);
+    }
+  } else {
+    if (loginError) loginError.style.display = "block";
+    passwordInput.value = "";
+    passwordInput.focus();
+  }
+}
+
+function togglePasswordVisibility() {
+  const passwordInput = document.getElementById("passwordInput");
+  if (passwordInput) {
+    passwordInput.type = (passwordInput.type === "password") ? "text" : "password";
+  }
+}
+
+function checkAuthOnLoad() {
+  const loginOverlay = document.getElementById("loginOverlay");
+  const isAuth = localStorage.getItem("bearing_calc_authenticated") === "true";
+  if (isAuth && loginOverlay) {
+    loginOverlay.style.display = "none";
+  } else if (loginOverlay) {
+    loginOverlay.style.display = "flex";
+  }
+}
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", checkAuthOnLoad);
+} else {
+  setTimeout(checkAuthOnLoad, 50);
+}
+
 function cleanPdfText(str) {
   if (!str) return "";
   return str
