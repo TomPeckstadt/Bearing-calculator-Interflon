@@ -342,7 +342,7 @@ function renderPdfAutomationExtraPage(doc, autoData, autoDataUrl, autoRatio, wat
   doc.setFont("helvetica", "normal");
   doc.setFontSize(7);
   doc.setTextColor(72, 84, 96);
-  doc.text("Exact afgemeten dosering voorkomt vetverspilling, beschadigde afdichtingen en milieubevuilering.", c3X, botY + 21, { maxWidth: colW });
+  doc.text("Exact afgemeten dosering voorkomt vetverspilling, beschadigde afdichtingen en milieuverontreiniging.", c3X, botY + 21, { maxWidth: colW });
 
   // Extra Page Footer
   doc.setFont("helvetica", "normal");
