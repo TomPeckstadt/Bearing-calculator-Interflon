@@ -84,9 +84,14 @@ function cleanPdfText(str) {
   if (!str) return "";
   return str
     .replace(/<[^>]*>/g, "")
-    .replace(/['"`]/g, "")
-    .replace(/^[\s\v\n]+|[\s\v\n]+$/g, "")
-    .replace(/\s+/g, " ");
+    .replace(/[\u{1F300}-\u{1F9FF}]/gu, "")
+    .replace(/[\u{2700}-\u{27BF}]/gu, "")
+    .replace(/[\u{2600}-\u{26FF}]/gu, "")
+    .replace(/[^\x20-\x7E\xA0-\xFF]/g, "")
+    .replace(/['"`\u2018\u2019\u201C\u201D]/g, "")
+    .replace(/^\s+|\s+$/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 function renderPdfAutomationExtraPage(doc, autoData, autoDataUrl, autoRatio, watermarkDataUrl, aspectRatio, langData, isChain = false) {
@@ -181,29 +186,36 @@ function renderPdfAutomationExtraPage(doc, autoData, autoDataUrl, autoRatio, wat
   doc.setTextColor(72, 84, 96);
   doc.text(`Inhoud: ${autoData.cartridgeCap} ml | Looptijd: ${autoData.dispensePeriod}`, leftX + 5, textStartY + 5.5, { maxWidth: 65 });
 
-  // Match / Status Badge (DYNAMIC HEIGHT MATCH BOX)
+  // Match / Status Badge (REBUILT FROM SCRATCH WITH DYNAMIC PADDING)
   const cleanNotice = cleanPdfText(autoData.matchNotice);
   let nextSectionY = textStartY + 14;
 
   if (cleanNotice) {
     const badgeX = leftX + 5;
-    const badgeY = textStartY + 10;
+    const badgeY = textStartY + 9;
     const badgeW = 65;
+    const contentW = badgeW - 8;
 
     doc.setFont("helvetica", "normal");
     doc.setFontSize(7.0);
     doc.setTextColor(4, 120, 87);
 
-    const lines = doc.splitTextToSize(cleanNotice, badgeW - 6);
-    const textH = lines.length * 3.2;
-    const badgeH = Math.max(12, textH + 5);
+    const lines = doc.splitTextToSize(cleanNotice, contentW);
+    const lineHeight = 3.2;
+    const textH = lines.length * lineHeight;
+    const badgeH = Math.max(13, textH + 5);
 
     doc.setFillColor(236, 253, 245);
     doc.setDrawColor(167, 243, 208);
-    doc.setLineWidth(0.25);
-    doc.roundedRect(badgeX, badgeY, badgeW, badgeH, 2, 2, "FD");
+    doc.setLineWidth(0.3);
+    doc.roundedRect(badgeX, badgeY, badgeW, badgeH, 2.5, 2.5, "FD");
 
-    doc.text(lines, badgeX + 3, badgeY + 4.2);
+    let lineY = badgeY + 4.5;
+    lines.forEach((lineText) => {
+      doc.text(lineText.trim(), badgeX + 4, lineY);
+      lineY += lineHeight;
+    });
+
     nextSectionY = badgeY + badgeH + 6;
   }
 
