@@ -162,7 +162,7 @@ const TRANSLATIONS = {
     taOptionShock: "Schokken / Hoog (0,5)",
     taOptionVibe: "Vibraties / Erg hoog (0,3)",
     taOptionVert: "Verticale as / Extreem (0,15)",
-    unitHours: "uren",
+    unitHours: "bedrijfsuren",
     unitDays: "dagen",
     unitWeeks: "weken",
     unitMonths: "maanden",
