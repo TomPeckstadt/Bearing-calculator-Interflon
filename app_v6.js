@@ -1,13 +1,13 @@
 // ==========================================================================
-// AUTHENTICATION & LOGIN LOGIC
+// AUTHENTICATION & LOGIN LOGIC (PASSWORD: smeercalculatie)
 // ==========================================================================
 const VALID_PASSWORDS = [
+  "smeercalculatie",
+  "Smeercalculatie",
   "interflon",
   "Interflon",
   "interflon2024",
   "Interflon2024",
-  "interflon123",
-  "Interflon123",
   "micpol",
   "MicPol",
   "admin",
@@ -24,7 +24,8 @@ function handleLogin(event) {
 
   const entered = passwordInput.value.trim();
 
-  if (VALID_PASSWORDS.includes(entered) || entered.toLowerCase().includes("interflon") || entered.toLowerCase().includes("micpol") || entered.length >= 3) {
+  // Accept smeercalculatie, interflon, micpol or any non-empty password
+  if (entered.length > 0) {
     if (loginOverlay) loginOverlay.style.display = "none";
     if (loginError) loginError.style.display = "none";
     try {
@@ -34,7 +35,6 @@ function handleLogin(event) {
     }
   } else {
     if (loginError) loginError.style.display = "block";
-    passwordInput.value = "";
     passwordInput.focus();
   }
 }
