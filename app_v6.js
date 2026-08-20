@@ -536,7 +536,7 @@ function renderPdfAutomationExtraPage(doc, autoData, autoDataUrl, autoRatio, wat
   doc.setFont("helvetica", "normal");
   doc.setFontSize(7);
   doc.setTextColor(72, 84, 96);
-  doc.text("Tot 90% minder manuele smeerrunderen en inspectierondes. Verhoogt de veiligheid op lastige plekken.", c2X, botY + 21, { maxWidth: colW });
+  doc.text("Tot 90% minder manuele smeerbeurten en inspectierondes. Verhoogt de veiligheid op lastige plekken.", c2X, botY + 21, { maxWidth: colW });
 
   // Col 3
   doc.setFont("helvetica", "bold");
