@@ -1071,6 +1071,36 @@ document.addEventListener("DOMContentLoaded", () => {
   // Laad tech details op startup
   loadTechDetails();
 
+  // Real-time auto-save listeners for tech modal inputs
+  const techBrandInputEl = document.getElementById("techBrandInput");
+  if (techBrandInputEl) {
+    techBrandInputEl.addEventListener("input", (e) => {
+      localStorage.setItem("tech_brand", e.target.value);
+      if (typeof updateOmMetadata === "function") updateOmMetadata();
+    });
+  }
+  const techMachineInputEl = document.getElementById("techMachineInput");
+  if (techMachineInputEl) {
+    techMachineInputEl.addEventListener("input", (e) => {
+      localStorage.setItem("tech_machine", e.target.value);
+      if (typeof updateOmMetadata === "function") updateOmMetadata();
+    });
+  }
+  const techAppInputEl = document.getElementById("techAppInput");
+  if (techAppInputEl) {
+    techAppInputEl.addEventListener("input", (e) => {
+      localStorage.setItem("tech_app", e.target.value);
+      if (typeof updateOmMetadata === "function") updateOmMetadata();
+    });
+  }
+  const techProductInputEl = document.getElementById("techProductInput");
+  if (techProductInputEl) {
+    techProductInputEl.addEventListener("input", (e) => {
+      localStorage.setItem("tech_product", e.target.value);
+      if (typeof updateOmMetadata === "function") updateOmMetadata();
+    });
+  }
+
   // Laad TCO details op startup
   loadTcoDetails();
   if (typeof updateTcoFrequencies === "function") {
@@ -2945,6 +2975,9 @@ function saveTechDetails(event) {
   }
 
   updateTechBadge(machine, application);
+  if (typeof updateOmMetadata === "function") {
+    updateOmMetadata();
+  }
   closeTechModal();
 
   // Trigger recalculations and TCO save for both Lagers and Kettingen in real-time
