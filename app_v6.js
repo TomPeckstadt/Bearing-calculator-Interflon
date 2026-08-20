@@ -2,6 +2,15 @@
 // UNIVERSAL INPUT FIELD PERSISTENCE (PERSIST ALL GRAY/EDITABLE FIELDS ON DEVICE)
 // ==========================================================================
 function initUniversalInputPersistence() {
+
+    // Restore last active bearing or default to 22230
+    const savedBearingDesig = localStorage.getItem("active_bearing_designation") || "22230";
+    if (typeof loadBearingDetails === "function") {
+      loadBearingDetails(savedBearingDesig);
+      const searchInput = document.getElementById("bearingSearchInput");
+      if (searchInput) searchInput.value = savedBearingDesig;
+    }
+  
   try {
     const allInputs = document.querySelectorAll("input[id], select[id]");
     allInputs.forEach(el => {
