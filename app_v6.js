@@ -1,3 +1,73 @@
+// ==========================================================================
+// UNIVERSAL INPUT FIELD PERSISTENCE (PERSIST ALL GRAY/EDITABLE FIELDS ON DEVICE)
+// ==========================================================================
+function initUniversalInputPersistence() {
+  try {
+    const allInputs = document.querySelectorAll("input[id], select[id]");
+    allInputs.forEach(el => {
+      if (el.id === "passwordInput" || el.type === "hidden" || el.type === "file") return;
+
+      const savedVal = localStorage.getItem("app_field_" + el.id);
+      if (savedVal !== null && savedVal !== "") {
+        el.value = savedVal;
+      }
+
+      const saveHandler = (e) => {
+        try {
+          localStorage.setItem("app_field_" + el.id, e.target.value);
+        } catch (err) {
+          console.warn("Could not save field to localStorage:", el.id, err);
+        }
+      };
+
+      el.addEventListener("input", saveHandler);
+      el.addEventListener("change", saveHandler);
+    });
+
+    // Also sync legacy metadata keys if set
+    const metaSyncMap = [
+      ["opNameInput", "operator_name"],
+      ["opPhoneInput", "operator_phone"],
+      ["opEmailInput", "operator_email"],
+      ["clientCompanyInput", "client_company"],
+      ["clientContactInput", "client_contact"],
+      ["clientPhoneInput", "client_phone"],
+      ["clientEmailInput", "client_email"],
+      ["techMachineInput", "tech_machine"],
+      ["techAppInput", "tech_app"],
+      ["techBrandInput", "tech_brand"],
+      ["techProductInput", "tech_product"],
+      ["techIntervalInput", "tech_interval"],
+      ["techPriceInput", "tech_price"]
+    ];
+
+    metaSyncMap.forEach(([fieldId, storageKey]) => {
+      const el = document.getElementById(fieldId);
+      if (el && el.value) {
+        localStorage.setItem(storageKey, el.value);
+      }
+    });
+
+    if (typeof updateOmMetadata === "function") updateOmMetadata();
+    if (typeof updateChainOmMetadata === "function") updateChainOmMetadata();
+    if (typeof calculateBearingRelubrication === "function") calculateBearingRelubrication();
+    if (typeof recalculateTcoModel === "function") recalculateTcoModel();
+    if (typeof recalculateChainTcoModel === "function") recalculateChainTcoModel();
+    if (typeof calculateAutomationLubrication === "function") calculateAutomationLubrication();
+    if (typeof calculateChainAutomationLubrication === "function") calculateChainAutomationLubrication();
+
+    console.log("Universal input persistence initialized successfully.");
+  } catch (e) {
+    console.warn("Error initializing universal input persistence:", e);
+  }
+}
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", initUniversalInputPersistence);
+} else {
+  setTimeout(initUniversalInputPersistence, 100);
+}
+
 
 function parseDutchFloat(str) {
   if (typeof str === "number") return str;
