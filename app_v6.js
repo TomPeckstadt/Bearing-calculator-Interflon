@@ -684,11 +684,11 @@ const TRANSLATIONS = {
     omProductLabel: "PRODUCT",
     omGeneralLabel: "Algemene info",
     omProdName: "Productnaam",
-    omConsumption: "Productverbruik / smeerbeurt (g)",
+    omConsumption: "Productverbruik / smeerbeurt / per lager (g)",
     omPricePerL: "Kostprijs product / L (€)",
     omAnnProdCost: "Kostprijs product / machine / jaar (€)",
     omLaborLabel: "TIJDSBESTEDING",
-    omLubesPerYear: "Aantal smeerbeurten / jaar",
+    omLubesPerYear: "Aantal smeerbeurten / jaar / per lager",
     omWorktimePerLube: "Werktijd / smeerbeurt (minuten)",
     omRepairFreq: "Revisiefrequentie (maanden)",
     omRepairDuration: "Revisietijd / Downtime / H",
@@ -704,7 +704,7 @@ const TRANSLATIONS = {
     omAnnMatCost: "Kostprijs materiaal / machine / jaar (€)",
     omNumMachines: "Aantal machines",
     omDowntimeLabel: "DOWN-TIME",
-    omDowntimeHours: "Tijdsduur (H)",
+    omDowntimeHours: "Tijdsduur / per lager (H)",
     omDowntimeRate: "Kostprijs down-time / H (€)",
     omDowntimeFreq: "Aantal / jaar",
     omAnnDowntimeCost: "Kostprijs downtime / machine / jaar (€)",
@@ -4246,8 +4246,8 @@ function runBearingPdfExport(includeTco, includeRoi) {
         }
 
         curY += 6.5;
-        drawCell(startX1, curY, 54, 6.5, (langData.omProdConsLabel || "Productverbruik / smeerbeurt") + " (g)", p1_cons, "blue");
-        drawCell(startX2, curY, 54, 6.5, (langData.omProdConsLabel || "Productverbruik / smeerbeurt") + " (g)", p2_cons, "blue");
+        drawCell(startX1, curY, 54, 6.5, (langData.omProdConsLabel || "Productverbruik / smeerbeurt / per lager") + " (g)", p1_cons, "blue");
+        drawCell(startX2, curY, 54, 6.5, (langData.omProdConsLabel || "Productverbruik / smeerbeurt / per lager") + " (g)", p2_cons, "blue");
         
         curY += 6.5;
         drawCell(startX1, curY, 54, 6.5, langData.omPricePerL || "Kostprijs product / L (€)", p1_price, "blue");
@@ -4265,8 +4265,8 @@ function runBearingPdfExport(includeTco, includeRoi) {
 
         // TIJDSBESTEDING ROWS (Y = 90 to 109.5)
         curY = 90;
-        drawCell(startX1, curY, 54, 6.5, langData.omLubesPerYear || "Aantal smeerbeurten / jaar", p1_freq, "blue");
-        drawCell(startX2, curY, 54, 6.5, langData.omLubesPerYear || "Aantal smeerbeurten / jaar", p2_freq, "blue");
+        drawCell(startX1, curY, 54, 6.5, langData.omLubesPerYear || "Aantal smeerbeurten / jaar / per lager", p1_freq, "blue");
+        drawCell(startX2, curY, 54, 6.5, langData.omLubesPerYear || "Aantal smeerbeurten / jaar / per lager", p2_freq, "blue");
         drawCell(startX3, curY, 60, 6.5, langData.omWorktimePerLube || "Werktijd / smeerbeurt (min)", shared_worktime, "grey");
 
         curY += 6.5;
@@ -4309,8 +4309,8 @@ function runBearingPdfExport(includeTco, includeRoi) {
 
         // DOWN-TIME ROWS (Y = 142 to 161.5)
         curY = 142;
-        drawCell(startX1, curY, 54, 6.5, langData.omDowntimeHours || "Tijdsduur (H)", p1_dt_h, "blue");
-        drawCell(startX2, curY, 54, 6.5, langData.omDowntimeHours || "Tijdsduur (H)", p2_dt_h, "blue");
+        drawCell(startX1, curY, 54, 6.5, langData.omDowntimeHours || "Tijdsduur / per lager (H)", p1_dt_h, "blue");
+        drawCell(startX2, curY, 54, 6.5, langData.omDowntimeHours || "Tijdsduur / per lager (H)", p2_dt_h, "blue");
         drawCell(startX3, curY, 60, 6.5, langData.omDowntimeRate || "Kostprijs downtime / H (€)", shared_dt_rate, "grey");
 
         curY += 6.5;
@@ -6539,8 +6539,8 @@ function runChainPdfExport(includeTco, includeRoi) {
           }
 
           curY += 6;
-          drawCell(startX1, curY, 54, 6, "Productverbruik / smeerbeurt", p1_cons, "blue");
-          drawCell(startX2, curY, 54, 6, "Productverbruik / smeerbeurt", p2_cons, "blue");
+          drawCell(startX1, curY, 54, 6, "Productverbruik / smeerbeurt / per lager", p1_cons, "blue");
+          drawCell(startX2, curY, 54, 6, "Productverbruik / smeerbeurt / per lager", p2_cons, "blue");
           curY += 6;
           drawCell(startX1, curY, 54, 6, "Smeerfrequentie / jaar", p1_freq, "blue");
           drawCell(startX2, curY, 54, 6, "Smeerfrequentie / jaar", p2_freq, "blue");
