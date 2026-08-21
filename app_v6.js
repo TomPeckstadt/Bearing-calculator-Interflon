@@ -64,6 +64,7 @@ function initUniversalInputPersistence() {
     if (typeof recalculateChainTcoModel === "function") recalculateChainTcoModel();
     if (typeof calculateAutomationLubrication === "function") calculateAutomationLubrication();
   if (typeof updateRoiAutomationPage === "function") updateRoiAutomationPage();
+  if (typeof updateRoiAutomationPage === "function") updateRoiAutomationPage();
     if (typeof calculateChainAutomationLubrication === "function") calculateChainAutomationLubrication();
 
     console.log("Universal input persistence initialized successfully.");
@@ -8056,7 +8057,7 @@ function updateRoiAutomationPage() {
   const manualBeurtenPerYear = techBeurtenInput ? (parseFloat(techBeurtenInput.value) || 17.6) : 17.6;
   const timeInput = document.getElementById("tcoTimeInput");
   const workTimeMinutes = timeInput ? (parseFloat(timeInput.value) || 10) : 10;
-  const hourlyRateInput = document.getElementById("tcoHourlyRateInput");
+  const hourlyRateInput = document.getElementById("omSharedLaborRate") || document.getElementById("chainOmSharedLaborRate") || document.getElementById("tcoHourlyRateInput");
   const hourlyRate = hourlyRateInput ? (parseFloat(hourlyRateInput.value) || 50.00) : 50.00;
 
   const manualGreaseCost = (yearlyMl / 1000) * greasePricePerLiter;
