@@ -5,6 +5,9 @@
 
 :root {
   /* Kleurenpalet - Interflon Huisstijl (Rood & Wit) */
+  --primary-red: #E30613;
+  --primary-red-hover: #B3050F;
+  --primary-red-light: #FFF5F5;
   --primary-blue: #E30613; /* Rood */
   --primary-blue-hover: #B3050F;
   --primary-blue-light: #FFF5F5;
