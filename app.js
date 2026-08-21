@@ -68,8 +68,31 @@ function onDevicePeriodInput(devId) {
 
 function applyAutoRecommendationForDevice(devId) {
   const dev = autoDevicesState.find(d => d.id === devId);
+  const dailyNeedCm3 = window.currentDailyNeedCm3 || 0.704;
+  
   if (dev) {
     dev.userEditedPeriod = false;
+    dev.unit = "months";
+    const unitSelect = document.getElementById("autoDispenseUnit_" + devId);
+    if (unitSelect) unitSelect.value = "months";
+
+    const totalNeed = dailyNeedCm3 * (dev.points || 1);
+    const availableCaps = [60, 120, 125, 250, 500];
+    
+    // Find optimal cartridge size where theoretical months >= 0.7
+    let bestCap = 500;
+    for (let c of availableCaps) {
+      const recDays = c / totalNeed;
+      const recMonths = recDays / 30.4375;
+      if (recMonths >= 0.7) {
+        bestCap = c;
+        break;
+      }
+    }
+
+    dev.cap = bestCap;
+    const capSelect = document.getElementById("autoCartridgeCap_" + devId);
+    if (capSelect) capSelect.value = bestCap.toString();
   }
   calculateAutomationLubrication();
 }
