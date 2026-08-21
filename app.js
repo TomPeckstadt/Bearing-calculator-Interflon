@@ -8095,7 +8095,7 @@ function updateRoiAutomationPage() {
   if (autoPacksTotalEl) autoPacksTotalEl.textContent = `€ ${autoCartridgeCostYear.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / jaar`;
   if (autoAccCostEl) {
     if (priceInfo.mandatoryAccessoriesPrice > 0) {
-      autoAccCostEl.textContent = `€ ${priceInfo.mandatoryAccessoriesPrice.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} (Kit 1430 + 10x 14)`;
+      autoAccCostEl.textContent = `€ ${priceInfo.mandatoryAccessoriesPrice.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} (Eenmalig)`;
     } else {
       autoAccCostEl.textContent = `€ 0,00`;
     }
