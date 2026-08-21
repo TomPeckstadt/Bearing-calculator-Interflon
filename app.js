@@ -82,8 +82,6 @@ function renderAutoDevicesUI() {
   const deviceSelect = document.getElementById("automationDeviceSelect") || document.getElementById("autoDeviceSelect");
   const deviceKey = deviceSelect ? deviceSelect.value : "single_point";
 
-  let html = "";
-  
   const outerGrid = document.getElementById("automationInteractiveGrid");
   if (outerGrid) {
     if (numDevices > 1) {
@@ -93,6 +91,8 @@ function renderAutoDevicesUI() {
     }
   }
 
+  let html = "";
+  
   if (numDevices > 1) {
     container.style.display = "grid";
     container.style.gridTemplateColumns = "repeat(" + numDevices + ", minmax(300px, 1fr))";
@@ -108,101 +108,152 @@ function renderAutoDevicesUI() {
   for (let i = 0; i < numDevices; i++) {
     const dev = autoDevicesState[i];
     const devId = dev.id;
-    const devName = numDevices === 1 ? "Pulsarlube Smeertoestel" : "Pulsarlube " + devId;
-    const headerTitle = numDevices === 1 ? "Toestel Parameters & Smeerinstelling" : devName + " - Smeerinstelling & Volumecalculatie";
+    const devName = numDevices === 1 ? "Pulsarlube Smeertoestel" : ("Pulsarlube " + devId);
+    const headerTitle = numDevices === 1 ? "Toestel Parameters & Smeerinstelling" : (devName + " - Smeerinstelling & Volumecalculatie");
 
-    html += '<div class="card" style="background: #ffffff; border: 1px solid #cbd5e1; padding: 20px; border-radius: var(--border-radius-md); box-shadow: 0 2px 8px rgba(0,0,0,0.04); flex: 1;">';
-    html += '<div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--accent-yellow); padding-bottom: 8px; margin-bottom: 16px;">';
-    html += '<h4 style="color: var(--primary-blue); font-family: "Outfit", sans-serif; font-size: 1.1rem; margin: 0; font-weight: 700;">' + headerTitle + '</h4>';
-    if (numDevices > 1) {
-      html += '<span style="background-color: #E30613; color: white; font-weight: 800; font-size: 11px; padding: 3px 10px; border-radius: 12px; text-transform: uppercase;">Toestel ' + devId + '</span>';
-    }
-    html += '</div>';
-
-    // Point Selection per Device
-    html += '<div style="margin-bottom: 16px; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: var(--border-radius-sm); padding: 12px 14px;">';
-    html += '<label for="autoNumPointsSelect_' + devId + '" style="display: block; font-size: 12.5px; font-weight: 700; color: var(--text-dark); margin-bottom: 6px;">Aantal smeerpunten voor ' + devName + ':</label>';
-    html += '<select id="autoNumPointsSelect_' + devId + '" class="form-select" style="width: 100%; padding: 8px 12px; font-weight: 600; border-radius: var(--border-radius-sm); border: 1px solid #cbd5e1;" onchange="onDevicePointsChange("\'" + devId + "\'")">';
+    let optionsHtml = "";
     for (let p = 1; p <= 8; p++) {
-      const selStr = dev.points === p ? ' selected' : '';
-      const pLabel = p === 1 ? '1 lager / smeerpunt (Direct)' : p + ' lagers (Verdeelblok ' + p + '-poorts)';
-      html += '<option value="' + p + '"' + selStr + '>' + pLabel + '</option>';
+      const selStr = dev.points === p ? " selected" : "";
+      const pLabel = p === 1 ? "1 lager / smeerpunt (Direct)" : (p + " lagers (Verdeelblok " + p + "-poorts)");
+      optionsHtml += `<option value="${p}"${selStr}>${pLabel}</option>`;
     }
-    html += '</select>';
-    
-    // Interactive Verdeelblok Card
-    html += '<div id="dividerBlockCard_' + devId + '" style="margin-top: 10px; background-color: #ffffff; border: 1px solid #cbd5e1; border-radius: var(--border-radius-sm); padding: 10px 12px; display: flex; align-items: center; gap: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">';
-    html += '<div style="position: relative; width: 75px; height: 75px; flex-shrink: 0; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 4px; display: flex; align-items: center; justify-content: center;">';
-    html += '<img src="pulsarlube-verdeelblok.jpg?v=20260821_1647" alt="Verdeelblok" style="max-width: 100%; max-height: 100%; object-fit: contain;">';
-    html += '<div style="position: absolute; bottom: 2px; right: 2px; width: 30px; height: 30px; border-radius: 50%; background-color: #ffffff; border: 3px solid #E30613; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(227, 6, 19, 0.3); z-index: 2;">';
-    html += '<span id="dividerBlockBadgeNum_' + devId + '" style="font-family: "Outfit", sans-serif; font-size: 15px; font-weight: 900; color: #000000; line-height: 1;">' + dev.points + '</span>';
-    html += '</div></div>';
-    html += '<div style="line-height: 1.35; flex: 1;">';
-    html += '<div id="dividerBlockTitle_' + devId + '" style="font-size: 12px; font-weight: 800; color: var(--primary-dark);">Directe aansluiting (1 smeerpunt)</div>';
-    html += '<div id="dividerBlockDesc_' + devId + '" style="font-size: 11px; color: var(--text-medium); margin-top: 2px;">Geen verdeelblok nodig. Toestel wordt rechtstreeks op 1 lager aangesloten.</div>';
-    html += '<div id="dividerBlockPriceTag_' + devId + '" style="font-size: 11.5px; font-weight: 700; color: var(--primary-red); margin-top: 3px;">Geen verdeelblok (€ 0,00)</div>';
-    html += '</div></div></div>';
 
-    // Recommended Period Card
-    html += '<div id="autoRecCard_' + devId + '" style="background: #FEF2F2; border: 2px solid var(--primary-red); border-radius: var(--border-radius-sm); padding: 12px 14px; margin-bottom: 16px; box-shadow: 0 2px 6px rgba(227, 6, 19, 0.08);">';
-    html += '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; flex-wrap: wrap; gap: 8px;">';
-    html += '<span style="font-size: 11px; font-weight: 800; color: var(--primary-red); text-transform: uppercase; letter-spacing: 0.5px;">GEADVISEERDE INSTELLING OP ' + devName.toUpperCase() + '</span>';
-    html += '<button type="button" onclick="applyAutoRecommendationForDevice("\'" + devId + "\'")" class="btn-action-red" style="font-size: 11px; padding: 4px 10px; height: auto; border-radius: 4px; display: inline-flex; align-items: center; gap: 4px;">';
-    html += '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width: 14px; height: 14px;"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>';
-    html += '<span>Neem advies over</span></button></div>';
-    html += '<div id="autoRecTitle_' + devId + '" style="font-size: 18px; font-weight: 800; color: var(--primary-red); margin: 2px 0 4px 0;">-</div>';
-    html += '<div id="autoRecSubtext_' + devId + '" style="font-size: 11.5px; color: var(--text-dark); line-height: 1.4;">-</div></div>';
-
-    // Inputs
-    html += '<div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: var(--border-radius-sm); padding: 14px; margin-bottom: 16px;">';
-    html += '<h5 id="automationCalcHeaderTitle_' + devId + '" style="margin: 0 0 10px 0; font-size: 13px; font-weight: 700; color: var(--text-dark);">Smeerinterval & Dosering voor ' + dev.points + ' lagers</h5>';
-    html += '<div style="display: flex; flex-direction: column; gap: 12px;">';
-    html += '<div><label for="autoCartridgeCap_' + devId + '" style="display: block; font-size: 12px; font-weight: 600; color: var(--text-dark); margin-bottom: 4px;">Patroon Capaciteit (ml)</label>';
-    html += '<select id="autoCartridgeCap_' + devId + '" class="form-select" onchange="onDeviceCapChange("\'" + devId + "\'")" style="width: 100%; padding: 8px 12px; border-radius: var(--border-radius-sm); border: 1px solid #cbd5e1;">';
+    let capOptionsHtml = "";
     [60, 120, 125, 250, 500].forEach(c => {
-      const cSel = dev.cap === c ? ' selected' : '';
-      html += '<option value="' + c + '"' + cSel + '>' + c + ' ml</option>';
+      const cSel = dev.cap === c ? " selected" : "";
+      capOptionsHtml += `<option value="${c}"${cSel}>${c} ml</option>`;
     });
-    html += '</select></div>';
 
-    html += '<div><label for="autoDispensePeriod_' + devId + '" style="display: block; font-size: 12px; font-weight: 600; color: var(--text-dark); margin-bottom: 4px;">Gewenste Looptijd / Leeglooptijd</label>';
-    html += '<div style="display: flex; gap: 8px;">';
-    html += '<input type="number" id="autoDispensePeriod_' + devId + '" class="form-input" value="' + dev.period + '" min="1" max="24" step="1" oninput="onDevicePeriodInput("\'" + devId + "\'")" style="flex: 1; padding: 8px 12px; border-radius: var(--border-radius-sm); border: 1px solid #cbd5e1;">';
-    html += '<select id="autoDispenseUnit_' + devId + '" class="form-select" onchange="onDeviceCapChange("\'" + devId + "\'")" style="width: 120px; padding: 8px 12px; border-radius: var(--border-radius-sm); border: 1px solid #cbd5e1;">';
-    html += '<option value="months"' + (dev.unit === 'months' ? ' selected' : '') + '>maanden</option>';
-    html += '<option value="weeks"' + (dev.unit === 'weeks' ? ' selected' : '') + '>weken</option>';
-    html += '<option value="days"' + (dev.unit === 'days' ? ' selected' : '') + '>dagen</option>';
-    html += '</select></div>';
+    html += `
+    <div class="card" style="background: #ffffff; border: 1px solid #cbd5e1; padding: 20px; border-radius: var(--border-radius-md); box-shadow: 0 2px 8px rgba(0,0,0,0.04); flex: 1;">
+      <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--accent-yellow); padding-bottom: 8px; margin-bottom: 16px;">
+        <h4 style="color: var(--primary-blue); font-family: 'Outfit', sans-serif; font-size: 1.1rem; margin: 0; font-weight: 700;">
+          ${headerTitle}
+        </h4>
+        ${numDevices > 1 ? `<span style="background-color: #E30613; color: white; font-weight: 800; font-size: 11px; padding: 3px 10px; border-radius: 12px; text-transform: uppercase;">Toestel ${devId}</span>` : ''}
+      </div>
 
-    html += '<div id="autoDialBadge_' + devId + '" style="margin-top: 8px; background-color: #ffffff; border: 1px solid #cbd5e1; border-radius: var(--border-radius-sm); padding: 8px 10px; font-size: 11.5px; color: var(--text-dark); line-height: 1.4;">';
-    html += '<div style="font-weight: 700; color: var(--primary-red); display: flex; align-items: center; justify-content: space-between; gap: 6px;">';
-    html += '<span id="autoDialLabelContainer_' + devId + '" style="display: inline-flex; align-items: center; gap: 6px;"><span>Display instelling op toestel:</span></span>';
-    html += '<span id="autoDialValue_' + devId + '" style="font-size: 12.5px; font-weight: 800; background-color: #FEF2F2; color: var(--primary-red); padding: 2px 8px; border-radius: 4px; border: 1px solid #FECACA;">1 maand</span>';
-    html += '</div>';
-    html += '<div style="color: var(--text-medium); font-size: 11px; margin-top: 4px; display: flex; justify-content: space-between;"><span>• Theoretisch berekend:</span><strong id="autoTheoValue_' + devId + '" style="color: var(--text-dark);">0,9 maanden</strong></div>';
-    html += '</div></div></div></div>';
+      <!-- Point Selection per Device -->
+      <div style="margin-bottom: 16px; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: var(--border-radius-sm); padding: 12px 14px;">
+        <label for="autoNumPointsSelect_${devId}" style="display: block; font-size: 12.5px; font-weight: 700; color: var(--text-dark); margin-bottom: 6px;">
+          Aantal smeerpunten voor ${devName}:
+        </label>
+        <select id="autoNumPointsSelect_${devId}" class="form-select" style="width: 100%; padding: 8px 12px; font-weight: 600; border-radius: var(--border-radius-sm); border: 1px solid #cbd5e1;" onchange="onDevicePointsChange('${devId}')">
+          ${optionsHtml}
+        </select>
+        
+        <!-- Interactive Verdeelblok Card -->
+        <div id="dividerBlockCard_${devId}" style="margin-top: 10px; background-color: #ffffff; border: 1px solid #cbd5e1; border-radius: var(--border-radius-sm); padding: 10px 12px; display: flex; align-items: center; gap: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
+          <div style="position: relative; width: 75px; height: 75px; flex-shrink: 0; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 4px; display: flex; align-items: center; justify-content: center;">
+            <img src="pulsarlube-verdeelblok.jpg?v=20260821_1647" alt="Verdeelblok" style="max-width: 100%; max-height: 100%; object-fit: contain;">
+            <div style="position: absolute; bottom: 2px; right: 2px; width: 30px; height: 30px; border-radius: 50%; background-color: #ffffff; border: 3px solid #E30613; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(227, 6, 19, 0.3); z-index: 2;">
+              <span id="dividerBlockBadgeNum_${devId}" style="font-family: 'Outfit', sans-serif; font-size: 15px; font-weight: 900; color: #000000; line-height: 1;">${dev.points}</span>
+            </div>
+          </div>
+          <div style="line-height: 1.35; flex: 1;">
+            <div id="dividerBlockTitle_${devId}" style="font-size: 12px; font-weight: 800; color: var(--primary-dark);">Directe aansluiting (1 smeerpunt)</div>
+            <div id="dividerBlockDesc_${devId}" style="font-size: 11px; color: var(--text-medium); margin-top: 2px;">Geen verdeelblok nodig. Toestel wordt rechtstreeks op 1 lager aangesloten.</div>
+            <div id="dividerBlockPriceTag_${devId}" style="font-size: 11.5px; font-weight: 700; color: var(--primary-red); margin-top: 3px;">Geen verdeelblok (€ 0,00)</div>
+          </div>
+        </div>
+      </div>
 
-    // Volumes Grid
-    html += '<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px;">';
-    html += '<div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-left: 4px solid #E30613; border-radius: var(--border-radius-sm); padding: 12px 14px;">';
-    html += '<div style="font-size: 10.5px; font-weight: 800; color: #E30613; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; border-bottom: 1px solid #cbd5e1; padding-bottom: 4px;">SMEERVOLUME (VOOR 1 LAGER)</div>';
-    html += '<div style="margin-bottom: 6px;"><div style="font-size: 10px; font-weight: 700; color: var(--text-medium); text-transform: uppercase;">BEREKEND DAGELIJKS SMEERVOLUME (VOOR 1 LAGER):</div>';
-    html += '<div id="autoDailyVolumeRes_' + devId + '" style="font-size: 18px; font-weight: 800; color: #E30613; margin-top: 1px;">0,00 ml/dag</div></div>';
-    html += '<div style="margin-bottom: 6px;"><div style="font-size: 10px; font-weight: 700; color: var(--text-medium); text-transform: uppercase;">BEREKEND MAANDELIJKS SMEERVOLUME (VOOR 1 LAGER):</div>';
-    html += '<div id="autoMonthlyVolumeRes_' + devId + '" style="font-size: 14px; font-weight: 800; color: var(--primary-dark); margin-top: 1px;">0,0 ml/maand</div></div>';
-    html += '<div><div style="font-size: 10px; font-weight: 700; color: var(--text-medium); text-transform: uppercase;">BEREKEND JAARLIJKS SMEERVOLUME (VOOR 1 LAGER):</div>';
-    html += '<div id="autoYearlyVolumeRes_' + devId + '" style="font-size: 14px; font-weight: 800; color: var(--primary-dark); margin-top: 1px;">0,0 ml/jaar</div></div></div>';
+      <!-- Recommended Period Card -->
+      <div id="autoRecCard_${devId}" style="background: #FEF2F2; border: 2px solid var(--primary-red); border-radius: var(--border-radius-sm); padding: 12px 14px; margin-bottom: 16px; box-shadow: 0 2px 6px rgba(227, 6, 19, 0.08);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; flex-wrap: wrap; gap: 8px;">
+          <span style="font-size: 11px; font-weight: 800; color: var(--primary-red); text-transform: uppercase; letter-spacing: 0.5px;">
+            GEADVISEERDE INSTELLING OP ${devName.toUpperCase()}
+          </span>
+          <button type="button" onclick="applyAutoRecommendationForDevice('${devId}')" class="btn-action-red" style="font-size: 11px; padding: 4px 10px; height: auto; border-radius: 4px; display: inline-flex; align-items: center; gap: 4px;">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width: 14px; height: 14px;">
+              <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+            </svg>
+            <span>Neem advies over</span>
+          </button>
+        </div>
+        <div id="autoRecTitle_${devId}" style="font-size: 18px; font-weight: 800; color: var(--primary-red); margin: 2px 0 4px 0;">-</div>
+        <div id="autoRecSubtext_${devId}" style="font-size: 11.5px; color: var(--text-dark); line-height: 1.4;">-</div>
+      </div>
 
-    html += '<div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-left: 4px solid #E30613; border-radius: var(--border-radius-sm); padding: 12px 14px;">';
-    html += '<div id="autoTotalVolumeHeaderTitle_' + devId + '" style="font-size: 10.5px; font-weight: 800; color: #E30613; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; border-bottom: 1px solid #cbd5e1; padding-bottom: 4px;">TOTAAL SMEERVOLUME TOESTEL</div>';
-    html += '<div style="margin-bottom: 6px;"><div id="autoDailyVolumeTotalLabel_' + devId + '" style="font-size: 10px; font-weight: 700; color: var(--text-medium); text-transform: uppercase;">BEREKEND DAGELIJKS SMEERVOLUME:</div>';
-    html += '<div id="autoDailyVolumeTotalRes_' + devId + '" style="font-size: 18px; font-weight: 800; color: #E30613; margin-top: 1px;">0,00 ml/dag</div></div>';
-    html += '<div style="margin-bottom: 6px;"><div id="autoMonthlyVolumeTotalLabel_' + devId + '" style="font-size: 10px; font-weight: 700; color: var(--text-medium); text-transform: uppercase;">BEREKEND MAANDELIJKS SMEERVOLUME:</div>';
-    html += '<div id="autoMonthlyVolumeTotalRes_' + devId + '" style="font-size: 14px; font-weight: 800; color: var(--primary-dark); margin-top: 1px;">0,0 ml/maand</div></div>';
-    html += '<div><div id="autoYearlyVolumeTotalLabel_' + devId + '" style="font-size: 10px; font-weight: 700; color: var(--text-medium); text-transform: uppercase;">BEREKEND JAARLIJKS SMEERVOLUME:</div>';
-    html += '<div id="autoYearlyVolumeTotalRes_' + devId + '" style="font-size: 14px; font-weight: 800; color: var(--primary-dark); margin-top: 1px;">0,0 ml/jaar</div></div></div>';
+      <!-- Calculation Inputs -->
+      <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: var(--border-radius-sm); padding: 14px; margin-bottom: 16px;">
+        <h5 id="automationCalcHeaderTitle_${devId}" style="margin: 0 0 10px 0; font-size: 13px; font-weight: 700; color: var(--text-dark);">
+          Smeerinterval & Dosering voor ${dev.points} ${dev.points === 1 ? 'lager' : 'lagers'}
+        </h5>
+        
+        <div style="display: flex; flex-direction: column; gap: 12px;">
+          <div>
+            <label for="autoCartridgeCap_${devId}" style="display: block; font-size: 12px; font-weight: 600; color: var(--text-dark); margin-bottom: 4px;">Patroon Capaciteit (ml)</label>
+            <select id="autoCartridgeCap_${devId}" class="form-select" onchange="onDeviceCapChange('${devId}')" style="width: 100%; padding: 8px 12px; border-radius: var(--border-radius-sm); border: 1px solid #cbd5e1;">
+              ${capOptionsHtml}
+            </select>
+          </div>
 
-    html += '</div></div>';
+          <div>
+            <label for="autoDispensePeriod_${devId}" style="display: block; font-size: 12px; font-weight: 600; color: var(--text-dark); margin-bottom: 4px;">Gewenste Looptijd / Leeglooptijd</label>
+            <div style="display: flex; gap: 8px;">
+              <input type="number" id="autoDispensePeriod_${devId}" class="form-input" value="${dev.period}" min="1" max="24" step="1" oninput="onDevicePeriodInput('${devId}')" style="flex: 1; padding: 8px 12px; border-radius: var(--border-radius-sm); border: 1px solid #cbd5e1;">
+              <select id="autoDispenseUnit_${devId}" class="form-select" onchange="onDeviceCapChange('${devId}')" style="width: 120px; padding: 8px 12px; border-radius: var(--border-radius-sm); border: 1px solid #cbd5e1;">
+                <option value="months"${dev.unit === 'months' ? ' selected' : ''}>maanden</option>
+                <option value="weeks"${dev.unit === 'weeks' ? ' selected' : ''}>weken</option>
+                <option value="days"${dev.unit === 'days' ? ' selected' : ''}>dagen</option>
+              </select>
+            </div>
+            
+            <div id="autoDialBadge_${devId}" style="margin-top: 8px; background-color: #ffffff; border: 1px solid #cbd5e1; border-radius: var(--border-radius-sm); padding: 8px 10px; font-size: 11.5px; color: var(--text-dark); line-height: 1.4;">
+              <div style="font-weight: 700; color: var(--primary-red); display: flex; align-items: center; justify-content: space-between; gap: 6px;">
+                <span id="autoDialLabelContainer_${devId}" style="display: inline-flex; align-items: center; gap: 6px;"><span>Display instelling op toestel:</span></span>
+                <span id="autoDialValue_${devId}" style="font-size: 12.5px; font-weight: 800; background-color: #FEF2F2; color: var(--primary-red); padding: 2px 8px; border-radius: 4px; border: 1px solid #FECACA;">1 maand</span>
+              </div>
+              <div style="color: var(--text-medium); font-size: 11px; margin-top: 4px; display: flex; justify-content: space-between;">
+                <span>• Theoretisch berekend:</span>
+                <strong id="autoTheoValue_${devId}" style="color: var(--text-dark);">0,9 maanden</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Output Results (Side-by-Side: Voor 1 lager & Voor X lagers) -->
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px;">
+
+        <!-- Box 1: Voor 1 lager -->
+        <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-left: 4px solid #E30613; border-radius: var(--border-radius-sm); padding: 12px 14px;">
+          <div style="font-size: 10.5px; font-weight: 800; color: #E30613; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; border-bottom: 1px solid #cbd5e1; padding-bottom: 4px;">SMEERVOLUME (VOOR 1 LAGER)</div>
+          <div style="margin-bottom: 6px;">
+            <div style="font-size: 10px; font-weight: 700; color: var(--text-medium); text-transform: uppercase;">BEREKEND DAGELIJKS SMEERVOLUME (VOOR 1 LAGER):</div>
+            <div id="autoDailyVolumeRes_${devId}" style="font-size: 18px; font-weight: 800; color: #E30613; margin-top: 1px;">0,00 ml/dag</div>
+          </div>
+          <div style="margin-bottom: 6px;">
+            <div style="font-size: 10px; font-weight: 700; color: var(--text-medium); text-transform: uppercase;">BEREKEND MAANDELIJKS SMEERVOLUME (VOOR 1 LAGER):</div>
+            <div id="autoMonthlyVolumeRes_${devId}" style="font-size: 14px; font-weight: 800; color: var(--primary-dark); margin-top: 1px;">0,0 ml/maand</div>
+          </div>
+          <div>
+            <div style="font-size: 10px; font-weight: 700; color: var(--text-medium); text-transform: uppercase;">BEREKEND JAARLIJKS SMEERVOLUME (VOOR 1 LAGER):</div>
+            <div id="autoYearlyVolumeRes_${devId}" style="font-size: 14px; font-weight: 800; color: var(--primary-dark); margin-top: 1px;">0,0 ml/jaar</div>
+          </div>
+        </div>
+
+        <!-- Box 2: Voor X lagers -->
+        <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-left: 4px solid #E30613; border-radius: var(--border-radius-sm); padding: 12px 14px;">
+          <div id="autoTotalVolumeHeaderTitle_${devId}" style="font-size: 10.5px; font-weight: 800; color: #E30613; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; border-bottom: 1px solid #cbd5e1; padding-bottom: 4px;">TOTAAL SMEERVOLUME TOESTEL</div>
+          <div style="margin-bottom: 6px;">
+            <div id="autoDailyVolumeTotalLabel_${devId}" style="font-size: 10px; font-weight: 700; color: var(--text-medium); text-transform: uppercase;">BEREKEND DAGELIJKS SMEERVOLUME:</div>
+            <div id="autoDailyVolumeTotalRes_${devId}" style="font-size: 18px; font-weight: 800; color: #E30613; margin-top: 1px;">0,00 ml/dag</div>
+          </div>
+          <div style="margin-bottom: 6px;">
+            <div id="autoMonthlyVolumeTotalLabel_${devId}" style="font-size: 10px; font-weight: 700; color: var(--text-medium); text-transform: uppercase;">BEREKEND MAANDELIJKS SMEERVOLUME:</div>
+            <div id="autoMonthlyVolumeTotalRes_${devId}" style="font-size: 14px; font-weight: 800; color: var(--primary-dark); margin-top: 1px;">0,0 ml/maand</div>
+          </div>
+          <div>
+            <div id="autoYearlyVolumeTotalLabel_${devId}" style="font-size: 10px; font-weight: 700; color: var(--text-medium); text-transform: uppercase;">BEREKEND JAARLIJKS SMEERVOLUME:</div>
+            <div id="autoYearlyVolumeTotalRes_${devId}" style="font-size: 14px; font-weight: 800; color: var(--primary-dark); margin-top: 1px;">0,0 ml/jaar</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+    `;
   }
 
   container.innerHTML = html;
