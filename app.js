@@ -5505,7 +5505,7 @@ function calculateAutomationLubrication() {
   } else {
     if (divTitleEl) divTitleEl.textContent = `HU Type Verdeelblok (${numPoints}-poorts)`;
     if (divDescEl) divDescEl.textContent = `HU Type Divider Block (Art. ${divInfo.artNr}) verdeelt de vetsmering gelijkmatig over ${numPoints} lagers.`;
-    if (divPriceEl) divPriceEl.textContent = `Meerprijs verdeelblok: € ${divInfo.price.toFixed(2).replace('.', ',')}`;
+    if (divPriceEl) divPriceEl.textContent = `Prijs verdeelblok: € ${divInfo.price.toFixed(2).replace('.', ',')}`;
   }
 
   // Update Section Header Title
@@ -7476,6 +7476,16 @@ document.addEventListener("keydown", function(e) {
 // AUTOMATION PRICE DATABASE (EXCEL PRIJSLIJST PULSARLUBE & SINGLE POINT)
 // ============================================================================
 const AUTOMATION_PRICE_DATABASE = {
+  dividerBlocks: {
+    1: { artNr: "-", name: "Directe aansluiting (geen verdeelblok)", price: 0.00 },
+    2: { artNr: "1480", name: "HU Type Verdeelblok 2-poorts", price: 149.80 },
+    3: { artNr: "1481", name: "HU Type Verdeelblok 3-poorts", price: 158.40 },
+    4: { artNr: "1482", name: "HU Type Verdeelblok 4-poorts", price: 167.00 },
+    5: { artNr: "1483", name: "HU Type Verdeelblok 5-poorts", price: 175.60 },
+    6: { artNr: "1484", name: "HU Type Verdeelblok 6-poorts", price: 184.20 },
+    7: { artNr: "1485", name: "HU Type Verdeelblok 7-poorts", price: 198.70 },
+    8: { artNr: "1486", name: "HU Type Verdeelblok 8-poorts", price: 213.20 }
+  },
   "accessories": {
     "installKit": {
       "artNr": "1430",
