@@ -204,7 +204,7 @@ function renderAutoDevicesUI() {
         <h4 style="color: var(--primary-blue); font-family: 'Outfit', sans-serif; font-size: 1.1rem; margin: 0; font-weight: 700;">
           ${headerTitle}
         </h4>
-        ${numDevices > 1 ? `<span style="background-color: #E30613; color: white; font-weight: 800; font-size: 11px; padding: 3px 10px; border-radius: 12px; text-transform: uppercase;">Toestel ${devId}</span>` : ''}
+        ${numDevices > 1 ? `<span style="background-color: #E30613; color: white; font-weight: 800; font-size: 11px; padding: 4px 12px; border-radius: 12px; text-transform: uppercase; white-space: nowrap; flex-shrink: 0;">Toestel ${devId}</span>` : ''}
       </div>
 
       <!-- Point Selection per Device -->
