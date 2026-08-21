@@ -3649,8 +3649,14 @@ function runBearingPdfExport(includeTco, includeRoi) {
   exportBtn.disabled = true;
   exportBtn.innerHTML = langData.pdfGenerating || "Genereren...";
 
-  const autoDeviceImgEl = document.getElementById("automationDeviceImg");
-  const autoImgSrc = autoDeviceImgEl ? autoDeviceImgEl.getAttribute("src") : "interflon-single-point-lubricator.png";
+  const autoDeviceSelectEl = document.getElementById("automationDeviceSelect") || document.getElementById("autoDeviceSelect");
+  const autoDeviceKey = autoDeviceSelectEl ? autoDeviceSelectEl.value : "single_point";
+  let autoImgSrc = "interflon-single-point-lubricator.png";
+  if (autoDeviceKey === "pulsarlube_m2") {
+    autoImgSrc = "pulsarlube-m2.png";
+  } else if (autoDeviceKey === "pulsarlube_msp" || autoDeviceKey === "pulsarlube_plc") {
+    autoImgSrc = "pulsarlube-msp.png";
+  }
   getTransparentLogo((watermarkDataUrl, aspectRatio) => {
     getMicPolImageDataUrl((micpolDataUrl, micpolRatio) => {
       getAutomationDeviceImageDataUrl(autoImgSrc, (autoDataUrl, autoRatio) => {
@@ -4441,6 +4447,10 @@ function runBearingPdfExport(includeTco, includeRoi) {
       };
 
       renderPdfAutomationExtraPage(doc, autoBearingData, autoDataUrl, autoRatio, watermarkDataUrl, aspectRatio, langData, false);
+
+      if (includeRoi) {
+        addRoiPdfPage(doc, dateString, watermarkDataUrl, aspectRatio, autoDataUrl);
+      }
 
       const filePrefix = currentLang === "nl" ? "Interflon_Smeeradvies_" : currentLang === "en" ? "Interflon_Lubrication_Advice_" : "Interflon_Conseil_Lubrification_";
       doc.save(filePrefix + bearingNum.replace(/[\/\\?%*:|"<>\s]/g, "_") + ".pdf");
@@ -6057,8 +6067,14 @@ function runChainPdfExport(includeTco, includeRoi) {
     exportBtn.innerHTML = langData.pdfGenerating || "Genereren...";
   }
 
-  const chainAutoDeviceImgEl = document.getElementById("chainAutomationDeviceImg");
-  const chainAutoImgSrc = chainAutoDeviceImgEl ? chainAutoDeviceImgEl.getAttribute("src") : "interflon-oil-dispenser.png";
+  const chainAutoDeviceSelectEl = document.getElementById("chainAutomationDeviceSelect") || document.getElementById("autoDeviceSelect") || document.getElementById("automationDeviceSelect");
+  const chainAutoDeviceKey = chainAutoDeviceSelectEl ? chainAutoDeviceSelectEl.value : "single_point";
+  let chainAutoImgSrc = "interflon-oil-dispenser.png";
+  if (chainAutoDeviceKey === "pulsarlube_m2") {
+    chainAutoImgSrc = "pulsarlube-m2.png";
+  } else if (chainAutoDeviceKey === "pulsarlube_msp" || chainAutoDeviceKey === "pulsarlube_plc") {
+    chainAutoImgSrc = "pulsarlube-msp.png";
+  }
 
   getTransparentLogo((watermarkDataUrl, aspectRatio) => {
     getMicPolImageDataUrl((micpolDataUrl, micpolRatio) => {
