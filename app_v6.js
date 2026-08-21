@@ -5818,6 +5818,8 @@ function calculateAutomationLubrication() {
 
   const deviceSelect = document.getElementById("automationDeviceSelect") || document.getElementById("autoDeviceSelect");
   const deviceKey = deviceSelect ? deviceSelect.value : "single_point";
+  const greaseSelect = document.getElementById("selectedGrease") || document.getElementById("greaseSelect") || document.getElementById("inputGrease");
+  const greaseName = greaseSelect ? greaseSelect.value : "Interflon Grease LS2";
 
   const dailyNeedCm3 = window.currentDailyNeedCm3 || 0.704;
   const hDay = window.currentHoursPerDay || 24;
