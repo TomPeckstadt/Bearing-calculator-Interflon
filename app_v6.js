@@ -148,7 +148,75 @@ function applyAutoRecommendationForDevice(devId) {
   calculateAutomationLubrication();
 }
 
+
+// ==========================================
+// AUTOMATION STATE PERSISTENCE (LOCAL STORAGE)
+// ==========================================
+let isAutomationStateLoaded = false;
+
+function saveAutomationStateToLocalStorage() {
+  try {
+    const deviceSelect = document.getElementById("automationDeviceSelect") || document.getElementById("autoDeviceSelect");
+    if (deviceSelect) localStorage.setItem("auto_device_key", deviceSelect.value);
+
+    const numDevicesSelect = document.getElementById("autoNumDevicesSelect");
+    if (numDevicesSelect) localStorage.setItem("auto_num_devices", numDevicesSelect.value);
+
+    if (Array.isArray(autoDevicesState)) {
+      localStorage.setItem("auto_devices_state", JSON.stringify(autoDevicesState));
+    }
+
+    const roiYearsInput = document.getElementById("roiYearsInput");
+    if (roiYearsInput) localStorage.setItem("roi_years_input", roiYearsInput.value);
+  } catch (e) {
+    console.warn("Could not save automation state to localStorage", e);
+  }
+}
+
+function loadAutomationStateFromLocalStorage() {
+  if (isAutomationStateLoaded) return;
+  try {
+    const savedDeviceKey = localStorage.getItem("auto_device_key");
+    if (savedDeviceKey) {
+      const deviceSelect = document.getElementById("automationDeviceSelect") || document.getElementById("autoDeviceSelect");
+      if (deviceSelect) deviceSelect.value = savedDeviceKey;
+    }
+
+    const savedNumDevices = localStorage.getItem("auto_num_devices");
+    if (savedNumDevices) {
+      const numDevicesSelect = document.getElementById("autoNumDevicesSelect");
+      if (numDevicesSelect) numDevicesSelect.value = savedNumDevices;
+    }
+
+    const savedStateJson = localStorage.getItem("auto_devices_state");
+    if (savedStateJson) {
+      const parsed = JSON.parse(savedStateJson);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        parsed.forEach((item, index) => {
+          if (autoDevicesState[index]) {
+            autoDevicesState[index] = { ...autoDevicesState[index], ...item };
+          } else {
+            autoDevicesState[index] = item;
+          }
+        });
+      }
+    }
+
+    const savedRoiYears = localStorage.getItem("roi_years_input");
+    if (savedRoiYears) {
+      const roiYearsInput = document.getElementById("roiYearsInput");
+      if (roiYearsInput) roiYearsInput.value = savedRoiYears;
+    }
+
+    isAutomationStateLoaded = true;
+  } catch (e) {
+    console.warn("Could not load automation state from localStorage", e);
+  }
+}
+
+
 function renderAutoDevicesUI() {
+  loadAutomationStateFromLocalStorage();
   const container = document.getElementById("autoDevicesCardsContainer");
   if (!container) return;
 
@@ -5808,6 +5876,7 @@ function onAutoPeriodInput() {
 }
 
 function calculateAutomationLubrication() {
+  saveAutomationStateToLocalStorage();
   setTimeout(() => { if (typeof updateRoiAutomationPage === "function") updateRoiAutomationPage(); }, 0);
   
   const numDevices = getActiveNumDevices();
