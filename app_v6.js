@@ -2593,6 +2593,7 @@ function updateCalculatorFields() {
 // ==========================================================================
 
 function calculateGrease() {
+  setTimeout(() => { if (typeof updateRoiAutomationPage === "function") updateRoiAutomationPage(); }, 0);
   updateThickenerCompatibility();
   const tempInput = document.getElementById("inputTemperature");
   const speedInput = document.getElementById("inputSpeed");
@@ -4809,6 +4810,7 @@ function calculateTcoForPrefix(prefix) {
 }
 
 function calculateTco() {
+  setTimeout(() => { if (typeof updateRoiAutomationPage === "function") updateRoiAutomationPage(); }, 0);
   calculateTcoForPrefix("om");
   calculateTcoForPrefix("chainOm");
 }
@@ -5349,6 +5351,7 @@ const DEVICE_CAPACITIES = {
 };
 
 function updateAutomationPage() {
+  setTimeout(() => { if (typeof updateRoiAutomationPage === "function") updateRoiAutomationPage(); }, 0);
   const select = document.getElementById("automationDeviceSelect");
   if (!select) return;
 
@@ -5459,6 +5462,7 @@ function onAutoPeriodInput() {
 }
 
 function calculateAutomationLubrication() {
+  setTimeout(() => { if (typeof updateRoiAutomationPage === "function") updateRoiAutomationPage(); }, 0);
   const deviceSelect = document.getElementById("automationDeviceSelect") || document.getElementById("autoDeviceSelect");
   const cartridgeCapSelect = document.getElementById("autoCartridgeCap");
   const periodInput = document.getElementById("autoDispensePeriod");
