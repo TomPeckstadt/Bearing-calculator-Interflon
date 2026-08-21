@@ -8,7 +8,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <link rel="stylesheet" href="style.css?v=20260821_1812">
+  <link rel="stylesheet" href="style.css?v=20260821_1816">
 </head>
 <body>
 
@@ -1836,9 +1836,12 @@
                   <span style="color: #64748b; font-size: 13px;">Pulsarlube installatiekit:</span>
                   <strong id="roiAutoAccCost" style="color: #1e293b; font-size: 13.5px;">€ 0,00</strong>
                 </div>
-                <div id="roiAutoDividerBlockRow" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed #e2e8f0; padding-bottom: 8px;">
-                  <span style="color: #64748b; font-size: 13px;">Verdeelblok(ken):</span>
-                  <strong id="roiAutoDividerBlockCost" style="color: #1e293b; font-size: 13.5px;">€ 0,00</strong>
+                <div id="roiAutoDividerBlockRow" style="display: flex; flex-direction: column; gap: 4px; border-bottom: 1px dashed #e2e8f0; padding-bottom: 8px;">
+                  <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span style="color: #64748b; font-size: 13px;">Verdeelblok(ken):</span>
+                    <strong id="roiAutoDividerBlockTotalCost" style="color: #1e293b; font-size: 13.5px;">€ 0,00</strong>
+                  </div>
+                  <div id="roiAutoDividerBlockCost" style="color: #475569; font-size: 11.5px; line-height: 1.4; padding-left: 8px; border-left: 2px solid #cbd5e1; margin-top: 2px;"></div>
                 </div>
                 <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed #e2e8f0; padding-bottom: 8px;">
                   <span style="color: #64748b; font-size: 13px;">Arbeidskost automatisch:</span>
@@ -2929,10 +2932,10 @@
 
   <!-- JavaScript logic imports -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="interflon-data.js?v=20260821_1812"></script>
-  <script src="bearings-db.js?v=20260821_1812"></script>
-  <script src="chains-db.js?v=20260821_1812"></script>
-  <script src="app_v6.js?v=20260821_1812"></script>
+  <script src="interflon-data.js?v=20260821_1816"></script>
+  <script src="bearings-db.js?v=20260821_1816"></script>
+  <script src="chains-db.js?v=20260821_1816"></script>
+  <script src="app_v6.js?v=20260821_1816"></script>
 
   <!-- Interflon Oil Dispenser Information Modal (PowerPoint Viewer) -->
   <div id="oilDispenserInfoModal" class="modal-overlay hidden" style="z-index: 99999;">
