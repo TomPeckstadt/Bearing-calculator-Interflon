@@ -9010,7 +9010,7 @@ function addRoiPdfPage(doc, dateString, watermarkDataUrl, aspectRatio, autoDataU
 
   // Table 1: Manuele Smering
   let y1 = startY;
-  drawRow(20, y1, colW, 6, "MANUELE SMERING (HUIDIGE SITUATIE)", "", true, false, false);
+  drawRow(20, y1, colW, 6, "MANUELE SMERING", "", true, false, false);
   y1 += 6;
   drawRow(20, y1, colW, rh, "Jaarlijks vetverbruik:", `${yearlyMlTotal.toLocaleString("nl-BE", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} ml`, false, false, false);
   y1 += rh;
