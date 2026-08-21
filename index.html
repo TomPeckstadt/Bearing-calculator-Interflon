@@ -8,7 +8,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <link rel="stylesheet" href="style.css?v=20260821_1607">
+  <link rel="stylesheet" href="style.css?v=20260821_1617">
 </head>
 <body>
 
@@ -1521,6 +1521,26 @@
                   <span id="dimToggleLabel" data-i18n="btnShowDimensions">Bekijk afmetingen</span>
                 </button>
               </div>
+
+              <!-- Multi-Point / Bearing Selection Dropdown -->
+              <div style="margin-top: 16px; padding-top: 14px; border-top: 1px solid #e2e8f0; text-align: left;">
+                <label for="autoNumPointsSelect" style="display: block; font-size: 12.5px; font-weight: 700; color: var(--text-dark); margin-bottom: 6px;">
+                  Aantal te smeren smeerpunten / lagers per toestel:
+                </label>
+                <select id="autoNumPointsSelect" class="form-select" style="width: 100%; padding: 8px 12px; font-weight: 600; border-radius: var(--border-radius-sm); border: 1px solid #cbd5e1;" onchange="calculateAutomationLubrication(); if (typeof updateRoiAutomationPage === 'function') updateRoiAutomationPage();">
+                  <option value="1" selected>1 lager / smeerpunt (Direct)</option>
+                  <option value="2">2 lagers (Verdeelblok 2-poorts)</option>
+                  <option value="3">3 lagers (Verdeelblok 3-poorts)</option>
+                  <option value="4">4 lagers (Verdeelblok 4-poorts)</option>
+                  <option value="5">5 lagers (Verdeelblok 5-poorts)</option>
+                  <option value="6">6 lagers (Verdeelblok 6-poorts)</option>
+                  <option value="7">7 lagers (Verdeelblok 7-poorts)</option>
+                  <option value="8">8 lagers (Verdeelblok 8-poorts)</option>
+                </select>
+                <span style="display: block; font-size: 11px; color: var(--text-medium); margin-top: 5px; line-height: 1.35;">
+                  Sluit 1 tot 8 lagers aan op dit ene toestel (via verdeelblok). De leeglooptijd past zich automatisch aan.
+                </span>
+              </div>
             </div>
 
             <!-- Device Information & Calculator Settings -->
@@ -1561,8 +1581,8 @@
 
               <!-- Calculation Inputs for Lubricator -->
               <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: var(--border-radius-sm); padding: 16px; margin-bottom: 16px;">
-                <h5 style="margin: 0 0 12px 0; font-size: 13px; font-weight: 700; color: var(--text-dark);" data-i18n="automationCalcHeader">
-                  Smeerinterval & Dosering
+                <h5 id="automationCalcHeaderTitle" style="margin: 0 0 12px 0; font-size: 13px; font-weight: 700; color: var(--text-dark);">
+                  Smeerinterval & Dosering voor 1 lager
                 </h5>
                 
                 <div style="display: flex; flex-direction: column; gap: 12px;">
@@ -1610,39 +1630,81 @@
                 </div>
               </div>
 
-              <!-- Output Results (Dagelijks, Maandelijks, Jaarlijks) -->
-              <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-left: 4px solid var(--primary-red); border-radius: var(--border-radius-sm); padding: 14px 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.03);">
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; margin-bottom: 6px;">
-                  <div>
-                    <div style="font-size: 11px; font-weight: 700; color: var(--text-medium); text-transform: uppercase; letter-spacing: 0.4px;" data-i18n="autoDailyVolumeLabel">
-                      Berekend Dagelijks Smeervolume:
-                    </div>
-                    <div id="autoDailyVolumeRes" style="font-size: 20px; font-weight: 800; color: var(--primary-red); margin-top: 2px;">
-                      0,39 ml/dag
-                    </div>
+              <!-- Output Results (Side-by-Side: Voor 1 lager & Voor X lagers) -->
+              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px; margin-bottom: 12px;">
+
+                <!-- Box 1: Voor 1 lager -->
+                <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-left: 4px solid var(--primary-blue); border-radius: var(--border-radius-sm); padding: 14px 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.03);">
+                  <div style="font-size: 11px; font-weight: 800; color: var(--primary-blue); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px; border-bottom: 1px solid #cbd5e1; padding-bottom: 4px;">
+                    SMEERVOLUME (VOOR 1 LAGER)
                   </div>
-                  <div>
-                    <div style="font-size: 11px; font-weight: 700; color: var(--text-medium); text-transform: uppercase; letter-spacing: 0.4px;">
-                      Berekend Maandelijks Smeervolume:
+                  <div style="display: flex; flex-direction: column; gap: 8px;">
+                    <div>
+                      <div style="font-size: 10.5px; font-weight: 700; color: var(--text-medium); text-transform: uppercase; letter-spacing: 0.3px;">
+                        Berekend Dagelijks Smeervolume (voor 1 lager):
+                      </div>
+                      <div id="autoDailyVolumeRes" style="font-size: 18px; font-weight: 800; color: var(--primary-blue); margin-top: 1px;">
+                        0,39 ml/dag
+                      </div>
                     </div>
-                    <div id="autoMonthlyVolumeRes" style="font-size: 18px; font-weight: 800; color: var(--primary-dark); margin-top: 2px;">
-                      11,9 ml/maand
+                    <div>
+                      <div style="font-size: 10.5px; font-weight: 700; color: var(--text-medium); text-transform: uppercase; letter-spacing: 0.3px;">
+                        Berekend Maandelijks Smeervolume (voor 1 lager):
+                      </div>
+                      <div id="autoMonthlyVolumeRes" style="font-size: 16px; font-weight: 800; color: var(--primary-dark); margin-top: 1px;">
+                        11,9 ml/maand
+                      </div>
                     </div>
-                  </div>
-                  <div>
-                    <div style="font-size: 11px; font-weight: 700; color: var(--text-medium); text-transform: uppercase; letter-spacing: 0.4px;">
-                      Berekend Jaarlijks Smeervolume:
-                    </div>
-                    <div id="autoYearlyVolumeRes" style="font-size: 18px; font-weight: 800; color: var(--primary-dark); margin-top: 2px;">
-                      145,5 ml/jaar
+                    <div>
+                      <div style="font-size: 10.5px; font-weight: 700; color: var(--text-medium); text-transform: uppercase; letter-spacing: 0.3px;">
+                        Berekend Jaarlijks Smeervolume (voor 1 lager):
+                      </div>
+                      <div id="autoYearlyVolumeRes" style="font-size: 16px; font-weight: 800; color: var(--primary-dark); margin-top: 1px;">
+                        145,5 ml/jaar
+                      </div>
                     </div>
                   </div>
                 </div>
-                <div id="autoDispenseRateHint" style="font-size: 11px; color: var(--text-medium); border-top: 1px dashed #cbd5e1; padding-top: 6px; margin-top: 4px;">
-                  (~ afgestemd op Smeercalculatie)
+
+                <!-- Box 2: Voor X lagers -->
+                <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-left: 4px solid var(--primary-red); border-radius: var(--border-radius-sm); padding: 14px 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.03);">
+                  <div id="autoTotalVolumeHeaderTitle" style="font-size: 11px; font-weight: 800; color: var(--primary-red); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px; border-bottom: 1px solid #cbd5e1; padding-bottom: 4px;">
+                    TOTAAL SMEERVOLUME TOESTEL (VOOR 1 LAGER)
+                  </div>
+                  <div style="display: flex; flex-direction: column; gap: 8px;">
+                    <div>
+                      <div id="autoDailyVolumeTotalLabel" style="font-size: 10.5px; font-weight: 700; color: var(--text-medium); text-transform: uppercase; letter-spacing: 0.3px;">
+                        Berekend Dagelijks Smeervolume (voor 1 lager):
+                      </div>
+                      <div id="autoDailyVolumeTotalRes" style="font-size: 18px; font-weight: 800; color: var(--primary-red); margin-top: 1px;">
+                        0,39 ml/dag
+                      </div>
+                    </div>
+                    <div>
+                      <div id="autoMonthlyVolumeTotalLabel" style="font-size: 10.5px; font-weight: 700; color: var(--text-medium); text-transform: uppercase; letter-spacing: 0.3px;">
+                        Berekend Maandelijks Smeervolume (voor 1 lager):
+                      </div>
+                      <div id="autoMonthlyVolumeTotalRes" style="font-size: 16px; font-weight: 800; color: var(--primary-dark); margin-top: 1px;">
+                        11,9 ml/maand
+                      </div>
+                    </div>
+                    <div>
+                      <div id="autoYearlyVolumeTotalLabel" style="font-size: 10.5px; font-weight: 700; color: var(--text-medium); text-transform: uppercase; letter-spacing: 0.3px;">
+                        Berekend Jaarlijks Smeervolume (voor 1 lager):
+                      </div>
+                      <div id="autoYearlyVolumeTotalRes" style="font-size: 16px; font-weight: 800; color: var(--primary-dark); margin-top: 1px;">
+                        145,5 ml/jaar
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                <div id="autoMatchNotice"></div>
+
               </div>
+
+              <div id="autoDispenseRateHint" style="font-size: 11px; color: var(--text-medium); background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: var(--border-radius-sm); padding: 8px 12px; margin-bottom: 8px;">
+                (~ afgestemd op Smeercalculatie)
+              </div>
+              <div id="autoMatchNotice"></div>
 
             </div>
 
@@ -2865,10 +2927,10 @@
 
   <!-- JavaScript logic imports -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="interflon-data.js?v=20260821_1607"></script>
-  <script src="bearings-db.js"></script>
-  <script src="chains-db.js?v=20260821_1607"></script>
-  <script src="app_v6.js?v=20260821_1607"></script>
+  <script src="interflon-data.js?v=20260821_1617"></script>
+  <script src="bearings-db.js?v=20260821_1617"></script>
+  <script src="chains-db.js?v=20260821_1617"></script>
+  <script src="app_v6.js?v=20260821_1617"></script>
 
   <!-- Interflon Oil Dispenser Information Modal (PowerPoint Viewer) -->
   <div id="oilDispenserInfoModal" class="modal-overlay hidden" style="z-index: 99999;">
