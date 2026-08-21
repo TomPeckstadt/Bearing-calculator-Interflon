@@ -8171,4 +8171,22 @@ function updateRoiAutomationPage() {
       }
     }
   }
+
+  // 6. Multi-Year Savings Calculation
+  const yearsInput = document.getElementById("roiYearsInput");
+  const years = yearsInput ? (parseFloat(yearsInput.value) || 5) : 5;
+
+  let totalSavingsMultiYear = 0;
+  if (years <= 1) {
+    totalSavingsMultiYear = year1NetResult;
+  } else {
+    totalSavingsMultiYear = year1NetResult + ((years - 1) * netYearlySaving);
+  }
+
+  const multiYearSavingEl = document.getElementById("roiMultiYearSaving");
+  if (multiYearSavingEl) {
+    const sign = totalSavingsMultiYear >= 0 ? "+" : "-";
+    multiYearSavingEl.textContent = `${sign} € ${Math.abs(totalSavingsMultiYear).toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    multiYearSavingEl.style.color = totalSavingsMultiYear >= 0 ? "#059669" : "#dc2626";
+  }
 }
