@@ -473,6 +473,7 @@ const TRANSLATIONS = {
     deviceSinglePoint: "Interflon Single Point Lubricator",
     devicePulsarlubeM2: "Pulsarlube M2",
     devicePulsarlube: "Pulsarlube MSP",
+    devicePulsarlubePlc: "Pulsarlube PLC",
     automationParamsTitle: "Toestel Parameters & Smeerinstelling",
     automationCalcHeader: "Smeerinterval & Dosering",
     labelCartridgeCap: "Patroon Capaciteit (ml)",
@@ -5325,6 +5326,12 @@ const DEVICE_CAPACITIES = {
     { value: "125", label: "125 ml" },
     { value: "250", label: "250 ml" },
     { value: "500", label: "500 ml" }
+  ],
+  pulsarlube_plc: [
+    { value: "60", label: "60 ml" },
+    { value: "125", label: "125 ml" },
+    { value: "250", label: "250 ml" },
+    { value: "500", label: "500 ml" }
   ]
 };
 
@@ -5376,6 +5383,13 @@ function updateAutomationPage() {
       descEl.innerHTML = "De <strong>Pulsarlube MSP</strong> is een extern gevoede, elektro-mechanische automatische smeerunit. Het toestel werkt synchroon met de machine en doseert enkel smeervet gedurende de actieve bedrijfsuren van de installatie.";
     }
     if (toggleWrapper) toggleWrapper.style.display = "block";
+  } else if (device === "pulsarlube_plc") {
+    if (titleEl) titleEl.textContent = "Pulsarlube PLC";
+    if (imgEl) imgEl.src = "pulsarlube-plc.png";
+    if (descEl) {
+      descEl.innerHTML = "De <strong>Pulsarlube PLC</strong> is een geavanceerde, extern gestuurde elektro-mechanische smeerunit die rechtstreeks wordt aangestuurd door de <strong>PLC-besturing van de machine</strong>. Het toestel doseert uiterst nauwkeurig enkel tijdens actieve machinetijd.";
+    }
+    if (toggleWrapper) toggleWrapper.style.display = "block";
   } else {
     // Default: Single Point Lubricator
     if (titleEl) titleEl.textContent = "Interflon Single Point Lubricator";
@@ -5414,7 +5428,7 @@ function openAutomationImageModal() {
     if (caption) caption.textContent = "Interflon Single Point Lubricator - Afmetingen";
   } else {
     modalImg.src = "pulsarlube-dimensions.jpg";
-    if (caption) caption.textContent = "Pulsarlube M / MSP - Afmetingen & Maten";
+    if (caption) caption.textContent = device === "pulsarlube_plc" ? "Pulsarlube PLC - Afmetingen & Maten" : "Pulsarlube M / MSP - Afmetingen & Maten";
   }
 
   modal.classList.remove("hidden");
