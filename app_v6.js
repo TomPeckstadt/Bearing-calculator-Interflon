@@ -93,30 +93,34 @@ function getOptimalSmartAdvice(totalDailyNeedCm3, deviceKey, greaseName) {
         theoMonths: theoMonths,
         cartridgesPerYear: cartridgesPerYear,
         unitPackPrice: unitPackPrice,
-        annualCost: annualCartridgeCost
+        annualCost: annualCartridgeCost,
+        isGracoRecommended: false
       });
     }
   }
 
   if (candidates.length === 0) {
-    // High grease demand fallback: pick 500 ml
+    // High grease demand fallback: pick 500 ml and recommend Graco
     const pInfo = getAutomationPriceInfo(devKey, 500, grName, 1);
     const unitPrice = pInfo ? (pInfo.packPrice || 104) : 104;
-    return { cap: 500, months: 1, annualCost: 12 * unitPrice, cartridgesPerYear: 12, unitPackPrice: unitPrice, theoMonths: 1, label: "500 ml op 1 maand (Hoge vetbehoefte)" };
+    return { cap: 500, months: 1, annualCost: 12 * unitPrice, cartridgesPerYear: 12, unitPackPrice: unitPrice, theoMonths: 1, isGracoRecommended: true, label: "Bekijk de optie Graco" };
   }
 
-  // Sort candidates by annualCost ascending.
-  // If annual costs are very close (within 5%), prefer candidate with longer runtime (higher months) up to 12/24 months to save maintenance labor!
+  // Sort candidates by annualCost ascending
   candidates.sort((a, b) => {
     const diff = a.annualCost - b.annualCost;
     if (Math.abs(diff) > 2.0) {
       return diff;
     }
-    // If costs are virtually equal, prefer longer runtime (fewer replacement trips)
     return b.months - a.months;
   });
 
-  return candidates[0];
+  const winner = candidates[0];
+  const maxTheoMonths = (500 / totalDailyNeedCm3) / 30.4375;
+  if (maxTheoMonths < 2.0) {
+    winner.isGracoRecommended = true;
+  }
+  return winner;
 }
 
 function applyAutoRecommendationForDevice(devId) {
@@ -5986,10 +5990,16 @@ function calculateAutomationLubrication() {
     const isSmartMatch = (capMl === smartAdv.cap && recSetting.months === smartAdv.months);
 
     if (recTitleEl) {
-      recTitleEl.textContent = `${dialLabel} (${settingTerm}) op ${capMl} ml | ${pointsText}`;
+      if (smartAdv.isGracoRecommended) {
+        recTitleEl.textContent = `Advies voor ${pointsText}: Bekijk de optie Graco (Hoge vetbehoefte)`;
+      } else {
+        recTitleEl.textContent = `${dialLabel} (${settingTerm}) op ${capMl} ml | ${pointsText}`;
+      }
     }
     if (recSubtextEl) {
-      if (isSmartMatch) {
+      if (smartAdv.isGracoRecommended) {
+        recSubtextEl.innerHTML = `&#9888; <strong>Hoge vetbehoefte voor ${pointsText} (${totalDailyNeedForDev.toFixed(2).replace('.', ',')} ml/dag):</strong> Een 500 ml patroon gaat slechts ${((500 / totalDailyNeedForDev)/30.4375).toFixed(1).replace('.', ',')} maanden mee.<br>👉 <strong>Advies: Bekijk de optie Graco</strong> (centraal smeersysteem / vatpomp voor grote vetvolumes).`;
+      } else if (isSmartMatch) {
         recSubtextEl.innerHTML = `&check; <strong>Optimaal advies voor ${pointsText}: ${smartAdv.cap} ml patroon ingesteld op ${smartAdv.months} ${smartAdv.months === 1 ? 'maand' : 'maanden'}.</strong><br>&bull; Dit is de <strong>meest voordelige combinatie</strong> (slechts ${smartAdv.cartridgesPerYear.toFixed(1).replace('.', ',')} patronen/jaar &bull; € ${smartAdv.annualCost.toFixed(2).replace('.', ',')}/jaar patronen) en bespaart aanzienlijk op vervangen en onderhoud.`;
       } else {
         recSubtextEl.innerHTML = `&bull; Huidige selectie: <strong>${capMl} ml patroon op ${dialLabel}</strong> (${roundReason}).<br>&bull; <strong>Slim advies-tip:</strong> Klik op <em>'Neem advies over'</em> om automatisch te kiezen voor <strong>${smartAdv.cap} ml op ${smartAdv.months} ${smartAdv.months === 1 ? 'maand' : 'maanden'}</strong> (slechts € ${smartAdv.annualCost.toFixed(2).replace('.', ',')}/jaar patronen).`;
@@ -6068,7 +6078,18 @@ function calculateAutomationLubrication() {
       const actualStr = actualDailyVol.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
       const targetStr = totalDailyNeedForDev.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
-      if (ratio >= 0.85 && ratio <= 1.15) {
+      const maxTheoMonthsForDev = (500 / totalDailyNeedForDev) / 30.4375;
+      const isGracoNeeded = maxTheoMonthsForDev < 2.0;
+
+      if (isGracoNeeded) {
+        matchNoticeEl.innerHTML = `
+          <div style="padding: 12px 14px; background-color: #FEF2F2; border: 1.5px solid #EF4444; border-radius: var(--border-radius-sm); color: #991B1B; font-size: 11.5px; font-weight: 600; line-height: 1.4; box-shadow: 0 1px 3px rgba(227,6,19,0.06);">
+            &#9888; <strong>Hoge vetbehoefte voor Pulsarlube (${targetStr} ml/dag voor ${pointsText}):</strong><br>
+            Zelfs met een maximaal 500 ml patroon op 1 maand levert het toestel ${actualStr} ml/dag af en raakt een 500 ml patroon al na <strong>${maxTheoMonthsForDev.toFixed(1).replace('.', ',')} maanden</strong> leeg.<br>
+            👉 <strong>Advies: Bekijk de optie Graco</strong> (centraal smeersysteem / vatpomp voor continue smering van grote vetvolumes).
+          </div>
+        `;
+      } else if (ratio >= 0.85 && ratio <= 1.15) {
         matchNoticeEl.innerHTML = `
           <div style="padding: 10px 14px; background-color: #ECFDF5; border: 1px solid #A7F3D0; border-radius: var(--border-radius-sm); color: #065F46; font-size: 11.5px; font-weight: 600; line-height: 1.4; box-shadow: 0 1px 3px rgba(0,0,0,0.03);">
             &check; <strong>Uitstekende match!</strong> De gekozen instelling (<strong>${periodVal} ${unitLabel}</strong>) op ${devName} levert <strong>${actualStr} ml/dag</strong> af. Dit sluit optimaal aan bij de berekende behoefte voor ${pointsText} (<strong>${targetStr} ml/dag</strong>).
@@ -6082,10 +6103,15 @@ function calculateAutomationLubrication() {
           </div>
         `;
       } else {
+        const isAlreadyMatchingSetting = (curUnit === "months" && Math.round(periodVal) === recSetting.months);
+        const adviceAdviceText = isAlreadyMatchingSetting ? 
+          `Dit is de meest nabije beschikbare instelling (${dialLabel}) op een ${capMl} ml patroon.` : 
+          `<strong>Advies:</strong> Stel het toestel in op <strong>${dialLabel}</strong> om de dosering optimaal af te stemmen.`;
+
         matchNoticeEl.innerHTML = `
           <div style="padding: 10px 14px; background-color: #EFF6FF; border: 1px solid #BFDBFE; border-radius: var(--border-radius-sm); color: #1E40AF; font-size: 11.5px; font-weight: 600; line-height: 1.4; box-shadow: 0 1px 3px rgba(0,0,0,0.03);">
             &#8505; <strong>Oversmering / Ruime dosering:</strong> Ingesteld op <strong>${periodVal} ${unitLabel}</strong> levert ${devName} <strong>${actualStr} ml/dag</strong> af, terwijl de berekende behoefte voor ${pointsText} <strong>${targetStr} ml/dag</strong> bedraagt.<br>
-            <strong>Advies:</strong> Stel het toestel in op <strong>${dialLabel}</strong> om de dosering optimaal af te stemmen.
+            ${adviceAdviceText}
           </div>
         `;
       }
