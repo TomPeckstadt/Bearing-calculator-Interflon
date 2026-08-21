@@ -312,7 +312,7 @@ function renderAutoDevicesUI() {
       </div>
 
       <!-- Point Selection per Device -->
-      <div style="margin-bottom: 16px; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: var(--border-radius-sm); padding: 12px 14px;">
+      <div style="margin-bottom: 16px; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: var(--border-radius-sm); padding: 12px 14px; display: ${isSinglePoint ? 'none' : 'block'};">
         <label for="autoNumPointsSelect_${devId}" style="display: block; font-size: 12.5px; font-weight: 700; color: var(--text-dark); margin-bottom: 6px;">
           ${pointsLabel}
         </label>
@@ -380,7 +380,9 @@ function renderAutoDevicesUI() {
             
             <div id="autoDialBadge_${devId}" style="margin-top: 8px; background-color: #ffffff; border: 1px solid #cbd5e1; border-radius: var(--border-radius-sm); padding: 8px 10px; font-size: 11.5px; color: var(--text-dark); line-height: 1.4;">
               <div style="font-weight: 700; color: var(--primary-red); display: flex; align-items: center; justify-content: space-between; gap: 6px;">
-                <span id="autoDialLabelContainer_${devId}" style="display: inline-flex; align-items: center; gap: 6px;"><span>Display instelling op toestel:</span></span>
+                <span id="autoDialLabelContainer_${devId}" style="display: inline-flex; align-items: center; gap: 6px;">
+                  ${isSinglePoint ? '<img src="draaiknop.png?v=20260821_1950" alt="Draaiknop" style="width: 22px; height: 22px; object-fit: contain;"><span>Draaiknopstand op toestel:</span>' : '<span>Display instelling op toestel:</span>'}
+                </span>
                 <span id="autoDialValue_${devId}" style="font-size: 12.5px; font-weight: 800; background-color: #FEF2F2; color: var(--primary-red); padding: 2px 8px; border-radius: 4px; border: 1px solid #FECACA;">1 maand</span>
               </div>
               <div style="color: var(--text-medium); font-size: 11px; margin-top: 4px; display: flex; justify-content: space-between;">
@@ -6162,9 +6164,10 @@ function calculateAutomationLubrication() {
           </div>
         `;
       } else if (ratio >= 0.85 && ratio <= 1.15) {
+        const targetDevName = (deviceKey === "single_point") ? "Interflon Single Point Lubricator" : devName;
         matchNoticeEl.innerHTML = `
           <div style="padding: 10px 14px; background-color: #ECFDF5; border: 1px solid #A7F3D0; border-radius: var(--border-radius-sm); color: #065F46; font-size: 11.5px; font-weight: 600; line-height: 1.4; box-shadow: 0 1px 3px rgba(0,0,0,0.03);">
-            &check; <strong>Uitstekende match!</strong> De gekozen instelling (<strong>${periodVal} ${unitLabel}</strong>) op ${devName} levert <strong>${actualStr} ml/dag</strong> af. Dit sluit optimaal aan bij de berekende behoefte voor ${pointsText} (<strong>${targetStr} ml/dag</strong>).
+            &check; <strong>Uitstekende match!</strong> De gekozen instelling (<strong>${periodVal} ${unitLabel}</strong>) op ${targetDevName} levert <strong>${actualStr} ml/dag</strong> af. Dit sluit optimaal aan bij de berekende behoefte voor ${pointsText} (<strong>${targetStr} ml/dag</strong>).
           </div>
         `;
       } else if (ratio < 0.85) {
