@@ -460,6 +460,9 @@ const TRANSLATIONS = {
     pageInfoTitle: "Informatie",
     pageInfoSubtitle: "Uitleg over werking, gebruikte formules en het ontwerp van de applicatie.",
     menuAutomation: "Automatisering",
+    menuRoiAutomation: "ROI Automatisering",
+    pageRoiAutomationTitle: "ROI Automatisering",
+    pageRoiAutomationSubtitle: "Return on Investment berekening voor automatische smeersystemen",
     pageAutomationTitle: "Automatisering",
     pageAutomationSubtitle: "Berekening bij inzet van automatische smeertoestellen",
     automationTitle: "Automatische Smeertoestellen",
@@ -761,6 +764,9 @@ const TRANSLATIONS = {
     pageInfoTitle: "Information",
     pageInfoSubtitle: "Explanation of operation, formulas used, and design of the application.",
     menuAutomation: "Automation",
+    menuRoiAutomation: "ROI Automation",
+    pageRoiAutomationTitle: "ROI Automation",
+    pageRoiAutomationSubtitle: "Return on Investment calculation for automatic lubrication systems",
     pageAutomationTitle: "Automation",
     pageAutomationSubtitle: "Calculation for automatic lubrication units",
     automationTitle: "Automatic Lubricators",
@@ -1062,6 +1068,9 @@ const TRANSLATIONS = {
     pageInfoTitle: "Informations",
     pageInfoSubtitle: "Explication du fonctionnement, des formules utilisées et de la conception de l'application.",
     menuAutomation: "Automatisation",
+    menuRoiAutomation: "ROI Automatisation",
+    pageRoiAutomationTitle: "ROI Automatisation",
+    pageRoiAutomationSubtitle: "Calcul du retour sur investissement pour graisseurs automatiques",
     pageAutomationTitle: "Automatisation",
     pageAutomationSubtitle: "Calcul pour l'utilisation de graisseurs automatiques",
     automationTitle: "Graisseurs Automatiques",
@@ -1977,12 +1986,14 @@ function switchPage(pageId) {
     if (pageId === "calc") pageId = "chainCalc";
     if (pageId === "om") pageId = "chainOm";
     if (pageId === "automation") pageId = "chainAutomation";
+    if (pageId === "roi-automation") pageId = "chainRoiAutomation";
     if (pageId === "info") pageId = "chainInfo";
   } else {
     if (pageId === "chainSearch") pageId = "search";
     if (pageId === "chainCalc") pageId = "calc";
     if (pageId === "chainOm") pageId = "om";
     if (pageId === "chainAutomation") pageId = "automation";
+    if (pageId === "chainRoiAutomation") pageId = "roi-automation";
     if (pageId === "chainInfo") pageId = "info";
   }
 
@@ -2095,6 +2106,19 @@ function switchPage(pageId) {
       targetSubtitle.textContent = "Bereken de instellingen en standtijd voor uw automatische Interflon smeerpotten.";
     }
     updateAutomationPage();
+  } else if (pageId === 'roi-automation') {
+    const pageSec = document.getElementById("pageRoiAutomation");
+    const menuBtn = document.getElementById("menuRoiAutomation");
+    if (pageSec) pageSec.classList.add("active");
+    if (menuBtn) menuBtn.classList.add("active");
+    if (targetTitle) {
+      targetTitle.setAttribute("data-i18n", "pageRoiAutomationTitle");
+      targetTitle.textContent = "ROI Automatisering";
+    }
+    if (targetSubtitle) {
+      targetSubtitle.setAttribute("data-i18n", "pageRoiAutomationSubtitle");
+      targetSubtitle.textContent = "Return on Investment berekening voor automatische smeersystemen.";
+    }
   } else if (pageId === 'info') {
     document.getElementById("pageInfo").classList.add("active");
     document.getElementById("menuInfo").classList.add("active");
@@ -5674,6 +5698,7 @@ function updateModeUI() {
   const menuCalcText = document.querySelector("#menuCalc span");
   const menuOmText = document.querySelector("#menuOm span");
   const menuAutomationText = document.querySelector("#menuAutomation span");
+  const menuRoiAutomationText = document.querySelector("#menuRoiAutomation span");
   const menuInfoText = document.querySelector("#menuInfo span");
 
   if (currentAppMode === "chain") {
@@ -5694,6 +5719,10 @@ function updateModeUI() {
     if (menuAutomationText) {
       menuAutomationText.textContent = "Automatisering";
       menuAutomationText.removeAttribute("data-i18n");
+    }
+    if (menuRoiAutomationText) {
+      menuRoiAutomationText.textContent = "ROI Automatisering";
+      menuRoiAutomationText.removeAttribute("data-i18n");
     }
     if (menuInfoText) {
       menuInfoText.textContent = "Informatie";
@@ -5718,6 +5747,10 @@ function updateModeUI() {
     if (menuAutomationText) {
       menuAutomationText.setAttribute("data-i18n", "menuAutomation");
       menuAutomationText.textContent = "Automatisering";
+    }
+    if (menuRoiAutomationText) {
+      menuRoiAutomationText.setAttribute("data-i18n", "menuRoiAutomation");
+      menuRoiAutomationText.textContent = "ROI Automatisering";
     }
     if (menuInfoText) {
       menuInfoText.setAttribute("data-i18n", "menuInfo");
