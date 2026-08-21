@@ -890,12 +890,13 @@ function renderPdfAutomationExtraPage(doc, autoData, autoDataUrl, autoRatio, wat
       doc.setFillColor(236, 253, 245);
       doc.setDrawColor(167, 243, 208);
       doc.setLineWidth(0.3);
-      doc.roundedRect(cardX + 2.5, innerY, colWidth - 5, 12, 2, 2, "FD");
+      doc.roundedRect(cardX + 2.5, innerY, colWidth - 5, 14, 2, 2, "FD");
 
       doc.setFont("helvetica", "bold");
-      doc.setFontSize(6);
+      doc.setFontSize(5.8);
       doc.setTextColor(6, 95, 70);
-      doc.text(`Uitstekende match! ${capMl} ml op ${periodVal} ${unitLabel} levert ${actualDailyVol.toFixed(2).replace('.',',')} ml/dag af voor ${pts} lager(s).`, cardX + 4, innerY + 7);
+      const matchText = `Uitstekende match! ${capMl} ml op ${periodVal} ${unitLabel} levert ${actualDailyVol.toFixed(2).replace('.',',')} ml/dag af voor ${pts} lager(s).`;
+      doc.text(matchText, cardX + 4, innerY + 5, { maxWidth: colWidth - 8 });
     }
   }
 }
@@ -8562,7 +8563,7 @@ function updateRoiAutomationPage() {
   let totalPointsAllDevices = 0;
   let devBreakdownText = [];
   for (let i = 0; i < numDevices; i++) {
-    const d = autoDevicesState[i];
+    const d = (typeof autoDevicesState !== "undefined" && autoDevicesState[i]) ? autoDevicesState[i] : { id: String.fromCharCode(65 + i), points: 1, cap: 120, period: 6, unit: "months" };
     const pts = d.points || 1;
     totalPointsAllDevices += pts;
     devBreakdownText.push(`Pulsarlube ${d.id}: ${pts} ${pts === 1 ? 'lager' : 'lagers'}`);
@@ -8624,7 +8625,7 @@ function updateRoiAutomationPage() {
   let divBlockDetailParts = [];
 
   for (let i = 0; i < numDevices; i++) {
-    const d = autoDevicesState[i];
+    const d = (typeof autoDevicesState !== "undefined" && autoDevicesState[i]) ? autoDevicesState[i] : { id: String.fromCharCode(65 + i), points: 1, cap: 120, period: 6, unit: "months" };
     const pInfo = getAutomationPriceInfo(deviceKey, d.cap || 120, greaseName, d.points || 1);
     
     totalUnitsPrice += pInfo.unitPrice;
@@ -8706,7 +8707,7 @@ function updateRoiAutomationPage() {
         } else {
           let listHtml = "";
           for (let i = 0; i < numDevices; i++) {
-            const d = autoDevicesState[i];
+            const d = (typeof autoDevicesState !== "undefined" && autoDevicesState[i]) ? autoDevicesState[i] : { id: String.fromCharCode(65 + i), points: 1, cap: 120, period: 6, unit: "months" };
             const pInfo = getAutomationPriceInfo(deviceKey, d.cap || 120, greaseName, d.points || 1);
             if (pInfo.dividerBlockPrice > 0) {
               listHtml += `<div>&bull; <strong>Toestel ${d.id}:</strong> € ${pInfo.dividerBlockPrice.toFixed(2).replace('.', ',')} <em>(Art. ${pInfo.artNrDividerBlock} &bull; ${d.points}-poorts)</em></div>`;
@@ -8823,8 +8824,6 @@ function addRoiPdfPage(doc, dateString, watermarkDataUrl, aspectRatio, autoDataU
     const d = (typeof autoDevicesState !== "undefined" && autoDevicesState[i]) ? autoDevicesState[i] : { id: 'A', points: 1, cap: 120, period: 6, unit: 'months' };
     const pts = d.points || 1;
     const cap = d.cap || 120;
-    const periodVal = parseFloat(d.period) || 1;
-    const curUnit = d.unit || "months";
     mainCapMl = cap;
     totalPointsAllDevices += pts;
     devBreakdownText.push(`Pulsarlube ${d.id}: ${pts} ${pts === 1 ? 'lager' : 'lagers'}`);
@@ -8834,12 +8833,8 @@ function addRoiPdfPage(doc, dateString, watermarkDataUrl, aspectRatio, autoDataU
     totalInstallKitPrice += pInfo.installKitPrice;
     totalDividerBlockPrice += pInfo.dividerBlockPrice;
 
-    let periodMonths = periodVal;
-    if (curUnit === "weeks") periodMonths = (periodVal * 7) / 30.4375;
-    else if (curUnit === "days") periodMonths = periodVal / 30.4375;
-    if (periodMonths <= 0) periodMonths = 1;
-
-    const cartsDev = 12 / periodMonths;
+    const yearlyMlDev = dailyNeedCm3 * pts * 365.25;
+    const cartsDev = cap > 0 ? (yearlyMlDev / cap) : 0;
     totalCartridgesPerYear += cartsDev;
     totalCartridgesCostYear += (cartsDev * pInfo.servicepackPrice);
   }
@@ -9042,8 +9037,9 @@ function addRoiPdfPage(doc, dateString, watermarkDataUrl, aspectRatio, autoDataU
       paybackStr = "Geen TVT";
       isPaybackGreen = false;
     } else {
-      const pbMonths = ((autoYear1Total - manualTotalCost) / netYearlySaving) * 12;
-      paybackStr = `${pbMonths.toFixed(1).replace('.', ',')} m`;
+      const pbMonths = (Math.abs(year1NetResult) / netYearlySaving) * 12 + 12;
+      const pbYears = pbMonths / 12;
+      paybackStr = `${pbMonths.toFixed(1).replace('.', ',')} m (${pbYears.toFixed(2).replace('.', ',')} j)`;
     }
   }
   drawRoiResultCard(106, cardY, cardW, cardH, "TERUGVERDIENTIJD", paybackStr, "Investerings-ROI", isPaybackGreen);
