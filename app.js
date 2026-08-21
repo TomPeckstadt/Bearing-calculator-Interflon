@@ -2119,6 +2119,7 @@ function switchPage(pageId) {
       targetSubtitle.setAttribute("data-i18n", "pageRoiAutomationSubtitle");
       targetSubtitle.textContent = "Return on Investment berekening voor automatische smeersystemen.";
     }
+    updateRoiAutomationPage();
   } else if (pageId === 'info') {
     document.getElementById("pageInfo").classList.add("active");
     document.getElementById("menuInfo").classList.add("active");
@@ -7413,3 +7414,736 @@ document.addEventListener("keydown", function(e) {
     }
   }
 });
+
+
+
+// ============================================================================
+// AUTOMATION PRICE DATABASE (EXCEL PRIJSLIJST PULSARLUBE & SINGLE POINT)
+// ============================================================================
+const AUTOMATION_PRICE_DATABASE = {
+  "accessories": {
+    "installKit": {
+      "artNr": "1430",
+      "name": "Installatiekit 1250RC-1",
+      "price": 33
+    },
+    "nylonTubePerM": {
+      "artNr": "1431",
+      "name": "Nylon tube 6 mm (per m)",
+      "price": 1.9
+    },
+    "batteryPackAlkaline": {
+      "artNr": "1401",
+      "name": "Battery pack (alkaline)",
+      "price": 18.7
+    },
+    "batteryPackLithium": {
+      "artNr": "1438",
+      "name": "Battery pack (lithium)",
+      "price": 40.9
+    }
+  },
+  "pulsarlubeUnits": [
+    {
+      "artNr": "1422",
+      "model": "Pulsarlube M2",
+      "cap": 60,
+      "price": 251.6
+    },
+    {
+      "artNr": "1423",
+      "model": "Pulsarlube M2",
+      "cap": 125,
+      "price": 261.1
+    },
+    {
+      "artNr": "1424",
+      "model": "Pulsarlube M2",
+      "cap": 250,
+      "price": 275.4
+    },
+    {
+      "artNr": "1425",
+      "model": "Pulsarlube M2",
+      "cap": 500,
+      "price": 299.1
+    },
+    {
+      "artNr": "1448",
+      "model": "Pulsarlube MSP AC",
+      "cap": 60,
+      "price": 340.2
+    },
+    {
+      "artNr": "1447",
+      "model": "Pulsarlube MSP DC",
+      "cap": 60,
+      "price": 314.7
+    },
+    {
+      "artNr": "1446",
+      "model": "Pulsarlube MSP AC",
+      "cap": 125,
+      "price": 347.8
+    },
+    {
+      "artNr": "1445",
+      "model": "Pulsarlube MSP DC",
+      "cap": 125,
+      "price": 322.3
+    },
+    {
+      "artNr": "1444",
+      "model": "Pulsarlube MSP AC",
+      "cap": 250,
+      "price": 356.3
+    },
+    {
+      "artNr": "1443",
+      "model": "Pulsarlube MSP DC",
+      "cap": 250,
+      "price": 330.8
+    },
+    {
+      "artNr": "1442",
+      "model": "Pulsarlube MSP AC",
+      "cap": 500,
+      "price": 371.3
+    },
+    {
+      "artNr": "1441",
+      "model": "Pulsarlube MSP DC",
+      "cap": 500,
+      "price": 363.1
+    },
+    {
+      "artNr": "1450",
+      "model": "Pulsarlube PLC - monthly",
+      "cap": 60,
+      "price": 350.6
+    },
+    {
+      "artNr": "1466",
+      "model": "Pulsarlube PLC - interval",
+      "cap": 60,
+      "price": 350.6
+    },
+    {
+      "artNr": "1455",
+      "model": "Pulsarlube PLC - monthly",
+      "cap": 120,
+      "price": 362.9
+    },
+    {
+      "artNr": "1456",
+      "model": "Pulsarlube PLC - interval",
+      "cap": 120,
+      "price": 362.9
+    },
+    {
+      "artNr": "1457",
+      "model": "Pulsarlube PLC - monthly",
+      "cap": 240,
+      "price": 376.5
+    },
+    {
+      "artNr": "1458",
+      "model": "Pulsarlube PLC - interval",
+      "cap": 240,
+      "price": 376.5
+    },
+    {
+      "artNr": "1459",
+      "model": "Pulsarlube PLC - monthly",
+      "cap": 480,
+      "price": 410.8
+    },
+    {
+      "artNr": "1460",
+      "model": "Pulsarlube PLC - interval",
+      "cap": 480,
+      "price": 410.8
+    }
+  ],
+  "pulsarlubeServicepacks": [
+    {
+      "artNr": "4419",
+      "cap": 60,
+      "grease": "Grease MP2/3",
+      "price": 33.9
+    },
+    {
+      "artNr": "4210",
+      "cap": 60,
+      "grease": "Food grease LT2",
+      "price": 41.3
+    },
+    {
+      "artNr": "4201",
+      "cap": 125,
+      "grease": "Grease MP2/3",
+      "price": 44.8
+    },
+    {
+      "artNr": "4202",
+      "cap": 125,
+      "grease": "Grease MP00",
+      "price": 48.1
+    },
+    {
+      "artNr": "4203",
+      "cap": 125,
+      "grease": "Grease LS2",
+      "price": 48
+    },
+    {
+      "artNr": "4207",
+      "cap": 125,
+      "grease": "Grease LS1/2",
+      "price": 49
+    },
+    {
+      "artNr": "4206",
+      "cap": 125,
+      "grease": "Grease HTG",
+      "price": 73.1
+    },
+    {
+      "artNr": "4209",
+      "cap": 125,
+      "grease": "Grease HD2",
+      "price": 53.6
+    },
+    {
+      "artNr": "4204",
+      "cap": 125,
+      "grease": "Food grease 1",
+      "price": 41.9
+    },
+    {
+      "artNr": "4205",
+      "cap": 125,
+      "grease": "Food grease EP",
+      "price": 66.7
+    },
+    {
+      "artNr": "4208",
+      "cap": 125,
+      "grease": "Food grease LT2",
+      "price": 60.3
+    },
+    {
+      "artNr": "4401",
+      "cap": 250,
+      "grease": "Grease MP2/3",
+      "price": 61.1
+    },
+    {
+      "artNr": "4402",
+      "cap": 250,
+      "grease": "Grease MP1",
+      "price": 61.1
+    },
+    {
+      "artNr": "4403",
+      "cap": 250,
+      "grease": "Grease LS2",
+      "price": 67.5
+    },
+    {
+      "artNr": "4407",
+      "cap": 250,
+      "grease": "Grease LS1/2",
+      "price": 69.6
+    },
+    {
+      "artNr": "4406",
+      "cap": 250,
+      "grease": "Grease HTG",
+      "price": 132
+    },
+    {
+      "artNr": "4418",
+      "cap": 250,
+      "grease": "Grease HD2",
+      "price": 78.9
+    },
+    {
+      "artNr": "4404",
+      "cap": 250,
+      "grease": "Food grease 1",
+      "price": 64.9
+    },
+    {
+      "artNr": "4405",
+      "cap": 250,
+      "grease": "Food grease EP",
+      "price": 105
+    },
+    {
+      "artNr": "4415",
+      "cap": 250,
+      "grease": "Food grease LT2",
+      "price": 92.1
+    },
+    {
+      "artNr": "4408",
+      "cap": 500,
+      "grease": "Grease MP2/3",
+      "price": 96.8
+    },
+    {
+      "artNr": "4426",
+      "cap": 500,
+      "grease": "Grease MP1",
+      "price": 96.8
+    },
+    {
+      "artNr": "4409",
+      "cap": 500,
+      "grease": "Grease LS2",
+      "price": 109.7
+    },
+    {
+      "artNr": "4413",
+      "cap": 500,
+      "grease": "Grease LS1/2",
+      "price": 113.7
+    },
+    {
+      "artNr": "4412",
+      "cap": 500,
+      "grease": "Grease HTG",
+      "price": 251.4
+    },
+    {
+      "artNr": "4416",
+      "cap": 500,
+      "grease": "Grease HD2",
+      "price": 132.3
+    },
+    {
+      "artNr": "4424",
+      "cap": 500,
+      "grease": "Grease HS2",
+      "price": 251
+    },
+    {
+      "artNr": "4410",
+      "cap": 500,
+      "grease": "Food grease 1",
+      "price": 112.9
+    },
+    {
+      "artNr": "4411",
+      "cap": 500,
+      "grease": "Food grease EP",
+      "price": 184.7
+    },
+    {
+      "artNr": "4414",
+      "cap": 500,
+      "grease": "Food grease LT2",
+      "price": 158.9
+    },
+    {
+      "artNr": "4425",
+      "cap": 500,
+      "grease": "Food grease HD2",
+      "price": 172.2
+    },
+    {
+      "artNr": "4428",
+      "cap": 500,
+      "grease": "Food grease HS1",
+      "price": 174.4
+    }
+  ],
+  "singlePointFilled": [
+    {
+      "artNr": "1082",
+      "cap": 15,
+      "grease": "Grease MP2/3",
+      "price": 51.4
+    },
+    {
+      "artNr": "1096",
+      "cap": 15,
+      "grease": "Grease MP1",
+      "price": 51.4
+    },
+    {
+      "artNr": "1097",
+      "cap": 15,
+      "grease": "Food grease HD2",
+      "price": 54.5
+    },
+    {
+      "artNr": "7612",
+      "cap": 15,
+      "grease": "Food grease LT2",
+      "price": 52.6
+    },
+    {
+      "artNr": "1051",
+      "cap": 30,
+      "grease": "Grease MP2/3",
+      "price": 52.5
+    },
+    {
+      "artNr": "1066",
+      "cap": 30,
+      "grease": "Food grease LT2",
+      "price": 54.9
+    },
+    {
+      "artNr": "1042",
+      "cap": 30,
+      "grease": "Food lube G150",
+      "price": 55.8
+    },
+    {
+      "artNr": "1053",
+      "cap": 30,
+      "grease": "Food lube G220",
+      "price": 55.8
+    },
+    {
+      "artNr": "1071",
+      "cap": 60,
+      "grease": "Grease MP2/3",
+      "price": 47.5
+    },
+    {
+      "artNr": "1049",
+      "cap": 60,
+      "grease": "Grease LS1/2",
+      "price": 48.8
+    },
+    {
+      "artNr": "1079",
+      "cap": 60,
+      "grease": "Grease HD2",
+      "price": 50.2
+    },
+    {
+      "artNr": "1074",
+      "cap": 60,
+      "grease": "Food grease 1",
+      "price": 53
+    },
+    {
+      "artNr": "1077",
+      "cap": 60,
+      "grease": "Food grease EP",
+      "price": 54.2
+    },
+    {
+      "artNr": "1078",
+      "cap": 60,
+      "grease": "Food grease LT2",
+      "price": 52.2
+    },
+    {
+      "artNr": "1075",
+      "cap": 60,
+      "grease": "Food lube G150",
+      "price": 51.2
+    },
+    {
+      "artNr": "1061",
+      "cap": 125,
+      "grease": "Grease MP2/3",
+      "price": 54.6
+    },
+    {
+      "artNr": "1086",
+      "cap": 125,
+      "grease": "Grease LS1/2",
+      "price": 57.3
+    },
+    {
+      "artNr": "1081",
+      "cap": 125,
+      "grease": "Grease HD2",
+      "price": 60.2
+    },
+    {
+      "artNr": "1067",
+      "cap": 125,
+      "grease": "Food grease 1",
+      "price": 66.1
+    },
+    {
+      "artNr": "1065",
+      "cap": 125,
+      "grease": "Food grease EP",
+      "price": 68.5
+    },
+    {
+      "artNr": "1083",
+      "cap": 125,
+      "grease": "Food grease LT2",
+      "price": 64.4
+    },
+    {
+      "artNr": "1068",
+      "cap": 125,
+      "grease": "Lube PN32",
+      "price": 58.7
+    },
+    {
+      "artNr": "1064",
+      "cap": 125,
+      "grease": "Lube PN68",
+      "price": 58.7
+    },
+    {
+      "artNr": "1069",
+      "cap": 125,
+      "grease": "Food lube G150",
+      "price": 59.1
+    },
+    {
+      "artNr": "1041",
+      "cap": 250,
+      "grease": "Grease LS1/2",
+      "price": 126.6
+    },
+    {
+      "artNr": "1087",
+      "cap": 250,
+      "grease": "Grease MP2/3",
+      "price": 121.2
+    },
+    {
+      "artNr": "1070",
+      "cap": 250,
+      "grease": "Food grease LT2",
+      "price": 140.9
+    },
+    {
+      "artNr": "1060",
+      "cap": 250,
+      "grease": "Lube PN68",
+      "price": 126.5
+    },
+    {
+      "artNr": "1095",
+      "cap": 250,
+      "grease": "Food lube G150",
+      "price": 127.4
+    }
+  ]
+};
+
+function getAutomationPriceInfo(deviceKey, capMl, greaseName) {
+  let gSearch = greaseName || "Grease MP2/3";
+  if (gSearch.includes("MP2/3") || gSearch.includes("MP 2/3") || gSearch.includes("MP2") || gSearch.includes("MP3")) gSearch = "Grease MP2/3";
+  else if (gSearch.includes("LS1/2") || gSearch.includes("LS1") || gSearch.includes("LS2")) gSearch = "Grease LS";
+  else if (gSearch.includes("HD2") || gSearch.includes("HD 2")) gSearch = "HD2";
+  else if (gSearch.includes("HTG")) gSearch = "Grease HTG";
+  else if (gSearch.includes("Food") && gSearch.includes("EP")) gSearch = "Food grease EP";
+  else if (gSearch.includes("Food") && gSearch.includes("LT2")) gSearch = "Food grease LT2";
+  else if (gSearch.includes("Food") && (gSearch.includes("1") || gSearch.includes("HD2"))) gSearch = "Food grease";
+
+  if (deviceKey === "single_point") {
+    const match = AUTOMATION_PRICE_DATABASE.singlePointFilled.find(item => item.cap === capMl && (item.grease.toLowerCase().includes(gSearch.toLowerCase()) || gSearch.toLowerCase().includes(item.grease.toLowerCase()))) ||
+                  AUTOMATION_PRICE_DATABASE.singlePointFilled.find(item => item.cap === capMl) ||
+                  AUTOMATION_PRICE_DATABASE.singlePointFilled[0];
+    return {
+      deviceType: "Single Point Lubricator",
+      isPrefilled: true,
+      unitPrice: match.price,
+      servicepackPrice: match.price,
+      mandatoryAccessoriesPrice: 0.00,
+      artNrUnit: match.artNr,
+      artNrServicepack: match.artNr
+    };
+  } else {
+    let modelSearch = "M2";
+    if (deviceKey === "pulsarlube_msp") modelSearch = "MSP DC";
+    if (deviceKey === "pulsarlube_plc") modelSearch = "PLC";
+
+    const unitMatch = AUTOMATION_PRICE_DATABASE.pulsarlubeUnits.find(item => item.model.includes(modelSearch) && item.cap === capMl) ||
+                      AUTOMATION_PRICE_DATABASE.pulsarlubeUnits.find(item => item.cap === capMl) ||
+                      AUTOMATION_PRICE_DATABASE.pulsarlubeUnits[0];
+
+    const packMatch = AUTOMATION_PRICE_DATABASE.pulsarlubeServicepacks.find(item => item.cap === capMl && (item.grease.toLowerCase().includes(gSearch.toLowerCase()) || gSearch.toLowerCase().includes(item.grease.toLowerCase()))) ||
+                      AUTOMATION_PRICE_DATABASE.pulsarlubeServicepacks.find(item => item.cap === capMl) ||
+                      AUTOMATION_PRICE_DATABASE.pulsarlubeServicepacks[0];
+
+    // Mandatory accessories: Art 1430 (€33.00) + 10x Art 14 (€1.90) = €52.00
+    const mandAcc = AUTOMATION_PRICE_DATABASE.accessories.installKit.price + (10 * AUTOMATION_PRICE_DATABASE.accessories.nylonTubePerM.price);
+
+    return {
+      deviceType: unitMatch.model,
+      isPrefilled: false,
+      unitPrice: unitMatch.price,
+      servicepackPrice: packMatch.price,
+      mandatoryAccessoriesPrice: mandAcc,
+      artNrUnit: unitMatch.artNr,
+      artNrServicepack: packMatch.artNr
+    };
+  }
+}
+
+function updateRoiAutomationPage() {
+  const deviceSelect = document.getElementById("automationDeviceSelect") || document.getElementById("autoDeviceSelect");
+  const capSelect = document.getElementById("autoCartridgeCap");
+  const deviceKey = deviceSelect ? deviceSelect.value : "single_point";
+  const capMl = capSelect ? (parseFloat(capSelect.value) || 125) : 125;
+
+  // 1. Sync Image & Title from Automatisering
+  const roiImgEl = document.getElementById("roiDeviceImg");
+  const roiTitleEl = document.getElementById("roiDeviceTitle");
+  const roiSubtextEl = document.getElementById("roiDeviceSubtext");
+
+  let deviceName = "Interflon Single Point Lubricator";
+  let imgSrc = "interflon-single-point-lubricator.png";
+
+  if (deviceKey === "pulsarlube_m2") {
+    deviceName = "Pulsarlube M2";
+    imgSrc = "pulsarlube-m2.png";
+  } else if (deviceKey === "pulsarlube_msp") {
+    deviceName = "Pulsarlube MSP";
+    imgSrc = "pulsarlube-msp.png";
+  } else if (deviceKey === "pulsarlube_plc") {
+    deviceName = "Pulsarlube PLC";
+    imgSrc = "pulsarlube-msp.png";
+  }
+
+  if (roiImgEl) roiImgEl.src = imgSrc;
+  if (roiTitleEl) roiTitleEl.textContent = deviceName;
+
+  // Selected Grease Name & Price per Liter from Opbrengstmodel / Smeercalculatie
+  const selectGrease = document.getElementById("selectGrease");
+  const greaseName = selectGrease ? selectGrease.value : "Interflon Grease MP2/3";
+  const greasePriceInput = document.getElementById("tcoPriceInterflonInput");
+  const greasePricePerLiter = greasePriceInput ? (parseFloat(greasePriceInput.value) || 70.50) : 70.50;
+
+  if (roiSubtextEl) {
+    roiSubtextEl.innerHTML = `Patrooninhoud: <strong>${capMl} ml</strong> &bull; Geselecteerd vet: <strong>${greaseName}</strong>`;
+  }
+
+  // 2. Annual Volume calculation
+  const dailyNeedCm3 = window.currentDailyNeedCm3 || 0.704;
+  const yearlyMl = dailyNeedCm3 * 365.25;
+
+  const headerMlEl = document.getElementById("roiHeaderYearlyMl");
+  if (headerMlEl) headerMlEl.textContent = `${yearlyMl.toLocaleString("nl-BE", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} ml / jaar`;
+
+  // 3. Card 1: Manuele Smering
+  const manYearlyMlEl = document.getElementById("roiManYearlyMl");
+  const manGreasePriceEl = document.getElementById("roiManGreasePrice");
+  const manGreaseCostEl = document.getElementById("roiManGreaseCost");
+  const manBeurtenEl = document.getElementById("roiManBeurten");
+  const manWorkTimeEl = document.getElementById("roiManWorkTime");
+  const manHourlyRateEl = document.getElementById("roiManHourlyRate");
+  const manLaborCostEl = document.getElementById("roiManLaborCost");
+  const manTotalCostEl = document.getElementById("roiManTotalCost");
+
+  const techBeurtenInput = document.getElementById("tcoFreqInterflonInput");
+  const manualBeurtenPerYear = techBeurtenInput ? (parseFloat(techBeurtenInput.value) || 17.6) : 17.6;
+  const timeInput = document.getElementById("tcoTimeInput");
+  const workTimeMinutes = timeInput ? (parseFloat(timeInput.value) || 10) : 10;
+  const hourlyRateInput = document.getElementById("tcoHourlyRateInput");
+  const hourlyRate = hourlyRateInput ? (parseFloat(hourlyRateInput.value) || 50.00) : 50.00;
+
+  const manualGreaseCost = (yearlyMl / 1000) * greasePricePerLiter;
+  const manualLaborHours = manualBeurtenPerYear * (workTimeMinutes / 60);
+  const manualLaborCost = manualLaborHours * hourlyRate;
+  const manualTotalCost = manualGreaseCost + manualLaborCost;
+
+  if (manYearlyMlEl) manYearlyMlEl.textContent = `${yearlyMl.toLocaleString("nl-BE", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} ml`;
+  if (manGreasePriceEl) manGreasePriceEl.textContent = `€ ${greasePricePerLiter.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / L`;
+  if (manGreaseCostEl) manGreaseCostEl.textContent = `€ ${manualGreaseCost.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / jaar`;
+  if (manBeurtenEl) manBeurtenEl.textContent = `${manualBeurtenPerYear.toLocaleString("nl-BE", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} beurten`;
+  if (manWorkTimeEl) manWorkTimeEl.textContent = `${workTimeMinutes} min (${(workTimeMinutes/60).toFixed(2).replace('.',',')} u)`;
+  if (manHourlyRateEl) manHourlyRateEl.textContent = `€ ${hourlyRate.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / uur`;
+  if (manLaborCostEl) manLaborCostEl.textContent = `€ ${manualLaborCost.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / jaar`;
+  if (manTotalCostEl) manTotalCostEl.textContent = `€ ${manualTotalCost.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+  // 4. Card 2: Automatische Smering
+  const autoDeviceNameEl = document.getElementById("roiAutoDeviceName");
+  const autoPatronenEl = document.getElementById("roiAutoPatronen");
+  const autoDevicePriceEl = document.getElementById("roiAutoDevicePrice");
+  const autoPackPriceEl = document.getElementById("roiAutoPackPrice");
+  const autoPacksTotalEl = document.getElementById("roiAutoPacksTotal");
+  const autoAccCostEl = document.getElementById("roiAutoAccCost");
+  const autoYear1TotalEl = document.getElementById("roiAutoYear1Total");
+  const autoRecurringTotalEl = document.getElementById("roiAutoRecurringTotal");
+
+  const priceInfo = getAutomationPriceInfo(deviceKey, capMl, greaseName);
+
+  const cartridgesPerYear = capMl > 0 ? (yearlyMl / capMl) : 0;
+  const autoCartridgeCostYear = cartridgesPerYear * priceInfo.servicepackPrice;
+
+  const autoYear1Total = priceInfo.unitPrice + priceInfo.mandatoryAccessoriesPrice + autoCartridgeCostYear;
+  const autoRecurringTotal = autoCartridgeCostYear;
+
+  if (autoDeviceNameEl) autoDeviceNameEl.textContent = deviceName;
+  if (autoPatronenEl) autoPatronenEl.textContent = `${cartridgesPerYear.toLocaleString("nl-BE", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} patronen/jaar`;
+  if (autoDevicePriceEl) {
+    if (priceInfo.isPrefilled) {
+      autoDevicePriceEl.textContent = `€ 0,00 (Gevuld toestel)`;
+    } else {
+      autoDevicePriceEl.textContent = `€ ${priceInfo.unitPrice.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} (Art. ${priceInfo.artNrUnit})`;
+    }
+  }
+  if (autoPackPriceEl) autoPackPriceEl.textContent = `€ ${priceInfo.servicepackPrice.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / stuk (Art. ${priceInfo.artNrServicepack})`;
+  if (autoPacksTotalEl) autoPacksTotalEl.textContent = `€ ${autoCartridgeCostYear.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / jaar`;
+  if (autoAccCostEl) {
+    if (priceInfo.mandatoryAccessoriesPrice > 0) {
+      autoAccCostEl.textContent = `€ ${priceInfo.mandatoryAccessoriesPrice.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} (Kit 1430 + 10x 14)`;
+    } else {
+      autoAccCostEl.textContent = `€ 0,00`;
+    }
+  }
+  if (autoYear1TotalEl) autoYear1TotalEl.textContent = `€ ${autoYear1Total.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  if (autoRecurringTotalEl) autoRecurringTotalEl.textContent = `€ ${autoRecurringTotal.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+  // 5. Summary ROI Box
+  const netYearlySaving = manualTotalCost - autoRecurringTotal;
+  const year1NetResult = manualTotalCost - autoYear1Total;
+
+  const netYearlySavingEl = document.getElementById("roiNetYearlySaving");
+  const year1NetResultEl = document.getElementById("roiYear1NetResult");
+  const paybackPeriodEl = document.getElementById("roiPaybackPeriod");
+
+  if (netYearlySavingEl) {
+    const sign = netYearlySaving >= 0 ? "+" : "-";
+    netYearlySavingEl.textContent = `${sign} € ${Math.abs(netYearlySaving).toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / jaar`;
+    netYearlySavingEl.style.color = netYearlySaving >= 0 ? "#16a34a" : "#dc2626";
+  }
+
+  if (year1NetResultEl) {
+    const sign = year1NetResult >= 0 ? "+" : "-";
+    year1NetResultEl.textContent = `${sign} € ${Math.abs(year1NetResult).toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    year1NetResultEl.style.color = year1NetResult >= 0 ? "#2563eb" : "#dc2626";
+  }
+
+  if (paybackPeriodEl) {
+    const monthlyNetLaborGreaseSaving = (manualLaborCost + (manualGreaseCost - (autoCartridgeCostYear))) / 12;
+    const initialInvestment = priceInfo.unitPrice + priceInfo.mandatoryAccessoriesPrice;
+    
+    if (initialInvestment <= 0) {
+      if (netYearlySaving >= 0) {
+        paybackPeriodEl.textContent = "Direct Rendabel";
+        paybackPeriodEl.style.color = "#16a34a";
+      } else {
+        paybackPeriodEl.textContent = "N.v.t.";
+        paybackPeriodEl.style.color = "#64748b";
+      }
+    } else {
+      if (monthlyNetLaborGreaseSaving > 0) {
+        const paybackMonths = initialInvestment / monthlyNetLaborGreaseSaving;
+        paybackPeriodEl.textContent = `${paybackMonths.toFixed(1).replace('.',',')} maanden`;
+        paybackPeriodEl.style.color = "var(--primary-red)";
+      } else {
+        paybackPeriodEl.textContent = "Geen Terugverdientijd";
+        paybackPeriodEl.style.color = "#dc2626";
+      }
+    }
+  }
+}
