@@ -5385,7 +5385,7 @@ function updateAutomationPage() {
     if (toggleWrapper) toggleWrapper.style.display = "block";
   } else if (device === "pulsarlube_plc") {
     if (titleEl) titleEl.textContent = "Pulsarlube PLC";
-    if (imgEl) imgEl.src = "pulsarlube-plc.png";
+    if (imgEl) imgEl.src = "pulsarlube-plc.png?v=20260821_1653";
     if (descEl) {
       descEl.innerHTML = "De <strong>Pulsarlube PLC</strong> is een geavanceerde, extern gestuurde elektro-mechanische smeerunit die rechtstreeks wordt aangestuurd door de <strong>PLC-besturing van de machine</strong>. Het toestel doseert uiterst nauwkeurig enkel tijdens actieve machinetijd.";
     }
