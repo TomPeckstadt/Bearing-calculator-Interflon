@@ -5559,10 +5559,10 @@ function calculateAutomationLubrication() {
     const multiSub = numPoints > 1 ? ` &bull; Totaal voor <strong>${numPoints} lagers</strong>: <strong>${totalNeedRateStr} ml/dag</strong>` : "";
 
     needBadgeEl.innerHTML = `
-      <div style="margin-bottom: 16px; background-color: #f8fafc; border: 1px solid #e2e8f0; border-left: 4px solid var(--primary-red); border-radius: var(--border-radius-sm); padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.03);">
+      <div style="margin-bottom: 16px; background-color: #f8fafc; border: 1px solid #e2e8f0; border-left: 4px solid #E30613; border-radius: var(--border-radius-sm); padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.03);">
         <div style="display: flex; align-items: center; gap: 10px;">
           <div style="width: 32px; height: 32px; border-radius: 50%; background-color: #fef2f2; border: 1px solid #fecaca; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="var(--primary-red)" style="width: 16px; height: 16px;">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="#E30613" style="width: 16px; height: 16px;">
               <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6a7.5 7.5 0 1 0 7.5 7.5h-7.5V6z" />
               <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 10.5H21A7.5 7.5 0 0 0 13.5 3v7.5z" />
             </svg>
@@ -5611,7 +5611,7 @@ function calculateAutomationLubrication() {
       if (isDialDevice) {
         dialContainer.innerHTML = `<img src="draaiknop.png?v=20260817_1410" alt="Draaiknop" style="width: 22px; height: 22px; object-fit: contain;"><span>Instelstand draaiknop toestel:</span>`;
       } else {
-        dialContainer.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="var(--primary-red)" style="width: 18px; height: 18px; flex-shrink: 0;"><path stroke-linecap="round" stroke-linejoin="round" d="M6 6.75A2.25 2.25 0 0 1 8.25 4.5h7.5A2.25 2.25 0 0 1 18 6.75v10.5A2.25 2.25 0 0 1 15.75 19.5h-7.5A2.25 2.25 0 0 1 6 17.25V6.75z" /><path stroke-linecap="round" stroke-linejoin="round" d="M9 8.25h6v3.75H9V8.25z" /></svg><span>Display instelling op toestel:</span>`;
+        dialContainer.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="#E30613" style="width: 18px; height: 18px; flex-shrink: 0;"><path stroke-linecap="round" stroke-linejoin="round" d="M6 6.75A2.25 2.25 0 0 1 8.25 4.5h7.5A2.25 2.25 0 0 1 18 6.75v10.5A2.25 2.25 0 0 1 15.75 19.5h-7.5A2.25 2.25 0 0 1 6 17.25V6.75z" /><path stroke-linecap="round" stroke-linejoin="round" d="M9 8.25h6v3.75H9V8.25z" /></svg><span>Display instelling op toestel:</span>`;
       }
     }
 
@@ -5856,7 +5856,7 @@ function handleChainSearchInput() {
 
   let html = matches.map(c => `
     <div class="autocomplete-suggestion" onclick="selectChainByDesignation('${c.designation}')">
-      <span class="suggestion-name" style="color: var(--primary-red); font-weight: 700;">${c.designation}</span>
+      <span class="suggestion-name" style="color: #E30613; font-weight: 700;">${c.designation}</span>
       <span class="suggestion-meta">${c.norm} (${c.strand}) - Steek: ${c.pitch} mm, Breedte: ${c.width} mm</span>
     </div>
   `).join("");
@@ -7194,9 +7194,9 @@ function renderOilDispenserSlide() {
     let pillsHtml = "";
     for (let i = 1; i <= totalOilDispenserSlides; i++) {
       const isActive = (i === currentOilDispenserSlide);
-      const bg = isActive ? "var(--primary-red)" : "#F1F5F9";
+      const bg = isActive ? "#E30613" : "#F1F5F9";
       const color = isActive ? "#ffffff" : "var(--text-dark)";
-      const border = isActive ? "1px solid var(--primary-red)" : "1px solid #CBD5E1";
+      const border = isActive ? "1px solid #E30613" : "1px solid #CBD5E1";
       pillsHtml += `<button type="button" onclick="goToOilDispenserSlide(${i})" style="background-color: ${bg}; color: ${color}; border: ${border}; padding: 4px 10px; border-radius: 4px; font-weight: ${isActive ? '800' : '600'}; font-size: 11.5px; cursor: pointer;">${i}</button>`;
     }
     pillsEl.innerHTML = pillsHtml;
@@ -7350,9 +7350,9 @@ function calculateChainAutomation() {
     if (isDialDevice) {
       chainDialContainer.innerHTML = `<img src="draaiknop.png?v=20260817_1410" alt="Draaiknop" style="width: 22px; height: 22px; object-fit: contain;"><span>Instelstand draaiknop toestel:</span>`;
     } else if (isPlcDevice) {
-      chainDialContainer.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="var(--primary-red)" style="width: 18px; height: 18px; flex-shrink: 0;"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 3v1.5m6-1.5v1.5m-12 6h1.5m15 0h1.5m-15 6h1.5m15 0h1.5M8.25 19.5V21m6-2.175V21M9 6.75h6A2.25 2.25 0 0 1 17.25 9v6A2.25 2.25 0 0 1 15 17.25H9A2.25 2.25 0 0 1 6.75 15V9A2.25 2.25 0 0 1 9 6.75z" /></svg><span>PLC instelling op toestel:</span>`;
+      chainDialContainer.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="#E30613" style="width: 18px; height: 18px; flex-shrink: 0;"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 3v1.5m6-1.5v1.5m-12 6h1.5m15 0h1.5m-15 6h1.5m15 0h1.5M8.25 19.5V21m6-2.175V21M9 6.75h6A2.25 2.25 0 0 1 17.25 9v6A2.25 2.25 0 0 1 15 17.25H9A2.25 2.25 0 0 1 6.75 15V9A2.25 2.25 0 0 1 9 6.75z" /></svg><span>PLC instelling op toestel:</span>`;
     } else {
-      chainDialContainer.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="var(--primary-red)" style="width: 18px; height: 18px; flex-shrink: 0;"><path stroke-linecap="round" stroke-linejoin="round" d="M6 6.75A2.25 2.25 0 0 1 8.25 4.5h7.5A2.25 2.25 0 0 1 18 6.75v10.5A2.25 2.25 0 0 1 15.75 19.5h-7.5A2.25 2.25 0 0 1 6 17.25V6.75z" /><path stroke-linecap="round" stroke-linejoin="round" d="M9 8.25h6v3.75H9V8.25z" /></svg><span>Display instelling op toestel:</span>`;
+      chainDialContainer.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="#E30613" style="width: 18px; height: 18px; flex-shrink: 0;"><path stroke-linecap="round" stroke-linejoin="round" d="M6 6.75A2.25 2.25 0 0 1 8.25 4.5h7.5A2.25 2.25 0 0 1 18 6.75v10.5A2.25 2.25 0 0 1 15.75 19.5h-7.5A2.25 2.25 0 0 1 6 17.25V6.75z" /><path stroke-linecap="round" stroke-linejoin="round" d="M9 8.25h6v3.75H9V8.25z" /></svg><span>Display instelling op toestel:</span>`;
     }
   }
 
@@ -8230,7 +8230,7 @@ function updateRoiAutomationPage() {
       if (monthlyNetLaborGreaseSaving > 0) {
         const paybackMonths = initialInvestment / monthlyNetLaborGreaseSaving;
         paybackPeriodEl.textContent = `${paybackMonths.toFixed(1).replace('.',',')} maanden`;
-        paybackPeriodEl.style.color = "var(--primary-red)";
+        paybackPeriodEl.style.color = "#E30613";
       } else {
         paybackPeriodEl.textContent = "Geen Terugverdientijd";
         paybackPeriodEl.style.color = "#dc2626";
