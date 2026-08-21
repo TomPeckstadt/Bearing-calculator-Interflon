@@ -8,7 +8,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <link rel="stylesheet" href="style.css?v=20260821_2031">
+  <link rel="stylesheet" href="style.css?v=20260821_2036">
 </head>
 <body>
 
@@ -1901,7 +1901,11 @@
               <div style="font-size: 11px; color: #64748b; margin-top: 2px;">Investerings-terugverdientijd</div>
             </div>
 
-            <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: var(--border-radius-md); padding: 18px 16px; display: flex; flex-direction: column; justify-content: space-between; align-items: center;">
+            </div>
+
+          <!-- Tweede Rij: Besparing na X Jaar + Belangrijke Toelichting -->
+          <div style="display: flex; gap: 20px; margin-top: 20px; flex-wrap: wrap; align-items: stretch;">
+            <div style="flex: 1; min-width: 240px; max-width: 300px; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: var(--border-radius-md); padding: 18px 16px; display: flex; flex-direction: column; justify-content: space-between; align-items: center; text-align: center;">
               <div style="font-size: 11.5px; font-weight: 700; color: #64748b; text-transform: uppercase; display: flex; align-items: center; justify-content: center; gap: 5px; flex-wrap: wrap;">
                 <span>Besparing na</span>
                 <input type="number" id="roiYearsInput" value="5" min="1" max="50" step="1" oninput="updateRoiAutomationPage()" onchange="updateRoiAutomationPage()" onclick="this.select()" style="width: 46px; padding: 2px 4px; border: 1px solid #cbd5e1; border-radius: 4px; font-weight: 800; text-align: center; color: #0f172a; font-size: 13px; background: white;">
@@ -1909,6 +1913,16 @@
               </div>
               <div id="roiMultiYearSaving" style="font-size: 24px; font-weight: 900; color: #059669; margin-top: 4px;">+ € 0,00</div>
               <div style="font-size: 11px; color: #64748b; margin-top: 2px;">Inclusief initiële installatie</div>
+            </div>
+
+            <div style="flex: 2; min-width: 280px; background-color: #f8fafc; border: 1px solid #cbd5e1; border-left: 4px solid var(--primary-red); border-radius: var(--border-radius-md); padding: 14px 18px; display: flex; flex-direction: column; justify-content: center; text-align: left;">
+              <div style="font-size: 12px; font-weight: 800; color: var(--primary-red); margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
+                <svg style="width: 16px; height: 16px; flex-shrink: 0;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                Belangrijke toelichting:
+              </div>
+              <div style="font-size: 11.5px; line-height: 1.5; color: #334155; font-weight: 500;">
+                Bovenstaande berekening weerspiegelt uitsluitend de directe overgang van handmatige naar automatische smering. In de praktijk ontstaat het grootste financiële en operationele voordeel echter door een verhoogde bedrijfszekerheid (hogere output), een langere levensduur van componenten (minder reserveonderdelen) en een aanzienlijke reductie in revisie-uren.
+              </div>
             </div>
           </div>
         </div>
@@ -2932,10 +2946,10 @@
 
   <!-- JavaScript logic imports -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="interflon-data.js?v=20260821_2031"></script>
-  <script src="bearings-db.js?v=20260821_2031"></script>
-  <script src="chains-db.js?v=20260821_2031"></script>
-  <script src="app_v6.js?v=20260821_2031"></script>
+  <script src="interflon-data.js?v=20260821_2036"></script>
+  <script src="bearings-db.js?v=20260821_2036"></script>
+  <script src="chains-db.js?v=20260821_2036"></script>
+  <script src="app_v6.js?v=20260821_2036"></script>
 
   <!-- Interflon Oil Dispenser Information Modal (PowerPoint Viewer) -->
   <div id="oilDispenserInfoModal" class="modal-overlay hidden" style="z-index: 99999;">
