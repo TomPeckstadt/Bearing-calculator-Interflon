@@ -95,7 +95,7 @@ function getOptimalSmartAdvice(totalDailyNeedCm3, deviceKey, greaseName) {
 
   const devKey = deviceKey || "single_point";
   const grName = greaseName || "Interflon Grease LS2";
-  const availableCaps = [60, 120, 125, 250, 500];
+  const availableCaps = (devKey === "single_point") ? [60, 120, 250] : [60, 125, 250, 500];
   let candidates = [];
 
   for (let cap of availableCaps) {
@@ -283,18 +283,21 @@ function renderAutoDevicesUI() {
   for (let i = 0; i < numDevices; i++) {
     const dev = autoDevicesState[i];
     const devId = dev.id;
-    const devName = numDevices === 1 ? "Pulsarlube Smeertoestel" : ("Pulsarlube " + devId);
-    const headerTitle = numDevices === 1 ? "Toestel Parameters & Smeerinstelling" : (devName + " - Smeerinstelling & Volumecalculatie");
+    const devName = isSinglePoint ? "Interflon Single Point Lubricator" : (numDevices === 1 ? "Pulsarlube Smeertoestel" : ("Pulsarlube " + devId));
+    const headerTitle = (isSinglePoint || numDevices === 1) ? "Toestel Parameters & Smeerinstelling" : (devName + " - Smeerinstelling & Volumecalculatie");
+    const pointsLabel = isSinglePoint ? "Aantal te smeren smeerpunten / lagers:" : (`Aantal smeerpunten voor ${devName}:`);
 
     let optionsHtml = "";
-    for (let p = 1; p <= 8; p++) {
+    const maxP = isSinglePoint ? 30 : 8;
+    for (let p = 1; p <= maxP; p++) {
       const selStr = dev.points === p ? " selected" : "";
-      const pLabel = p === 1 ? "1 lager / smeerpunt (Direct)" : (p + " lagers (Verdeelblok " + p + "-poorts)");
+      const pLabel = isSinglePoint ? `${p} ${p === 1 ? 'lager / smeerpunt' : 'lagers / smeerpunten'}` : (p === 1 ? "1 lager / smeerpunt (Direct)" : (p + " lagers (Verdeelblok " + p + "-poorts)"));
       optionsHtml += `<option value="${p}"${selStr}>${pLabel}</option>`;
     }
 
     let capOptionsHtml = "";
-    [60, 120, 125, 250, 500].forEach(c => {
+    const capsList = isSinglePoint ? [60, 120, 250] : [60, 125, 250, 500];
+    capsList.forEach(c => {
       const cSel = dev.cap === c ? " selected" : "";
       capOptionsHtml += `<option value="${c}"${cSel}>${c} ml</option>`;
     });
@@ -311,7 +314,7 @@ function renderAutoDevicesUI() {
       <!-- Point Selection per Device -->
       <div style="margin-bottom: 16px; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: var(--border-radius-sm); padding: 12px 14px;">
         <label for="autoNumPointsSelect_${devId}" style="display: block; font-size: 12.5px; font-weight: 700; color: var(--text-dark); margin-bottom: 6px;">
-          Aantal smeerpunten voor ${devName}:
+          ${pointsLabel}
         </label>
         <select id="autoNumPointsSelect_${devId}" class="form-select" style="width: 100%; padding: 8px 12px; font-weight: 600; border-radius: var(--border-radius-sm); border: 1px solid #cbd5e1;" onchange="onDevicePointsChange('${devId}')">
           ${optionsHtml}
