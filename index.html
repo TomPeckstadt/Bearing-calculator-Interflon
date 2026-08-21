@@ -8,7 +8,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <link rel="stylesheet" href="style.css?v=20260821_1629">
+  <link rel="stylesheet" href="style.css?v=20260821_1632">
 </head>
 <body>
 
@@ -1527,7 +1527,7 @@
                 <label for="autoNumPointsSelect" style="display: block; font-size: 12.5px; font-weight: 700; color: var(--text-dark); margin-bottom: 6px;">
                   Aantal te smeren smeerpunten / lagers per toestel:
                 </label>
-                <select id="autoNumPointsSelect" class="form-select" style="width: 100%; padding: 8px 12px; font-weight: 600; border-radius: var(--border-radius-sm); border: 1px solid #cbd5e1;" onchange="calculateAutomationLubrication(); if (typeof updateRoiAutomationPage === 'function') updateRoiAutomationPage();">
+                <select id="autoNumPointsSelect" class="form-select" style="width: 100%; padding: 8px 12px; font-weight: 600; border-radius: var(--border-radius-sm); border: 1px solid #cbd5e1;" onchange="onAutoNumPointsChange()">
                   <option value="1" selected>1 lager / smeerpunt (Direct)</option>
                   <option value="2">2 lagers (Verdeelblok 2-poorts)</option>
                   <option value="3">3 lagers (Verdeelblok 3-poorts)</option>
@@ -2948,10 +2948,10 @@
 
   <!-- JavaScript logic imports -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="interflon-data.js?v=20260821_1629"></script>
-  <script src="bearings-db.js?v=20260821_1629"></script>
-  <script src="chains-db.js?v=20260821_1629"></script>
-  <script src="app_v6.js?v=20260821_1629"></script>
+  <script src="interflon-data.js?v=20260821_1632"></script>
+  <script src="bearings-db.js?v=20260821_1632"></script>
+  <script src="chains-db.js?v=20260821_1632"></script>
+  <script src="app_v6.js?v=20260821_1632"></script>
 
   <!-- Interflon Oil Dispenser Information Modal (PowerPoint Viewer) -->
   <div id="oilDispenserInfoModal" class="modal-overlay hidden" style="z-index: 99999;">
