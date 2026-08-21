@@ -4704,24 +4704,26 @@ function calculateTcoForPrefix(prefix) {
   const p1_cons_Liters = p1_cons / (density * 1000);
   const p2_cons_Liters = p2_cons / (density * 1000);
 
-  const p1_ann_prod_cost = p1_cons_Liters * p1_price * p1_freq;
-  const p2_ann_prod_cost = p2_cons_Liters * p2_price * p2_freq;
+  const num_bearings = shared_sets_per_machine > 0 ? shared_sets_per_machine : 1;
+
+  const p1_ann_prod_cost = p1_cons_Liters * p1_price * p1_freq * num_bearings;
+  const p2_ann_prod_cost = p2_cons_Liters * p2_price * p2_freq * num_bearings;
   
   const shared_worktime_hours = shared_worktime / 60;
 
-  const p1_ann_labor_cost = (p1_freq * shared_worktime_hours * shared_labor_rate) +
-    (p1_repair_freq === 0 ? 0 : (12 / p1_repair_freq) * shared_repair_h * shared_labor_rate) +
+  const p1_ann_labor_cost = (p1_freq * shared_worktime_hours * num_bearings * shared_labor_rate) +
+    (p1_repair_freq === 0 ? 0 : (12 / p1_repair_freq) * shared_repair_h * num_bearings * shared_labor_rate) +
     (p1_repair_freq === 0 ? 0 : shared_prep_h * shared_labor_rate * (12 / p1_repair_freq));
     
-  const p2_ann_labor_cost = (p2_freq * shared_worktime_hours * shared_labor_rate) +
-    (p2_repair_freq === 0 ? 0 : (12 / p2_repair_freq) * shared_repair_h * shared_labor_rate) +
+  const p2_ann_labor_cost = (p2_freq * shared_worktime_hours * num_bearings * shared_labor_rate) +
+    (p2_repair_freq === 0 ? 0 : (12 / p2_repair_freq) * shared_repair_h * num_bearings * shared_labor_rate) +
     (p2_repair_freq === 0 ? 0 : shared_prep_h * shared_labor_rate * (12 / p2_repair_freq));
 
-  const p1_ann_mat_cost = p1_lifetime === 0 ? 0 : shared_parts_cost * shared_sets_per_machine * (12 / p1_lifetime);
-  const p2_ann_mat_cost = p2_lifetime === 0 ? 0 : shared_parts_cost * shared_sets_per_machine * (12 / p2_lifetime);
+  const p1_ann_mat_cost = p1_lifetime === 0 ? 0 : shared_parts_cost * num_bearings * (12 / p1_lifetime);
+  const p2_ann_mat_cost = p2_lifetime === 0 ? 0 : shared_parts_cost * num_bearings * (12 / p2_lifetime);
 
-  const p1_ann_downtime_cost = p1_downtime_h * p1_downtime_freq * shared_downtime_rate;
-  const p2_ann_downtime_cost = p2_downtime_h * p2_downtime_freq * shared_downtime_rate;
+  const p1_ann_downtime_cost = p1_downtime_h * p1_downtime_freq * shared_downtime_rate * num_bearings;
+  const p2_ann_downtime_cost = p2_downtime_h * p2_downtime_freq * shared_downtime_rate * num_bearings;
 
   const p1_ann_total_cost_mach = p1_ann_prod_cost + p1_ann_labor_cost + p1_ann_mat_cost + p1_ann_downtime_cost;
   const p2_ann_total_cost_mach = p2_ann_prod_cost + p2_ann_labor_cost + p2_ann_mat_cost + p2_ann_downtime_cost;
