@@ -5457,6 +5457,14 @@ function onAutoNumPointsChange() {
 
 function onAutoPeriodInput() {
   userHasManuallyEditedAutoPeriod = true;
+  const periodInput = document.getElementById("autoDispensePeriod");
+  const unitSelect = document.getElementById("autoPeriodUnit");
+  if (periodInput && unitSelect && unitSelect.value === "months") {
+    const raw = parseFloat(periodInput.value);
+    if (!isNaN(raw) && raw !== Math.round(raw)) {
+      periodInput.value = Math.round(raw);
+    }
+  }
   calculateAutomationLubrication();
 }
 
@@ -5637,7 +5645,13 @@ function calculateAutomationLubrication() {
   }
 
   // 3. REBUILT BOTTOM VOLUME CALCULATION & DISPLAY (Box 1 for 1 lager & Box 2 for X lagers)
-  const periodVal = parseFloat(periodInput.value) || 1;
+  let periodVal = parseFloat(periodInput.value) || 1;
+  if (unit === "months") {
+    periodVal = Math.round(periodVal);
+    periodInput.step = "1";
+    periodInput.min = "1";
+    periodInput.max = "24";
+  }
   let totalDays = 30.4375 * periodVal;
   if (unit === "weeks") {
     totalDays = 7 * periodVal;
