@@ -32,6 +32,7 @@ let autoDevicesState = [
 function getActiveNumDevices() {
   const deviceSelect = document.getElementById("automationDeviceSelect") || document.getElementById("autoDeviceSelect");
   const deviceKey = deviceSelect ? deviceSelect.value : "single_point";
+  const isSinglePoint = (deviceKey === "single_point");
   if (deviceKey === "single_point") return 1;
   const sel = document.getElementById("autoNumDevicesSelect");
   return sel ? (parseInt(sel.value) || 1) : 1;
@@ -282,6 +283,10 @@ function renderAutoDevicesUI() {
 
   for (let i = 0; i < numDevices; i++) {
     const dev = autoDevicesState[i];
+    if (isSinglePoint) {
+      dev.points = 1;
+      autoDevicesState[i].points = 1;
+    }
     const devId = dev.id;
     const devName = isSinglePoint ? "Interflon Single Point Lubricator" : (numDevices === 1 ? "Pulsarlube Smeertoestel" : ("Pulsarlube " + devId));
     const headerTitle = (isSinglePoint || numDevices === 1) ? "Toestel Parameters & Smeerinstelling" : (devName + " - Smeerinstelling & Volumecalculatie");
@@ -415,7 +420,7 @@ function renderAutoDevicesUI() {
         </div>
 
         <!-- Box 2: Voor X lagers -->
-        <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-left: 4px solid #E30613; border-radius: var(--border-radius-sm); padding: 12px 14px;">
+        <div id="autoBox2Container_${devId}" style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-left: 4px solid #E30613; border-radius: var(--border-radius-sm); padding: 12px 14px; display: ${isSinglePoint ? 'none' : 'block'};">
           <div id="autoTotalVolumeHeaderTitle_${devId}" style="font-size: 10.5px; font-weight: 800; color: #E30613; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; border-bottom: 1px solid #cbd5e1; padding-bottom: 4px;">TOTAAL SMEERVOLUME TOESTEL</div>
           <div style="margin-bottom: 6px;">
             <div id="autoDailyVolumeTotalLabel_${devId}" style="font-size: 10px; font-weight: 700; color: var(--text-medium); text-transform: uppercase;">BEREKEND DAGELIJKS SMEERVOLUME:</div>
@@ -5624,6 +5629,7 @@ function calculateAutomationLubrication() {
 
   const deviceSelect = document.getElementById("automationDeviceSelect") || document.getElementById("autoDeviceSelect");
   const deviceKey = deviceSelect ? deviceSelect.value : "single_point";
+  const isSinglePoint = (deviceKey === "single_point");
   const greaseSelect = document.getElementById("selectedGrease") || document.getElementById("greaseSelect") || document.getElementById("inputGrease");
   const greaseName = greaseSelect ? greaseSelect.value : "Interflon Grease LS2";
 
@@ -5669,8 +5675,12 @@ function calculateAutomationLubrication() {
   // Iterate over each active device card (A, B, C, D)
   for (let i = 0; i < numDevices; i++) {
     const dev = autoDevicesState[i];
+    if (deviceKey === "single_point") {
+      dev.points = 1;
+      if (autoDevicesState[i]) autoDevicesState[i].points = 1;
+    }
     const devId = dev.id;
-    const points = dev.points || 1;
+    const points = isSinglePoint ? 1 : (dev.points || 1);
     const capMl = dev.cap || 120;
     const devName = numDevices === 1 ? "Pulsarlube Smeertoestel" : `Pulsarlube ${devId}`;
 
