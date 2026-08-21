@@ -5662,8 +5662,8 @@ function calculateAutomationLubrication() {
 
   const actualDailyVolume = capMl / totalDays;
 
-  // Box 1: Values per 1 lager (actual output per bearing based on device setting)
-  const displayDaily1 = actualDailyVolume / numPoints;
+  // Box 1: Values per 1 lager
+  const displayDaily1 = dailyNeedCm3;
   const displayMonthly1 = displayDaily1 * 30.4375;
   const displayYearly1 = displayDaily1 * 365.25;
 
@@ -5671,8 +5671,8 @@ function calculateAutomationLubrication() {
   if (monthValEl) monthValEl.textContent = `${displayMonthly1.toLocaleString("nl-BE", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} ml/maand`;
   if (yearValEl) yearValEl.textContent = `${displayYearly1.toLocaleString("nl-BE", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} ml/jaar`;
 
-  // Box 2: Total Values for X lagers (total output of lubricator)
-  const displayDailyX = actualDailyVolume;
+  // Box 2: Total Values for X lagers
+  const displayDailyX = totalDailyNeedCm3;
   const displayMonthlyX = displayDailyX * 30.4375;
   const displayYearlyX = displayDailyX * 365.25;
 
