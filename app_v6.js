@@ -3984,39 +3984,37 @@ function runBearingPdfExport(includeTco, includeRoi) {
 
 
 
-      // MicPol® Technologie Sectie op Pagina 1 (als TCO niet wordt geëxporteerd)
-      if (!includeTco) {
-        const micpolStartY = Math.max(currentY + 5, 224);
+      // MicPol® Technologie Sectie op Pagina 1
+      const micpolStartY = Math.max(currentY + 5, 224);
 
-        doc.setFont("helvetica", "bold");
-        doc.setFontSize(10);
-        doc.setTextColor(227, 6, 19);
-        doc.text(langData.infoMicPolTitle || "MicPol® technologie", 20, micpolStartY + 3);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(10);
+      doc.setTextColor(227, 6, 19);
+      doc.text(langData.infoMicPolTitle || "MicPol® technologie", 20, micpolStartY + 3);
 
-        doc.setFont("helvetica", "normal");
-        doc.setFontSize(7.2);
-        doc.setTextColor(72, 84, 96);
-        const micpolText = langData.infoMicPolText || "MicPol® is de unieke technologie in de producten van Interflon. MicPol® is intern ontwikkeld door ons eigen team van wetenschappers en onderscheidt onze producten van alle andere smeermiddelen.";
-        doc.text(micpolText, 20, micpolStartY + 7.5, { maxWidth: 170 });
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(7.2);
+      doc.setTextColor(72, 84, 96);
+      const micpolText = langData.infoMicPolText || "MicPol® is de unieke technologie in de producten van Interflon. MicPol® is intern ontwikkeld door ons eigen team van wetenschappers en onderscheidt onze producten van alle andere smeermiddelen.";
+      doc.text(micpolText, 20, micpolStartY + 7.5, { maxWidth: 170 });
 
-        if (micpolDataUrl && micpolRatio) {
-          const boxX = 50;
-          const boxY = micpolStartY + 13.5;
-          const boxW = 110;
-          const boxH = 26;
+      if (micpolDataUrl && micpolRatio) {
+        const boxX = 45;
+        const boxY = micpolStartY + 13;
+        const boxW = 120;
+        const boxH = 27;
 
-          doc.setFillColor(248, 250, 252);
-          doc.setDrawColor(226, 232, 240);
-          doc.setLineWidth(0.25);
-          doc.roundedRect(boxX, boxY, boxW, boxH, 2, 2, "FD");
+        doc.setFillColor(248, 250, 252);
+        doc.setDrawColor(226, 232, 240);
+        doc.setLineWidth(0.25);
+        doc.roundedRect(boxX, boxY, boxW, boxH, 2, 2, "FD");
 
-          const imgW = 52;
-          const imgH = 52 * micpolRatio;
-          const imgX = boxX + (boxW - imgW) / 2;
-          const imgY = boxY + (boxH - imgH) / 2;
+        const imgW = 55;
+        const imgH = 55 * micpolRatio;
+        const imgX = boxX + (boxW - imgW) / 2;
+        const imgY = boxY + (boxH - imgH) / 2;
 
-          doc.addImage(micpolDataUrl, "PNG", imgX, imgY, imgW, imgH);
-        }
+        doc.addImage(micpolDataUrl, "PNG", imgX, imgY, imgW, imgH);
       }
 
       // 6. Footer
@@ -4359,40 +4357,7 @@ function runBearingPdfExport(includeTco, includeRoi) {
         let labelText = (langData.omSavingsYears || "Kostenbesparing na X jaar (€)").replace(/<span[^>]*>.*?<\/span>/g, tco_yrs).replace(/<[^>]*>/g, "");
         drawCell(startX3, curY, 60, 6.5, labelText, document.getElementById("omTotalSavingsYears").textContent, "green-highlight");
 
-        // ==========================================================================
-        // MICPOL® TECHNOLOGIE SECTIE (Page 2 Onderkant)
-        // ==========================================================================
-        const micpolStartY = 205;
 
-        doc.setFont("helvetica", "bold");
-        doc.setFontSize(11);
-        doc.setTextColor(227, 6, 19);
-        doc.text(langData.infoMicPolTitle || "MicPol® technologie", 20, micpolStartY + 4);
-
-        doc.setFont("helvetica", "normal");
-        doc.setFontSize(8);
-        doc.setTextColor(72, 84, 96);
-        const micpolText = langData.infoMicPolText || "MicPol® is de unieke technologie in de producten van Interflon. MicPol® is intern ontwikkeld door ons eigen team van wetenschappers en onderscheidt onze producten van alle andere smeermiddelen.";
-        doc.text(micpolText, 20, micpolStartY + 9, { maxWidth: 170 });
-
-        if (micpolDataUrl && micpolRatio) {
-          const boxX = 45;
-          const boxY = micpolStartY + 17;
-          const boxW = 120;
-          const boxH = 40;
-
-          doc.setFillColor(248, 250, 252);
-          doc.setDrawColor(226, 232, 240);
-          doc.setLineWidth(0.25);
-          doc.roundedRect(boxX, boxY, boxW, boxH, 3, 3, "FD");
-
-          const imgW = 75;
-          const imgH = 75 * micpolRatio; // ~35.5 mm
-          const imgX = boxX + (boxW - imgW) / 2;
-          const imgY = boxY + (boxH - imgH) / 2;
-
-          doc.addImage(micpolDataUrl, "PNG", imgX, imgY, imgW, imgH);
-        }
 
         // Page 2 Footer
         doc.setFont("helvetica", "normal");
