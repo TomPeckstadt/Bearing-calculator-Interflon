@@ -3617,7 +3617,8 @@ function closePdfModal() {
 }
 
 function confirmPdfExport() {
-  const includeTco = document.querySelector('input[name="pdfTcoOption"]:checked').value === "true";
+  const includeTco = document.querySelector('input[name="pdfTcoOption"]:checked')?.value === "true";
+  const includeRoi = document.querySelector('input[name="pdfRoiOption"]:checked')?.value === "true";
   closePdfModal();
   
   const isChain = (typeof currentAppMode !== "undefined" && currentAppMode === "chain") ||
@@ -3628,13 +3629,13 @@ function confirmPdfExport() {
                   (document.getElementById('pageChainAutomation') && document.getElementById('pageChainAutomation').classList.contains('active'));
 
   if (isChain) {
-    runChainPdfExport(includeTco);
+    runChainPdfExport(includeTco, includeRoi);
   } else {
-    runBearingPdfExport(includeTco);
+    runBearingPdfExport(includeTco, includeRoi);
   }
 }
 
-function runBearingPdfExport(includeTco) {
+function runBearingPdfExport(includeTco, includeRoi) {
   const { jsPDF } = window.jspdf;
   const langData = TRANSLATIONS[currentLang] || TRANSLATIONS["nl"];
   
@@ -6040,7 +6041,7 @@ function calculateChainGrease() {
 // ==========================================================================
 // SEPARATE CHAIN PDF REPORT GENERATION (Ketting Smeeradvies & Opbrengstmodel)
 // ==========================================================================
-function runChainPdfExport(includeTco) {
+function runChainPdfExport(includeTco, includeRoi) {
   const { jsPDF } = window.jspdf;
   const langData = TRANSLATIONS[currentLang] || TRANSLATIONS["nl"];
   
@@ -8190,3 +8191,284 @@ function updateRoiAutomationPage() {
     multiYearSavingEl.style.color = totalSavingsMultiYear >= 0 ? "#059669" : "#dc2626";
   }
 }
+
+
+function addRoiPdfPage(doc, dateString, watermarkDataUrl, aspectRatio, autoDataUrl) {
+  const langData = (typeof TRANSLATIONS !== "undefined" && typeof currentLang !== "undefined") ? (TRANSLATIONS[currentLang] || TRANSLATIONS["nl"]) : {};
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const pageHeight = doc.internal.pageSize.getHeight();
+
+  doc.addPage();
+
+  // 1. Watermark logo
+  if (watermarkDataUrl && aspectRatio) {
+    const imgWidth = 160;
+    const imgHeight = 160 * aspectRatio;
+    const x = (pageWidth - imgWidth) / 2;
+    const y = (pageHeight - imgHeight) / 2;
+    doc.addImage(watermarkDataUrl, "JPEG", x, y, imgWidth, imgHeight);
+  }
+
+  // 2. Header
+  doc.setFillColor(227, 6, 19);
+  doc.rect(20, 15, 170, 2, "F");
+
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(14);
+  doc.setTextColor(227, 6, 19);
+  doc.text("INTERFLON ROI BEREKENING AUTOMATISERING", 20, 25);
+
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(8.5);
+  doc.setTextColor(100, 100, 100);
+  doc.text("Kostenvergelijking manuele smering vs. automatische smeermodule \u2022 Gegenereerd op: " + dateString, 20, 30);
+
+  doc.setDrawColor(220, 220, 220);
+  doc.line(20, 33, 190, 33);
+
+  // Read live values
+  const deviceSelect = document.getElementById("automationDeviceSelect") || document.getElementById("autoDeviceSelect");
+  const capSelect = document.getElementById("autoCartridgeCap");
+  const deviceKey = deviceSelect ? deviceSelect.value : "single_point";
+  const capMl = capSelect ? (parseFloat(capSelect.value) || 125) : 125;
+
+  let deviceName = "Interflon Single Point Lubricator";
+  if (deviceKey === "pulsarlube_m2") deviceName = "Pulsarlube M2";
+  else if (deviceKey === "pulsarlube_msp") deviceName = "Pulsarlube MSP";
+  else if (deviceKey === "pulsarlube_plc") deviceName = "Pulsarlube PLC";
+
+  const selectGrease = document.getElementById("inputGrease") || document.getElementById("selectGrease");
+  const greaseName = selectGrease ? selectGrease.value : "Interflon Grease MP2/3";
+  const greasePriceInput = document.getElementById("omProdPrice2") || document.getElementById("chainOmProdPrice2") || document.getElementById("tcoPriceInterflonInput");
+  const greasePricePerLiter = greasePriceInput ? (parseFloat(greasePriceInput.value) || 70.50) : 70.50;
+
+  const dailyNeedCm3 = window.currentDailyNeedCm3 || 0.704;
+  const yearlyMl = dailyNeedCm3 * 365.25;
+
+  // 3. Banner
+  doc.setFillColor(248, 250, 252);
+  doc.setDrawColor(226, 232, 240);
+  doc.setLineWidth(0.25);
+  doc.roundedRect(20, 36, 170, 20, 2, 2, "FD");
+
+  if (autoDataUrl) {
+    try {
+      doc.addImage(autoDataUrl, "PNG", 24, 38, 16, 16);
+    } catch(e){}
+  }
+
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(11);
+  doc.setTextColor(30, 41, 59);
+  doc.text(deviceName, 44, 43);
+
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(8.5);
+  doc.setTextColor(100, 116, 139);
+  doc.text(`Patrooninhoud: ${capMl} ml  \u2022  Geselecteerd product: ${greaseName}`, 44, 49);
+
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(9);
+  doc.setTextColor(227, 6, 19);
+  doc.text(`Berekend verbruik: ${yearlyMl.toLocaleString("nl-BE", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} ml / jaar`, 186, 46, { align: "right" });
+
+  // 4. Calculations
+  const techBeurtenInput = document.getElementById("tcoFreqInterflonInput");
+  const manualBeurtenPerYear = techBeurtenInput ? (parseFloat(techBeurtenInput.value) || 17.6) : 17.6;
+  const timeInput = document.getElementById("tcoTimeInput");
+  const workTimeMinutes = timeInput ? (parseFloat(timeInput.value) || 10) : 10;
+  const hourlyRateInput = document.getElementById("omSharedLaborRate") || document.getElementById("chainOmSharedLaborRate") || document.getElementById("tcoHourlyRateInput");
+  const hourlyRate = hourlyRateInput ? (parseFloat(hourlyRateInput.value) || 50.00) : 50.00;
+
+  const manualGreaseCost = (yearlyMl / 1000) * greasePricePerLiter;
+  const manualLaborHours = manualBeurtenPerYear * (workTimeMinutes / 60);
+  const manualLaborCost = manualLaborHours * hourlyRate;
+  const manualTotalCost = manualGreaseCost + manualLaborCost;
+
+  const priceInfo = getAutomationPriceInfo(deviceKey, capMl, greaseName);
+  const cartridgesPerYear = capMl > 0 ? (yearlyMl / capMl) : 0;
+  const autoCartridgeCostYear = cartridgesPerYear * priceInfo.servicepackPrice;
+  const autoYear1Total = priceInfo.unitPrice + priceInfo.mandatoryAccessoriesPrice + autoCartridgeCostYear;
+  const autoRecurringTotal = autoCartridgeCostYear;
+
+  function drawRow(x, y, w, h, label, valStr, isHeader, isTotal, isGreen) {
+    if (isHeader) {
+      doc.setFillColor(isGreen ? 6 : 159, isGreen ? 95 : 18, isGreen ? 70 : 57);
+      doc.rect(x, y, w, h, "F");
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(8.5);
+      doc.setTextColor(255, 255, 255);
+      doc.text(label, x + w / 2, y + h / 2 + 1.2, { align: "center" });
+      return;
+    }
+
+    if (isTotal) {
+      if (isGreen === "dark") doc.setFillColor(220, 252, 231);
+      else if (isGreen) doc.setFillColor(240, 253, 244);
+      else doc.setFillColor(254, 242, 242);
+      doc.rect(x, y, w, h, "F");
+    } else {
+      doc.setFillColor(255, 255, 255);
+      doc.rect(x, y, w, h, "F");
+    }
+
+    doc.setDrawColor(226, 232, 240);
+    doc.setLineWidth(0.2);
+    doc.rect(x, y, w, h, "D");
+
+    doc.setFont("helvetica", isTotal ? "bold" : "normal");
+    doc.setFontSize(7);
+    doc.setTextColor(71, 85, 105);
+    doc.text(label, x + 2.5, y + h / 2 + 1.2);
+
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(7.5);
+    if (isGreen) doc.setTextColor(22, 101, 52);
+    else if (isTotal) doc.setTextColor(159, 18, 57);
+    else doc.setTextColor(15, 23, 42);
+    doc.text(valStr || "", x + w - 2.5, y + h / 2 + 1.2, { align: "right" });
+  }
+
+  // 5. Tables
+  const startY = 60;
+  const colW = 82;
+  const rh = 6.2;
+
+  // Table 1: Manuele Smering
+  let y1 = startY;
+  drawRow(20, y1, colW, 6, "MANUELE SMERING (HUIDIGE SITUATIE)", "", true, false, false);
+  y1 += 6;
+  drawRow(20, y1, colW, rh, "Jaarlijks vetverbruik:", `${yearlyMl.toLocaleString("nl-BE", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} ml`, false, false, false);
+  y1 += rh;
+  drawRow(20, y1, colW, rh, "Prijs vet per liter:", `€ ${greasePricePerLiter.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / L`, false, false, false);
+  y1 += rh;
+  drawRow(20, y1, colW, rh, "Jaarlijkse vetkost:", `€ ${manualGreaseCost.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / j`, false, false, false);
+  y1 += rh;
+  drawRow(20, y1, colW, rh, "Aantal smeerbeurten/jaar:", `${manualBeurtenPerYear.toLocaleString("nl-BE", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} beurten`, false, false, false);
+  y1 += rh;
+  drawRow(20, y1, colW, rh, "Tijd per smeerbeurt:", `${workTimeMinutes} min (${(workTimeMinutes/60).toFixed(2).replace('.',',')} u)`, false, false, false);
+  y1 += rh;
+  drawRow(20, y1, colW, rh, "Uurloon technieker:", `€ ${hourlyRate.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / uur`, false, false, false);
+  y1 += rh;
+  drawRow(20, y1, colW, rh, "Jaarlijkse arbeidskost:", `€ ${manualLaborCost.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / j`, false, false, false);
+  y1 += rh;
+  drawRow(20, y1, colW, 7, "TOTALE JAARKOST MANUEEL:", `€ ${manualTotalCost.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, false, true, false);
+
+  // Table 2: Automatische Smering
+  let y2 = startY;
+  const x2 = 108;
+  drawRow(x2, y2, colW, 6, "AUTOMATISCHE SMERING (GEAUTOMATISEERD)", "", true, false, true);
+  y2 += 6;
+  drawRow(x2, y2, colW, rh, "Gekozen smeerunit:", deviceName, false, false, true);
+  y2 += rh;
+  drawRow(x2, y2, colW, rh, "Verbruik patronen/jaar:", `${cartridgesPerYear.toLocaleString("nl-BE", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} patronen/j`, false, false, true);
+  y2 += rh;
+  if (deviceKey !== "single_point") {
+    const devPriceStr = priceInfo.isPrefilled ? "€ 0,00 (Gevuld)" : `€ ${priceInfo.unitPrice.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} (Art.${priceInfo.artNrUnit})`;
+    drawRow(x2, y2, colW, rh, "Prijs leeg toestel:", devPriceStr, false, false, true);
+    y2 += rh;
+  }
+  const packPriceStr = `€ ${priceInfo.servicepackPrice.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} (Art.${priceInfo.artNrServicepack})`;
+  drawRow(x2, y2, colW, rh, "Prijs per patroon / servicepack:", packPriceStr, false, false, true);
+  y2 += rh;
+  drawRow(x2, y2, colW, rh, "Jaarlijkse kosten patronen:", `€ ${autoCartridgeCostYear.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / j`, false, false, true);
+  y2 += rh;
+  if (deviceKey !== "single_point") {
+    const accStr = priceInfo.mandatoryAccessoriesPrice > 0 ? `€ ${priceInfo.mandatoryAccessoriesPrice.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} (Eenmalig)` : "€ 0,00";
+    drawRow(x2, y2, colW, rh, "Pulsarlube installatiekit:", accStr, false, false, true);
+    y2 += rh;
+  }
+  drawRow(x2, y2, colW, rh, "Arbeidskost automatisch:", "€ 0,00 (100% Auto)", false, false, true);
+  y2 += rh;
+  drawRow(x2, y2, colW, 6.5, "JAAR 1 TOTAAL:", `€ ${autoYear1Total.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, false, true, true);
+  y2 += 6.5;
+  drawRow(x2, y2, colW, 6.5, "JAAR 2+ TERUGKEREND:", `€ ${autoRecurringTotal.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, false, true, "dark");
+
+  // 6. Summary ROI Box
+  const sumY = Math.max(y1, y2) + 6;
+  doc.setFillColor(255, 255, 255);
+  doc.setDrawColor(227, 6, 19);
+  doc.setLineWidth(0.4);
+  doc.roundedRect(20, sumY, 170, 48, 3, 3, "FD");
+
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(11);
+  doc.setTextColor(15, 23, 42);
+  doc.text("FINANCIËLE ANALYSE & ROI RESULTAAT", 25, sumY + 8);
+
+  const netYearlySaving = manualTotalCost - autoRecurringTotal;
+  const year1NetResult = manualTotalCost - autoYear1Total;
+
+  let paybackText = "Direct Rendabel";
+  const monthlyNetLaborGreaseSaving = (manualLaborCost + (manualGreaseCost - autoCartridgeCostYear)) / 12;
+  const initialInvestment = priceInfo.unitPrice + priceInfo.mandatoryAccessoriesPrice;
+  if (initialInvestment > 0) {
+    if (monthlyNetLaborGreaseSaving > 0) {
+      const paybackMonths = initialInvestment / monthlyNetLaborGreaseSaving;
+      paybackText = `${paybackMonths.toFixed(1).replace('.',',')} maanden`;
+    } else {
+      paybackText = "Geen Terugverdientijd";
+    }
+  }
+
+  const yearsInput = document.getElementById("roiYearsInput");
+  const years = yearsInput ? (parseFloat(yearsInput.value) || 5) : 5;
+  let totalSavingsMultiYear = years <= 1 ? year1NetResult : year1NetResult + ((years - 1) * netYearlySaving);
+
+  const cardW = 38;
+  const cardH = 28;
+  const cardY = sumY + 14;
+
+  function drawSummaryCard(x, title, valStr, subStr, colorHex) {
+    doc.setFillColor(248, 250, 252);
+    doc.setDrawColor(226, 232, 240);
+    doc.setLineWidth(0.2);
+    doc.roundedRect(x, cardY, cardW, cardH, 2, 2, "FD");
+
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(6.2);
+    doc.setTextColor(100, 116, 139);
+    doc.text(title, x + cardW / 2, cardY + 6, { align: "center", maxWidth: cardW - 2 });
+
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(10);
+    doc.setTextColor(colorHex[0], colorHex[1], colorHex[2]);
+    doc.text(valStr, x + cardW / 2, cardY + 17, { align: "center" });
+
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(5.8);
+    doc.setTextColor(148, 163, 184);
+    doc.text(subStr, x + cardW / 2, cardY + 24, { align: "center" });
+  }
+
+  const signNet = netYearlySaving >= 0 ? "+" : "-";
+  const valNet = `${signNet} € ${Math.abs(netYearlySaving).toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  drawSummaryCard(23, "JAARLIJKSE BESPARING", valNet, "Vanaf Jaar 2", netYearlySaving >= 0 ? [22, 163, 74] : [220, 38, 38]);
+
+  const signYr1 = year1NetResult >= 0 ? "+" : "-";
+  const valYr1 = `${signYr1} € ${Math.abs(year1NetResult).toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  drawSummaryCard(64, "RESULTAAT JAAR 1", valYr1, "Inclusief installatie", year1NetResult >= 0 ? [37, 99, 235] : [220, 38, 38]);
+
+  drawSummaryCard(105, "TERUGVERDIENTIJD", paybackText, "Investerings-ROI", [227, 6, 19]);
+
+  const signMulti = totalSavingsMultiYear >= 0 ? "+" : "-";
+  const valMulti = `${signMulti} € ${Math.abs(totalSavingsMultiYear).toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  drawSummaryCard(146, `BESPARING NA ${years} JAAR`, valMulti, "Netto totaalresultaat", totalSavingsMultiYear >= 0 ? [5, 150, 105] : [220, 38, 38]);
+
+  // 7. Footer
+  doc.setFont("helvetica", "normal");
+  doc.setDrawColor(200, 200, 200);
+  doc.setLineWidth(0.25);
+  doc.line(20, 267, 190, 267);
+
+  const disclaimer = langData.legalDisclaimerText || "De gegenereerde gegevens bieden een betrouwbare indicatie, maar vormen geen expliciete garantie dat een product of dosering geschikt is voor elke specifieke toepassing.";
+  doc.setFontSize(6.8);
+  doc.setTextColor(140, 140, 140);
+  doc.text(disclaimer, 20, 271, { maxWidth: 170 });
+
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(7.5);
+  doc.setTextColor(227, 6, 19);
+  doc.text("INTERFLON - " + (langData.pdfWatermarkText || "A WORLD WITHOUT FRICTION").toUpperCase(), 20, 282);
+}
+
