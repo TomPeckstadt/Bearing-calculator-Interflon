@@ -9052,17 +9052,34 @@ function addRoiPdfPage(doc, dateString, watermarkDataUrl, aspectRatio, autoDataU
   const sign4 = multiYearSaving >= 0 ? "+" : "-";
   drawRoiResultCard(147, cardY, cardW, cardH, `BESPARING NA ${numYears} JAAR`, `${sign4} € ${Math.abs(multiYearSaving).toFixed(2).replace('.', ',')}`, "Netto totaalresultaat", multiYearSaving >= 0);
 
+  // Belangrijke Toelichting Box in PDF
+  doc.setFillColor(248, 250, 252);
+  doc.setDrawColor(227, 6, 19);
+  doc.setLineWidth(0.3);
+  doc.roundedRect(20, 173, 170, 15, 2, 2, "FD");
+
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(7);
+  doc.setTextColor(227, 6, 19);
+  doc.text("Belangrijke toelichting:", 24, 177);
+
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(6);
+  doc.setTextColor(51, 65, 85);
+  const toelichtingTxt = "Bovenstaande berekening weerspiegelt uitsluitend de directe overgang van handmatige naar automatische smering. In de praktijk ontstaat het grootste financiële en operationele voordeel echter door een verhoogde bedrijfszekerheid (hogere output), een langere levensduur van componenten (minder reserveonderdelen) en een aanzienlijke reductie in revisie-uren.";
+  doc.text(toelichtingTxt, 24, 181, { maxWidth: 162 });
+
   // Footer Disclaimer
   doc.setFont("helvetica", "normal");
-  doc.setFontSize(6.5);
+  doc.setFontSize(6);
   doc.setTextColor(148, 163, 184);
   const footerText = "De gegenereerde gegevens bieden een betrouwbare indicatie, maar vormen geen expliciete garantie dat een product of dosering geschikt is voor elke specifieke toepassing. De calculator biedt een adviesrichtlijn; er kan geen wettelijke waarborg of aansprakelijkheid worden verleend met betrekking tot het concrete gebruik ervan in de praktijk.";
   const splitFooter = doc.splitTextToSize(footerText, 170);
-  doc.text(splitFooter, 20, 180);
+  doc.text(splitFooter, 20, 192);
 
   doc.setFont("helvetica", "bold");
   doc.setFontSize(7.5);
   doc.setTextColor(227, 6, 19);
-  doc.text("INTERFLON - A WORLD WITHOUT FRICTION", 20, 192);
+  doc.text("INTERFLON - A WORLD WITHOUT FRICTION", 20, 203);
 }
 
