@@ -63,6 +63,7 @@ function initUniversalInputPersistence() {
     if (typeof recalculateTcoModel === "function") recalculateTcoModel();
     if (typeof recalculateChainTcoModel === "function") recalculateChainTcoModel();
     if (typeof calculateAutomationLubrication === "function") calculateAutomationLubrication();
+  if (typeof updateRoiAutomationPage === "function") updateRoiAutomationPage();
     if (typeof calculateChainAutomationLubrication === "function") calculateChainAutomationLubrication();
 
     console.log("Universal input persistence initialized successfully.");
@@ -7938,17 +7939,25 @@ const AUTOMATION_PRICE_DATABASE = {
 };
 
 function getAutomationPriceInfo(deviceKey, capMl, greaseName) {
-  let gSearch = greaseName || "Grease MP2/3";
-  if (gSearch.includes("MP2/3") || gSearch.includes("MP 2/3") || gSearch.includes("MP2") || gSearch.includes("MP3")) gSearch = "Grease MP2/3";
-  else if (gSearch.includes("LS1/2") || gSearch.includes("LS1") || gSearch.includes("LS2")) gSearch = "Grease LS";
-  else if (gSearch.includes("HD2") || gSearch.includes("HD 2")) gSearch = "HD2";
-  else if (gSearch.includes("HTG")) gSearch = "Grease HTG";
-  else if (gSearch.includes("Food") && gSearch.includes("EP")) gSearch = "Food grease EP";
-  else if (gSearch.includes("Food") && gSearch.includes("LT2")) gSearch = "Food grease LT2";
-  else if (gSearch.includes("Food") && (gSearch.includes("1") || gSearch.includes("HD2"))) gSearch = "Food grease";
+  let rawName = (greaseName || "Grease MP2/3").toUpperCase();
+
+  let gSearch = "MP2/3";
+  if (rawName.includes("MP1")) gSearch = "MP1";
+  else if (rawName.includes("MP00")) gSearch = "MP00";
+  else if (rawName.includes("MP2/3") || rawName.includes("MP2") || rawName.includes("MP3")) gSearch = "MP2/3";
+  else if (rawName.includes("LS1/2") || rawName.includes("LS1")) gSearch = "LS1/2";
+  else if (rawName.includes("LS2")) gSearch = "LS2";
+  else if (rawName.includes("HTG")) gSearch = "HTG";
+  else if (rawName.includes("HD2") && rawName.includes("FOOD")) gSearch = "Food grease HD2";
+  else if (rawName.includes("HD2")) gSearch = "HD2";
+  else if (rawName.includes("HS2")) gSearch = "HS2";
+  else if (rawName.includes("HS1")) gSearch = "Food grease HS1";
+  else if (rawName.includes("FOOD") && rawName.includes("EP")) gSearch = "Food grease EP";
+  else if (rawName.includes("FOOD") && rawName.includes("LT2")) gSearch = "Food grease LT2";
+  else if (rawName.includes("FOOD") && rawName.includes("1")) gSearch = "Food grease 1";
 
   if (deviceKey === "single_point") {
-    const match = AUTOMATION_PRICE_DATABASE.singlePointFilled.find(item => item.cap === capMl && (item.grease.toLowerCase().includes(gSearch.toLowerCase()) || gSearch.toLowerCase().includes(item.grease.toLowerCase()))) ||
+    const match = AUTOMATION_PRICE_DATABASE.singlePointFilled.find(item => item.cap === capMl && item.grease.toUpperCase().includes(gSearch.toUpperCase())) ||
                   AUTOMATION_PRICE_DATABASE.singlePointFilled.find(item => item.cap === capMl) ||
                   AUTOMATION_PRICE_DATABASE.singlePointFilled[0];
     return {
@@ -7969,7 +7978,7 @@ function getAutomationPriceInfo(deviceKey, capMl, greaseName) {
                       AUTOMATION_PRICE_DATABASE.pulsarlubeUnits.find(item => item.cap === capMl) ||
                       AUTOMATION_PRICE_DATABASE.pulsarlubeUnits[0];
 
-    const packMatch = AUTOMATION_PRICE_DATABASE.pulsarlubeServicepacks.find(item => item.cap === capMl && (item.grease.toLowerCase().includes(gSearch.toLowerCase()) || gSearch.toLowerCase().includes(item.grease.toLowerCase()))) ||
+    const packMatch = AUTOMATION_PRICE_DATABASE.pulsarlubeServicepacks.find(item => item.cap === capMl && item.grease.toUpperCase().includes(gSearch.toUpperCase())) ||
                       AUTOMATION_PRICE_DATABASE.pulsarlubeServicepacks.find(item => item.cap === capMl) ||
                       AUTOMATION_PRICE_DATABASE.pulsarlubeServicepacks[0];
 
@@ -8017,7 +8026,7 @@ function updateRoiAutomationPage() {
   if (roiTitleEl) roiTitleEl.textContent = deviceName;
 
   // Selected Grease Name & Price per Liter from Opbrengstmodel / Smeercalculatie
-  const selectGrease = document.getElementById("selectGrease");
+  const selectGrease = document.getElementById("inputGrease") || document.getElementById("selectGrease");
   const greaseName = selectGrease ? selectGrease.value : "Interflon Grease MP2/3";
   const greasePriceInput = document.getElementById("tcoPriceInterflonInput");
   const greasePricePerLiter = greasePriceInput ? (parseFloat(greasePriceInput.value) || 70.50) : 70.50;
