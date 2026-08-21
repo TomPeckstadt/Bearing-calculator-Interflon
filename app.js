@@ -4897,57 +4897,12 @@ function runBearingPdfExport(includeTco, includeRoi) {
         doc.text("INTERFLON - " + (langData.pdfWatermarkText || "A WORLD WITHOUT FRICTION").toUpperCase(), 20, 282);
       }
 
-      // Render Automatisering als Extra Pagina helemaal onderaan de PDF
-      const autoDeviceSelect = document.getElementById("automationDeviceSelect") || document.getElementById("autoDeviceSelect");
-      const autoDeviceVal = autoDeviceSelect ? autoDeviceSelect.value : "single_point";
-      let autoDeviceName = "Interflon Single Point Lubricator";
-      if (autoDeviceVal === "pulsarlube_m2") autoDeviceName = "Pulsarlube M2";
-      else if (autoDeviceVal === "pulsarlube_msp") autoDeviceName = "Pulsarlube MSP";
-
-      const autoCapEl = document.getElementById("autoCartridgeCap");
-      const autoPeriodEl = document.getElementById("autoDispensePeriod");
-      const autoUnitEl = document.getElementById("autoDispenseUnit");
-      const autoDailyEl = document.getElementById("autoDailyVolumeRes");
-      const autoMonthlyEl = document.getElementById("autoMonthlyVolumeRes");
-      const autoYearlyEl = document.getElementById("autoYearlyVolumeRes");
-      const autoCartridgesEl = document.getElementById("autoCartridgesYearRes");
-      const autoNoticeEl = document.getElementById("autoMatchNotice");
-
-      const capMlVal = autoCapEl ? (autoCapEl.value || "125") : "125";
-      const yearlyValNum = autoYearlyEl ? parseDutchFloat(autoYearlyEl.textContent) : 0;
-      let calculatedCartridges = "--";
-      if (!isNaN(yearlyValNum) && yearlyValNum > 0 && parseFloat(capMlVal) > 0) {
-        calculatedCartridges = (yearlyValNum / parseFloat(capMlVal)).toLocaleString("nl-BE", { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + " patronen/jaar";
-      } else if (autoCartridgesEl && autoCartridgesEl.textContent.trim() !== "--") {
-        calculatedCartridges = autoCartridgesEl.textContent.trim();
-      }
-
-      const autoBearingData = {
-        deviceName: autoDeviceName,
-        cartridgeCap: capMlVal,
-        dispensePeriod: (autoPeriodEl && autoUnitEl) ? (autoPeriodEl.value + " " + autoUnitEl.options[autoUnitEl.selectedIndex].text) : "3 maanden",
-        dailyVol: autoDailyEl ? autoDailyEl.textContent.trim() : "--",
-        monthlyVol: autoMonthlyEl ? autoMonthlyEl.textContent.trim() : "--",
-        yearlyVol: autoYearlyEl ? autoYearlyEl.textContent.trim() : "--",
-        cartridgesYear: calculatedCartridges,
-        matchNotice: autoNoticeEl ? autoNoticeEl.textContent.trim() : ""
-      };
-
-      getVerdeelblokImage(function(divDataUrl) {
-        renderPdfAutomationExtraPage(doc, autoBearingData, autoDataUrl, autoRatio, watermarkDataUrl, aspectRatio, langData, false, divDataUrl);
-        if (includeRoi) {
-          addRoiPdfPage(doc, dateString, watermarkDataUrl, aspectRatio, autoDataUrl);
-        }
-        const filePrefix = currentLang === "nl" ? "Interflon_Smeeradvies_" : currentLang === "en" ? "Interflon_Lubrication_Advice_" : "Interflon_Conseil_Lubrification_";
-        doc.save(filePrefix + bearingNum.replace(/[\/\\?%*:|"<>/\s]/g, "_") + ".pdf");
-      });
-
       if (includeRoi) {
         addRoiPdfPage(doc, dateString, watermarkDataUrl, aspectRatio, autoDataUrl);
       }
 
       const filePrefix = currentLang === "nl" ? "Interflon_Smeeradvies_" : currentLang === "en" ? "Interflon_Lubrication_Advice_" : "Interflon_Conseil_Lubrification_";
-      doc.save(filePrefix + bearingNum.replace(/[\/\\?%*:|"<>\s]/g, "_") + ".pdf");
+      doc.save(filePrefix + bearingNum.replace(/[\/\\?%*:|"<>/\s]/g, "_") + ".pdf");
     } catch (e) {
       console.error("Fout bij genereren PDF:", e);
       alert((langData.pdfErrorGen || "Er is een fout opgetreden bij het genereren van het PDF-rapport: ") + e.message);
