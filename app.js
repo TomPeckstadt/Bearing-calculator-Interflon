@@ -5431,7 +5431,14 @@ let userHasManuallyEditedAutoPeriod = false;
 
 function onAutoCartridgeCapChange() {
   userHasManuallyEditedAutoPeriod = false;
+  userHasManuallyEditedAutoPeriod = false;
   calculateAutomationLubrication();
+}
+
+function onAutoNumPointsChange() {
+  userHasManuallyEditedAutoPeriod = false;
+  calculateAutomationLubrication();
+  if (typeof updateRoiAutomationPage === "function") updateRoiAutomationPage();
 }
 
 function onAutoPeriodInput() {
@@ -5605,7 +5612,13 @@ function calculateAutomationLubrication() {
     }
 
     if (!userHasManuallyEditedAutoPeriod) {
-      periodInput.value = recSetting.months;
+      if (unit === "weeks") {
+        periodInput.value = Math.max(1, Math.round(recWeeks));
+      } else if (unit === "days") {
+        periodInput.value = Math.max(1, Math.round(recDays));
+      } else {
+        periodInput.value = recSetting.months;
+      }
     }
   }
 
