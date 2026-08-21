@@ -8096,6 +8096,17 @@ function updateRoiAutomationPage() {
   const autoYear1Total = priceInfo.unitPrice + priceInfo.mandatoryAccessoriesPrice + autoCartridgeCostYear;
   const autoRecurringTotal = autoCartridgeCostYear;
 
+  const devicePriceRow = document.getElementById("roiAutoDevicePriceRow");
+  const accessoriesRow = document.getElementById("roiAutoAccessoriesRow");
+
+  if (deviceKey === "single_point") {
+    if (devicePriceRow) devicePriceRow.style.display = "none";
+    if (accessoriesRow) accessoriesRow.style.display = "none";
+  } else {
+    if (devicePriceRow) devicePriceRow.style.display = "flex";
+    if (accessoriesRow) accessoriesRow.style.display = "flex";
+  }
+
   if (autoDeviceNameEl) autoDeviceNameEl.textContent = deviceName;
   if (autoPatronenEl) autoPatronenEl.textContent = `${cartridgesPerYear.toLocaleString("nl-BE", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} patronen/jaar`;
   if (autoDevicePriceEl) {
