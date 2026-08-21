@@ -8,7 +8,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <link rel="stylesheet" href="style.css?v=20260821_1729">
+  <link rel="stylesheet" href="style.css?v=20260821_1752">
 </head>
 <body>
 
@@ -1523,50 +1523,26 @@
                 </button>
               </div>
 
-              <!-- Multi-Point / Bearing Selection Dropdown -->
+              <!-- Multi-Device Selection Dropdown -->
               <div style="margin-top: 16px; padding-top: 14px; border-top: 1px solid #e2e8f0; text-align: left;">
-                <label for="autoNumPointsSelect" style="display: block; font-size: 12.5px; font-weight: 700; color: var(--text-dark); margin-bottom: 6px;">
-                  Aantal te smeren smeerpunten / lagers per toestel:
+                <label for="autoNumDevicesSelect" style="display: block; font-size: 12.5px; font-weight: 700; color: var(--text-dark); margin-bottom: 6px;">
+                  Aantal Pulsarlube toestellen dat u wil plaatsen:
                 </label>
-                <select id="autoNumPointsSelect" class="form-select" style="width: 100%; padding: 8px 12px; font-weight: 600; border-radius: var(--border-radius-sm); border: 1px solid #cbd5e1;" onchange="onAutoNumPointsChange()">
-                  <option value="1" selected>1 lager / smeerpunt (Direct)</option>
-                  <option value="2">2 lagers (Verdeelblok 2-poorts)</option>
-                  <option value="3">3 lagers (Verdeelblok 3-poorts)</option>
-                  <option value="4">4 lagers (Verdeelblok 4-poorts)</option>
-                  <option value="5">5 lagers (Verdeelblok 5-poorts)</option>
-                  <option value="6">6 lagers (Verdeelblok 6-poorts)</option>
-                  <option value="7">7 lagers (Verdeelblok 7-poorts)</option>
-                  <option value="8">8 lagers (Verdeelblok 8-poorts)</option>
+                <select id="autoNumDevicesSelect" class="form-select" style="width: 100%; padding: 8px 12px; font-weight: 600; border-radius: var(--border-radius-sm); border: 1px solid #cbd5e1;" onchange="onAutoNumDevicesChange()">
+                  <option value="1" selected>1 toestel (Pulsarlube A)</option>
+                  <option value="2">2 toestellen (Pulsarlube A & Pulsarlube B)</option>
+                  <option value="3">3 toestellen (Pulsarlube A, B & C)</option>
+                  <option value="4">4 toestellen (Pulsarlube A, B, C & D)</option>
                 </select>
                 <span style="display: block; font-size: 11px; color: var(--text-medium); margin-top: 5px; line-height: 1.35;">
-                  Sluit 1 tot 8 lagers aan op dit ene toestel (via verdeelblok). De leeglooptijd past zich automatisch aan.
+                  Verdeel de te smeren lagers over 1 of meerdere toestellen (bijvoorbeeld 1 toestel met 4 lagers en 1 toestel met 2 lagers).
                 </span>
-
-                <!-- Interactive Verdeelblok Preview Card with Dynamic Red Badge -->
-                <div id="dividerBlockCard" style="margin-top: 12px; background-color: #ffffff; border: 1px solid #cbd5e1; border-radius: var(--border-radius-sm); padding: 10px 12px; display: flex; align-items: center; gap: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
-                  <div style="position: relative; width: 90px; height: 90px; flex-shrink: 0; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 4px; display: flex; align-items: center; justify-content: center;">
-                    <img src="pulsarlube-verdeelblok.jpg?v=20260821_1647" alt="Pulsarlube Verdeelblok" style="max-width: 100%; max-height: 100%; object-fit: contain;">
-                    <div id="dividerBlockBadge" style="position: absolute; bottom: 2px; right: 2px; width: 34px; height: 34px; border-radius: 50%; background-color: #ffffff; border: 3px solid #E30613; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(227, 6, 19, 0.3); z-index: 2;">
-                      <span id="dividerBlockBadgeNum" style="font-family: 'Outfit', sans-serif; font-size: 17px; font-weight: 900; color: #000000; line-height: 1;">1</span>
-                    </div>
-                  </div>
-                  <div style="line-height: 1.35; flex: 1;">
-                    <div id="dividerBlockTitle" style="font-size: 12px; font-weight: 800; color: var(--primary-dark);">
-                      Directe aansluiting (1 smeerpunt)
-                    </div>
-                    <div id="dividerBlockDesc" style="font-size: 11px; color: var(--text-medium); margin-top: 3px;">
-                      Geen verdeelblok nodig. Toestel wordt rechtstreeks op 1 lager aangesloten.
-                    </div>
-                    <div id="dividerBlockPriceTag" style="font-size: 11.5px; font-weight: 700; color: var(--primary-red); margin-top: 4px;">
-                      Geen verdeelblok (€ 0,00)
-                    </div>
-                  </div>
-                </div>
               </div>
             </div>
 
-            <!-- Device Information & Calculator Settings -->
-            <div class="card" style="background: #ffffff; border: 1px solid #e2e8f0; padding: 20px; border-radius: var(--border-radius-md); box-shadow: var(--shadow-sm);">
+            <!-- Multi-Device Cards Container -->
+            <div id="autoDevicesCardsContainer" style="display: flex; flex-direction: column; gap: 20px;"></div>
+            <div id="legacyDeviceCard" class="card" style="display: none; background: #ffffff; border: 1px solid #e2e8f0; padding: 20px; border-radius: var(--border-radius-md); box-shadow: var(--shadow-sm);">
               <h4 style="color: var(--primary-blue); font-family: 'Outfit', sans-serif; font-size: 1.1rem; margin-bottom: 15px; font-weight: 700; border-bottom: 2px solid var(--accent-yellow); padding-bottom: 6px;" data-i18n="automationParamsTitle">
                 Toestel Parameters & Smeerinstelling
               </h4>
@@ -2953,10 +2929,10 @@
 
   <!-- JavaScript logic imports -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="interflon-data.js?v=20260821_1729"></script>
-  <script src="bearings-db.js?v=20260821_1729"></script>
-  <script src="chains-db.js?v=20260821_1729"></script>
-  <script src="app_v6.js?v=20260821_1729"></script>
+  <script src="interflon-data.js?v=20260821_1752"></script>
+  <script src="bearings-db.js?v=20260821_1752"></script>
+  <script src="chains-db.js?v=20260821_1752"></script>
+  <script src="app_v6.js?v=20260821_1752"></script>
 
   <!-- Interflon Oil Dispenser Information Modal (PowerPoint Viewer) -->
   <div id="oilDispenserInfoModal" class="modal-overlay hidden" style="z-index: 99999;">
