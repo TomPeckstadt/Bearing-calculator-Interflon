@@ -8,7 +8,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <link rel="stylesheet" href="style.css?v=20260821_1127">
+  <link rel="stylesheet" href="style.css?v=20260821_1136">
 </head>
 <body>
 
@@ -197,20 +197,40 @@
       </h3>
       <p class="modal-subtitle" style="margin-bottom: 20px;" data-i18n="pdfExportSubtitle">Kies hoe u het PDF-rapport wilt genereren:</p>
       
-      <div class="form-group" style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 24px;">
-        <label class="pdf-option-label" style="display: flex; align-items: flex-start; gap: 12px; padding: 12px; border: 1px solid #e5e7eb; border-radius: var(--border-radius-md); cursor: pointer; transition: all 0.2s;">
-          <input type="radio" name="pdfTcoOption" value="true" checked style="margin-top: 4px; accent-color: var(--primary-red);">
+      <div class="form-group" style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px;">
+        <label style="font-size: 12px; font-weight: 800; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">1. TCO Calculatie Model</label>
+        <label class="pdf-option-label" style="display: flex; align-items: flex-start; gap: 12px; padding: 10px 12px; border: 1px solid #e5e7eb; border-radius: var(--border-radius-md); cursor: pointer; transition: all 0.2s;">
+          <input type="radio" name="pdfTcoOption" value="true" checked style="margin-top: 3px; accent-color: var(--primary-red);">
           <div>
-            <strong style="display: block; font-size: 14px; color: var(--text-dark); margin-bottom: 2px;" data-i18n="pdfOptInclTco">Inclusief TCO Calculatie model</strong>
-            <span style="display: block; font-size: 12px; color: var(--text-medium);" data-i18n="pdfOptInclTcoDesc">Genereert een 2-pagina's tellend rapport inclusief het volledige vergelijkende kostenmodel.</span>
+            <strong style="display: block; font-size: 13.5px; color: var(--text-dark); margin-bottom: 1px;" data-i18n="pdfOptInclTco">Inclusief TCO Calculatie model</strong>
+            <span style="display: block; font-size: 11.5px; color: var(--text-medium);" data-i18n="pdfOptInclTcoDesc">Genereert een pagina inclusief het vergelijkende kostenmodel (Manuele smeerkost vs. Interflon).</span>
           </div>
         </label>
         
-        <label class="pdf-option-label" style="display: flex; align-items: flex-start; gap: 12px; padding: 12px; border: 1px solid #e5e7eb; border-radius: var(--border-radius-md); cursor: pointer; transition: all 0.2s;">
-          <input type="radio" name="pdfTcoOption" value="false" style="margin-top: 4px; accent-color: var(--primary-red);">
+        <label class="pdf-option-label" style="display: flex; align-items: flex-start; gap: 12px; padding: 10px 12px; border: 1px solid #e5e7eb; border-radius: var(--border-radius-md); cursor: pointer; transition: all 0.2s;">
+          <input type="radio" name="pdfTcoOption" value="false" style="margin-top: 3px; accent-color: var(--primary-red);">
           <div>
-            <strong style="display: block; font-size: 14px; color: var(--text-dark); margin-bottom: 2px;" data-i18n="pdfOptExclTco">Exclusief TCO Calculatie model</strong>
-            <span style="display: block; font-size: 12px; color: var(--text-medium);" data-i18n="pdfOptExclTcoDesc">Genereert een compact 1-pagina rapport met enkel de lagerspecificaties en het smeeradvies.</span>
+            <strong style="display: block; font-size: 13.5px; color: var(--text-dark); margin-bottom: 1px;" data-i18n="pdfOptExclTco">Exclusief TCO Calculatie model</strong>
+            <span style="display: block; font-size: 11.5px; color: var(--text-medium);" data-i18n="pdfOptExclTcoDesc">Slaat de TCO kostenpagina over in het rapport.</span>
+          </div>
+        </label>
+      </div>
+
+      <div class="form-group" style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; border-top: 1px solid #f1f5f9; padding-top: 14px;">
+        <label style="font-size: 12px; font-weight: 800; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">2. ROI Berekening Automatisatie</label>
+        <label class="pdf-option-label" style="display: flex; align-items: flex-start; gap: 12px; padding: 10px 12px; border: 1px solid #e5e7eb; border-radius: var(--border-radius-md); cursor: pointer; transition: all 0.2s;">
+          <input type="radio" name="pdfRoiOption" value="true" checked style="margin-top: 3px; accent-color: var(--primary-red);">
+          <div>
+            <strong style="display: block; font-size: 13.5px; color: var(--text-dark); margin-bottom: 1px;">Inclusief ROI berekening automatisatie</strong>
+            <span style="display: block; font-size: 11.5px; color: var(--text-medium);">Voegt een extra pagina toe onderaan met de ROI vergelijking voor automatische smering.</span>
+          </div>
+        </label>
+        
+        <label class="pdf-option-label" style="display: flex; align-items: flex-start; gap: 12px; padding: 10px 12px; border: 1px solid #e5e7eb; border-radius: var(--border-radius-md); cursor: pointer; transition: all 0.2s;">
+          <input type="radio" name="pdfRoiOption" value="false" style="margin-top: 3px; accent-color: var(--primary-red);">
+          <div>
+            <strong style="display: block; font-size: 13.5px; color: var(--text-dark); margin-bottom: 1px;">Exclusief ROI berekening automatisatie</strong>
+            <span style="display: block; font-size: 11.5px; color: var(--text-medium);">Slaat de pagina ROI Automatisering over in het PDF rapport.</span>
           </div>
         </label>
       </div>
@@ -2845,10 +2865,10 @@
 
   <!-- JavaScript logic imports -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="interflon-data.js?v=20260821_1127"></script>
+  <script src="interflon-data.js?v=20260821_1136"></script>
   <script src="bearings-db.js"></script>
-  <script src="chains-db.js?v=20260821_1127"></script>
-  <script src="app_v6.js?v=20260821_1127"></script>
+  <script src="chains-db.js?v=20260821_1136"></script>
+  <script src="app_v6.js?v=20260821_1136"></script>
 
   <!-- Interflon Oil Dispenser Information Modal (PowerPoint Viewer) -->
   <div id="oilDispenserInfoModal" class="modal-overlay hidden" style="z-index: 99999;">
