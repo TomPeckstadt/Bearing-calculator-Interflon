@@ -8460,14 +8460,33 @@ function updateRoiAutomationPage() {
     }
   }
   const autoDivBlockRow = document.getElementById("roiAutoDividerBlockRow");
+  const autoDivBlockTotalCostEl = document.getElementById("roiAutoDividerBlockTotalCost");
   const autoDivBlockCostEl = document.getElementById("roiAutoDividerBlockCost");
-  if (autoDivBlockRow && autoDivBlockCostEl) {
+  
+  if (autoDivBlockRow) {
     if (totalDividerBlockPrice > 0) {
       autoDivBlockRow.style.display = "flex";
-      autoDivBlockCostEl.textContent = `€ ${totalDividerBlockPrice.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} (${divBlockDetailParts.join(" + ")})`;
+      if (autoDivBlockTotalCostEl) {
+        autoDivBlockTotalCostEl.textContent = `€ ${totalDividerBlockPrice.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} (Eenmalig)`;
+      }
+      if (autoDivBlockCostEl) {
+        if (numDevices === 1) {
+          const pInfo = getAutomationPriceInfo(deviceKey, 120, greaseName, autoDevicesState[0].points || 1);
+          autoDivBlockCostEl.innerHTML = `Art. ${pInfo.artNrDividerBlock} (${autoDevicesState[0].points}-poorts verdeelblok)`;
+        } else {
+          let listHtml = "";
+          for (let i = 0; i < numDevices; i++) {
+            const d = autoDevicesState[i];
+            const pInfo = getAutomationPriceInfo(deviceKey, d.cap || 120, greaseName, d.points || 1);
+            if (pInfo.dividerBlockPrice > 0) {
+              listHtml += `<div>&bull; <strong>Toestel ${d.id}:</strong> € ${pInfo.dividerBlockPrice.toFixed(2).replace('.', ',')} <em>(Art. ${pInfo.artNrDividerBlock} &bull; ${d.points}-poorts)</em></div>`;
+            }
+          }
+          autoDivBlockCostEl.innerHTML = listHtml;
+        }
+      }
     } else {
       autoDivBlockRow.style.display = "none";
-      autoDivBlockCostEl.textContent = `€ 0,00`;
     }
   }
   if (autoYear1TotalEl) autoYear1TotalEl.textContent = `€ ${autoYear1Total.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
