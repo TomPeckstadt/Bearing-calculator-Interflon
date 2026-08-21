@@ -8607,6 +8607,19 @@ function updateRoiAutomationPage() {
       paybackPeriodEl.textContent = ` ${paybackMonths.toFixed(1).replace('.', ',')} maanden (${paybackYears.toFixed(2).replace('.', ',')} jaar)`;
     }
   }
+
+  // 6. Multi-year Cumulative Savings Calculation (Besparing na N jaar)
+  const roiYearsInput = document.getElementById("roiYearsInput");
+  const roiMultiYearSavingEl = document.getElementById("roiMultiYearSaving");
+
+  const numYears = roiYearsInput ? (parseInt(roiYearsInput.value, 10) || 1) : 1;
+  const multiYearSaving = year1NetResult + Math.max(0, numYears - 1) * netYearlySaving;
+
+  if (roiMultiYearSavingEl) {
+    const sign = multiYearSaving >= 0 ? "+" : "-";
+    roiMultiYearSavingEl.textContent = `${sign} € ${Math.abs(multiYearSaving).toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    roiMultiYearSavingEl.style.color = multiYearSaving >= 0 ? "#059669" : "#dc2626";
+  }
 }
 
 
