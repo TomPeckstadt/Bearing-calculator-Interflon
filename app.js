@@ -8029,7 +8029,7 @@ function updateRoiAutomationPage() {
   // Selected Grease Name & Price per Liter from Opbrengstmodel / Smeercalculatie
   const selectGrease = document.getElementById("inputGrease") || document.getElementById("selectGrease");
   const greaseName = selectGrease ? selectGrease.value : "Interflon Grease MP2/3";
-  const greasePriceInput = document.getElementById("tcoPriceInterflonInput");
+  const greasePriceInput = document.getElementById("omProdPrice2") || document.getElementById("chainOmProdPrice2") || document.getElementById("tcoPriceInterflonInput");
   const greasePricePerLiter = greasePriceInput ? (parseFloat(greasePriceInput.value) || 70.50) : 70.50;
 
   if (roiSubtextEl) {
