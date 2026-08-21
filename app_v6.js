@@ -11,6 +11,9 @@ let autoDevicesState = [
 ];
 
 function getActiveNumDevices() {
+  const deviceSelect = document.getElementById("automationDeviceSelect") || document.getElementById("autoDeviceSelect");
+  const deviceKey = deviceSelect ? deviceSelect.value : "single_point";
+  if (deviceKey === "single_point") return 1;
   const sel = document.getElementById("autoNumDevicesSelect");
   return sel ? (parseInt(sel.value) || 1) : 1;
 }
@@ -224,9 +227,16 @@ function renderAutoDevicesUI() {
   const container = document.getElementById("autoDevicesCardsContainer");
   if (!container) return;
 
-  const numDevices = getActiveNumDevices();
   const deviceSelect = document.getElementById("automationDeviceSelect") || document.getElementById("autoDeviceSelect");
   const deviceKey = deviceSelect ? deviceSelect.value : "single_point";
+  const isSinglePoint = (deviceKey === "single_point");
+
+  const multiDevContainer = document.getElementById("autoMultiDeviceSelectorContainer");
+  if (multiDevContainer) {
+    multiDevContainer.style.display = isSinglePoint ? "none" : "block";
+  }
+
+  const numDevices = isSinglePoint ? 1 : getActiveNumDevices();
 
   const outerGrid = document.getElementById("automationInteractiveGrid");
   if (outerGrid) {
@@ -289,7 +299,7 @@ function renderAutoDevicesUI() {
         </select>
         
         <!-- Interactive Verdeelblok Card -->
-        <div id="dividerBlockCard_${devId}" style="margin-top: 10px; background-color: #ffffff; border: 1px solid #cbd5e1; border-radius: var(--border-radius-sm); padding: 10px 12px; display: flex; align-items: center; gap: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
+        <div id="dividerBlockCard_${devId}" style="margin-top: 10px; background-color: #ffffff; border: 1px solid #cbd5e1; border-radius: var(--border-radius-sm); padding: 10px 12px; display: ${isSinglePoint ? 'none' : 'flex'}; align-items: center; gap: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
           <div style="position: relative; width: 75px; height: 75px; flex-shrink: 0; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 4px; display: flex; align-items: center; justify-content: center;">
             <img src="pulsarlube-verdeelblok.jpg?v=20260821_1647" alt="Verdeelblok" style="max-width: 100%; max-height: 100%; object-fit: contain;">
             <div style="position: absolute; bottom: 2px; right: 2px; width: 30px; height: 30px; border-radius: 50%; background-color: #ffffff; border: 3px solid #E30613; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(227, 6, 19, 0.3); z-index: 2;">
