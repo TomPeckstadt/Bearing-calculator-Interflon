@@ -5466,6 +5466,27 @@ function calculateAutomationLubrication() {
   const numPointsSelect = document.getElementById("autoNumPointsSelect");
   const numPoints = numPointsSelect ? (parseInt(numPointsSelect.value) || 1) : 1;
 
+  // Update Interactive Verdeelblok Badge & Details
+  const badgeNumEl = document.getElementById("dividerBlockBadgeNum");
+  const divTitleEl = document.getElementById("dividerBlockTitle");
+  const divDescEl = document.getElementById("dividerBlockDesc");
+  const divPriceEl = document.getElementById("dividerBlockPriceTag");
+
+  if (badgeNumEl) badgeNumEl.textContent = numPoints;
+
+  const divDb = (typeof AUTOMATION_PRICE_DATABASE !== "undefined" && AUTOMATION_PRICE_DATABASE.dividerBlocks) ? AUTOMATION_PRICE_DATABASE.dividerBlocks : {};
+  const divInfo = divDb[numPoints] || divDb[1] || { artNr: "", price: 0 };
+
+  if (numPoints === 1) {
+    if (divTitleEl) divTitleEl.textContent = "Directe aansluiting (1 smeerpunt)";
+    if (divDescEl) divDescEl.textContent = "Geen verdeelblok nodig. Toestel wordt rechtstreeks op 1 lager aangesloten.";
+    if (divPriceEl) divPriceEl.textContent = "Geen verdeelblok (€ 0,00)";
+  } else {
+    if (divTitleEl) divTitleEl.textContent = `HU Type Verdeelblok (${numPoints}-poorts)`;
+    if (divDescEl) divDescEl.textContent = `HU Type Divider Block (Art. ${divInfo.artNr}) verdeelt de vetsmering gelijkmatig over ${numPoints} lagers.`;
+    if (divPriceEl) divPriceEl.textContent = `Meerprijs verdeelblok: € ${divInfo.price.toFixed(2).replace('.', ',')}`;
+  }
+
   // Update Section Header Title
   const calcHeaderTitleEl = document.getElementById("automationCalcHeaderTitle");
   if (calcHeaderTitleEl) {
