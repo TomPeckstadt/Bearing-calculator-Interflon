@@ -8733,6 +8733,14 @@ function addRoiPdfPage(doc, dateString, watermarkDataUrl, aspectRatio, autoDataU
   const deviceKey = deviceSelect ? deviceSelect.value : "single_point";
   const capMl = capSelect ? (parseFloat(capSelect.value) || 125) : 125;
 
+  const numDevices = typeof getActiveNumDevices === "function" ? getActiveNumDevices() : 1;
+  let totalPointsAllDevices = 0;
+  for (let i = 0; i < numDevices; i++) {
+    const d = (typeof autoDevicesState !== "undefined" && autoDevicesState[i]) ? autoDevicesState[i] : { points: 1 };
+    totalPointsAllDevices += (d.points || 1);
+  }
+  const numPoints = totalPointsAllDevices;
+
   let deviceName = "Interflon Single Point Lubricator";
   if (deviceKey === "pulsarlube_m2") deviceName = "Pulsarlube M2";
   else if (deviceKey === "pulsarlube_msp") deviceName = "Pulsarlube MSP";
@@ -8786,8 +8794,7 @@ function addRoiPdfPage(doc, dateString, watermarkDataUrl, aspectRatio, autoDataU
   const manualLaborCost = manualLaborHours * hourlyRate;
   const manualTotalCost = manualGreaseCost + manualLaborCost;
 
-  const numPointsSelect = document.getElementById("autoNumPointsSelect");
-  const numPoints = numPointsSelect ? (parseInt(numPointsSelect.value) || 1) : 1;
+  // numPoints is already declared above
   const priceInfo = getAutomationPriceInfo(deviceKey, capMl, greaseName, numPoints);
   const cartridgesPerYear = capMl > 0 ? (yearlyMl / capMl) : 0;
   const autoCartridgeCostYear = cartridgesPerYear * priceInfo.servicepackPrice;
