@@ -8043,6 +8043,9 @@ function getAutomationPriceInfo(deviceKey, capMl, greaseName, numPoints = 1) {
       isPrefilled: true,
       unitPrice: match.price,
       servicepackPrice: match.price,
+      installKitPrice: 0.00,
+      dividerBlockPrice: 0.00,
+      artNrDividerBlock: "",
       mandatoryAccessoriesPrice: 0.00,
       artNrUnit: match.artNr,
       artNrServicepack: match.artNr
@@ -8060,20 +8063,24 @@ function getAutomationPriceInfo(deviceKey, capMl, greaseName, numPoints = 1) {
                       AUTOMATION_PRICE_DATABASE.pulsarlubeServicepacks.find(item => item.cap === capMl) ||
                       AUTOMATION_PRICE_DATABASE.pulsarlubeServicepacks[0];
 
-    // Mandatory accessories: Art 1430 (€33.00) + 10x Art 14 (€1.90) = €52.00
-    let mandAcc = AUTOMATION_PRICE_DATABASE.accessories.installKit.price + (10 * AUTOMATION_PRICE_DATABASE.accessories.nylonTubePerM.price);
+    // Installation kit: Art 1430 (€33.00) + 10x Art 14 (€1.90) = €52.00
+    let installKitPrice = AUTOMATION_PRICE_DATABASE.accessories.installKit.price + (10 * AUTOMATION_PRICE_DATABASE.accessories.nylonTubePerM.price);
     
-    // Add Divider Block (Verdeelblok) price if numPoints > 1
+    // Divider Block (Verdeelblok) price if numPoints > 1
     const divDb = AUTOMATION_PRICE_DATABASE.dividerBlocks || {};
-    const divBlock = divDb[numPoints] || divDb[1] || { price: 0 };
-    mandAcc += divBlock.price;
+    const divBlock = (numPoints > 1 && divDb[numPoints]) ? divDb[numPoints] : null;
+    let dividerBlockPrice = divBlock ? divBlock.price : 0.00;
+    let artNrDividerBlock = divBlock ? divBlock.artNr : "";
 
     return {
       deviceType: unitMatch.model,
       isPrefilled: false,
       unitPrice: unitMatch.price,
       servicepackPrice: packMatch.price,
-      mandatoryAccessoriesPrice: mandAcc,
+      installKitPrice: installKitPrice,
+      dividerBlockPrice: dividerBlockPrice,
+      artNrDividerBlock: artNrDividerBlock,
+      mandatoryAccessoriesPrice: installKitPrice + dividerBlockPrice,
       artNrUnit: unitMatch.artNr,
       artNrServicepack: packMatch.artNr
     };
@@ -8199,10 +8206,21 @@ function updateRoiAutomationPage() {
   if (autoPackPriceEl) autoPackPriceEl.textContent = `€ ${priceInfo.servicepackPrice.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / stuk (Art. ${priceInfo.artNrServicepack})`;
   if (autoPacksTotalEl) autoPacksTotalEl.textContent = `€ ${autoCartridgeCostYear.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / jaar`;
   if (autoAccCostEl) {
-    if (priceInfo.mandatoryAccessoriesPrice > 0) {
-      autoAccCostEl.textContent = `€ ${priceInfo.mandatoryAccessoriesPrice.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} (Eenmalig)`;
+    if (priceInfo.installKitPrice > 0) {
+      autoAccCostEl.textContent = `€ ${priceInfo.installKitPrice.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} (Eenmalig)`;
     } else {
       autoAccCostEl.textContent = `€ 0,00`;
+    }
+  }
+  const autoDivBlockRow = document.getElementById("roiAutoDividerBlockRow");
+  const autoDivBlockCostEl = document.getElementById("roiAutoDividerBlockCost");
+  if (autoDivBlockRow && autoDivBlockCostEl) {
+    if (priceInfo.dividerBlockPrice > 0) {
+      autoDivBlockRow.style.display = "flex";
+      autoDivBlockCostEl.textContent = `€ ${priceInfo.dividerBlockPrice.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} (Art. ${priceInfo.artNrDividerBlock})`;
+    } else {
+      autoDivBlockRow.style.display = "none";
+      autoDivBlockCostEl.textContent = `€ 0,00`;
     }
   }
   if (autoYear1TotalEl) autoYear1TotalEl.textContent = `€ ${autoYear1Total.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -8455,9 +8473,15 @@ function addRoiPdfPage(doc, dateString, watermarkDataUrl, aspectRatio, autoDataU
   drawRow(x2, y2, colW, rh, "Jaarlijkse kosten patronen:", `€ ${autoCartridgeCostYear.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / j`, false, false, true);
   y2 += rh;
   if (deviceKey !== "single_point") {
-    const accStr = priceInfo.mandatoryAccessoriesPrice > 0 ? `€ ${priceInfo.mandatoryAccessoriesPrice.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} (Eenmalig)` : "€ 0,00";
-    drawRow(x2, y2, colW, rh, "Pulsarlube installatiekit:", accStr, false, false, true);
+    const kitStr = priceInfo.installKitPrice > 0 ? `€ ${priceInfo.installKitPrice.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} (Eenmalig)` : "€ 0,00";
+    drawRow(x2, y2, colW, rh, "Pulsarlube installatiekit:", kitStr, false, false, true);
     y2 += rh;
+
+    if (priceInfo.dividerBlockPrice > 0) {
+      const divStr = `€ ${priceInfo.dividerBlockPrice.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} (Art.${priceInfo.artNrDividerBlock})`;
+      drawRow(x2, y2, colW, rh, "Verdeelblok(ken):", divStr, false, false, true);
+      y2 += rh;
+    }
   }
   drawRow(x2, y2, colW, rh, "Arbeidskost automatisch:", "€ 0,00 (100% Auto)", false, false, true);
   y2 += rh;
