@@ -252,6 +252,9 @@ function renderAutoDevicesUI() {
         </div>
 
       </div>
+
+      <!-- Match / Under / Over-lubrication Notice Box -->
+      <div id="autoMatchNotice_${devId}" style="margin-top: 12px;"></div>
     </div>
     `;
   }
@@ -5891,6 +5894,48 @@ function calculateAutomationLubrication() {
     if (resDailyX) resDailyX.textContent = `${displayDailyX.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ml/dag`;
     if (resMonthlyX) resMonthlyX.textContent = `${displayMonthlyX.toLocaleString("nl-BE", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} ml/maand`;
     if (resYearlyX) resYearlyX.textContent = `${displayYearlyX.toLocaleString("nl-BE", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} ml/jaar`;
+
+    // 4. Match / Under / Over-lubrication Notice Box per Device
+    const matchNoticeEl = document.getElementById("autoMatchNotice_" + devId);
+    if (matchNoticeEl && totalDailyNeedForDev > 0) {
+      let periodVal = parseFloat(periodInput.value) || 1;
+      let totalDays = 30.4375 * periodVal;
+      if (curUnit === "weeks") totalDays = 7 * periodVal;
+      else if (curUnit === "days") totalDays = periodVal;
+      if (totalDays <= 0) totalDays = 1;
+
+      const actualDailyVol = capMl / totalDays;
+      const ratio = actualDailyVol / totalDailyNeedForDev;
+
+      let unitLabel = "maanden";
+      if (curUnit === "weeks") unitLabel = "weken";
+      else if (curUnit === "days") unitLabel = "dagen";
+
+      const actualStr = actualDailyVol.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      const targetStr = totalDailyNeedForDev.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+      if (ratio >= 0.85 && ratio <= 1.15) {
+        matchNoticeEl.innerHTML = `
+          <div style="padding: 10px 14px; background-color: #ECFDF5; border: 1px solid #A7F3D0; border-radius: var(--border-radius-sm); color: #065F46; font-size: 11.5px; font-weight: 600; line-height: 1.4; box-shadow: 0 1px 3px rgba(0,0,0,0.03);">
+            &check; <strong>Uitstekende match!</strong> De gekozen instelling (<strong>${periodVal} ${unitLabel}</strong>) op ${devName} levert <strong>${actualStr} ml/dag</strong> af. Dit sluit optimaal aan bij de berekende behoefte voor ${pointsText} (<strong>${targetStr} ml/dag</strong>).
+          </div>
+        `;
+      } else if (ratio < 0.85) {
+        matchNoticeEl.innerHTML = `
+          <div style="padding: 10px 14px; background-color: #FEF3C7; border: 1px solid #FDE68A; border-radius: var(--border-radius-sm); color: #92400E; font-size: 11.5px; font-weight: 600; line-height: 1.4; box-shadow: 0 1px 3px rgba(0,0,0,0.03);">
+            &#9888; <strong>Ondersmering risico!</strong> Ingesteld op <strong>${periodVal} ${unitLabel}</strong> levert ${devName} slechts <strong>${actualStr} ml/dag</strong> af, terwijl de berekende behoefte voor ${pointsText} <strong>${targetStr} ml/dag</strong> bedraagt.<br>
+            <strong>Advies:</strong> Stel de leeglooptijd korter in (bijv. op <strong>${dialLabel}</strong>) of kies een groter patroon.
+          </div>
+        `;
+      } else {
+        matchNoticeEl.innerHTML = `
+          <div style="padding: 10px 14px; background-color: #EFF6FF; border: 1px solid #BFDBFE; border-radius: var(--border-radius-sm); color: #1E40AF; font-size: 11.5px; font-weight: 600; line-height: 1.4; box-shadow: 0 1px 3px rgba(0,0,0,0.03);">
+            &#8505; <strong>Oversmering / Ruime dosering:</strong> Ingesteld op <strong>${periodVal} ${unitLabel}</strong> levert ${devName} <strong>${actualStr} ml/dag</strong> af, terwijl de berekende behoefte voor ${pointsText} <strong>${targetStr} ml/dag</strong> bedraagt.<br>
+            <strong>Advies:</strong> Stel het toestel in op <strong>${dialLabel}</strong> om de dosering optimaal af te stemmen.
+          </div>
+        `;
+      }
+    }
   }
 }
 
