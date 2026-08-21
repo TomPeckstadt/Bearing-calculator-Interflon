@@ -1,4 +1,23 @@
 
+function getVerdeelblokImage(callback) {
+  const img = new Image();
+  img.crossOrigin = "Anonymous";
+  img.src = "pulsarlube-verdeelblok.jpg?v=20260821_1647";
+  img.onload = function() {
+    try {
+      const canvas = document.createElement("canvas");
+      canvas.width = img.width;
+      canvas.height = img.height;
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(img, 0, 0);
+      callback(canvas.toDataURL("image/jpeg"));
+    } catch(e) {
+      callback(null);
+    }
+  };
+  img.onerror = function() { callback(null); };
+}
+
 // ==========================================
 // MULTI-DEVICE AUTOMATION ENGINE (Pulsarlube A, B, C, D)
 // ==========================================
@@ -526,7 +545,7 @@ function cleanPdfText(str) {
     .trim();
 }
 
-function renderPdfAutomationExtraPage(doc, autoData, autoDataUrl, autoRatio, watermarkDataUrl, aspectRatio, langData, isChain = false) {
+function renderPdfAutomationExtraPage(doc, autoData, autoDataUrl, autoRatio, watermarkDataUrl, aspectRatio, langData, isChain = false, divDataUrl = null) {
   doc.addPage();
 
   const pageWidth = doc.internal.pageSize.getWidth();
@@ -541,33 +560,35 @@ function renderPdfAutomationExtraPage(doc, autoData, autoDataUrl, autoRatio, wat
     doc.addImage(watermarkDataUrl, "JPEG", x, y, imgWidth, imgHeight);
   }
 
-  // 2. Header
+  // 2. Page Header
   doc.setFillColor(227, 6, 19);
-  doc.rect(20, 15, 170, 2, "F");
+  doc.rect(20, 12, 170, 2, "F");
 
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(14);
+  doc.setFontSize(13);
   doc.setTextColor(227, 6, 19);
   const mainTitle = isChain 
     ? (langData.pdfAutoChainExtraTitle || "INTERFLON AUTOMATISCHE KETTINGSMEERING")
     : (langData.pdfAutoBearingExtraTitle || "INTERFLON AUTOMATISCHE LAGERSMEERING");
-  doc.text(mainTitle, 20, 25);
+  doc.text(mainTitle, 20, 21);
 
   doc.setFont("helvetica", "normal");
-  doc.setFontSize(8.5);
+  doc.setFontSize(8);
   doc.setTextColor(100, 100, 100);
   const subTitle = isChain
     ? "Continu geautomatiseerde kettingsmering & bescherming van uw kettingaandrijvingen"
     : "Continu geautomatiseerde lagersmering & bescherming van uw roterende apparatuur";
-  doc.text(subTitle + " • Overzicht Smeertoestellen", 20, 30);
+  doc.text(subTitle + " • Overzicht Smeertoestellen", 20, 26);
 
   doc.setDrawColor(220, 220, 220);
-  doc.line(20, 33, 190, 33);
+  doc.setLineWidth(0.3);
+  doc.line(20, 29, 190, 29);
 
   // Read active devices state
-  const numDevices = typeof getActiveNumDevices === "function" ? getActiveNumDevices() : 1;
   const deviceSelect = document.getElementById("automationDeviceSelect") || document.getElementById("autoDeviceSelect");
   const deviceKey = deviceSelect ? deviceSelect.value : "single_point";
+  const isSinglePoint = (deviceKey === "single_point");
+  const numDevices = isSinglePoint ? 1 : (typeof getActiveNumDevices === "function" ? getActiveNumDevices() : 1);
 
   let baseDeviceName = "Interflon Single Point Lubricator";
   if (deviceKey === "pulsarlube_m2") baseDeviceName = "Pulsarlube M2";
@@ -578,9 +599,64 @@ function renderPdfAutomationExtraPage(doc, autoData, autoDataUrl, autoRatio, wat
   const greaseName = selectGrease ? selectGrease.value : "Interflon Grease MP2/3";
   const dailyNeedCm3 = window.currentDailyNeedCm3 || 0.704;
 
-  // Render cards per active device (Pulsarlube A, B, C, D)
-  let startY = 36;
-  const isMulti = numDevices > 1;
+  // 3. TOP SPOTLIGHT BANNER WITH DEVICE PHOTO
+  const topBannerY = 32;
+  const topBannerH = 34;
+  doc.setFillColor(248, 250, 252);
+  doc.setDrawColor(226, 232, 240);
+  doc.setLineWidth(0.3);
+  doc.roundedRect(20, topBannerY, 170, topBannerH, 3, 3, "FD");
+
+  // Device Title on Left
+  const fullTitleStr = numDevices === 1 ? baseDeviceName : `${numDevices}x ${baseDeviceName}`;
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(14);
+  doc.setTextColor(227, 6, 19);
+  doc.text(fullTitleStr, 26, topBannerY + 12);
+
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(8.5);
+  doc.setTextColor(71, 85, 105);
+  const devSummaryStr = isSinglePoint 
+    ? `Geselecteerd vet: ${greaseName}  •  1-op-1 smering per lager` 
+    : `Geselecteerd vet: ${greaseName}  •  Aantal toestellen: ${numDevices}`;
+  doc.text(devSummaryStr, 26, topBannerY + 19);
+
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(8);
+  doc.setTextColor(227, 6, 19);
+  doc.text(`Berekende vetbehoefte per lager: ${dailyNeedCm3.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ml/dag`, 26, topBannerY + 26);
+
+  // Device Photo Spotlight Centered on Right
+  if (autoDataUrl && autoRatio) {
+    const frameW = 34;
+    const frameH = 28;
+    const frameX = 152;
+    const frameY = topBannerY + 3;
+
+    doc.setFillColor(255, 255, 255);
+    doc.setDrawColor(241, 245, 249);
+    doc.roundedRect(frameX, frameY, frameW, frameH, 2, 2, "FD");
+
+    const imgMaxW = 28;
+    const imgMaxH = 24;
+    let imgW = imgMaxW;
+    let imgH = imgW * autoRatio;
+    if (imgH > imgMaxH) {
+      imgH = imgMaxH;
+      imgW = imgH / autoRatio;
+    }
+    const imgX = frameX + (frameW - imgW) / 2;
+    const imgY = frameY + (frameH - imgH) / 2;
+    try {
+      doc.addImage(autoDataUrl, "PNG", imgX, imgY, imgW, imgH);
+    } catch (e) {}
+  }
+
+  // 4. DEVICE CARDS (SIDE-BY-SIDE IF 2 DEVICES, OR STACKED)
+  const cardsStartY = 70;
+  const isTwoCol = (numDevices === 2);
+  const colWidth = isTwoCol ? 82 : 170;
 
   for (let i = 0; i < numDevices; i++) {
     const dev = (typeof autoDevicesState !== "undefined" && autoDevicesState[i]) ? autoDevicesState[i] : { id: 'A', points: 1, cap: 120, period: 6, unit: 'months' };
@@ -613,65 +689,204 @@ function renderPdfAutomationExtraPage(doc, autoData, autoDataUrl, autoRatio, wat
     if (curUnit === "weeks") unitLabel = "weken";
     else if (curUnit === "days") unitLabel = "dagen";
 
-    // Card background box
-    const cardH = numDevices === 1 ? 140 : (numDevices === 2 ? 115 : 55);
+    // Column positions
+    let cardX = 20;
+    let cardY = cardsStartY;
+    if (isTwoCol) {
+      cardX = (i === 0) ? 20 : 108;
+    } else if (i > 0) {
+      cardY = cardsStartY + (i * 125);
+    }
+
+    const cardH = isTwoCol ? 120 : (numDevices === 1 ? 120 : 115);
+
+    // Main Card Outer Frame
+    doc.setFillColor(255, 255, 255);
+    doc.setDrawColor(203, 213, 225);
+    doc.setLineWidth(0.3);
+    doc.roundedRect(cardX, cardY, colWidth, cardH, 3, 3, "FD");
+
+    // Red Card Header Bar
+    doc.setFillColor(227, 6, 19);
+    doc.rect(cardX, cardY, colWidth, 7, "F");
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(8.5);
+    doc.setTextColor(255, 255, 255);
+    const cardHeaderTitle = isSinglePoint 
+      ? "Single Point - Smeerinstelling & Volumecalculatie" 
+      : `${devName} - Smeerinstelling & Volumecalculatie`;
+    doc.text(cardHeaderTitle, cardX + 3, cardY + 5);
+
+    if (numDevices > 1) {
+      doc.setFillColor(255, 255, 255);
+      doc.roundedRect(cardX + colWidth - 22, cardY + 1.5, 19, 4, 1, 1, "F");
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(6.5);
+      doc.setTextColor(227, 6, 19);
+      doc.text(`TOESTEL ${devId}`, cardX + colWidth - 12.5, cardY + 4.2, { align: "center" });
+    }
+
+    let innerY = cardY + 10;
+
+    // A. VERDEELBLOK CARD SECTION (Only if not single_point)
+    if (!isSinglePoint) {
+      doc.setFillColor(248, 250, 252);
+      doc.setDrawColor(226, 232, 240);
+      doc.setLineWidth(0.2);
+      doc.roundedRect(cardX + 2.5, innerY, colWidth - 5, 18, 2, 2, "FD");
+
+      // Verdeelblok Thumbnail Image + Badge
+      if (divDataUrl) {
+        try {
+          doc.addImage(divDataUrl, "JPEG", cardX + 4, innerY + 1.5, 15, 15);
+        } catch(e){}
+      }
+      doc.setFillColor(255, 255, 255);
+      doc.setDrawColor(227, 6, 19);
+      doc.setLineWidth(0.8);
+      doc.circle(cardX + 17, innerY + 14, 3, "FD");
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(6.5);
+      doc.setTextColor(0, 0, 0);
+      doc.text(pts.toString(), cardX + 17, innerY + 16, { align: "center" });
+
+      // Verdeelblok Specs
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(7.5);
+      doc.setTextColor(15, 23, 42);
+      const divTitleStr = pts === 1 ? "Directe aansluiting (1 smeerpunt)" : `HU Type Verdeelblok (${pts}-poorts)`;
+      doc.text(divTitleStr, cardX + 22, innerY + 6);
+
+      const pInfo = getAutomationPriceInfo(deviceKey, capMl, greaseName, pts);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(7);
+      doc.setTextColor(227, 6, 19);
+      const divPriceStr = pInfo.dividerBlockPrice > 0 ? `Prijs verdeelblok: € ${pInfo.dividerBlockPrice.toFixed(2).replace('.',',')}` : "Geen verdeelblok (€ 0,00)";
+      doc.text(divPriceStr, cardX + 22, innerY + 12);
+
+      innerY += 21;
+    } else {
+      innerY += 2;
+    }
+
+    // B. RECOMMENDED ADVICE BOX (RED OUTLINE CARD)
+    doc.setFillColor(254, 242, 242);
+    doc.setDrawColor(227, 6, 19);
+    doc.setLineWidth(0.4);
+    doc.roundedRect(cardX + 2.5, innerY, colWidth - 5, 20, 2, 2, "FD");
+
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(6.5);
+    doc.setTextColor(227, 6, 19);
+    doc.text(`GEADVISEERDE INSTELLING OP ${devName.toUpperCase()}`, cardX + 5, innerY + 5);
+
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(9);
+    doc.setTextColor(227, 6, 19);
+    doc.text(`${recSetting.months} maanden op ${recSetting.cap} ml | ${pts} ${pts === 1 ? 'lager' : 'lagers'}`, cardX + 5, innerY + 11);
+
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(6);
+    doc.setTextColor(30, 41, 59);
+    doc.text(`✓ Optimaal advies voor ${pts} lager(s): ${recSetting.cap} ml patroon ingesteld op ${recSetting.months} m.`, cardX + 5, innerY + 16);
+
+    innerY += 23;
+
+    // C. LOOPTĲD & DISPLAY INSTELLING INPUTS
     doc.setFillColor(248, 250, 252);
     doc.setDrawColor(226, 232, 240);
-    doc.setLineWidth(0.3);
-    doc.roundedRect(20, startY, 170, cardH, 2, 2, "FD");
+    doc.setLineWidth(0.2);
+    doc.roundedRect(cardX + 2.5, innerY, colWidth - 5, 18, 2, 2, "FD");
 
-    // Card Header Bar
-    doc.setFillColor(227, 6, 19);
-    doc.rect(20, startY, 170, 7, "F");
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(9.5);
-    doc.setTextColor(255, 255, 255);
-    doc.text(`${devName} - Smeerinstelling & Volumecalculatie (${pts} ${pts === 1 ? 'lager' : 'lagers'})`, 24, startY + 5);
-
-    // Inner details
     doc.setFont("helvetica", "normal");
-    doc.setFontSize(8);
-    doc.setTextColor(51, 65, 85);
-
-    let innerY = startY + 12;
-    doc.text(`Patroon Capaciteit: ${capMl} ml   •   Smeerpunten: ${pts} lager(s)   •   Product: ${greaseName}`, 24, innerY);
-    innerY += 5;
-    doc.text(`Display Instelling op toestel: ${periodVal} ${unitLabel} (Theoretisch berekend: ${recMonths.toFixed(1).replace('.',',')} maanden)`, 24, innerY);
-
-    innerY += 6;
-    doc.setFont("helvetica", "bold");
-    doc.setTextColor(227, 6, 19);
-    const daily1Str = dailyNeedCm3.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-    const dailyXStr = totalDailyNeedForDev.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-    doc.text(`Smeervolume per 1 lager: ${daily1Str} ml/dag   •   Totaal volume voor ${pts} lagers: ${dailyXStr} ml/dag (${(totalDailyNeedForDev * 365.25).toFixed(1).replace('.',',')} ml/jaar)`, 24, innerY);
-
-    innerY += 5;
-    doc.setFont("helvetica", "normal");
+    doc.setFontSize(6.5);
     doc.setTextColor(71, 85, 105);
-    doc.text(`Verbruik patronen per jaar op ${devName}: ${cartridgesPerYearDev.toFixed(1).replace('.',',')} patronen/jaar`, 24, innerY);
+    doc.text(`Patroon Capaciteit: ${capMl} ml   •   Looptijd: ${periodVal} ${unitLabel}`, cardX + 5, innerY + 6);
 
-    // Notice box inside card
-    innerY += 6;
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(7.5);
+    doc.setTextColor(227, 6, 19);
+    doc.text(`Display instelling op toestel: ${periodVal} ${unitLabel}`, cardX + 5, innerY + 11);
+
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(6);
+    doc.setTextColor(100, 116, 139);
+    doc.text(`Theoretisch berekend: ${recMonths.toFixed(1).replace('.',',')} maanden`, cardX + 5, innerY + 15);
+
+    innerY += 21;
+
+    // D. VOLUME CARDS (WHITE BOXES LIKE ON SCREEN)
+    const volBoxW = (colWidth - 7) / 2;
+
+    // Volume Box 1: 1 Lager
+    doc.setFillColor(255, 255, 255);
+    doc.setDrawColor(226, 232, 240);
+    doc.setLineWidth(0.2);
+    doc.roundedRect(cardX + 2.5, innerY, volBoxW, 20, 2, 2, "FD");
+
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(6);
+    doc.setTextColor(227, 6, 19);
+    doc.text("SMEERVOLUME (VOOR 1 LAGER)", cardX + 4, innerY + 5);
+
+    const daily1Str = dailyNeedCm3.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(8.5);
+    doc.setTextColor(227, 6, 19);
+    doc.text(`${daily1Str} ml/dag`, cardX + 4, innerY + 11);
+
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(5.5);
+    doc.setTextColor(100, 116, 139);
+    doc.text(`${(dailyNeedCm3 * 30.4375).toFixed(1).replace('.',',')} ml/m • ${(dailyNeedCm3 * 365.25).toFixed(1).replace('.',',')} ml/j`, cardX + 4, innerY + 16);
+
+    // Volume Box 2: Total Toestel (N Lagers)
+    doc.setFillColor(255, 255, 255);
+    doc.setDrawColor(226, 232, 240);
+    doc.setLineWidth(0.2);
+    doc.roundedRect(cardX + 3.5 + volBoxW, innerY, volBoxW, 20, 2, 2, "FD");
+
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(6);
+    doc.setTextColor(227, 6, 19);
+    doc.text(`TOTAAL TOESTEL (${pts} ${pts === 1 ? 'LAGER' : 'LAGERS'})`, cardX + 5 + volBoxW, innerY + 5);
+
+    const dailyXStr = totalDailyNeedForDev.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(8.5);
+    doc.setTextColor(227, 6, 19);
+    doc.text(`${dailyXStr} ml/dag`, cardX + 5 + volBoxW, innerY + 11);
+
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(5.5);
+    doc.setTextColor(100, 116, 139);
+    doc.text(`${(totalDailyNeedForDev * 30.4375).toFixed(1).replace('.',',')} ml/m • ${(totalDailyNeedForDev * 365.25).toFixed(1).replace('.',',')} ml/j`, cardX + 5 + volBoxW, innerY + 16);
+
+    innerY += 22;
+
+    // E. MATCH NOTICE BOX (GREEN OUTLINE CARD AT BOTTOM)
     const maxTheoMonthsDev = (500 / totalDailyNeedForDev) / 30.4375;
     if (maxTheoMonthsDev < 2.0) {
       doc.setFillColor(254, 242, 242);
       doc.setDrawColor(239, 68, 68);
-      doc.roundedRect(24, innerY, 162, 10, 1, 1, "FD");
+      doc.setLineWidth(0.3);
+      doc.roundedRect(cardX + 2.5, innerY, colWidth - 5, 12, 2, 2, "FD");
+
       doc.setFont("helvetica", "bold");
-      doc.setFontSize(7.5);
+      doc.setFontSize(6);
       doc.setTextColor(153, 27, 27);
-      doc.text(`Hoge vetbehoefte (${dailyXStr} ml/dag): 500 ml patroon raakt na ${maxTheoMonthsDev.toFixed(1).replace('.',',')} m leeg. Advies: Bekijk de optie Graco.`, 27, innerY + 6);
+      doc.text(`⚠ Hoge vetbehoefte (${dailyXStr} ml/dag): Patroon raakt na ${maxTheoMonthsDev.toFixed(1).replace('.',',')} m leeg. Advies: Bekijk Graco.`, cardX + 4, innerY + 7);
     } else {
       doc.setFillColor(236, 253, 245);
       doc.setDrawColor(167, 243, 208);
-      doc.roundedRect(24, innerY, 162, 10, 1, 1, "FD");
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(7.5);
-      doc.setTextColor(6, 95, 70);
-      doc.text(`Optimaal advies voor ${pts} lager(s): ${capMl} ml patroon ingesteld op ${periodVal} ${unitLabel} (Levering: ${actualDailyVol.toFixed(2).replace('.',',')} ml/dag).`, 27, innerY + 6);
-    }
+      doc.setLineWidth(0.3);
+      doc.roundedRect(cardX + 2.5, innerY, colWidth - 5, 12, 2, 2, "FD");
 
-    startY += cardH + 6;
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(6);
+      doc.setTextColor(6, 95, 70);
+      doc.text(`✓ Uitstekende match! ${capMl} ml op ${periodVal} ${unitLabel} levert ${actualDailyVol.toFixed(2).replace('.',',')} ml/dag af voor ${pts} lager(s).`, cardX + 4, innerY + 7);
+    }
   }
 }
 
@@ -4715,7 +4930,14 @@ function runBearingPdfExport(includeTco, includeRoi) {
         matchNotice: autoNoticeEl ? autoNoticeEl.textContent.trim() : ""
       };
 
-      renderPdfAutomationExtraPage(doc, autoBearingData, autoDataUrl, autoRatio, watermarkDataUrl, aspectRatio, langData, false);
+      getVerdeelblokImage(function(divDataUrl) {
+        renderPdfAutomationExtraPage(doc, autoBearingData, autoDataUrl, autoRatio, watermarkDataUrl, aspectRatio, langData, false, divDataUrl);
+        if (includeRoi) {
+          addRoiPdfPage(doc, dateString, watermarkDataUrl, aspectRatio, autoDataUrl);
+        }
+        const filePrefix = currentLang === "nl" ? "Interflon_Smeeradvies_" : currentLang === "en" ? "Interflon_Lubrication_Advice_" : "Interflon_Conseil_Lubrification_";
+        doc.save(filePrefix + bearingNum.replace(/[\/\\?%*:|"<>/\s]/g, "_") + ".pdf");
+      });
 
       if (includeRoi) {
         addRoiPdfPage(doc, dateString, watermarkDataUrl, aspectRatio, autoDataUrl);
