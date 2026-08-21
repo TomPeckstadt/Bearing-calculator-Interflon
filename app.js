@@ -793,12 +793,12 @@ function renderPdfAutomationExtraPage(doc, autoData, autoDataUrl, autoRatio, wat
     doc.setFont("helvetica", "bold");
     doc.setFontSize(9);
     doc.setTextColor(227, 6, 19);
-    doc.text(`${recSetting.months} maanden op ${recSetting.cap} ml | ${pts} ${pts === 1 ? 'lager' : 'lagers'}`, cardX + 5, innerY + 11);
+    doc.text(`${recSetting.months} maanden op ${capMl} ml | ${pts} ${pts === 1 ? 'lager' : 'lagers'}`, cardX + 5, innerY + 11);
 
     doc.setFont("helvetica", "normal");
     doc.setFontSize(6);
     doc.setTextColor(30, 41, 59);
-    doc.text(`✓ Optimaal advies voor ${pts} lager(s): ${recSetting.cap} ml patroon ingesteld op ${recSetting.months} m.`, cardX + 5, innerY + 16);
+    doc.text(`Optimaal advies voor ${pts} lager(s): ${capMl} ml patroon ingesteld op ${recSetting.months} m.`, cardX + 5, innerY + 16);
 
     innerY += 23;
 
@@ -895,7 +895,7 @@ function renderPdfAutomationExtraPage(doc, autoData, autoDataUrl, autoRatio, wat
       doc.setFont("helvetica", "bold");
       doc.setFontSize(6);
       doc.setTextColor(6, 95, 70);
-      doc.text(`✓ Uitstekende match! ${capMl} ml op ${periodVal} ${unitLabel} levert ${actualDailyVol.toFixed(2).replace('.',',')} ml/dag af voor ${pts} lager(s).`, cardX + 4, innerY + 7);
+      doc.text(`Uitstekende match! ${capMl} ml op ${periodVal} ${unitLabel} levert ${actualDailyVol.toFixed(2).replace('.',',')} ml/dag af voor ${pts} lager(s).`, cardX + 4, innerY + 7);
     }
   }
 }
@@ -4556,8 +4556,314 @@ function runBearingPdfExport(includeTco, includeRoi) {
       doc.setFontSize(7.5);
       doc.setTextColor(227, 6, 19);
       doc.text("INTERFLON - " + (langData.pdfWatermarkText || "A WORLD WITHOUT FRICTION").toUpperCase(), 20, 282);
+      // ==========================================================================
+      // PAGE 2: OPBRENGSTMODEL TCO BEREKENING (INDIEN GESELECTEERD)
+      // ==========================================================================
+      if (includeTco) {
+        doc.addPage();
 
-      getVerdeelblokImage(function(divDataUrl) {
+        if (watermarkDataUrl && aspectRatio) {
+          const imgWidth = 160;
+          const imgHeight = 160 * aspectRatio;
+          const x = (pageWidth - imgWidth) / 2;
+          const y = (pageHeight - imgHeight) / 2;
+          doc.addImage(watermarkDataUrl, "JPEG", x, y, imgWidth, imgHeight);
+        }
+
+        doc.setFillColor(227, 6, 19);
+        doc.rect(20, 20, 170, 2, "F");
+
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(18);
+        doc.setTextColor(227, 6, 19);
+        doc.text("OPBRENGSTMODEL LAGERSMERING (TCO)", 20, 31);
+
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(8.5);
+        doc.setTextColor(100, 100, 100);
+        doc.text("Analysestructuur op basis van 14 parameters (Vetverbruik, arbeid, wisselstukken en stilstand)", 20, 37);
+
+        doc.setDrawColor(220, 220, 220);
+        doc.line(20, 41, 190, 41);
+
+        const startX1 = 20;
+        const startX2 = 75;
+        const startX3 = 130;
+
+        function drawCell(x, y, w, h, label, value, bgType) {
+          if (bgType === "blue") {
+            doc.setFillColor(219, 234, 254);
+            doc.rect(x, y, w, h, "F");
+          } else if (bgType === "grey") {
+            doc.setFillColor(243, 244, 246);
+            doc.rect(x, y, w, h, "F");
+          } else if (bgType === "section") {
+            doc.setFillColor(224, 231, 255);
+            doc.rect(x, y, w, h, "F");
+          } else if (bgType === "slate-header1") {
+            doc.setFillColor(71, 85, 105);
+            doc.rect(x, y, w, h, "F");
+          } else if (bgType === "red-header") {
+            doc.setFillColor(227, 6, 19);
+            doc.rect(x, y, w, h, "F");
+          } else if (bgType === "slate-header2") {
+            doc.setFillColor(51, 65, 85);
+            doc.rect(x, y, w, h, "F");
+          } else if (bgType === "pink-total") {
+            doc.setFillColor(252, 231, 243);
+            doc.rect(x, y, w, h, "F");
+          } else if (bgType === "green-total") {
+            doc.setFillColor(220, 252, 231);
+            doc.rect(x, y, w, h, "F");
+          }
+
+          doc.setDrawColor(229, 231, 235);
+          doc.setLineWidth(0.15);
+          doc.rect(x, y, w, h, "D");
+
+          if (bgType && bgType.includes("header")) {
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(7.5);
+            doc.setTextColor(255, 255, 255);
+            doc.text(label, x + w / 2, y + h / 2 + 1.2, { align: "center" });
+            return;
+          }
+
+          if (bgType === "section") {
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(7.5);
+            doc.setTextColor(11, 19, 43);
+            doc.text(label, x + 2, y + h / 2 + 1.2);
+            return;
+          }
+
+          const isHighlight = bgType === "pink-total" || (bgType && bgType.includes("green"));
+          doc.setFont("helvetica", isHighlight ? "bold" : "normal");
+          doc.setFontSize(6.2);
+          
+          if (bgType === "pink-total") doc.setTextColor(11, 19, 43);
+          else if (bgType && bgType.includes("green")) doc.setTextColor(22, 101, 52);
+          else doc.setTextColor(72, 84, 96);
+
+          doc.text(label, x + 2, y + h / 2 + 1.2, { maxWidth: w - 12 });
+
+          if (value !== null && value !== undefined) {
+            doc.setFont("helvetica", isHighlight ? "bold" : "bold");
+            doc.setFontSize(6.5);
+            if (bgType && bgType.includes("green")) doc.setTextColor(22, 101, 52);
+            else doc.setTextColor(11, 19, 43);
+            doc.text(value.toString(), x + w - 2, y + h / 2 + 1.2, { align: "right" });
+          }
+        }
+
+        // HEADERS (Y = 46)
+        drawCell(startX1, 46, 54, 6.5, "OMSTANDIGHEDEN VERGELIJKING", null, "slate-header1");
+        drawCell(startX2, 46, 54, 6.5, "OMSTANDIGHEDEN INTERFLON", null, "red-header");
+        drawCell(startX3, 46, 60, 6.5, "PROCES INVOER (SHARED)", null, "slate-header2");
+
+        const p1_name = document.getElementById("omProdName1") ? document.getElementById("omProdName1").value : "Huidig Product";
+        const p2_name = document.getElementById("omProdName2") ? document.getElementById("omProdName2").value : "Interflon Product";
+        const p1_cons = document.getElementById("omProdCons1") ? document.getElementById("omProdCons1").value : "0";
+        const p2_cons = document.getElementById("omProdCons2") ? document.getElementById("omProdCons2").value : "0";
+        const p1_price = document.getElementById("omProdPrice1") ? document.getElementById("omProdPrice1").value : "0";
+        const p2_price = document.getElementById("omProdPrice2") ? document.getElementById("omProdPrice2").value : "0";
+        
+        const p1_freq = document.getElementById("omProdFreq1") ? document.getElementById("omProdFreq1").value : "0";
+        const p2_freq = document.getElementById("omProdFreq2") ? document.getElementById("omProdFreq2").value : "0";
+        const shared_worktime = document.getElementById("omSharedWorktime") ? document.getElementById("omSharedWorktime").value : "0";
+        const p1_rep_freq = document.getElementById("omRepairFreq1") ? document.getElementById("omRepairFreq1").value : "0";
+        const p2_rep_freq = document.getElementById("omRepairFreq2") ? document.getElementById("omRepairFreq2").value : "0";
+        const shared_rep_h = document.getElementById("omSharedRepairH") ? document.getElementById("omSharedRepairH").value : "0";
+        const shared_labor_rate = document.getElementById("omSharedLaborRate") ? document.getElementById("omSharedLaborRate").value : "0";
+        const shared_prep_h = document.getElementById("omSharedPrepH") ? document.getElementById("omSharedPrepH").value : "0";
+
+        const p1_lifetime = document.getElementById("omLifetime1") ? document.getElementById("omLifetime1").value : "0";
+        const p2_lifetime = document.getElementById("omLifetime2") ? document.getElementById("omLifetime2").value : "0";
+        const shared_parts_cost = document.getElementById("omSharedPartsCost") ? document.getElementById("omSharedPartsCost").value : "0";
+        const shared_sets = document.getElementById("omSharedSetsPerMachine") ? document.getElementById("omSharedSetsPerMachine").value : "1";
+        const num_mach = document.getElementById("omSharedNumMachines") ? document.getElementById("omSharedNumMachines").value : "1";
+
+        const p1_dt_h = document.getElementById("omDowntimeH1") ? document.getElementById("omDowntimeH1").value : "0";
+        const p2_dt_h = document.getElementById("omDowntimeH2") ? document.getElementById("omDowntimeH2").value : "0";
+        const shared_dt_rate = document.getElementById("omSharedDowntimeRate") ? document.getElementById("omSharedDowntimeRate").value : "0";
+        const p1_dt_freq = document.getElementById("omDowntimeFreq1") ? document.getElementById("omDowntimeFreq1").value : "0";
+        const p2_dt_freq = document.getElementById("omDowntimeFreq2") ? document.getElementById("omDowntimeFreq2").value : "0";
+
+        const p1_ann_prod = document.getElementById("omAnnProdCost1") ? document.getElementById("omAnnProdCost1").textContent : "€ 0,00";
+        const p2_ann_prod = document.getElementById("omAnnProdCost2") ? document.getElementById("omAnnProdCost2").textContent : "€ 0,00";
+        const p1_ann_labor = document.getElementById("omAnnLaborCost1") ? document.getElementById("omAnnLaborCost1").textContent : "€ 0,00";
+        const p2_ann_labor = document.getElementById("omAnnLaborCost2") ? document.getElementById("omAnnLaborCost2").textContent : "€ 0,00";
+        const p1_ann_mat = document.getElementById("omAnnMaterialCost1") ? document.getElementById("omAnnMaterialCost1").textContent : "€ 0,00";
+        const p2_ann_mat = document.getElementById("omAnnMaterialCost2") ? document.getElementById("omAnnMaterialCost2").textContent : "€ 0,00";
+        const p1_ann_dt = document.getElementById("omAnnDowntimeCost1") ? document.getElementById("omAnnDowntimeCost1").textContent : "€ 0,00";
+        const p2_ann_dt = document.getElementById("omAnnDowntimeCost2") ? document.getElementById("omAnnDowntimeCost2").textContent : "€ 0,00";
+
+        const p1_ann_total = document.getElementById("omAnnTotalCost1") ? document.getElementById("omAnnTotalCost1").textContent : "€ 0,00";
+        const p2_ann_total = document.getElementById("omAnnTotalCost2") ? document.getElementById("omAnnTotalCost2").textContent : "€ 0,00";
+        const p1_park_total = document.getElementById("omAnnParkCost1") ? document.getElementById("omAnnParkCost1").textContent : "€ 0,00";
+        const p2_park_total = document.getElementById("omAnnParkCost2") ? document.getElementById("omAnnParkCost2").textContent : "€ 0,00";
+
+        const savings_mach = document.getElementById("omAnnSavingsMachine") ? document.getElementById("omAnnSavingsMachine").textContent : "€ 0,00";
+        const savings_park = document.getElementById("omAnnSavingsPark") ? document.getElementById("omAnnSavingsPark").textContent : "€ 0,00";
+        const tco_yrs = document.getElementById("omTcoYears") ? (document.getElementById("omTcoYears").value || "10") : "10";
+
+        // PRODUCT SECTION
+        let curY = 53;
+        drawCell(startX1, curY, 54, 5, "PRODUCT", null, "section");
+        drawCell(startX2, curY, 54, 5, "PRODUCT", null, "section");
+        drawCell(startX3, curY, 60, 5, "Algemene info", null, "section");
+
+        curY = 58;
+        drawCell(startX1, curY, 54, 6.5, langData.omProdName || "Productnaam", p1_name, "grey");
+        drawCell(startX2, curY, 54, 6.5, langData.omProdName || "Productnaam", p2_name, "grey");
+
+        if (typeof tcoUploadedImageBase64 !== "undefined" && tcoUploadedImageBase64) {
+          try {
+            doc.addImage(tcoUploadedImageBase64, "JPEG", 131, 59, 58, 24);
+          } catch(e){}
+          doc.setDrawColor(229, 231, 235);
+          doc.setLineWidth(0.25);
+          doc.rect(startX3, 58, 60, 26, "D");
+        } else {
+          doc.setFillColor(243, 244, 246);
+          doc.rect(startX3, 58, 60, 26, "F");
+          doc.setDrawColor(229, 231, 235);
+          doc.setLineWidth(0.25);
+          doc.rect(startX3, 58, 60, 26, "D");
+          doc.setFont("helvetica", "normal");
+          doc.setFontSize(7.5);
+          doc.setTextColor(140, 140, 140);
+          doc.text("Geen afbeelding", startX3 + 30, 72, { align: "center" });
+        }
+
+        curY += 6.5;
+        drawCell(startX1, curY, 54, 6.5, "Productverbruik / smeerbeurt / per lager (g)", p1_cons, "blue");
+        drawCell(startX2, curY, 54, 6.5, "Productverbruik / smeerbeurt / per lager (g)", p2_cons, "blue");
+        
+        curY += 6.5;
+        drawCell(startX1, curY, 54, 6.5, "Kostprijs product / L (€)", p1_price, "blue");
+        drawCell(startX2, curY, 54, 6.5, "Kostprijs product / L (€)", p2_price, "blue");
+        
+        curY += 6.5;
+        drawCell(startX1, curY, 54, 6.5, "Kostprijs product / m / j (€)", p1_ann_prod);
+        drawCell(startX2, curY, 54, 6.5, "Kostprijs product / m / j (€)", p2_ann_prod);
+
+        // TIJDSBESTEDING SECTION
+        curY = 85;
+        drawCell(startX1, curY, 54, 5, "TIJDSBESTEDING", null, "section");
+        drawCell(startX2, curY, 54, 5, "TIJDSBESTEDING", null, "section");
+        drawCell(startX3, curY, 60, 5, "TIJDSBESTEDING", null, "section");
+
+        curY = 90;
+        drawCell(startX1, curY, 54, 6.5, "Aantal smeerbeurten / jaar / per lager", p1_freq, "blue");
+        drawCell(startX2, curY, 54, 6.5, "Aantal smeerbeurten / jaar / per lager", p2_freq, "blue");
+        drawCell(startX3, curY, 60, 6.5, "Werktijd / smeerbeurt (min)", shared_worktime, "grey");
+
+        curY += 6.5;
+        drawCell(startX1, curY, 54, 6.5, "Revisiefrequentie (mnd)", p1_rep_freq, "blue");
+        drawCell(startX2, curY, 54, 6.5, "Revisiefrequentie (mnd)", p2_rep_freq, "blue");
+        drawCell(startX3, curY, 60, 6.5, "Revisietijd / Downtime / H", shared_rep_h, "grey");
+
+        curY += 6.5;
+        drawCell(startX1, curY, 54, 6.5, "Kostprijs arbeid / m / j (€)", p1_ann_labor);
+        drawCell(startX2, curY, 54, 6.5, "Kostprijs arbeid / m / j (€)", p2_ann_labor);
+        drawCell(startX3, curY, 60, 6.5, "Prijs werkuur / H (€)", shared_labor_rate, "grey");
+
+        // MATERIAAL SECTION
+        curY = 111;
+        drawCell(startX1, curY, 54, 5, "MATERIAAL", null, "section");
+        drawCell(startX2, curY, 54, 5, "MATERIAAL", null, "section");
+        drawCell(startX3, curY, 60, 5, "MATERIAAL", null, "section");
+
+        curY = 116;
+        drawCell(startX1, curY, 54, 6.5, "Levensduur lager (mnd)", p1_lifetime, "blue");
+        drawCell(startX2, curY, 54, 6.5, "Levensduur lager (mnd)", p2_lifetime, "blue");
+        drawCell(startX3, curY, 60, 6.5, "Kostprijs wisselstukken (€)", shared_parts_cost, "grey");
+
+        curY += 6.5;
+        drawCell(startX1, curY, 54, 6.5, "", "");
+        drawCell(startX2, curY, 54, 6.5, "", "");
+        drawCell(startX3, curY, 60, 6.5, "Aantal lagers / machine", shared_sets, "grey");
+
+        curY += 6.5;
+        drawCell(startX1, curY, 54, 6.5, "Kostprijs materiaal / m / j (€)", p1_ann_mat);
+        drawCell(startX2, curY, 54, 6.5, "Kostprijs materiaal / m / j (€)", p2_ann_mat);
+        drawCell(startX3, curY, 60, 6.5, "", "");
+
+        // DOWN-TIME SECTION
+        curY = 137;
+        drawCell(startX1, curY, 54, 5, "DOWN-TIME", null, "section");
+        drawCell(startX2, curY, 54, 5, "DOWN-TIME", null, "section");
+        drawCell(startX3, curY, 60, 5, "DOWN-TIME", null, "section");
+
+        curY = 142;
+        drawCell(startX1, curY, 54, 6.5, "Tijdsduur / per lager (H)", p1_dt_h, "blue");
+        drawCell(startX2, curY, 54, 6.5, "Tijdsduur / per lager (H)", p2_dt_h, "blue");
+        drawCell(startX3, curY, 60, 6.5, "Kostprijs downtime / H (€)", shared_dt_rate, "grey");
+
+        curY += 6.5;
+        drawCell(startX1, curY, 54, 6.5, "Aantal / jaar", p1_dt_freq, "blue");
+        drawCell(startX2, curY, 54, 6.5, "Aantal / jaar", p2_dt_freq, "blue");
+        drawCell(startX3, curY, 60, 6.5, "Voorbereidingstijd revisie (H)", shared_prep_h, "grey");
+
+        curY += 6.5;
+        drawCell(startX1, curY, 54, 6.5, "Kostprijs downtime / m / j (€)", p1_ann_dt);
+        drawCell(startX2, curY, 54, 6.5, "Kostprijs downtime / m / j (€)", p2_ann_dt);
+        drawCell(startX3, curY, 60, 6.5, "Aantal machines", num_mach, "grey");
+
+        // TCO TOTALS HEADERS
+        curY = 163;
+        drawCell(startX1, curY, 54, 5, "MANUELE SMERING", null, "section");
+        drawCell(startX2, curY, 54, 5, "NIEUWE KOSTPRIJS (INTERFLON)", null, "section");
+        drawCell(startX3, curY, 60, 5, "BESPARING / MACHINEPARK", null, "section");
+
+        curY = 168;
+        drawCell(startX1, curY, 54, 6.5, "Totale kostprijs / machine", p1_ann_total, "pink-total");
+        drawCell(startX2, curY, 54, 6.5, "Totale kostprijs / machine", p2_ann_total, "pink-total");
+        drawCell(startX3, curY, 60, 6.5, "Kostenbesparing / machine", savings_mach, "green-total");
+
+        curY += 6.5;
+        drawCell(startX1, curY, 54, 6.5, "Totale kostprijs / park", p1_park_total, "pink-total");
+        drawCell(startX2, curY, 54, 6.5, "Totale kostprijs / park", p2_park_total, "pink-total");
+        drawCell(startX3, curY, 60, 6.5, "Kostenbesparing / park", savings_park, "green-total");
+
+        curY += 6.5;
+        drawCell(startX1, curY, 54, 6.5, "", "");
+        drawCell(startX2, curY, 54, 6.5, "", "");
+        const prodCostEl = document.getElementById("omProdCostPercent");
+        drawCell(startX3, curY, 60, 6.5, "% Product / Totale Kost", prodCostEl ? prodCostEl.textContent : "0%", "grey");
+
+        curY += 6.5;
+        const totalCostY1El = document.getElementById("omTotalCostYears1");
+        const totalCostY2El = document.getElementById("omTotalCostYears2");
+        drawCell(startX1, curY, 54, 6.5, `Kostprijs / mach. na ${tco_yrs} jr`, totalCostY1El ? totalCostY1El.textContent : "€ 0,00", "pink-total");
+        drawCell(startX2, curY, 54, 6.5, `Kostprijs / mach. na ${tco_yrs} jr`, totalCostY2El ? totalCostY2El.textContent : "€ 0,00", "pink-total");
+        drawCell(startX3, curY, 60, 6.5, "Aantal jaren voor TCO", tco_yrs, "grey");
+
+        curY += 6.5;
+        const totalParkY1El = document.getElementById("omTotalParkCostYears1");
+        const totalParkY2El = document.getElementById("omTotalParkCostYears2");
+        const totalSavYEl = document.getElementById("omTotalSavingsYears");
+        drawCell(startX1, curY, 54, 6.5, `Kostprijs / park na ${tco_yrs} jr`, totalParkY1El ? totalParkY1El.textContent : "€ 0,00", "pink-total");
+        drawCell(startX2, curY, 54, 6.5, `Kostprijs / park na ${tco_yrs} jr`, totalParkY2El ? totalParkY2El.textContent : "€ 0,00", "pink-total");
+        drawCell(startX3, curY, 60, 6.5, `Kostenbesparing na ${tco_yrs} jaar (€)`, totalSavYEl ? totalSavYEl.textContent : "€ 0,00", "green-total");
+
+        // Page 2 Footer
+        doc.setFont("helvetica", "normal");
+        doc.setDrawColor(200, 200, 200);
+        doc.setLineWidth(0.25);
+        doc.line(20, 267, 190, 267);
+
+        doc.setFontSize(6.8);
+        doc.setTextColor(140, 140, 140);
+        doc.text(disclaimer, 20, 271, { maxWidth: 170 });
+        
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(7.5);
+        doc.setTextColor(227, 6, 19);
+        doc.text("INTERFLON - " + (langData.pdfWatermarkText || "A WORLD WITHOUT FRICTION").toUpperCase(), 20, 282);
+      }
+    getVerdeelblokImage(function(divDataUrl) {
         // Voorlaatste pagina: Automatisering Overzicht (visuele schermkopie zoals in de app)
         renderPdfAutomationExtraPage(doc, {}, autoDataUrl, autoRatio, watermarkDataUrl, aspectRatio, langData, false, divDataUrl);
 
