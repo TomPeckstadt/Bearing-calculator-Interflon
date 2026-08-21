@@ -66,9 +66,66 @@ function onDevicePeriodInput(devId) {
   calculateAutomationLubrication();
 }
 
+function getOptimalSmartAdvice(totalDailyNeedCm3, deviceKey, greaseName) {
+  if (!totalDailyNeedCm3 || totalDailyNeedCm3 <= 0) {
+    return { cap: 120, months: 6, annualCost: 109.2, cartridgesPerYear: 2, unitPackPrice: 54.60, theoMonths: 5.7, label: "Standaard 120 ml op 6 maanden" };
+  }
+
+  const devKey = deviceKey || "single_point";
+  const grName = greaseName || "Interflon Grease LS2";
+  const availableCaps = [60, 120, 125, 250, 500];
+  let candidates = [];
+
+  for (let cap of availableCaps) {
+    const theoDays = cap / totalDailyNeedCm3;
+    const theoMonths = theoDays / 30.4375;
+
+    if (theoMonths >= 0.70 && theoMonths <= 24.5) {
+      const settingMonths = Math.min(24, Math.max(1, Math.round(theoMonths)));
+      const cartridgesPerYear = 12 / settingMonths;
+      const pInfo = getAutomationPriceInfo(devKey, cap, grName, 1);
+      const unitPackPrice = pInfo ? (pInfo.packPrice || 54.60) : 54.60;
+      const annualCartridgeCost = cartridgesPerYear * unitPackPrice;
+
+      candidates.push({
+        cap: cap,
+        months: settingMonths,
+        theoMonths: theoMonths,
+        cartridgesPerYear: cartridgesPerYear,
+        unitPackPrice: unitPackPrice,
+        annualCost: annualCartridgeCost
+      });
+    }
+  }
+
+  if (candidates.length === 0) {
+    // High grease demand fallback: pick 500 ml
+    const pInfo = getAutomationPriceInfo(devKey, 500, grName, 1);
+    const unitPrice = pInfo ? (pInfo.packPrice || 104) : 104;
+    return { cap: 500, months: 1, annualCost: 12 * unitPrice, cartridgesPerYear: 12, unitPackPrice: unitPrice, theoMonths: 1, label: "500 ml op 1 maand (Hoge vetbehoefte)" };
+  }
+
+  // Sort candidates by annualCost ascending.
+  // If annual costs are very close (within 5%), prefer candidate with longer runtime (higher months) up to 12/24 months to save maintenance labor!
+  candidates.sort((a, b) => {
+    const diff = a.annualCost - b.annualCost;
+    if (Math.abs(diff) > 2.0) {
+      return diff;
+    }
+    // If costs are virtually equal, prefer longer runtime (fewer replacement trips)
+    return b.months - a.months;
+  });
+
+  return candidates[0];
+}
+
 function applyAutoRecommendationForDevice(devId) {
   const dev = autoDevicesState.find(d => d.id === devId);
   const dailyNeedCm3 = window.currentDailyNeedCm3 || 0.704;
+  const deviceSelect = document.getElementById("automationDeviceSelect") || document.getElementById("autoDeviceSelect");
+  const deviceKey = deviceSelect ? deviceSelect.value : "single_point";
+  const greaseSelect = document.getElementById("selectedGrease") || document.getElementById("greaseSelect");
+  const greaseName = greaseSelect ? greaseSelect.value : "Interflon Grease LS2";
   
   if (dev) {
     dev.userEditedPeriod = false;
@@ -77,22 +134,16 @@ function applyAutoRecommendationForDevice(devId) {
     if (unitSelect) unitSelect.value = "months";
 
     const totalNeed = dailyNeedCm3 * (dev.points || 1);
-    const availableCaps = [60, 120, 125, 250, 500];
-    
-    // Find optimal cartridge size where theoretical months >= 0.7
-    let bestCap = 500;
-    for (let c of availableCaps) {
-      const recDays = c / totalNeed;
-      const recMonths = recDays / 30.4375;
-      if (recMonths >= 0.7) {
-        bestCap = c;
-        break;
-      }
-    }
+    const smartAdv = getOptimalSmartAdvice(totalNeed, deviceKey, greaseName);
 
-    dev.cap = bestCap;
+    dev.cap = smartAdv.cap;
+    dev.period = smartAdv.months;
+
     const capSelect = document.getElementById("autoCartridgeCap_" + devId);
-    if (capSelect) capSelect.value = bestCap.toString();
+    if (capSelect) capSelect.value = smartAdv.cap.toString();
+
+    const periodInput = document.getElementById("autoDispensePeriod_" + devId);
+    if (periodInput) periodInput.value = smartAdv.months;
   }
   calculateAutomationLubrication();
 }
@@ -5860,9 +5911,18 @@ function calculateAutomationLubrication() {
     const roundReason = recSetting.roundedUp ? "afgerond naar boven bij ≥ 0,7" : "afgerond naar beneden bij < 0,7";
     const pointsText = points === 1 ? "1 lager" : `${points} lagers`;
 
-    if (recTitleEl) recTitleEl.textContent = `${dialLabel} (${settingTerm}) voor ${pointsText} | Theoretisch: ${theoMonthsStr}`;
+    const smartAdv = getOptimalSmartAdvice(totalDailyNeedForDev, deviceKey, greaseName);
+    const isSmartMatch = (capMl === smartAdv.cap && recSetting.months === smartAdv.months);
+
+    if (recTitleEl) {
+      recTitleEl.textContent = `${dialLabel} (${settingTerm}) op ${capMl} ml | ${pointsText}`;
+    }
     if (recSubtextEl) {
-      recSubtextEl.innerHTML = `${settingLabel} <strong>${dialLabel}</strong> (${roundReason}).<br>&bull; Theoretisch berekende leeglooptijd voor <strong>${pointsText}</strong>: <strong>${theoMonthsStr}</strong> (~ ${Math.round(recWeeks)} weken / ${Math.round(recDays)} dagen) bij ${capMl} ml patroon.`;
+      if (isSmartMatch) {
+        recSubtextEl.innerHTML = `&check; <strong>Optimaal advies voor ${pointsText}: ${smartAdv.cap} ml patroon ingesteld op ${smartAdv.months} ${smartAdv.months === 1 ? 'maand' : 'maanden'}.</strong><br>&bull; Dit is de <strong>meest voordelige combinatie</strong> (slechts ${smartAdv.cartridgesPerYear.toFixed(1).replace('.', ',')} patronen/jaar &bull; € ${smartAdv.annualCost.toFixed(2).replace('.', ',')}/jaar patronen) en bespaart aanzienlijk op vervangen en onderhoud.`;
+      } else {
+        recSubtextEl.innerHTML = `&bull; Huidige selectie: <strong>${capMl} ml patroon op ${dialLabel}</strong> (${roundReason}).<br>&bull; <strong>Slim advies-tip:</strong> Klik op <em>'Neem advies over'</em> om automatisch te kiezen voor <strong>${smartAdv.cap} ml op ${smartAdv.months} ${smartAdv.months === 1 ? 'maand' : 'maanden'}</strong> (slechts € ${smartAdv.annualCost.toFixed(2).replace('.', ',')}/jaar patronen).`;
+      }
     }
 
     const periodInput = document.getElementById("autoDispensePeriod_" + devId);
