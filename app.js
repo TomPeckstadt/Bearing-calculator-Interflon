@@ -421,10 +421,10 @@ function getRecommendedSettingMonths(recMonths) {
 
   // Vanaf 0.7 (frac >= 0.7) round UP to whole + 1, otherwise round DOWN to whole
   if (frac >= 0.7) {
-    const m = Math.min(12, whole + 1);
+    const m = Math.min(24, whole + 1);
     return { months: m, roundedUp: true };
   } else {
-    const m = Math.max(1, whole);
+    const m = Math.min(24, Math.max(1, whole));
     return { months: m, roundedUp: false };
   }
 }
@@ -5526,7 +5526,7 @@ function calculateAutomationLubrication() {
   if ((typeof window.currentDailyNeedCm3 !== "number" || window.currentDailyNeedCm3 <= 0)) {
     try {
       const storedNeed = parseFloat(localStorage.getItem("calc_daily_need"));
-      if (!isNaN(storedNeed) && storedNeed > 0) {
+      if (!isNaN(storedNeed) && storedNeed >= 0.01) {
         window.currentDailyNeedCm3 = storedNeed;
         window.currentRefillGrams = parseFloat(localStorage.getItem("calc_refill_grams")) || 17.6;
         window.currentMicPolDays = parseFloat(localStorage.getItem("calc_micpol_days")) || 25.0;
@@ -5662,8 +5662,8 @@ function calculateAutomationLubrication() {
 
   const actualDailyVolume = capMl / totalDays;
 
-  // Box 1: Values per 1 lager
-  const displayDaily1 = dailyNeedCm3;
+  // Box 1: Values per 1 lager (actual output per bearing based on device setting)
+  const displayDaily1 = actualDailyVolume / numPoints;
   const displayMonthly1 = displayDaily1 * 30.4375;
   const displayYearly1 = displayDaily1 * 365.25;
 
@@ -5671,8 +5671,8 @@ function calculateAutomationLubrication() {
   if (monthValEl) monthValEl.textContent = `${displayMonthly1.toLocaleString("nl-BE", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} ml/maand`;
   if (yearValEl) yearValEl.textContent = `${displayYearly1.toLocaleString("nl-BE", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} ml/jaar`;
 
-  // Box 2: Total Values for X lagers
-  const displayDailyX = totalDailyNeedCm3;
+  // Box 2: Total Values for X lagers (total output of lubricator)
+  const displayDailyX = actualDailyVolume;
   const displayMonthlyX = displayDailyX * 30.4375;
   const displayYearlyX = displayDailyX * 365.25;
 
