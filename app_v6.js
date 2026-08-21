@@ -522,7 +522,7 @@ function renderPdfAutomationExtraPage(doc, autoData, autoDataUrl, autoRatio, wat
   const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();
 
-  // 1. Watermerk logo
+  // 1. Watermark logo
   if (watermarkDataUrl && aspectRatio) {
     const imgWidth = 160;
     const imgHeight = 160 * aspectRatio;
@@ -533,254 +533,136 @@ function renderPdfAutomationExtraPage(doc, autoData, autoDataUrl, autoRatio, wat
 
   // 2. Header
   doc.setFillColor(227, 6, 19);
-  doc.rect(20, 20, 170, 2, "F");
+  doc.rect(20, 15, 170, 2, "F");
 
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(15);
+  doc.setFontSize(14);
   doc.setTextColor(227, 6, 19);
   const mainTitle = isChain 
     ? (langData.pdfAutoChainExtraTitle || "INTERFLON AUTOMATISCHE KETTINGSMEERING")
     : (langData.pdfAutoBearingExtraTitle || "INTERFLON AUTOMATISCHE LAGERSMEERING");
-  doc.text(mainTitle, 20, 31);
+  doc.text(mainTitle, 20, 25);
 
   doc.setFont("helvetica", "normal");
   doc.setFontSize(8.5);
-  doc.setTextColor(72, 84, 96);
+  doc.setTextColor(100, 100, 100);
   const subTitle = isChain
-    ? "Continu geautomatiseerde kettingsmering & bescherming tegen kettingrek en slijtage"
+    ? "Continu geautomatiseerde kettingsmering & bescherming van uw kettingaandrijvingen"
     : "Continu geautomatiseerde lagersmering & bescherming van uw roterende apparatuur";
-  doc.text(subTitle, 20, 36);
+  doc.text(subTitle + " • Overzicht Smeertoestellen", 20, 30);
 
-  // Divider line
-  doc.setDrawColor(226, 232, 240);
-  doc.setLineWidth(0.3);
-  doc.line(20, 40, 190, 40);
+  doc.setDrawColor(220, 220, 220);
+  doc.line(20, 33, 190, 33);
 
-  // LEFT PANEL: Product Photo Showcase Card
-  const leftX = 20;
-  const leftY = 44;
-  const leftW = 75;
-  const leftH = 150;
+  // Read active devices state
+  const numDevices = typeof getActiveNumDevices === "function" ? getActiveNumDevices() : 1;
+  const deviceSelect = document.getElementById("automationDeviceSelect") || document.getElementById("autoDeviceSelect");
+  const deviceKey = deviceSelect ? deviceSelect.value : "single_point";
 
-  doc.setFillColor(248, 250, 252);
-  doc.setDrawColor(226, 232, 240);
-  doc.setLineWidth(0.3);
-  doc.roundedRect(leftX, leftY, leftW, leftH, 3, 3, "FD");
+  let baseDeviceName = "Interflon Single Point Lubricator";
+  if (deviceKey === "pulsarlube_m2") baseDeviceName = "Pulsarlube M2";
+  else if (deviceKey === "pulsarlube_msp") baseDeviceName = "Pulsarlube MSP";
+  else if (deviceKey === "pulsarlube_plc") baseDeviceName = "Pulsarlube PLC";
 
-  // Device Image Spotlight Frame
-  if (autoDataUrl && autoRatio) {
-    const frameX = leftX + 5;
-    const frameY = leftY + 5;
-    const frameW = 65;
-    const frameH = 60;
+  const selectGrease = document.getElementById("inputGrease") || document.getElementById("selectGrease");
+  const greaseName = selectGrease ? selectGrease.value : "Interflon Grease MP2/3";
+  const dailyNeedCm3 = window.currentDailyNeedCm3 || 0.704;
 
-    doc.setFillColor(255, 255, 255);
-    doc.setDrawColor(241, 245, 249);
-    doc.roundedRect(frameX, frameY, frameW, frameH, 2, 2, "FD");
+  // Render cards per active device (Pulsarlube A, B, C, D)
+  let startY = 36;
+  const isMulti = numDevices > 1;
 
-    const imgMaxW = 54;
-    const imgMaxH = 54;
-    let imgW = imgMaxW;
-    let imgH = imgW * autoRatio;
-    if (imgH > imgMaxH) {
-      imgH = imgMaxH;
-      imgW = imgH / autoRatio;
-    }
-    const imgX = frameX + (frameW - imgW) / 2;
-    const imgY = frameY + (frameH - imgH) / 2;
-    try {
-      doc.addImage(autoDataUrl, "PNG", imgX, imgY, imgW, imgH);
-    } catch (e) {
-      console.warn("Error embedding device photo on extra page:", e);
-    }
-  }
+  for (let i = 0; i < numDevices; i++) {
+    const dev = (typeof autoDevicesState !== "undefined" && autoDevicesState[i]) ? autoDevicesState[i] : { id: 'A', points: 1, cap: 120, period: 6, unit: 'months' };
+    const devId = dev.id || String.fromCharCode(65 + i);
+    const pts = dev.points || 1;
+    const capMl = dev.cap || 120;
+    const periodVal = parseFloat(dev.period) || 1;
+    const curUnit = dev.unit || "months";
+    const devName = numDevices === 1 ? baseDeviceName : `Pulsarlube ${devId}`;
 
-  // Device Title & Specs Box
-  const textStartY = leftY + 70;
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(10.5);
-  doc.setTextColor(11, 19, 43);
-  const cleanDeviceName = cleanPdfText(autoData.deviceName);
-  doc.text(cleanDeviceName, leftX + 5, textStartY, { maxWidth: 65 });
+    const totalDailyNeedForDev = dailyNeedCm3 * pts;
+    const recDays = capMl / (totalDailyNeedForDev > 0 ? totalDailyNeedForDev : 0.704);
+    const recMonths = recDays / 30.4375;
+    const recSetting = getRecommendedSettingMonths(recMonths);
 
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(8);
-  doc.setTextColor(72, 84, 96);
-  doc.text(`Inhoud: ${autoData.cartridgeCap} ml | Looptijd: ${autoData.dispensePeriod}`, leftX + 5, textStartY + 5.5, { maxWidth: 65 });
+    let periodMonths = periodVal;
+    if (curUnit === "weeks") periodMonths = (periodVal * 7) / 30.4375;
+    else if (curUnit === "days") periodMonths = periodVal / 30.4375;
+    if (periodMonths <= 0) periodMonths = 1;
 
-  // Match / Status Badge (REBUILT FROM SCRATCH WITH DYNAMIC PADDING)
-  const cleanNotice = cleanPdfText(autoData.matchNotice);
-  let nextSectionY = textStartY + 14;
+    let totalDays = 30.4375 * periodVal;
+    if (curUnit === "weeks") totalDays = 7 * periodVal;
+    else if (curUnit === "days") totalDays = periodVal;
+    if (totalDays <= 0) totalDays = 1;
 
-  if (cleanNotice) {
-    const badgeX = leftX + 5;
-    const badgeY = textStartY + 9;
-    const badgeW = 65;
-    const contentW = badgeW - 8;
+    const actualDailyVol = capMl / totalDays;
+    const cartridgesPerYearDev = 12 / periodMonths;
 
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(7.0);
-    doc.setTextColor(4, 120, 87);
+    let unitLabel = "maanden";
+    if (curUnit === "weeks") unitLabel = "weken";
+    else if (curUnit === "days") unitLabel = "dagen";
 
-    const lines = doc.splitTextToSize(cleanNotice, contentW);
-    const lineHeight = 3.2;
-    const textH = lines.length * lineHeight;
-    const badgeH = Math.max(13, textH + 5);
-
-    doc.setFillColor(236, 253, 245);
-    doc.setDrawColor(167, 243, 208);
+    // Card background box
+    const cardH = numDevices === 1 ? 140 : (numDevices === 2 ? 115 : 55);
+    doc.setFillColor(248, 250, 252);
+    doc.setDrawColor(226, 232, 240);
     doc.setLineWidth(0.3);
-    doc.roundedRect(badgeX, badgeY, badgeW, badgeH, 2.5, 2.5, "FD");
+    doc.roundedRect(20, startY, 170, cardH, 2, 2, "FD");
 
-    let lineY = badgeY + 4.5;
-    lines.forEach((lineText) => {
-      doc.text(lineText.trim(), badgeX + 4, lineY);
-      lineY += lineHeight;
-    });
-
-    nextSectionY = badgeY + badgeH + 6;
-  }
-
-  // Feature Bullet Highlights
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(8.5);
-  doc.setTextColor(11, 19, 43);
-  doc.text("Eigenschappen & Voordelen:", leftX + 5, nextSectionY);
-
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(7.3);
-  doc.setTextColor(72, 84, 96);
-  const bullets = [
-    "• Continu 24u/24u nauwkeurige dosering",
-    "• Voorkomt over- en ondersmering",
-    "• Beter bestand tegen vocht & vuil",
-    "• Veilig te monteren op afstand"
-  ];
-  bullets.forEach((b, i) => {
-    doc.text(b, leftX + 5, nextSectionY + 5 + (i * 4.2));
-  });
-
-  // RIGHT PANEL: Calculation & Operating Metrics Grid
-  const rightX = 100;
-  const rightY = 44;
-  const rightW = 90;
-  const rightH = 150;
-
-  doc.setFillColor(248, 250, 252);
-  doc.setDrawColor(226, 232, 240);
-  doc.setLineWidth(0.3);
-  doc.roundedRect(rightX, rightY, rightW, rightH, 3, 3, "FD");
-
-  // Title Right Card
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(11);
-  doc.setTextColor(227, 6, 19);
-  doc.text("DOSERINGS- & VERBRUIKSPARAMETERS", rightX + 6, rightY + 9);
-
-  doc.setDrawColor(226, 232, 240);
-  doc.line(rightX + 6, rightY + 12, rightX + rightW - 6, rightY + 12);
-
-  const rows = [
-    ["Smeerunit:", cleanDeviceName, false, "dark"],
-    ["Patroon Inhoud:", autoData.cartridgeCap + " ml", false, "dark"],
-    ["Leeglooptijd:", autoData.dispensePeriod, true, "green"],
-    ["Dagelijks Verbruik:", autoData.dailyVol, false, "dark"],
-    ["Maandelijks Verbruik:", autoData.monthlyVol, false, "dark"],
-    ["Jaarlijks Verbruik:", autoData.yearlyVol, true, "red"],
-    ["Patronen per Jaar:", autoData.cartridgesYear, true, "dark"]
-  ];
-
-  let rowY = rightY + 18;
-  rows.forEach((r) => {
-    doc.setFillColor(255, 255, 255);
-    doc.setDrawColor(241, 245, 249);
-    doc.roundedRect(rightX + 5, rowY, rightW - 10, 14, 2, 2, "FD");
-
-    doc.setFont("helvetica", r[2] ? "bold" : "normal");
-    doc.setFontSize(7.8);
-    doc.setTextColor(72, 84, 96);
-    doc.text(r[0], rightX + 8, rowY + 8.5);
-
+    // Card Header Bar
+    doc.setFillColor(227, 6, 19);
+    doc.rect(20, startY, 170, 7, "F");
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(8.2);
+    doc.setFontSize(9.5);
+    doc.setTextColor(255, 255, 255);
+    doc.text(`${devName} - Smeerinstelling & Volumecalculatie (${pts} ${pts === 1 ? 'lager' : 'lagers'})`, 24, startY + 5);
 
-    if (r[3] === "red") {
-      doc.setTextColor(227, 6, 19);
-    } else if (r[3] === "green") {
-      doc.setTextColor(22, 101, 52);
+    // Inner details
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(8);
+    doc.setTextColor(51, 65, 85);
+
+    let innerY = startY + 12;
+    doc.text(`Patroon Capaciteit: ${capMl} ml   •   Smeerpunten: ${pts} lager(s)   •   Product: ${greaseName}`, 24, innerY);
+    innerY += 5;
+    doc.text(`Display Instelling op toestel: ${periodVal} ${unitLabel} (Theoretisch berekend: ${recMonths.toFixed(1).replace('.',',')} maanden)`, 24, innerY);
+
+    innerY += 6;
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(227, 6, 19);
+    const daily1Str = dailyNeedCm3.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const dailyXStr = totalDailyNeedForDev.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    doc.text(`Smeervolume per 1 lager: ${daily1Str} ml/dag   •   Totaal volume voor ${pts} lagers: ${dailyXStr} ml/dag (${(totalDailyNeedForDev * 365.25).toFixed(1).replace('.',',')} ml/jaar)`, 24, innerY);
+
+    innerY += 5;
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(71, 85, 105);
+    doc.text(`Verbruik patronen per jaar op ${devName}: ${cartridgesPerYearDev.toFixed(1).replace('.',',')} patronen/jaar`, 24, innerY);
+
+    // Notice box inside card
+    innerY += 6;
+    const maxTheoMonthsDev = (500 / totalDailyNeedForDev) / 30.4375;
+    if (maxTheoMonthsDev < 2.0) {
+      doc.setFillColor(254, 242, 242);
+      doc.setDrawColor(239, 68, 68);
+      doc.roundedRect(24, innerY, 162, 10, 1, 1, "FD");
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(7.5);
+      doc.setTextColor(153, 27, 27);
+      doc.text(`Hoge vetbehoefte (${dailyXStr} ml/dag): 500 ml patroon raakt na ${maxTheoMonthsDev.toFixed(1).replace('.',',')} m leeg. Advies: Bekijk de optie Graco.`, 27, innerY + 6);
     } else {
-      doc.setTextColor(11, 19, 43);
+      doc.setFillColor(236, 253, 245);
+      doc.setDrawColor(167, 243, 208);
+      doc.roundedRect(24, innerY, 162, 10, 1, 1, "FD");
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(7.5);
+      doc.setTextColor(6, 95, 70);
+      doc.text(`Optimaal advies voor ${pts} lager(s): ${capMl} ml patroon ingesteld op ${periodVal} ${unitLabel} (Levering: ${actualDailyVol.toFixed(2).replace('.',',')} ml/dag).`, 27, innerY + 6);
     }
 
-    doc.text(r[1], rightX + rightW - 8, rowY + 8.5, { align: "right", maxWidth: 45 });
-    rowY += 17;
-  });
-
-  // BOTTOM CARD: 3 Pillars of Automatic Lubrication
-  const botY = 199;
-  const botW = 170;
-  const botH = 46;
-
-  doc.setFillColor(248, 250, 252);
-  doc.setDrawColor(226, 232, 240);
-  doc.setLineWidth(0.3);
-  doc.roundedRect(20, botY, botW, botH, 3, 3, "FD");
-
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(9.5);
-  doc.setTextColor(11, 19, 43);
-  doc.text("WAAROM KIEZEN VOOR INTERFLON AUTOMATISCHE DOSERING?", 26, botY + 8);
-
-  const colW = 50;
-  const c1X = 26;
-  const c2X = 81;
-  const c3X = 136;
-
-  // Col 1
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(8);
-  doc.setTextColor(227, 6, 19);
-  doc.text("1. Maximale Levensduur", c1X, botY + 16);
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(7);
-  doc.setTextColor(72, 84, 96);
-  doc.text("Continu verse smeerfilm met MicPol® voorkomt wrijving, slijtage en indringen van vuil of vocht.", c1X, botY + 21, { maxWidth: colW });
-
-  // Col 2
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(8);
-  doc.setTextColor(227, 6, 19);
-  doc.text("2. Besparing op Arbeid", c2X, botY + 16);
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(7);
-  doc.setTextColor(72, 84, 96);
-  doc.text("Tot 90% minder manuele smeerbeurten en inspectierondes. Verhoogt de veiligheid op lastige plekken.", c2X, botY + 21, { maxWidth: colW });
-
-  // Col 3
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(8);
-  doc.setTextColor(227, 6, 19);
-  doc.text("3. Duurzaam & Schoon", c3X, botY + 16);
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(7);
-  doc.setTextColor(72, 84, 96);
-  doc.text("Exact afgemeten dosering voorkomt vetverspilling, beschadigde afdichtingen en milieuverontreiniging.", c3X, botY + 21, { maxWidth: colW });
-
-  // Extra Page Footer
-  doc.setFont("helvetica", "normal");
-  doc.setDrawColor(200, 200, 200);
-  doc.setLineWidth(0.25);
-  doc.line(20, 267, 190, 267);
-
-  doc.setFontSize(6.8);
-  doc.setTextColor(140, 140, 140);
-  const disclaimer = langData.legalDisclaimerText || "De gegenereerde gegevens bieden een betrouwbare indicatie, maar vormen geen expliciete garantie dat een product of dosering geschikt is voor elke specifieke toepassing.";
-  doc.text(disclaimer, 20, 271, { maxWidth: 170 });
-  
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(7.5);
-  doc.setTextColor(227, 6, 19);
-  doc.text("INTERFLON - " + (langData.pdfWatermarkText || "A WORLD WITHOUT FRICTION").toUpperCase(), 20, 282);
+    startY += cardH + 6;
+  }
 }
 
 function getAutomationDeviceImageDataUrl(imageSrc, callback) {
@@ -8721,22 +8603,17 @@ function updateRoiAutomationPage() {
 
 
 function addRoiPdfPage(doc, dateString, watermarkDataUrl, aspectRatio, autoDataUrl) {
-  const langData = (typeof TRANSLATIONS !== "undefined" && typeof currentLang !== "undefined") ? (TRANSLATIONS[currentLang] || TRANSLATIONS["nl"]) : {};
-  const pageWidth = doc.internal.pageSize.getWidth();
-  const pageHeight = doc.internal.pageSize.getHeight();
-
   doc.addPage();
+  const pw = doc.internal.pageSize.getWidth();
+  const ph = doc.internal.pageSize.getHeight();
 
-  // 1. Watermark logo
-  if (watermarkDataUrl && aspectRatio) {
-    const imgWidth = 160;
-    const imgHeight = 160 * aspectRatio;
-    const x = (pageWidth - imgWidth) / 2;
-    const y = (pageHeight - imgHeight) / 2;
-    doc.addImage(watermarkDataUrl, "JPEG", x, y, imgWidth, imgHeight);
+  if (watermarkDataUrl) {
+    try {
+      doc.addImage(watermarkDataUrl, "PNG", 0, 0, pw, ph);
+    } catch (e) {}
   }
 
-  // 2. Header
+  // Header Title
   doc.setFillColor(227, 6, 19);
   doc.rect(20, 15, 170, 2, "F");
 
@@ -8748,39 +8625,68 @@ function addRoiPdfPage(doc, dateString, watermarkDataUrl, aspectRatio, autoDataU
   doc.setFont("helvetica", "normal");
   doc.setFontSize(8.5);
   doc.setTextColor(100, 100, 100);
-  doc.text("Kostenvergelijking manuele smering vs. automatische smeermodule \u2022 Gegenereerd op: " + dateString, 20, 30);
+  doc.text("Kostenvergelijking manuele smering vs. automatische smeermodule • Gegenereerd op: " + dateString, 20, 30);
 
   doc.setDrawColor(220, 220, 220);
   doc.line(20, 33, 190, 33);
 
-  // Read live values
+  // Read active devices state
   const deviceSelect = document.getElementById("automationDeviceSelect") || document.getElementById("autoDeviceSelect");
-  const capSelect = document.getElementById("autoCartridgeCap");
   const deviceKey = deviceSelect ? deviceSelect.value : "single_point";
-  const capMl = capSelect ? (parseFloat(capSelect.value) || 125) : 125;
 
   const numDevices = typeof getActiveNumDevices === "function" ? getActiveNumDevices() : 1;
-  let totalPointsAllDevices = 0;
-  for (let i = 0; i < numDevices; i++) {
-    const d = (typeof autoDevicesState !== "undefined" && autoDevicesState[i]) ? autoDevicesState[i] : { points: 1 };
-    totalPointsAllDevices += (d.points || 1);
-  }
-  const numPoints = totalPointsAllDevices;
-
-  let deviceName = "Interflon Single Point Lubricator";
-  if (deviceKey === "pulsarlube_m2") deviceName = "Pulsarlube M2";
-  else if (deviceKey === "pulsarlube_msp") deviceName = "Pulsarlube MSP";
-  else if (deviceKey === "pulsarlube_plc") deviceName = "Pulsarlube PLC";
-
   const selectGrease = document.getElementById("inputGrease") || document.getElementById("selectGrease");
   const greaseName = selectGrease ? selectGrease.value : "Interflon Grease MP2/3";
   const greasePriceInput = document.getElementById("omProdPrice2") || document.getElementById("chainOmProdPrice2") || document.getElementById("tcoPriceInterflonInput");
   const greasePricePerLiter = greasePriceInput ? (parseFloat(greasePriceInput.value) || 70.50) : 70.50;
 
   const dailyNeedCm3 = window.currentDailyNeedCm3 || 0.704;
-  const yearlyMl = dailyNeedCm3 * 365.25;
 
-  // 3. Banner
+  let totalPointsAllDevices = 0;
+  let totalUnitsPrice = 0;
+  let totalInstallKitPrice = 0;
+  let totalDividerBlockPrice = 0;
+  let totalCartridgesPerYear = 0;
+  let totalCartridgesCostYear = 0;
+  let mainCapMl = 120;
+  let devBreakdownText = [];
+
+  for (let i = 0; i < numDevices; i++) {
+    const d = (typeof autoDevicesState !== "undefined" && autoDevicesState[i]) ? autoDevicesState[i] : { id: 'A', points: 1, cap: 120, period: 6, unit: 'months' };
+    const pts = d.points || 1;
+    const cap = d.cap || 120;
+    const periodVal = parseFloat(d.period) || 1;
+    const curUnit = d.unit || "months";
+    mainCapMl = cap;
+    totalPointsAllDevices += pts;
+    devBreakdownText.push(`Pulsarlube ${d.id}: ${pts} ${pts === 1 ? 'lager' : 'lagers'}`);
+
+    const pInfo = getAutomationPriceInfo(deviceKey, cap, greaseName, pts);
+    totalUnitsPrice += pInfo.unitPrice;
+    totalInstallKitPrice += pInfo.installKitPrice;
+    totalDividerBlockPrice += pInfo.dividerBlockPrice;
+
+    let periodMonths = periodVal;
+    if (curUnit === "weeks") periodMonths = (periodVal * 7) / 30.4375;
+    else if (curUnit === "days") periodMonths = periodVal / 30.4375;
+    if (periodMonths <= 0) periodMonths = 1;
+
+    const cartsDev = 12 / periodMonths;
+    totalCartridgesPerYear += cartsDev;
+    totalCartridgesCostYear += (cartsDev * pInfo.servicepackPrice);
+  }
+
+  const numPoints = totalPointsAllDevices;
+  const yearlyMlTotal = dailyNeedCm3 * totalPointsAllDevices * 365.25;
+
+  let baseDeviceName = "Interflon Single Point Lubricator";
+  if (deviceKey === "pulsarlube_m2") baseDeviceName = "Pulsarlube M2";
+  else if (deviceKey === "pulsarlube_msp") baseDeviceName = "Pulsarlube MSP";
+  else if (deviceKey === "pulsarlube_plc") baseDeviceName = "Pulsarlube PLC";
+
+  const fullDeviceTitle = numDevices === 1 ? baseDeviceName : `${numDevices}x ${baseDeviceName}`;
+
+  // Banner Box
   doc.setFillColor(248, 250, 252);
   doc.setDrawColor(226, 232, 240);
   doc.setLineWidth(0.25);
@@ -8795,19 +8701,20 @@ function addRoiPdfPage(doc, dateString, watermarkDataUrl, aspectRatio, autoDataU
   doc.setFont("helvetica", "bold");
   doc.setFontSize(11);
   doc.setTextColor(30, 41, 59);
-  doc.text(deviceName, 44, 43);
+  doc.text(fullDeviceTitle, 44, 43);
 
   doc.setFont("helvetica", "normal");
   doc.setFontSize(8.5);
   doc.setTextColor(100, 116, 139);
-  doc.text(`Patrooninhoud: ${capMl} ml  \u2022  Aantal lagers: ${numPoints}  \u2022  Geselecteerd product: ${greaseName}`, 44, 49);
+  const capInfoStr = numDevices === 1 ? `Patrooninhoud: ${mainCapMl} ml` : `${numDevices} geselecteerde toestellen`;
+  doc.text(`${capInfoStr}  •  Aantal lagers: ${numPoints}  •  Geselecteerd product: ${greaseName}`, 44, 49);
 
   doc.setFont("helvetica", "bold");
   doc.setFontSize(9);
   doc.setTextColor(227, 6, 19);
-  doc.text(`Berekend verbruik: ${yearlyMl.toLocaleString("nl-BE", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} ml / jaar`, 186, 46, { align: "right" });
+  doc.text(`Berekend verbruik: ${yearlyMlTotal.toLocaleString("nl-BE", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} ml / jaar`, 186, 46, { align: "right" });
 
-  // 4. Calculations
+  // Calculations
   const techBeurtenInput = document.getElementById("tcoFreqInterflonInput");
   const manualBeurtenPerYear = techBeurtenInput ? (parseFloat(techBeurtenInput.value) || 17.6) : 17.6;
   const timeInput = document.getElementById("tcoTimeInput");
@@ -8815,17 +8722,13 @@ function addRoiPdfPage(doc, dateString, watermarkDataUrl, aspectRatio, autoDataU
   const hourlyRateInput = document.getElementById("omSharedLaborRate") || document.getElementById("chainOmSharedLaborRate") || document.getElementById("tcoHourlyRateInput");
   const hourlyRate = hourlyRateInput ? (parseFloat(hourlyRateInput.value) || 50.00) : 50.00;
 
-  const manualGreaseCost = (yearlyMl / 1000) * greasePricePerLiter;
-  const manualLaborHours = manualBeurtenPerYear * (workTimeMinutes / 60);
+  const manualGreaseCost = (yearlyMlTotal / 1000) * greasePricePerLiter;
+  const manualLaborHours = totalPointsAllDevices * manualBeurtenPerYear * (workTimeMinutes / 60);
   const manualLaborCost = manualLaborHours * hourlyRate;
   const manualTotalCost = manualGreaseCost + manualLaborCost;
 
-  // numPoints is already declared above
-  const priceInfo = getAutomationPriceInfo(deviceKey, capMl, greaseName, numPoints);
-  const cartridgesPerYear = capMl > 0 ? (yearlyMl / capMl) : 0;
-  const autoCartridgeCostYear = cartridgesPerYear * priceInfo.servicepackPrice;
-  const autoYear1Total = priceInfo.unitPrice + priceInfo.mandatoryAccessoriesPrice + autoCartridgeCostYear;
-  const autoRecurringTotal = autoCartridgeCostYear;
+  const autoYear1Total = totalUnitsPrice + totalInstallKitPrice + totalDividerBlockPrice + totalCartridgesCostYear;
+  const autoRecurringTotal = totalCartridgesCostYear;
 
   function drawRow(x, y, w, h, label, valStr, isHeader, isTotal, isGreen) {
     if (isHeader) {
@@ -8865,7 +8768,7 @@ function addRoiPdfPage(doc, dateString, watermarkDataUrl, aspectRatio, autoDataU
     doc.text(valStr || "", x + w - 2.5, y + h / 2 + 1.2, { align: "right" });
   }
 
-  // 5. Tables
+  // Tables
   const startY = 60;
   const colW = 82;
   const rh = 6.2;
@@ -8874,15 +8777,15 @@ function addRoiPdfPage(doc, dateString, watermarkDataUrl, aspectRatio, autoDataU
   let y1 = startY;
   drawRow(20, y1, colW, 6, "MANUELE SMERING (HUIDIGE SITUATIE)", "", true, false, false);
   y1 += 6;
-  drawRow(20, y1, colW, rh, "Jaarlijks vetverbruik:", `${yearlyMl.toLocaleString("nl-BE", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} ml`, false, false, false);
+  drawRow(20, y1, colW, rh, "Jaarlijks vetverbruik:", `${yearlyMlTotal.toLocaleString("nl-BE", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} ml`, false, false, false);
   y1 += rh;
   drawRow(20, y1, colW, rh, "Prijs vet per liter:", `€ ${greasePricePerLiter.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / L`, false, false, false);
   y1 += rh;
   drawRow(20, y1, colW, rh, "Jaarlijkse vetkost:", `€ ${manualGreaseCost.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / j`, false, false, false);
   y1 += rh;
-  drawRow(20, y1, colW, rh, "Aantal smeerbeurten/jaar:", `${manualBeurtenPerYear.toLocaleString("nl-BE", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} beurten`, false, false, false);
+  drawRow(20, y1, colW, rh, "Aantal smeerbeurten/jaar:", `${(manualBeurtenPerYear * totalPointsAllDevices).toLocaleString("nl-BE", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} beurten`, false, false, false);
   y1 += rh;
-  drawRow(20, y1, colW, rh, "Tijd per smeerbeurt:", `${workTimeMinutes} min (${(workTimeMinutes/60).toFixed(2).replace('.',',')} u)`, false, false, false);
+  drawRow(20, y1, colW, rh, "Tijd per smeerbeurt:", `${workTimeMinutes} min (${manualLaborHours.toFixed(1).replace('.',',')} u/j)`, false, false, false);
   y1 += rh;
   drawRow(20, y1, colW, rh, "Uurloon technieker:", `€ ${hourlyRate.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / uur`, false, false, false);
   y1 += rh;
@@ -8892,125 +8795,106 @@ function addRoiPdfPage(doc, dateString, watermarkDataUrl, aspectRatio, autoDataU
 
   // Table 2: Automatische Smering
   let y2 = startY;
-  const x2 = 108;
-  drawRow(x2, y2, colW, 6, "AUTOMATISCHE SMERING (GEAUTOMATISEERD)", "", true, false, true);
+  drawRow(108, y2, colW, 6, "AUTOMATISCHE SMERING (GEAUTOMATISEERD)", "", true, false, true);
   y2 += 6;
-  drawRow(x2, y2, colW, rh, "Gekozen smeerunit:", deviceName, false, false, true);
+  drawRow(108, y2, colW, rh, "Gekozen smeerunit:", fullDeviceTitle, false, false, false);
   y2 += rh;
-  drawRow(x2, y2, colW, rh, "Verbruik patronen/jaar:", `${cartridgesPerYear.toLocaleString("nl-BE", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} patronen/j`, false, false, true);
+  drawRow(108, y2, colW, rh, "Verbruik patronen/jaar:", `${totalCartridgesPerYear.toFixed(1).replace('.', ',')} patronen/j`, false, false, false);
   y2 += rh;
-  if (deviceKey !== "single_point") {
-    const devPriceStr = priceInfo.isPrefilled ? "€ 0,00 (Gevuld)" : `€ ${priceInfo.unitPrice.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} (Art.${priceInfo.artNrUnit})`;
-    drawRow(x2, y2, colW, rh, "Prijs leeg toestel:", devPriceStr, false, false, true);
-    y2 += rh;
-  }
-  const packPriceStr = `€ ${priceInfo.servicepackPrice.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} (Art.${priceInfo.artNrServicepack})`;
-  drawRow(x2, y2, colW, rh, "Prijs per patroon / servicepack:", packPriceStr, false, false, true);
+  drawRow(108, y2, colW, rh, "Prijs leeg toestel (totaal):", `€ ${totalUnitsPrice.toFixed(2).replace('.', ',')}`, false, false, false);
   y2 += rh;
-  drawRow(x2, y2, colW, rh, "Jaarlijkse kosten patronen:", `€ ${autoCartridgeCostYear.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / j`, false, false, true);
+  drawRow(108, y2, colW, rh, "Jaarlijkse kosten patronen:", `€ ${totalCartridgesCostYear.toFixed(2).replace('.', ',')} / j`, false, false, false);
   y2 += rh;
-  if (deviceKey !== "single_point") {
-    const kitStr = priceInfo.installKitPrice > 0 ? `€ ${priceInfo.installKitPrice.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} (Eenmalig)` : "€ 0,00";
-    drawRow(x2, y2, colW, rh, "Pulsarlube installatiekit:", kitStr, false, false, true);
-    y2 += rh;
+  drawRow(108, y2, colW, rh, "Installatiekits + Verdeelblokken:", `€ ${(totalInstallKitPrice + totalDividerBlockPrice).toFixed(2).replace('.', ',')} (Eenmalig)`, false, false, false);
+  y2 += rh;
+  drawRow(108, y2, colW, rh, "Arbeidskost automatisch:", "€ 0,00 (100% Auto)", false, false, false);
+  y2 += rh;
+  drawRow(108, y2, colW, 7, "JAAR 1 TOTAAL:", `€ ${autoYear1Total.toFixed(2).replace('.', ',')}`, false, true, false);
+  y2 += 7;
+  drawRow(108, y2, colW, 7, "JAAR 2+ TERUGKEREND:", `€ ${autoRecurringTotal.toFixed(2).replace('.', ',')}`, false, true, "dark");
 
-    if (priceInfo.dividerBlockPrice > 0) {
-      const divStr = `€ ${priceInfo.dividerBlockPrice.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} (Art.${priceInfo.artNrDividerBlock})`;
-      drawRow(x2, y2, colW, rh, "Verdeelblok(ken):", divStr, false, false, true);
-      y2 += rh;
-    }
-  }
-  drawRow(x2, y2, colW, rh, "Arbeidskost automatisch:", "€ 0,00 (100% Auto)", false, false, true);
-  y2 += rh;
-  drawRow(x2, y2, colW, 6.5, "JAAR 1 TOTAAL:", `€ ${autoYear1Total.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, false, true, true);
-  y2 += 6.5;
-  drawRow(x2, y2, colW, 6.5, "JAAR 2+ TERUGKEREND:", `€ ${autoRecurringTotal.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, false, true, "dark");
-
-  // 6. Summary ROI Box
-  const sumY = Math.max(y1, y2) + 6;
-  doc.setFillColor(255, 255, 255);
-  doc.setDrawColor(227, 6, 19);
-  doc.setLineWidth(0.4);
-  doc.roundedRect(20, sumY, 170, 48, 3, 3, "FD");
+  // Financial ROI Results Box
+  const roiBoxY = 122;
+  doc.setFillColor(248, 250, 252);
+  doc.setDrawColor(226, 232, 240);
+  doc.setLineWidth(0.3);
+  doc.roundedRect(20, roiBoxY, 170, 48, 2, 2, "FD");
 
   doc.setFont("helvetica", "bold");
   doc.setFontSize(11);
-  doc.setTextColor(15, 23, 42);
-  doc.text("FINANCIËLE ANALYSE & ROI RESULTAAT", 25, sumY + 8);
+  doc.setTextColor(30, 41, 59);
+  doc.text("FINANCIËLE ANALYSE & ROI RESULTAAT", 26, roiBoxY + 8);
+
+  const cardW = 38;
+  const cardH = 30;
+  const cardY = roiBoxY + 12;
 
   const netYearlySaving = manualTotalCost - autoRecurringTotal;
   const year1NetResult = manualTotalCost - autoYear1Total;
 
-  let paybackText = "Direct Rendabel";
-  const monthlyNetLaborGreaseSaving = (manualLaborCost + (manualGreaseCost - autoCartridgeCostYear)) / 12;
-  const initialInvestment = priceInfo.unitPrice + priceInfo.mandatoryAccessoriesPrice;
-  if (initialInvestment > 0) {
-    if (monthlyNetLaborGreaseSaving > 0) {
-      const paybackMonths = initialInvestment / monthlyNetLaborGreaseSaving;
-      paybackText = `${paybackMonths.toFixed(1).replace('.',',')} maanden`;
-    } else {
-      paybackText = "Geen Terugverdientijd";
-    }
-  }
+  const roiYearsInput = document.getElementById("roiYearsInput");
+  const numYears = roiYearsInput ? (parseInt(roiYearsInput.value, 10) || 3) : 3;
+  const multiYearSaving = year1NetResult + Math.max(0, numYears - 1) * netYearlySaving;
 
-  const yearsInput = document.getElementById("roiYearsInput");
-  const years = yearsInput ? (parseFloat(yearsInput.value) || 5) : 5;
-  let totalSavingsMultiYear = years <= 1 ? year1NetResult : year1NetResult + ((years - 1) * netYearlySaving);
-
-  const cardW = 38;
-  const cardH = 28;
-  const cardY = sumY + 14;
-
-  function drawSummaryCard(x, title, valStr, subStr, colorHex) {
-    doc.setFillColor(248, 250, 252);
+  function drawRoiResultCard(x, y, w, h, title, valStr, subStr, isGreen) {
+    doc.setFillColor(255, 255, 255);
     doc.setDrawColor(226, 232, 240);
     doc.setLineWidth(0.2);
-    doc.roundedRect(x, cardY, cardW, cardH, 2, 2, "FD");
+    doc.roundedRect(x, y, w, h, 2, 2, "FD");
 
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(6.2);
+    doc.setFontSize(6.5);
     doc.setTextColor(100, 116, 139);
-    doc.text(title, x + cardW / 2, cardY + 6, { align: "center", maxWidth: cardW - 2 });
+    doc.text(title, x + w / 2, y + 6, { align: "center" });
 
     doc.setFont("helvetica", "bold");
     doc.setFontSize(10);
-    doc.setTextColor(colorHex[0], colorHex[1], colorHex[2]);
-    doc.text(valStr, x + cardW / 2, cardY + 17, { align: "center" });
+    doc.setTextColor(isGreen ? 5 : 220, isGreen ? 150 : 38, isGreen ? 105 : 38);
+    doc.text(valStr, x + w / 2, y + 16, { align: "center" });
 
     doc.setFont("helvetica", "normal");
-    doc.setFontSize(5.8);
+    doc.setFontSize(6);
     doc.setTextColor(148, 163, 184);
-    doc.text(subStr, x + cardW / 2, cardY + 24, { align: "center" });
+    doc.text(subStr, x + w / 2, y + 24, { align: "center" });
   }
 
-  const signNet = netYearlySaving >= 0 ? "+" : "-";
-  const valNet = `${signNet} € ${Math.abs(netYearlySaving).toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-  drawSummaryCard(23, "JAARLIJKSE BESPARING", valNet, "Vanaf Jaar 2", netYearlySaving >= 0 ? [22, 163, 74] : [220, 38, 38]);
+  // Card 1: Jaarlijkse besparing
+  const sign1 = netYearlySaving >= 0 ? "+" : "-";
+  drawRoiResultCard(24, cardY, cardW, cardH, "JAARLIJKSE BESPARING", `${sign1} € ${Math.abs(netYearlySaving).toFixed(2).replace('.', ',')}`, "Vanaf Jaar 2", netYearlySaving >= 0);
 
-  const signYr1 = year1NetResult >= 0 ? "+" : "-";
-  const valYr1 = `${signYr1} € ${Math.abs(year1NetResult).toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-  drawSummaryCard(64, "RESULTAAT JAAR 1", valYr1, "Inclusief installatie", year1NetResult >= 0 ? [37, 99, 235] : [220, 38, 38]);
+  // Card 2: Resultaat Jaar 1
+  const sign2 = year1NetResult >= 0 ? "+" : "-";
+  drawRoiResultCard(65, cardY, cardW, cardH, "RESULTAAT JAAR 1", `${sign2} € ${Math.abs(year1NetResult).toFixed(2).replace('.', ',')}`, "Inclusief installatie", year1NetResult >= 0);
 
-  drawSummaryCard(105, "TERUGVERDIENTIJD", paybackText, "Investerings-ROI", [227, 6, 19]);
+  // Card 3: Terugverdientijd
+  let paybackStr = "Direct";
+  let isPaybackGreen = true;
+  if (year1NetResult < 0) {
+    if (netYearlySaving <= 0) {
+      paybackStr = "Geen TVT";
+      isPaybackGreen = false;
+    } else {
+      const pbMonths = ((autoYear1Total - manualTotalCost) / netYearlySaving) * 12;
+      paybackStr = `${pbMonths.toFixed(1).replace('.', ',')} m`;
+    }
+  }
+  drawRoiResultCard(106, cardY, cardW, cardH, "TERUGVERDIENTIJD", paybackStr, "Investerings-ROI", isPaybackGreen);
 
-  const signMulti = totalSavingsMultiYear >= 0 ? "+" : "-";
-  const valMulti = `${signMulti} € ${Math.abs(totalSavingsMultiYear).toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-  drawSummaryCard(146, `BESPARING NA ${years} JAAR`, valMulti, "Netto totaalresultaat", totalSavingsMultiYear >= 0 ? [5, 150, 105] : [220, 38, 38]);
+  // Card 4: Besparing na N jaar
+  const sign4 = multiYearSaving >= 0 ? "+" : "-";
+  drawRoiResultCard(147, cardY, cardW, cardH, `BESPARING NA ${numYears} JAAR`, `${sign4} € ${Math.abs(multiYearSaving).toFixed(2).replace('.', ',')}`, "Netto totaalresultaat", multiYearSaving >= 0);
 
-  // 7. Footer
+  // Footer Disclaimer
   doc.setFont("helvetica", "normal");
-  doc.setDrawColor(200, 200, 200);
-  doc.setLineWidth(0.25);
-  doc.line(20, 267, 190, 267);
-
-  const disclaimer = langData.legalDisclaimerText || "De gegenereerde gegevens bieden een betrouwbare indicatie, maar vormen geen expliciete garantie dat een product of dosering geschikt is voor elke specifieke toepassing.";
-  doc.setFontSize(6.8);
-  doc.setTextColor(140, 140, 140);
-  doc.text(disclaimer, 20, 271, { maxWidth: 170 });
+  doc.setFontSize(6.5);
+  doc.setTextColor(148, 163, 184);
+  const footerText = "De gegenereerde gegevens bieden een betrouwbare indicatie, maar vormen geen expliciete garantie dat een product of dosering geschikt is voor elke specifieke toepassing. De calculator biedt een adviesrichtlijn; er kan geen wettelijke waarborg of aansprakelijkheid worden verleend met betrekking tot het concrete gebruik ervan in de praktijk.";
+  const splitFooter = doc.splitTextToSize(footerText, 170);
+  doc.text(splitFooter, 20, 180);
 
   doc.setFont("helvetica", "bold");
   doc.setFontSize(7.5);
   doc.setTextColor(227, 6, 19);
-  doc.text("INTERFLON - " + (langData.pdfWatermarkText || "A WORLD WITHOUT FRICTION").toUpperCase(), 20, 282);
+  doc.text("INTERFLON - A WORLD WITHOUT FRICTION", 20, 192);
 }
 
