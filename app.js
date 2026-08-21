@@ -84,14 +84,25 @@ function renderAutoDevicesUI() {
 
   let html = "";
   
+  const outerGrid = document.getElementById("automationInteractiveGrid");
+  if (outerGrid) {
+    if (numDevices > 1) {
+      outerGrid.style.gridTemplateColumns = "1fr";
+    } else {
+      outerGrid.style.gridTemplateColumns = "1fr 1fr";
+    }
+  }
+
   if (numDevices > 1) {
     container.style.display = "grid";
-    container.style.gridTemplateColumns = "repeat(auto-fit, minmax(360px, 1fr))";
+    container.style.gridTemplateColumns = "repeat(" + numDevices + ", minmax(300px, 1fr))";
     container.style.gap = "20px";
+    container.style.width = "100%";
   } else {
     container.style.display = "flex";
     container.style.flexDirection = "column";
     container.style.gap = "20px";
+    container.style.width = "100%";
   }
 
   for (let i = 0; i < numDevices; i++) {
