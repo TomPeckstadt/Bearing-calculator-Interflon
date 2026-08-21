@@ -8,7 +8,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <link rel="stylesheet" href="style.css?v=20260821_1123">
+  <link rel="stylesheet" href="style.css?v=20260821_1127">
 </head>
 <body>
 
@@ -1813,6 +1813,16 @@
               <div id="roiPaybackPeriod" style="font-size: 24px; font-weight: 900; color: var(--primary-red); margin-top: 4px;">Direct Rendabel</div>
               <div style="font-size: 11px; color: #64748b; margin-top: 2px;">Investerings-terugverdientijd</div>
             </div>
+
+            <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: var(--border-radius-md); padding: 18px 16px; display: flex; flex-direction: column; justify-content: space-between; align-items: center;">
+              <div style="font-size: 11.5px; font-weight: 700; color: #64748b; text-transform: uppercase; display: flex; align-items: center; justify-content: center; gap: 5px; flex-wrap: wrap;">
+                <span>Besparing na</span>
+                <input type="number" id="roiYearsInput" value="5" min="1" max="50" step="1" oninput="updateRoiAutomationPage()" onchange="updateRoiAutomationPage()" onclick="this.select()" style="width: 46px; padding: 2px 4px; border: 1px solid #cbd5e1; border-radius: 4px; font-weight: 800; text-align: center; color: #0f172a; font-size: 13px; background: white;">
+                <span>jaar</span>
+              </div>
+              <div id="roiMultiYearSaving" style="font-size: 24px; font-weight: 900; color: #059669; margin-top: 4px;">+ € 0,00</div>
+              <div style="font-size: 11px; color: #64748b; margin-top: 2px;">Inclusief initiële installatie</div>
+            </div>
           </div>
         </div>
 
@@ -2835,10 +2845,10 @@
 
   <!-- JavaScript logic imports -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="interflon-data.js?v=20260821_1123"></script>
+  <script src="interflon-data.js?v=20260821_1127"></script>
   <script src="bearings-db.js"></script>
-  <script src="chains-db.js?v=20260821_1123"></script>
-  <script src="app_v6.js?v=20260821_1123"></script>
+  <script src="chains-db.js?v=20260821_1127"></script>
+  <script src="app_v6.js?v=20260821_1127"></script>
 
   <!-- Interflon Oil Dispenser Information Modal (PowerPoint Viewer) -->
   <div id="oilDispenserInfoModal" class="modal-overlay hidden" style="z-index: 99999;">
