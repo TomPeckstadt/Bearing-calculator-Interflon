@@ -8,7 +8,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <link rel="stylesheet" href="style.css?v=20260821_2043">
+  <link rel="stylesheet" href="style.css?v=20260822_1241">
 </head>
 <body>
 
@@ -2946,10 +2946,10 @@
 
   <!-- JavaScript logic imports -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="interflon-data.js?v=20260821_2043"></script>
-  <script src="bearings-db.js?v=20260821_2043"></script>
-  <script src="chains-db.js?v=20260821_2043"></script>
-  <script src="app_v6.js?v=20260821_2043"></script>
+  <script src="interflon-data.js?v=20260822_1241"></script>
+  <script src="bearings-db.js?v=20260822_1241"></script>
+  <script src="chains-db.js?v=20260822_1241"></script>
+  <script src="app_v6.js?v=20260822_1241"></script>
 
   <!-- Interflon Oil Dispenser Information Modal (PowerPoint Viewer) -->
   <div id="oilDispenserInfoModal" class="modal-overlay hidden" style="z-index: 99999;">
@@ -3166,7 +3166,7 @@
         recTitleText = `${dialLabel} (${settingTerm}) | Theoretisch: ${Math.round(recDays)} dagen`;
       }
 
-      const roundReason = recSetting.roundedUp ? "afgerond naar boven bij ≥ 0,7" : "afgerond naar beneden bij < 0,7";
+      const roundReason = recSetting.roundedUp ? "afgerond naar boven bij ≥ 0,5" : "afgerond naar beneden bij < 0,5";
 
       if (recTitleEl) recTitleEl.textContent = recTitleText;
       if (recSubtextEl) {
