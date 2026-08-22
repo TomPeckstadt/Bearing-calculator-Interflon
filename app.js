@@ -938,7 +938,7 @@ function getAutomationDeviceImageDataUrl(imageSrc, callback) {
 
 
 // Helper to calculate recommended lubricator setting months (1..12):
-// Decimals <= 0.7 round DOWN, decimals > 0.7 round UP
+// Decimals < 0.5 round DOWN, decimals >= 0.5 round UP
 function getRecommendedSettingMonths(recMonths) {
   if (recMonths <= 0) {
     return { months: 1, roundedUp: false };
@@ -948,8 +948,8 @@ function getRecommendedSettingMonths(recMonths) {
   const whole = Math.floor(rounded1Dec);
   const frac = Math.round((rounded1Dec - whole) * 10) / 10;
 
-  // Vanaf 0.7 (frac >= 0.7) round UP to whole + 1, otherwise round DOWN to whole
-  if (frac >= 0.7) {
+  // Vanaf 0.5 (frac >= 0.5) round UP to whole + 1, otherwise round DOWN to whole
+  if (frac >= 0.5) {
     const m = Math.min(24, whole + 1);
     return { months: m, roundedUp: true };
   } else {
@@ -6033,7 +6033,7 @@ function calculateAutomationLubrication() {
 
     const recTitleEl = document.getElementById("autoRecTitle_" + devId);
     const recSubtextEl = document.getElementById("autoRecSubtext_" + devId);
-    const roundReason = recSetting.roundedUp ? "afgerond naar boven bij ≥ 0,7" : "afgerond naar beneden bij < 0,7";
+    const roundReason = recSetting.roundedUp ? "afgerond naar boven bij ≥ 0,5" : "afgerond naar beneden bij < 0,5";
     const pointsText = points === 1 ? "1 lager" : `${points} lagers`;
 
     const smartAdv = getOptimalSmartAdvice(totalDailyNeedForDev, deviceKey, greaseName);
@@ -7820,7 +7820,7 @@ function calculateChainAutomation() {
     recTitleText = `${dialLabel} (${settingTerm}) | Theoretisch: ${Math.round(recDays)} dagen`;
   }
 
-  const roundReason = recSetting.roundedUp ? "afgerond naar boven bij ≥ 0,7" : "afgerond naar beneden bij < 0,7";
+  const roundReason = recSetting.roundedUp ? "afgerond naar boven bij ≥ 0,5" : "afgerond naar beneden bij < 0,5";
 
   if (recTitleEl) recTitleEl.textContent = recTitleText;
   if (recSubtextEl) {
