@@ -8653,7 +8653,7 @@ function updateRoiAutomationPage() {
   };
 
   const tcoSets = pVal("SetsPerMachine") || 1;
-  const numBearingsForTco = (manualMode === "huidig" && tcoSets > 0) ? Math.max(tcoSets, totalPointsAllDevices) : (totalPointsAllDevices || 1);
+  const numBearingsForTco = (tcoSets > 0) ? Math.max(tcoSets, totalPointsAllDevices) : (totalPointsAllDevices || 1);
 
   // TCO extra costs (Col 1: Huidige Situatie, Col 2: Interflon)
   const p1_lifetime = pVal("Lifetime1") || pVal("RepairFreq1") || 12;
@@ -8738,8 +8738,9 @@ function updateRoiAutomationPage() {
     const currentPriceInput = document.getElementById("omProdPrice1") || document.getElementById("chainOmProdPrice1") || document.getElementById("tcoPriceCurrentInput");
     manualGreasePricePerLiter = currentPriceInput ? (parseFloat(currentPriceInput.value) || 20.00) : 20.00;
 
-    const currentFreqInput = document.getElementById("omProdFreq1") || document.getElementById("chainOmProdFreq1") || document.getElementById("tcoFreqCurrentInput");
-    manualBeurtenPerYear = currentFreqInput ? (parseFloat(currentFreqInput.value) || 26.0) : 26.0;
+    const freqElId = (manualMode === "huidig") ? "omProdFreq1" : "omProdFreq2";
+    const currentFreqInput = document.getElementById(freqElId) || document.getElementById("chain" + freqElId.charAt(0).toUpperCase() + freqElId.slice(1)) || document.getElementById("tcoFreqCurrentInput");
+    manualBeurtenPerYear = currentFreqInput ? (parseFloat(currentFreqInput.value) || (manualMode === "huidig" ? 26.0 : 13.1)) : (manualMode === "huidig" ? 26.0 : 13.1);
 
     const currentConsInput = document.getElementById("omProdCons1") || document.getElementById("chainOmProdCons1") || document.getElementById("tcoQtyCurrentInput");
     const manualConsPerBeurtGrams = currentConsInput ? parseFloat(currentConsInput.value) || 0 : 0;
@@ -9109,7 +9110,7 @@ function addRoiPdfPage(doc, dateString, watermarkDataUrl, aspectRatio, autoDataU
   };
 
   const tcoSets = pVal("SetsPerMachine") || 1;
-  const numBearingsForTco = (isHuidigMode && tcoSets > 0) ? Math.max(tcoSets, totalPointsAllDevices) : (totalPointsAllDevices || 1);
+  const numBearingsForTco = (tcoSets > 0) ? Math.max(tcoSets, totalPointsAllDevices) : (totalPointsAllDevices || 1);
 
   // TCO extra costs PDF (Col 1: Huidige Situatie, Col 2: Interflon)
   const p1_lifetime = pVal("Lifetime1") || pVal("RepairFreq1") || 12;
@@ -9160,8 +9161,10 @@ function addRoiPdfPage(doc, dateString, watermarkDataUrl, aspectRatio, autoDataU
     manualLaborCost = manualLaborHours * hourlyRate;
     manualTotalCost = manualGreaseCost + manualLaborCost + manualRepairCost + manualMatCost + manualDowntimeCost;
   } else {
+    const interflonFreqInput = document.getElementById("omProdFreq2") || document.getElementById("chainOmProdFreq2");
+    manualBeurtenPerYear = interflonFreqInput ? (parseFloat(interflonFreqInput.value) || 13.1) : 13.1;
     manualGreaseCost = (yearlyMlTotal / 1000) * greasePricePerLiter;
-    manualLaborHours = totalPointsAllDevices * manualBeurtenPerYear * (workTimeMinutes / 60);
+    manualLaborHours = numBearingsForTco * manualBeurtenPerYear * (workTimeMinutes / 60);
     manualLaborCost = manualLaborHours * hourlyRate;
     manualTotalCost = manualGreaseCost + manualLaborCost;
   }
