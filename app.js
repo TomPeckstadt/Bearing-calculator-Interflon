@@ -8639,7 +8639,7 @@ function updateRoiAutomationPage() {
     return isNaN(v) ? 0 : v;
   };
 
-  const p1_repair_freq = pVal("RepairFreq1") || pVal("Lifetime1");
+  const p1_repair_freq = pVal("Lifetime1") || pVal("RepairFreq1") || 12;
   const shared_repair_h = pVal("SharedRepairH");
   const shared_prep_h = pVal("SharedPrepH");
   const p1_lifetime = pVal("Lifetime1");
@@ -8648,7 +8648,7 @@ function updateRoiAutomationPage() {
   const p1_downtime_freq = pVal("DowntimeFreq1") || (p1_lifetime > 0 ? (12 / p1_lifetime) : 0);
   const shared_downtime_rate = pVal("SharedDowntimeRate");
 
-  let manualRepairCost = p1_repair_freq > 0 ? ((12 / p1_repair_freq) * (shared_repair_h + shared_prep_h) * totalPointsAllDevices * hourlyRate) : 0;
+  let manualRepairCost = p1_repair_freq > 0 ? ((12 / p1_repair_freq) * ((shared_repair_h * totalPointsAllDevices) + shared_prep_h) * hourlyRate) : 0;
   let manualMatCost = p1_lifetime > 0 ? ((12 / p1_lifetime) * shared_parts_cost * totalPointsAllDevices) : 0;
   let manualDowntimeCost = p1_downtime_h * p1_downtime_freq * shared_downtime_rate * totalPointsAllDevices;
 
@@ -9058,7 +9058,7 @@ function addRoiPdfPage(doc, dateString, watermarkDataUrl, aspectRatio, autoDataU
     return isNaN(v) ? 0 : v;
   };
 
-  const p1_repair_freq = pVal("RepairFreq1") || pVal("Lifetime1");
+  const p1_repair_freq = pVal("Lifetime1") || pVal("RepairFreq1") || 12;
   const shared_repair_h = pVal("SharedRepairH");
   const shared_prep_h = pVal("SharedPrepH");
   const p1_lifetime = pVal("Lifetime1");
@@ -9067,7 +9067,7 @@ function addRoiPdfPage(doc, dateString, watermarkDataUrl, aspectRatio, autoDataU
   const p1_downtime_freq = pVal("DowntimeFreq1") || (p1_lifetime > 0 ? (12 / p1_lifetime) : 0);
   const shared_downtime_rate = pVal("SharedDowntimeRate");
 
-  let manualRepairCost = p1_repair_freq > 0 ? ((12 / p1_repair_freq) * (shared_repair_h + shared_prep_h) * totalPointsAllDevices * hourlyRate) : 0;
+  let manualRepairCost = p1_repair_freq > 0 ? ((12 / p1_repair_freq) * ((shared_repair_h * totalPointsAllDevices) + shared_prep_h) * hourlyRate) : 0;
   let manualMatCost = p1_lifetime > 0 ? ((12 / p1_lifetime) * shared_parts_cost * totalPointsAllDevices) : 0;
   let manualDowntimeCost = p1_downtime_h * p1_downtime_freq * shared_downtime_rate * totalPointsAllDevices;
 
