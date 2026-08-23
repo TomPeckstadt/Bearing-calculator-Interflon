@@ -1307,7 +1307,9 @@ const TRANSLATIONS = {
     omTcoPeriodLabel: "Aantal jaren voor TCO",
     omCostPerMachineYears: "Kostprijs / machine na <span class='omTcoYearsVal'>10</span> jaar (€)",
     omCostParkYears: "Kostprijs / machinepark na <span class='omTcoYearsVal'>10</span> jaar (€)",
-    omSavingsYears: "Kostenbesparing na <span class='omTcoYearsVal'>10</span> jaar (€)",
+    omSavingsMachineYears: "Kostenbesparing / machine / na <span class='omTcoYearsVal'>10</span> jaar (€)",
+    omSavingsYears: "Kostenbesparing / machinepark / na <span class='omTcoYearsVal'>10</span> jaar (€)",
+    omSavingsParkYears: "Kostenbesparing / machinepark / na <span class='omTcoYearsVal'>10</span> jaar (€)",
     close: "Sluiten",
     speedModalTitle: "Toerental Limieten",
     speedModalRefTitle: "Referentietoerental (Thermische grens)",
@@ -1611,7 +1613,9 @@ const TRANSLATIONS = {
     omTcoPeriodLabel: "Years for TCO",
     omCostPerMachineYears: "Cost / machine after <span class='omTcoYearsVal'>10</span> years (€)",
     omCostParkYears: "Cost / park after <span class='omTcoYearsVal'>10</span> years (€)",
-    omSavingsYears: "Cost savings after <span class='omTcoYearsVal'>10</span> years (€)",
+    omSavingsMachineYears: "Cost savings / machine / after <span class='omTcoYearsVal'>10</span> years (€)",
+    omSavingsYears: "Cost savings / machine park / after <span class='omTcoYearsVal'>10</span> years (€)",
+    omSavingsParkYears: "Cost savings / machine park / after <span class='omTcoYearsVal'>10</span> years (€)",
     close: "Close",
     speedModalTitle: "Speed Limits",
     speedModalRefTitle: "Reference Speed (Thermal limit)",
@@ -1915,7 +1919,9 @@ const TRANSLATIONS = {
     omTcoPeriodLabel: "Nombre d'années pour le TCO",
     omCostPerMachineYears: "Coût / machine après <span class='omTcoYearsVal'>10</span> ans (€)",
     omCostParkYears: "Coût / parc après <span class='omTcoYearsVal'>10</span> ans (€)",
-    omSavingsYears: "Économies après <span class='omTcoYearsVal'>10</span> ans (€)",
+    omSavingsMachineYears: "Économies / machine / après <span class='omTcoYearsVal'>10</span> ans (€)",
+    omSavingsYears: "Économies / parc de machines / après <span class='omTcoYearsVal'>10</span> ans (€)",
+    omSavingsParkYears: "Économies / parc de machines / après <span class='omTcoYearsVal'>10</span> ans (€)",
     close: "Fermer",
     speedModalTitle: "Limites de Vitesse",
     speedModalRefTitle: "Vitesse de Référence (Limite thermique)",
@@ -5269,6 +5275,7 @@ function calculateTcoForPrefix(prefix) {
   const p1_total_cost_park_years = p1_ann_total_cost_park * tco_years;
   const p2_total_cost_park_years = p2_ann_total_cost_park * tco_years;
   
+  const total_savings_mach_years = ann_savings_mach * tco_years;
   const total_savings_years = p1_total_cost_park_years - p2_total_cost_park_years;
 
   const setEl = (id, valStr) => {
@@ -5300,6 +5307,7 @@ function calculateTcoForPrefix(prefix) {
 
   setEl("TotalCostYears1", fmtCurrency(p1_total_cost_mach_years));
   setEl("TotalCostYears2", fmtCurrency(p2_total_cost_mach_years));
+  setEl("SavingsMachineYears", fmtCurrency(total_savings_mach_years));
 
   setEl("TotalParkCostYears1", fmtCurrency(p1_total_cost_park_years));
   setEl("TotalParkCostYears2", fmtCurrency(p2_total_cost_park_years));
@@ -7221,18 +7229,20 @@ function runChainPdfExport(includeTco, includeRoi) {
           drawCell(startX2, curY, 54, 6, "Totale kostprijs / jaar / park (€)", p2_park, "green-total");
           drawCell(startX3, curY, 60, 6, "Kostenbesparing / jaar (€)", ann_park_savings, "green-total");
 
+          const mach_savings_years_val = (parseFloat((ann_savings || "0").replace(/[^0-9,-]/g, '').replace(',', '.')) * tco_years).toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
           curY += 6;
-          drawCell(startX3, curY, 60, 6, "% Product / totale kost", prod_percent, "grey");
+          drawCell(startX2, curY, 54, 6, "% Product / totale kost", prod_percent, "grey");
+          drawCell(startX3, curY, 60, 6, "Aantal jaren voor TCO", tco_years + " jaar", "grey");
 
           curY += 6;
           drawCell(startX1, curY, 54, 6, `Kostprijs / machine na ${tco_years} jaar (€)`, p1_years, "pink-total");
           drawCell(startX2, curY, 54, 6, `Kostprijs / machine na ${tco_years} jaar (€)`, p2_years, "green-total");
-          drawCell(startX3, curY, 60, 6, "Aantal jaren voor TCO", tco_years + " jaar", "grey");
+          drawCell(startX3, curY, 60, 6, `Kostenbesparing / machine / na ${tco_years} jaar (€)`, "€ " + mach_savings_years_val, "green-total");
 
           curY += 6;
           drawCell(startX1, curY, 54, 6, `Kostprijs / park na ${tco_years} jaar (€)`, park_years1, "pink-total");
           drawCell(startX2, curY, 54, 6, `Kostprijs / park na ${tco_years} jaar (€)`, park_years2, "green-total");
-          drawCell(startX3, curY, 60, 6, `Kostenbesparing na ${tco_years} jaar (€)`, total_savings, "green-total");
+          drawCell(startX3, curY, 60, 6, `Kostenbesparing / machinepark / na ${tco_years} jaar (€)`, total_savings, "green-total");
 
           // Footer
           doc.setFontSize(6.8);
