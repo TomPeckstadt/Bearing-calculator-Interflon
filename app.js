@@ -5169,12 +5169,10 @@ function calculateTcoForPrefix(prefix) {
   const shared_worktime_hours = shared_worktime / 60;
 
   const p1_ann_labor_cost = (p1_freq * shared_worktime_hours * num_bearings * shared_labor_rate) +
-    (p1_repair_freq === 0 ? 0 : (12 / p1_repair_freq) * shared_repair_h * num_bearings * shared_labor_rate) +
-    (p1_repair_freq === 0 ? 0 : shared_prep_h * shared_labor_rate * (12 / p1_repair_freq));
+    (p1_repair_freq === 0 ? 0 : (12 / p1_repair_freq) * (shared_repair_h + shared_prep_h) * num_bearings * shared_labor_rate);
     
   const p2_ann_labor_cost = (p2_freq * shared_worktime_hours * num_bearings * shared_labor_rate) +
-    (p2_repair_freq === 0 ? 0 : (12 / p2_repair_freq) * shared_repair_h * num_bearings * shared_labor_rate) +
-    (p2_repair_freq === 0 ? 0 : shared_prep_h * shared_labor_rate * (12 / p2_repair_freq));
+    (p2_repair_freq === 0 ? 0 : (12 / p2_repair_freq) * (shared_repair_h + shared_prep_h) * num_bearings * shared_labor_rate);
 
   const p1_ann_mat_cost = p1_lifetime === 0 ? 0 : shared_parts_cost * num_bearings * (12 / p1_lifetime);
   const p2_ann_mat_cost = p2_lifetime === 0 ? 0 : shared_parts_cost * num_bearings * (12 / p2_lifetime);
@@ -8648,7 +8646,7 @@ function updateRoiAutomationPage() {
   const p1_downtime_freq = pVal("DowntimeFreq1") || (p1_lifetime > 0 ? (12 / p1_lifetime) : 0);
   const shared_downtime_rate = pVal("SharedDowntimeRate");
 
-  let manualRepairCost = p1_repair_freq > 0 ? ((12 / p1_repair_freq) * ((shared_repair_h * totalPointsAllDevices) + shared_prep_h) * hourlyRate) : 0;
+  let manualRepairCost = p1_repair_freq > 0 ? ((12 / p1_repair_freq) * (shared_repair_h + shared_prep_h) * totalPointsAllDevices * hourlyRate) : 0;
   let manualMatCost = p1_lifetime > 0 ? ((12 / p1_lifetime) * shared_parts_cost * totalPointsAllDevices) : 0;
   let manualDowntimeCost = p1_downtime_h * p1_downtime_freq * shared_downtime_rate * totalPointsAllDevices;
 
@@ -9067,7 +9065,7 @@ function addRoiPdfPage(doc, dateString, watermarkDataUrl, aspectRatio, autoDataU
   const p1_downtime_freq = pVal("DowntimeFreq1") || (p1_lifetime > 0 ? (12 / p1_lifetime) : 0);
   const shared_downtime_rate = pVal("SharedDowntimeRate");
 
-  let manualRepairCost = p1_repair_freq > 0 ? ((12 / p1_repair_freq) * ((shared_repair_h * totalPointsAllDevices) + shared_prep_h) * hourlyRate) : 0;
+  let manualRepairCost = p1_repair_freq > 0 ? ((12 / p1_repair_freq) * (shared_repair_h + shared_prep_h) * totalPointsAllDevices * hourlyRate) : 0;
   let manualMatCost = p1_lifetime > 0 ? ((12 / p1_lifetime) * shared_parts_cost * totalPointsAllDevices) : 0;
   let manualDowntimeCost = p1_downtime_h * p1_downtime_freq * shared_downtime_rate * totalPointsAllDevices;
 
