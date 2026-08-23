@@ -262,6 +262,9 @@ function loadAutomationStateFromLocalStorage() {
 }
 
 
+function renderAutomationDeviceCards() { return renderAutoDevicesUI(); }
+window.renderAutomationDeviceCards = renderAutomationDeviceCards;
+
 function renderAutoDevicesUI() {
   loadAutomationStateFromLocalStorage();
   const container = document.getElementById("autoDevicesCardsContainer");
