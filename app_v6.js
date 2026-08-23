@@ -23,10 +23,10 @@ function getVerdeelblokImage(callback) {
 // ==========================================
 
 let autoDevicesState = [
-  { id: 'A', name: 'Pulsarlube A', points: 1, cap: 120, period: 6, unit: 'months', userEditedPeriod: false },
-  { id: 'B', name: 'Pulsarlube B', points: 1, cap: 120, period: 6, unit: 'months', userEditedPeriod: false },
-  { id: 'C', name: 'Pulsarlube C', points: 1, cap: 120, period: 6, unit: 'months', userEditedPeriod: false },
-  { id: 'D', name: 'Pulsarlube D', points: 1, cap: 120, period: 6, unit: 'months', userEditedPeriod: false }
+  { id: 'A', name: 'Pulsarlube A', points: 1, cap: 120, period: 6, unit: 'months', userEditedPeriod: false, customPackPrice: 0 },
+  { id: 'B', name: 'Pulsarlube B', points: 1, cap: 120, period: 6, unit: 'months', userEditedPeriod: false, customPackPrice: 0 },
+  { id: 'C', name: 'Pulsarlube C', points: 1, cap: 120, period: 6, unit: 'months', userEditedPeriod: false, customPackPrice: 0 },
+  { id: 'D', name: 'Pulsarlube D', points: 1, cap: 120, period: 6, unit: 'months', userEditedPeriod: false, customPackPrice: 0 }
 ];
 
 function getActiveNumDevices() {
@@ -63,6 +63,21 @@ function onDevicePointsChange(devId) {
     dev.userEditedPeriod = false;
   }
   calculateAutomationLubrication();
+}
+
+
+function onDeviceCustomPriceChange(devId, val) {
+  const parsed = parseFloat(val);
+  const numVal = (!isNaN(parsed) && parsed >= 0) ? parsed : 0;
+  if (typeof autoDevicesState !== "undefined") {
+    const dev = autoDevicesState.find(d => d.id === devId);
+    if (dev) dev.customPackPrice = numVal;
+  }
+  if (devId === "A") {
+    window.customSinglePointPackPrice = numVal;
+  }
+  calculateAutomationLubrication();
+  if (typeof updateRoiAutomationPage === "function") updateRoiAutomationPage();
 }
 
 function onDeviceCapChange(devId) {
@@ -378,6 +393,17 @@ function renderAutoDevicesUI() {
             <input type="number" id="singlePointNumBearingsInput" class="form-input" value="${window.spNumBearingsValue || 1}" min="1" max="100" step="1" oninput="onSinglePointNumBearingsChange(this.value)" style="width: 100%; padding: 8px 12px; border-radius: var(--border-radius-sm); border: 1px solid #cbd5e1; font-weight: 700; color: #0f172a;" title="Voer het aantal te smeren lagers / single point toestellen in">
           </div>
           ` : ''}
+          ${!pInfo.isPriceFound && !pInfo.isCustomPrice ? `
+          <div id="priceWarningNotice_${devId}" style="background-color: #fffbebf7; border: 1.5px solid #f59e0b; border-radius: var(--border-radius-sm); padding: 10px 12px; margin-bottom: 4px; font-size: 11.5px; color: #92400e; line-height: 1.4;">
+            ⚠️ <strong>Prijs niet in standaard prijslijst:</strong> Het gekozen vet (<em>${greaseName}</em>) is niet standaard opgenomen in de prijslijst van ${baseDeviceName}.<br>👉 <strong>Vul hieronder manueel de patroonprijs in</strong> om de berekening uit te voeren.
+          </div>
+          ` : ''}
+          <div>
+            <label for="autoCustomPackPrice_${devId}" style="display: block; font-size: 12px; font-weight: 600; color: var(--text-dark); margin-bottom: 4px;">
+              Patroonprijs / Servicepack (€) ${!pInfo.isPriceFound ? '<span style="color:#d97706; font-weight:700;">(Manueel in te vullen)</span>' : '<span style="color:#64748b; font-weight:400;">(Optioneel overschrijven)</span>'}
+            </label>
+            <input type="number" id="autoCustomPackPrice_${devId}" class="form-input" value="${dev.customPackPrice || ''}" placeholder="${pInfo.isPriceFound ? ('Standaard € ' + pInfo.servicepackPrice.toFixed(2).replace('.',',')) : 'Voer prijs in (bijv. 65,00)'}" min="0" step="0.01" oninput="onDeviceCustomPriceChange('${devId}', this.value)" style="width: 100%; padding: 8px 12px; border-radius: var(--border-radius-sm); border: 1px solid ${!pInfo.isPriceFound && !dev.customPackPrice ? '#f59e0b' : '#cbd5e1'}; font-weight: 600;">
+          </div>
           <div>
             <label for="autoCartridgeCap_${devId}" style="display: block; font-size: 12px; font-weight: 600; color: var(--text-dark); margin-bottom: 4px;">Patroon Capaciteit (ml)</label>
             <select id="autoCartridgeCap_${devId}" class="form-select" onchange="onDeviceCapChange('${devId}')" style="width: 100%; padding: 8px 12px; border-radius: var(--border-radius-sm); border: 1px solid #cbd5e1;">
@@ -8467,10 +8493,10 @@ const AUTOMATION_PRICE_DATABASE = {
   ]
 };
 
-function getAutomationPriceInfo(deviceKey, capMl, greaseName, numPoints = 1) {
+function getAutomationPriceInfo(deviceKey, capMl, greaseName, numPoints = 1, customPrice = null) {
   let rawName = (greaseName || "Grease MP2/3").toUpperCase();
 
-  let gSearch = "MP2/3";
+  let gSearch = null;
   if (rawName.includes("MP1")) gSearch = "MP1";
   else if (rawName.includes("MP00")) gSearch = "MP00";
   else if (rawName.includes("MP2/3") || rawName.includes("MP2") || rawName.includes("MP3")) gSearch = "MP2/3";
@@ -8484,23 +8510,36 @@ function getAutomationPriceInfo(deviceKey, capMl, greaseName, numPoints = 1) {
   else if (rawName.includes("FOOD") && rawName.includes("EP")) gSearch = "Food grease EP";
   else if (rawName.includes("FOOD") && rawName.includes("LT2")) gSearch = "Food grease LT2";
   else if (rawName.includes("FOOD") && rawName.includes("1")) gSearch = "Food grease 1";
+  else if (rawName.includes("G150")) gSearch = "G150";
+  else if (rawName.includes("G220")) gSearch = "G220";
+  else if (rawName.includes("PN32")) gSearch = "PN32";
+  else if (rawName.includes("PN68")) gSearch = "PN68";
+
+  const numCustom = (customPrice !== null && !isNaN(customPrice) && parseFloat(customPrice) > 0) ? parseFloat(customPrice) : null;
 
   if (deviceKey === "single_point") {
     const targetCap = (capMl === 120) ? 125 : capMl;
-    const match = AUTOMATION_PRICE_DATABASE.singlePointFilled.find(item => item.cap === targetCap && item.grease.toUpperCase().includes(gSearch.toUpperCase())) ||
-                  AUTOMATION_PRICE_DATABASE.singlePointFilled.find(item => item.cap === targetCap) ||
-                  AUTOMATION_PRICE_DATABASE.singlePointFilled[0];
+    const match = gSearch ? AUTOMATION_PRICE_DATABASE.singlePointFilled.find(item => item.cap === targetCap && item.grease.toUpperCase().includes(gSearch.toUpperCase())) : null;
+    
+    const isPriceFound = !!match;
+    const isCustomPrice = numCustom !== null;
+    const finalPrice = isCustomPrice ? numCustom : (isPriceFound ? match.price : 0.00);
+    const artNr = isCustomPrice ? "Manueel" : (isPriceFound ? match.artNr : "Op aanvraag");
+
     return {
       deviceType: "Single Point Lubricator",
       isPrefilled: true,
-      unitPrice: match.price,
-      servicepackPrice: match.price,
+      unitPrice: finalPrice,
+      servicepackPrice: finalPrice,
       installKitPrice: 0.00,
       dividerBlockPrice: 0.00,
       artNrDividerBlock: "",
       mandatoryAccessoriesPrice: 0.00,
-      artNrUnit: match.artNr,
-      artNrServicepack: match.artNr
+      artNrUnit: artNr,
+      artNrServicepack: artNr,
+      isPriceFound: isPriceFound,
+      isCustomPrice: isCustomPrice,
+      greaseName: greaseName
     };
   } else {
     let modelSearch = "M2";
@@ -8511,14 +8550,14 @@ function getAutomationPriceInfo(deviceKey, capMl, greaseName, numPoints = 1) {
                       AUTOMATION_PRICE_DATABASE.pulsarlubeUnits.find(item => item.cap === capMl) ||
                       AUTOMATION_PRICE_DATABASE.pulsarlubeUnits[0];
 
-    const packMatch = AUTOMATION_PRICE_DATABASE.pulsarlubeServicepacks.find(item => item.cap === capMl && item.grease.toUpperCase().includes(gSearch.toUpperCase())) ||
-                      AUTOMATION_PRICE_DATABASE.pulsarlubeServicepacks.find(item => item.cap === capMl) ||
-                      AUTOMATION_PRICE_DATABASE.pulsarlubeServicepacks[0];
+    const packMatch = gSearch ? AUTOMATION_PRICE_DATABASE.pulsarlubeServicepacks.find(item => item.cap === capMl && item.grease.toUpperCase().includes(gSearch.toUpperCase())) : null;
 
-    // Installation kit: Art 1430 (€33.00) + 10x Art 14 (€1.90) = €52.00
+    const isPriceFound = !!packMatch;
+    const isCustomPrice = numCustom !== null;
+    const finalPackPrice = isCustomPrice ? numCustom : (isPriceFound ? packMatch.price : 0.00);
+    const packArtNr = isCustomPrice ? "Manueel" : (isPriceFound ? packMatch.artNr : "Op aanvraag");
+
     let installKitPrice = AUTOMATION_PRICE_DATABASE.accessories.installKit.price + (10 * AUTOMATION_PRICE_DATABASE.accessories.nylonTubePerM.price);
-    
-    // Divider Block (Verdeelblok) price if numPoints > 1
     const divDb = AUTOMATION_PRICE_DATABASE.dividerBlocks || {};
     const divBlock = (numPoints > 1 && divDb[numPoints]) ? divDb[numPoints] : null;
     let dividerBlockPrice = divBlock ? divBlock.price : 0.00;
@@ -8528,13 +8567,16 @@ function getAutomationPriceInfo(deviceKey, capMl, greaseName, numPoints = 1) {
       deviceType: unitMatch.model,
       isPrefilled: false,
       unitPrice: unitMatch.price,
-      servicepackPrice: packMatch.price,
+      servicepackPrice: finalPackPrice,
       installKitPrice: installKitPrice,
       dividerBlockPrice: dividerBlockPrice,
       artNrDividerBlock: artNrDividerBlock,
       mandatoryAccessoriesPrice: installKitPrice + dividerBlockPrice,
       artNrUnit: unitMatch.artNr,
-      artNrServicepack: packMatch.artNr
+      artNrServicepack: packArtNr,
+      isPriceFound: isPriceFound,
+      isCustomPrice: isCustomPrice,
+      greaseName: greaseName
     };
   }
 }
@@ -8867,7 +8909,7 @@ function updateRoiAutomationPage() {
     const d = (typeof autoDevicesState !== "undefined" && autoDevicesState[i]) ? autoDevicesState[i] : { id: String.fromCharCode(65 + i), points: 1, cap: 120, period: 6, unit: "months" };
     const pts = (deviceKey === "single_point") ? 1 : (d.points || 1);
     const cap = (deviceKey === "single_point") ? spCapVal : (d.cap || 120);
-    const pInfo = getAutomationPriceInfo(deviceKey, cap, greaseName, pts);
+    const pInfo = getAutomationPriceInfo(deviceKey, cap, greaseName, pts, d.customPackPrice || (i === 0 ? window.customSinglePointPackPrice : 0));
     
     totalUnitsPrice += pInfo.unitPrice;
     totalInstallKitPrice += pInfo.installKitPrice;
@@ -9101,7 +9143,7 @@ function addRoiPdfPage(doc, dateString, watermarkDataUrl, aspectRatio, autoDataU
       devBreakdownText.push(`Pulsarlube ${d.id}: ${pts} ${pts === 1 ? 'lager' : 'lagers'}`);
     }
 
-    const pInfo = getAutomationPriceInfo(deviceKey, cap, greaseName, pts);
+    const pInfo = getAutomationPriceInfo(deviceKey, cap, greaseName, pts, d.customPackPrice || (i === 0 ? window.customSinglePointPackPrice : 0));
     totalUnitsPrice += pInfo.unitPrice;
     totalInstallKitPrice += pInfo.installKitPrice;
     totalDividerBlockPrice += pInfo.dividerBlockPrice;
