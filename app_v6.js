@@ -8985,7 +8985,7 @@ function updateRoiAutomationPage() {
 }
 
 
-function addRoiPdfPage(doc) {
+function addRoiPdfPage(doc, dateString, watermarkDataUrl, aspectRatio, autoDataUrl) {
   const pVal = (id) => {
     const prefixes = ["omShared", "om", "chainOmShared", "chainOm"];
     for (const p of prefixes) {
@@ -9004,7 +9004,6 @@ function addRoiPdfPage(doc) {
     }
     return 0;
   };
-  //doc, dateString, watermarkDataUrl, aspectRatio, autoDataUrl) {
   doc.addPage();
   const pw = doc.internal.pageSize.getWidth();
   const ph = doc.internal.pageSize.getHeight();
