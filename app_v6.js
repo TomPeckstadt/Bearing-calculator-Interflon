@@ -8964,7 +8964,7 @@ function updateRoiAutomationPage() {
     const yearlyMlDev = dailyNeedCm3 * pts * 365.25;
     let cartsDev = 0;
     if (period > 0) {
-      cartsDev = unit === "weeks" ? ((52.1785 / period) * pts) : ((12 / period) * pts);
+      cartsDev = unit === "weeks" ? (52.1785 / period) : (12 / period);
     } else {
       cartsDev = cap > 0 ? (yearlyMlDev / cap) : 0;
     }
@@ -9216,7 +9216,7 @@ function addRoiPdfPage(doc, dateString, watermarkDataUrl, aspectRatio, autoDataU
     const yearlyMlDev = dailyNeedCm3 * pts * 365.25;
     let cartsDev = 0;
     if (period > 0) {
-      cartsDev = unit === "weeks" ? ((52.1785 / period) * pts) : ((12 / period) * pts);
+      cartsDev = unit === "weeks" ? (52.1785 / period) : (12 / period);
     } else {
       cartsDev = cap > 0 ? (yearlyMlDev / cap) : 0;
     }
