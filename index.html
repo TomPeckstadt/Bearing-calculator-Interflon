@@ -8,7 +8,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <link rel="stylesheet" href="style.css?v=20260823_1410">
+  <link rel="stylesheet" href="style.css?v=20260823_1420">
 </head>
 <body>
 
@@ -1585,6 +1585,12 @@
                 
                 <div style="display: flex; flex-direction: column; gap: 12px;">
                   <div>
+                    <label for="singlePointNumBearingsInput" style="display: block; font-size: 12px; font-weight: 600; color: var(--text-dark); margin-bottom: 4px;">
+                      Aantal te smeren lagers
+                    </label>
+                    <input type="number" id="singlePointNumBearingsInput" class="form-input" value="1" min="1" max="100" step="1" oninput="onSinglePointNumBearingsChange()" style="width: 100%; padding: 8px 12px; border-radius: var(--border-radius-sm); border: 1px solid #cbd5e1; font-weight: 700; color: #0f172a;" title="Voer het aantal te smeren lagers / single point toestellen in">
+                  </div>
+                  <div>
                     <label for="autoCartridgeCap" style="display: block; font-size: 12px; font-weight: 600; color: var(--text-dark); margin-bottom: 4px;" data-i18n="labelCartridgeCap">
                       Patroon Capaciteit (ml)
                     </label>
@@ -2998,10 +3004,10 @@
 
   <!-- JavaScript logic imports -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="interflon-data.js?v=20260823_1410"></script>
-  <script src="bearings-db.js?v=20260823_1410"></script>
-  <script src="chains-db.js?v=20260823_1410"></script>
-  <script src="app_v6.js?v=20260823_1410"></script>
+  <script src="interflon-data.js?v=20260823_1420"></script>
+  <script src="bearings-db.js?v=20260823_1420"></script>
+  <script src="chains-db.js?v=20260823_1420"></script>
+  <script src="app_v6.js?v=20260823_1420"></script>
 
   <!-- Interflon Oil Dispenser Information Modal (PowerPoint Viewer) -->
   <div id="oilDispenserInfoModal" class="modal-overlay hidden" style="z-index: 99999;">
