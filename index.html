@@ -8,7 +8,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <link rel="stylesheet" href="style.css?v=20260823_1131">
+  <link rel="stylesheet" href="style.css?v=20260823_1140">
 </head>
 <body>
 
@@ -1862,6 +1862,18 @@
                   <span style="color: #64748b; font-size: 13px;">Arbeidskost automatisch:</span>
                   <strong style="color: #16a34a; font-size: 13.5px;">€ 0,00 (100% Automatisch)</strong>
                 </div>
+                <div id="roiAutoRepairRow" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed #e2e8f0; padding-bottom: 8px;">
+                  <span style="color: #64748b; font-size: 13px;">Tijdsbesteding revisie (jaar):</span>
+                  <strong id="roiAutoRepairCost" style="color: #059669; font-size: 13.5px;">€ 0,00 / jaar</strong>
+                </div>
+                <div id="roiAutoMatRow" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed #e2e8f0; padding-bottom: 8px;">
+                  <span style="color: #64748b; font-size: 13px;">Materiaalkost onderdelen (jaar):</span>
+                  <strong id="roiAutoMatCost" style="color: #059669; font-size: 13.5px;">€ 0,00 / jaar</strong>
+                </div>
+                <div id="roiAutoDowntimeRow" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed #e2e8f0; padding-bottom: 8px;">
+                  <span style="color: #64748b; font-size: 13px;">Downtime kost (jaar):</span>
+                  <strong id="roiAutoDowntimeCost" style="color: #059669; font-size: 13.5px;">€ 0,00 / jaar</strong>
+                </div>
               </div>
 
               <div style="margin-top: 20px; background-color: #f0fdf4; border: 1px solid #bbf7d0; border-radius: var(--border-radius-md); padding: 14px 16px; text-align: center;">
@@ -2961,10 +2973,10 @@
 
   <!-- JavaScript logic imports -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="interflon-data.js?v=20260823_1131"></script>
-  <script src="bearings-db.js?v=20260823_1131"></script>
-  <script src="chains-db.js?v=20260823_1131"></script>
-  <script src="app_v6.js?v=20260823_1131"></script>
+  <script src="interflon-data.js?v=20260823_1140"></script>
+  <script src="bearings-db.js?v=20260823_1140"></script>
+  <script src="chains-db.js?v=20260823_1140"></script>
+  <script src="app_v6.js?v=20260823_1140"></script>
 
   <!-- Interflon Oil Dispenser Information Modal (PowerPoint Viewer) -->
   <div id="oilDispenserInfoModal" class="modal-overlay hidden" style="z-index: 99999;">
