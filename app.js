@@ -8637,18 +8637,23 @@ function updateRoiAutomationPage() {
     return isNaN(v) ? 0 : v;
   };
 
-  const p1_repair_freq = pVal("Lifetime1") || pVal("RepairFreq1") || 12;
+  const tcoBearings = (pVal("SetsPerMachine") || 1) * (pVal("SharedNumMachines") || 1);
+  const numBearingsForTco = (manualMode === "huidig" && tcoBearings > 0) ? Math.max(tcoBearings, totalPointsAllDevices) : (totalPointsAllDevices || 1);
+
+  const omLifetime1Input = document.getElementById("omLifetime1") || document.getElementById("chainOmLifetime1");
+  const p1_lifetime = omLifetime1Input ? (parseFloat(omLifetime1Input.value) || 12) : (pVal("Lifetime1") || 12);
+  const p1_repair_freq = p1_lifetime;
+
   const shared_repair_h = pVal("SharedRepairH");
   const shared_prep_h = pVal("SharedPrepH");
-  const p1_lifetime = pVal("Lifetime1");
   const shared_parts_cost = pVal("SharedPartsCost");
   const p1_downtime_h = pVal("DowntimeH1");
   const p1_downtime_freq = pVal("DowntimeFreq1") || (p1_lifetime > 0 ? (12 / p1_lifetime) : 0);
   const shared_downtime_rate = pVal("SharedDowntimeRate");
 
-  let manualRepairCost = p1_repair_freq > 0 ? ((12 / p1_repair_freq) * (shared_repair_h + shared_prep_h) * totalPointsAllDevices * hourlyRate) : 0;
-  let manualMatCost = p1_lifetime > 0 ? ((12 / p1_lifetime) * shared_parts_cost * totalPointsAllDevices) : 0;
-  let manualDowntimeCost = p1_downtime_h * p1_downtime_freq * shared_downtime_rate * totalPointsAllDevices;
+  let manualRepairCost = p1_repair_freq > 0 ? ((12 / p1_repair_freq) * (shared_repair_h + shared_prep_h) * numBearingsForTco * hourlyRate) : 0;
+  let manualMatCost = p1_lifetime > 0 ? ((12 / p1_lifetime) * shared_parts_cost * numBearingsForTco) : 0;
+  let manualDowntimeCost = p1_downtime_h * p1_downtime_freq * shared_downtime_rate * numBearingsForTco;
 
   if (manualMode === "huidig") {
     // 1. Theme: Blue / Slate
