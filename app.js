@@ -8629,27 +8629,40 @@ function updateRoiAutomationPage() {
   const manMatCostEl = document.getElementById("roiManMatCost");
   const manDowntimeCostEl = document.getElementById("roiManDowntimeCost");
 
-  // Helper for TCO inputs
+  // Bulletproof Helper for TCO inputs
   const pVal = (id) => {
-    const el = document.getElementById("om" + id) || document.getElementById("chainOm" + id);
-    if (!el) return 0;
-    const v = parseFloat(el.value);
-    return isNaN(v) ? 0 : v;
+    const prefixes = ["omShared", "om", "chainOmShared", "chainOm"];
+    for (const p of prefixes) {
+      const el = document.getElementById(p + id);
+      if (el) {
+        const v = parseFloat(el.value);
+        if (!isNaN(v) && v !== 0) return v;
+      }
+    }
+    for (const p of prefixes) {
+      const el = document.getElementById(p + id);
+      if (el) {
+        const v = parseFloat(el.value);
+        if (!isNaN(v)) return v;
+      }
+    }
+    return 0;
   };
 
-  const tcoBearings = (pVal("SetsPerMachine") || 1) * (pVal("SharedNumMachines") || 1);
+  const tcoSets = pVal("SetsPerMachine") || 1;
+  const tcoNumMach = pVal("NumMachines") || 1;
+  const tcoBearings = tcoSets * tcoNumMach;
   const numBearingsForTco = (manualMode === "huidig" && tcoBearings > 0) ? Math.max(tcoBearings, totalPointsAllDevices) : (totalPointsAllDevices || 1);
 
-  const omLifetime1Input = document.getElementById("omLifetime1") || document.getElementById("chainOmLifetime1");
-  const p1_lifetime = omLifetime1Input ? (parseFloat(omLifetime1Input.value) || 12) : (pVal("Lifetime1") || 12);
+  const p1_lifetime = pVal("Lifetime1") || pVal("RepairFreq1") || 12;
   const p1_repair_freq = p1_lifetime;
 
-  const shared_repair_h = pVal("SharedRepairH");
-  const shared_prep_h = pVal("SharedPrepH");
-  const shared_parts_cost = pVal("SharedPartsCost");
+  const shared_repair_h = pVal("RepairH") || pVal("SharedRepairH");
+  const shared_prep_h = pVal("PrepH") || pVal("SharedPrepH");
+  const shared_parts_cost = pVal("PartsCost") || pVal("SharedPartsCost");
   const p1_downtime_h = pVal("DowntimeH1");
   const p1_downtime_freq = pVal("DowntimeFreq1") || (p1_lifetime > 0 ? (12 / p1_lifetime) : 0);
-  const shared_downtime_rate = pVal("SharedDowntimeRate");
+  const shared_downtime_rate = pVal("DowntimeRate") || pVal("SharedDowntimeRate");
 
   let manualRepairCost = p1_repair_freq > 0 ? ((12 / p1_repair_freq) * (shared_repair_h + shared_prep_h) * numBearingsForTco * hourlyRate) : 0;
   let manualMatCost = p1_lifetime > 0 ? ((12 / p1_lifetime) * shared_parts_cost * numBearingsForTco) : 0;
@@ -9053,26 +9066,44 @@ function addRoiPdfPage(doc, dateString, watermarkDataUrl, aspectRatio, autoDataU
   let manualLaborCost = 0;
   let manualTotalCost = 0;
 
-  // TCO extra costs
+  // TCO extra costs (PDF)
   const pVal = (id) => {
-    const el = document.getElementById("om" + id) || document.getElementById("chainOm" + id);
-    if (!el) return 0;
-    const v = parseFloat(el.value);
-    return isNaN(v) ? 0 : v;
+    const prefixes = ["omShared", "om", "chainOmShared", "chainOm"];
+    for (const p of prefixes) {
+      const el = document.getElementById(p + id);
+      if (el) {
+        const v = parseFloat(el.value);
+        if (!isNaN(v) && v !== 0) return v;
+      }
+    }
+    for (const p of prefixes) {
+      const el = document.getElementById(p + id);
+      if (el) {
+        const v = parseFloat(el.value);
+        if (!isNaN(v)) return v;
+      }
+    }
+    return 0;
   };
 
-  const p1_repair_freq = pVal("Lifetime1") || pVal("RepairFreq1") || 12;
-  const shared_repair_h = pVal("SharedRepairH");
-  const shared_prep_h = pVal("SharedPrepH");
-  const p1_lifetime = pVal("Lifetime1");
-  const shared_parts_cost = pVal("SharedPartsCost");
+  const tcoSets = pVal("SetsPerMachine") || 1;
+  const tcoNumMach = pVal("NumMachines") || 1;
+  const tcoBearings = tcoSets * tcoNumMach;
+  const numBearingsForTco = (isHuidigMode && tcoBearings > 0) ? Math.max(tcoBearings, totalPointsAllDevices) : (totalPointsAllDevices || 1);
+
+  const p1_lifetime = pVal("Lifetime1") || pVal("RepairFreq1") || 12;
+  const p1_repair_freq = p1_lifetime;
+
+  const shared_repair_h = pVal("RepairH") || pVal("SharedRepairH");
+  const shared_prep_h = pVal("PrepH") || pVal("SharedPrepH");
+  const shared_parts_cost = pVal("PartsCost") || pVal("SharedPartsCost");
   const p1_downtime_h = pVal("DowntimeH1");
   const p1_downtime_freq = pVal("DowntimeFreq1") || (p1_lifetime > 0 ? (12 / p1_lifetime) : 0);
-  const shared_downtime_rate = pVal("SharedDowntimeRate");
+  const shared_downtime_rate = pVal("DowntimeRate") || pVal("SharedDowntimeRate");
 
-  let manualRepairCost = p1_repair_freq > 0 ? ((12 / p1_repair_freq) * (shared_repair_h + shared_prep_h) * totalPointsAllDevices * hourlyRate) : 0;
-  let manualMatCost = p1_lifetime > 0 ? ((12 / p1_lifetime) * shared_parts_cost * totalPointsAllDevices) : 0;
-  let manualDowntimeCost = p1_downtime_h * p1_downtime_freq * shared_downtime_rate * totalPointsAllDevices;
+  let manualRepairCost = p1_repair_freq > 0 ? ((12 / p1_repair_freq) * (shared_repair_h + shared_prep_h) * numBearingsForTco * hourlyRate) : 0;
+  let manualMatCost = p1_lifetime > 0 ? ((12 / p1_lifetime) * shared_parts_cost * numBearingsForTco) : 0;
+  let manualDowntimeCost = p1_downtime_h * p1_downtime_freq * shared_downtime_rate * numBearingsForTco;
 
   if (isHuidigMode) {
     const currentPriceInput = document.getElementById("omProdPrice1") || document.getElementById("chainOmProdPrice1") || document.getElementById("tcoPriceCurrentInput");
