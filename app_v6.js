@@ -3170,10 +3170,14 @@ function updateCalculatorFields() {
 function calculateGrease() {
   const gSel = document.getElementById("inputGrease") || document.getElementById("selectGrease");
   const currentGreaseVal = gSel ? gSel.value : "";
-  if (window.lastSelectedGreaseName && window.lastSelectedGreaseName !== currentGreaseVal) {
+  if (window.lastSelectedGreaseName !== undefined && window.lastSelectedGreaseName !== currentGreaseVal) {
     window.customSinglePointPackPrice = 0;
     if (typeof autoDevicesState !== "undefined") {
       autoDevicesState.forEach(d => { d.customPackPrice = 0; });
+    }
+    if (typeof document !== "undefined" && document.querySelectorAll) {
+      const priceInputs = document.querySelectorAll("[id^='autoCustomPackPrice_']");
+      if (priceInputs) priceInputs.forEach(el => { el.value = ""; });
     }
   }
   window.lastSelectedGreaseName = currentGreaseVal;
