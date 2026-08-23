@@ -8618,6 +8618,40 @@ function updateRoiAutomationPage() {
   let manualLaborCost = 0;
   let manualTotalCost = 0;
 
+  // Extra Row Elements in Card 1 & Card 2
+  const manRepairRow = document.getElementById("roiManRepairRow");
+  const manMatRow = document.getElementById("roiManMatRow");
+  const manDowntimeRow = document.getElementById("roiManDowntimeRow");
+
+  const autoRepairRow = document.getElementById("roiAutoRepairRow");
+  const autoMatRow = document.getElementById("roiAutoMatRow");
+  const autoDowntimeRow = document.getElementById("roiAutoDowntimeRow");
+
+  const manRepairCostEl = document.getElementById("roiManRepairCost");
+  const manMatCostEl = document.getElementById("roiManMatCost");
+  const manDowntimeCostEl = document.getElementById("roiManDowntimeCost");
+
+  // Helper for TCO inputs
+  const pVal = (id) => {
+    const el = document.getElementById("om" + id) || document.getElementById("chainOm" + id);
+    if (!el) return 0;
+    const v = parseFloat(el.value);
+    return isNaN(v) ? 0 : v;
+  };
+
+  const p1_repair_freq = pVal("RepairFreq1") || pVal("Lifetime1");
+  const shared_repair_h = pVal("SharedRepairH");
+  const shared_prep_h = pVal("SharedPrepH");
+  const p1_lifetime = pVal("Lifetime1");
+  const shared_parts_cost = pVal("SharedPartsCost");
+  const p1_downtime_h = pVal("DowntimeH1");
+  const p1_downtime_freq = pVal("DowntimeFreq1") || (p1_lifetime > 0 ? (12 / p1_lifetime) : 0);
+  const shared_downtime_rate = pVal("SharedDowntimeRate");
+
+  let manualRepairCost = p1_repair_freq > 0 ? ((12 / p1_repair_freq) * (shared_repair_h + shared_prep_h) * totalPointsAllDevices * hourlyRate) : 0;
+  let manualMatCost = p1_lifetime > 0 ? ((12 / p1_lifetime) * shared_parts_cost * totalPointsAllDevices) : 0;
+  let manualDowntimeCost = p1_downtime_h * p1_downtime_freq * shared_downtime_rate * totalPointsAllDevices;
+
   if (manualMode === "huidig") {
     // 1. Theme: Blue / Slate
     if (roiManCardContainer) roiManCardContainer.style.borderColor = "#bae6fd";
@@ -8646,7 +8680,20 @@ function updateRoiAutomationPage() {
       manualModeSelect.style.borderColor = "#bae6fd";
     }
 
-    // 2. Read Huidige Situatie values
+    // 2. Show 3 extra rows in Card 1 & Card 2
+    if (manRepairRow) manRepairRow.style.display = "flex";
+    if (manMatRow) manMatRow.style.display = "flex";
+    if (manDowntimeRow) manDowntimeRow.style.display = "flex";
+
+    if (autoRepairRow) autoRepairRow.style.display = "flex";
+    if (autoMatRow) autoMatRow.style.display = "flex";
+    if (autoDowntimeRow) autoDowntimeRow.style.display = "flex";
+
+    if (manRepairCostEl) manRepairCostEl.textContent = `€ ${manualRepairCost.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / jaar`;
+    if (manMatCostEl) manMatCostEl.textContent = `€ ${manualMatCost.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / jaar`;
+    if (manDowntimeCostEl) manDowntimeCostEl.textContent = `€ ${manualDowntimeCost.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / jaar`;
+
+    // 3. Read Huidige Situatie values
     const currentPriceInput = document.getElementById("omProdPrice1") || document.getElementById("chainOmProdPrice1") || document.getElementById("tcoPriceCurrentInput");
     manualGreasePricePerLiter = currentPriceInput ? (parseFloat(currentPriceInput.value) || 20.00) : 20.00;
 
@@ -8665,7 +8712,7 @@ function updateRoiAutomationPage() {
     manualGreaseCost = (manualYearlyMl / 1000) * manualGreasePricePerLiter;
     manualLaborHours = totalPointsAllDevices * manualBeurtenPerYear * (workTimeMinutes / 60);
     manualLaborCost = manualLaborHours * hourlyRate;
-    manualTotalCost = manualGreaseCost + manualLaborCost;
+    manualTotalCost = manualGreaseCost + manualLaborCost + manualRepairCost + manualMatCost + manualDowntimeCost;
   } else {
     // 1. Theme: Red / Rose (Default Interflon)
     if (roiManCardContainer) roiManCardContainer.style.borderColor = "#fee2e2";
@@ -8693,6 +8740,15 @@ function updateRoiAutomationPage() {
       manualModeSelect.style.color = "#991b1b";
       manualModeSelect.style.borderColor = "#fecaca";
     }
+
+    // Hide extra rows in Mode Interflon
+    if (manRepairRow) manRepairRow.style.display = "none";
+    if (manMatRow) manMatRow.style.display = "none";
+    if (manDowntimeRow) manDowntimeRow.style.display = "none";
+
+    if (autoRepairRow) autoRepairRow.style.display = "none";
+    if (autoMatRow) autoMatRow.style.display = "none";
+    if (autoDowntimeRow) autoDowntimeRow.style.display = "none";
 
     manualGreaseCost = (yearlyMlTotal / 1000) * greasePricePerLiter;
     manualLaborHours = totalPointsAllDevices * manualBeurtenPerYear * (workTimeMinutes / 60);
@@ -8994,6 +9050,27 @@ function addRoiPdfPage(doc, dateString, watermarkDataUrl, aspectRatio, autoDataU
   let manualLaborCost = 0;
   let manualTotalCost = 0;
 
+  // TCO extra costs
+  const pVal = (id) => {
+    const el = document.getElementById("om" + id) || document.getElementById("chainOm" + id);
+    if (!el) return 0;
+    const v = parseFloat(el.value);
+    return isNaN(v) ? 0 : v;
+  };
+
+  const p1_repair_freq = pVal("RepairFreq1") || pVal("Lifetime1");
+  const shared_repair_h = pVal("SharedRepairH");
+  const shared_prep_h = pVal("SharedPrepH");
+  const p1_lifetime = pVal("Lifetime1");
+  const shared_parts_cost = pVal("SharedPartsCost");
+  const p1_downtime_h = pVal("DowntimeH1");
+  const p1_downtime_freq = pVal("DowntimeFreq1") || (p1_lifetime > 0 ? (12 / p1_lifetime) : 0);
+  const shared_downtime_rate = pVal("SharedDowntimeRate");
+
+  let manualRepairCost = p1_repair_freq > 0 ? ((12 / p1_repair_freq) * (shared_repair_h + shared_prep_h) * totalPointsAllDevices * hourlyRate) : 0;
+  let manualMatCost = p1_lifetime > 0 ? ((12 / p1_lifetime) * shared_parts_cost * totalPointsAllDevices) : 0;
+  let manualDowntimeCost = p1_downtime_h * p1_downtime_freq * shared_downtime_rate * totalPointsAllDevices;
+
   if (isHuidigMode) {
     const currentPriceInput = document.getElementById("omProdPrice1") || document.getElementById("chainOmProdPrice1") || document.getElementById("tcoPriceCurrentInput");
     manualGreasePricePerLiter = currentPriceInput ? (parseFloat(currentPriceInput.value) || 20.00) : 20.00;
@@ -9013,7 +9090,7 @@ function addRoiPdfPage(doc, dateString, watermarkDataUrl, aspectRatio, autoDataU
     manualGreaseCost = (manualYearlyMl / 1000) * manualGreasePricePerLiter;
     manualLaborHours = totalPointsAllDevices * manualBeurtenPerYear * (workTimeMinutes / 60);
     manualLaborCost = manualLaborHours * hourlyRate;
-    manualTotalCost = manualGreaseCost + manualLaborCost;
+    manualTotalCost = manualGreaseCost + manualLaborCost + manualRepairCost + manualMatCost + manualDowntimeCost;
   } else {
     manualGreaseCost = (yearlyMlTotal / 1000) * greasePricePerLiter;
     manualLaborHours = totalPointsAllDevices * manualBeurtenPerYear * (workTimeMinutes / 60);
@@ -9095,7 +9172,15 @@ function addRoiPdfPage(doc, dateString, watermarkDataUrl, aspectRatio, autoDataU
   y1 += rh;
   drawRow(20, y1, colW, rh, "Jaarlijkse arbeidskost:", `€ ${manualLaborCost.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / j`, false, false, false);
   y1 += rh;
+
   if (isHuidigMode) {
+    drawRow(20, y1, colW, rh, "Tijdsbesteding revisie:", `€ ${manualRepairCost.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / j`, false, false, false);
+    y1 += rh;
+    drawRow(20, y1, colW, rh, "Materiaalkost onderdelen:", `€ ${manualMatCost.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / j`, false, false, false);
+    y1 += rh;
+    drawRow(20, y1, colW, rh, "Downtime kost:", `€ ${manualDowntimeCost.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / j`, false, false, false);
+    y1 += rh;
+
     doc.setFillColor(240, 249, 255);
     doc.rect(20, y1, colW, 7, "F");
     doc.setDrawColor(186, 230, 253);
@@ -9129,12 +9214,22 @@ function addRoiPdfPage(doc, dateString, watermarkDataUrl, aspectRatio, autoDataU
   y2 += rh;
   drawRow(108, y2, colW, rh, "Arbeidskost automatisch:", "€ 0,00 (100% Auto)", false, false, false);
   y2 += rh;
+
+  if (isHuidigMode) {
+    drawRow(108, y2, colW, rh, "Tijdsbesteding revisie:", "€ 0,00 (0% Stilstand)", false, false, false);
+    y2 += rh;
+    drawRow(108, y2, colW, rh, "Materiaalkost onderdelen:", "€ 0,00 (100% Beschermd)", false, false, false);
+    y2 += rh;
+    drawRow(108, y2, colW, rh, "Downtime kost:", "€ 0,00 (100% Output)", false, false, false);
+    y2 += rh;
+  }
+
   drawRow(108, y2, colW, 7, "JAAR 1 TOTAAL:", `€ ${autoYear1Total.toFixed(2).replace('.', ',')}`, false, true, false);
   y2 += 7;
   drawRow(108, y2, colW, 7, "JAAR 2+ TERUGKEREND:", `€ ${autoRecurringTotal.toFixed(2).replace('.', ',')}`, false, true, "dark");
 
   // Financial ROI Results Box
-  const roiBoxY = 122;
+  const roiBoxY = isHuidigMode ? 141 : 122;
   doc.setFillColor(248, 250, 252);
   doc.setDrawColor(226, 232, 240);
   doc.setLineWidth(0.3);
