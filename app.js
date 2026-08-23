@@ -8525,6 +8525,24 @@ function getAutomationPriceInfo(deviceKey, capMl, greaseName, numPoints = 1) {
 }
 
 function updateRoiAutomationPage() {
+  const pVal = (id) => {
+    const prefixes = ["omShared", "om", "chainOmShared", "chainOm"];
+    for (const p of prefixes) {
+      const el = document.getElementById(p + id);
+      if (el) {
+        const v = parseFloat(el.value);
+        if (!isNaN(v) && v !== 0) return v;
+      }
+    }
+    for (const p of prefixes) {
+      const el = document.getElementById(p + id);
+      if (el) {
+        const v = parseFloat(el.value);
+        if (!isNaN(v)) return v;
+      }
+    }
+    return 0;
+  };
   const deviceSelect = document.getElementById("automationDeviceSelect") || document.getElementById("autoDeviceSelect");
   const deviceKey = deviceSelect ? deviceSelect.value : "single_point";
 
@@ -8604,8 +8622,7 @@ function updateRoiAutomationPage() {
   const manLaborCostEl = document.getElementById("roiManLaborCost");
   const manTotalCostEl = document.getElementById("roiManTotalCost");
 
-  const techBeurtenInput = document.getElementById("tcoFreqInterflonInput");
-  const manualBeurtenPerYearInterflon = techBeurtenInput ? (parseFloat(techBeurtenInput.value) || 17.6) : 17.6;
+  const manualBeurtenPerYearInterflon = pVal("ProdFreq2") || 13.1;
   const timeInput = document.getElementById("tcoTimeInput");
   const workTimeMinutes = timeInput ? (parseFloat(timeInput.value) || 10) : 10;
   const hourlyRateInput = document.getElementById("omSharedLaborRate") || document.getElementById("chainOmSharedLaborRate") || document.getElementById("tcoHourlyRateInput");
@@ -8633,24 +8650,7 @@ function updateRoiAutomationPage() {
   const manDowntimeCostEl = document.getElementById("roiManDowntimeCost");
 
   // Bulletproof Helper for TCO inputs
-  const pVal = (id) => {
-    const prefixes = ["omShared", "om", "chainOmShared", "chainOm"];
-    for (const p of prefixes) {
-      const el = document.getElementById(p + id);
-      if (el) {
-        const v = parseFloat(el.value);
-        if (!isNaN(v) && v !== 0) return v;
-      }
-    }
-    for (const p of prefixes) {
-      const el = document.getElementById(p + id);
-      if (el) {
-        const v = parseFloat(el.value);
-        if (!isNaN(v)) return v;
-      }
-    }
-    return 0;
-  };
+
 
   const tcoSets = pVal("SetsPerMachine") || 1;
   const numBearingsForTco = (tcoSets > 0) ? Math.max(tcoSets, totalPointsAllDevices) : (totalPointsAllDevices || 1);
@@ -8963,7 +8963,26 @@ function updateRoiAutomationPage() {
 }
 
 
-function addRoiPdfPage(doc, dateString, watermarkDataUrl, aspectRatio, autoDataUrl) {
+function addRoiPdfPage(doc) {
+  const pVal = (id) => {
+    const prefixes = ["omShared", "om", "chainOmShared", "chainOm"];
+    for (const p of prefixes) {
+      const el = document.getElementById(p + id);
+      if (el) {
+        const v = parseFloat(el.value);
+        if (!isNaN(v) && v !== 0) return v;
+      }
+    }
+    for (const p of prefixes) {
+      const el = document.getElementById(p + id);
+      if (el) {
+        const v = parseFloat(el.value);
+        if (!isNaN(v)) return v;
+      }
+    }
+    return 0;
+  };
+  //doc, dateString, watermarkDataUrl, aspectRatio, autoDataUrl) {
   doc.addPage();
   const pw = doc.internal.pageSize.getWidth();
   const ph = doc.internal.pageSize.getHeight();
@@ -9075,7 +9094,7 @@ function addRoiPdfPage(doc, dateString, watermarkDataUrl, aspectRatio, autoDataU
   const isHuidigMode = (manualMode === "huidig");
 
   const techBeurtenInput = document.getElementById("tcoFreqInterflonInput");
-  const manualBeurtenPerYearInterflon = techBeurtenInput ? (parseFloat(techBeurtenInput.value) || 17.6) : 17.6;
+  const manualBeurtenPerYearInterflon = pVal("ProdFreq2") || 13.1;
   const timeInput = document.getElementById("tcoTimeInput");
   const workTimeMinutes = timeInput ? (parseFloat(timeInput.value) || 10) : 10;
   const hourlyRateInput = document.getElementById("omSharedLaborRate") || document.getElementById("chainOmSharedLaborRate") || document.getElementById("tcoHourlyRateInput");
@@ -9090,24 +9109,7 @@ function addRoiPdfPage(doc, dateString, watermarkDataUrl, aspectRatio, autoDataU
   let manualTotalCost = 0;
 
   // TCO extra costs (PDF)
-  const pVal = (id) => {
-    const prefixes = ["omShared", "om", "chainOmShared", "chainOm"];
-    for (const p of prefixes) {
-      const el = document.getElementById(p + id);
-      if (el) {
-        const v = parseFloat(el.value);
-        if (!isNaN(v) && v !== 0) return v;
-      }
-    }
-    for (const p of prefixes) {
-      const el = document.getElementById(p + id);
-      if (el) {
-        const v = parseFloat(el.value);
-        if (!isNaN(v)) return v;
-      }
-    }
-    return 0;
-  };
+
 
   const tcoSets = pVal("SetsPerMachine") || 1;
   const numBearingsForTco = (tcoSets > 0) ? Math.max(tcoSets, totalPointsAllDevices) : (totalPointsAllDevices || 1);
@@ -9161,8 +9163,7 @@ function addRoiPdfPage(doc, dateString, watermarkDataUrl, aspectRatio, autoDataU
     manualLaborCost = manualLaborHours * hourlyRate;
     manualTotalCost = manualGreaseCost + manualLaborCost + manualRepairCost + manualMatCost + manualDowntimeCost;
   } else {
-    const interflonFreqInput = document.getElementById("omProdFreq2") || document.getElementById("chainOmProdFreq2");
-    manualBeurtenPerYear = interflonFreqInput ? (parseFloat(interflonFreqInput.value) || 13.1) : 13.1;
+    manualBeurtenPerYear = pVal("ProdFreq2") || 13.1;
     manualGreaseCost = (yearlyMlTotal / 1000) * greasePricePerLiter;
     manualLaborHours = numBearingsForTco * manualBeurtenPerYear * (workTimeMinutes / 60);
     manualLaborCost = manualLaborHours * hourlyRate;
