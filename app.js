@@ -9162,7 +9162,7 @@ function addRoiPdfPage(doc) {
 
   let autoRepairCost = p2_lifetime > 0 ? ((12 / p2_lifetime) * (shared_repair_h + shared_prep_h) * numBearingsForTco * hourlyRate) : 0;
   let autoMatCost = p2_lifetime > 0 ? ((12 / p2_lifetime) * shared_parts_cost * numBearingsForTco) : 0;
-  let autoDowntimeCost = 0;
+  let autoDowntimeCost = p2_downtime_h * p2_downtime_freq * shared_downtime_rate * numBearingsForTco;
 
   if (isHuidigMode) {
     const currentPriceInput = document.getElementById("omProdPrice1") || document.getElementById("chainOmProdPrice1") || document.getElementById("tcoPriceCurrentInput");
@@ -9181,7 +9181,7 @@ function addRoiPdfPage(doc) {
     }
 
     manualGreaseCost = (manualYearlyMl / 1000) * manualGreasePricePerLiter;
-    manualLaborHours = totalPointsAllDevices * manualBeurtenPerYear * (workTimeMinutes / 60);
+    manualLaborHours = numBearingsForTco * manualBeurtenPerYear * (workTimeMinutes / 60);
     manualLaborCost = manualLaborHours * hourlyRate;
     manualTotalCost = manualGreaseCost + manualLaborCost + manualRepairCost + manualMatCost + manualDowntimeCost;
   } else {
@@ -9189,11 +9189,12 @@ function addRoiPdfPage(doc) {
     manualGreaseCost = (yearlyMlTotal / 1000) * greasePricePerLiter;
     manualLaborHours = numBearingsForTco * manualBeurtenPerYear * (workTimeMinutes / 60);
     manualLaborCost = manualLaborHours * hourlyRate;
-    manualTotalCost = manualGreaseCost + manualLaborCost;
+    manualTotalCost = manualGreaseCost + manualLaborCost + manualRepairCost + manualMatCost + manualDowntimeCost;
   }
 
-  const autoYear1Total = totalUnitsPrice + totalInstallKitPrice + totalDividerBlockPrice + totalCartridgesCostYear;
-  const autoRecurringTotal = totalCartridgesCostYear;
+  const autoLaborCost = totalCartridgesPerYear * (15 / 60) * hourlyRate;
+  const autoYear1Total = totalUnitsPrice + totalInstallKitPrice + totalDividerBlockPrice + totalCartridgesCostYear + autoLaborCost + autoRepairCost + autoMatCost + autoDowntimeCost;
+  const autoRecurringTotal = totalCartridgesCostYear + autoLaborCost + autoRepairCost + autoMatCost + autoDowntimeCost;
 
   function drawRow(x, y, w, h, label, valStr, isHeader, isTotal, isGreen) {
     if (isHeader) {
@@ -9258,7 +9259,7 @@ function addRoiPdfPage(doc) {
   y1 += rh;
   drawRow(20, y1, colW, rh, "Jaarlijkse vetkost:", `€ ${manualGreaseCost.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / j`, false, false, false);
   y1 += rh;
-  const effectivePdfManBearings = isHuidigMode ? numBearingsForTco : totalPointsAllDevices;
+  const effectivePdfManBearings = numBearingsForTco;
   drawRow(20, y1, colW, rh, "Aantal smeerbeurten/jaar:", `${(manualBeurtenPerYear * effectivePdfManBearings).toLocaleString("nl-BE", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} beurten`, false, false, false);
   y1 += rh;
   drawRow(20, y1, colW, rh, "Tijd per smeerbeurt:", `${workTimeMinutes} min (${manualLaborHours.toFixed(1).replace('.',',')} u/j)`, false, false, false);
@@ -9267,15 +9268,14 @@ function addRoiPdfPage(doc) {
   y1 += rh;
   drawRow(20, y1, colW, rh, "Jaarlijkse arbeidskost:", `€ ${manualLaborCost.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / j`, false, false, false);
   y1 += rh;
+  drawRow(20, y1, colW, rh, "Tijdsbesteding revisie:", `€ ${manualRepairCost.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / j`, false, false, false);
+  y1 += rh;
+  drawRow(20, y1, colW, rh, "Materiaalkost onderdelen:", `€ ${manualMatCost.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / j`, false, false, false);
+  y1 += rh;
+  drawRow(20, y1, colW, rh, "Downtime kost:", `€ ${manualDowntimeCost.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / j`, false, false, false);
+  y1 += rh;
 
   if (isHuidigMode) {
-    drawRow(20, y1, colW, rh, "Tijdsbesteding revisie:", `€ ${manualRepairCost.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / j`, false, false, false);
-    y1 += rh;
-    drawRow(20, y1, colW, rh, "Materiaalkost onderdelen:", `€ ${manualMatCost.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / j`, false, false, false);
-    y1 += rh;
-    drawRow(20, y1, colW, rh, "Downtime kost:", `€ ${manualDowntimeCost.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / j`, false, false, false);
-    y1 += rh;
-
     doc.setFillColor(240, 249, 255);
     doc.rect(20, y1, colW, 7, "F");
     doc.setDrawColor(186, 230, 253);
@@ -9295,7 +9295,7 @@ function addRoiPdfPage(doc) {
 
   // Table 2: Automatische Smering
   let y2 = startY;
-  drawRow(108, y2, colW, 6, "AUTOMATISCHE SMERING (GEAUTOMATISEERD)", "", true, false, true);
+  drawRow(108, y2, colW, 6, "AUTOMATISCHE SMERING", "", true, false, true);
   y2 += 6;
   drawRow(108, y2, colW, rh, "Gekozen smeerunit:", fullDeviceTitle, false, false, false);
   y2 += rh;
@@ -9307,24 +9307,21 @@ function addRoiPdfPage(doc) {
   y2 += rh;
   drawRow(108, y2, colW, rh, "Installatiekits + Verdeelblokken:", `€ ${(totalInstallKitPrice + totalDividerBlockPrice).toFixed(2).replace('.', ',')} (Eenmalig)`, false, false, false);
   y2 += rh;
-  drawRow(108, y2, colW, rh, "Arbeidskost automatisch:", "€ 0,00 (100% Auto)", false, false, false);
+  drawRow(108, y2, colW, rh, "Arbeidskost patroonwissels:", `€ ${autoLaborCost.toFixed(2).replace('.', ',')} / j`, false, false, false);
   y2 += rh;
-
-  if (isHuidigMode) {
-    drawRow(108, y2, colW, rh, "Tijdsbesteding revisie:", "€ 0,00 (0% Stilstand)", false, false, false);
-    y2 += rh;
-    drawRow(108, y2, colW, rh, "Materiaalkost onderdelen:", "€ 0,00 (100% Beschermd)", false, false, false);
-    y2 += rh;
-    drawRow(108, y2, colW, rh, "Downtime kost:", "€ 0,00 (100% Output)", false, false, false);
-    y2 += rh;
-  }
+  drawRow(108, y2, colW, rh, "Tijdsbesteding revisie:", `€ ${autoRepairCost.toFixed(2).replace('.', ',')} / j`, false, false, false);
+  y2 += rh;
+  drawRow(108, y2, colW, rh, "Materiaalkost onderdelen:", `€ ${autoMatCost.toFixed(2).replace('.', ',')} / j`, false, false, false);
+  y2 += rh;
+  drawRow(108, y2, colW, rh, "Downtime kost:", `€ ${autoDowntimeCost.toFixed(2).replace('.', ',')} / j`, false, false, false);
+  y2 += rh;
 
   drawRow(108, y2, colW, 7, "JAAR 1 TOTAAL:", `€ ${autoYear1Total.toFixed(2).replace('.', ',')}`, false, true, false);
   y2 += 7;
   drawRow(108, y2, colW, 7, "JAAR 2+ TERUGKEREND:", `€ ${autoRecurringTotal.toFixed(2).replace('.', ',')}`, false, true, "dark");
 
   // Financial ROI Results Box
-  const roiBoxY = isHuidigMode ? 141 : 122;
+  const roiBoxY = 141;
   doc.setFillColor(248, 250, 252);
   doc.setDrawColor(226, 232, 240);
   doc.setLineWidth(0.3);
