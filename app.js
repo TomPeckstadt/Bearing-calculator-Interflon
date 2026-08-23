@@ -8854,8 +8854,15 @@ function updateRoiAutomationPage() {
     }
   }
 
-  const autoYear1Total = totalUnitsPrice + totalInstallKitPrice + totalDividerBlockPrice + totalCartridgesCostYear + autoRepairCost + autoMatCost + autoDowntimeCost;
-  const autoRecurringTotal = totalCartridgesCostYear + autoRepairCost + autoMatCost + autoDowntimeCost;
+  const autoLaborCost = totalCartridgesPerYear * (15 / 60) * hourlyRate;
+  const autoYear1Total = totalUnitsPrice + totalInstallKitPrice + totalDividerBlockPrice + totalCartridgesCostYear + autoLaborCost + autoRepairCost + autoMatCost + autoDowntimeCost;
+  const autoRecurringTotal = totalCartridgesCostYear + autoLaborCost + autoRepairCost + autoMatCost + autoDowntimeCost;
+
+  const autoLaborCostEl = document.getElementById("roiAutoLaborCost");
+  if (autoLaborCostEl) {
+    autoLaborCostEl.textContent = `€ ${autoLaborCost.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / jaar`;
+    autoLaborCostEl.style.color = "#059669";
+  }
 
   const autoDeviceNameEl = document.getElementById("roiAutoDeviceName");
   const autoPatronenEl = document.getElementById("roiAutoPatronen");
