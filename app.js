@@ -2521,45 +2521,43 @@ function handleLogout() {
   }
 
   // Show full screen overlay
-  vanOverlay.style.display = "flex";
-  vanContainer.style.left = "-420px";
-  vanContainer.style.transform = "scale(1) rotate(0deg)";
+  vanOverlay.style.display = "block";
+  vanContainer.style.transform = "translate3d(0, 0, 0)";
 
   let start = null;
   const screenW = window.innerWidth || 1200;
-  const targetX = screenW + 480;
-  const duration = 2200; // 2.2 seconds playful drive-off animation
+  const totalDist = screenW + 900; // Drive from offscreen left (-450px) to offscreen right (screenW + 450px)
+  const duration = 2100; // 2.1s playful speed-off
 
   function animateVan(timestamp) {
     if (!start) start = timestamp;
     const progress = Math.min((timestamp - start) / duration, 1);
     
-    // Ease-in acceleration effect (starts smooth, revs up and speeds off playfully)
-    const easedProgress = Math.pow(progress, 1.8);
-    const currentX = -420 + (targetX - -420) * easedProgress;
+    // Acceleration ease-in curve
+    const easedProgress = Math.pow(progress, 1.6);
+    const translateX = totalDist * easedProgress;
 
-    // Slight playful suspension bounce / vibration
-    const bounceY = Math.sin(progress * Math.PI * 18) * 3;
-    const tiltDeg = Math.sin(progress * Math.PI * 12) * 1.2;
+    // Suspension bounce and acceleration tilt
+    const bounceY = Math.sin(progress * Math.PI * 16) * 3.5;
+    const tiltDeg = Math.sin(progress * Math.PI * 10) * 1.5 - (progress < 0.3 ? progress * 4 : 0);
 
-    vanContainer.style.transform = `translate3d(${currentX + 420}px, ${-bounceY}px, 0) rotate(${tiltDeg}deg)`;
+    vanContainer.style.transform = `translate3d(${translateX}px, ${-bounceY}px, 0) rotate(${tiltDeg}deg)`;
 
-    if (exhaustPuff && progress > 0.1 && progress < 0.8) {
-      exhaustPuff.style.opacity = Math.sin(progress * Math.PI) * 0.7;
-      exhaustPuff.style.transform = `scale(${1 + progress * 2}) translate(-${progress * 30}px, -${progress * 10}px)`;
+    if (exhaustPuff && progress > 0.05 && progress < 0.85) {
+      exhaustPuff.style.opacity = (Math.sin(progress * Math.PI) * 0.8).toString();
+      exhaustPuff.style.transform = `scale(${1 + progress * 2.5}) translate(-${progress * 40}px, -${progress * 12}px)`;
     }
 
     if (progress < 1) {
       requestAnimationFrame(animateVan);
     } else {
-      // Finish logout transition when van leaves screen
       setTimeout(() => {
         vanOverlay.style.display = "none";
         sessionStorage.removeItem("bearing_calc_logged_in");
         const loginOverlay = document.getElementById("loginOverlay");
         if (loginOverlay) loginOverlay.classList.remove("hidden");
         switchPage('search');
-      }, 150);
+      }, 100);
     }
   }
 
