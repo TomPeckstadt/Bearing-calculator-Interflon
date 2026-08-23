@@ -174,8 +174,8 @@ function applyAutoRecommendationForDevice(devId) {
   const dailyNeedCm3 = window.currentDailyNeedCm3 || 0.704;
   const deviceSelect = document.getElementById("automationDeviceSelect") || document.getElementById("autoDeviceSelect");
   const deviceKey = deviceSelect ? deviceSelect.value : "single_point";
-  const greaseSelect = document.getElementById("selectedGrease") || document.getElementById("greaseSelect");
-  const greaseName = greaseSelect ? greaseSelect.value : "Interflon Grease LS2";
+  const greaseSelect = document.getElementById("selectedGrease") || document.getElementById("greaseSelect") || document.getElementById("inputGrease");
+  const greaseName = greaseSelect ? greaseSelect.value : "Interflon Grease MP2/3";
   
   if (dev) {
     dev.userEditedPeriod = false;
@@ -195,7 +195,9 @@ function applyAutoRecommendationForDevice(devId) {
     const periodInput = document.getElementById("autoDispensePeriod_" + devId);
     if (periodInput) periodInput.value = smartAdv.months;
   }
+  if (typeof renderAutoDevicesUI === "function") renderAutoDevicesUI();
   calculateAutomationLubrication();
+  if (typeof updateRoiAutomationPage === "function") updateRoiAutomationPage();
 }
 
 
