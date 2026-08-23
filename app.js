@@ -8655,19 +8655,51 @@ function updateRoiAutomationPage() {
   const tcoSets = pVal("SetsPerMachine") || 1;
   const numBearingsForTco = (manualMode === "huidig" && tcoSets > 0) ? Math.max(tcoSets, totalPointsAllDevices) : (totalPointsAllDevices || 1);
 
+  // TCO extra costs (Col 1: Huidige Situatie, Col 2: Interflon)
   const p1_lifetime = pVal("Lifetime1") || pVal("RepairFreq1") || 12;
-  const p1_repair_freq = p1_lifetime;
+  const p2_lifetime = pVal("Lifetime2") || pVal("RepairFreq2") || 36;
 
   const shared_repair_h = pVal("RepairH") || pVal("SharedRepairH");
   const shared_prep_h = pVal("PrepH") || pVal("SharedPrepH");
   const shared_parts_cost = pVal("PartsCost") || pVal("SharedPartsCost");
-  const p1_downtime_h = pVal("DowntimeH1") || pVal("PrepH") || 1;
-  const p1_downtime_freq = p1_lifetime > 0 ? (12 / p1_lifetime) : (pVal("DowntimeFreq1") || 0.5);
   const shared_downtime_rate = pVal("DowntimeRate") || pVal("SharedDowntimeRate");
 
-  let manualRepairCost = p1_repair_freq > 0 ? ((12 / p1_repair_freq) * (shared_repair_h + shared_prep_h) * numBearingsForTco * hourlyRate) : 0;
-  let manualMatCost = p1_lifetime > 0 ? ((12 / p1_lifetime) * shared_parts_cost * numBearingsForTco) : 0;
-  let manualDowntimeCost = p1_downtime_h * p1_downtime_freq * shared_downtime_rate * numBearingsForTco;
+  const p1_downtime_h = pVal("DowntimeH1") || pVal("PrepH") || 1;
+  const p1_downtime_freq = p1_lifetime > 0 ? (12 / p1_lifetime) : 0.5;
+
+  const p2_downtime_h = pVal("DowntimeH2") || pVal("PrepH") || 1;
+  const p2_downtime_freq = p2_lifetime > 0 ? (12 / p2_lifetime) : 0.3333;
+
+  // Values depending on mode:
+  const activeLifetime = (manualMode === "huidig") ? p1_lifetime : p2_lifetime;
+  const activeRepairFreq = activeLifetime;
+  const activeDtH = (manualMode === "huidig") ? p1_downtime_h : p2_downtime_h;
+  const activeDtFreq = (manualMode === "huidig") ? p1_downtime_freq : p2_downtime_freq;
+
+  let manualRepairCost = activeRepairFreq > 0 ? ((12 / activeRepairFreq) * (shared_repair_h + shared_prep_h) * numBearingsForTco * hourlyRate) : 0;
+  let manualMatCost = activeLifetime > 0 ? ((12 / activeLifetime) * shared_parts_cost * numBearingsForTco) : 0;
+  let manualDowntimeCost = activeDtH * activeDtFreq * shared_downtime_rate * numBearingsForTco;
+
+  // Auto lubricator Card 2 costs (uses Interflon 36-month lifetime p2):
+  let autoRepairCost = p2_lifetime > 0 ? ((12 / p2_lifetime) * (shared_repair_h + shared_prep_h) * numBearingsForTco * hourlyRate) : 0;
+  let autoMatCost = p2_lifetime > 0 ? ((12 / p2_lifetime) * shared_parts_cost * numBearingsForTco) : 0;
+  let autoDowntimeCost = 0; // 100% Output with continuous auto lubrication!
+
+  if (manRepairRow) manRepairRow.style.display = "flex";
+  if (manMatRow) manMatRow.style.display = "flex";
+  if (manDowntimeRow) manDowntimeRow.style.display = "flex";
+
+  if (autoRepairRow) autoRepairRow.style.display = "flex";
+  if (autoMatRow) autoMatRow.style.display = "flex";
+  if (autoDowntimeRow) autoDowntimeRow.style.display = "flex";
+
+  const autoRepairCostEl = document.getElementById("roiAutoRepairCost");
+  const autoMatCostEl = document.getElementById("roiAutoMatCost");
+  const autoDowntimeCostEl = document.getElementById("roiAutoDowntimeCost");
+
+  if (autoRepairCostEl) autoRepairCostEl.textContent = `€ ${autoRepairCost.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / jaar`;
+  if (autoMatCostEl) autoMatCostEl.textContent = `€ ${autoMatCost.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / jaar`;
+  if (autoDowntimeCostEl) autoDowntimeCostEl.textContent = "€ 0,00 (100% Output)";
 
   if (manualMode === "huidig") {
     // 1. Theme: Blue / Slate
@@ -8697,15 +8729,7 @@ function updateRoiAutomationPage() {
       manualModeSelect.style.borderColor = "#bae6fd";
     }
 
-    // 2. Show 3 extra rows in Card 1 & Card 2
-    if (manRepairRow) manRepairRow.style.display = "flex";
-    if (manMatRow) manMatRow.style.display = "flex";
-    if (manDowntimeRow) manDowntimeRow.style.display = "flex";
-
-    if (autoRepairRow) autoRepairRow.style.display = "flex";
-    if (autoMatRow) autoMatRow.style.display = "flex";
-    if (autoDowntimeRow) autoDowntimeRow.style.display = "flex";
-
+    // 2. Populate 3 extra rows text
     if (manRepairCostEl) manRepairCostEl.textContent = `€ ${manualRepairCost.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / jaar`;
     if (manMatCostEl) manMatCostEl.textContent = `€ ${manualMatCost.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / jaar`;
     if (manDowntimeCostEl) manDowntimeCostEl.textContent = `€ ${manualDowntimeCost.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / jaar`;
@@ -8758,19 +8782,15 @@ function updateRoiAutomationPage() {
       manualModeSelect.style.borderColor = "#fecaca";
     }
 
-    // Hide extra rows in Mode Interflon
-    if (manRepairRow) manRepairRow.style.display = "none";
-    if (manMatRow) manMatRow.style.display = "none";
-    if (manDowntimeRow) manDowntimeRow.style.display = "none";
-
-    if (autoRepairRow) autoRepairRow.style.display = "none";
-    if (autoMatRow) autoMatRow.style.display = "none";
-    if (autoDowntimeRow) autoDowntimeRow.style.display = "none";
+    // Populate 3 extra rows text in Mode Interflon
+    if (manRepairCostEl) manRepairCostEl.textContent = `€ ${manualRepairCost.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / jaar`;
+    if (manMatCostEl) manMatCostEl.textContent = `€ ${manualMatCost.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / jaar`;
+    if (manDowntimeCostEl) manDowntimeCostEl.textContent = `€ ${manualDowntimeCost.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / jaar`;
 
     manualGreaseCost = (yearlyMlTotal / 1000) * greasePricePerLiter;
     manualLaborHours = numBearingsForTco * manualBeurtenPerYear * (workTimeMinutes / 60);
     manualLaborCost = manualLaborHours * hourlyRate;
-    manualTotalCost = manualGreaseCost + manualLaborCost;
+    manualTotalCost = manualGreaseCost + manualLaborCost + manualRepairCost + manualMatCost + manualDowntimeCost;
   }
 
   if (manYearlyMlEl) manYearlyMlEl.textContent = `${manualYearlyMl.toLocaleString("nl-BE", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} ml`;
@@ -9091,19 +9111,33 @@ function addRoiPdfPage(doc, dateString, watermarkDataUrl, aspectRatio, autoDataU
   const tcoSets = pVal("SetsPerMachine") || 1;
   const numBearingsForTco = (isHuidigMode && tcoSets > 0) ? Math.max(tcoSets, totalPointsAllDevices) : (totalPointsAllDevices || 1);
 
+  // TCO extra costs PDF (Col 1: Huidige Situatie, Col 2: Interflon)
   const p1_lifetime = pVal("Lifetime1") || pVal("RepairFreq1") || 12;
-  const p1_repair_freq = p1_lifetime;
+  const p2_lifetime = pVal("Lifetime2") || pVal("RepairFreq2") || 36;
 
   const shared_repair_h = pVal("RepairH") || pVal("SharedRepairH");
   const shared_prep_h = pVal("PrepH") || pVal("SharedPrepH");
   const shared_parts_cost = pVal("PartsCost") || pVal("SharedPartsCost");
-  const p1_downtime_h = pVal("DowntimeH1") || pVal("PrepH") || 1;
-  const p1_downtime_freq = p1_lifetime > 0 ? (12 / p1_lifetime) : (pVal("DowntimeFreq1") || 0.5);
   const shared_downtime_rate = pVal("DowntimeRate") || pVal("SharedDowntimeRate");
 
-  let manualRepairCost = p1_repair_freq > 0 ? ((12 / p1_repair_freq) * (shared_repair_h + shared_prep_h) * numBearingsForTco * hourlyRate) : 0;
-  let manualMatCost = p1_lifetime > 0 ? ((12 / p1_lifetime) * shared_parts_cost * numBearingsForTco) : 0;
-  let manualDowntimeCost = p1_downtime_h * p1_downtime_freq * shared_downtime_rate * numBearingsForTco;
+  const p1_downtime_h = pVal("DowntimeH1") || pVal("PrepH") || 1;
+  const p1_downtime_freq = p1_lifetime > 0 ? (12 / p1_lifetime) : 0.5;
+
+  const p2_downtime_h = pVal("DowntimeH2") || pVal("PrepH") || 1;
+  const p2_downtime_freq = p2_lifetime > 0 ? (12 / p2_lifetime) : 0.3333;
+
+  const activeLifetime = isHuidigMode ? p1_lifetime : p2_lifetime;
+  const activeRepairFreq = activeLifetime;
+  const activeDtH = isHuidigMode ? p1_downtime_h : p2_downtime_h;
+  const activeDtFreq = isHuidigMode ? p1_downtime_freq : p2_downtime_freq;
+
+  let manualRepairCost = activeRepairFreq > 0 ? ((12 / activeRepairFreq) * (shared_repair_h + shared_prep_h) * numBearingsForTco * hourlyRate) : 0;
+  let manualMatCost = activeLifetime > 0 ? ((12 / activeLifetime) * shared_parts_cost * numBearingsForTco) : 0;
+  let manualDowntimeCost = activeDtH * activeDtFreq * shared_downtime_rate * numBearingsForTco;
+
+  let autoRepairCost = p2_lifetime > 0 ? ((12 / p2_lifetime) * (shared_repair_h + shared_prep_h) * numBearingsForTco * hourlyRate) : 0;
+  let autoMatCost = p2_lifetime > 0 ? ((12 / p2_lifetime) * shared_parts_cost * numBearingsForTco) : 0;
+  let autoDowntimeCost = 0;
 
   if (isHuidigMode) {
     const currentPriceInput = document.getElementById("omProdPrice1") || document.getElementById("chainOmProdPrice1") || document.getElementById("tcoPriceCurrentInput");
