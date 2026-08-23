@@ -8902,13 +8902,15 @@ function updateRoiAutomationPage() {
   let artNrUnitStr = "";
   let divBlockDetailParts = [];
 
-  const spCapEl = document.getElementById("autoCartridgeCap");
-  const spCapVal = (spCapEl ? parseInt(spCapEl.value, 10) : 0) || 125;
+  const spCapEl = document.getElementById("autoCartridgeCap_A") || document.getElementById("autoCartridgeCap");
+  const spCapVal = (spCapEl ? parseInt(spCapEl.value, 10) : 0) || (typeof autoDevicesState !== "undefined" && autoDevicesState[0] ? autoDevicesState[0].cap : 0) || 125;
 
   for (let i = 0; i < numDevices; i++) {
     const d = (typeof autoDevicesState !== "undefined" && autoDevicesState[i]) ? autoDevicesState[i] : { id: String.fromCharCode(65 + i), points: 1, cap: 120, period: 6, unit: "months" };
     const pts = (deviceKey === "single_point") ? 1 : (d.points || 1);
-    const cap = (deviceKey === "single_point") ? spCapVal : (d.cap || 120);
+    const devCapEl = document.getElementById("autoCartridgeCap_" + d.id);
+    const devCapVal = devCapEl ? parseInt(devCapEl.value, 10) : 0;
+    const cap = (deviceKey === "single_point") ? (devCapVal || d.cap || spCapVal) : (d.cap || 120);
     const pInfo = getAutomationPriceInfo(deviceKey, cap, greaseName, pts, d.customPackPrice || (i === 0 ? window.customSinglePointPackPrice : 0));
     
     totalUnitsPrice += pInfo.unitPrice;
