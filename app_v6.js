@@ -5905,8 +5905,8 @@ let userHasManuallyEditedAutoPeriod = false;
 
 function onAutoCartridgeCapChange() {
   userHasManuallyEditedAutoPeriod = false;
-  userHasManuallyEditedAutoPeriod = false;
   calculateAutomationLubrication();
+  if (typeof updateRoiAutomationPage === "function") updateRoiAutomationPage();
 }
 
 function onAutoNumPointsChange() {
@@ -5926,6 +5926,7 @@ function onAutoPeriodInput() {
     }
   }
   calculateAutomationLubrication();
+  if (typeof updateRoiAutomationPage === "function") updateRoiAutomationPage();
 }
 
 function calculateAutomationLubrication() {
@@ -8475,8 +8476,9 @@ function getAutomationPriceInfo(deviceKey, capMl, greaseName, numPoints = 1) {
   else if (rawName.includes("FOOD") && rawName.includes("1")) gSearch = "Food grease 1";
 
   if (deviceKey === "single_point") {
-    const match = AUTOMATION_PRICE_DATABASE.singlePointFilled.find(item => item.cap === capMl && item.grease.toUpperCase().includes(gSearch.toUpperCase())) ||
-                  AUTOMATION_PRICE_DATABASE.singlePointFilled.find(item => item.cap === capMl) ||
+    const targetCap = (capMl === 120) ? 125 : capMl;
+    const match = AUTOMATION_PRICE_DATABASE.singlePointFilled.find(item => item.cap === targetCap && item.grease.toUpperCase().includes(gSearch.toUpperCase())) ||
+                  AUTOMATION_PRICE_DATABASE.singlePointFilled.find(item => item.cap === targetCap) ||
                   AUTOMATION_PRICE_DATABASE.singlePointFilled[0];
     return {
       deviceType: "Single Point Lubricator",
@@ -8848,9 +8850,14 @@ function updateRoiAutomationPage() {
   let artNrUnitStr = "";
   let divBlockDetailParts = [];
 
+  const spCapEl = document.getElementById("autoCartridgeCap");
+  const spCapVal = (spCapEl ? parseInt(spCapEl.value, 10) : 0) || 125;
+
   for (let i = 0; i < numDevices; i++) {
     const d = (typeof autoDevicesState !== "undefined" && autoDevicesState[i]) ? autoDevicesState[i] : { id: String.fromCharCode(65 + i), points: 1, cap: 120, period: 6, unit: "months" };
-    const pInfo = getAutomationPriceInfo(deviceKey, d.cap || 120, greaseName, d.points || 1);
+    const pts = (deviceKey === "single_point") ? 1 : (d.points || 1);
+    const cap = (deviceKey === "single_point") ? spCapVal : (d.cap || 120);
+    const pInfo = getAutomationPriceInfo(deviceKey, cap, greaseName, pts);
     
     totalUnitsPrice += pInfo.unitPrice;
     totalInstallKitPrice += pInfo.installKitPrice;
@@ -8861,7 +8868,7 @@ function updateRoiAutomationPage() {
     servicepackUnitPrice = pInfo.servicepackPrice;
 
     const yearlyMlDev = dailyNeedCm3 * (d.points || 1) * 365.25;
-    const cartsDev = (d.cap || 120) > 0 ? (yearlyMlDev / (d.cap || 120)) : 0;
+    const cartsDev = cap > 0 ? (yearlyMlDev / cap) : 0;
     totalCartridgesPerYear += cartsDev;
     totalCartridgesCostYear += (cartsDev * pInfo.servicepackPrice);
 
