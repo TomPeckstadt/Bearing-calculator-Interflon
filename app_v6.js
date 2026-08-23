@@ -8581,7 +8581,19 @@ function updateRoiAutomationPage() {
   const headerMlEl = document.getElementById("roiHeaderYearlyMl");
   if (headerMlEl) headerMlEl.textContent = `${yearlyMlTotal.toLocaleString("nl-BE", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} ml / jaar (${totalPointsAllDevices} ${totalPointsAllDevices === 1 ? 'lager' : 'lagers'})`;
 
-  // 3. Card 1: Manuele Smering
+  // 3. Card 1: Manuele Smering (Met Interflon vs Met Huidig Product)
+  const manualModeSelect = document.getElementById("roiManualModeSelect");
+  const manualMode = manualModeSelect ? manualModeSelect.value : "interflon";
+
+  const roiManCardContainer = document.getElementById("roiManCardContainer");
+  const roiManCardHeader = document.getElementById("roiManCardHeader");
+  const roiManCardTitle = document.getElementById("roiManCardTitle");
+  const roiManCardSubtext = document.getElementById("roiManCardSubtext");
+  const roiManLaborCost = document.getElementById("roiManLaborCost");
+  const roiManTotalBox = document.getElementById("roiManTotalBox");
+  const roiManTotalTitle = document.getElementById("roiManTotalTitle");
+  const roiManTotalCost = document.getElementById("roiManTotalCost");
+
   const manYearlyMlEl = document.getElementById("roiManYearlyMl");
   const manGreasePriceEl = document.getElementById("roiManGreasePrice");
   const manGreaseCostEl = document.getElementById("roiManGreaseCost");
@@ -8592,19 +8604,104 @@ function updateRoiAutomationPage() {
   const manTotalCostEl = document.getElementById("roiManTotalCost");
 
   const techBeurtenInput = document.getElementById("tcoFreqInterflonInput");
-  const manualBeurtenPerYear = techBeurtenInput ? (parseFloat(techBeurtenInput.value) || 17.6) : 17.6;
+  const manualBeurtenPerYearInterflon = techBeurtenInput ? (parseFloat(techBeurtenInput.value) || 17.6) : 17.6;
   const timeInput = document.getElementById("tcoTimeInput");
   const workTimeMinutes = timeInput ? (parseFloat(timeInput.value) || 10) : 10;
   const hourlyRateInput = document.getElementById("omSharedLaborRate") || document.getElementById("chainOmSharedLaborRate") || document.getElementById("tcoHourlyRateInput");
   const hourlyRate = hourlyRateInput ? (parseFloat(hourlyRateInput.value) || 50.00) : 50.00;
 
-  const manualGreaseCost = (yearlyMlTotal / 1000) * greasePricePerLiter;
-  const manualLaborHours = totalPointsAllDevices * manualBeurtenPerYear * (workTimeMinutes / 60);
-  const manualLaborCost = manualLaborHours * hourlyRate;
-  const manualTotalCost = manualGreaseCost + manualLaborCost;
+  let manualGreasePricePerLiter = greasePricePerLiter;
+  let manualBeurtenPerYear = manualBeurtenPerYearInterflon;
+  let manualYearlyMl = yearlyMlTotal;
+  let manualGreaseCost = 0;
+  let manualLaborHours = 0;
+  let manualLaborCost = 0;
+  let manualTotalCost = 0;
 
-  if (manYearlyMlEl) manYearlyMlEl.textContent = `${yearlyMlTotal.toLocaleString("nl-BE", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} ml`;
-  if (manGreasePriceEl) manGreasePriceEl.textContent = `€ ${greasePricePerLiter.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / L`;
+  if (manualMode === "huidig") {
+    // 1. Theme: Blue / Slate
+    if (roiManCardContainer) roiManCardContainer.style.borderColor = "#bae6fd";
+    if (roiManCardHeader) {
+      roiManCardHeader.style.backgroundColor = "#f0f9ff";
+      roiManCardHeader.style.borderBottomColor = "#bae6fd";
+    }
+    if (roiManCardTitle) {
+      roiManCardTitle.style.color = "#0369a1";
+      roiManCardTitle.textContent = "Manuele Smering";
+    }
+    if (roiManCardSubtext) {
+      roiManCardSubtext.style.color = "#0284c7";
+      roiManCardSubtext.textContent = "Met huidig product (op jaarbasis)";
+    }
+    if (roiManLaborCost) roiManLaborCost.style.color = "#0284c7";
+    if (roiManTotalBox) {
+      roiManTotalBox.style.backgroundColor = "#f0f9ff";
+      roiManTotalBox.style.borderColor = "#bae6fd";
+    }
+    if (roiManTotalTitle) roiManTotalTitle.style.color = "#0369a1";
+    if (roiManTotalCost) roiManTotalCost.style.color = "#0369a1";
+    if (manualModeSelect) {
+      manualModeSelect.style.backgroundColor = "rgba(3, 105, 161, 0.08)";
+      manualModeSelect.style.color = "#0369a1";
+      manualModeSelect.style.borderColor = "#bae6fd";
+    }
+
+    // 2. Read Huidige Situatie values
+    const currentPriceInput = document.getElementById("omProdPrice1") || document.getElementById("chainOmProdPrice1") || document.getElementById("tcoPriceCurrentInput");
+    manualGreasePricePerLiter = currentPriceInput ? (parseFloat(currentPriceInput.value) || 20.00) : 20.00;
+
+    const currentFreqInput = document.getElementById("omProdFreq1") || document.getElementById("chainOmProdFreq1") || document.getElementById("tcoFreqCurrentInput");
+    manualBeurtenPerYear = currentFreqInput ? (parseFloat(currentFreqInput.value) || 26.0) : 26.0;
+
+    const currentConsInput = document.getElementById("omProdCons1") || document.getElementById("chainOmProdCons1") || document.getElementById("tcoQtyCurrentInput");
+    const manualConsPerBeurtGrams = currentConsInput ? parseFloat(currentConsInput.value) || 0 : 0;
+
+    if (manualConsPerBeurtGrams > 0) {
+      manualYearlyMl = (manualConsPerBeurtGrams * manualBeurtenPerYear * totalPointsAllDevices) / 0.92;
+    } else {
+      manualYearlyMl = manualBeurtenPerYearInterflon > 0 ? (yearlyMlTotal * (manualBeurtenPerYear / manualBeurtenPerYearInterflon)) : yearlyMlTotal;
+    }
+
+    manualGreaseCost = (manualYearlyMl / 1000) * manualGreasePricePerLiter;
+    manualLaborHours = totalPointsAllDevices * manualBeurtenPerYear * (workTimeMinutes / 60);
+    manualLaborCost = manualLaborHours * hourlyRate;
+    manualTotalCost = manualGreaseCost + manualLaborCost;
+  } else {
+    // 1. Theme: Red / Rose (Default Interflon)
+    if (roiManCardContainer) roiManCardContainer.style.borderColor = "#fee2e2";
+    if (roiManCardHeader) {
+      roiManCardHeader.style.backgroundColor = "#fef2f2";
+      roiManCardHeader.style.borderBottomColor = "#fecaca";
+    }
+    if (roiManCardTitle) {
+      roiManCardTitle.style.color = "#991b1b";
+      roiManCardTitle.textContent = "Manuele Smering";
+    }
+    if (roiManCardSubtext) {
+      roiManCardSubtext.style.color = "#b91c1c";
+      roiManCardSubtext.textContent = "Met Interflon product (op jaarbasis)";
+    }
+    if (roiManLaborCost) roiManLaborCost.style.color = "#dc2626";
+    if (roiManTotalBox) {
+      roiManTotalBox.style.backgroundColor = "#fff1f2";
+      roiManTotalBox.style.borderColor = "#fecdd3";
+    }
+    if (roiManTotalTitle) roiManTotalTitle.style.color = "#9f1239";
+    if (roiManTotalCost) roiManTotalCost.style.color = "#9f1239";
+    if (manualModeSelect) {
+      manualModeSelect.style.backgroundColor = "rgba(153, 27, 27, 0.08)";
+      manualModeSelect.style.color = "#991b1b";
+      manualModeSelect.style.borderColor = "#fecaca";
+    }
+
+    manualGreaseCost = (yearlyMlTotal / 1000) * greasePricePerLiter;
+    manualLaborHours = totalPointsAllDevices * manualBeurtenPerYear * (workTimeMinutes / 60);
+    manualLaborCost = manualLaborHours * hourlyRate;
+    manualTotalCost = manualGreaseCost + manualLaborCost;
+  }
+
+  if (manYearlyMlEl) manYearlyMlEl.textContent = `${manualYearlyMl.toLocaleString("nl-BE", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} ml`;
+  if (manGreasePriceEl) manGreasePriceEl.textContent = `€ ${manualGreasePricePerLiter.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / L`;
   if (manGreaseCostEl) manGreaseCostEl.textContent = `€ ${manualGreaseCost.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / jaar`;
   if (manBeurtenEl) manBeurtenEl.textContent = `${(manualBeurtenPerYear * totalPointsAllDevices).toLocaleString("nl-BE", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} beurten`;
   if (manWorkTimeEl) manWorkTimeEl.textContent = `${workTimeMinutes} min/beurt (${(manualLaborHours).toFixed(1).replace('.',',')} u/jaar)`;
@@ -8878,17 +8975,51 @@ function addRoiPdfPage(doc, dateString, watermarkDataUrl, aspectRatio, autoDataU
   doc.text(`Berekend verbruik: ${yearlyMlTotal.toLocaleString("nl-BE", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} ml / jaar`, 186, 46, { align: "right" });
 
   // Calculations
+  const manualModeSelect = document.getElementById("roiManualModeSelect");
+  const manualMode = manualModeSelect ? manualModeSelect.value : "interflon";
+  const isHuidigMode = (manualMode === "huidig");
+
   const techBeurtenInput = document.getElementById("tcoFreqInterflonInput");
-  const manualBeurtenPerYear = techBeurtenInput ? (parseFloat(techBeurtenInput.value) || 17.6) : 17.6;
+  const manualBeurtenPerYearInterflon = techBeurtenInput ? (parseFloat(techBeurtenInput.value) || 17.6) : 17.6;
   const timeInput = document.getElementById("tcoTimeInput");
   const workTimeMinutes = timeInput ? (parseFloat(timeInput.value) || 10) : 10;
   const hourlyRateInput = document.getElementById("omSharedLaborRate") || document.getElementById("chainOmSharedLaborRate") || document.getElementById("tcoHourlyRateInput");
   const hourlyRate = hourlyRateInput ? (parseFloat(hourlyRateInput.value) || 50.00) : 50.00;
 
-  const manualGreaseCost = (yearlyMlTotal / 1000) * greasePricePerLiter;
-  const manualLaborHours = totalPointsAllDevices * manualBeurtenPerYear * (workTimeMinutes / 60);
-  const manualLaborCost = manualLaborHours * hourlyRate;
-  const manualTotalCost = manualGreaseCost + manualLaborCost;
+  let manualGreasePricePerLiter = greasePricePerLiter;
+  let manualBeurtenPerYear = manualBeurtenPerYearInterflon;
+  let manualYearlyMl = yearlyMlTotal;
+  let manualGreaseCost = 0;
+  let manualLaborHours = 0;
+  let manualLaborCost = 0;
+  let manualTotalCost = 0;
+
+  if (isHuidigMode) {
+    const currentPriceInput = document.getElementById("omProdPrice1") || document.getElementById("chainOmProdPrice1") || document.getElementById("tcoPriceCurrentInput");
+    manualGreasePricePerLiter = currentPriceInput ? (parseFloat(currentPriceInput.value) || 20.00) : 20.00;
+
+    const currentFreqInput = document.getElementById("omProdFreq1") || document.getElementById("chainOmProdFreq1") || document.getElementById("tcoFreqCurrentInput");
+    manualBeurtenPerYear = currentFreqInput ? (parseFloat(currentFreqInput.value) || 26.0) : 26.0;
+
+    const currentConsInput = document.getElementById("omProdCons1") || document.getElementById("chainOmProdCons1") || document.getElementById("tcoQtyCurrentInput");
+    const manualConsPerBeurtGrams = currentConsInput ? parseFloat(currentConsInput.value) || 0 : 0;
+
+    if (manualConsPerBeurtGrams > 0) {
+      manualYearlyMl = (manualConsPerBeurtGrams * manualBeurtenPerYear * totalPointsAllDevices) / 0.92;
+    } else {
+      manualYearlyMl = manualBeurtenPerYearInterflon > 0 ? (yearlyMlTotal * (manualBeurtenPerYear / manualBeurtenPerYearInterflon)) : yearlyMlTotal;
+    }
+
+    manualGreaseCost = (manualYearlyMl / 1000) * manualGreasePricePerLiter;
+    manualLaborHours = totalPointsAllDevices * manualBeurtenPerYear * (workTimeMinutes / 60);
+    manualLaborCost = manualLaborHours * hourlyRate;
+    manualTotalCost = manualGreaseCost + manualLaborCost;
+  } else {
+    manualGreaseCost = (yearlyMlTotal / 1000) * greasePricePerLiter;
+    manualLaborHours = totalPointsAllDevices * manualBeurtenPerYear * (workTimeMinutes / 60);
+    manualLaborCost = manualLaborHours * hourlyRate;
+    manualTotalCost = manualGreaseCost + manualLaborCost;
+  }
 
   const autoYear1Total = totalUnitsPrice + totalInstallKitPrice + totalDividerBlockPrice + totalCartridgesCostYear;
   const autoRecurringTotal = totalCartridgesCostYear;
@@ -8938,11 +9069,21 @@ function addRoiPdfPage(doc, dateString, watermarkDataUrl, aspectRatio, autoDataU
 
   // Table 1: Manuele Smering
   let y1 = startY;
-  drawRow(20, y1, colW, 6, "MANUELE SMERING", "", true, false, false);
+  const table1Title = isHuidigMode ? "MANUELE SMERING (HUIDIG)" : "MANUELE SMERING (INTERFLON)";
+  if (isHuidigMode) {
+    doc.setFillColor(3, 105, 161);
+    doc.rect(20, y1, colW, 6, "F");
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(8.5);
+    doc.setTextColor(255, 255, 255);
+    doc.text(table1Title, 20 + colW / 2, y1 + 6 / 2 + 1.2, { align: "center" });
+  } else {
+    drawRow(20, y1, colW, 6, table1Title, "", true, false, false);
+  }
   y1 += 6;
-  drawRow(20, y1, colW, rh, "Jaarlijks vetverbruik:", `${yearlyMlTotal.toLocaleString("nl-BE", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} ml`, false, false, false);
+  drawRow(20, y1, colW, rh, "Jaarlijks vetverbruik:", `${manualYearlyMl.toLocaleString("nl-BE", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} ml`, false, false, false);
   y1 += rh;
-  drawRow(20, y1, colW, rh, "Prijs vet per liter:", `€ ${greasePricePerLiter.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / L`, false, false, false);
+  drawRow(20, y1, colW, rh, "Prijs vet per liter:", `€ ${manualGreasePricePerLiter.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / L`, false, false, false);
   y1 += rh;
   drawRow(20, y1, colW, rh, "Jaarlijkse vetkost:", `€ ${manualGreaseCost.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / j`, false, false, false);
   y1 += rh;
@@ -8954,7 +9095,23 @@ function addRoiPdfPage(doc, dateString, watermarkDataUrl, aspectRatio, autoDataU
   y1 += rh;
   drawRow(20, y1, colW, rh, "Jaarlijkse arbeidskost:", `€ ${manualLaborCost.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / j`, false, false, false);
   y1 += rh;
-  drawRow(20, y1, colW, 7, "TOTALE JAARKOST MANUEEL:", `€ ${manualTotalCost.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, false, true, false);
+  if (isHuidigMode) {
+    doc.setFillColor(240, 249, 255);
+    doc.rect(20, y1, colW, 7, "F");
+    doc.setDrawColor(186, 230, 253);
+    doc.setLineWidth(0.2);
+    doc.rect(20, y1, colW, 7, "D");
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(7);
+    doc.setTextColor(3, 105, 161);
+    doc.text("TOTALE JAARKOST MANUEEL:", 22.5, y1 + 7 / 2 + 1.2);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(7.5);
+    doc.setTextColor(3, 105, 161);
+    doc.text(`€ ${manualTotalCost.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, 20 + colW - 2.5, y1 + 7 / 2 + 1.2, { align: "right" });
+  } else {
+    drawRow(20, y1, colW, 7, "TOTALE JAARKOST MANUEEL:", `€ ${manualTotalCost.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, false, true, false);
+  }
 
   // Table 2: Automatische Smering
   let y2 = startY;
