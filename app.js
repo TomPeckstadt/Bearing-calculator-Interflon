@@ -8561,11 +8561,12 @@ function getAutomationPriceInfo(deviceKey, capMl, greaseName, numPoints = 1, cus
     if (deviceKey === "pulsarlube_msp") modelSearch = "MSP DC";
     if (deviceKey === "pulsarlube_plc") modelSearch = "PLC";
 
-    const unitMatch = AUTOMATION_PRICE_DATABASE.pulsarlubeUnits.find(item => item.model.includes(modelSearch) && item.cap === capMl) ||
-                      AUTOMATION_PRICE_DATABASE.pulsarlubeUnits.find(item => item.cap === capMl) ||
+    const targetPulsarCap = (capMl === 120) ? 125 : capMl;
+    const unitMatch = AUTOMATION_PRICE_DATABASE.pulsarlubeUnits.find(item => item.model.includes(modelSearch) && item.cap === targetPulsarCap) ||
+                      AUTOMATION_PRICE_DATABASE.pulsarlubeUnits.find(item => item.cap === targetPulsarCap) ||
                       AUTOMATION_PRICE_DATABASE.pulsarlubeUnits[0];
 
-    const packMatch = gSearch ? AUTOMATION_PRICE_DATABASE.pulsarlubeServicepacks.find(item => item.cap === capMl && item.grease.toUpperCase().includes(gSearch.toUpperCase())) : null;
+    const packMatch = gSearch ? AUTOMATION_PRICE_DATABASE.pulsarlubeServicepacks.find(item => (item.cap === targetPulsarCap || (targetPulsarCap === 125 && item.cap === 120)) && item.grease.toUpperCase().includes(gSearch.toUpperCase())) : null;
 
     const isPriceFound = !!packMatch;
     const isCustomPrice = numCustom !== null;
