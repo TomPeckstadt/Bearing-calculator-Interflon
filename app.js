@@ -8683,7 +8683,7 @@ function updateRoiAutomationPage() {
   // Auto lubricator Card 2 costs (uses Interflon 36-month lifetime p2):
   let autoRepairCost = p2_lifetime > 0 ? ((12 / p2_lifetime) * (shared_repair_h + shared_prep_h) * numBearingsForTco * hourlyRate) : 0;
   let autoMatCost = p2_lifetime > 0 ? ((12 / p2_lifetime) * shared_parts_cost * numBearingsForTco) : 0;
-  let autoDowntimeCost = 0; // 100% Output with continuous auto lubrication!
+  let autoDowntimeCost = p2_downtime_h * p2_downtime_freq * shared_downtime_rate * numBearingsForTco;
 
   if (manRepairRow) manRepairRow.style.display = "flex";
   if (manMatRow) manMatRow.style.display = "flex";
@@ -8697,9 +8697,18 @@ function updateRoiAutomationPage() {
   const autoMatCostEl = document.getElementById("roiAutoMatCost");
   const autoDowntimeCostEl = document.getElementById("roiAutoDowntimeCost");
 
-  if (autoRepairCostEl) autoRepairCostEl.textContent = `€ ${autoRepairCost.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / jaar`;
-  if (autoMatCostEl) autoMatCostEl.textContent = `€ ${autoMatCost.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / jaar`;
-  if (autoDowntimeCostEl) autoDowntimeCostEl.textContent = "€ 0,00 (100% Output)";
+  if (autoRepairCostEl) {
+    autoRepairCostEl.textContent = `€ ${autoRepairCost.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / jaar`;
+    autoRepairCostEl.style.color = "#059669";
+  }
+  if (autoMatCostEl) {
+    autoMatCostEl.textContent = `€ ${autoMatCost.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / jaar`;
+    autoMatCostEl.style.color = "#059669";
+  }
+  if (autoDowntimeCostEl) {
+    autoDowntimeCostEl.textContent = `€ ${autoDowntimeCost.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / jaar`;
+    autoDowntimeCostEl.style.color = "#059669";
+  }
 
   if (manualMode === "huidig") {
     // 1. Theme: Blue / Slate
@@ -8845,8 +8854,8 @@ function updateRoiAutomationPage() {
     }
   }
 
-  const autoYear1Total = totalUnitsPrice + totalInstallKitPrice + totalDividerBlockPrice + totalCartridgesCostYear;
-  const autoRecurringTotal = totalCartridgesCostYear;
+  const autoYear1Total = totalUnitsPrice + totalInstallKitPrice + totalDividerBlockPrice + totalCartridgesCostYear + autoRepairCost + autoMatCost + autoDowntimeCost;
+  const autoRecurringTotal = totalCartridgesCostYear + autoRepairCost + autoMatCost + autoDowntimeCost;
 
   const autoDeviceNameEl = document.getElementById("roiAutoDeviceName");
   const autoPatronenEl = document.getElementById("roiAutoPatronen");
