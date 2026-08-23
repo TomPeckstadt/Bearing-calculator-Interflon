@@ -2228,6 +2228,9 @@ document.addEventListener("DOMContentLoaded", () => {
   const omLifetime2El = document.getElementById("omLifetime2");
   if (omLifetime1El) {
     omLifetime1El.addEventListener("input", () => {
+        const lf1 = parseFloat(omLifetime1El.value) || 12;
+        const dtFreq1 = document.getElementById("omDowntimeFreq1");
+        if (dtFreq1) dtFreq1.value = (12 / lf1).toFixed(2);
       const freqEl = document.getElementById("omDowntimeFreq1");
       if (freqEl) {
         const val = parseFloat(omLifetime1El.value) || 0;
@@ -5139,7 +5142,7 @@ function calculateTcoForPrefix(prefix) {
   const p1_downtime_h = val("DowntimeH1");
   const p2_downtime_h = val("DowntimeH2");
   const shared_downtime_rate = val("SharedDowntimeRate");
-  const p1_downtime_freq = val("DowntimeFreq1");
+  const p1_downtime_freq = p1_lifetime > 0 ? (12 / p1_lifetime) : (val("DowntimeFreq1") || 0.5);
   const p2_downtime_freq = val("DowntimeFreq2");
   
   const tco_years = val("TcoYears");
@@ -8658,8 +8661,8 @@ function updateRoiAutomationPage() {
   const shared_repair_h = pVal("RepairH") || pVal("SharedRepairH");
   const shared_prep_h = pVal("PrepH") || pVal("SharedPrepH");
   const shared_parts_cost = pVal("PartsCost") || pVal("SharedPartsCost");
-  const p1_downtime_h = pVal("DowntimeH1");
-  const p1_downtime_freq = pVal("DowntimeFreq1") || (p1_lifetime > 0 ? (12 / p1_lifetime) : 0);
+  const p1_downtime_h = pVal("DowntimeH1") || pVal("PrepH") || 1;
+  const p1_downtime_freq = p1_lifetime > 0 ? (12 / p1_lifetime) : (pVal("DowntimeFreq1") || 0.5);
   const shared_downtime_rate = pVal("DowntimeRate") || pVal("SharedDowntimeRate");
 
   let manualRepairCost = p1_repair_freq > 0 ? ((12 / p1_repair_freq) * (shared_repair_h + shared_prep_h) * numBearingsForTco * hourlyRate) : 0;
@@ -9094,8 +9097,8 @@ function addRoiPdfPage(doc, dateString, watermarkDataUrl, aspectRatio, autoDataU
   const shared_repair_h = pVal("RepairH") || pVal("SharedRepairH");
   const shared_prep_h = pVal("PrepH") || pVal("SharedPrepH");
   const shared_parts_cost = pVal("PartsCost") || pVal("SharedPartsCost");
-  const p1_downtime_h = pVal("DowntimeH1");
-  const p1_downtime_freq = pVal("DowntimeFreq1") || (p1_lifetime > 0 ? (12 / p1_lifetime) : 0);
+  const p1_downtime_h = pVal("DowntimeH1") || pVal("PrepH") || 1;
+  const p1_downtime_freq = p1_lifetime > 0 ? (12 / p1_lifetime) : (pVal("DowntimeFreq1") || 0.5);
   const shared_downtime_rate = pVal("DowntimeRate") || pVal("SharedDowntimeRate");
 
   let manualRepairCost = p1_repair_freq > 0 ? ((12 / p1_repair_freq) * (shared_repair_h + shared_prep_h) * numBearingsForTco * hourlyRate) : 0;
