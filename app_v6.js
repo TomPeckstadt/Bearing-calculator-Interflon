@@ -89,7 +89,9 @@ function onDeviceCapChange(devId) {
     if (unitSel) dev.unit = unitSel.value;
     dev.userEditedPeriod = false;
   }
+  if (typeof renderAutoDevicesUI === "function") renderAutoDevicesUI();
   calculateAutomationLubrication();
+  if (typeof updateRoiAutomationPage === "function") updateRoiAutomationPage();
 }
 
 function onDevicePeriodInput(devId) {
