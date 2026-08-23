@@ -33,7 +33,10 @@ function getActiveNumDevices() {
   const deviceSelect = document.getElementById("automationDeviceSelect") || document.getElementById("autoDeviceSelect");
   const deviceKey = deviceSelect ? deviceSelect.value : "single_point";
   const isSinglePoint = (deviceKey === "single_point");
-  if (deviceKey === "single_point") return 1;
+  if (deviceKey === "single_point") {
+    const spInput = document.getElementById("singlePointNumBearingsInput") || document.getElementById("spNumBearingsInput");
+    return spInput ? (parseInt(spInput.value, 10) || 1) : 1;
+  }
   const sel = document.getElementById("autoNumDevicesSelect");
   return sel ? (parseInt(sel.value) || 1) : 1;
 }
@@ -8581,15 +8584,19 @@ function updateRoiAutomationPage() {
   // Aggregate total points across all active devices
   let totalPointsAllDevices = 0;
   let devBreakdownText = [];
-  for (let i = 0; i < numDevices; i++) {
-    const d = (typeof autoDevicesState !== "undefined" && autoDevicesState[i]) ? autoDevicesState[i] : { id: String.fromCharCode(65 + i), points: 1, cap: 120, period: 6, unit: "months" };
-    const pts = d.points || 1;
-    totalPointsAllDevices += pts;
-    devBreakdownText.push(`Pulsarlube ${d.id}: ${pts} ${pts === 1 ? 'lager' : 'lagers'}`);
+  if (deviceKey === "single_point") {
+    totalPointsAllDevices = numDevices;
+  } else {
+    for (let i = 0; i < numDevices; i++) {
+      const d = (typeof autoDevicesState !== "undefined" && autoDevicesState[i]) ? autoDevicesState[i] : { id: String.fromCharCode(65 + i), points: 1, cap: 120, period: 6, unit: "months" };
+      const pts = d.points || 1;
+      totalPointsAllDevices += pts;
+      devBreakdownText.push(`Pulsarlube ${d.id}: ${pts} ${pts === 1 ? 'lager' : 'lagers'}`);
+    }
   }
 
   if (roiSubtextEl) {
-    const devListStr = numDevices === 1 ? `${totalPointsAllDevices} ${totalPointsAllDevices === 1 ? 'lager' : 'lagers'}` : devBreakdownText.join(" &bull; ");
+    const devListStr = (numDevices === 1 || deviceKey === "single_point") ? `${totalPointsAllDevices} ${totalPointsAllDevices === 1 ? 'lager' : 'lagers'}` : devBreakdownText.join(" &bull; ");
     roiSubtextEl.innerHTML = `Aantal toestellen: <strong>${numDevices}</strong> (${devListStr}) &bull; Geselecteerd vet: <strong>${greaseName}</strong>`;
   }
 
@@ -9064,13 +9071,18 @@ function addRoiPdfPage(doc, dateString, watermarkDataUrl, aspectRatio, autoDataU
   let mainCapMl = 120;
   let devBreakdownText = [];
 
+  const spCapEl = document.getElementById("autoCartridgeCap");
+  const spCapVal = spCapEl ? (parseInt(spCapEl.value, 10) || 120) : 120;
+
   for (let i = 0; i < numDevices; i++) {
-    const d = (typeof autoDevicesState !== "undefined" && autoDevicesState[i]) ? autoDevicesState[i] : { id: 'A', points: 1, cap: 120, period: 6, unit: 'months' };
-    const pts = d.points || 1;
-    const cap = d.cap || 120;
+    const d = (typeof autoDevicesState !== "undefined" && autoDevicesState[i]) ? autoDevicesState[i] : { id: String.fromCharCode(65 + i), points: 1, cap: 120, period: 6, unit: 'months' };
+    const pts = (deviceKey === "single_point") ? 1 : (d.points || 1);
+    const cap = (deviceKey === "single_point") ? spCapVal : (d.cap || 120);
     mainCapMl = cap;
     totalPointsAllDevices += pts;
-    devBreakdownText.push(`Pulsarlube ${d.id}: ${pts} ${pts === 1 ? 'lager' : 'lagers'}`);
+    if (deviceKey !== "single_point") {
+      devBreakdownText.push(`Pulsarlube ${d.id}: ${pts} ${pts === 1 ? 'lager' : 'lagers'}`);
+    }
 
     const pInfo = getAutomationPriceInfo(deviceKey, cap, greaseName, pts);
     totalUnitsPrice += pInfo.unitPrice;
@@ -9459,4 +9471,10 @@ function addRoiPdfPage(doc, dateString, watermarkDataUrl, aspectRatio, autoDataU
   doc.setFontSize(7.5);
   doc.setTextColor(227, 6, 19);
   doc.text("INTERFLON - A WORLD WITHOUT FRICTION", 20, footerY + 14);
+}
+
+function onSinglePointNumBearingsChange() {
+  if (typeof updateRoiAutomationPage === "function") {
+    updateRoiAutomationPage();
+  }
 }
