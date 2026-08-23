@@ -144,11 +144,12 @@ function getOptimalSmartAdvice(totalDailyNeedCm3, deviceKey, greaseName) {
     }
   }
 
+  const maxCap = (devKey === "single_point") ? 250 : 500;
   if (candidates.length === 0) {
-    // High grease demand fallback: pick 500 ml and recommend Graco
-    const pInfo = getAutomationPriceInfo(devKey, 500, grName, 1);
-    const unitPrice = pInfo ? (pInfo.packPrice || 104) : 104;
-    return { cap: 500, months: 1, annualCost: 12 * unitPrice, cartridgesPerYear: 12, unitPackPrice: unitPrice, theoMonths: 1, isGracoRecommended: true, label: "Bekijk de optie Graco" };
+    // High grease demand fallback: pick maxCap and recommend Graco
+    const pInfo = getAutomationPriceInfo(devKey, maxCap, grName, 1);
+    const unitPrice = pInfo ? (pInfo.packPrice || (maxCap === 250 ? 61.10 : 104)) : (maxCap === 250 ? 61.10 : 104);
+    return { cap: maxCap, months: 1, annualCost: 12 * unitPrice, cartridgesPerYear: 12, unitPackPrice: unitPrice, theoMonths: 1, isGracoRecommended: true, label: "Bekijk de optie Graco" };
   }
 
   // Sort candidates by annualCost ascending
@@ -161,7 +162,7 @@ function getOptimalSmartAdvice(totalDailyNeedCm3, deviceKey, greaseName) {
   });
 
   const winner = candidates[0];
-  const maxTheoMonths = (500 / totalDailyNeedCm3) / 30.4375;
+  const maxTheoMonths = (maxCap / totalDailyNeedCm3) / 30.4375;
   if (maxTheoMonths < 2.0) {
     winner.isGracoRecommended = true;
   }
@@ -330,6 +331,10 @@ function renderAutoDevicesUI() {
 
     let capOptionsHtml = "";
     const capsList = isSinglePoint ? [60, 120, 250] : [60, 125, 250, 500];
+    if (isSinglePoint && !capsList.includes(dev.cap)) {
+      dev.cap = 250;
+      if (autoDevicesState[i]) autoDevicesState[i].cap = 250;
+    }
     capsList.forEach(c => {
       const cSel = dev.cap === c ? " selected" : "";
       capOptionsHtml += `<option value="${c}"${cSel}>${c} ml</option>`;
@@ -6053,7 +6058,12 @@ function calculateAutomationLubrication() {
     }
     const devId = dev.id;
     const points = isSinglePoint ? 1 : (dev.points || 1);
-    const capMl = dev.cap || 120;
+    const validCaps = isSinglePoint ? [60, 120, 250] : [60, 125, 250, 500];
+    if (isSinglePoint && !validCaps.includes(dev.cap)) {
+      dev.cap = 250;
+      if (autoDevicesState[i]) autoDevicesState[i].cap = 250;
+    }
+    const capMl = dev.cap || (isSinglePoint ? 250 : 120);
     const devName = numDevices === 1 ? "Pulsarlube Smeertoestel" : `Pulsarlube ${devId}`;
 
     // 1. Update Verdeelblok Card Info for this device
