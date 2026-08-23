@@ -8720,13 +8720,13 @@ function updateRoiAutomationPage() {
     const manualConsPerBeurtGrams = currentConsInput ? parseFloat(currentConsInput.value) || 0 : 0;
 
     if (manualConsPerBeurtGrams > 0) {
-      manualYearlyMl = (manualConsPerBeurtGrams * manualBeurtenPerYear * totalPointsAllDevices) / 0.92;
+      manualYearlyMl = (manualConsPerBeurtGrams * manualBeurtenPerYear * numBearingsForTco) / 0.92;
     } else {
       manualYearlyMl = manualBeurtenPerYearInterflon > 0 ? (yearlyMlTotal * (manualBeurtenPerYear / manualBeurtenPerYearInterflon)) : yearlyMlTotal;
     }
 
     manualGreaseCost = (manualYearlyMl / 1000) * manualGreasePricePerLiter;
-    manualLaborHours = totalPointsAllDevices * manualBeurtenPerYear * (workTimeMinutes / 60);
+    manualLaborHours = numBearingsForTco * manualBeurtenPerYear * (workTimeMinutes / 60);
     manualLaborCost = manualLaborHours * hourlyRate;
     manualTotalCost = manualGreaseCost + manualLaborCost + manualRepairCost + manualMatCost + manualDowntimeCost;
   } else {
@@ -8767,7 +8767,7 @@ function updateRoiAutomationPage() {
     if (autoDowntimeRow) autoDowntimeRow.style.display = "none";
 
     manualGreaseCost = (yearlyMlTotal / 1000) * greasePricePerLiter;
-    manualLaborHours = totalPointsAllDevices * manualBeurtenPerYear * (workTimeMinutes / 60);
+    manualLaborHours = numBearingsForTco * manualBeurtenPerYear * (workTimeMinutes / 60);
     manualLaborCost = manualLaborHours * hourlyRate;
     manualTotalCost = manualGreaseCost + manualLaborCost;
   }
@@ -8775,7 +8775,8 @@ function updateRoiAutomationPage() {
   if (manYearlyMlEl) manYearlyMlEl.textContent = `${manualYearlyMl.toLocaleString("nl-BE", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} ml`;
   if (manGreasePriceEl) manGreasePriceEl.textContent = `€ ${manualGreasePricePerLiter.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / L`;
   if (manGreaseCostEl) manGreaseCostEl.textContent = `€ ${manualGreaseCost.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / jaar`;
-  if (manBeurtenEl) manBeurtenEl.textContent = `${(manualBeurtenPerYear * totalPointsAllDevices).toLocaleString("nl-BE", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} beurten`;
+  const effectiveManBearings = (manualMode === "huidig") ? numBearingsForTco : totalPointsAllDevices;
+  if (manBeurtenEl) manBeurtenEl.textContent = `${(manualBeurtenPerYear * effectiveManBearings).toLocaleString("nl-BE", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} beurten`;
   if (manWorkTimeEl) manWorkTimeEl.textContent = `${workTimeMinutes} min/beurt (${(manualLaborHours).toFixed(1).replace('.',',')} u/jaar)`;
   if (manHourlyRateEl) manHourlyRateEl.textContent = `€ ${hourlyRate.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / uur`;
   if (manLaborCostEl) manLaborCostEl.textContent = `€ ${manualLaborCost.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / jaar`;
@@ -9116,7 +9117,7 @@ function addRoiPdfPage(doc, dateString, watermarkDataUrl, aspectRatio, autoDataU
     const manualConsPerBeurtGrams = currentConsInput ? parseFloat(currentConsInput.value) || 0 : 0;
 
     if (manualConsPerBeurtGrams > 0) {
-      manualYearlyMl = (manualConsPerBeurtGrams * manualBeurtenPerYear * totalPointsAllDevices) / 0.92;
+      manualYearlyMl = (manualConsPerBeurtGrams * manualBeurtenPerYear * numBearingsForTco) / 0.92;
     } else {
       manualYearlyMl = manualBeurtenPerYearInterflon > 0 ? (yearlyMlTotal * (manualBeurtenPerYear / manualBeurtenPerYearInterflon)) : yearlyMlTotal;
     }
@@ -9198,7 +9199,8 @@ function addRoiPdfPage(doc, dateString, watermarkDataUrl, aspectRatio, autoDataU
   y1 += rh;
   drawRow(20, y1, colW, rh, "Jaarlijkse vetkost:", `€ ${manualGreaseCost.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / j`, false, false, false);
   y1 += rh;
-  drawRow(20, y1, colW, rh, "Aantal smeerbeurten/jaar:", `${(manualBeurtenPerYear * totalPointsAllDevices).toLocaleString("nl-BE", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} beurten`, false, false, false);
+  const effectivePdfManBearings = isHuidigMode ? numBearingsForTco : totalPointsAllDevices;
+  drawRow(20, y1, colW, rh, "Aantal smeerbeurten/jaar:", `${(manualBeurtenPerYear * effectivePdfManBearings).toLocaleString("nl-BE", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} beurten`, false, false, false);
   y1 += rh;
   drawRow(20, y1, colW, rh, "Tijd per smeerbeurt:", `${workTimeMinutes} min (${manualLaborHours.toFixed(1).replace('.',',')} u/j)`, false, false, false);
   y1 += rh;
