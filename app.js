@@ -35,7 +35,9 @@ function getActiveNumDevices() {
   const isSinglePoint = (deviceKey === "single_point");
   if (deviceKey === "single_point") {
     const spInput = document.getElementById("singlePointNumBearingsInput") || document.getElementById("spNumBearingsInput");
-    return spInput ? (parseInt(spInput.value, 10) || 1) : 1;
+    const valFromDom = spInput ? parseInt(spInput.value, 10) : NaN;
+    if (!isNaN(valFromDom) && valFromDom > 0) return valFromDom;
+    return window.spNumBearingsValue || 1;
   }
   const sel = document.getElementById("autoNumDevicesSelect");
   return sel ? (parseInt(sel.value) || 1) : 1;
@@ -368,6 +370,14 @@ function renderAutoDevicesUI() {
         </h5>
         
         <div style="display: flex; flex-direction: column; gap: 12px;">
+          ${isSinglePoint ? `
+          <div>
+            <label for="singlePointNumBearingsInput" style="display: block; font-size: 12px; font-weight: 600; color: var(--text-dark); margin-bottom: 4px;">
+              Aantal te smeren lagers
+            </label>
+            <input type="number" id="singlePointNumBearingsInput" class="form-input" value="${window.spNumBearingsValue || 1}" min="1" max="100" step="1" oninput="onSinglePointNumBearingsChange(this.value)" style="width: 100%; padding: 8px 12px; border-radius: var(--border-radius-sm); border: 1px solid #cbd5e1; font-weight: 700; color: #0f172a;" title="Voer het aantal te smeren lagers / single point toestellen in">
+          </div>
+          ` : ''}
           <div>
             <label for="autoCartridgeCap_${devId}" style="display: block; font-size: 12px; font-weight: 600; color: var(--text-dark); margin-bottom: 4px;">Patroon Capaciteit (ml)</label>
             <select id="autoCartridgeCap_${devId}" class="form-select" onchange="onDeviceCapChange('${devId}')" style="width: 100%; padding: 8px 12px; border-radius: var(--border-radius-sm); border: 1px solid #cbd5e1;">
@@ -9480,7 +9490,13 @@ function addRoiPdfPage(doc, dateString, watermarkDataUrl, aspectRatio, autoDataU
   doc.text("INTERFLON - A WORLD WITHOUT FRICTION", 20, footerY + 14);
 }
 
-function onSinglePointNumBearingsChange() {
+function onSinglePointNumBearingsChange(val) {
+  if (typeof val !== "undefined" && val !== null) {
+    window.spNumBearingsValue = Math.max(1, parseInt(val, 10) || 1);
+  } else {
+    const el = document.getElementById("singlePointNumBearingsInput");
+    if (el) window.spNumBearingsValue = Math.max(1, parseInt(el.value, 10) || 1);
+  }
   if (typeof updateRoiAutomationPage === "function") {
     updateRoiAutomationPage();
   }
