@@ -8,7 +8,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <link rel="stylesheet" href="style.css?v=20260823_1542">
+  <link rel="stylesheet" href="style.css?v=20260823_1549">
 </head>
 <body>
 
@@ -780,7 +780,7 @@
             <form onsubmit="event.preventDefault()">
               <div class="form-group">
                 <label for="inputGrease" data-i18n="inputGreaseLabel">Selecteer Interflon Vet</label>
-                <select id="inputGrease" class="form-control" style="padding-left: 16px;">
+                <select id="inputGrease" class="form-control" style="padding-left: 16px;" onchange="if(typeof calculateGrease==='function')calculateGrease(); if(typeof renderAutomationDeviceCards==='function')renderAutomationDeviceCards(); if(typeof calculateAutomationLubrication==='function')calculateAutomationLubrication(); if(typeof updateRoiAutomationPage==='function')updateRoiAutomationPage();">
                   <!-- Wordt dynamisch gevuld in JS -->
                 </select>
                 <span class="input-label-description" data-i18n="descGrease">Bepaalt de maximale DN-factor en consistentie</span>
@@ -3004,10 +3004,10 @@
 
   <!-- JavaScript logic imports -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="interflon-data.js?v=20260823_1542"></script>
-  <script src="bearings-db.js?v=20260823_1542"></script>
-  <script src="chains-db.js?v=20260823_1542"></script>
-  <script src="app_v6.js?v=20260823_1542"></script>
+  <script src="interflon-data.js?v=20260823_1549"></script>
+  <script src="bearings-db.js?v=20260823_1549"></script>
+  <script src="chains-db.js?v=20260823_1549"></script>
+  <script src="app_v6.js?v=20260823_1549"></script>
 
   <!-- Interflon Oil Dispenser Information Modal (PowerPoint Viewer) -->
   <div id="oilDispenserInfoModal" class="modal-overlay hidden" style="z-index: 99999;">
