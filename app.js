@@ -6025,7 +6025,7 @@ function calculateAutomationLubrication() {
 
   // Iterate over each active device card (A, B, C, D)
   for (let i = 0; i < numDevices; i++) {
-    const dev = autoDevicesState[i];
+    const dev = (typeof autoDevicesState !== "undefined" && autoDevicesState[i]) ? autoDevicesState[i] : { id: String.fromCharCode(65 + i), points: 1, cap: 120, period: 6, unit: "months" };
     if (deviceKey === "single_point") {
       dev.points = 1;
       if (autoDevicesState[i]) autoDevicesState[i].points = 1;
@@ -8914,7 +8914,11 @@ function updateRoiAutomationPage() {
     const devCapEl = document.getElementById("autoCartridgeCap_" + d.id);
     const devCapVal = devCapEl ? parseInt(devCapEl.value, 10) : 0;
     const cap = (deviceKey === "single_point") ? (devCapVal || d.cap || spCapVal) : (d.cap || 120);
-    const pInfo = getAutomationPriceInfo(deviceKey, cap, greaseName, pts, d.customPackPrice || (i === 0 ? window.customSinglePointPackPrice : 0));
+    const domCustomPriceEl = document.getElementById("autoCustomPackPrice_" + d.id) || document.getElementById("autoCustomPackPrice_A");
+    const domCustomVal = domCustomPriceEl ? parseFloat(domCustomPriceEl.value) : 0;
+    const spCustomFallback = window.customSinglePointPackPrice || (typeof autoDevicesState !== "undefined" && autoDevicesState[0] ? autoDevicesState[0].customPackPrice : 0);
+    const activeCustomPrice = (!isNaN(domCustomVal) && domCustomVal > 0) ? domCustomVal : (d.customPackPrice || ((deviceKey === "single_point" || i === 0) ? spCustomFallback : 0));
+    const pInfo = getAutomationPriceInfo(deviceKey, cap, greaseName, pts, activeCustomPrice);
     
     totalUnitsPrice += pInfo.unitPrice;
     totalInstallKitPrice += pInfo.installKitPrice;
