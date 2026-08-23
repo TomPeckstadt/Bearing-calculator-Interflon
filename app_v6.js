@@ -9319,106 +9319,125 @@ function addRoiPdfPage(doc, dateString, watermarkDataUrl, aspectRatio, autoDataU
   y2 += 7;
   drawRow(108, y2, colW, 7, "JAAR 2+ TERUGKEREND:", `€ ${autoRecurringTotal.toFixed(2).replace('.', ',')}`, false, true, "dark");
 
-  // Financial ROI Results Box
-  const roiBoxY = 141;
+  // Financial ROI Results Box (Matching App Layout & Exact TVT Calculation)
+  const roiBoxY = 138;
+  const roiBoxH = 64;
   doc.setFillColor(248, 250, 252);
   doc.setDrawColor(226, 232, 240);
   doc.setLineWidth(0.3);
-  doc.roundedRect(20, roiBoxY, 170, 48, 2, 2, "FD");
+  doc.roundedRect(20, roiBoxY, 170, roiBoxH, 2, 2, "FD");
 
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(11);
+  doc.setFontSize(10);
   doc.setTextColor(30, 41, 59);
-  doc.text("FINANCIËLE ANALYSE & ROI RESULTAAT", 26, roiBoxY + 8);
-
-  const cardW = 38;
-  const cardH = 30;
-  const cardY = roiBoxY + 12;
+  doc.text("FINANCIËLE ANALYSE & ROI RESULTAAT", 25, roiBoxY + 7);
 
   const netYearlySaving = manualTotalCost - autoRecurringTotal;
   const year1NetResult = manualTotalCost - autoYear1Total;
 
   const roiYearsInput = document.getElementById("roiYearsInput");
-  const numYears = roiYearsInput ? (parseInt(roiYearsInput.value, 10) || 3) : 3;
+  const numYears = roiYearsInput ? (parseInt(roiYearsInput.value, 10) || 5) : 5;
   const multiYearSaving = year1NetResult + Math.max(0, numYears - 1) * netYearlySaving;
 
-  function drawRoiResultCard(x, y, w, h, title, valStr, subStr, isGreen) {
+  // Payback calculation matching App UI exactly:
+  const initialInvestment = autoYear1Total - autoRecurringTotal;
+  let paybackStr = "Direct";
+  let isPaybackGreen = true;
+  if (initialInvestment <= 0) {
+    paybackStr = "Direct";
+  } else if (netYearlySaving <= 0) {
+    paybackStr = "Geen TVT";
+    isPaybackGreen = false;
+  } else {
+    const paybackYears = initialInvestment / netYearlySaving;
+    const paybackMonths = paybackYears * 12;
+    paybackStr = `${paybackMonths.toFixed(1).replace('.', ',')} m (${paybackYears.toFixed(2).replace('.', ',')} j)`;
+  }
+
+  function drawRoiCard(x, y, w, h, title, valStr, subStr, valColor) {
     doc.setFillColor(255, 255, 255);
     doc.setDrawColor(226, 232, 240);
     doc.setLineWidth(0.2);
-    doc.roundedRect(x, y, w, h, 2, 2, "FD");
+    doc.roundedRect(x, y, w, h, 1.5, 1.5, "FD");
 
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(6.5);
+    doc.setFontSize(6);
     doc.setTextColor(100, 116, 139);
-    doc.text(title, x + w / 2, y + 6, { align: "center" });
+    doc.text(title, x + w / 2, y + 4.5, { align: "center" });
 
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(10);
-    doc.setTextColor(isGreen ? 5 : 220, isGreen ? 150 : 38, isGreen ? 105 : 38);
-    doc.text(valStr, x + w / 2, y + 16, { align: "center" });
+    doc.setFontSize(9);
+    doc.setTextColor(valColor[0], valColor[1], valColor[2]);
+    doc.text(valStr, x + w / 2, y + 11.5, { align: "center" });
 
     doc.setFont("helvetica", "normal");
-    doc.setFontSize(6);
+    doc.setFontSize(5.5);
     doc.setTextColor(148, 163, 184);
-    doc.text(subStr, x + w / 2, y + 24, { align: "center" });
+    doc.text(subStr, x + w / 2, y + 17, { align: "center" });
   }
 
-  // Card 1: Jaarlijkse besparing
-  const sign1 = netYearlySaving >= 0 ? "+" : "-";
-  drawRoiResultCard(24, cardY, cardW, cardH, "JAARLIJKSE BESPARING", `${sign1} € ${Math.abs(netYearlySaving).toFixed(2).replace('.', ',')}`, "Vanaf Jaar 2", netYearlySaving >= 0);
+  const row1Y = roiBoxY + 11;
+  const row2Y = roiBoxY + 33;
+  const cardW = 50;
+  const cardH = 20;
 
-  // Card 2: Resultaat Jaar 1
+  // Card 1: Structurele jaarlijkse besparing
+  const sign1 = netYearlySaving >= 0 ? "+" : "-";
+  const color1 = netYearlySaving >= 0 ? [22, 163, 74] : [220, 38, 38];
+  drawRoiCard(24, row1Y, cardW, cardH, "STRUCTURELE JAARLIJKSE BESPARING", `${sign1} € ${Math.abs(netYearlySaving).toFixed(2).replace('.', ',')} / j`, "Vanaf Jaar 2", color1);
+
+  // Card 2: Netto resultaat jaar 1
   const sign2 = year1NetResult >= 0 ? "+" : "-";
-  drawRoiResultCard(65, cardY, cardW, cardH, "RESULTAAT JAAR 1", `${sign2} € ${Math.abs(year1NetResult).toFixed(2).replace('.', ',')}`, "Inclusief installatie", year1NetResult >= 0);
+  const color2 = year1NetResult >= 0 ? [22, 163, 74] : [220, 38, 38];
+  drawRoiCard(80, row1Y, cardW, cardH, "NETTO RESULTAAT JAAR 1", `${sign2} € ${Math.abs(year1NetResult).toFixed(2).replace('.', ',')} (Jaar 1)`, "Inclusief initiële installatie", color2);
 
   // Card 3: Terugverdientijd
-  let paybackStr = "Direct";
-  let isPaybackGreen = true;
-  if (year1NetResult < 0) {
-    if (netYearlySaving <= 0) {
-      paybackStr = "Geen TVT";
-      isPaybackGreen = false;
-    } else {
-      const pbMonths = (Math.abs(year1NetResult) / netYearlySaving) * 12 + 12;
-      const pbYears = pbMonths / 12;
-      paybackStr = `${pbMonths.toFixed(1).replace('.', ',')} m (${pbYears.toFixed(2).replace('.', ',')} j)`;
-    }
-  }
-  drawRoiResultCard(106, cardY, cardW, cardH, "TERUGVERDIENTIJD", paybackStr, "Investerings-ROI", isPaybackGreen);
+  const color3 = isPaybackGreen ? [220, 38, 38] : [100, 116, 139];
+  drawRoiCard(136, row1Y, cardW, cardH, "TERUGVERDIENTIJD (ROI)", paybackStr, "Investerings-terugverdientijd", color3);
 
   // Card 4: Besparing na N jaar
   const sign4 = multiYearSaving >= 0 ? "+" : "-";
-  drawRoiResultCard(147, cardY, cardW, cardH, `BESPARING NA ${numYears} JAAR`, `${sign4} € ${Math.abs(multiYearSaving).toFixed(2).replace('.', ',')}`, "Netto totaalresultaat", multiYearSaving >= 0);
+  const color4 = multiYearSaving >= 0 ? [5, 150, 105] : [220, 38, 38];
+  drawRoiCard(24, row2Y, cardW, cardH, `BESPARING NA ${numYears} JAAR`, `${sign4} € ${Math.abs(multiYearSaving).toFixed(2).replace('.', ',')}`, "Inclusief initiële installatie", color4);
 
   // Belangrijke Toelichting Box in PDF
-  doc.setFillColor(248, 250, 252);
-  doc.setDrawColor(227, 6, 19);
-  doc.setLineWidth(0.3);
-  doc.roundedRect(20, 173, 170, 15, 2, 2, "FD");
+  const toelW = 106;
+  doc.setFillColor(254, 242, 242);
+  doc.setDrawColor(252, 165, 165);
+  doc.setLineWidth(0.2);
+  doc.roundedRect(80, row2Y, toelW, cardH, 1.5, 1.5, "FD");
+
+  // Red accent line on left of toelichting
+  doc.setFillColor(227, 6, 19);
+  doc.rect(80, row2Y, 1.5, cardH, "F");
 
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(7);
+  doc.setFontSize(6.5);
   doc.setTextColor(227, 6, 19);
-  doc.text("Belangrijke toelichting:", 24, 177);
+  doc.text("Belangrijke toelichting:", 84, row2Y + 4.5);
 
   doc.setFont("helvetica", "normal");
-  doc.setFontSize(6);
-  doc.setTextColor(51, 65, 85);
+  doc.setFontSize(5.2);
+  doc.setTextColor(71, 85, 105);
   const toelichtingTxt = "Bovenstaande berekening weerspiegelt uitsluitend de directe overgang van handmatige naar automatische smering. In de praktijk ontstaat het grootste financiële en operationele voordeel echter door een verhoogde bedrijfszekerheid (hogere output), een langere levensduur van componenten (minder reserveonderdelen) en een aanzienlijke reductie in revisie-uren.";
-  doc.text(toelichtingTxt, 24, 181, { maxWidth: 162 });
+  const splitToel = doc.splitTextToSize(toelichtingTxt, toelW - 6);
+  doc.text(splitToel, 84, row2Y + 8.5);
 
-  // Footer Disclaimer
+  // Footer Line & Disclaimer at bottom
+  const footerY = roiBoxY + roiBoxH + 6;
+  doc.setDrawColor(226, 232, 240);
+  doc.setLineWidth(0.2);
+  doc.line(20, footerY, 190, footerY);
+
   doc.setFont("helvetica", "normal");
-  doc.setFontSize(6);
+  doc.setFontSize(5.5);
   doc.setTextColor(148, 163, 184);
   const footerText = "De gegenereerde gegevens bieden een betrouwbare indicatie, maar vormen geen expliciete garantie dat een product of dosering geschikt is voor elke specifieke toepassing. De calculator biedt een adviesrichtlijn; er kan geen wettelijke waarborg of aansprakelijkheid worden verleend met betrekking tot het concrete gebruik ervan in de praktijk.";
   const splitFooter = doc.splitTextToSize(footerText, 170);
-  doc.text(splitFooter, 20, 192);
+  doc.text(splitFooter, 20, footerY + 4);
 
   doc.setFont("helvetica", "bold");
   doc.setFontSize(7.5);
   doc.setTextColor(227, 6, 19);
-  doc.text("INTERFLON - A WORLD WITHOUT FRICTION", 20, 203);
+  doc.text("INTERFLON - A WORLD WITHOUT FRICTION", 20, footerY + 14);
 }
-
