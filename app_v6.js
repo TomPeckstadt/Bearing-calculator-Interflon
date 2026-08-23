@@ -3168,6 +3168,16 @@ function updateCalculatorFields() {
 // ==========================================================================
 
 function calculateGrease() {
+  const gSel = document.getElementById("inputGrease") || document.getElementById("selectGrease");
+  const currentGreaseVal = gSel ? gSel.value : "";
+  if (window.lastSelectedGreaseName && window.lastSelectedGreaseName !== currentGreaseVal) {
+    window.customSinglePointPackPrice = 0;
+    if (typeof autoDevicesState !== "undefined") {
+      autoDevicesState.forEach(d => { d.customPackPrice = 0; });
+    }
+  }
+  window.lastSelectedGreaseName = currentGreaseVal;
+
   if (typeof renderAutomationDeviceCards === "function") renderAutomationDeviceCards();
   if (typeof calculateAutomationLubrication === "function") calculateAutomationLubrication();
   setTimeout(() => { if (typeof updateRoiAutomationPage === "function") updateRoiAutomationPage(); }, 0);
@@ -8909,13 +8919,26 @@ function updateRoiAutomationPage() {
 
   const spCapEl = document.getElementById("autoCartridgeCap_A") || document.getElementById("autoCartridgeCap");
   const spCapVal = (spCapEl ? parseInt(spCapEl.value, 10) : 0) || (typeof autoDevicesState !== "undefined" && autoDevicesState[0] ? autoDevicesState[0].cap : 0) || 125;
+  const spPeriodEl = document.getElementById("autoDispensePeriod_A") || document.getElementById("autoDispensePeriod");
+  const spPeriodVal = (spPeriodEl ? parseFloat(spPeriodEl.value) : 0) || (typeof autoDevicesState !== "undefined" && autoDevicesState[0] ? autoDevicesState[0].period : 0) || 4;
+  const spUnitEl = document.getElementById("autoDispenseUnit_A") || document.getElementById("autoDispenseUnit");
+  const spUnitVal = (spUnitEl ? spUnitEl.value : "") || (typeof autoDevicesState !== "undefined" && autoDevicesState[0] ? autoDevicesState[0].unit : "months");
 
   for (let i = 0; i < numDevices; i++) {
     const d = (typeof autoDevicesState !== "undefined" && autoDevicesState[i]) ? autoDevicesState[i] : { id: String.fromCharCode(65 + i), points: 1, cap: 120, period: 6, unit: "months" };
     const pts = (deviceKey === "single_point") ? 1 : (d.points || 1);
     const devCapEl = document.getElementById("autoCartridgeCap_" + d.id);
     const devCapVal = devCapEl ? parseInt(devCapEl.value, 10) : 0;
-    const cap = (deviceKey === "single_point") ? (devCapVal || d.cap || spCapVal) : (d.cap || 120);
+    const cap = (deviceKey === "single_point") ? spCapVal : (devCapVal || d.cap || 120);
+
+    const devPeriodEl = document.getElementById("autoDispensePeriod_" + d.id);
+    const devPeriodVal = devPeriodEl ? parseFloat(devPeriodEl.value) : 0;
+    const devUnitEl = document.getElementById("autoDispenseUnit_" + d.id);
+    const devUnitVal = devUnitEl ? devUnitEl.value : "";
+
+    const period = (deviceKey === "single_point") ? spPeriodVal : (devPeriodVal || d.period || 6);
+    const unit = (deviceKey === "single_point") ? spUnitVal : (devUnitVal || d.unit || "months");
+
     const domCustomPriceEl = document.getElementById("autoCustomPackPrice_" + d.id) || document.getElementById("autoCustomPackPrice_A");
     const domCustomVal = domCustomPriceEl ? parseFloat(domCustomPriceEl.value) : 0;
     const spCustomFallback = window.customSinglePointPackPrice || (typeof autoDevicesState !== "undefined" && autoDevicesState[0] ? autoDevicesState[0].customPackPrice : 0);
@@ -8930,8 +8953,13 @@ function updateRoiAutomationPage() {
     artNrServicepackStr = pInfo.artNrServicepack;
     servicepackUnitPrice = pInfo.servicepackPrice;
 
-    const yearlyMlDev = dailyNeedCm3 * (d.points || 1) * 365.25;
-    const cartsDev = cap > 0 ? (yearlyMlDev / cap) : 0;
+    const yearlyMlDev = dailyNeedCm3 * pts * 365.25;
+    let cartsDev = 0;
+    if (period > 0) {
+      cartsDev = unit === "weeks" ? ((52.1785 / period) * pts) : ((12 / period) * pts);
+    } else {
+      cartsDev = cap > 0 ? (yearlyMlDev / cap) : 0;
+    }
     totalCartridgesPerYear += cartsDev;
     totalCartridgesCostYear += (cartsDev * pInfo.servicepackPrice);
 
@@ -9141,26 +9169,49 @@ function addRoiPdfPage(doc, dateString, watermarkDataUrl, aspectRatio, autoDataU
   let mainCapMl = 120;
   let devBreakdownText = [];
 
-  const spCapEl = document.getElementById("autoCartridgeCap");
-  const spCapVal = spCapEl ? (parseInt(spCapEl.value, 10) || 120) : 120;
+  const spCapEl = document.getElementById("autoCartridgeCap_A") || document.getElementById("autoCartridgeCap");
+  const spCapVal = (spCapEl ? parseInt(spCapEl.value, 10) : 0) || (typeof autoDevicesState !== "undefined" && autoDevicesState[0] ? autoDevicesState[0].cap : 0) || 125;
+  const spPeriodEl = document.getElementById("autoDispensePeriod_A") || document.getElementById("autoDispensePeriod");
+  const spPeriodVal = (spPeriodEl ? parseFloat(spPeriodEl.value) : 0) || (typeof autoDevicesState !== "undefined" && autoDevicesState[0] ? autoDevicesState[0].period : 0) || 4;
+  const spUnitEl = document.getElementById("autoDispenseUnit_A") || document.getElementById("autoDispenseUnit");
+  const spUnitVal = (spUnitEl ? spUnitEl.value : "") || (typeof autoDevicesState !== "undefined" && autoDevicesState[0] ? autoDevicesState[0].unit : "months");
 
   for (let i = 0; i < numDevices; i++) {
     const d = (typeof autoDevicesState !== "undefined" && autoDevicesState[i]) ? autoDevicesState[i] : { id: String.fromCharCode(65 + i), points: 1, cap: 120, period: 6, unit: 'months' };
     const pts = (deviceKey === "single_point") ? 1 : (d.points || 1);
-    const cap = (deviceKey === "single_point") ? spCapVal : (d.cap || 120);
+    const devCapEl = document.getElementById("autoCartridgeCap_" + d.id);
+    const devCapVal = devCapEl ? parseInt(devCapEl.value, 10) : 0;
+    const cap = (deviceKey === "single_point") ? spCapVal : (devCapVal || d.cap || 120);
     mainCapMl = cap;
     totalPointsAllDevices += pts;
     if (deviceKey !== "single_point") {
       devBreakdownText.push(`Pulsarlube ${d.id}: ${pts} ${pts === 1 ? 'lager' : 'lagers'}`);
     }
 
-    const pInfo = getAutomationPriceInfo(deviceKey, cap, greaseName, pts, d.customPackPrice || (i === 0 ? window.customSinglePointPackPrice : 0));
+    const devPeriodEl = document.getElementById("autoDispensePeriod_" + d.id);
+    const devPeriodVal = devPeriodEl ? parseFloat(devPeriodEl.value) : 0;
+    const devUnitEl = document.getElementById("autoDispenseUnit_" + d.id);
+    const devUnitVal = devUnitEl ? devUnitEl.value : "";
+
+    const period = (deviceKey === "single_point") ? spPeriodVal : (devPeriodVal || d.period || 6);
+    const unit = (deviceKey === "single_point") ? spUnitVal : (devUnitVal || d.unit || "months");
+
+    const domCustomPriceEl = document.getElementById("autoCustomPackPrice_" + d.id) || document.getElementById("autoCustomPackPrice_A");
+    const domCustomVal = domCustomPriceEl ? parseFloat(domCustomPriceEl.value) : 0;
+    const spCustomFallback = window.customSinglePointPackPrice || (typeof autoDevicesState !== "undefined" && autoDevicesState[0] ? autoDevicesState[0].customPackPrice : 0);
+    const activeCustomPrice = (!isNaN(domCustomVal) && domCustomVal > 0) ? domCustomVal : (d.customPackPrice || ((deviceKey === "single_point" || i === 0) ? spCustomFallback : 0));
+    const pInfo = getAutomationPriceInfo(deviceKey, cap, greaseName, pts, activeCustomPrice);
     totalUnitsPrice += pInfo.unitPrice;
     totalInstallKitPrice += pInfo.installKitPrice;
     totalDividerBlockPrice += pInfo.dividerBlockPrice;
 
     const yearlyMlDev = dailyNeedCm3 * pts * 365.25;
-    const cartsDev = cap > 0 ? (yearlyMlDev / cap) : 0;
+    let cartsDev = 0;
+    if (period > 0) {
+      cartsDev = unit === "weeks" ? ((52.1785 / period) * pts) : ((12 / period) * pts);
+    } else {
+      cartsDev = cap > 0 ? (yearlyMlDev / cap) : 0;
+    }
     totalCartridgesPerYear += cartsDev;
     totalCartridgesCostYear += (cartsDev * pInfo.servicepackPrice);
   }
