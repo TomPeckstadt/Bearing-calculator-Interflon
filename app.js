@@ -396,7 +396,7 @@ function renderAutoDevicesUI() {
             <input type="number" id="singlePointNumBearingsInput" class="form-input" value="${window.spNumBearingsValue || 1}" min="1" max="100" step="1" oninput="onSinglePointNumBearingsChange(this.value)" style="width: 100%; padding: 8px 12px; border-radius: var(--border-radius-sm); border: 1px solid #cbd5e1; font-weight: 700; color: #0f172a;" title="Voer het aantal te smeren lagers / single point toestellen in">
           </div>
           ` : ''}
-          ${!pInfo.isPriceFound && !pInfo.isCustomPrice ? `
+          ${!pInfo.isPriceFound ? `
           <div id="priceWarningNotice_${devId}" style="background-color: #fffbebf7; border: 1.5px solid #f59e0b; border-radius: var(--border-radius-sm); padding: 10px 12px; margin-bottom: 4px; font-size: 11.5px; color: #92400e; line-height: 1.4;">
             ⚠️ <strong>Prijs niet in standaard prijslijst:</strong> Het gekozen vet (<em>${greaseName}</em>) is niet standaard opgenomen in de prijslijst van ${devName}.<br>👉 <strong>Vul hieronder manueel de patroonprijs in</strong> om de berekening uit te voeren.
           </div>
