@@ -8717,6 +8717,9 @@ function updateRoiAutomationPage() {
       roiManCardSubtext.textContent = "Met huidig product (op jaarbasis)";
     }
     if (roiManLaborCost) roiManLaborCost.style.color = "#0284c7";
+    if (manRepairCostEl) manRepairCostEl.style.color = "#0284c7";
+    if (manMatCostEl) manMatCostEl.style.color = "#0284c7";
+    if (manDowntimeCostEl) manDowntimeCostEl.style.color = "#0284c7";
     if (roiManTotalBox) {
       roiManTotalBox.style.backgroundColor = "#f0f9ff";
       roiManTotalBox.style.borderColor = "#bae6fd";
@@ -8771,6 +8774,9 @@ function updateRoiAutomationPage() {
       roiManCardSubtext.textContent = "Met Interflon product (op jaarbasis)";
     }
     if (roiManLaborCost) roiManLaborCost.style.color = "#dc2626";
+    if (manRepairCostEl) manRepairCostEl.style.color = "#dc2626";
+    if (manMatCostEl) manMatCostEl.style.color = "#dc2626";
+    if (manDowntimeCostEl) manDowntimeCostEl.style.color = "#dc2626";
     if (roiManTotalBox) {
       roiManTotalBox.style.backgroundColor = "#fff1f2";
       roiManTotalBox.style.borderColor = "#fecdd3";
