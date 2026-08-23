@@ -8650,9 +8650,7 @@ function updateRoiAutomationPage() {
   };
 
   const tcoSets = pVal("SetsPerMachine") || 1;
-  const tcoNumMach = pVal("NumMachines") || 1;
-  const tcoBearings = tcoSets * tcoNumMach;
-  const numBearingsForTco = (manualMode === "huidig" && tcoBearings > 0) ? Math.max(tcoBearings, totalPointsAllDevices) : (totalPointsAllDevices || 1);
+  const numBearingsForTco = (manualMode === "huidig" && tcoSets > 0) ? Math.max(tcoSets, totalPointsAllDevices) : (totalPointsAllDevices || 1);
 
   const p1_lifetime = pVal("Lifetime1") || pVal("RepairFreq1") || 12;
   const p1_repair_freq = p1_lifetime;
@@ -9088,9 +9086,7 @@ function addRoiPdfPage(doc, dateString, watermarkDataUrl, aspectRatio, autoDataU
   };
 
   const tcoSets = pVal("SetsPerMachine") || 1;
-  const tcoNumMach = pVal("NumMachines") || 1;
-  const tcoBearings = tcoSets * tcoNumMach;
-  const numBearingsForTco = (isHuidigMode && tcoBearings > 0) ? Math.max(tcoBearings, totalPointsAllDevices) : (totalPointsAllDevices || 1);
+  const numBearingsForTco = (isHuidigMode && tcoSets > 0) ? Math.max(tcoSets, totalPointsAllDevices) : (totalPointsAllDevices || 1);
 
   const p1_lifetime = pVal("Lifetime1") || pVal("RepairFreq1") || 12;
   const p1_repair_freq = p1_lifetime;
