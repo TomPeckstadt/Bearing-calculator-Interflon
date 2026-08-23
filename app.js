@@ -1973,7 +1973,7 @@ function changeLanguage(lang) {
     const key = el.getAttribute("data-i18n");
     if (TRANSLATIONS[lang] && TRANSLATIONS[lang][key]) {
       // Use innerHTML for formatting tags inside alert text, intro and legal disclaimer
-      if (key === "estimatedNote" || key === "legalDisclaimerText" || key === "infoIntro" || key === "searchEmptyDesc" || key.startsWith("omCost") || key === "omSavingsYears" || key === "omTotalSavingsLabel") {
+      if (key === "estimatedNote" || key === "legalDisclaimerText" || key === "infoIntro" || key === "searchEmptyDesc" || key.startsWith("omCost") || key.startsWith("omSavings") || key === "omTotalSavingsLabel") {
         el.innerHTML = TRANSLATIONS[lang][key];
       } else {
         el.textContent = TRANSLATIONS[lang][key];
