@@ -8929,6 +8929,8 @@ function updateRoiAutomationPage() {
             const pInfo = getAutomationPriceInfo(deviceKey, d.cap || 120, greaseName, d.points || 1);
             if (pInfo.dividerBlockPrice > 0) {
               listHtml += `<div>&bull; <strong>Toestel ${d.id}:</strong> € ${pInfo.dividerBlockPrice.toFixed(2).replace('.', ',')} <em>(Art. ${pInfo.artNrDividerBlock} &bull; ${d.points}-poorts)</em></div>`;
+            } else {
+              listHtml += `<div>&bull; <strong>Toestel ${d.id}:</strong> € 0,00 <em>(Directe aansluiting &bull; 1 lager)</em></div>`;
             }
           }
           autoDivBlockCostEl.innerHTML = listHtml;
