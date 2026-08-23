@@ -303,6 +303,9 @@ function renderAutoDevicesUI() {
 
   for (let i = 0; i < numDevices; i++) {
     const dev = autoDevicesState[i];
+    const selectGrease = document.getElementById("inputGrease") || document.getElementById("selectGrease");
+    const greaseName = selectGrease ? selectGrease.value : "Interflon Grease MP2/3";
+    const pInfo = getAutomationPriceInfo(deviceKey, dev.cap, greaseName, dev.points, dev.customPackPrice || (i === 0 ? window.customSinglePointPackPrice : 0));
     if (isSinglePoint) {
       dev.points = 1;
       autoDevicesState[i].points = 1;
@@ -395,7 +398,7 @@ function renderAutoDevicesUI() {
           ` : ''}
           ${!pInfo.isPriceFound && !pInfo.isCustomPrice ? `
           <div id="priceWarningNotice_${devId}" style="background-color: #fffbebf7; border: 1.5px solid #f59e0b; border-radius: var(--border-radius-sm); padding: 10px 12px; margin-bottom: 4px; font-size: 11.5px; color: #92400e; line-height: 1.4;">
-            ⚠️ <strong>Prijs niet in standaard prijslijst:</strong> Het gekozen vet (<em>${greaseName}</em>) is niet standaard opgenomen in de prijslijst van ${baseDeviceName}.<br>👉 <strong>Vul hieronder manueel de patroonprijs in</strong> om de berekening uit te voeren.
+            ⚠️ <strong>Prijs niet in standaard prijslijst:</strong> Het gekozen vet (<em>${greaseName}</em>) is niet standaard opgenomen in de prijslijst van ${devName}.<br>👉 <strong>Vul hieronder manueel de patroonprijs in</strong> om de berekening uit te voeren.
           </div>
           ` : ''}
           <div>
