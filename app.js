@@ -3168,6 +3168,8 @@ function updateCalculatorFields() {
 // ==========================================================================
 
 function calculateGrease() {
+  if (typeof renderAutomationDeviceCards === "function") renderAutomationDeviceCards();
+  if (typeof calculateAutomationLubrication === "function") calculateAutomationLubrication();
   setTimeout(() => { if (typeof updateRoiAutomationPage === "function") updateRoiAutomationPage(); }, 0);
   updateThickenerCompatibility();
   const tempInput = document.getElementById("inputTemperature");
