@@ -5886,7 +5886,7 @@ function updateAutomationPage() {
     if (toggleWrapper) toggleWrapper.style.display = "block";
   } else if (device === "pulsarlube_plc") {
     if (titleEl) titleEl.textContent = "Pulsarlube PLC";
-    if (imgEl) imgEl.src = "pulsarlube-plc.png?v=20260823_1515";
+    if (imgEl) imgEl.src = "pulsarlube-plc.png?v=20260823_1525";
     if (descEl) {
       descEl.innerHTML = "De <strong>Pulsarlube PLC</strong> is een geavanceerde, extern gestuurde elektro-mechanische smeerunit die rechtstreeks wordt aangestuurd door de <strong>PLC-besturing van de machine</strong>. Het toestel doseert uiterst nauwkeurig enkel tijdens actieve machinetijd.";
     }
@@ -8626,7 +8626,7 @@ function updateRoiAutomationPage() {
     imgSrc = "pulsarlube-msp.png";
   } else if (deviceKey === "pulsarlube_plc") {
     baseDeviceName = "Pulsarlube PLC";
-    imgSrc = "pulsarlube-plc.png?v=20260823_1515";
+    imgSrc = "pulsarlube-plc.png?v=20260823_1525";
   }
 
   const fullDeviceTitle = numDevices === 1 ? baseDeviceName : `${numDevices}x ${baseDeviceName}`;
