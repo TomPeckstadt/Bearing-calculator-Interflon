@@ -8680,10 +8680,14 @@ function updateRoiAutomationPage() {
   let manualMatCost = activeLifetime > 0 ? ((12 / activeLifetime) * shared_parts_cost * numBearingsForTco) : 0;
   let manualDowntimeCost = activeDtH * activeDtFreq * shared_downtime_rate * numBearingsForTco;
 
-  // Auto lubricator Card 2 costs (uses Interflon 36-month lifetime p2):
-  let autoRepairCost = p2_lifetime > 0 ? ((12 / p2_lifetime) * (shared_repair_h + shared_prep_h) * numBearingsForTco * hourlyRate) : 0;
-  let autoMatCost = p2_lifetime > 0 ? ((12 / p2_lifetime) * shared_parts_cost * numBearingsForTco) : 0;
-  let autoDowntimeCost = p2_downtime_h * p2_downtime_freq * shared_downtime_rate * numBearingsForTco;
+  // Auto lubricator Card 2 costs (uses Interflon 36-month lifetime p2 + lifetime extension factor):
+  const lifetimeFactorEl = document.getElementById("roiLifetimeFactorSelect");
+  const lifetimeFactorPct = lifetimeFactorEl ? (parseFloat(lifetimeFactorEl.value) || 0) : 0;
+  const lifetimeMult = 1 + (lifetimeFactorPct / 100);
+
+  let autoRepairCost = (p2_lifetime > 0 ? ((12 / p2_lifetime) * (shared_repair_h + shared_prep_h) * numBearingsForTco * hourlyRate) : 0) / lifetimeMult;
+  let autoMatCost = (p2_lifetime > 0 ? ((12 / p2_lifetime) * shared_parts_cost * numBearingsForTco) : 0) / lifetimeMult;
+  let autoDowntimeCost = (p2_downtime_h * p2_downtime_freq * shared_downtime_rate * numBearingsForTco) / lifetimeMult;
 
   if (manRepairRow) manRepairRow.style.display = "flex";
   if (manMatRow) manMatRow.style.display = "flex";
@@ -9159,9 +9163,13 @@ function addRoiPdfPage(doc, dateString, watermarkDataUrl, aspectRatio, autoDataU
   let manualMatCost = activeLifetime > 0 ? ((12 / activeLifetime) * shared_parts_cost * numBearingsForTco) : 0;
   let manualDowntimeCost = activeDtH * activeDtFreq * shared_downtime_rate * numBearingsForTco;
 
-  let autoRepairCost = p2_lifetime > 0 ? ((12 / p2_lifetime) * (shared_repair_h + shared_prep_h) * numBearingsForTco * hourlyRate) : 0;
-  let autoMatCost = p2_lifetime > 0 ? ((12 / p2_lifetime) * shared_parts_cost * numBearingsForTco) : 0;
-  let autoDowntimeCost = p2_downtime_h * p2_downtime_freq * shared_downtime_rate * numBearingsForTco;
+  const lifetimeFactorEl = document.getElementById("roiLifetimeFactorSelect");
+  const lifetimeFactorPct = lifetimeFactorEl ? (parseFloat(lifetimeFactorEl.value) || 0) : 0;
+  const lifetimeMult = 1 + (lifetimeFactorPct / 100);
+
+  let autoRepairCost = (p2_lifetime > 0 ? ((12 / p2_lifetime) * (shared_repair_h + shared_prep_h) * numBearingsForTco * hourlyRate) : 0) / lifetimeMult;
+  let autoMatCost = (p2_lifetime > 0 ? ((12 / p2_lifetime) * shared_parts_cost * numBearingsForTco) : 0) / lifetimeMult;
+  let autoDowntimeCost = (p2_downtime_h * p2_downtime_freq * shared_downtime_rate * numBearingsForTco) / lifetimeMult;
 
   if (isHuidigMode) {
     const currentPriceInput = document.getElementById("omProdPrice1") || document.getElementById("chainOmProdPrice1") || document.getElementById("tcoPriceCurrentInput");
