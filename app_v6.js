@@ -9699,13 +9699,13 @@ function getSurveyUrl() {
   const clientEmail = localStorage.getItem("client_email") || "";
 
   let params = new URLSearchParams();
+  params.set("v", "20260824_1025");
   if (opEmail) params.set("contact", opEmail);
   if (clientCompany) params.set("company", clientCompany);
   if (clientContact) params.set("client_contact", clientContact);
   if (clientEmail) params.set("client_email", clientEmail);
 
-  const queryString = params.toString();
-  return "https://www.interflonapps.com/vragenlijst.html" + (queryString ? "?" + queryString : "");
+  return "https://www.interflonapps.com/vragenlijst.html?" + params.toString();
 }
 
 function openSurveyLink(e) {
