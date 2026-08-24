@@ -3197,7 +3197,10 @@ function handleLogout() {
         vanOverlay.style.display = "none";
         sessionStorage.removeItem("bearing_calc_logged_in");
         const loginOverlay = document.getElementById("loginOverlay");
-        if (loginOverlay) loginOverlay.classList.remove("hidden");
+        if (loginOverlay) {
+          loginOverlay.classList.remove("hidden");
+          loginOverlay.style.display = "flex";
+        }
         switchPage('search');
       }, 100);
     }
@@ -10372,7 +10375,7 @@ function getSurveyUrl() {
   const clientEmail = localStorage.getItem("client_email") || "";
 
   let params = new URLSearchParams();
-  params.set("v", "20260824_1723");
+  params.set("v", "20260824_1727");
   if (typeof currentLang !== "undefined" && currentLang) params.set("lang", currentLang);
   if (opEmail) params.set("contact", opEmail);
   if (clientCompany) params.set("company", clientCompany);
