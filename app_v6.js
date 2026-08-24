@@ -9689,3 +9689,26 @@ function onSinglePointNumBearingsChange(val) {
     updateRoiAutomationPage();
   }
 }
+
+
+function copySurveyLink() {
+  let email = "";
+  if (typeof operatorDetails !== 'undefined' && operatorDetails && operatorDetails.email) {
+    email = operatorDetails.email;
+  }
+  
+  let baseUrl = "https://www.interflonapps.com/vragenlijst.html";
+  if (email) {
+    baseUrl += "?contact=" + encodeURIComponent(email);
+  }
+
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(baseUrl).then(() => {
+      alert("📋 Unieke vragenlijst-link gekopieerd naar uw klembord!\n\nLink: " + baseUrl + "\n\nPlak deze link (Ctrl + V) in een e-mail naar uw klant.");
+    }).catch(err => {
+      prompt("Kopieer onderstaande link om naar uw klant te sturen:", baseUrl);
+    });
+  } else {
+    prompt("Kopieer onderstaande link om naar uw klant te sturen:", baseUrl);
+  }
+}
