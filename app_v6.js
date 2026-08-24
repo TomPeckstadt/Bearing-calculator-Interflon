@@ -319,9 +319,10 @@ function renderAutoDevicesUI() {
       autoDevicesState[i].points = 1;
     }
     const devId = dev.id;
-    const devName = isSinglePoint ? "Interflon Single Point Lubricator" : (numDevices === 1 ? "Pulsarlube Smeertoestel" : ("Pulsarlube " + devId));
-    const headerTitle = (isSinglePoint || numDevices === 1) ? "Toestel Parameters & Smeerinstelling" : (devName + " - Smeerinstelling & Volumecalculatie");
-    const pointsLabel = isSinglePoint ? "Aantal te smeren smeerpunten / lagers:" : (`Aantal smeerpunten voor ${devName}:`);
+    const lang = currentLang || "nl";
+    const devName = isSinglePoint ? "Interflon Single Point Lubricator" : (numDevices === 1 ? (lang === "fr" ? "Appareil Pulsarlube" : (lang === "en" ? "Pulsarlube Device" : "Pulsarlube Smeertoestel")) : ("Pulsarlube " + devId));
+    const headerTitle = (isSinglePoint || numDevices === 1) ? (lang === "fr" ? "Paramètres de l'Appareil & Réglage de Lubrification" : (lang === "en" ? "Device Parameters & Lubrication Setting" : "Toestel Parameters & Smeerinstelling")) : (devName + (lang === "fr" ? " - Réglage & Volume" : (lang === "en" ? " - Setting & Volume" : " - Smeerinstelling & Volumecalculatie")));
+    const pointsLabel = isSinglePoint ? (lang === "fr" ? "Nombre de points de graissage / roulements :" : (lang === "en" ? "Number of lubrication points / bearings:" : "Aantal te smeren smeerpunten / lagers:")) : (lang === "fr" ? `Nombre de points de graissage pour ${devName} :` : (lang === "en" ? `Nombre de points de graissage pour ${devName}:` : `Aantal smeerpunten voor ${devName}:`));
 
     let optionsHtml = "";
     const maxP = isSinglePoint ? 30 : 8;
@@ -1028,6 +1029,59 @@ if (typeof window !== "undefined" && window.location && window.location.href.end
 
 const TRANSLATIONS = {
   nl: {
+    autoNumDevicesLabel: "Aantal Pulsarlube toestellen dat u wil plaatsen:",
+    autoNumDevicesHint: "Verdeel de te smeren lagers over 1 of meerdere toestellen (bijvoorbeeld 1 toestel met 4 lagers en 1 toestel met 2 lagers).",
+    autoRecHeader: "GEADVISEERDE INSTELLING OP TOESTEL",
+    btnApplyRec: "Neem advies over",
+    autoCalcHeaderTitle: "Smeerinterval & Dosering voor 1 lager",
+    labelNumBearings: "Aantal te smeren lagers",
+    autoDialSetting: "Instelstand draaiknop toestel:",
+    autoTheoCalculated: "• Theoretisch berekend:",
+    autoVolHeader1: "SMEERVOLUME (VOOR 1 LAGER)",
+    autoDailyVol1: "Berekend Dagelijks Smeervolume (voor 1 lager):",
+    autoMonthlyVol1: "Berekend Maandelijks Smeervolume (voor 1 lager):",
+    autoYearlyVol1: "Berekend Jaarlijks Smeervolume (voor 1 lager):",
+    descSinglePoint: "De <strong>Interflon Single Point Lubricator</strong> zorgt voor een continue, geautomatiseerde smering van uw lagers. Dit voorkomt onder- en oversmering en verlengt de levensduur van uw roterende apparatuur significant.",
+    descPulsarlubeM2: "De <strong>Pulsarlube M2</strong> is een elektro-mechanische automatische smeerunit die <strong>continu 24u/24u en 7d/7d doorsmeert</strong>, gestuurd door een interne micro-processor en pomp. Dit garandeert een uiterst nauwkeurige en constante vetdosering.",
+    descPulsarlubeMsp: "De <strong>Pulsarlube MSP</strong> is een extern gevoede, elektro-mechanische automatische smeerunit. Het toestel werkt synchroon met de machine en doseert enkel smeervet gedurende de actieve bedrijfsuren van de installatie.",
+    descPulsarlubePlc: "De <strong>Pulsarlube PLC</strong> is een geavanceerde, extern gestuurde elektro-mechanische smeerunit die rechtstreeks wordt aangestuurd door de <strong>PLC-besturing van de machine</strong>. Het toestel doseert uiterst nauwkeurig enkel tijdens actieve machinetijd.",
+    roiTitle: "ROI Automatisering",
+    roiSyncLabel: "Synchroon met Automatisering",
+    roiCalculatedGreaseCons: "Berekend Vetverbruik",
+    roiPerYear: "jaar",
+    roiLifetimeExtensionLabel: "Levensduur verlenging:",
+    roiLifetimeInfoText: "De overstap van manuele naar automatische smering verlengt de levensduur van lagers in de praktijk doorgaans met 50% tot 300% (een factor 1,5 tot 4). In zware, vervuilde of continu draaiende toepassingen kan de levensduur zelfs met een factor 4 tot 8 toenemen.",
+    roiManualCardTitle: "Manuele Smering",
+    roiManualWithInterflonSubtext: "Met Interflon product (op jaarbasis)",
+    roiManualWithCurrentSubtext: "Met huidig product (op jaarbasis)",
+    roiOptionManualInterflon: "Manuele smering met Interflon product",
+    roiOptionManualCurrent: "Manuele smering met huidig product",
+    roiLabelYearlyCons: "Jaarlijks vetverbruik:",
+    roiLabelPricePerLiter: "Prijs vet per liter:",
+    roiLabelYearlyGreaseCost: "Jaarlijkse vetkost:",
+    roiLabelTotalBeurten: "Totaal lagersmeerbeurten/jaar:",
+    roiLabelTimePerBeurt: "Tijd per smeerbeurt (minuten):",
+    roiLabelHourlyRate: "Uurloon technieker:",
+    roiLabelYearlyLaborCost: "Jaarlijkse arbeidskost:",
+    roiLabelRepairTime: "Tijdsbesteding revisie (jaar):",
+    roiLabelPartsCost: "Materiaalkost onderdelen (jaar):",
+    roiLabelDowntimeCost: "Downtime kost (jaar):",
+    roiTotalManualTitle: "Totale Jaarkost Manueel",
+    roiAutoCardTitle: "Automatische Smering",
+    roiAutoCardSubtext: "Met gekozen smeerunit (op jaarbasis)",
+    roiLabelChosenDevice: "Gekozen smeerunit:",
+    roiLabelCartridgesCons: "Verbruik patronen/jaar:",
+    roiLabelEmptyDevicePrice: "Prijs leeg toestel:",
+    roiIncludedText: "Inbegrepen",
+    roiLabelPricePerPack: "Prijs per patroon / servicepack:",
+    roiLabelYearlyPacksCost: "Jaarlijkse kosten patronen:",
+    roiLabelInstallKit: "Pulsarlube installatiekit:",
+    roiLabelDividerBlocks: "Verdeelblok(ken):",
+    roiLabelCartridgeChangeLabor: "Arbeidskost patroonwissels:",
+    roiYear1Total: "Jaar 1 Totaal",
+    roiYear2PlusRecurring: "Jaar 2+ Terugkerend",
+    roiFinancialAnalysisSubtitle: "Directe vergelijking manuele arbeid & vet vs. automatische smeermodule",
+
     "devicePulsarlubePlc": "Pulsarlube PLC (Centrale Sturing)",
     "unitBedrijfsuren": "bedrijfsuren / jaar",
     "techBrandLabel": "Merk van de machine",
@@ -2590,6 +2644,11 @@ function changeLanguage(lang) {
 
   // Re-run grease calculations to update dynamic variables and output formatting
   calculateGrease();
+
+  // Update Automation & ROI Automation Pages for active language
+  if (typeof updateAutomationPage === "function") updateAutomationPage();
+  if (typeof renderAutoDevicesUI === "function") renderAutoDevicesUI();
+  if (typeof updateRoiAutomationPage === "function") updateRoiAutomationPage();
 
   // Re-run TCO calculations to apply locale formatting
   if (typeof updateTcoFrequencies === "function") {
@@ -6546,30 +6605,34 @@ function updateAutomationPage() {
   if (device === "pulsarlube_m2") {
     if (titleEl) titleEl.textContent = "Pulsarlube M2";
     if (imgEl) imgEl.src = "pulsarlube-m2.png";
+    const langData = (typeof TRANSLATIONS !== "undefined" && TRANSLATIONS[currentLang || "nl"]) || {};
     if (descEl) {
-      descEl.innerHTML = "De <strong>Pulsarlube M2</strong> is een elektro-mechanische automatische smeerunit die <strong>continu 24u/24u en 7d/7d doorsmeert</strong>, gestuurd door een interne micro-processor en pomp. Dit garandeert een uiterst nauwkeurige en constante vetdosering.";
+      descEl.innerHTML = langData.descPulsarlubeM2 || "De <strong>Pulsarlube M2</strong> is een elektro-mechanische automatische smeerunit die <strong>continu 24u/24u en 7d/7d doorsmeert</strong>, gestuurd door een interne micro-processor en pomp. Dit garandeert een uiterst nauwkeurige en constante vetdosering.";
     }
     if (toggleWrapper) toggleWrapper.style.display = "block";
   } else if (device === "pulsarlube_msp") {
     if (titleEl) titleEl.textContent = "Pulsarlube MSP";
     if (imgEl) imgEl.src = "pulsarlube-msp.png";
+    const langData = (typeof TRANSLATIONS !== "undefined" && TRANSLATIONS[currentLang || "nl"]) || {};
     if (descEl) {
-      descEl.innerHTML = "De <strong>Pulsarlube MSP</strong> is een extern gevoede, elektro-mechanische automatische smeerunit. Het toestel werkt synchroon met de machine en doseert enkel smeervet gedurende de actieve bedrijfsuren van de installatie.";
+      descEl.innerHTML = langData.descPulsarlubeMsp || "De <strong>Pulsarlube MSP</strong> is een extern gevoede, elektro-mechanische automatische smeerunit. Het toestel werkt synchroon met de machine en doseert enkel smeervet gedurende de actieve bedrijfsuren van de installatie.";
     }
     if (toggleWrapper) toggleWrapper.style.display = "block";
   } else if (device === "pulsarlube_plc") {
     if (titleEl) titleEl.textContent = "Pulsarlube PLC";
     if (imgEl) imgEl.src = "pulsarlube-plc.png?v=20260823_1525";
+    const langData = (typeof TRANSLATIONS !== "undefined" && TRANSLATIONS[currentLang || "nl"]) || {};
     if (descEl) {
-      descEl.innerHTML = "De <strong>Pulsarlube PLC</strong> is een geavanceerde, extern gestuurde elektro-mechanische smeerunit die rechtstreeks wordt aangestuurd door de <strong>PLC-besturing van de machine</strong>. Het toestel doseert uiterst nauwkeurig enkel tijdens actieve machinetijd.";
+      descEl.innerHTML = langData.descPulsarlubePlc || "De <strong>Pulsarlube PLC</strong> is een geavanceerde, extern gestuurde elektro-mechanische smeerunit die rechtstreeks wordt aangestuurd door de <strong>PLC-besturing van de machine</strong>. Het toestel doseert uiterst nauwkeurig enkel tijdens actieve machinetijd.";
     }
     if (toggleWrapper) toggleWrapper.style.display = "block";
   } else {
     // Default: Single Point Lubricator
     if (titleEl) titleEl.textContent = "Interflon Single Point Lubricator";
     if (imgEl) imgEl.src = "interflon-single-point-lubricator.png";
+    const langData = (typeof TRANSLATIONS !== "undefined" && TRANSLATIONS[currentLang || "nl"]) || {};
     if (descEl) {
-      descEl.innerHTML = "De <strong>Interflon Single Point Lubricator</strong> zorgt voor een continue, geautomatiseerde smering van uw lagers. Dit voorkomt onder- en oversmering en verlengt de levensduur van uw roterende apparatuur significant.";
+      descEl.innerHTML = langData.descSinglePoint || "De <strong>Interflon Single Point Lubricator</strong> zorgt voor een continue, geautomatiseerde smering van uw lagers. Dit voorkomt onder- en oversmering en verlengt de levensduur van uw roterende apparatuur significant.";
     }
     if (toggleWrapper) toggleWrapper.style.display = "block";
   }
@@ -9341,7 +9404,10 @@ function updateRoiAutomationPage() {
 
   if (roiSubtextEl) {
     const devListStr = (numDevices === 1 || deviceKey === "single_point") ? `${totalPointsAllDevices} ${totalPointsAllDevices === 1 ? 'lager' : 'lagers'}` : devBreakdownText.join(" &bull; ");
-    roiSubtextEl.innerHTML = `Aantal toestellen: <strong>${numDevices}</strong> (${devListStr}) &bull; Geselecteerd vet: <strong>${greaseName}</strong>`;
+    const lang = currentLang || "nl";
+    const numDevLabel = lang === "fr" ? "Nombre d'appareils :" : (lang === "en" ? "Number of devices:" : "Aantal toestellen:");
+    const selGreaseLabel = lang === "fr" ? "Graisse sélectionnée :" : (lang === "en" ? "Selected grease:" : "Geselecteerd vet:");
+    roiSubtextEl.innerHTML = `${numDevLabel} <strong>${numDevices}</strong> (${devListStr}) &bull; ${selGreaseLabel} <strong>${greaseName}</strong>`;
   }
 
   // 2. Annual Volume calculation for ALL points combined
@@ -10290,7 +10356,7 @@ function getSurveyUrl() {
   const clientEmail = localStorage.getItem("client_email") || "";
 
   let params = new URLSearchParams();
-  params.set("v", "20260824_1619");
+  params.set("v", "20260824_1650");
   if (typeof currentLang !== "undefined" && currentLang) params.set("lang", currentLang);
   if (opEmail) params.set("contact", opEmail);
   if (clientCompany) params.set("company", clientCompany);
