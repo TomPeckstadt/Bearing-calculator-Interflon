@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Interflon Smeeranalyse - Vragenlijst</title>
   <meta name="description" content="Vul de vragenlijst in voor een nauwkeurige Interflon smeeranalyse en TCO-kostenberekening van uw machines.">
-  <link rel="stylesheet" href="style.css?v=20260824_0858">
+  <link rel="stylesheet" href="style.css?v=20260824_0908">
   <style>
     body {
       background: var(--bg-body, #f8fafc);
@@ -129,13 +129,19 @@
       align-items: center;
       justify-content: center;
     }
+    .btn-group {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-top: 24px;
+    }
     .submit-btn {
       width: 100%;
       background: linear-gradient(135deg, #E30613 0%, #b9040f 100%);
       color: white;
       font-size: 16px;
       font-weight: 700;
-      padding: 14px;
+      padding: 15px;
       border: none;
       border-radius: 10px;
       cursor: pointer;
@@ -146,6 +152,36 @@
       transform: translateY(-2px);
       box-shadow: 0 6px 16px rgba(227, 6, 19, 0.4);
     }
+    .secondary-btn {
+      width: 100%;
+      background: #0f172a;
+      color: white;
+      font-size: 14.5px;
+      font-weight: 600;
+      padding: 13px;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .secondary-btn:hover {
+      background: #1e293b;
+    }
+    .alert-success {
+      background: #f0fdf4;
+      border: 1px solid #bbf7d0;
+      color: #166534;
+      padding: 16px 20px;
+      border-radius: 10px;
+      margin-bottom: 24px;
+      font-size: 14.5px;
+      line-height: 1.5;
+      display: none;
+    }
   </style>
 </head>
 <body>
@@ -153,15 +189,26 @@
   <div class="survey-container">
     <!-- Header with Interflon Logo & Intro Text -->
     <div class="survey-header">
-      <img src="interflon-logo-clean.png?v=20260824_0858" alt="Interflon Logo" class="survey-logo">
+      <img src="interflon-logo-clean.png?v=20260824_0908" alt="Interflon Logo" class="survey-logo">
       <h1 class="survey-title">Smeeranalyse & TCO Vragenlijst</h1>
       <p class="survey-intro">
         Beste klant, om een nauwkeurige smeeranalyse en rendementsberekening (TCO) voor uw machinepark uit te voeren, vragen wij u vriendelijk onderstaande vragen in te vullen. Met deze gegevens berekenen onze technische specialisten de optimale smeerfrequentie, kostenbesparing en levensduurverlenging.
       </p>
     </div>
 
-    <!-- Survey Form -->
-    <form id="publicSurveyForm" class="survey-body" onsubmit="handleSurveySubmit(event)">
+    <!-- Success Message Banner -->
+    <div id="successBanner" class="alert-success" style="margin: 20px 28px 0 28px;">
+      ✅ <strong>Vragenlijst succesvol verzonden!</strong> Onze Interflon specialist ontvangt uw antwoorden en neemt binnenkort contact met u op.
+    </div>
+
+    <!-- Survey Form (submits directly via FormSubmit API to specified email address) -->
+    <form id="publicSurveyForm" action="https://formsubmit.co/info@interflon.com" method="POST" class="survey-body" onsubmit="prepareFormSubmission(event)">
+
+      <!-- Hidden FormSubmit Options -->
+      <input type="hidden" name="_subject" id="hiddenSubject" value="Nieuwe Interflon Smeeranalyse Vragenlijst">
+      <input type="hidden" name="_template" value="table">
+      <input type="hidden" name="_captcha" value="false">
+      <input type="hidden" name="_replyto" id="hiddenReplyTo" value="">
 
       <!-- Section 1: Machinedetails -->
       <div class="survey-section">
@@ -169,53 +216,53 @@
         <div class="grid-2">
           <div class="form-group">
             <label for="q1">1. Naam van de machine *</label>
-            <input type="text" id="q1" class="form-control" placeholder="Bijv. Vullijn 3 / Hoofdtransportband" required>
+            <input type="text" name="1. Machine Naam" id="q1" class="form-control" placeholder="Bijv. Vullijn 3 / Hoofdtransportband" required>
           </div>
           <div class="form-group">
             <label for="q2">2. Merk van de machine</label>
-            <input type="text" id="q2" class="form-control" placeholder="Bijv. Krones, Bosch, SKF">
+            <input type="text" name="2. Machine Merk" id="q2" class="form-control" placeholder="Bijv. Krones, Bosch, SKF">
           </div>
         </div>
 
         <div class="grid-2">
           <div class="form-group">
             <label for="q3">3. Toepassing van de machine</label>
-            <input type="text" id="q3" class="form-control" placeholder="Bijv. Transportband, Menger, Ventilator, Pomp">
+            <input type="text" name="3. Toepassing" id="q3" class="form-control" placeholder="Bijv. Transportband, Menger, Ventilator, Pomp">
           </div>
           <div class="form-group">
             <label for="q5">4. (SKF) Lagernummer</label>
-            <input type="text" id="q5" class="form-control" placeholder="Bijv. 6208 2RS, 22210 EK">
+            <input type="text" name="4. Lagernummer" id="q5" class="form-control" placeholder="Bijv. 6208 2RS, 22210 EK">
           </div>
         </div>
 
         <div class="grid-2">
           <div class="form-group">
             <label for="q6">5. Aantal identieke lagers voor calculatie</label>
-            <input type="number" id="q6" class="form-control" min="1" value="1">
+            <input type="number" name="5. Aantal Lagers" id="q6" class="form-control" min="1" value="1">
           </div>
           <div class="form-group">
             <label for="q10">6. Aantal identieke machines in het park</label>
-            <input type="number" id="q10" class="form-control" min="1" value="1">
+            <input type="number" name="6. Aantal Machines" id="q10" class="form-control" min="1" value="1">
           </div>
         </div>
 
         <div class="grid-2">
           <div class="form-group">
             <label for="q8">7. Toerental van het lager (RPM)</label>
-            <input type="number" id="q8" class="form-control" placeholder="Bijv. 1450 RPM">
+            <input type="number" name="7. Toerental RPM" id="q8" class="form-control" placeholder="Bijv. 1450 RPM">
           </div>
           <div class="form-group">
             <label for="q23">8. Positie van de lageras</label>
-            <select id="q23" class="form-control">
-              <option value="horizontaal">Horizontaal</option>
-              <option value="verticaal">Verticaal</option>
+            <select name="8. As Positie" id="q23" class="form-control">
+              <option value="Horizontaal">Horizontaal</option>
+              <option value="Verticaal">Verticaal</option>
             </select>
           </div>
         </div>
 
         <div class="form-group">
           <label for="q7">9. Betreft het meerdere verschillende lagers? (Zo ja, vermeld de respectievelijke lagernummers en toerentallen)</label>
-          <textarea id="q7" class="form-control" rows="2" placeholder="Bijv. Lager A: 6208 (1500 RPM), Lager B: 6310 (1000 RPM)"></textarea>
+          <textarea name="9. Meerdere Verschillende Lagers" id="q7" class="form-control" rows="2" placeholder="Bijv. Lager A: 6208 (1500 RPM), Lager B: 6310 (1000 RPM)"></textarea>
         </div>
       </div>
 
@@ -225,33 +272,33 @@
         <div class="grid-2">
           <div class="form-group">
             <label for="q11">10. Huidig smeermiddel (Merk & Type)</label>
-            <input type="text" id="q11" class="form-control" placeholder="Bijv. Shell Gadus S2 V220, Mobilux EP2">
+            <input type="text" name="10. Huidig Smeermiddel" id="q11" class="form-control" placeholder="Bijv. Shell Gadus S2 V220, Mobilux EP2">
           </div>
           <div class="form-group">
             <label for="q12">11. Prijs huidig smeermiddel (€ per Liter / kg)</label>
-            <input type="number" step="0.01" id="q12" class="form-control" placeholder="Bijv. 18.50">
+            <input type="number" step="0.01" name="11. Prijs Smeermiddel Liter" id="q12" class="form-control" placeholder="Bijv. 18.50">
           </div>
         </div>
 
         <div class="grid-2">
           <div class="form-group">
             <label for="q4">12. Huidige smeerfrequentie / interval</label>
-            <input type="text" id="q4" class="form-control" placeholder="Bijv. Wekelijks, Maandelijks, Elke 500 uur">
+            <input type="text" name="12. Huidige Smeerinterval" id="q4" class="form-control" placeholder="Bijv. Wekelijks, Maandelijks, Elke 500 uur">
           </div>
           <div class="form-group">
             <label for="q29">13. Huidige gemiddelde levensduur lager (maanden)</label>
-            <input type="number" id="q29" class="form-control" placeholder="Bijv. 12 maanden">
+            <input type="number" name="13. Gemiddelde Levensduur Lager (Maanden)" id="q29" class="form-control" placeholder="Bijv. 12 maanden">
           </div>
         </div>
 
         <div class="grid-2">
           <div class="form-group">
             <label for="q13">14. Operationele uren per dag</label>
-            <input type="number" id="q13" class="form-control" min="1" max="24" value="16">
+            <input type="number" name="14. Uren per Dag" id="q13" class="form-control" min="1" max="24" value="16">
           </div>
           <div class="form-group">
             <label for="q14">15. Operationele dagen per week</label>
-            <input type="number" id="q14" class="form-control" min="1" max="7" value="5">
+            <input type="number" name="15. Dagen per Week" id="q14" class="form-control" min="1" max="7" value="5">
           </div>
         </div>
       </div>
@@ -262,60 +309,60 @@
         <div class="grid-2">
           <div class="form-group">
             <label for="q15">16. Omgevingstemperatuur (°C)</label>
-            <input type="number" id="q15" class="form-control" placeholder="Bijv. 20 °C">
+            <input type="number" name="16. Omgevingstemperatuur C" id="q15" class="form-control" placeholder="Bijv. 20 °C">
           </div>
           <div class="form-group">
             <label for="q16">17. Huidige (maximum) lagertemperatuur (°C)</label>
-            <input type="number" id="q16" class="form-control" placeholder="Bijv. 65 °C">
+            <input type="number" name="17. Lagertemperatuur C" id="q16" class="form-control" placeholder="Bijv. 65 °C">
           </div>
         </div>
 
         <p style="font-size: 13.5px; font-weight: 600; color: #475569; margin: 16px 0 12px 0;">Beoordeel onderstaande omgevingsinvloeden (schaal 1 = Geen invloed, 10 = Zeer zware invloed):</p>
 
         <div class="form-group">
-          <label>18. Water, vocht of stoom</label>
+          <label>18. Water, vocht of stoom (1-10)</label>
           <div class="range-group">
-            <input type="range" id="q17" min="1" max="10" value="3" oninput="document.getElementById('b17').innerText=this.value">
+            <input type="range" name="18. Invloed Water Vocht Stoom (1-10)" id="q17" min="1" max="10" value="3" oninput="document.getElementById('b17').innerText=this.value">
             <div id="b17" class="range-badge">3</div>
           </div>
         </div>
 
         <div class="form-group">
-          <label>19. Stof of zand</label>
+          <label>19. Stof of zand (1-10)</label>
           <div class="range-group">
-            <input type="range" id="q18" min="1" max="10" value="4" oninput="document.getElementById('b18').innerText=this.value">
+            <input type="range" name="19. Invloed Stof Zand (1-10)" id="q18" min="1" max="10" value="4" oninput="document.getElementById('b18').innerText=this.value">
             <div id="b18" class="range-badge">4</div>
           </div>
         </div>
 
         <div class="form-group">
-          <label>20. Abrasieve stoffen / vervuiling</label>
+          <label>20. Abrasieve stoffen / vervuiling (1-10)</label>
           <div class="range-group">
-            <input type="range" id="q19" min="1" max="10" value="2" oninput="document.getElementById('b19').innerText=this.value">
+            <input type="range" name="20. Invloed Abrasieve Stoffen (1-10)" id="q19" min="1" max="10" value="2" oninput="document.getElementById('b19').innerText=this.value">
             <div id="b19" class="range-badge">2</div>
           </div>
         </div>
 
         <div class="form-group">
-          <label>21. Schokbelastingen</label>
+          <label>21. Schokbelastingen (1-10)</label>
           <div class="range-group">
-            <input type="range" id="q20" min="1" max="10" value="3" oninput="document.getElementById('b20').innerText=this.value">
+            <input type="range" name="21. Invloed Schokken (1-10)" id="q20" min="1" max="10" value="3" oninput="document.getElementById('b20').innerText=this.value">
             <div id="b20" class="range-badge">3</div>
           </div>
         </div>
 
         <div class="form-group">
-          <label>22. Vibraties & trillingen</label>
+          <label>22. Vibraties & trillingen (1-10)</label>
           <div class="range-group">
-            <input type="range" id="q21" min="1" max="10" value="3" oninput="document.getElementById('b21').innerText=this.value">
+            <input type="range" name="22. Invloed Vibraties (1-10)" id="q21" min="1" max="10" value="3" oninput="document.getElementById('b21').innerText=this.value">
             <div id="b21" class="range-badge">3</div>
           </div>
         </div>
 
         <div class="form-group">
-          <label>23. Condensatie</label>
+          <label>23. Condensatie (1-10)</label>
           <div class="range-group">
-            <input type="range" id="q22" min="1" max="10" value="2" oninput="document.getElementById('b22').innerText=this.value">
+            <input type="range" name="23. Invloed Condensatie (1-10)" id="q22" min="1" max="10" value="2" oninput="document.getElementById('b22').innerText=this.value">
             <div id="b22" class="range-badge">2</div>
           </div>
         </div>
@@ -327,85 +374,142 @@
         <div class="grid-2">
           <div class="form-group">
             <label for="q24">24. Tijdsduur per smeerbeurt (minuten)</label>
-            <input type="number" id="q24" class="form-control" placeholder="Bijv. 10 minuten">
+            <input type="number" name="24. Duur Smeerbeurt Minuten" id="q24" class="form-control" placeholder="Bijv. 10 minuten">
           </div>
           <div class="form-group">
-            <label for="q25">25. Uurloon onderhoudstechnicus (€/uur)</label>
-            <input type="number" step="0.01" id="q25" class="form-control" placeholder="Bijv. 65.00">
+            <label for="q25">25. Uurloon onderhoudstechneut (€/uur)</label>
+            <input type="number" step="0.01" name="25. Uurloon Technicus" id="q25" class="form-control" placeholder="Bijv. 65.00">
           </div>
         </div>
 
         <div class="grid-2">
           <div class="form-group">
             <label for="q26">26. Tijdsduur revisie/vervanging lager (uren)</label>
-            <input type="number" step="0.5" id="q26" class="form-control" placeholder="Bijv. 3 uren">
+            <input type="number" step="0.5" name="26. Duur Revisie Lager Uren" id="q26" class="form-control" placeholder="Bijv. 3 uren">
           </div>
           <div class="form-group">
             <label for="q27">27. Voorbereidingstijd revisie (uren)</label>
-            <input type="number" step="0.5" id="q27" class="form-control" placeholder="Bijv. 1 uur">
+            <input type="number" step="0.5" name="27. Voorbereidingstijd Revisie Uren" id="q27" class="form-control" placeholder="Bijv. 1 uur">
           </div>
         </div>
 
         <div class="grid-2">
           <div class="form-group">
             <label for="q28">28. Kostprijs stilstand / downtime (€/uur)</label>
-            <input type="number" step="0.01" id="q28" class="form-control" placeholder="Bijv. 450.00">
+            <input type="number" step="0.01" name="28. Downtime Kosten per Uur" id="q28" class="form-control" placeholder="Bijv. 450.00">
           </div>
           <div class="form-group">
             <label for="q30">29. Prijs lager + wisselstukken (€)</label>
-            <input type="number" step="0.01" id="q30" class="form-control" placeholder="Bijv. 125.00">
+            <input type="number" step="0.01" name="29. Prijs Lager en Wisselstukken" id="q30" class="form-control" placeholder="Bijv. 125.00">
           </div>
         </div>
       </div>
 
       <!-- Section 5: Contact & Verzenden -->
       <div class="survey-section">
-        <h2 class="survey-section-title">📩 5. Uw Contactgegevens & Verzenden</h2>
+        <h2 class="survey-section-title">📩 5. Uw Contactgegevens & Bestemming E-mail</h2>
         <div class="grid-2">
           <div class="form-group">
             <label for="clientCompany">Bedrijfsnaam *</label>
-            <input type="text" id="clientCompany" class="form-control" placeholder="Uw bedrijfsnaam" required>
+            <input type="text" name="Bedrijfsnaam" id="clientCompany" class="form-control" placeholder="Uw bedrijfsnaam" required>
           </div>
           <div class="form-group">
             <label for="clientContact">Naam contactpersoon *</label>
-            <input type="text" id="clientContact" class="form-control" placeholder="Uw naam" required>
+            <input type="text" name="Klant Naam" id="clientContact" class="form-control" placeholder="Uw naam" required>
           </div>
         </div>
         <div class="grid-2">
           <div class="form-group">
             <label for="clientEmail">Uw E-mailadres *</label>
-            <input type="email" id="clientEmail" class="form-control" placeholder="naam@bedrijf.com" required>
+            <input type="email" name="Klant Email" id="clientEmail" class="form-control" placeholder="naam@bedrijf.com" required>
           </div>
           <div class="form-group">
-            <label for="interflonContactEmail">Interflon Contactpersoon E-mail</label>
-            <input type="email" id="interflonContactEmail" class="form-control" placeholder="contactpersoon@interflon.com">
+            <label for="interflonContactEmail">Interflon Contactpersoon E-mail (Bestemming) *</label>
+            <input type="email" id="interflonContactEmail" class="form-control" placeholder="bijv. tom.peckstadt@interflon.com" required>
           </div>
         </div>
       </div>
 
-      <button type="submit" class="submit-btn">Verstuur Vragenlijst naar Interflon Specialisten →</button>
+      <div class="btn-group">
+        <button type="submit" class="submit-btn"> Verstuur Vragenlijst via Mail Service →</button>
+        <button type="button" onclick="sendViaOutlookMailto()" class="secondary-btn">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width: 18px; height: 18px;">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" />
+          </svg>
+          Alternatief: Open en Verstuur via uw E-mailprogramma (Outlook)
+        </button>
+      </div>
     </form>
   </div>
 
   <script>
-    // Pre-fill Interflon contact email if provided in URL parameter ?contact=email@interflon.com
     window.addEventListener('DOMContentLoaded', () => {
       const urlParams = new URLSearchParams(window.location.search);
       const contact = urlParams.get('contact');
       if (contact) {
         document.getElementById('interflonContactEmail').value = contact;
       }
+      if (urlParams.get('submitted') === 'true') {
+        document.getElementById('successBanner').style.display = 'block';
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
     });
 
-    function handleSurveySubmit(e) {
-      e.preventDefault();
-      
+    function prepareFormSubmission(e) {
+      const form = document.getElementById('publicSurveyForm');
+      const targetEmail = document.getElementById('interflonContactEmail').value;
       const clientEmail = document.getElementById('clientEmail').value;
-      const interflonEmail = document.getElementById('interflonContactEmail').value || 'info@interflon.com';
       const company = document.getElementById('clientCompany').value;
       const machine = document.getElementById('q1').value;
 
-      alert('Hartelijk dank! De vragenlijst voor ' + machine + ' (' + company + ') is succesvol verzonden. Onze Interflon specialist neemt zo snel mogelijk contact met u op.');
+      if (!targetEmail) {
+        alert('Vul a.u.b. het e-mailadres in van de Interflon contactpersoon waarnaar het rapport gestuurd moet worden.');
+        e.preventDefault();
+        return;
+      }
+
+      // Update FormSubmit action dynamically to the specified target email address!
+      form.action = 'https://formsubmit.co/' + encodeURIComponent(targetEmail);
+      document.getElementById('hiddenSubject').value = 'Interflon Smeeranalyse Vragenlijst: ' + company + ' - ' + machine;
+      document.getElementById('hiddenReplyTo').value = clientEmail;
+    }
+
+    function sendViaOutlookMailto() {
+      const targetEmail = document.getElementById('interflonContactEmail').value;
+      const clientEmail = document.getElementById('clientEmail').value;
+      const company = document.getElementById('clientCompany').value || 'Onbekend Bedrijf';
+      const machine = document.getElementById('q1').value || 'Onbekende Machine';
+
+      if (!targetEmail) {
+        alert('Vul a.u.b. het e-mailadres in van de Interflon contactpersoon waarnaar het rapport gestuurd moet worden.');
+        return;
+      }
+
+      let bodyText = "INTERFLON SMEERANALYSE VRAGENLIJST\n\n";
+      bodyText += "Bedrijfsnaam: " + company + "\n";
+      bodyText += "Contactpersoon Klant: " + document.getElementById('clientContact').value + " (" + clientEmail + ")\n";
+      bodyText += "Machine: " + machine + "\n";
+      bodyText += "Merk: " + document.getElementById('q2').value + "\n";
+      bodyText += "Toepassing: " + document.getElementById('q3').value + "\n";
+      bodyText += "Lagernummer: " + document.getElementById('q5').value + "\n";
+      bodyText += "Aantal lagers: " + document.getElementById('q6').value + "\n";
+      bodyText += "Aantal machines: " + document.getElementById('q10').value + "\n";
+      bodyText += "RPM: " + document.getElementById('q8').value + "\n\n";
+      bodyText += "Huidig Smeermiddel: " + document.getElementById('q11').value + " (€" + document.getElementById('q12').value + "/L)\n";
+      bodyText += "Interval: " + document.getElementById('q4').value + "\n";
+      bodyText += "Uren/dag: " + document.getElementById('q13').value + ", Dagen/week: " + document.getElementById('q14').value + "\n\n";
+      bodyText += "Omgevingstemp: " + document.getElementById('q15').value + "°C, Lagertemp: " + document.getElementById('q16').value + "°C\n";
+      bodyText += "Vocht: " + document.getElementById('q17').value + "/10, Stof: " + document.getElementById('q18').value + "/10, Abrasie: " + document.getElementById('q19').value + "/10\n";
+      bodyText += "Schokken: " + document.getElementById('q20').value + "/10, Vibratie: " + document.getElementById('q21').value + "/10, Condensatie: " + document.getElementById('q22').value + "/10\n\n";
+      bodyText += "Smeerduur: " + document.getElementById('q24').value + " min, Uurloon: €" + document.getElementById('q25').value + "\n";
+      bodyText += "Revisieduur: " + document.getElementById('q26').value + "u, Voorbereiding: " + document.getElementById('q27').value + "u\n";
+      bodyText += "Downtime kosten: €" + document.getElementById('q28').value + "/uur, Lagerprijs: €" + document.getElementById('q30').value + "\n";
+
+      const mailtoUrl = "mailto:" + encodeURIComponent(targetEmail) + 
+                        "?subject=" + encodeURIComponent("Interflon Smeeranalyse Vragenlijst: " + company + " - " + machine) +
+                        "&body=" + encodeURIComponent(bodyText);
+
+      window.location.href = mailtoUrl;
     }
   </script>
 </body>
