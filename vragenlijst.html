@@ -298,7 +298,7 @@
       <div class="survey-section">
         <h2 class="survey-section-title">🛢️ 2. Huidige Smeersituatie & Bedrijfsuren</h2>
         
-        <!-- Automatic Bearing Selection Bar for Section 2 -->
+        <!-- Bearing Selector Bar for Section 2 -->
         <div style="background: #ffffff; padding: 14px 18px; border-radius: 10px; border: 1.5px solid #cbd5e1; margin-bottom: 18px; display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap;">
           <div>
             <label for="bearingSelectorSection2" style="font-size: 14px; font-weight: 800; color: #0f172a; margin-bottom: 2px; display: block;">
@@ -347,17 +347,33 @@
         </div>
       </div>
 
-      <!-- Section 3: Omgevingscondities & Belastingen WITH RANGE SLIDERS -->
+      <!-- Section 3: Omgevingscondities & Belastingen WITH PER-BEARING DROPDOWN -->
       <div class="survey-section">
         <h2 class="survey-section-title">🌡️ 3. Omgevingscondities & Belastingen</h2>
+        
+        <!-- Bearing Selector Bar for Section 3 -->
+        <div style="background: #ffffff; padding: 14px 18px; border-radius: 10px; border: 1.5px solid #cbd5e1; margin-bottom: 18px; display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap;">
+          <div>
+            <label for="bearingSelectorSection3" style="font-size: 14px; font-weight: 800; color: #0f172a; margin-bottom: 2px; display: block;">
+              📌 Selecteer lager om de omgevingscondities & belastingen in te vullen:
+            </label>
+            <span style="font-size: 12.5px; color: #64748b;">
+              Vul de omgevingsfactoren (punten 12 t/m 19) in per geselecteerd lager.
+            </span>
+          </div>
+          <select id="bearingSelectorSection3" class="form-control" style="width: auto; min-width: 220px; font-weight: 700; border-color: #E30613; color: #E30613; background: #fff5f5;" onchange="switchSection3Bearing(this.value)">
+            <option value="A">Lager A</option>
+          </select>
+        </div>
+
         <div class="grid-2">
           <div class="form-group">
             <label for="q15">12. Omgevingstemperatuur (°C)</label>
-            <input type="number" name="12. Omgevingstemperatuur" id="q15" class="form-control" placeholder="Bijv. 20 °C">
+            <input type="number" id="q15" class="form-control" placeholder="Bijv. 20 °C" oninput="saveCurrentSection3Data()">
           </div>
           <div class="form-group">
             <label for="q16">13. Huidige (maximum) lagertemperatuur (°C)</label>
-            <input type="number" name="13. Lagertemperatuur" id="q16" class="form-control" placeholder="Bijv. 65 °C">
+            <input type="number" id="q16" class="form-control" placeholder="Bijv. 65 °C" oninput="saveCurrentSection3Data()">
           </div>
         </div>
 
@@ -366,7 +382,7 @@
         <div class="form-group">
           <label>14. Water, vocht of stoom</label>
           <div class="range-group">
-            <input type="range" name="14. Water Vocht Stoom (1-10)" id="q17" min="1" max="10" value="3" oninput="document.getElementById('b17').innerText=this.value">
+            <input type="range" id="q17" min="1" max="10" value="3" oninput="document.getElementById('b17').innerText=this.value; saveCurrentSection3Data()">
             <div id="b17" class="range-badge">3</div>
           </div>
         </div>
@@ -374,7 +390,7 @@
         <div class="form-group">
           <label>15. Stof of zand</label>
           <div class="range-group">
-            <input type="range" name="15. Stof of Zand (1-10)" id="q18" min="1" max="10" value="4" oninput="document.getElementById('b18').innerText=this.value">
+            <input type="range" id="q18" min="1" max="10" value="4" oninput="document.getElementById('b18').innerText=this.value; saveCurrentSection3Data()">
             <div id="b18" class="range-badge">4</div>
           </div>
         </div>
@@ -382,7 +398,7 @@
         <div class="form-group">
           <label>16. Abrasieve stoffen / vervuiling</label>
           <div class="range-group">
-            <input type="range" name="16. Abrasief Vervuiling (1-10)" id="q19" min="1" max="10" value="2" oninput="document.getElementById('b19').innerText=this.value">
+            <input type="range" id="q19" min="1" max="10" value="2" oninput="document.getElementById('b19').innerText=this.value; saveCurrentSection3Data()">
             <div id="b19" class="range-badge">2</div>
           </div>
         </div>
@@ -390,7 +406,7 @@
         <div class="form-group">
           <label>17. Schokbelastingen</label>
           <div class="range-group">
-            <input type="range" name="17. Schokbelasting (1-10)" id="q20" min="1" max="10" value="3" oninput="document.getElementById('b20').innerText=this.value">
+            <input type="range" id="q20" min="1" max="10" value="3" oninput="document.getElementById('b20').innerText=this.value; saveCurrentSection3Data()">
             <div id="b20" class="range-badge">3</div>
           </div>
         </div>
@@ -398,7 +414,7 @@
         <div class="form-group">
           <label>18. Vibraties & trillingen</label>
           <div class="range-group">
-            <input type="range" name="18. Vibraties Trillingen (1-10)" id="q21" min="1" max="10" value="3" oninput="document.getElementById('b21').innerText=this.value">
+            <input type="range" id="q21" min="1" max="10" value="3" oninput="document.getElementById('b21').innerText=this.value; saveCurrentSection3Data()">
             <div id="b21" class="range-badge">3</div>
           </div>
         </div>
@@ -406,45 +422,61 @@
         <div class="form-group">
           <label>19. Condensatie</label>
           <div class="range-group">
-            <input type="range" name="19. Condensatie (1-10)" id="q22" min="1" max="10" value="2" oninput="document.getElementById('b22').innerText=this.value">
+            <input type="range" id="q22" min="1" max="10" value="2" oninput="document.getElementById('b22').innerText=this.value; saveCurrentSection3Data()">
             <div id="b22" class="range-badge">2</div>
           </div>
         </div>
       </div>
 
-      <!-- Section 4: Onderhoud & Downtime -->
+      <!-- Section 4: Onderhoud & Downtime WITH PER-BEARING DROPDOWN -->
       <div class="survey-section">
         <h2 class="survey-section-title">⏱️ 4. Onderhouds- & Downtimekosten</h2>
+        
+        <!-- Bearing Selector Bar for Section 4 -->
+        <div style="background: #ffffff; padding: 14px 18px; border-radius: 10px; border: 1.5px solid #cbd5e1; margin-bottom: 18px; display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap;">
+          <div>
+            <label for="bearingSelectorSection4" style="font-size: 14px; font-weight: 800; color: #0f172a; margin-bottom: 2px; display: block;">
+              📌 Selecteer lager om de onderhouds- & downtimekosten in te vullen:
+            </label>
+            <span style="font-size: 12.5px; color: #64748b;">
+              Vul de kosten & uren (punten 20 t/m 25) in per geselecteerd lager.
+            </span>
+          </div>
+          <select id="bearingSelectorSection4" class="form-control" style="width: auto; min-width: 220px; font-weight: 700; border-color: #E30613; color: #E30613; background: #fff5f5;" onchange="switchSection4Bearing(this.value)">
+            <option value="A">Lager A</option>
+          </select>
+        </div>
+
         <div class="grid-2">
           <div class="form-group">
             <label for="q24">20. Tijdsduur per smeerbeurt (minuten)</label>
-            <input type="number" name="20. Tijdsduur per beurt (min)" id="q24" class="form-control" placeholder="Bijv. 10 minuten">
+            <input type="number" id="q24" class="form-control" placeholder="Bijv. 10 minuten" oninput="saveCurrentSection4Data()">
           </div>
           <div class="form-group">
             <label for="q25">21. Uurloon onderhoudstechnicus (€/uur)</label>
-            <input type="number" step="0.01" name="21. Uurloon technicus (€)" id="q25" class="form-control" placeholder="Bijv. 65.00">
+            <input type="number" step="0.01" id="q25" class="form-control" placeholder="Bijv. 65.00" oninput="saveCurrentSection4Data()">
           </div>
         </div>
 
         <div class="grid-2">
           <div class="form-group">
             <label for="q26">22. Tijdsduur revisie/vervanging lager (uren)</label>
-            <input type="number" step="0.5" name="22. Downtime per lager (H)" id="q26" class="form-control" placeholder="Bijv. 3 uren">
+            <input type="number" step="0.5" id="q26" class="form-control" placeholder="Bijv. 3 uren" oninput="saveCurrentSection4Data()">
           </div>
           <div class="form-group">
             <label for="q27">23. Voorbereidingstijd revisie (uren)</label>
-            <input type="number" step="0.5" name="23. Voorbereidingstijd (H)" id="q27" class="form-control" placeholder="Bijv. 1 uur">
+            <input type="number" step="0.5" id="q27" class="form-control" placeholder="Bijv. 1 uur" oninput="saveCurrentSection4Data()">
           </div>
         </div>
 
         <div class="grid-2">
           <div class="form-group">
             <label for="q28">24. Kostprijs stilstand / downtime (€/uur)</label>
-            <input type="number" step="0.01" name="24. Downtime kost (€/H)" id="q28" class="form-control" placeholder="Bijv. 450.00">
+            <input type="number" step="0.01" id="q28" class="form-control" placeholder="Bijv. 450.00" oninput="saveCurrentSection4Data()">
           </div>
           <div class="form-group">
             <label for="q30">25. Prijs lager + wisselstukken (€)</label>
-            <input type="number" step="0.01" name="25. Kostprijs wisselstukken (€)" id="q30" class="form-control" placeholder="Bijv. 125.00">
+            <input type="number" step="0.01" id="q30" class="form-control" placeholder="Bijv. 125.00" oninput="saveCurrentSection4Data()">
           </div>
         </div>
       </div>
@@ -499,21 +531,36 @@
   </div>
 
   <script>
-    // State management for per-bearing Section 2 answers
+    // State management for per-bearing Section 2, 3, and 4 answers
     const LETTERS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'];
-    let activeBearingLetter = 'A';
+    let activeBearingSec2 = 'A';
+    let activeBearingSec3 = 'A';
+    let activeBearingSec4 = 'A';
     
-    // Map storing section 2 inputs per bearing letter
-    let bearingDataMap = {
+    // Maps storing section inputs per bearing letter
+    let bearingDataMapSec2 = {
       'A': { q11: '', q12_price: '', q4_freq: '', q29_life: '', q13: '16', q14: '5' }
+    };
+    let bearingDataMapSec3 = {
+      'A': { q15: '', q16: '', q17: '3', q18: '4', q19: '2', q20: '3', q21: '3', q22: '2' }
+    };
+    let bearingDataMapSec4 = {
+      'A': { q24: '', q25: '', q26: '', q27: '', q28: '', q30: '' }
     };
 
     function updateBearingLettersAndDropdown() {
       const rows = document.querySelectorAll('.bearing-row');
-      const selector = document.getElementById('bearingSelectorSection2');
-      const prevSelected = activeBearingLetter;
+      const selector2 = document.getElementById('bearingSelectorSection2');
+      const selector3 = document.getElementById('bearingSelectorSection3');
+      const selector4 = document.getElementById('bearingSelectorSection4');
 
-      selector.innerHTML = '';
+      const prevSelected2 = activeBearingSec2;
+      const prevSelected3 = activeBearingSec3;
+      const prevSelected4 = activeBearingSec4;
+
+      selector2.innerHTML = '';
+      selector3.innerHTML = '';
+      selector4.innerHTML = '';
       
       rows.forEach((r, idx) => {
         const letter = LETTERS[idx] || ('L' + (idx+1));
@@ -534,28 +581,46 @@
         if (rpmIn) rpmIn.name = 'Lager ' + letter + ' - Toerental RPM';
         if (posIn) posIn.name = 'Lager ' + letter + ' - As Positie';
 
-        // Ensure state entry exists
-        if (!bearingDataMap[letter]) {
-          bearingDataMap[letter] = { q11: '', q12_price: '', q4_freq: '', q29_life: '', q13: '16', q14: '5' };
-        }
+        // Ensure state entries exist
+        if (!bearingDataMapSec2[letter]) bearingDataMapSec2[letter] = { q11: '', q12_price: '', q4_freq: '', q29_life: '', q13: '16', q14: '5' };
+        if (!bearingDataMapSec3[letter]) bearingDataMapSec3[letter] = { q15: '', q16: '', q17: '3', q18: '4', q19: '2', q20: '3', q21: '3', q22: '2' };
+        if (!bearingDataMapSec4[letter]) bearingDataMapSec4[letter] = { q24: '', q25: '', q26: '', q27: '', q28: '', q30: '' };
 
         const nrValue = nrIn && nrIn.value ? ' (' + nrIn.value.trim() + ')' : '';
-        const option = document.createElement('option');
-        option.value = letter;
-        option.innerText = 'Lager ' + letter + nrValue;
-        selector.appendChild(option);
+        const optText = 'Lager ' + letter + nrValue;
+
+        const opt2 = document.createElement('option');
+        opt2.value = letter;
+        opt2.innerText = optText;
+        selector2.appendChild(opt2);
+
+        const opt3 = document.createElement('option');
+        opt3.value = letter;
+        opt3.innerText = optText;
+        selector3.appendChild(opt3);
+
+        const opt4 = document.createElement('option');
+        opt4.value = letter;
+        opt4.innerText = optText;
+        selector4.appendChild(opt4);
       });
 
-      // Maintain selection if valid, else fallback to first
-      if (bearingDataMap[prevSelected] && Array.from(selector.options).some(o => o.value === prevSelected)) {
-        selector.value = prevSelected;
-        activeBearingLetter = prevSelected;
-      } else {
-        selector.value = LETTERS[0];
-        activeBearingLetter = LETTERS[0];
-      }
+      // Maintain selections if valid, else fallback to first
+      const setValidSelection = (selector, prevValue, setGlobalVar, loadFunc) => {
+        if (bearingDataMapSec2[prevValue] && Array.from(selector.options).some(o => o.value === prevValue)) {
+          selector.value = prevValue;
+          setGlobalVar(prevValue);
+          loadFunc(prevValue);
+        } else {
+          selector.value = LETTERS[0];
+          setGlobalVar(LETTERS[0]);
+          loadFunc(LETTERS[0]);
+        }
+      };
 
-      loadSection2DataForBearing(activeBearingLetter);
+      setValidSelection(selector2, prevSelected2, v => activeBearingSec2 = v, loadSection2DataForBearing);
+      setValidSelection(selector3, prevSelected3, v => activeBearingSec3 = v, loadSection3DataForBearing);
+      setValidSelection(selector4, prevSelected4, v => activeBearingSec4 = v, loadSection4DataForBearing);
     }
 
     function addBearingRow() {
@@ -595,12 +660,19 @@
       `;
       container.appendChild(row);
 
-      bearingDataMap[letter] = { q11: '', q12_price: '', q4_freq: '', q29_life: '', q13: '16', q14: '5' };
+      bearingDataMapSec2[letter] = { q11: '', q12_price: '', q4_freq: '', q29_life: '', q13: '16', q14: '5' };
+      bearingDataMapSec3[letter] = { q15: '', q16: '', q17: '3', q18: '4', q19: '2', q20: '3', q21: '3', q22: '2' };
+      bearingDataMapSec4[letter] = { q24: '', q25: '', q26: '', q27: '', q28: '', q30: '' };
+
       updateBearingLettersAndDropdown();
       
-      // Auto-switch Section 2 dropdown to newly added bearing
+      // Auto-switch dropdowns to newly added bearing
       document.getElementById('bearingSelectorSection2').value = letter;
       switchSection2Bearing(letter);
+      document.getElementById('bearingSelectorSection3').value = letter;
+      switchSection3Bearing(letter);
+      document.getElementById('bearingSelectorSection4').value = letter;
+      switchSection4Bearing(letter);
     }
 
     function removeBearingRow(btn) {
@@ -615,25 +687,27 @@
     }
 
     function onBearingRowChanged() {
-      // Save current input before updating dropdown option texts
       saveCurrentSection2Data();
+      saveCurrentSection3Data();
+      saveCurrentSection4Data();
       updateBearingLettersAndDropdown();
     }
 
+    // --- SECTION 2 HANDLERS ---
     function saveCurrentSection2Data() {
-      if (!activeBearingLetter || !bearingDataMap[activeBearingLetter]) {
-        bearingDataMap[activeBearingLetter] = {};
+      if (!activeBearingSec2 || !bearingDataMapSec2[activeBearingSec2]) {
+        bearingDataMapSec2[activeBearingSec2] = {};
       }
-      bearingDataMap[activeBearingLetter].q11 = document.getElementById('q11').value;
-      bearingDataMap[activeBearingLetter].q12_price = document.getElementById('q12_price').value;
-      bearingDataMap[activeBearingLetter].q4_freq = document.getElementById('q4_freq').value;
-      bearingDataMap[activeBearingLetter].q29_life = document.getElementById('q29_life').value;
-      bearingDataMap[activeBearingLetter].q13 = document.getElementById('q13').value;
-      bearingDataMap[activeBearingLetter].q14 = document.getElementById('q14').value;
+      bearingDataMapSec2[activeBearingSec2].q11 = document.getElementById('q11').value;
+      bearingDataMapSec2[activeBearingSec2].q12_price = document.getElementById('q12_price').value;
+      bearingDataMapSec2[activeBearingSec2].q4_freq = document.getElementById('q4_freq').value;
+      bearingDataMapSec2[activeBearingSec2].q29_life = document.getElementById('q29_life').value;
+      bearingDataMapSec2[activeBearingSec2].q13 = document.getElementById('q13').value;
+      bearingDataMapSec2[activeBearingSec2].q14 = document.getElementById('q14').value;
     }
 
     function loadSection2DataForBearing(letter) {
-      const data = bearingDataMap[letter] || { q11: '', q12_price: '', q4_freq: '', q29_life: '', q13: '16', q14: '5' };
+      const data = bearingDataMapSec2[letter] || { q11: '', q12_price: '', q4_freq: '', q29_life: '', q13: '16', q14: '5' };
       document.getElementById('q11').value = data.q11 || '';
       document.getElementById('q12_price').value = data.q12_price || '';
       document.getElementById('q4_freq').value = data.q4_freq || '';
@@ -644,8 +718,76 @@
 
     function switchSection2Bearing(newLetter) {
       saveCurrentSection2Data();
-      activeBearingLetter = newLetter;
+      activeBearingSec2 = newLetter;
       loadSection2DataForBearing(newLetter);
+    }
+
+    // --- SECTION 3 HANDLERS ---
+    function saveCurrentSection3Data() {
+      if (!activeBearingSec3 || !bearingDataMapSec3[activeBearingSec3]) {
+        bearingDataMapSec3[activeBearingSec3] = {};
+      }
+      bearingDataMapSec3[activeBearingSec3].q15 = document.getElementById('q15').value;
+      bearingDataMapSec3[activeBearingSec3].q16 = document.getElementById('q16').value;
+      bearingDataMapSec3[activeBearingSec3].q17 = document.getElementById('q17').value;
+      bearingDataMapSec3[activeBearingSec3].q18 = document.getElementById('q18').value;
+      bearingDataMapSec3[activeBearingSec3].q19 = document.getElementById('q19').value;
+      bearingDataMapSec3[activeBearingSec3].q20 = document.getElementById('q20').value;
+      bearingDataMapSec3[activeBearingSec3].q21 = document.getElementById('q21').value;
+      bearingDataMapSec3[activeBearingSec3].q22 = document.getElementById('q22').value;
+    }
+
+    function loadSection3DataForBearing(letter) {
+      const data = bearingDataMapSec3[letter] || { q15: '', q16: '', q17: '3', q18: '4', q19: '2', q20: '3', q21: '3', q22: '2' };
+      document.getElementById('q15').value = data.q15 || '';
+      document.getElementById('q16').value = data.q16 || '';
+      document.getElementById('q17').value = data.q17 || '3';
+      document.getElementById('b17').innerText = data.q17 || '3';
+      document.getElementById('q18').value = data.q18 || '4';
+      document.getElementById('b18').innerText = data.q18 || '4';
+      document.getElementById('q19').value = data.q19 || '2';
+      document.getElementById('b19').innerText = data.q19 || '2';
+      document.getElementById('q20').value = data.q20 || '3';
+      document.getElementById('b20').innerText = data.q20 || '3';
+      document.getElementById('q21').value = data.q21 || '3';
+      document.getElementById('b21').innerText = data.q21 || '3';
+      document.getElementById('q22').value = data.q22 || '2';
+      document.getElementById('b22').innerText = data.q22 || '2';
+    }
+
+    function switchSection3Bearing(newLetter) {
+      saveCurrentSection3Data();
+      activeBearingSec3 = newLetter;
+      loadSection3DataForBearing(newLetter);
+    }
+
+    // --- SECTION 4 HANDLERS ---
+    function saveCurrentSection4Data() {
+      if (!activeBearingSec4 || !bearingDataMapSec4[activeBearingSec4]) {
+        bearingDataMapSec4[activeBearingSec4] = {};
+      }
+      bearingDataMapSec4[activeBearingSec4].q24 = document.getElementById('q24').value;
+      bearingDataMapSec4[activeBearingSec4].q25 = document.getElementById('q25').value;
+      bearingDataMapSec4[activeBearingSec4].q26 = document.getElementById('q26').value;
+      bearingDataMapSec4[activeBearingSec4].q27 = document.getElementById('q27').value;
+      bearingDataMapSec4[activeBearingSec4].q28 = document.getElementById('q28').value;
+      bearingDataMapSec4[activeBearingSec4].q30 = document.getElementById('q30').value;
+    }
+
+    function loadSection4DataForBearing(letter) {
+      const data = bearingDataMapSec4[letter] || { q24: '', q25: '', q26: '', q27: '', q28: '', q30: '' };
+      document.getElementById('q24').value = data.q24 || '';
+      document.getElementById('q25').value = data.q25 || '';
+      document.getElementById('q26').value = data.q26 || '';
+      document.getElementById('q27').value = data.q27 || '';
+      document.getElementById('q28').value = data.q28 || '';
+      document.getElementById('q30').value = data.q30 || '';
+    }
+
+    function switchSection4Bearing(newLetter) {
+      saveCurrentSection4Data();
+      activeBearingSec4 = newLetter;
+      loadSection4DataForBearing(newLetter);
     }
 
     function syncReplyTo(val) {
@@ -660,17 +802,21 @@
     }
 
     function prepareFormSubmission(e) {
-      // Save current Section 2 before submitting
+      // Save current active inputs before submitting
       saveCurrentSection2Data();
+      saveCurrentSection3Data();
+      saveCurrentSection4Data();
 
-      // Create dynamic hidden inputs for FormSubmit with Section 2 data for ALL bearings
+      // Create dynamic hidden inputs for FormSubmit with data for ALL bearings
       const container = document.getElementById('dynamicHiddenFormSubmitContainer');
       container.innerHTML = '';
 
       const rows = document.querySelectorAll('.bearing-row');
       rows.forEach((r, idx) => {
         const letter = r.getAttribute('data-letter') || (LETTERS[idx] || ('L' + (idx+1)));
-        const d = bearingDataMap[letter] || {};
+        const d2 = bearingDataMapSec2[letter] || {};
+        const d3 = bearingDataMapSec3[letter] || {};
+        const d4 = bearingDataMapSec4[letter] || {};
         
         const createHidden = (name, val) => {
           const inp = document.createElement('input');
@@ -680,17 +826,38 @@
           container.appendChild(inp);
         };
 
-        createHidden('Lager ' + letter + ' - 6. Huidig Smeermiddel', d.q11);
-        createHidden('Lager ' + letter + ' - 7. Prijs per Liter (€)', d.q12_price ? '€' + d.q12_price : '-');
-        createHidden('Lager ' + letter + ' - 8. Smeerfrequentie', d.q4_freq);
-        createHidden('Lager ' + letter + ' - 9. Gemiddelde Levensduur (mnd)', d.q29_life ? d.q29_life + ' mnd' : '-');
-        createHidden('Lager ' + letter + ' - 10. Uren per dag', d.q13 || '16');
-        createHidden('Lager ' + letter + ' - 11. Dagen per week', d.q14 || '5');
+        // Section 2 per bearing
+        createHidden('Lager ' + letter + ' - 6. Huidig Smeermiddel', d2.q11);
+        createHidden('Lager ' + letter + ' - 7. Prijs per Liter (€)', d2.q12_price ? '€' + d2.q12_price : '-');
+        createHidden('Lager ' + letter + ' - 8. Smeerfrequentie', d2.q4_freq);
+        createHidden('Lager ' + letter + ' - 9. Gemiddelde Levensduur (mnd)', d2.q29_life ? d2.q29_life + ' mnd' : '-');
+        createHidden('Lager ' + letter + ' - 10. Uren per dag', d2.q13 || '16');
+        createHidden('Lager ' + letter + ' - 11. Dagen per week', d2.q14 || '5');
+
+        // Section 3 per bearing
+        createHidden('Lager ' + letter + ' - 12. Omgevingstemp (°C)', d3.q15 ? d3.q15 + ' °C' : '-');
+        createHidden('Lager ' + letter + ' - 13. Lagertemp (°C)', d3.q16 ? d3.q16 + ' °C' : '-');
+        createHidden('Lager ' + letter + ' - 14. Water Vocht Stoom (1-10)', d3.q17 || '3');
+        createHidden('Lager ' + letter + ' - 15. Stof Zand (1-10)', d3.q18 || '4');
+        createHidden('Lager ' + letter + ' - 16. Abrasief Vervuiling (1-10)', d3.q19 || '2');
+        createHidden('Lager ' + letter + ' - 17. Schokbelasting (1-10)', d3.q20 || '3');
+        createHidden('Lager ' + letter + ' - 18. Vibraties (1-10)', d3.q21 || '3');
+        createHidden('Lager ' + letter + ' - 19. Condensatie (1-10)', d3.q22 || '2');
+
+        // Section 4 per bearing
+        createHidden('Lager ' + letter + ' - 20. Tijdsduur per beurt (min)', d4.q24 ? d4.q24 + ' min' : '-');
+        createHidden('Lager ' + letter + ' - 21. Uurloon technicus (€)', d4.q25 ? '€' + d4.q25 : '-');
+        createHidden('Lager ' + letter + ' - 22. Downtime per lager (H)', d4.q26 ? d4.q26 + ' H' : '-');
+        createHidden('Lager ' + letter + ' - 23. Voorbereidingstijd (H)', d4.q27 ? d4.q27 + ' H' : '-');
+        createHidden('Lager ' + letter + ' - 24. Downtime kost (€/H)', d4.q28 ? '€' + d4.q28 : '-');
+        createHidden('Lager ' + letter + ' - 25. Prijs wisselstukken (€)', d4.q30 ? '€' + d4.q30 : '-');
       });
     }
 
     function buildReportSummary() {
       saveCurrentSection2Data();
+      saveCurrentSection3Data();
+      saveCurrentSection4Data();
 
       let bodyText = "INTERFLON SMEERANALYSE VRAGENLIJST\n====================================\n\n";
       
@@ -706,13 +873,16 @@
       bodyText += "Toepassing: " + (document.getElementById('q3').value || '-') + "\n";
       bodyText += "Aantal Machines: " + (document.getElementById('q10').value || '1') + "\n\n";
 
-      bodyText += "--- SPECIFICATIE LAGERS & HUIDIGE SMEERSITUATIE PER LAGER ---\n";
+      bodyText += "--- SPECIFICATIES & CONDITIES PER LAGER ---\n";
       const rows = document.querySelectorAll('.bearing-row');
       rows.forEach((r, idx) => {
         const letter = r.getAttribute('data-letter') || (LETTERS[idx] || ('L' + (idx+1)));
         const inputs = r.querySelectorAll('input');
         const select = r.querySelector('select');
-        const d = bearingDataMap[letter] || {};
+        
+        const d2 = bearingDataMapSec2[letter] || {};
+        const d3 = bearingDataMapSec3[letter] || {};
+        const d4 = bearingDataMapSec4[letter] || {};
 
         if (inputs.length >= 2) {
           const aantal = inputs[0].value || '1';
@@ -720,33 +890,36 @@
           const rpm = inputs[2] ? inputs[2].value : '';
           const positie = select ? select.value : 'Horizontaal';
 
-          bodyText += "[Lager " + letter + "]: " + aantal + "x " + (nr || 'Lager') + (rpm ? " (" + rpm + " RPM)" : "") + " - " + positie + "\n";
-          bodyText += "  • Huidig smeermiddel: " + (d.q11 || '-') + "\n";
-          bodyText += "  • Prijs smeermiddel: " + (d.q12_price ? '€' + d.q12_price + ' / L' : '-') + "\n";
-          bodyText += "  • Smeerfrequentie/interval: " + (d.q4_freq || '-') + "\n";
-          bodyText += "  • Gemiddelde levensduur: " + (d.q29_life ? d.q29_life + ' maanden' : '-') + "\n";
-          bodyText += "  • Operationele uren/dag: " + (d.q13 || '16') + "\n";
-          bodyText += "  • Operationele dagen/week: " + (d.q14 || '5') + "\n\n";
+          bodyText += "========================================\n";
+          bodyText += "📌 [LAGER " + letter + "]: " + aantal + "x " + (nr || 'Lager') + (rpm ? " (" + rpm + " RPM)" : "") + " - " + positie + "\n";
+          bodyText += "========================================\n";
+          bodyText += "2. SMEERSITUATIE:\n";
+          bodyText += "  • Huidig smeermiddel: " + (d2.q11 || '-') + "\n";
+          bodyText += "  • Prijs smeermiddel: " + (d2.q12_price ? '€' + d2.q12_price + ' / L' : '-') + "\n";
+          bodyText += "  • Smeerfrequentie/interval: " + (d2.q4_freq || '-') + "\n";
+          bodyText += "  • Gemiddelde levensduur: " + (d2.q29_life ? d2.q29_life + ' maanden' : '-') + "\n";
+          bodyText += "  • Operationele uren/dag: " + (d2.q13 || '16') + "\n";
+          bodyText += "  • Operationele dagen/week: " + (d2.q14 || '5') + "\n\n";
+
+          bodyText += "3. OMGEVING & BELASTINGEN:\n";
+          bodyText += "  • Omgevingstemperatuur: " + (d3.q15 ? d3.q15 + ' °C' : '-') + "\n";
+          bodyText += "  • Lagertemperatuur: " + (d3.q16 ? d3.q16 + ' °C' : '-') + "\n";
+          bodyText += "  • Water / Vocht / Stoom (1-10): " + (d3.q17 || '3') + "\n";
+          bodyText += "  • Stof / Zand (1-10): " + (d3.q18 || '4') + "\n";
+          bodyText += "  • Abrasieve stoffen (1-10): " + (d3.q19 || '2') + "\n";
+          bodyText += "  • Schokbelastingen (1-10): " + (d3.q20 || '3') + "\n";
+          bodyText += "  • Vibraties & trillingen (1-10): " + (d3.q21 || '3') + "\n";
+          bodyText += "  • Condensatie (1-10): " + (d3.q22 || '2') + "\n\n";
+
+          bodyText += "4. ONDERHOUD & DOWNTIMEKOSTEN:\n";
+          bodyText += "  • Tijdsduur per beurt: " + (d4.q24 ? d4.q24 + ' min' : '-') + "\n";
+          bodyText += "  • Uurloon technicus: " + (d4.q25 ? '€' + d4.q25 : '-') + "\n";
+          bodyText += "  • Downtime per lager: " + (d4.q26 ? d4.q26 + ' uur' : '-') + "\n";
+          bodyText += "  • Voorbereidingstijd: " + (d4.q27 ? d4.q27 + ' uur' : '-') + "\n";
+          bodyText += "  • Downtime kost/uur: " + (d4.q28 ? '€' + d4.q28 : '-') + "\n";
+          bodyText += "  • Prijs wisselstukken: " + (d4.q30 ? '€' + d4.q30 : '-') + "\n\n";
         }
       });
-
-      bodyText += "--- 3. OMGEVINGSCONDITIES & BELASTINGEN ---\n";
-      bodyText += "Omgevingstemperatuur: " + (document.getElementById('q15').value || '-') + " °C\n";
-      bodyText += "Lagertemperatuur: " + (document.getElementById('q16').value || '-') + " °C\n";
-      bodyText += "Water/Vocht/Stoom (1-10): " + document.getElementById('q17').value + "\n";
-      bodyText += "Stof/Zand (1-10): " + document.getElementById('q18').value + "\n";
-      bodyText += "Abrasieve stoffen (1-10): " + document.getElementById('q19').value + "\n";
-      bodyText += "Schokbelastingen (1-10): " + document.getElementById('q20').value + "\n";
-      bodyText += "Vibraties & trillingen (1-10): " + document.getElementById('q21').value + "\n";
-      bodyText += "Condensatie (1-10): " + document.getElementById('q22').value + "\n\n";
-
-      bodyText += "--- 4. ONDERHOUDS- & DOWNTIMEKOSTEN ---\n";
-      bodyText += "Tijdsduur per beurt: " + (document.getElementById('q24').value || '-') + " min\n";
-      bodyText += "Uurloon technicus: €" + (document.getElementById('q25').value || '-') + "\n";
-      bodyText += "Downtime per lager: " + (document.getElementById('q26').value || '-') + " uur\n";
-      bodyText += "Voorbereidingstijd: " + (document.getElementById('q27').value || '-') + " uur\n";
-      bodyText += "Downtime kost/uur: €" + (document.getElementById('q28').value || '-') + "\n";
-      bodyText += "Prijs wisselstukken: €" + (document.getElementById('q30').value || '-') + "\n";
 
       return bodyText;
     }
@@ -773,7 +946,7 @@
       const reportText = buildReportSummary();
       if (navigator.clipboard && navigator.clipboard.writeText) {
         navigator.clipboard.writeText(reportText).then(() => {
-          alert("📋 Alle ingevulde antwoorden (inclusief per lager) zijn gekopieerd naar uw klembord!\n\nU kunt deze nu direct plakken (Ctrl + V) in een e-mailbericht.");
+          alert("📋 Alle ingevulde antwoorden (per lager voor Sectie 2, 3 en 4) zijn gekopieerd naar uw klembord!\n\nU kunt deze nu direct plakken (Ctrl + V) in een e-mailbericht.");
         }).catch(err => {
           prompt("Kopieer onderstaande antwoorden:", reportText);
         });
@@ -808,7 +981,7 @@
         window.scrollTo({ top: 0, behavior: 'smooth' });
       }
 
-      // Initialize bearing letters and Section 2 dropdown
+      // Initialize bearing letters and dropdowns across Sections 2, 3, and 4
       updateBearingLettersAndDropdown();
     });
   </script>
