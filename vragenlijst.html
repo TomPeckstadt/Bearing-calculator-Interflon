@@ -639,5 +639,282 @@
     }
 
   </script>
+
+  <script>
+    const SURVEY_TRANSLATIONS = {
+      nl: {
+        pageTitle: "Interflon Smeeranalyse - Digital Questionnaire",
+        headerTitle: "Smeeranalyse Vragenlijst",
+        headerSubtitle: "Onderzoek & Optimalisatie van Machine-smering",
+        introTitle: "Welkom bij het Interflon Smeeranalyse Formulier",
+        introText: "Om u een optimaal smeeradvies op maat te kunnen bieden, verzoeken wij u onderstaande vragenlijst zo volledig mogelijk in te vullen. De ingevulde gegevens worden rechtstreeks verzonden naar uw Interflon smeertechnisch adviseur.",
+        sec1Title: "⚙️ 1. Machinedetails & Lagerspecificaties",
+        lblQ1: "1. Naam van de machine *",
+        lblQ2: "2. Merk van de machine",
+        lblQ3: "3. Toepassing van de machine",
+        lblQ4: "4. Aantal identieke machines in het park",
+        lblQ5: "5. Lagers op deze machine *",
+        lblQ5Desc: "Specificeer per lager het <strong>Aantal</strong>, het <strong>Lagernummer</strong>, het <strong>Toerental (RPM)</strong> en de <strong>As Positie</strong>. Klik op \"+ Extra lager toevoegen\" om meer lagers toe te voegen.",
+        colAantal: "Aantal *",
+        colLagerNr: "Lagernummer *",
+        colRpm: "Toerental (RPM)",
+        colPositie: "As Positie",
+        optHoriz: "Horizontaal",
+        optVert: "Verticaal",
+        btnAddBearing: "➕ Extra lager toevoegen",
+
+        sec2Title: "🛢️ 2. Huidige Smering",
+        lblQ6: "6. Welk type smering wordt nu gebruikt?",
+        optVloeibaar: "Vloeibaar vet",
+        optStandaardVet: "Standaard vet (NLGI 2)",
+        optOlie: "Olie",
+        optDroog: "Droogsmering / PTFE",
+        lblQ7: "7. Merk en exacte productnaam van het huidige vet/olie",
+        lblQ8: "8. Hoe wordt de machine momenteel gesmeerd?",
+        optManueelVetspuit: "Manueel met vetspuit",
+        optAutomatischEnkel: "Automatisch (Enkelpunt smeerpatroon)",
+        optCentraalSmeersysteem: "Centraal smeersysteem",
+        optOliebad: "Oliebad / Oliespat",
+        lblQ9: "9. Wat is het huidige smeerinterval? (bijv. 1x per week, 500 uur)",
+        lblQ10: "10. Hoeveelheid vet/olie per smeerbeurt (bijv. 3 slagen vetspuit of 50 ml)",
+
+        sec3Title: "🌡️ 3. Bedrijfsomstandigheden & Omgeving",
+        lblQ11: "11. Bedrijfstemperatuur van het lager/machine (°C)",
+        lblQ12: "12. Omgevingstemperatuur (°C)",
+        lblQ13: "13. Belasting op het lager",
+        optNormaal: "Normaal",
+        optZwaar: "Zwaar / Schokbelasting",
+        optExtreemZwaar: "Extreem zwaar",
+        lblQ14: "14. Omgevingsfactoren (Vink aan wat van toepassing is)",
+        optStof: "Stof / Vuil",
+        optWater: "Water / Vocht",
+        optStoom: "Stoom / Hoge vochtigheid",
+        optChemisch: "Chemicaliën / Zuren",
+        optReiniging: "Hogedruk reiniging (Washdown)",
+        optVoedingsmiddelen: "Voedingsmiddelenindustrie (H1 vereist)",
+        lblQ15: "15. Aantal bedrijfsuren per dag",
+        lblQ16: "16. Aantal werkdagen per week",
+
+        sec4Title: "⚠️ 4. Problemen, Onderhoud & Doelstellingen",
+        lblQ17: "17. Ervaart u momenteel problemen bij deze machine?",
+        optOververhitting: "Oververhitting / Hoge temperatuur",
+        optSlijtage: "Vroegtijdige lagerslijtage / Uitval",
+        optLekkage: "Vetafscheiding / Olielekkage",
+        optVervuiling: "Vervuiling die het lager binnendringt",
+        optHogeArbeid: "Hoge arbeidskost door frequent smeren",
+        lblQ18: "18. Wat is de gemiddelde levensduur van een lager op deze positie?",
+        lblQ19: "19. Wat kost de vervanging van een lager (onderdelen + arbeid + downtime)?",
+        lblQ20: "20. Wat is uw primaire doelstelling voor deze analyse?",
+        optVerlengen: "Levensduur van lagers verlengen",
+        optIntervallen: "Smeerintervallen vergroten / Arbeid besparen",
+        optAutomatiseren: "Smering automatiseren (Single-point lubricators)",
+        optTemperatuur: "Temperatuur verlagen",
+        optEnergie: "Energieverbruik verlagen",
+
+        sec5Title: "📬 5. Uw Contactgegevens & Bestemming",
+        lblClientCompany: "Bedrijfsnaam *",
+        lblClientContact: "Naam contactpersoon *",
+        lblClientEmail: "Uw E-mailadres *",
+        lblClientPhone: "Telefoonnummer",
+        lblInterflonEmail: "Interflon Contactpersoon E-mail (Bestemming) *",
+        lblInterflonEmailSub: "Naar dit e-mailadres wordt het ingevulde rapport verzonden.",
+        lblExtraNotes: "Extra opmerkingen of specifieke vragen",
+
+        btnSubmitDirect: "🚀 1. Verstuur Vragenlijst Direct via Mail Service →",
+        btnSubmitGmail: "✉️ 2. Open in Gmail",
+        btnSubmitOutlook: "📧 3. Open in Outlook",
+        btnSubmitCopy: "📋 4. Kopieer Antwoorden naar Klembord"
+      },
+      en: {
+        pageTitle: "Interflon Lubrication Analysis - Digital Questionnaire",
+        headerTitle: "Lubrication Analysis Questionnaire",
+        headerSubtitle: "Investigation & Optimization of Machine Lubrication",
+        introTitle: "Welcome to the Interflon Lubrication Analysis Form",
+        introText: "In order to provide you with optimal tailored lubrication advice, please complete the questionnaire below as accurately as possible. The entered data will be sent directly to your Interflon technical lubrication advisor.",
+        sec1Title: "⚙️ 1. Machine Details & Bearing Specifications",
+        lblQ1: "1. Name of the machine *",
+        lblQ2: "2. Machine Brand / Manufacturer",
+        lblQ3: "3. Machine Application / Function",
+        lblQ4: "4. Number of identical machines in facility",
+        lblQ5: "5. Bearings on this machine *",
+        lblQ5Desc: "Specify per bearing the <strong>Quantity</strong>, <strong>Part Number</strong>, <strong>Speed (RPM)</strong> and <strong>Shaft Position</strong>. Click \"+ Add extra bearing\" to add more bearings.",
+        colAantal: "Quantity *",
+        colLagerNr: "Part Number *",
+        colRpm: "Speed (RPM)",
+        colPositie: "Shaft Position",
+        optHoriz: "Horizontal",
+        optVert: "Vertical",
+        btnAddBearing: "➕ Add extra bearing",
+
+        sec2Title: "🛢️ 2. Current Lubrication",
+        lblQ6: "6. What type of lubrication is currently used?",
+        optVloeibaar: "Fluid grease",
+        optStandaardVet: "Standard grease (NLGI 2)",
+        optOlie: "Oil",
+        optDroog: "Dry lubrication / PTFE",
+        lblQ7: "7. Brand and exact product name of current grease/oil",
+        lblQ8: "8. How is the machine currently lubricated?",
+        optManueelVetspuit: "Manually with grease gun",
+        optAutomatischEnkel: "Automatic (Single-point lubricator)",
+        optCentraalSmeersysteem: "Centralized lubrication system",
+        optOliebad: "Oil bath / Splash oil",
+        lblQ9: "9. Current lubrication interval (e.g. 1x per week, 500 hours)",
+        lblQ10: "10. Quantity per relubrication (e.g. 3 strokes grease gun or 50 ml)",
+
+        sec3Title: "🌡️ 3. Operating Conditions & Environment",
+        lblQ11: "11. Operating temperature of bearing/machine (°C)",
+        lblQ12: "12. Ambient temperature (°C)",
+        lblQ13: "13. Bearing load level",
+        optNormaal: "Normal",
+        optZwaar: "Heavy / Shock loads",
+        optExtreemZwaar: "Extremely heavy",
+        lblQ14: "14. Environmental factors (Check all that apply)",
+        optStof: "Dust / Dirt",
+        optWater: "Water / Moisture",
+        optStoom: "Steam / High humidity",
+        optChemisch: "Chemicals / Acids",
+        optReiniging: "High-pressure washdown",
+        optVoedingsmiddelen: "Food industry (H1 required)",
+        lblQ15: "15. Operating hours per day",
+        lblQ16: "16. Operating days per week",
+
+        sec4Title: "⚠️ 4. Issues, Maintenance & Objectives",
+        lblQ17: "17. Are you currently experiencing problems on this machine?",
+        optOververhitting: "Overheating / High temperature",
+        optSlijtage: "Premature bearing wear / Failure",
+        optLekkage: "Grease bleeding / Oil leakage",
+        optVervuiling: "Contamination entering bearing",
+        optHogeArbeid: "High labor cost due to frequent greasing",
+        lblQ18: "18. Average lifespan of a bearing at this position?",
+        lblQ19: "19. Cost of replacing a bearing (parts + labor + downtime)?",
+        lblQ20: "20. Primary objective for this analysis?",
+        optVerlengen: "Extend bearing lifespan",
+        optIntervallen: "Extend lubrication intervals / Save labor",
+        optAutomatiseren: "Automate lubrication (Single-point lubricators)",
+        optTemperatuur: "Reduce operating temperature",
+        optEnergie: "Reduce energy consumption",
+
+        sec5Title: "📬 5. Contact Information & Destination",
+        lblClientCompany: "Company Name *",
+        lblClientContact: "Contact Person Name *",
+        lblClientEmail: "Your Email Address *",
+        lblClientPhone: "Phone Number",
+        lblInterflonEmail: "Interflon Representative Email (Destination) *",
+        lblInterflonEmailSub: "The completed questionnaire will be sent to this email address.",
+        lblExtraNotes: "Additional notes or specific questions",
+
+        btnSubmitDirect: "🚀 1. Send Questionnaire Directly via Mail Service →",
+        btnSubmitGmail: "✉️ 2. Open in Gmail",
+        btnSubmitOutlook: "📧 3. Open in Outlook",
+        btnSubmitCopy: "📋 4. Copy Answers to Clipboard"
+      },
+      fr: {
+        pageTitle: "Analyse de Graissage Interflon - Questionnaire Numérique",
+        headerTitle: "Questionnaire d'Analyse de Graissage",
+        headerSubtitle: "Étude & Optimisation de la Lubrification des Machines",
+        introTitle: "Bienvenue sur le Formulaire d'Analyse Interflon",
+        introText: "Afin de vous fournir un conseil en graissage sur mesure optimal, nous vous prions de remplir le questionnaire ci-dessous aussi complètement que possible. Les données saisies seront directement transmises à votre conseiller technique Interflon.",
+        sec1Title: "⚙️ 1. Détails de la Machine & Spécifications des Roulements",
+        lblQ1: "1. Nom de la machine *",
+        lblQ2: "2. Marque / Fabricant de la machine",
+        lblQ3: "3. Application / Fonction de la machine",
+        lblQ4: "4. Nombre de machines identiques dans le parc",
+        lblQ5: "5. Roulements sur cette machine *",
+        lblQ5Desc: "Spécifiez par roulement la <strong>Quantité</strong>, la <strong>Référence (SKF)</strong>, la <strong>Vitesse (TR/MIN)</strong> et la <strong>Position de l'Axe</strong>. Cliquez sur \"+ Ajouter roulement extra\" pour ajouter d'autres roulements.",
+        colAantal: "Quantité *",
+        colLagerNr: "Référence Roulement *",
+        colRpm: "Vitesse (TR/MIN)",
+        colPositie: "Position de l'Axe",
+        optHoriz: "Horizontale",
+        optVert: "Verticale",
+        btnAddBearing: "➕ Ajouter roulement extra",
+
+        sec2Title: "🛢️ 2. Graissage Actuel",
+        lblQ6: "6. Quel type de lubrification est actuellement utilisé?",
+        optVloeibaar: "Graisse fluide",
+        optStandaardVet: "Graisse standard (NLGI 2)",
+        optOlie: "Huile",
+        optDroog: "Lubrification sèche / PTFE",
+        lblQ7: "7. Marque et nom exact du produit actuel (graisse/huile)",
+        lblQ8: "8. Comment la machine est-elle actuellement graissée?",
+        optManueelVetspuit: "Manuellement avec pompe à graisse",
+        optAutomatischEnkel: "Automatique (Graisseur monopoint)",
+        optCentraalSmeersysteem: "Système de graissage centralisé",
+        optOliebad: "Bain d'huile / Barbotage",
+        lblQ9: "9. Intervalle de graissage actuel (ex. 1x par semaine, 500 heures)",
+        lblQ10: "10. Quantité par regraissage (ex. 3 coups de pompe ou 50 ml)",
+
+        sec3Title: "🌡️ 3. Conditions de Fonctionnement & Environnement",
+        lblQ11: "11. Température de fonctionnement du roulement/machine (°C)",
+        lblQ12: "12. Température ambiante (°C)",
+        lblQ13: "13. Niveau de charge sur le roulement",
+        optNormaal: "Normale",
+        optZwaar: "Lourde / Chocs",
+        optExtreemZwaar: "Extrêmement lourde",
+        lblQ14: "14. Facteurs environnementaux (Cochez ce qui s'applique)",
+        optStof: "Poussière / Saleté",
+        optWater: "Eau / Humidité",
+        optStoom: "Vapeur / Forte humidité",
+        optChemisch: "Produits chimiques / Acides",
+        optReiniging: "Nettoyage haute pression (Washdown)",
+        optVoedingsmiddelen: "Industrie alimentaire (H1 requis)",
+        lblQ15: "15. Heures de fonctionnement par jour",
+        lblQ16: "16. Jours de fonctionnement par semaine",
+
+        sec4Title: "⚠️ 4. Problèmes, Maintenance & Objectifs",
+        lblQ17: "17. Rencontrez-vous actuellement des problèmes sur cette machine?",
+        optOververhitting: "Surchauffe / Température élevée",
+        optSlijtage: "Usure prématurée / Panne de roulement",
+        optLekkage: "Séparation d'huile / Fuite de graisse",
+        optVervuiling: "Contamination pénétrant le roulement",
+        optHogeArbeid: "Coût de main-d'œuvre élevé dû au regraissage fréquent",
+        lblQ18: "18. Durée de vie moyenne d'un roulement à cette position?",
+        lblQ19: "19. Coût de remplacement d'un roulement (pièces + main-d'œuvre + arrêt)?",
+        lblQ20: "20. Objectif principal pour cette analyse?",
+        optVerlengen: "Prolonger la durée de vie des roulements",
+        optIntervallen: "Augmenter les intervalles de graissage / Économiser la main-d'œuvre",
+        optAutomatiseren: "Automatiser le graissage (Graisseurs monopoint)",
+        optTemperatuur: "Réduire la température de fonctionnement",
+        optEnergie: "Réduire la consommation d'énergie",
+
+        sec5Title: "📬 5. Vos Coordonnées & Destination",
+        lblClientCompany: "Nom de l'Entreprise *",
+        lblClientContact: "Nom de la Personne de Contact *",
+        lblClientEmail: "Votre Adresse E-mail *",
+        lblClientPhone: "Numéro de Téléphone",
+        lblInterflonEmail: "E-mail du Conseiller Interflon (Destination) *",
+        lblInterflonEmailSub: "Le rapport rempli sera envoyé à cette adresse e-mail.",
+        lblExtraNotes: "Remarques supplémentaires ou questions spécifiques",
+
+        btnSubmitDirect: "🚀 1. Envoyer le Questionnaire Directement via Mail →",
+        btnSubmitGmail: "✉️ 2. Ouvrir dans Gmail",
+        btnSubmitOutlook: "📧 3. Ouvrir dans Outlook",
+        btnSubmitCopy: "📋 4. Copier les Réponses dans le Presse-papier"
+      }
+    };
+
+    function changeSurveyLanguage(lang) {
+      const dict = SURVEY_TRANSLATIONS[lang] || SURVEY_TRANSLATIONS.nl;
+      document.documentElement.lang = lang;
+      
+      // Update headings
+      const h1 = document.querySelector('h1'); if (h1) h1.textContent = dict.headerTitle;
+      const sub = document.querySelector('p[style*="color: #64748b"]'); if (sub) sub.textContent = dict.headerSubtitle;
+
+      // Check URL search param and set select value
+      const sel = document.getElementById('surveyLangSelect');
+      if (sel) sel.value = lang;
+    }
+
+    // Auto-detect lang from URL query parameter
+    window.addEventListener('DOMContentLoaded', () => {
+      const params = new URLSearchParams(window.location.search);
+      const langParam = params.get('lang');
+      if (langParam && SURVEY_TRANSLATIONS[langParam]) {
+        changeSurveyLanguage(langParam);
+      }
+    });
+  </script>
+
 </body>
 </html>
