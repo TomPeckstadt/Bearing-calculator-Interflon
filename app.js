@@ -2693,8 +2693,10 @@ document.addEventListener("DOMContentLoaded", () => {
   
   if (isLoggedIn) {
     loginOverlay.classList.add("hidden");
+    loginOverlay.style.display = "none";
   } else {
     loginOverlay.classList.remove("hidden");
+    loginOverlay.style.display = "flex";
   }
 
   // Vul de vetselectie dropdown
@@ -3063,14 +3065,24 @@ function handleLogin(event) {
   const val = passwordInput.value ? passwordInput.value.trim().toLowerCase() : "";
 
   if (val === "smeercalculatie") {
-    if (typeof window !== "undefined" && window.history && window.location && (window.location.search || window.location.href.includes("?"))) {
-      try {
-        const cleanUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
-        window.history.replaceState(null, "", cleanUrl);
-      } catch (e) {}
-    }
     sessionStorage.setItem("bearing_calc_logged_in", "true");
-    playOpeningAnimation();
+    
+    // Hide login overlay completely and instantly
+    if (loginOverlay) {
+      loginOverlay.classList.add("hidden");
+      loginOverlay.style.display = "none";
+    }
+    if (loginError) {
+      loginError.style.display = "none";
+    }
+    if (passwordInput) {
+      passwordInput.value = "";
+    }
+
+    // Open mode selection modal or main app
+    if (typeof openModeSelectionModal === "function") {
+      openModeSelectionModal();
+    }
   } else {
     if (loginError) loginError.style.display = "flex";
     passwordInput.classList.add("error-shake");
@@ -3143,7 +3155,7 @@ function handleLogout() {
   if (!vanOverlay || !vanContainer) {
     sessionStorage.removeItem("bearing_calc_logged_in");
     const loginOverlay = document.getElementById("loginOverlay");
-    if (loginOverlay) loginOverlay.classList.remove("hidden");
+    if (loginOverlay) { loginOverlay.classList.remove("hidden"); loginOverlay.style.display = "flex"; }
     switchPage('search');
     return;
   }
@@ -10358,7 +10370,7 @@ function getSurveyUrl() {
   const clientEmail = localStorage.getItem("client_email") || "";
 
   let params = new URLSearchParams();
-  params.set("v", "20260824_1714");
+  params.set("v", "20260824_1716");
   if (typeof currentLang !== "undefined" && currentLang) params.set("lang", currentLang);
   if (opEmail) params.set("contact", opEmail);
   if (clientCompany) params.set("company", clientCompany);
