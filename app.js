@@ -1028,6 +1028,174 @@ if (typeof window !== "undefined" && window.location && window.location.href.end
 
 const TRANSLATIONS = {
   nl: {
+    theoreticalRuntimeLabel: "• Theoretisch berekend:",
+
+    displaySettingLabel: "Display instelling op toestel:",
+
+    plcSettingLabel: "PLC instelling op toestel:",
+
+    dialKnobSettingLabel: "Instelstand draaiknop toestel:",
+
+    btnViewDimensions: "Bekijk afmetingen",
+
+    btnApplyRecommendation: "Neem advies over",
+
+    devicePulsarlubeQuad: "4 toestellen (Pulsarlube A, B, C & D)",
+
+    devicePulsarlubeTriple: "3 toestellen (Pulsarlube A, B & C)",
+
+    devicePulsarlubeDouble: "2 toestellen (Pulsarlube A & Pulsarlube B)",
+
+    devicePulsarlubeSingle: "1 toestel (Pulsarlube A)",
+
+    menuVragenlijst: "Vragenlijst",
+
+    roiYearsWord: "jaar",
+
+    roiSavingsAfterLabel: "Besparing na",
+
+    roiPaybackPeriodSub: "Investerings-terugverdientijd",
+
+    roiPaybackPeriodTitle: "Terugverdientijd (ROI)",
+
+    roiNetResultYear1Sub: "Inclusief initiële installatie",
+
+    roiNetResultYear1Title: "Netto Resultaat Jaar 1",
+
+    roiFromYear2Label: "Vanaf Jaar 2",
+
+    roiStructuralSavingsTitle: "Structurele Jaarlijkse Besparing",
+
+    roiFinancialAnalysisSub: "Directe vergelijking manuele arbeid & vet vs. automatische smeermodule",
+
+    roiFinancialAnalysisTitle: "Financiële Analyse & ROI Resultaat",
+
+    roiYear2PlusLabel: "Jaar 2+ Terugkerend",
+
+    roiYear1TotalLabel: "Jaar 1 Totaal",
+
+    roiDowntimeCostLabel: "Downtime kost (jaar):",
+
+    roiPartsCostLabel: "Materiaalkost onderdelen (jaar):",
+
+    roiRevisionLaborLabel: "Tijdsbesteding revisie (jaar):",
+
+    roiCartridgeChangeLaborLabel: "Arbeidskost patroonwissels:",
+
+    roiDividerBlockLabel: "Verdeelblok(ken):",
+
+    roiInstallationKitLabel: "Pulsarlube installatiekit:",
+
+    roiAnnualCartridgeCostLabel: "Jaarlijkse kosten patronen:",
+
+    roiCartridgeCostLabel: "Prijs per patroon / servicepack:",
+
+    roiEmptyUnitCostLabel: "Prijs leeg toestel:",
+
+    roiCartridgeConsumptionLabel: "Verbruik patronen/jaar:",
+
+    roiChosenUnitLabel: "Gekozen smeerunit:",
+
+    roiAutoSub: "Met gekozen smeerunit (op jaarbasis)",
+
+    roiAutoLubricationTitle: "Automatische Smering",
+
+    roiManualSub: "Met Interflon product (op jaarbasis)",
+
+    roiManualLubricationTitle: "Manuele Smering",
+
+    chainAnnualConsumptionLabel: "Jaarlijks verbruik:",
+
+    chainMonthlyVolumeLabel: "Maandelijks volume:",
+
+    chainWeeklyVolumeLabel: "Wekelijks volume:",
+
+    chainHourlyVolumeLabel: "Smeervolume per uur:",
+
+    chainDailyVolumeLabel: "Dagelijks smeervolume:",
+
+    chainOutputTitle: "Berekend Smeerdebiet Ketting",
+
+    chainEnvHeavy: "Zwaar belast / Buitenopstelling (+80% smeerbehoefte)",
+
+    chainEnvHumid: "Vochtig / Nat (+50% smeerbehoefte)",
+
+    chainEnvDusty: "Stoffig / Vuil (+30% smeerbehoefte)",
+
+    chainEnvNormal: "Normaal (Schoon, droog, 20°C)",
+
+    chainEnvConditionsLabel: "Omgevingsomstandigheden",
+
+    chainMicpolFactorLabel: "Conversiefactor MicPol®",
+
+    chainTempLabel: "Bedrijfstemperatuur (°C)",
+
+    chainSpeedLabel: "Kettingsnelheid (m/s)",
+
+    chainLengthLabel: "Kettinglengte (meters)",
+
+    chainOperatingParamsTitle: "Bedrijfsparameters Ketting",
+
+    chainSelectOilLabel: "Selecteer Interflon Kettingolie",
+
+    chainInputParamsTitle: "Invoerparameters Ketting",
+
+    chainVisualDimensions: "Visuele Afmetingen",
+
+    chainTriplexLabel: "Triplex Rollenketting (3-sporig)",
+
+    chainDuplexLabel: "Duplex Rollenketting (2-sporig)",
+
+    chainSimplexLabel: "Simplex Rollenketting (1-sporig)",
+
+    chainTypeIllustration: "Ketting Type Illustratie",
+
+    btnStartChainCalc: "Start Kettingsmeerberekening",
+
+    chainPinDiamLabel: "Pendiameter (d₂)",
+
+    chainRollerDiamLabel: "Roldiameter (d₁)",
+
+    chainInnerWidthLabel: "Binnenbreedte (b₁)",
+
+    chainPitchLabel: "Steek / Pitch (p)",
+
+    chainTypeLabel: "Kettingtype / Uitvoering",
+
+    chainStandardLabel: "Standaard / Norm",
+
+    chainSpecsTitle: "Kettingspecificaties:",
+
+    noChainSelected: "Geen ketting geselecteerd",
+
+    selectChainCalcBtn: "Open Kettingberekening",
+
+    selectChainCalcDesc: "Bereken olie-doseringen, volume per minuut, smeerintervallen en instellingen voor automatisatie voor aandrijf- en transportkettingen.",
+
+    selectChainCalcTitle: "Kettingberekening",
+
+    selectBearingCalcBtn: "Open Lagerberekening",
+
+    selectBearingCalcDesc: "Bepaal type vet, nasmeervolumes, smeerintervallen en instellingen voor automatisatie.",
+
+    selectBearingCalcTitle: "Lagerberekening",
+
+    modeRoiExcludeDesc: "Slaat de pagina ROI Automatisering over in het PDF rapport.",
+
+    modeRoiExcludeTitle: "Exclusief ROI berekening automatisatie",
+
+    modeRoiIncludeDesc: "Voegt een extra pagina toe onderaan met de ROI vergelijking voor automatische smering.",
+
+    modeRoiIncludeTitle: "Inclusief ROI berekening automatisatie",
+
+    modeRoiTitle: "2. ROI Berekening Automatisatie",
+
+    modeTcoTitle: "1. TCO Calculatie Model",
+
+    modeSelectSubtitle: "Selecteer hoe het rapport moet worden opgebouwd voor deze berekening.",
+
+    modeSelectTitle: "Kies Rapporteringsmodus",
+
     descGrease: "Bepaalt de maximale DN-factor en consistentie",
     descHoursPerDay: "Aantal uren dat de machine per dag operationeel is.",
     descDaysPerWeek: "Aantal dagen dat de machine per week operationeel is.",
@@ -1335,6 +1503,174 @@ const TRANSLATIONS = {
     btnLagertypes: "Lagertypes"
   },
   en: {
+    theoreticalRuntimeLabel: "• Theoretically calculated:",
+
+    displaySettingLabel: "Display setting on lubricator:",
+
+    plcSettingLabel: "PLC setting on lubricator:",
+
+    dialKnobSettingLabel: "Dial knob setting:",
+
+    btnViewDimensions: "View dimensions",
+
+    btnApplyRecommendation: "Apply recommendation",
+
+    devicePulsarlubeQuad: "4 units (Pulsarlube A, B, C & D)",
+
+    devicePulsarlubeTriple: "3 units (Pulsarlube A, B & C)",
+
+    devicePulsarlubeDouble: "2 units (Pulsarlube A & Pulsarlube B)",
+
+    devicePulsarlubeSingle: "1 unit (Pulsarlube A)",
+
+    menuVragenlijst: "Questionnaire",
+
+    roiYearsWord: "years",
+
+    roiSavingsAfterLabel: "Savings after",
+
+    roiPaybackPeriodSub: "Investment payback time",
+
+    roiPaybackPeriodTitle: "Payback Period (ROI)",
+
+    roiNetResultYear1Sub: "Including initial installation",
+
+    roiNetResultYear1Title: "Net Result Year 1",
+
+    roiFromYear2Label: "From Year 2 Onwards",
+
+    roiStructuralSavingsTitle: "Structural Annual Savings",
+
+    roiFinancialAnalysisSub: "Direct comparison manual labor & grease vs. automatic lubrication module",
+
+    roiFinancialAnalysisTitle: "Financial Analysis & ROI Result",
+
+    roiYear2PlusLabel: "Year 2+ Recurring",
+
+    roiYear1TotalLabel: "Year 1 Total",
+
+    roiDowntimeCostLabel: "Downtime cost (annual):",
+
+    roiPartsCostLabel: "Parts material cost (annual):",
+
+    roiRevisionLaborLabel: "Overhaul time cost (annual):",
+
+    roiCartridgeChangeLaborLabel: "Cartridge replacement labor:",
+
+    roiDividerBlockLabel: "Divider block(s):",
+
+    roiInstallationKitLabel: "Pulsarlube installation kit:",
+
+    roiAnnualCartridgeCostLabel: "Annual cartridge cost:",
+
+    roiCartridgeCostLabel: "Price per cartridge / service pack:",
+
+    roiEmptyUnitCostLabel: "Price empty lubricator:",
+
+    roiCartridgeConsumptionLabel: "Cartridge usage/year:",
+
+    roiChosenUnitLabel: "Selected lubricator:",
+
+    roiAutoSub: "With selected lubricator (annual basis)",
+
+    roiAutoLubricationTitle: "Automatic Lubrication",
+
+    roiManualSub: "With Interflon product (annual basis)",
+
+    roiManualLubricationTitle: "Manual Lubrication",
+
+    chainAnnualConsumptionLabel: "Annual consumption:",
+
+    chainMonthlyVolumeLabel: "Monthly volume:",
+
+    chainWeeklyVolumeLabel: "Weekly volume:",
+
+    chainHourlyVolumeLabel: "Hourly oil volume:",
+
+    chainDailyVolumeLabel: "Daily oil volume:",
+
+    chainOutputTitle: "Calculated Chain Oil Dosage",
+
+    chainEnvHeavy: "Heavy duty / Outdoor (+80% lubrication need)",
+
+    chainEnvHumid: "Humid / Wet (+50% lubrication need)",
+
+    chainEnvDusty: "Dusty / Dirty (+30% lubrication need)",
+
+    chainEnvNormal: "Normal (Clean, dry, 20°C)",
+
+    chainEnvConditionsLabel: "Environmental Conditions",
+
+    chainMicpolFactorLabel: "MicPol® Conversion Factor",
+
+    chainTempLabel: "Operating Temperature (°C)",
+
+    chainSpeedLabel: "Chain Speed (m/s)",
+
+    chainLengthLabel: "Chain Length (meters)",
+
+    chainOperatingParamsTitle: "Chain Operating Parameters",
+
+    chainSelectOilLabel: "Select Interflon Chain Oil",
+
+    chainInputParamsTitle: "Chain Input Parameters",
+
+    chainVisualDimensions: "Visual Dimensions",
+
+    chainTriplexLabel: "Triplex Roller Chain (Triple Strand)",
+
+    chainDuplexLabel: "Duplex Roller Chain (Double Strand)",
+
+    chainSimplexLabel: "Simplex Roller Chain (Single Strand)",
+
+    chainTypeIllustration: "Chain Type Illustration",
+
+    btnStartChainCalc: "Start Chain Lubrication Calc",
+
+    chainPinDiamLabel: "Pin Diameter (d₂)",
+
+    chainRollerDiamLabel: "Roller Diameter (d₁)",
+
+    chainInnerWidthLabel: "Inner Width (b₁)",
+
+    chainPitchLabel: "Pitch (p)",
+
+    chainTypeLabel: "Chain Type / Execution",
+
+    chainStandardLabel: "Standard / Norm",
+
+    chainSpecsTitle: "Chain Specifications:",
+
+    noChainSelected: "No chain selected",
+
+    selectChainCalcBtn: "Open Chain Calculation",
+
+    selectChainCalcDesc: "Calculate oil dosage, volume per minute, lubrication intervals and automation settings for drive and conveyor chains.",
+
+    selectChainCalcTitle: "Chain Calculation",
+
+    selectBearingCalcBtn: "Open Bearing Calculation",
+
+    selectBearingCalcDesc: "Determine grease type, relubrication quantities, lubrication intervals and automation settings.",
+
+    selectBearingCalcTitle: "Bearing Calculation",
+
+    modeRoiExcludeDesc: "Skips the ROI Automation page in the PDF report.",
+
+    modeRoiExcludeTitle: "Excludes ROI calculation automation",
+
+    modeRoiIncludeDesc: "Adds an extra page at the bottom with the ROI comparison for automatic lubrication.",
+
+    modeRoiIncludeTitle: "Includes ROI calculation automation",
+
+    modeRoiTitle: "2. ROI Calculation Automation",
+
+    modeTcoTitle: "1. TCO Calculation Model",
+
+    modeSelectSubtitle: "Select how the report should be generated for this calculation.",
+
+    modeSelectTitle: "Choose Reporting Mode",
+
     descGrease: "Determines the maximum DN factor and consistency.",
     descHoursPerDay: "Number of hours the machine operates per day.",
     descDaysPerWeek: "Number of days the machine is operational per week.",
@@ -1641,6 +1977,174 @@ const TRANSLATIONS = {
     btnLagertypes: "Bearing Types"
   },
   fr: {
+    theoreticalRuntimeLabel: "• Calculé théoriquement:",
+
+    displaySettingLabel: "Réglage écran sur l'appareil:",
+
+    plcSettingLabel: "Réglage PLC sur l'appareil:",
+
+    dialKnobSettingLabel: "Réglage du bouton rotatif:",
+
+    btnViewDimensions: "Voir les dimensions",
+
+    btnApplyRecommendation: "Appliquer le conseil",
+
+    devicePulsarlubeQuad: "4 appareils (Pulsarlube A, B, C & D)",
+
+    devicePulsarlubeTriple: "3 appareils (Pulsarlube A, B & C)",
+
+    devicePulsarlubeDouble: "2 appareils (Pulsarlube A & Pulsarlube B)",
+
+    devicePulsarlubeSingle: "1 appareil (Pulsarlube A)",
+
+    menuVragenlijst: "Questionnaire",
+
+    roiYearsWord: "ans",
+
+    roiSavingsAfterLabel: "Économies après",
+
+    roiPaybackPeriodSub: "Temps d'amortissement de l'investissement",
+
+    roiPaybackPeriodTitle: "Temps de Retour sur Investissement (ROI)",
+
+    roiNetResultYear1Sub: "Incluant l'installation initiale",
+
+    roiNetResultYear1Title: "Résultat Net Année 1",
+
+    roiFromYear2Label: "À Partir de l'Année 2",
+
+    roiStructuralSavingsTitle: "Économie Annuelle Structurelle",
+
+    roiFinancialAnalysisSub: "Comparaison directe main-d'œuvre & graisse manuelle vs. module de graissage automatique",
+
+    roiFinancialAnalysisTitle: "Analyse Financière & Résultat ROI",
+
+    roiYear2PlusLabel: "Année 2+ Récurrent",
+
+    roiYear1TotalLabel: "Année 1 Total",
+
+    roiDowntimeCostLabel: "Coût d'arrêt (annuel):",
+
+    roiPartsCostLabel: "Coût matériel pièces (annuel):",
+
+    roiRevisionLaborLabel: "Temps de révision (annuel):",
+
+    roiCartridgeChangeLaborLabel: "Main-d'œuvre remplacement cartouches:",
+
+    roiDividerBlockLabel: "Bloc(s) de distribution:",
+
+    roiInstallationKitLabel: "Kit d'installation Pulsarlube:",
+
+    roiAnnualCartridgeCostLabel: "Coût annuel des cartouches:",
+
+    roiCartridgeCostLabel: "Prix par cartouche / kit service:",
+
+    roiEmptyUnitCostLabel: "Prix appareil vide:",
+
+    roiCartridgeConsumptionLabel: "Consommation cartouches/an:",
+
+    roiChosenUnitLabel: "Graisseur sélectionné:",
+
+    roiAutoSub: "Avec le graisseur sélectionné (base annuelle)",
+
+    roiAutoLubricationTitle: "Graissage Automatique",
+
+    roiManualSub: "Avec produit Interflon (base annuelle)",
+
+    roiManualLubricationTitle: "Graissage Manuel",
+
+    chainAnnualConsumptionLabel: "Consommation annuelle:",
+
+    chainMonthlyVolumeLabel: "Volume mensuel:",
+
+    chainWeeklyVolumeLabel: "Volume hebdomadaire:",
+
+    chainHourlyVolumeLabel: "Volume d'huile par heure:",
+
+    chainDailyVolumeLabel: "Volume d'huile quotidien:",
+
+    chainOutputTitle: "Débit d'Huile de Chaîne Calculé",
+
+    chainEnvHeavy: "Charge lourde / Extérieur (+80% besoin de graissage)",
+
+    chainEnvHumid: "Humide / Mouillé (+50% besoin de graissage)",
+
+    chainEnvDusty: "Poussiéreux / Sale (+30% besoin de graissage)",
+
+    chainEnvNormal: "Normal (Propre, sec, 20°C)",
+
+    chainEnvConditionsLabel: "Conditions Environnementales",
+
+    chainMicpolFactorLabel: "Facteur de Conversion MicPol®",
+
+    chainTempLabel: "Température de Fonctionnement (°C)",
+
+    chainSpeedLabel: "Vitesse de Chaîne (m/s)",
+
+    chainLengthLabel: "Longueur de Chaîne (mètres)",
+
+    chainOperatingParamsTitle: "Paramètres d'Exploitation Chaîne",
+
+    chainSelectOilLabel: "Sélectionnez l'Huile de Chaîne Interflon",
+
+    chainInputParamsTitle: "Paramètres d'Entrée Chaîne",
+
+    chainVisualDimensions: "Dimensions Visuelles",
+
+    chainTriplexLabel: "Chaîne à Rouleaux Triplex (Triple Piste)",
+
+    chainDuplexLabel: "Chaîne à Rouleaux Duplex (Double Piste)",
+
+    chainSimplexLabel: "Chaîne à Rouleaux Simplex (Monopiste)",
+
+    chainTypeIllustration: "Illustration du Type de Chaîne",
+
+    btnStartChainCalc: "Démarrer Calcul de Graissage Chaîne",
+
+    chainPinDiamLabel: "Diamètre de l'Axe (d₂)",
+
+    chainRollerDiamLabel: "Diamètre du Rouleau (d₁)",
+
+    chainInnerWidthLabel: "Largeur Intérieure (b₁)",
+
+    chainPitchLabel: "Pas / Pitch (p)",
+
+    chainTypeLabel: "Type de Chaîne / Exécution",
+
+    chainStandardLabel: "Norme / Standard",
+
+    chainSpecsTitle: "Spécifications de la Chaîne:",
+
+    noChainSelected: "Aucune chaîne sélectionnée",
+
+    selectChainCalcBtn: "Ouvrir Calcul de Chaînes",
+
+    selectChainCalcDesc: "Calculez le dosage d'huile, le volume par minute, les intervalles de graissage et les réglages d'automatisation pour chaînes d'entraînement et de convoyeur.",
+
+    selectChainCalcTitle: "Calcul de Chaînes",
+
+    selectBearingCalcBtn: "Ouvrir Calcul de Roulements",
+
+    selectBearingCalcDesc: "Déterminez le type de graisse, les quantités de regraissage, les intervalles et les réglages d'automatisation.",
+
+    selectBearingCalcTitle: "Calcul de Roulements",
+
+    modeRoiExcludeDesc: "Passe la page ROI Automatisation dans le rapport PDF.",
+
+    modeRoiExcludeTitle: "Excludes ROI calculation automation",
+
+    modeRoiIncludeDesc: "Ajoute une page supplémentaire en bas avec la comparaison du ROI pour le graissage automatique.",
+
+    modeRoiIncludeTitle: "Inclut le calcul du ROI automatisation",
+
+    modeRoiTitle: "2. Calcul du ROI Automatisation",
+
+    modeTcoTitle: "1. Modèle de Calcul TCO",
+
+    modeSelectSubtitle: "Sélectionnez la façon dont le rapport doit être généré pour ce calcul.",
+
+    modeSelectTitle: "Choisissez le Mode de Rapport",
+
     descGrease: "Détermine le facteur DN maximum et la consistance.",
     descHoursPerDay: "Nombre d'heures pendant lesquelles la machine fonctionne par jour.",
     descDaysPerWeek: "Nombre de jours pendant lesquels la machine est opérationnelle par semaine.",
@@ -9699,7 +10203,8 @@ function getSurveyUrl() {
   const clientEmail = localStorage.getItem("client_email") || "";
 
   let params = new URLSearchParams();
-  params.set("v", "20260824_1025");
+  params.set("v", "20260824_1035");
+  if (typeof currentLang !== "undefined" && currentLang) params.set("lang", currentLang);
   if (opEmail) params.set("contact", opEmail);
   if (clientCompany) params.set("company", clientCompany);
   if (clientContact) params.set("client_contact", clientContact);
