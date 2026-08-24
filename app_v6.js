@@ -9691,24 +9691,39 @@ function onSinglePointNumBearingsChange(val) {
 }
 
 
+
+function getSurveyUrl() {
+  const opEmail = localStorage.getItem("operator_email") || "";
+  const clientCompany = localStorage.getItem("client_company") || "";
+  const clientContact = localStorage.getItem("client_contact") || "";
+  const clientEmail = localStorage.getItem("client_email") || "";
+
+  let params = new URLSearchParams();
+  if (opEmail) params.set("contact", opEmail);
+  if (clientCompany) params.set("company", clientCompany);
+  if (clientContact) params.set("client_contact", clientContact);
+  if (clientEmail) params.set("client_email", clientEmail);
+
+  const queryString = params.toString();
+  return "https://www.interflonapps.com/vragenlijst.html" + (queryString ? "?" + queryString : "");
+}
+
+function openSurveyLink(e) {
+  if (e) e.preventDefault();
+  const url = getSurveyUrl();
+  window.open(url, '_blank');
+}
+
 function copySurveyLink() {
-  let email = "";
-  if (typeof operatorDetails !== 'undefined' && operatorDetails && operatorDetails.email) {
-    email = operatorDetails.email;
-  }
-  
-  let baseUrl = "https://www.interflonapps.com/vragenlijst.html";
-  if (email) {
-    baseUrl += "?contact=" + encodeURIComponent(email);
-  }
+  const url = getSurveyUrl();
 
   if (navigator.clipboard && navigator.clipboard.writeText) {
-    navigator.clipboard.writeText(baseUrl).then(() => {
-      alert("📋 Unieke vragenlijst-link gekopieerd naar uw klembord!\n\nLink: " + baseUrl + "\n\nPlak deze link (Ctrl + V) in een e-mail naar uw klant.");
+    navigator.clipboard.writeText(url).then(() => {
+      alert("📋 Unieke vragenlijst-link gekopieerd met alle ingestelde klant- en contactgegevens!\n\nLink: " + url + "\n\nPlak deze link (Ctrl + V) in een e-mail naar uw klant.");
     }).catch(err => {
-      prompt("Kopieer onderstaande link om naar uw klant te sturen:", baseUrl);
+      prompt("Kopieer onderstaande link om naar uw klant te sturen:", url);
     });
   } else {
-    prompt("Kopieer onderstaande link om naar uw klant te sturen:", baseUrl);
+    prompt("Kopieer onderstaande link om naar uw klant te sturen:", url);
   }
 }
