@@ -329,9 +329,18 @@
         </div>
 
         <div class="grid-2">
+          <!-- Question 8: 2 Fields (Number Input + Unit Dropdown) -->
           <div class="form-group">
-            <label for="q4_freq">8. Huidige smeerfrequentie / interval</label>
-            <input type="text" id="q4_freq" class="form-control" placeholder="Bijv. Wekelijks, Maandelijks, Elke 500 uur" oninput="saveCurrentSection2Data()">
+            <label for="q4_freq_num">8. Huidige smeerfrequentie / interval</label>
+            <div style="display: flex; gap: 8px;">
+              <input type="number" id="q4_freq_num" class="form-control" style="flex: 1;" placeholder="Bijv. 1, 500" oninput="saveCurrentSection2Data()">
+              <select id="q4_freq_unit" class="form-control" style="width: 130px;" onchange="saveCurrentSection2Data()">
+                <option value="Uren">Uren</option>
+                <option value="Weken" selected>Weken</option>
+                <option value="Maanden">Maanden</option>
+                <option value="Jaren">Jaren</option>
+              </select>
+            </div>
           </div>
           <div class="form-group">
             <label for="q29_life">9. Wat is de huidige gemiddelde levensduur van het lager (Maanden)?</label>
@@ -543,7 +552,7 @@
     
     // Maps storing section inputs per bearing letter
     let bearingDataMapSec2 = {
-      'A': { q11: '', q12_price: '', q4_freq: '', q29_life: '', q13: '16', q14: '5' }
+      'A': { q11: '', q12_price: '', q4_freq_num: '', q4_freq_unit: 'Weken', q29_life: '', q13: '16', q14: '5' }
     };
     let bearingDataMapSec3 = {
       'A': { q15: '', q16: '', q17: '3', q18: '4', q19: '2', q20: '3', q21: '3', q22: '2' }
@@ -588,7 +597,7 @@
         if (posIn) posIn.name = 'Lager ' + letter + ' - As Positie';
 
         // Ensure state entries exist
-        if (!bearingDataMapSec2[letter]) bearingDataMapSec2[letter] = { q11: '', q12_price: '', q4_freq: '', q29_life: '', q13: '16', q14: '5' };
+        if (!bearingDataMapSec2[letter]) bearingDataMapSec2[letter] = { q11: '', q12_price: '', q4_freq_num: '', q4_freq_unit: 'Weken', q29_life: '', q13: '16', q14: '5' };
         if (!bearingDataMapSec3[letter]) bearingDataMapSec3[letter] = { q15: '', q16: '', q17: '3', q18: '4', q19: '2', q20: '3', q21: '3', q22: '2' };
         if (!bearingDataMapSec4[letter]) bearingDataMapSec4[letter] = { q24: '', q25: '', q26: '', q27: '', q28: '', q30: '' };
 
@@ -676,7 +685,7 @@
       `;
       container.appendChild(row);
 
-      bearingDataMapSec2[letter] = { q11: '', q12_price: '', q4_freq: '', q29_life: '', q13: '16', q14: '5' };
+      bearingDataMapSec2[letter] = { q11: '', q12_price: '', q4_freq_num: '', q4_freq_unit: 'Weken', q29_life: '', q13: '16', q14: '5' };
       bearingDataMapSec3[letter] = { q15: '', q16: '', q17: '3', q18: '4', q19: '2', q20: '3', q21: '3', q22: '2' };
       bearingDataMapSec4[letter] = { q24: '', q25: '', q26: '', q27: '', q28: '', q30: '' };
 
@@ -716,17 +725,19 @@
       }
       bearingDataMapSec2[activeBearingSec2].q11 = document.getElementById('q11').value;
       bearingDataMapSec2[activeBearingSec2].q12_price = document.getElementById('q12_price').value;
-      bearingDataMapSec2[activeBearingSec2].q4_freq = document.getElementById('q4_freq').value;
+      bearingDataMapSec2[activeBearingSec2].q4_freq_num = document.getElementById('q4_freq_num').value;
+      bearingDataMapSec2[activeBearingSec2].q4_freq_unit = document.getElementById('q4_freq_unit').value;
       bearingDataMapSec2[activeBearingSec2].q29_life = document.getElementById('q29_life').value;
       bearingDataMapSec2[activeBearingSec2].q13 = document.getElementById('q13').value;
       bearingDataMapSec2[activeBearingSec2].q14 = document.getElementById('q14').value;
     }
 
     function loadSection2DataForBearing(letter) {
-      const data = bearingDataMapSec2[letter] || { q11: '', q12_price: '', q4_freq: '', q29_life: '', q13: '16', q14: '5' };
+      const data = bearingDataMapSec2[letter] || { q11: '', q12_price: '', q4_freq_num: '', q4_freq_unit: 'Weken', q29_life: '', q13: '16', q14: '5' };
       document.getElementById('q11').value = data.q11 || '';
       document.getElementById('q12_price').value = data.q12_price || '';
-      document.getElementById('q4_freq').value = data.q4_freq || '';
+      document.getElementById('q4_freq_num').value = data.q4_freq_num || '';
+      document.getElementById('q4_freq_unit').value = data.q4_freq_unit || 'Weken';
       document.getElementById('q29_life').value = data.q29_life || '';
       document.getElementById('q13').value = data.q13 || '16';
       document.getElementById('q14').value = data.q14 || '5';
@@ -847,10 +858,12 @@
 
         if (descVal) createHidden('Lager ' + letter + ' - Omschrijving', descVal);
 
+        const freqStr = d2.q4_freq_num ? (d2.q4_freq_num + ' ' + (d2.q4_freq_unit || 'Weken')) : '-';
+
         // Section 2 per bearing
         createHidden('Lager ' + letter + ' - 6. Huidig Smeermiddel', d2.q11);
         createHidden('Lager ' + letter + ' - 7. Prijs per Liter (€)', d2.q12_price ? '€' + d2.q12_price : '-');
-        createHidden('Lager ' + letter + ' - 8. Smeerfrequentie', d2.q4_freq);
+        createHidden('Lager ' + letter + ' - 8. Smeerfrequentie', freqStr);
         createHidden('Lager ' + letter + ' - 9. Gemiddelde Levensduur (mnd)', d2.q29_life ? d2.q29_life + ' mnd' : '-');
         createHidden('Lager ' + letter + ' - 10. Uren per dag', d2.q13 || '16');
         createHidden('Lager ' + letter + ' - 11. Dagen per week', d2.q14 || '5');
@@ -913,13 +926,15 @@
           const rpm = inputs[3] ? inputs[3].value : '';
           const positie = select ? select.value : 'Horizontaal';
 
+          const freqStr = d2.q4_freq_num ? (d2.q4_freq_num + ' ' + (d2.q4_freq_unit || 'Weken')) : '-';
+
           bodyText += "========================================\n";
           bodyText += "📌 [LAGER " + letter + "]: " + aantal + "x " + (nr || 'Lager') + (desc ? " - " + desc : "") + (rpm ? " (" + rpm + " RPM)" : "") + " - " + positie + "\n";
           bodyText += "========================================\n";
           bodyText += "2. SMEERSITUATIE:\n";
           bodyText += "  • Huidig smeermiddel: " + (d2.q11 || '-') + "\n";
           bodyText += "  • Prijs smeermiddel: " + (d2.q12_price ? '€' + d2.q12_price + ' / L' : '-') + "\n";
-          bodyText += "  • Smeerfrequentie/interval: " + (d2.q4_freq || '-') + "\n";
+          bodyText += "  • Smeerfrequentie/interval: " + freqStr + "\n";
           bodyText += "  • Gemiddelde levensduur: " + (d2.q29_life ? d2.q29_life + ' maanden' : '-') + "\n";
           bodyText += "  • Operationele uren/dag: " + (d2.q13 || '16') + "\n";
           bodyText += "  • Operationele dagen/week: " + (d2.q14 || '5') + "\n\n";
@@ -969,7 +984,7 @@
       const reportText = buildReportSummary();
       if (navigator.clipboard && navigator.clipboard.writeText) {
         navigator.clipboard.writeText(reportText).then(() => {
-          alert("📋 Alle ingevulde antwoorden (inclusief lageromschrijvingen) zijn gekopieerd naar uw klembord!\n\nU kunt deze nu direct plakken (Ctrl + V) in een e-mailbericht.");
+          alert("📋 Alle ingevulde antwoorden zijn gekopieerd naar uw klembord!\n\nU kunt deze nu direct plakken (Ctrl + V) in een e-mailbericht.");
         }).catch(err => {
           prompt("Kopieer onderstaande antwoorden:", reportText);
         });
