@@ -131,8 +131,6 @@
       border-radius: 6px;
       display: flex;
       align-items: center;
-      justify-content: justify-center;
-      display: inline-flex;
       justify-content: center;
     }
     .submit-btn {
@@ -216,7 +214,7 @@
 
       <!-- Section 1: Machinedetails -->
       <div class="survey-section">
-        <h2 class="survey-section-title">⚙️ 1. Machinedetails & Lagerspecificaties</h2>
+        <h2 class="survey-section-title">⚙️ 1. Machinedetails & Lagersificaties</h2>
         <div class="grid-2">
           <div class="form-group">
             <label for="q1">1. Naam van de machine *</label>
@@ -280,55 +278,39 @@
         </div>
       </div>
 
-      <!-- Section 2: Smeeromstandigheden & Smeermiddel -->
+      <!-- Section 2: Huidige Smeersituatie & Bedrijfsuren (EXACT TRUE ORIGINAL QUESTIONS) -->
       <div class="survey-section">
-        <h2 class="survey-section-title">🛢️ 2. Smeeromstandigheden & Smeermiddel</h2>
-        
+        <h2 class="survey-section-title">🛢️ 2. Huidige Smeersituatie & Bedrijfsuren</h2>
         <div class="grid-2">
           <div class="form-group">
-            <label for="q6">6. Type huidige smering</label>
-            <select name="6. Type Smering" id="q6" class="form-control">
-              <option value="Standaard vet (NLGI 2)">Standaard vet (NLGI 2)</option>
-              <option value="Vloeibaar vet (NLGI 00/000)">Vloeibaar vet (NLGI 00/000)</option>
-              <option value="Olie (ISO VG)">Olie (ISO VG)</option>
-              <option value="Droogsmering / PTFE">Droogsmering / PTFE</option>
-            </select>
+            <label for="q11">6. Huidig smeermiddel (Merk & Type)</label>
+            <input type="text" name="6. Huidig Smeermiddel" id="q11" class="form-control" placeholder="Bijv. Shell Gadus S2 V220, Mobilux EP2">
           </div>
           <div class="form-group">
-            <label for="q7">7. Merk en exacte productnaam van het huidige vet/olie</label>
-            <input type="text" name="7. Huidig Product" id="q7" class="form-control" placeholder="Bijv. Mobilux EP2, Shell Gadus S2 V220">
+            <label for="q12_price">7. Prijs huidig smeermiddel (€ per Liter / kg)</label>
+            <input type="number" step="0.01" name="7. Prijs Huidig Smeermiddel" id="q12_price" class="form-control" placeholder="Bijv. 18.50">
           </div>
         </div>
 
         <div class="grid-2">
           <div class="form-group">
-            <label for="q9">8. Smeermethode</label>
-            <select name="8. Smeermethode" id="q9" class="form-control">
-              <option value="Manueel met vetspuit">Manueel met vetspuit</option>
-              <option value="Automatisch (Enkelpunt smeerpatroon)">Automatisch (Enkelpunt smeerpatroon)</option>
-              <option value="Centraal smeersysteem">Centraal smeersysteem</option>
-              <option value="Oliebad / Oliespat">Oliebad / Oliespat</option>
-            </select>
+            <label for="q4_freq">8. Huidige smeerfrequentie / interval</label>
+            <input type="text" name="8. Huidige Smeerfrequentie" id="q4_freq" class="form-control" placeholder="Bijv. Wekelijks, Maandelijks, Elke 500 uur">
           </div>
           <div class="form-group">
-            <label for="q11">9. Huidige smeerfrequentie / interval</label>
-            <input type="text" name="9. Smeerinterval" id="q11" class="form-control" placeholder="Bijv. 1x per week, 500 uur">
+            <label for="q29_life">9. Huidige gemiddelde levensduur lager (maanden)</label>
+            <input type="number" name="9. Gemiddelde Levensduur Lager" id="q29_life" class="form-control" placeholder="Bijv. 12 maanden">
           </div>
-        </div>
-
-        <div class="form-group">
-          <label for="q12">10. Hoeveelheid vet/olie per smeerbeurt</label>
-          <input type="text" name="10. Hoeveelheid per beurt" id="q12" class="form-control" placeholder="Bijv. 3 slagen vetspuit of 50 ml">
         </div>
 
         <div class="grid-2">
           <div class="form-group">
-            <label for="q13">11. Operationele uren per dag</label>
-            <input type="number" name="11. Uren per dag" id="q13" class="form-control" min="1" max="24" value="16">
+            <label for="q13">10. Operationele uren per dag</label>
+            <input type="number" name="10. Uren per dag" id="q13" class="form-control" min="1" max="24" value="16">
           </div>
           <div class="form-group">
-            <label for="q14">12. Operationele dagen per week</label>
-            <input type="number" name="12. Dagen per week" id="q14" class="form-control" min="1" max="7" value="5">
+            <label for="q14">11. Operationele dagen per week</label>
+            <input type="number" name="11. Dagen per week" id="q14" class="form-control" min="1" max="7" value="5">
           </div>
         </div>
       </div>
@@ -338,61 +320,61 @@
         <h2 class="survey-section-title">🌡️ 3. Omgevingscondities & Belastingen</h2>
         <div class="grid-2">
           <div class="form-group">
-            <label for="q15">13. Omgevingstemperatuur (°C)</label>
-            <input type="number" name="13. Omgevingstemperatuur" id="q15" class="form-control" placeholder="Bijv. 20 °C">
+            <label for="q15">12. Omgevingstemperatuur (°C)</label>
+            <input type="number" name="12. Omgevingstemperatuur" id="q15" class="form-control" placeholder="Bijv. 20 °C">
           </div>
           <div class="form-group">
-            <label for="q16">14. Huidige (maximum) lagertemperatuur (°C)</label>
-            <input type="number" name="14. Lagertemperatuur" id="q16" class="form-control" placeholder="Bijv. 65 °C">
+            <label for="q16">13. Huidige (maximum) lagertemperatuur (°C)</label>
+            <input type="number" name="13. Lagertemperatuur" id="q16" class="form-control" placeholder="Bijv. 65 °C">
           </div>
         </div>
 
         <p style="font-size: 13.5px; font-weight: 600; color: #475569; margin: 16px 0 14px 0;">Beoordeel onderstaande omgevingsinvloeden (schaal 1 = Geen invloed, 10 = Zeer zware invloed):</p>
 
         <div class="form-group">
-          <label>15. Water, vocht of stoom</label>
+          <label>14. Water, vocht of stoom</label>
           <div class="range-group">
-            <input type="range" name="15. Water Vocht Stoom (1-10)" id="q17" min="1" max="10" value="3" oninput="document.getElementById('b17').innerText=this.value">
+            <input type="range" name="14. Water Vocht Stoom (1-10)" id="q17" min="1" max="10" value="3" oninput="document.getElementById('b17').innerText=this.value">
             <div id="b17" class="range-badge">3</div>
           </div>
         </div>
 
         <div class="form-group">
-          <label>16. Stof of zand</label>
+          <label>15. Stof of zand</label>
           <div class="range-group">
-            <input type="range" name="16. Stof of Zand (1-10)" id="q18" min="1" max="10" value="4" oninput="document.getElementById('b18').innerText=this.value">
+            <input type="range" name="15. Stof of Zand (1-10)" id="q18" min="1" max="10" value="4" oninput="document.getElementById('b18').innerText=this.value">
             <div id="b18" class="range-badge">4</div>
           </div>
         </div>
 
         <div class="form-group">
-          <label>17. Abrasieve stoffen / vervuiling</label>
+          <label>16. Abrasieve stoffen / vervuiling</label>
           <div class="range-group">
-            <input type="range" name="17. Abrasief Vervuiling (1-10)" id="q19" min="1" max="10" value="2" oninput="document.getElementById('b19').innerText=this.value">
+            <input type="range" name="16. Abrasief Vervuiling (1-10)" id="q19" min="1" max="10" value="2" oninput="document.getElementById('b19').innerText=this.value">
             <div id="b19" class="range-badge">2</div>
           </div>
         </div>
 
         <div class="form-group">
-          <label>18. Schokbelastingen</label>
+          <label>17. Schokbelastingen</label>
           <div class="range-group">
-            <input type="range" name="18. Schokbelasting (1-10)" id="q20" min="1" max="10" value="3" oninput="document.getElementById('b20').innerText=this.value">
+            <input type="range" name="17. Schokbelasting (1-10)" id="q20" min="1" max="10" value="3" oninput="document.getElementById('b20').innerText=this.value">
             <div id="b20" class="range-badge">3</div>
           </div>
         </div>
 
         <div class="form-group">
-          <label>19. Vibraties & trillingen</label>
+          <label>18. Vibraties & trillingen</label>
           <div class="range-group">
-            <input type="range" name="19. Vibraties Trillingen (1-10)" id="q21" min="1" max="10" value="3" oninput="document.getElementById('b21').innerText=this.value">
+            <input type="range" name="18. Vibraties Trillingen (1-10)" id="q21" min="1" max="10" value="3" oninput="document.getElementById('b21').innerText=this.value">
             <div id="b21" class="range-badge">3</div>
           </div>
         </div>
 
         <div class="form-group">
-          <label>20. Condensatie</label>
+          <label>19. Condensatie</label>
           <div class="range-group">
-            <input type="range" name="20. Condensatie (1-10)" id="q22" min="1" max="10" value="2" oninput="document.getElementById('b22').innerText=this.value">
+            <input type="range" name="19. Condensatie (1-10)" id="q22" min="1" max="10" value="2" oninput="document.getElementById('b22').innerText=this.value">
             <div id="b22" class="range-badge">2</div>
           </div>
         </div>
@@ -403,34 +385,34 @@
         <h2 class="survey-section-title">⏱️ 4. Onderhouds- & Downtimekosten</h2>
         <div class="grid-2">
           <div class="form-group">
-            <label for="q24">21. Tijdsduur per smeerbeurt (minuten)</label>
-            <input type="number" name="21. Tijdsduur per beurt (min)" id="q24" class="form-control" placeholder="Bijv. 10 minuten">
+            <label for="q24">20. Tijdsduur per smeerbeurt (minuten)</label>
+            <input type="number" name="20. Tijdsduur per beurt (min)" id="q24" class="form-control" placeholder="Bijv. 10 minuten">
           </div>
           <div class="form-group">
-            <label for="q25">22. Uurloon onderhoudstechnicus (€/uur)</label>
-            <input type="number" step="0.01" name="22. Uurloon technicus (€)" id="q25" class="form-control" placeholder="Bijv. 65.00">
-          </div>
-        </div>
-
-        <div class="grid-2">
-          <div class="form-group">
-            <label for="q26">23. Tijdsduur revisie/vervanging lager (uren)</label>
-            <input type="number" step="0.5" name="23. Downtime per lager (H)" id="q26" class="form-control" placeholder="Bijv. 3 uren">
-          </div>
-          <div class="form-group">
-            <label for="q27">24. Voorbereidingstijd revisie (uren)</label>
-            <input type="number" step="0.5" name="24. Voorbereidingstijd (H)" id="q27" class="form-control" placeholder="Bijv. 1 uur">
+            <label for="q25">21. Uurloon onderhoudstechnicus (€/uur)</label>
+            <input type="number" step="0.01" name="21. Uurloon technicus (€)" id="q25" class="form-control" placeholder="Bijv. 65.00">
           </div>
         </div>
 
         <div class="grid-2">
           <div class="form-group">
-            <label for="q28">25. Kostprijs stilstand / downtime (€/uur)</label>
-            <input type="number" step="0.01" name="25. Downtime kost (€/H)" id="q28" class="form-control" placeholder="Bijv. 450.00">
+            <label for="q26">22. Tijdsduur revisie/vervanging lager (uren)</label>
+            <input type="number" step="0.5" name="22. Downtime per lager (H)" id="q26" class="form-control" placeholder="Bijv. 3 uren">
           </div>
           <div class="form-group">
-            <label for="q30">26. Prijs lager + wisselstukken (€)</label>
-            <input type="number" step="0.01" name="26. Kostprijs wisselstukken (€)" id="q30" class="form-control" placeholder="Bijv. 125.00">
+            <label for="q27">23. Voorbereidingstijd revisie (uren)</label>
+            <input type="number" step="0.5" name="23. Voorbereidingstijd (H)" id="q27" class="form-control" placeholder="Bijv. 1 uur">
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div class="form-group">
+            <label for="q28">24. Kostprijs stilstand / downtime (€/uur)</label>
+            <input type="number" step="0.01" name="24. Downtime kost (€/H)" id="q28" class="form-control" placeholder="Bijv. 450.00">
+          </div>
+          <div class="form-group">
+            <label for="q30">25. Prijs lager + wisselstukken (€)</label>
+            <input type="number" step="0.01" name="25. Kostprijs wisselstukken (€)" id="q30" class="form-control" placeholder="Bijv. 125.00">
           </div>
         </div>
       </div>
@@ -563,11 +545,10 @@
       });
 
       bodyText += "\n--- 2. SMEEROMSTANDIGHEDEN ---\n";
-      bodyText += "Type Smering: " + (document.getElementById('q6').value || '-') + "\n";
-      bodyText += "Huidige Product: " + (document.getElementById('q7').value || '-') + "\n";
-      bodyText += "Smeermethode: " + (document.getElementById('q9').value || '-') + "\n";
-      bodyText += "Smeerinterval: " + (document.getElementById('q11').value || '-') + "\n";
-      bodyText += "Hoeveelheid per beurt: " + (document.getElementById('q12').value || '-') + "\n";
+      bodyText += "Huidig Smeermiddel: " + (document.getElementById('q11').value || '-') + "\n";
+      bodyText += "Prijs Smeermiddel: €" + (document.getElementById('q12_price').value || '-') + "\n";
+      bodyText += "Smeerinterval: " + (document.getElementById('q4_freq').value || '-') + "\n";
+      bodyText += "Levensduur Lager: " + (document.getElementById('q29_life').value || '-') + " maanden\n";
       bodyText += "Operationele uren/dag: " + (document.getElementById('q13').value || '16') + "\n";
       bodyText += "Operationele dagen/week: " + (document.getElementById('q14').value || '5') + "\n\n";
 
