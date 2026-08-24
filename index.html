@@ -8,7 +8,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <link rel="stylesheet" href="style.css?v=20260824_1701">
+  <link rel="stylesheet" href="style.css?v=20260824_1707">
 </head>
 <body>
 
@@ -23,7 +23,7 @@
         <p data-i18n="loginSubtitle">Voer het paswoord in om toegang te krijgen tot de applicatie.</p>
       </div>
       
-      <form id="loginForm" onsubmit="handleLogin(event)">
+      <form id="loginForm" onsubmit="handleLogin(event); return false;">
         <div class="form-group" style="margin-bottom: 16px;">
           <label for="langSelect" data-i18n="selectLanguageLabel">Select your language</label>
           <select id="langSelect" class="form-control" onchange="changeLanguage(this.value)" style="padding-left: 16px; background-position: right 16px center;">
@@ -3077,10 +3077,10 @@
 
   <!-- JavaScript logic imports -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="interflon-data.js?v=20260824_1701"></script>
-  <script src="bearings-db.js?v=20260824_1701"></script>
-  <script src="chains-db.js?v=20260824_1701"></script>
-  <script src="app_v6.js?v=20260824_1701"></script>
+  <script src="interflon-data.js?v=20260824_1707"></script>
+  <script src="bearings-db.js?v=20260824_1707"></script>
+  <script src="chains-db.js?v=20260824_1707"></script>
+  <script src="app_v6.js?v=20260824_1707"></script>
 
   <!-- Interflon Oil Dispenser Information Modal (PowerPoint Viewer) -->
   <div id="oilDispenserInfoModal" class="modal-overlay hidden" style="z-index: 99999;">
