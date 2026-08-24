@@ -6,75 +6,110 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Interflon Smeeranalyse - Vragenlijst</title>
-  <meta name="description" content="Vul de vragenlijst in voor een nauwkeurige Interflon smeeranalyse en TCO-kostenberekening van uw machines.">
-  <link rel="stylesheet" href="style.css?v=20260824_0908">
+  <title data-i18n="pageTitle">Interflon Smeeranalyse - Vragenlijst</title>
+  <link rel="icon" type="image/png" href="interflon-logo-clean.png">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
   <style>
+    :root {
+      --primary-red: #E30613;
+      --primary-dark: #0f172a;
+      --bg-gradient: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+      --card-bg: #ffffff;
+      --border-color: #e2e8f0;
+      --text-main: #1e293b;
+      --text-muted: #64748b;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      background: var(--bg-body, #f8fafc);
-      font-family: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      color: var(--text-dark, #0f172a);
-      margin: 0;
-      padding: 20px 12px;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background: var(--bg-gradient);
+      color: var(--text-main);
+      padding: 24px 16px 60px 16px;
       min-height: 100vh;
     }
     .survey-container {
-      max-width: 820px;
-      margin: 0 auto 40px auto;
-      background: #ffffff;
-      border-radius: 16px;
-      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.04);
-      border: 1px solid rgba(226, 232, 240, 0.9);
-      overflow: hidden;
+      max-width: 860px;
+      margin: 0 auto;
     }
     .survey-header {
-      background: linear-gradient(135deg, #ffffff 0%, #f1f5f9 100%);
-      padding: 32px 28px 24px 28px;
-      border-bottom: 2px solid #E30613;
-      text-align: center;
-      position: relative;
+      background: #ffffff;
+      padding: 24px 28px;
+      border-radius: 16px;
+      border: 1px solid var(--border-color);
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.04);
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      flex-wrap: wrap;
     }
-    .survey-logo {
-      max-width: 280px;
-      height: auto;
-      margin: 0 auto 16px auto;
-      display: block;
+    .survey-header img {
+      height: 48px;
+      object-fit: contain;
     }
-    .survey-title {
-      font-size: 26px;
+    .survey-header-text h1 {
+      font-family: 'Outfit', sans-serif;
+      font-size: 22px;
       font-weight: 800;
-      color: #0f172a;
-      margin: 0 0 10px 0;
-      letter-spacing: -0.3px;
+      color: var(--primary-dark);
     }
-    .survey-intro {
-      font-size: 14.5px;
-      line-height: 1.6;
-      color: #475569;
-      max-width: 700px;
-      margin: 0 auto;
-      font-weight: 400;
-    }
-    .survey-body {
-      padding: 32px 28px;
+    .survey-header-text p {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-top: 2px;
     }
     .survey-section {
-      margin-bottom: 36px;
-      background: #f8fafc;
-      padding: 24px 20px;
-      border-radius: 12px;
-      border: 1px solid #e2e8f0;
+      background: #ffffff;
+      padding: 28px;
+      border-radius: 16px;
+      border: 1px solid var(--border-color);
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+      margin-bottom: 20px;
     }
     .survey-section-title {
-      font-size: 18px;
+      font-family: 'Outfit', sans-serif;
+      font-size: 17px;
       font-weight: 700;
-      color: #E30613;
-      margin: 0 0 18px 0;
+      color: var(--primary-dark);
+      margin-bottom: 20px;
+      padding-bottom: 12px;
+      border-bottom: 2px solid #f1f5f9;
       display: flex;
       align-items: center;
       gap: 10px;
-      border-bottom: 1px solid #cbd5e1;
-      padding-bottom: 10px;
+    }
+    .form-group {
+      margin-bottom: 20px;
+    }
+    .form-group label {
+      display: block;
+      font-size: 13.5px;
+      font-weight: 700;
+      color: #334155;
+      margin-bottom: 8px;
+    }
+    .form-control {
+      width: 100%;
+      padding: 12px 14px;
+      border: 1.5px solid #cbd5e1;
+      border-radius: 10px;
+      font-size: 14px;
+      font-family: inherit;
+      color: var(--text-main);
+      background: #f8fafc;
+      transition: all 0.2s;
+    }
+    .form-control:focus {
+      outline: none;
+      border-color: var(--primary-red);
+      background: #ffffff;
+      box-shadow: 0 0 0 3.5px rgba(227, 6, 19, 0.1);
+    }
+    textarea.form-control {
+      resize: vertical;
+      min-height: 90px;
     }
     .grid-2 {
       display: grid;
@@ -83,167 +118,190 @@
     }
     @media (max-width: 640px) {
       .grid-2 { grid-template-columns: 1fr; }
-      .survey-body { padding: 20px 16px; }
-      .survey-header { padding: 24px 16px; }
+      .bearing-row { grid-template-columns: 1fr 1fr !important; gap: 8px !important; }
     }
-    .form-group {
-      margin-bottom: 16px;
+    .checkbox-group, .radio-group {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 6px;
     }
-    .form-group label {
-      display: block;
-      font-size: 13.5px;
-      font-weight: 600;
-      color: #334155;
-      margin-bottom: 6px;
-    }
-    .form-control {
-      width: 100%;
-      padding: 10px 14px;
-      font-size: 14px;
-      border: 1px solid #cbd5e1;
-      border-radius: 8px;
-      background-color: #ffffff;
-      box-sizing: border-box;
-      transition: border-color 0.2s, box-shadow 0.2s;
-    }
-    .form-control:focus {
-      border-color: #E30613;
-      outline: none;
-      box-shadow: 0 0 0 3px rgba(227, 6, 19, 0.15);
-    }
-    .range-group {
+    .checkbox-label, .radio-label {
       display: flex;
       align-items: center;
-      gap: 14px;
+      gap: 10px;
+      font-size: 13.5px;
+      color: #334155;
+      cursor: pointer;
+      font-weight: 500;
+      background: #f8fafc;
+      padding: 10px 14px;
+      border-radius: 8px;
+      border: 1px solid #e2e8f0;
+      transition: all 0.15s;
     }
-    .range-group input[type="range"] {
-      flex: 1;
-      accent-color: #E30613;
+    .checkbox-label:hover, .radio-label:hover {
+      border-color: #cbd5e1;
+      background: #ffffff;
     }
-    .range-badge {
-      width: 42px;
-      height: 32px;
-      background: #E30613;
+    .checkbox-label input, .radio-label input {
+      accent-color: var(--primary-red);
+      width: 17px;
+      height: 17px;
+      cursor: pointer;
+    }
+    .btn-submit {
+      width: 100%;
+      background: var(--primary-red);
       color: white;
+      border: none;
+      padding: 15px 24px;
+      border-radius: 12px;
+      font-family: 'Outfit', sans-serif;
+      font-size: 16px;
       font-weight: 700;
-      font-size: 14px;
-      border-radius: 6px;
+      cursor: pointer;
+      box-shadow: 0 4px 14px rgba(227, 6, 19, 0.3);
+      transition: all 0.2s ease;
       display: flex;
       align-items: center;
       justify-content: center;
+      gap: 10px;
     }
-    .btn-group {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      margin-top: 24px;
+    .btn-submit:hover {
+      background: #c80510;
+      transform: translateY(-1px);
     }
-    .submit-btn {
+    .btn-secondary {
       width: 100%;
-      background: linear-gradient(135deg, #E30613 0%, #b9040f 100%);
-      color: white;
-      font-size: 16px;
+      background: #ffffff;
+      color: #334155;
+      border: 1.5px solid #cbd5e1;
+      padding: 12px 20px;
+      border-radius: 10px;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 14px;
       font-weight: 700;
-      padding: 15px;
-      border: none;
-      border-radius: 10px;
       cursor: pointer;
-      box-shadow: 0 4px 12px rgba(227, 6, 19, 0.3);
-      transition: transform 0.15s, box-shadow 0.15s;
-    }
-    .submit-btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 16px rgba(227, 6, 19, 0.4);
-    }
-    .secondary-btn {
-      width: 100%;
-      background: #0f172a;
-      color: white;
-      font-size: 14.5px;
-      font-weight: 600;
-      padding: 13px;
-      border: none;
-      border-radius: 10px;
-      cursor: pointer;
-      transition: background 0.2s;
+      transition: all 0.2s;
       display: flex;
       align-items: center;
       justify-content: center;
       gap: 8px;
+      margin-top: 10px;
     }
-    .secondary-btn:hover {
-      background: #1e293b;
+    .btn-secondary:hover {
+      background: #f1f5f9;
+      border-color: #94a3b8;
     }
-    .alert-success {
-      background: #f0fdf4;
-      border: 1px solid #bbf7d0;
-      color: #166534;
-      padding: 16px 20px;
-      border-radius: 10px;
+    .intro-box {
+      background: #eff6ff;
+      border: 1.5px solid #bfdbfe;
+      border-radius: 12px;
+      padding: 18px 22px;
       margin-bottom: 24px;
-      font-size: 14.5px;
-      line-height: 1.5;
-      display: none;
     }
+    .intro-box h3 {
+      font-size: 15px;
+      font-weight: 700;
+      color: #1e40af;
+      margin-bottom: 6px;
+    }
+    .intro-box p {
+      font-size: 13.5px;
+      color: #1e3a8a;
+      line-height: 1.5;
+    }
+    .success-banner {
+      display: none;
+      background: #dcfce7;
+      border: 1.5px solid #86efac;
+      color: #166534;
+      padding: 20px;
+      border-radius: 12px;
+      margin-bottom: 24px;
+      text-align: center;
+    }
+    .success-banner h3 { font-size: 18px; font-weight: 800; margin-bottom: 4px; }
+    .success-banner p { font-size: 14px; }
   </style>
 </head>
 <body>
 
   <div class="survey-container">
-    <!-- Header with Interflon Logo & Intro Text -->
+
+    <!-- Header -->
     <div class="survey-header">
-      <img src="interflon-logo-clean.png?v=20260824_0908" alt="Interflon Logo" class="survey-logo">
-      <h1 class="survey-title">Smeeranalyse & TCO Vragenlijst</h1>
-      <p class="survey-intro">
-        Beste klant, om een nauwkeurige smeeranalyse en rendementsberekening (TCO) voor uw machinepark uit te voeren, vragen wij u vriendelijk onderstaande vragen in te vullen. Met deze gegevens berekenen onze technische specialisten de optimale smeerfrequentie, kostenbesparing en levensduurverlenging.
-      </p>
+      <div style="display: flex; align-items: center; gap: 16px;">
+        <img src="interflon-logo-clean.png" alt="Interflon Logo">
+        <div class="survey-header-text">
+          <h1 data-i18n="headerTitle">Smeeranalyse Vragenlijst</h1>
+          <p data-i18n="headerSubtitle">Onderzoek & Optimalisatie van Machine-smering</p>
+        </div>
+      </div>
+      <div style="display: flex; align-items: center; justify-content: flex-end; gap: 12px;">
+        <select id="surveyLangSelect" onchange="changeSurveyLanguage(this.value)" style="padding: 7px 14px; border-radius: 8px; border: 1.5px solid #cbd5e1; background: #ffffff; font-weight: 700; font-size: 13.5px; color: #0f172a; cursor: pointer; outline: none;">
+          <option value="nl">🇳🇱 Nederlands</option>
+          <option value="en">🇬🇧 English</option>
+          <option value="fr">🇫🇷 Français</option>
+        </select>
+        <span data-i18n="badgeOnline" style="font-size: 13px; font-weight: 700; color: #E30613; background: #fee2e2; padding: 6px 14px; border-radius: 20px; border: 1px solid #fca5a5;">
+          Online Formulier
+        </span>
+      </div>
     </div>
 
-    <!-- Success Message Banner -->
-    <div id="successBanner" class="alert-success" style="margin: 20px 28px 0 28px;">
-      ✅ <strong>Vragenlijst succesvol verzonden!</strong> Onze Interflon specialist ontvangt uw antwoorden en neemt binnenkort contact met u op.
+    <!-- Success Banner -->
+    <div id="successBanner" class="success-banner">
+      <h3 data-i18n="successTitle">✅ Vragenlijst Succesvol Verzonden!</h3>
+      <p data-i18n="successDesc">Hartelijk dank voor uw invoer. Uw Interflon adviseur neemt zo snel mogelijk contact met u op.</p>
     </div>
 
-    <!-- Survey Form (submits directly via FormSubmit API to specified email address) -->
-    <form id="publicSurveyForm" action="https://formsubmit.co/info@interflon.com" method="POST" class="survey-body" onsubmit="prepareFormSubmission(event)">
+    <!-- Intro Box -->
+    <div class="intro-box">
+      <h3 data-i18n="introTitle">Welkom bij het Interflon Smeeranalyse Formulier</h3>
+      <p data-i18n="introText">Om u een optimaal smeeradvies op maat te kunnen bieden, verzoeken wij u onderstaande vragenlijst zo volledig mogelijk in te vullen. De ingevulde gegevens worden rechtstreeks verzonden naar uw Interflon smeertechnisch adviseur.</p>
+    </div>
 
-      <!-- Hidden FormSubmit Options -->
-      <input type="hidden" name="_subject" id="hiddenSubject" value="Nieuwe Interflon Smeeranalyse Vragenlijst">
-      <input type="hidden" name="_template" value="table">
+    <form id="surveyForm" action="https://formsubmit.co/tom.peckstadt@interflon.com" method="POST">
+      
+      <input type="hidden" name="_subject" value="Nieuwe Smeeranalyse Vragenlijst Ingevuld!">
       <input type="hidden" name="_captcha" value="false">
+      <input type="hidden" name="_next" value="https://www.interflonapps.com/vragenlijst.html?submitted=true">
+      <input type="hidden" name="_template" value="table">
       <input type="hidden" name="_replyto" id="hiddenReplyTo" value="">
 
       <!-- Section 1: Machinedetails -->
       <div class="survey-section">
-        <h2 class="survey-section-title">⚙️ 1. Machinedetails & Lagerspecificaties</h2>
+        <h2 class="survey-section-title" data-i18n="sec1Title">⚙️ 1. Machinedetails & Lagerspecificaties</h2>
         <div class="grid-2">
           <div class="form-group">
-            <label for="q1">1. Naam van de machine *</label>
-            <input type="text" name="1. Machine Naam" id="q1" class="form-control" placeholder="Bijv. Vullijn 3 / Hoofdtransportband" required>
+            <label for="q1" data-i18n="lblQ1">1. Naam van de machine *</label>
+            <input type="text" name="1. Machine Naam" id="q1" class="form-control" data-i18n-placeholder="phQ1" placeholder="Bijv. Vullijn 3 / Hoofdtransportband" required>
           </div>
           <div class="form-group">
-            <label for="q2">2. Merk van de machine</label>
-            <input type="text" name="2. Machine Merk" id="q2" class="form-control" placeholder="Bijv. Krones, Bosch, New Holland">
+            <label for="q2" data-i18n="lblQ2">2. Merk van de machine</label>
+            <input type="text" name="2. Machine Merk" id="q2" class="form-control" data-i18n-placeholder="phQ2" placeholder="Bijv. Krones, Bosch, New Holland">
           </div>
         </div>
 
         <div class="grid-2">
           <div class="form-group">
-            <label for="q3">3. Toepassing van de machine</label>
-            <input type="text" name="3. Toepassing" id="q3" class="form-control" placeholder="Bijv. Transportband, Menger, Ventilator, Pomp">
+            <label for="q3" data-i18n="lblQ3">3. Toepassing van de machine</label>
+            <input type="text" name="3. Toepassing" id="q3" class="form-control" data-i18n-placeholder="phQ3" placeholder="Bijv. Transportband, Menger, Ventilator, Pomp">
           </div>
           <div class="form-group">
-            <label for="q10">4. Aantal identieke machines in het park</label>
+            <label for="q10" data-i18n="lblQ4">4. Aantal identieke machines in het park</label>
             <input type="number" name="4. Aantal Machines" id="q10" class="form-control" min="1" value="1">
           </div>
         </div>
 
         <!-- Dynamic 4-field Bearing Rows Section -->
         <div class="form-group" style="margin-top: 20px; background: #ffffff; padding: 20px; border-radius: 12px; border: 1.5px solid #cbd5e1; box-shadow: 0 2px 6px rgba(0,0,0,0.03);">
-          <label style="font-size: 15px; font-weight: 700; color: #0f172a; margin-bottom: 4px; display: block;">
+          <label style="font-size: 15px; font-weight: 700; color: #0f172a; margin-bottom: 4px; display: block;" data-i18n="lblQ5">
             5. Lagers op deze machine *
           </label>
-          <p style="font-size: 13px; color: #64748b; margin-top: 0; margin-bottom: 16px;">
+          <p style="font-size: 13px; color: #64748b; margin-top: 0; margin-bottom: 16px;" data-i18n="lblQ5Desc">
             Specificeer per lager het <strong>Aantal</strong>, het <strong>Lagernummer</strong>, het <strong>Toerental (RPM)</strong> en de <strong>As Positie</strong>. Klik op "+ Extra lager toevoegen" om meer lagers toe te voegen.
           </p>
 
@@ -251,29 +309,29 @@
             <!-- Initial Bearing Row 1 -->
             <div class="bearing-row" id="bearingRow_1" style="display: grid; grid-template-columns: 80px 1fr 120px 140px 36px; gap: 10px; margin-bottom: 12px; align-items: end;">
               <div>
-                <label style="font-size: 11.5px; font-weight: 700; color: #334155; display: block; margin-bottom: 4px;">Aantal *</label>
+                <label style="font-size: 11.5px; font-weight: 700; color: #334155; display: block; margin-bottom: 4px;" data-i18n="colAantal">Aantal *</label>
                 <input type="number" name="Lager 1 - Aantal" class="form-control" value="1" min="1" required>
               </div>
               <div>
-                <label style="font-size: 11.5px; font-weight: 700; color: #334155; display: block; margin-bottom: 4px;">Lagernummer *</label>
-                <input type="text" name="Lager 1 - Lagernummer" id="q5" class="form-control" placeholder="bijv. 6208 2RS of 22215" required>
+                <label style="font-size: 11.5px; font-weight: 700; color: #334155; display: block; margin-bottom: 4px;" data-i18n="colLagerNr">Lagernummer *</label>
+                <input type="text" name="Lager 1 - Lagernummer" id="q5" class="form-control" data-i18n-placeholder="phLagerNr" placeholder="bijv. 6208 2RS of 22215" required>
               </div>
               <div>
-                <label style="font-size: 11.5px; font-weight: 700; color: #334155; display: block; margin-bottom: 4px;">Toerental (RPM)</label>
-                <input type="number" name="Lager 1 - Toerental RPM" id="q8" class="form-control" placeholder="bijv. 1450">
+                <label style="font-size: 11.5px; font-weight: 700; color: #334155; display: block; margin-bottom: 4px;" data-i18n="colRpm">Toerental (RPM)</label>
+                <input type="number" name="Lager 1 - Toerental RPM" id="q8" class="form-control" data-i18n-placeholder="phRpm" placeholder="bijv. 1450">
               </div>
               <div>
-                <label style="font-size: 11.5px; font-weight: 700; color: #334155; display: block; margin-bottom: 4px;">As Positie</label>
+                <label style="font-size: 11.5px; font-weight: 700; color: #334155; display: block; margin-bottom: 4px;" data-i18n="colPositie">As Positie</label>
                 <select name="Lager 1 - As Positie" class="form-control">
-                  <option value="Horizontaal">Horizontaal</option>
-                  <option value="Verticaal">Verticaal</option>
+                  <option value="Horizontaal" data-i18n="optHoriz">Horizontaal</option>
+                  <option value="Verticaal" data-i18n="optVert">Verticaal</option>
                 </select>
               </div>
               <div></div>
             </div>
           </div>
 
-          <button type="button" onclick="addBearingRow()" class="add-bearing-btn" style="background: #ffffff; border: 1.5px dashed #E30613; color: #E30613; font-weight: 700; font-size: 13.5px; padding: 10px 16px; border-radius: 8px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; margin-top: 8px; transition: all 0.2s;">
+          <button type="button" onclick="addBearingRow()" class="add-bearing-btn" style="background: #ffffff; border: 1.5px dashed #E30613; color: #E30613; font-weight: 700; font-size: 13.5px; padding: 10px 16px; border-radius: 8px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; margin-top: 8px; transition: all 0.2s;" data-i18n="btnAddBearing">
             ➕ Extra lager toevoegen
           </button>
         </div>
@@ -281,256 +339,466 @@
 
       <!-- Section 2: Huidige Smering -->
       <div class="survey-section">
-        <h2 class="survey-section-title">🛢️ 2. Huidige Smeersituatie & Bedrijfsuren</h2>
-        <div class="grid-2">
-          <div class="form-group">
-            <label for="q11">10. Huidig smeermiddel (Merk & Type)</label>
-            <input type="text" name="10. Huidig Smeermiddel" id="q11" class="form-control" placeholder="Bijv. Shell Gadus S2 V220, Mobilux EP2">
-          </div>
-          <div class="form-group">
-            <label for="q12">11. Prijs huidig smeermiddel (€ per Liter / kg)</label>
-            <input type="number" step="0.01" name="11. Prijs Smeermiddel Liter" id="q12" class="form-control" placeholder="Bijv. 18.50">
-          </div>
-        </div>
-
-        <div class="grid-2">
-          <div class="form-group">
-            <label for="q4">12. Huidige smeerfrequentie / interval</label>
-            <input type="text" name="12. Huidige Smeerinterval" id="q4" class="form-control" placeholder="Bijv. Wekelijks, Maandelijks, Elke 500 uur">
-          </div>
-          <div class="form-group">
-            <label for="q29">13. Huidige gemiddelde levensduur lager (maanden)</label>
-            <input type="number" name="13. Gemiddelde Levensduur Lager (Maanden)" id="q29" class="form-control" placeholder="Bijv. 12 maanden">
-          </div>
-        </div>
-
-        <div class="grid-2">
-          <div class="form-group">
-            <label for="q13">14. Operationele uren per dag</label>
-            <input type="number" name="14. Uren per Dag" id="q13" class="form-control" min="1" max="24" value="16">
-          </div>
-          <div class="form-group">
-            <label for="q14">15. Operationele dagen per week</label>
-            <input type="number" name="15. Dagen per Week" id="q14" class="form-control" min="1" max="7" value="5">
-          </div>
-        </div>
-      </div>
-
-      <!-- Section 3: Omgeving & Belasting -->
-      <div class="survey-section">
-        <h2 class="survey-section-title">🌡️ 3. Omgevingscondities & Belastingen</h2>
-        <div class="grid-2">
-          <div class="form-group">
-            <label for="q15">16. Omgevingstemperatuur (°C)</label>
-            <input type="number" name="16. Omgevingstemperatuur C" id="q15" class="form-control" placeholder="Bijv. 20 °C">
-          </div>
-          <div class="form-group">
-            <label for="q16">17. Huidige (maximum) lagertemperatuur (°C)</label>
-            <input type="number" name="17. Lagertemperatuur C" id="q16" class="form-control" placeholder="Bijv. 65 °C">
-          </div>
-        </div>
-
-        <p style="font-size: 13.5px; font-weight: 600; color: #475569; margin: 16px 0 12px 0;">Beoordeel onderstaande omgevingsinvloeden (schaal 1 = Geen invloed, 10 = Zeer zware invloed):</p>
-
-        <div class="form-group">
-          <label>18. Water, vocht of stoom (1-10)</label>
-          <div class="range-group">
-            <input type="range" name="18. Invloed Water Vocht Stoom (1-10)" id="q17" min="1" max="10" value="3" oninput="document.getElementById('b17').innerText=this.value">
-            <div id="b17" class="range-badge">3</div>
-          </div>
-        </div>
-
-        <div class="form-group">
-          <label>19. Stof of zand (1-10)</label>
-          <div class="range-group">
-            <input type="range" name="19. Invloed Stof Zand (1-10)" id="q18" min="1" max="10" value="4" oninput="document.getElementById('b18').innerText=this.value">
-            <div id="b18" class="range-badge">4</div>
-          </div>
-        </div>
-
-        <div class="form-group">
-          <label>20. Abrasieve stoffen / vervuiling (1-10)</label>
-          <div class="range-group">
-            <input type="range" name="20. Invloed Abrasieve Stoffen (1-10)" id="q19" min="1" max="10" value="2" oninput="document.getElementById('b19').innerText=this.value">
-            <div id="b19" class="range-badge">2</div>
-          </div>
-        </div>
-
-        <div class="form-group">
-          <label>21. Schokbelastingen (1-10)</label>
-          <div class="range-group">
-            <input type="range" name="21. Invloed Schokken (1-10)" id="q20" min="1" max="10" value="3" oninput="document.getElementById('b20').innerText=this.value">
-            <div id="b20" class="range-badge">3</div>
-          </div>
-        </div>
-
-        <div class="form-group">
-          <label>22. Vibraties & trillingen (1-10)</label>
-          <div class="range-group">
-            <input type="range" name="22. Invloed Vibraties (1-10)" id="q21" min="1" max="10" value="3" oninput="document.getElementById('b21').innerText=this.value">
-            <div id="b21" class="range-badge">3</div>
-          </div>
-        </div>
-
-        <div class="form-group">
-          <label>23. Condensatie (1-10)</label>
-          <div class="range-group">
-            <input type="range" name="23. Invloed Condensatie (1-10)" id="q22" min="1" max="10" value="2" oninput="document.getElementById('b22').innerText=this.value">
-            <div id="b22" class="range-badge">2</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Section 4: Onderhoud & Downtime -->
-      <div class="survey-section">
-        <h2 class="survey-section-title">⏱️ 4. Onderhouds- & Downtimekosten</h2>
-        <div class="grid-2">
-          <div class="form-group">
-            <label for="q24">24. Tijdsduur per smeerbeurt (minuten)</label>
-            <input type="number" name="24. Duur Smeerbeurt Minuten" id="q24" class="form-control" placeholder="Bijv. 10 minuten">
-          </div>
-          <div class="form-group">
-            <label for="q25">25. Uurloon onderhoudstechneut (€/uur)</label>
-            <input type="number" step="0.01" name="25. Uurloon Technicus" id="q25" class="form-control" placeholder="Bijv. 65.00">
-          </div>
-        </div>
-
-        <div class="grid-2">
-          <div class="form-group">
-            <label for="q26">26. Tijdsduur revisie/vervanging lager (uren)</label>
-            <input type="number" step="0.5" name="26. Duur Revisie Lager Uren" id="q26" class="form-control" placeholder="Bijv. 3 uren">
-          </div>
-          <div class="form-group">
-            <label for="q27">27. Voorbereidingstijd revisie (uren)</label>
-            <input type="number" step="0.5" name="27. Voorbereidingstijd Revisie Uren" id="q27" class="form-control" placeholder="Bijv. 1 uur">
-          </div>
-        </div>
-
-        <div class="grid-2">
-          <div class="form-group">
-            <label for="q28">28. Kostprijs stilstand / downtime (€/uur)</label>
-            <input type="number" step="0.01" name="28. Downtime Kosten per Uur" id="q28" class="form-control" placeholder="Bijv. 450.00">
-          </div>
-          <div class="form-group">
-            <label for="q30">29. Prijs lager + wisselstukken (€)</label>
-            <input type="number" step="0.01" name="29. Prijs Lager en Wisselstukken" id="q30" class="form-control" placeholder="Bijv. 125.00">
-          </div>
-        </div>
-      </div>
-
-      <!-- Section 5: Contact & Verzenden -->
-      <div class="survey-section">
-        <h2 class="survey-section-title">📩 5. Uw Contactgegevens & Bestemming E-mail</h2>
-        <div class="grid-2">
-          <div class="form-group">
-            <label for="clientCompany">Bedrijfsnaam *</label>
-            <input type="text" name="Bedrijfsnaam" id="clientCompany" class="form-control" placeholder="Uw bedrijfsnaam" required>
-          </div>
-          <div class="form-group">
-            <label for="clientContact">Naam contactpersoon *</label>
-            <input type="text" name="Klant Naam" id="clientContact" class="form-control" placeholder="Uw naam" required>
-          </div>
-        </div>
-        <div class="grid-2">
-          <div class="form-group">
-            <label for="clientEmail">Uw E-mailadres *</label>
-            <input type="email" name="Klant Email" id="clientEmail" class="form-control" placeholder="naam@bedrijf.com" required>
-          </div>
-          <div class="form-group">
-            <label for="interflonContactEmail">Interflon Contactpersoon E-mail (Bestemming) *</label>
-            <input type="email" id="interflonContactEmail" class="form-control" placeholder="bijv. tom.peckstadt@interflon.com" required>
-          </div>
-        </div>
-      </div>
-
-      <div class="btn-group">
-        <button type="submit" class="submit-btn">🚀 1. Verstuur Vragenlijst Direct via Mail Service →</button>
+        <h2 class="survey-section-title" data-i18n="sec2Title">🛢️ 2. Huidige Smering</h2>
         
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 4px;">
-          <button type="button" onclick="sendViaGmail()" class="secondary-btn" style="background: #ea4335; color: white;">
+        <div class="form-group">
+          <label for="q6" data-i18n="lblQ6">6. Welk type smering wordt nu gebruikt?</label>
+          <select name="6. Type Smering" id="q6" class="form-control">
+            <option value="Standaard vet (NLGI 2)" data-i18n="optStandaardVet">Standaard vet (NLGI 2)</option>
+            <option value="Vloeibaar vet" data-i18n="optVloeibaar">Vloeibaar vet</option>
+            <option value="Olie" data-i18n="optOlie">Olie</option>
+            <option value="Droogsmering / PTFE" data-i18n="optDroog">Droogsmering / PTFE</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="q7" data-i18n="lblQ7">7. Merk en exacte productnaam van het huidige vet/olie</label>
+          <input type="text" name="7. Huidig Product" id="q7" class="form-control" data-i18n-placeholder="phQ7" placeholder="Bijv. Mobilux EP2, Shell Gadus S2 V220, Castrol LMX">
+        </div>
+
+        <div class="form-group">
+          <label for="q9" data-i18n="lblQ8">8. Hoe wordt de machine momenteel gesmeerd?</label>
+          <select name="8. Smeermethode" id="q9" class="form-control">
+            <option value="Manueel met vetspuit" data-i18n="optManueelVetspuit">Manueel met vetspuit</option>
+            <option value="Automatisch (Enkelpunt smeerpatroon)" data-i18n="optAutomatischEnkel">Automatisch (Enkelpunt smeerpatroon)</option>
+            <option value="Centraal smeersysteem" data-i18n="optCentraalSmeersysteem">Centraal smeersysteem</option>
+            <option value="Oliebad / Oliespat" data-i18n="optOliebad">Oliebad / Oliespat</option>
+          </select>
+        </div>
+
+        <div class="grid-2">
+          <div class="form-group">
+            <label for="q11" data-i18n="lblQ9">9. Wat is het huidige smeerinterval?</label>
+            <input type="text" name="9. Smeerinterval" id="q11" class="form-control" data-i18n-placeholder="phQ9" placeholder="Bijv. 1x per week, 500 uur">
+          </div>
+          <div class="form-group">
+            <label for="q12" data-i18n="lblQ10">10. Hoeveelheid vet/olie per smeerbeurt</label>
+            <input type="text" name="10. Hoeveelheid per beurt" id="q12" class="form-control" data-i18n-placeholder="phQ10" placeholder="Bijv. 3 slagen vetspuit of 50 ml">
+          </div>
+        </div>
+      </div>
+
+      <!-- Section 3: Bedrijfsomstandigheden -->
+      <div class="survey-section">
+        <h2 class="survey-section-title" data-i18n="sec3Title">🌡️ 3. Bedrijfsomstandigheden & Omgeving</h2>
+        
+        <div class="grid-2">
+          <div class="form-group">
+            <label for="q13" data-i18n="lblQ11">11. Bedrijfstemperatuur van het lager/machine (°C)</label>
+            <input type="text" name="11. Bedrijfstemperatuur" id="q13" class="form-control" data-i18n-placeholder="phQ11" placeholder="Bijv. 65°C (of bereik 40-90°C)">
+          </div>
+          <div class="form-group">
+            <label for="q14" data-i18n="lblQ12">12. Omgevingstemperatuur (°C)</label>
+            <input type="text" name="12. Omgevingstemperatuur" id="q14" class="form-control" data-i18n-placeholder="phQ12" placeholder="Bijv. 20°C kamertemp of outdoor -10°C">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="q15" data-i18n="lblQ13">13. Belasting op het lager</label>
+          <select name="13. Belasting" id="q15" class="form-control">
+            <option value="Normaal" data-i18n="optNormaal">Normaal</option>
+            <option value="Zwaar / Schokbelasting" data-i18n="optZwaar">Zwaar / Schokbelasting</option>
+            <option value="Extreem zwaar" data-i18n="optExtreemZwaar">Extreem zwaar</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label data-i18n="lblQ14">14. Omgevingsfactoren (Vink aan wat van toepassing is)</label>
+          <div class="checkbox-group">
+            <label class="checkbox-label"><input type="checkbox" name="14. Omgeving - Stof" value="Ja"> <span data-i18n="optStof">Stof / Vuil</span></label>
+            <label class="checkbox-label"><input type="checkbox" name="14. Omgeving - Water" value="Ja"> <span data-i18n="optWater">Water / Vocht</span></label>
+            <label class="checkbox-label"><input type="checkbox" name="14. Omgeving - Stoom" value="Ja"> <span data-i18n="optStoom">Stoom / Hoge vochtigheid</span></label>
+            <label class="checkbox-label"><input type="checkbox" name="14. Omgeving - Chemicalien" value="Ja"> <span data-i18n="optChemisch">Chemicaliën / Zuren</span></label>
+            <label class="checkbox-label"><input type="checkbox" name="14. Omgeving - Reiniging" value="Ja"> <span data-i18n="optReiniging">Hogedruk reiniging (Washdown)</span></label>
+            <label class="checkbox-label"><input type="checkbox" name="14. Omgeving - Voeding" value="Ja"> <span data-i18n="optVoedingsmiddelen">Voedingsmiddelenindustrie (H1 vereist)</span></label>
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div class="form-group">
+            <label for="q16" data-i18n="lblQ15">15. Aantal bedrijfsuren per dag</label>
+            <input type="number" name="15. Uren per dag" id="q16" class="form-control" min="1" max="24" value="16">
+          </div>
+          <div class="form-group">
+            <label for="q17" data-i18n="lblQ16">16. Aantal werkdagen per week</label>
+            <input type="number" name="16. Dagen per week" id="q17" class="form-control" min="1" max="7" value="5">
+          </div>
+        </div>
+      </div>
+
+      <!-- Section 4: Problemen & Doelen -->
+      <div class="survey-section">
+        <h2 class="survey-section-title" data-i18n="sec4Title">⚠️ 4. Problemen, Onderhoud & Doelstellingen</h2>
+        
+        <div class="form-group">
+          <label data-i18n="lblQ17">17. Ervaart u momenteel problemen bij deze machine?</label>
+          <div class="checkbox-group">
+            <label class="checkbox-label"><input type="checkbox" name="17. Probleem - Oververhitting" value="Ja"> <span data-i18n="optOververhitting">Oververhitting / Hoge temperatuur</span></label>
+            <label class="checkbox-label"><input type="checkbox" name="17. Probleem - Slijtage" value="Ja"> <span data-i18n="optSlijtage">Vroegtijdige lagerslijtage / Uitval</span></label>
+            <label class="checkbox-label"><input type="checkbox" name="17. Probleem - Lekkage" value="Ja"> <span data-i18n="optLekkage">Vetafscheiding / Olielekkage</span></label>
+            <label class="checkbox-label"><input type="checkbox" name="17. Probleem - Vervuiling" value="Ja"> <span data-i18n="optVervuiling">Vervuiling die het lager binnendringt</span></label>
+            <label class="checkbox-label"><input type="checkbox" name="17. Probleem - Hoge Arbeid" value="Ja"> <span data-i18n="optHogeArbeid">Hoge arbeidskost door frequent smeren</span></label>
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div class="form-group">
+            <label for="q19" data-i18n="lblQ18">18. Levensduur lager op deze positie</label>
+            <input type="text" name="18. Levensduur Lager" id="q19" class="form-control" data-i18n-placeholder="phQ18" placeholder="Bijv. 6 maanden of 2 jaar">
+          </div>
+          <div class="form-group">
+            <label for="q20" data-i18n="lblQ19">19. Kost prijs vervanging lager</label>
+            <input type="text" name="19. Kosten Vervanging" id="q20" class="form-control" data-i18n-placeholder="phQ19" placeholder="Onderdelen + arbeid + downtime">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label data-i18n="lblQ20">20. Wat is uw primaire doelstelling voor deze analyse?</label>
+          <div class="checkbox-group">
+            <label class="checkbox-label"><input type="checkbox" name="20. Doel - Levensduur" value="Ja"> <span data-i18n="optVerlengen">Levensduur van lagers verlengen</span></label>
+            <label class="checkbox-label"><input type="checkbox" name="20. Doel - Intervallen" value="Ja"> <span data-i18n="optIntervallen">Smeerintervallen vergroten / Arbeid besparen</span></label>
+            <label class="checkbox-label"><input type="checkbox" name="20. Doel - Automatiseren" value="Ja"> <span data-i18n="optAutomatiseren">Smering automatiseren (Single-point lubricators)</span></label>
+            <label class="checkbox-label"><input type="checkbox" name="20. Doel - Temperatuur" value="Ja"> <span data-i18n="optTemperatuur">Temperatuur verlagen</span></label>
+            <label class="checkbox-label"><input type="checkbox" name="20. Doel - Energie" value="Ja"> <span data-i18n="optEnergie">Energieverbruik verlagen</span></label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section 5: Contact -->
+      <div class="survey-section">
+        <h2 class="survey-section-title" data-i18n="sec5Title">📬 5. Uw Contactgegevens & Bestemming</h2>
+        
+        <div class="grid-2">
+          <div class="form-group">
+            <label for="clientCompany" data-i18n="lblClientCompany">Bedrijfsnaam *</label>
+            <input type="text" name="Bedrijfsnaam" id="clientCompany" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label for="clientContact" data-i18n="lblClientContact">Naam contactpersoon *</label>
+            <input type="text" name="Contactpersoon" id="clientContact" class="form-control" required>
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div class="form-group">
+            <label for="clientEmail" data-i18n="lblClientEmail">Uw E-mailadres *</label>
+            <input type="email" name="Klant Email" id="clientEmail" class="form-control" required onchange="syncReplyTo(this.value)">
+          </div>
+          <div class="form-group">
+            <label for="clientPhone" data-i18n="lblClientPhone">Telefoonnummer</label>
+            <input type="tel" name="Telefoonnummer" id="clientPhone" class="form-control">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="interflonContactEmail" data-i18n="lblInterflonEmail">Interflon Contactpersoon E-mail (Bestemming) *</label>
+          <input type="email" name="Interflon Adviseur Email" id="interflonContactEmail" class="form-control" value="tom.peckstadt@interflon.com" required onchange="updateFormSubmitAction(this.value)">
+          <small style="color: var(--text-muted); font-size: 12px; margin-top: 4px; display: block;" data-i18n="lblInterflonEmailSub">
+            Naar dit e-mailadres wordt het ingevulde rapport verzonden.
+          </small>
+        </div>
+
+        <div class="form-group">
+          <label for="q22" data-i18n="lblExtraNotes">Extra opmerkingen of specifieke vragen</label>
+          <textarea name="Extra Opmerkingen" id="q22" class="form-control"></textarea>
+        </div>
+      </div>
+
+      <!-- Action Choice Section -->
+      <div class="survey-section" style="background: #f8fafc; border: 2px solid #cbd5e1;">
+        <button type="submit" class="btn-submit" data-i18n="btnSubmitDirect">
+          🚀 1. Verstuur Vragenlijst Direct via Mail Service →
+        </button>
+
+        <div style="text-align: center; margin: 16px 0 10px 0; font-size: 13px; font-weight: 700; color: #64748b;">
+          — OF VERSTUUR VIA UW EIGEN E-MAILPROGRAMMA —
+        </div>
+
+        <div class="grid-2">
+          <button type="button" onclick="sendViaGmail()" class="btn-secondary" style="border-color: #ea4335; color: #c5221f;" data-i18n="btnSubmitGmail">
             ✉️ 2. Open in Gmail
           </button>
-          <button type="button" onclick="sendViaOutlookMailto()" class="secondary-btn" style="background: #0078d4; color: white;">
+
+          <button type="button" onclick="sendViaOutlookMailto()" class="btn-secondary" style="border-color: #0078d4; color: #005a9e;" data-i18n="btnSubmitOutlook">
             📧 3. Open in Outlook
           </button>
         </div>
 
-        <button type="button" onclick="copyFullReportText()" class="secondary-btn" style="background: #334155; color: white; margin-top: 2px;">
-          📋 4. Kopieer Antwoorden naar Klembord (om zelf te plakken)
+        <button type="button" onclick="copyFullReportText()" class="btn-secondary" style="margin-top: 10px;" data-i18n="btnSubmitCopy">
+          📋 4. Kopieer Antwoorden naar Klembord
         </button>
       </div>
+
     </form>
+
   </div>
 
   <script>
-    window.addEventListener('DOMContentLoaded', () => {
-      const urlParams = new URLSearchParams(window.location.search);
-      
-      // Auto pre-fill Interflon Contact Email
-      const contactEmail = urlParams.get('contact') || urlParams.get('contact_email') || urlParams.get('interflon_email');
-      if (contactEmail) {
-        document.getElementById('interflonContactEmail').value = contactEmail;
+    const SURVEY_TRANSLATIONS = {
+      nl: {
+        pageTitle: "Interflon Smeeranalyse - Vragenlijst",
+        headerTitle: "Smeeranalyse Vragenlijst",
+        headerSubtitle: "Onderzoek & Optimalisatie van Machine-smering",
+        badgeOnline: "Online Formulier",
+        successTitle: "✅ Vragenlijst Succesvol Verzonden!",
+        successDesc: "Hartelijk dank voor uw invoer. Uw Interflon adviseur neemt zo snel mogelijk contact met u op.",
+        introTitle: "Welkom bij het Interflon Smeeranalyse Formulier",
+        introText: "Om u een optimaal smeeradvies op maat te kunnen bieden, verzoeken wij u onderstaande vragenlijst zo volledig mogelijk in te vullen. De ingevulde gegevens worden rechtstreeks verzonden naar uw Interflon smeertechnisch adviseur.",
+        
+        sec1Title: "⚙️ 1. Machinedetails & Lagerspecificaties",
+        lblQ1: "1. Naam van de machine *", phQ1: "Bijv. Vullijn 3 / Hoofdtransportband",
+        lblQ2: "2. Merk van de machine", phQ2: "Bijv. Krones, Bosch, New Holland",
+        lblQ3: "3. Toepassing van de machine", phQ3: "Bijv. Transportband, Menger, Ventilator, Pomp",
+        lblQ4: "4. Aantal identieke machines in het park",
+        lblQ5: "5. Lagers op deze machine *",
+        lblQ5Desc: "Specificeer per lager het <strong>Aantal</strong>, het <strong>Lagernummer</strong>, het <strong>Toerental (RPM)</strong> en de <strong>As Positie</strong>. Klik op \"+ Extra lager toevoegen\" om meer lagers toe te voegen.",
+        colAantal: "Aantal *", colLagerNr: "Lagernummer *", phLagerNr: "bijv. 6208 2RS of 22215",
+        colRpm: "Toerental (RPM)", phRpm: "bijv. 1450", colPositie: "As Positie", optHoriz: "Horizontaal", optVert: "Verticaal",
+        btnAddBearing: "➕ Extra lager toevoegen",
+
+        sec2Title: "🛢️ 2. Huidige Smering",
+        lblQ6: "6. Welk type smering wordt nu gebruikt?", optStandaardVet: "Standaard vet (NLGI 2)", optVloeibaar: "Vloeibaar vet", optOlie: "Olie", optDroog: "Droogsmering / PTFE",
+        lblQ7: "7. Merk en exacte productnaam van het huidige vet/olie", phQ7: "Bijv. Mobilux EP2, Shell Gadus S2 V220, Castrol LMX",
+        lblQ8: "8. Hoe wordt de machine momenteel gesmeerd?", optManueelVetspuit: "Manueel met vetspuit", optAutomatischEnkel: "Automatisch (Enkelpunt smeerpatroon)", optCentraalSmeersysteem: "Centraal smeersysteem", optOliebad: "Oliebad / Oliespat",
+        lblQ9: "9. Wat is het huidige smeerinterval?", phQ9: "Bijv. 1x per week, 500 uur",
+        lblQ10: "10. Hoeveelheid vet/olie per smeerbeurt", phQ10: "Bijv. 3 slagen vetspuit of 50 ml",
+
+        sec3Title: "🌡️ 3. Bedrijfsomstandigheden & Omgeving",
+        lblQ11: "11. Bedrijfstemperatuur van het lager/machine (°C)", phQ11: "Bijv. 65°C (of bereik 40-90°C)",
+        lblQ12: "12. Omgevingstemperatuur (°C)", phQ12: "Bijv. 20°C kamertemp of outdoor -10°C",
+        lblQ13: "13. Belasting op het lager", optNormaal: "Normaal", optZwaar: "Zwaar / Schokbelasting", optExtreemZwaar: "Extreem zwaar",
+        lblQ14: "14. Omgevingsfactoren (Vink aan wat van toepassing is)",
+        optStof: "Stof / Vuil", optWater: "Water / Vocht", optStoom: "Stoom / Hoge vochtigheid", optChemisch: "Chemicaliën / Zuren", optReiniging: "Hogedruk reiniging (Washdown)", optVoedingsmiddelen: "Voedingsmiddelenindustrie (H1 vereist)",
+        lblQ15: "15. Aantal bedrijfsuren per dag", lblQ16: "16. Aantal werkdagen per week",
+
+        sec4Title: "⚠️ 4. Problemen, Onderhoud & Doelstellingen",
+        lblQ17: "17. Ervaart u momenteel problemen bij deze machine?",
+        optOververhitting: "Oververhitting / Hoge temperatuur", optSlijtage: "Vroegtijdige lagerslijtage / Uitval", optLekkage: "Vetafscheiding / Olielekkage", optVervuiling: "Vervuiling die het lager binnendringt", optHogeArbeid: "Hoge arbeidskost door frequent smeren",
+        lblQ18: "18. Levensduur lager op deze positie", phQ18: "Bijv. 6 maanden of 2 jaar",
+        lblQ19: "19. Kost prijs vervanging lager", phQ19: "Onderdelen + arbeid + downtime",
+        lblQ20: "20. Wat is uw primaire doelstelling voor deze analyse?",
+        optVerlengen: "Levensduur van lagers verlengen", optIntervallen: "Smeerintervallen vergroten / Arbeid besparen", optAutomatiseren: "Smering automatiseren (Single-point lubricators)", optTemperatuur: "Temperatuur verlagen", optEnergie: "Energieverbruik verlagen",
+
+        sec5Title: "📬 5. Uw Contactgegevens & Bestemming",
+        lblClientCompany: "Bedrijfsnaam *", lblClientContact: "Naam contactpersoon *", lblClientEmail: "Uw E-mailadres *", lblClientPhone: "Telefoonnummer",
+        lblInterflonEmail: "Interflon Contactpersoon E-mail (Bestemming) *", lblInterflonEmailSub: "Naar dit e-mailadres wordt het ingevulde rapport verzonden.",
+        lblExtraNotes: "Extra opmerkingen of specifieke vragen",
+
+        btnSubmitDirect: "🚀 1. Verstuur Vragenlijst Direct via Mail Service →",
+        btnSubmitGmail: "✉️ 2. Open in Gmail",
+        btnSubmitOutlook: "📧 3. Open in Outlook",
+        btnSubmitCopy: "📋 4. Kopieer Antwoorden naar Klembord"
+      },
+      en: {
+        pageTitle: "Interflon Lubrication Analysis - Questionnaire",
+        headerTitle: "Lubrication Analysis Questionnaire",
+        headerSubtitle: "Investigation & Optimization of Machine Lubrication",
+        badgeOnline: "Online Form",
+        successTitle: "✅ Questionnaire Submitted Successfully!",
+        successDesc: "Thank you for your input. Your Interflon advisor will contact you as soon as possible.",
+        introTitle: "Welcome to the Interflon Lubrication Analysis Form",
+        introText: "To provide you with optimal tailored lubrication advice, please complete the questionnaire below as accurately as possible. The entered data will be sent directly to your Interflon technical advisor.",
+        
+        sec1Title: "⚙️ 1. Machine Details & Bearing Specifications",
+        lblQ1: "1. Name of the machine *", phQ1: "e.g. Filling Line 3 / Main Conveyor",
+        lblQ2: "2. Brand / Manufacturer of the machine", phQ2: "e.g. Krones, Bosch, New Holland",
+        lblQ3: "3. Application / Function of the machine", phQ3: "e.g. Conveyor, Mixer, Fan, Pump",
+        lblQ4: "4. Number of identical machines in facility",
+        lblQ5: "5. Bearings on this machine *",
+        lblQ5Desc: "Specify per bearing the <strong>Quantity</strong>, <strong>Part Number</strong>, <strong>Speed (RPM)</strong> and <strong>Shaft Position</strong>. Click \"+ Add extra bearing\" to add more bearings.",
+        colAantal: "Quantity *", colLagerNr: "Part Number *", phLagerNr: "e.g. 6208 2RS or 22215",
+        colRpm: "Speed (RPM)", phRpm: "e.g. 1450", colPositie: "Shaft Position", optHoriz: "Horizontal", optVert: "Vertical",
+        btnAddBearing: "➕ Add extra bearing",
+
+        sec2Title: "🛢️ 2. Current Lubrication",
+        lblQ6: "6. What type of lubrication is currently used?", optStandaardVet: "Standard grease (NLGI 2)", optVloeibaar: "Fluid grease", optOlie: "Oil", optDroog: "Dry lubrication / PTFE",
+        lblQ7: "7. Brand and exact product name of current grease/oil", phQ7: "e.g. Mobilux EP2, Shell Gadus S2 V220, Castrol LMX",
+        lblQ8: "8. How is the machine currently lubricated?", optManueelVetspuit: "Manually with grease gun", optAutomatischEnkel: "Automatic (Single-point lubricator)", optCentraalSmeersysteem: "Centralized lubrication system", optOliebad: "Oil bath / Splash oil",
+        lblQ9: "9. Current lubrication interval", phQ9: "e.g. 1x per week, 500 hours",
+        lblQ10: "10. Quantity per relubrication", phQ10: "e.g. 3 strokes grease gun or 50 ml",
+
+        sec3Title: "🌡️ 3. Operating Conditions & Environment",
+        lblQ11: "11. Operating temperature of bearing/machine (°C)", phQ11: "e.g. 65°C (or range 40-90°C)",
+        lblQ12: "12. Ambient temperature (°C)", phQ12: "e.g. 20°C room temp or outdoor -10°C",
+        lblQ13: "13. Bearing load level", optNormaal: "Normal", optZwaar: "Heavy / Shock loads", optExtreemZwaar: "Extremely heavy",
+        lblQ14: "14. Environmental factors (Check all that apply)",
+        optStof: "Dust / Dirt", optWater: "Water / Moisture", optStoom: "Steam / High humidity", optChemisch: "Chemicals / Acids", optReiniging: "High-pressure washdown", optVoedingsmiddelen: "Food industry (H1 required)",
+        lblQ15: "15. Operating hours per day", lblQ16: "16. Operating days per week",
+
+        sec4Title: "⚠️ 4. Issues, Maintenance & Objectives",
+        lblQ17: "17. Are you currently experiencing problems on this machine?",
+        optOververhitting: "Overheating / High temperature", optSlijtage: "Premature bearing wear / Failure", optLekkage: "Grease bleeding / Oil leakage", optVervuiling: "Contamination entering bearing", optHogeArbeid: "High labor cost due to frequent greasing",
+        lblQ18: "18. Lifespan of bearing at this position", phQ18: "e.g. 6 months or 2 years",
+        lblQ19: "19. Cost of bearing replacement", phQ19: "Parts + labor + downtime",
+        lblQ20: "20. What is your primary objective for this analysis?",
+        optVerlengen: "Extend bearing lifespan", optIntervallen: "Extend lubrication intervals / Save labor", optAutomatiseren: "Automate lubrication (Single-point lubricators)", optTemperatuur: "Reduce operating temperature", optEnergie: "Reduce energy consumption",
+
+        sec5Title: "📬 5. Contact Information & Destination",
+        lblClientCompany: "Company Name *", lblClientContact: "Contact Person Name *", lblClientEmail: "Your Email Address *", lblClientPhone: "Phone Number",
+        lblInterflonEmail: "Interflon Representative Email (Destination) *", lblInterflonEmailSub: "The completed report will be sent to this email address.",
+        lblExtraNotes: "Additional notes or specific questions",
+
+        btnSubmitDirect: "🚀 1. Send Questionnaire Directly via Mail Service →",
+        btnSubmitGmail: "✉️ 2. Open in Gmail",
+        btnSubmitOutlook: "📧 3. Open in Outlook",
+        btnSubmitCopy: "📋 4. Copy Answers to Clipboard"
+      },
+      fr: {
+        pageTitle: "Analyse de Graissage Interflon - Questionnaire",
+        headerTitle: "Questionnaire d'Analyse de Graissage",
+        headerSubtitle: "Étude & Optimisation de la Lubrification des Machines",
+        badgeOnline: "Formulaire en Ligne",
+        successTitle: "✅ Questionnaire Envoyé avec Succès!",
+        successDesc: "Merci pour votre saisie. Votre conseiller Interflon vous contactera dans les plus brefs délais.",
+        introTitle: "Bienvenue sur le Formulaire d'Analyse Interflon",
+        introText: "Afin de vous fournir un conseil en graissage sur mesure optimal, nous vous prions de remplir le questionnaire ci-dessous aussi complètement que possible. Les données saisies seront directement transmises à votre conseiller technique Interflon.",
+        
+        sec1Title: "⚙️ 1. Détails de la Machine & Spécifications des Roulements",
+        lblQ1: "1. Nom de la machine *", phQ1: "ex. Ligne d'embouteillage 3 / Convoyeur principal",
+        lblQ2: "2. Marque / Fabricant de la machine", phQ2: "ex. Krones, Bosch, New Holland",
+        lblQ3: "3. Application / Fonction de la machine", phQ3: "ex. Convoyeur, Mélangeur, Ventilateur, Pompe",
+        lblQ4: "4. Nombre de machines identiques dans le parc",
+        lblQ5: "5. Roulements sur cette machine *",
+        lblQ5Desc: "Spécifiez par roulement la <strong>Quantité</strong>, la <strong>Référence</strong>, la <strong>Vitesse (TR/MIN)</strong> et la <strong>Position de l'Axe</strong>. Cliquez sur \"+ Ajouter roulement extra\" pour ajouter d'autres roulements.",
+        colAantal: "Quantité *", colLagerNr: "Référence Roulement *", phLagerNr: "ex. 6208 2RS ou 22215",
+        colRpm: "Vitesse (TR/MIN)", phRpm: "ex. 1450", colPositie: "Position de l'Axe", optHoriz: "Horizontale", optVert: "Verticale",
+        btnAddBearing: "➕ Ajouter roulement extra",
+
+        sec2Title: "🛢️ 2. Graissage Actuel",
+        lblQ6: "6. Quel type de lubrification est actuellement utilisé?", optStandaardVet: "Graisse standard (NLGI 2)", optVloeibaar: "Graisse fluide", optOlie: "Huile", optDroog: "Lubrification sèche / PTFE",
+        lblQ7: "7. Marque et nom exact du produit actuel (graisse/huile)", phQ7: "ex. Mobilux EP2, Shell Gadus S2 V220, Castrol LMX",
+        lblQ8: "8. Comment la machine est-elle actuellement graissée?", optManueelVetspuit: "Manuellement avec pompe à graisse", optAutomatischEnkel: "Automatique (Graisseur monopoint)", optCentraalSmeersysteem: "Système de graissage centralisé", optOliebad: "Bain d'huile / Barbotage",
+        lblQ9: "9. Intervalle de graissage actuel", phQ9: "ex. 1x par semaine, 500 heures",
+        lblQ10: "10. Quantité par regraissage", phQ10: "ex. 3 coups de pompe ou 50 ml",
+
+        sec3Title: "🌡️ 3. Conditions de Fonctionnement & Environnement",
+        lblQ11: "11. Température de fonctionnement du roulement/machine (°C)", phQ11: "ex. 65°C (ou plage 40-90°C)",
+        lblQ12: "12. Température ambiante (°C)", phQ12: "ex. 20°C ambiante ou extérieur -10°C",
+        lblQ13: "13. Niveau de charge sur le roulement", optNormaal: "Normale", optZwaar: "Lourde / Chocs", optExtreemZwaar: "Extrêmement lourde",
+        lblQ14: "14. Facteurs environnementaux (Cochez ce qui s'applique)",
+        optStof: "Poussière / Saleté", optWater: "Eau / Humidité", optStoom: "Vapeur / Forte humidité", optChemisch: "Produits chimiques / Acides", optReiniging: "Nettoyage haute pression (Washdown)", optVoedingsmiddelen: "Industrie alimentaire (H1 requis)",
+        lblQ15: "15. Heures de fonctionnement par jour", lblQ16: "16. Jours de fonctionnement par semaine",
+
+        sec4Title: "⚠️ 4. Problèmes, Maintenance & Objectifs",
+        lblQ17: "17. Rencontrez-vous actuellement des problèmes sur cette machine?",
+        optOververhitting: "Surchauffe / Température élevée", optSlijtage: "Usure prématurée / Panne de roulement", optLekkage: "Séparation d'huile / Fuite de graisse", optVervuiling: "Contamination pénétrant le roulement", optHogeArbeid: "Coût de main-d'œuvre élevé dû au regraissage fréquent",
+        lblQ18: "18. Durée de vie du roulement à cette position", phQ18: "ex. 6 mois ou 2 ans",
+        lblQ19: "19. Coût de remplacement d'un roulement", phQ19: "Pièces + main-d'œuvre + arrêt",
+        lblQ20: "20. Objectif principal pour cette analyse?",
+        optVerlengen: "Prolonger la durée de vie des roulements", optIntervallen: "Augmenter les intervalles de graissage / Économiser la main-d'œuvre", optAutomatiseren: "Automatiser le graissage (Graisseurs monopoint)", optTemperatuur: "Réduire la température de fonctionnement", optEnergie: "Réduire la consommation d'énergie",
+
+        sec5Title: "📬 5. Vos Coordonnées & Destination",
+        lblClientCompany: "Nom de l'Entreprise *", lblClientContact: "Nom de la Personne de Contact *", lblClientEmail: "Votre Adresse E-mail *", lblClientPhone: "Numéro de Téléphone",
+        lblInterflonEmail: "E-mail du Conseiller Interflon (Destination) *", lblInterflonEmailSub: "Le rapport rempli sera envoyé à cette adresse e-mail.",
+        lblExtraNotes: "Remarques supplémentaires ou questions spécifiques",
+
+        btnSubmitDirect: "🚀 1. Envoyer le Questionnaire Directement via Mail →",
+        btnSubmitGmail: "✉️ 2. Ouvrir dans Gmail",
+        btnSubmitOutlook: "📧 3. Ouvrir dans Outlook",
+        btnSubmitCopy: "📋 4. Copier les Réponses dans le Presse-papier"
       }
+    };
 
-      // Auto pre-fill Client Company
-      const company = urlParams.get('company') || urlParams.get('client_company');
-      if (company) {
-        document.getElementById('clientCompany').value = company;
-      }
+    let currentSurveyLang = "nl";
 
-      // Auto pre-fill Client Contact Person Name
-      const clientContact = urlParams.get('client_contact') || urlParams.get('contact_name');
-      if (clientContact) {
-        document.getElementById('clientContact').value = clientContact;
-      }
+    function changeSurveyLanguage(lang) {
+      if (!SURVEY_TRANSLATIONS[lang]) return;
+      currentSurveyLang = lang;
+      const dict = SURVEY_TRANSLATIONS[lang];
+      document.documentElement.lang = lang;
 
-      // Auto pre-fill Client Email Address
-      const clientEmail = urlParams.get('client_email');
-      if (clientEmail) {
-        document.getElementById('clientEmail').value = clientEmail;
-      }
+      const sel = document.getElementById('surveyLangSelect');
+      if (sel) sel.value = lang;
 
-      if (urlParams.get('submitted') === 'true') {
-        document.getElementById('successBanner').style.display = 'block';
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-      }
-    });
+      document.querySelectorAll("[data-i18n]").forEach(el => {
+        const key = el.getAttribute("data-i18n");
+        if (dict[key]) {
+          if (key === "lblQ5Desc" || key === "introText" || key === "successDesc") {
+            el.innerHTML = dict[key];
+          } else {
+            el.textContent = dict[key];
+          }
+        }
+      });
 
-    function prepareFormSubmission(e) {
-      const form = document.getElementById('publicSurveyForm');
-      const targetEmail = document.getElementById('interflonContactEmail').value.trim();
-      const clientEmail = document.getElementById('clientEmail').value.trim();
-      const company = document.getElementById('clientCompany').value.trim();
-      const machine = document.getElementById('q1').value.trim();
-
-      if (!targetEmail) {
-        alert('Vul a.u.b. het e-mailadres in van de Interflon contactpersoon in het onderste veld.');
-        e.preventDefault();
-        return;
-      }
-
-      // Update FormSubmit action dynamically to target email address
-      form.action = 'https://formsubmit.co/' + encodeURIComponent(targetEmail);
-      document.getElementById('hiddenSubject').value = 'Interflon Smeeranalyse Vragenlijst: ' + company + ' - ' + machine;
-      document.getElementById('hiddenReplyTo').value = clientEmail;
+      document.querySelectorAll("[data-i18n-placeholder]").forEach(el => {
+        const key = el.getAttribute("data-i18n-placeholder");
+        if (dict[key]) {
+          el.placeholder = dict[key];
+        }
+      });
     }
 
-        function buildReportSummary() {
-      const targetEmail = document.getElementById('interflonContactEmail').value.trim();
-      const clientEmail = document.getElementById('clientEmail').value.trim();
-      const company = document.getElementById('clientCompany').value.trim() || 'Onbekend Bedrijf';
-      const machine = document.getElementById('q1').value.trim() || 'Onbekende Machine';
+    let bearingCount = 1;
+    function addBearingRow() {
+      bearingCount++;
+      const container = document.getElementById('bearingRowsContainer');
+      const row = document.createElement('div');
+      row.className = 'bearing-row';
+      row.id = 'bearingRow_' + bearingCount;
+      row.style.cssText = 'display: grid; grid-template-columns: 80px 1fr 120px 140px 36px; gap: 10px; margin-bottom: 10px; align-items: center; animation: fadeIn 0.2s ease-in;';
+      
+      const dict = SURVEY_TRANSLATIONS[currentSurveyLang] || SURVEY_TRANSLATIONS.nl;
+      
+      row.innerHTML = `
+        <div>
+          <input type="number" name="Lager ${bearingCount} - Aantal" class="form-control" value="1" min="1" placeholder="1" required>
+        </div>
+        <div>
+          <input type="text" name="Lager ${bearingCount} - Lagernummer" class="form-control" placeholder="${dict.phLagerNr || '6208 2RS'}" required>
+        </div>
+        <div>
+          <input type="number" name="Lager ${bearingCount} - Toerental RPM" class="form-control" placeholder="1450">
+        </div>
+        <div>
+          <select name="Lager ${bearingCount} - As Positie" class="form-control">
+            <option value="Horizontaal">${dict.optHoriz || 'Horizontaal'}</option>
+            <option value="Verticaal">${dict.optVert || 'Verticaal'}</option>
+          </select>
+        </div>
+        <div>
+          <button type="button" onclick="removeBearingRow('bearingRow_${bearingCount}')" title="Remove" style="background: #fee2e2; border: 1px solid #fca5a5; color: #dc2626; border-radius: 6px; width: 36px; height: 36px; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 16px;">✕</button>
+        </div>
+      `;
+      container.appendChild(row);
+    }
 
-      let bodyText = "INTERFLON SMEERANALYSE VRAGENLIJST\n\n";
-      bodyText += "Bedrijfsnaam: " + company + "\n";
-      bodyText += "Contactpersoon Klant: " + document.getElementById('clientContact').value + " (" + clientEmail + ")\n";
-      bodyText += "Machine: " + machine + "\n";
-      bodyText += "Merk: " + (document.getElementById('q2') ? document.getElementById('q2').value : '') + "\n";
-      bodyText += "Toepassing: " + (document.getElementById('q3') ? document.getElementById('q3').value : '') + "\n";
-      bodyText += "Aantal machines: " + (document.getElementById('q10') ? document.getElementById('q10').value : '1') + "\n";
-      bodyText += "As Positie: " + (document.getElementById('q23') ? document.getElementById('q23').value : '') + "\n\n";
+    function removeBearingRow(rowId) {
+      const row = document.getElementById(rowId);
+      if (row) row.remove();
+    }
+
+    function syncReplyTo(val) {
+      document.getElementById('hiddenReplyTo').value = val;
+    }
+
+    function updateFormSubmitAction(email) {
+      const form = document.getElementById('surveyForm');
+      if (email && email.includes('@')) {
+        form.action = "https://formsubmit.co/" + email.trim();
+      }
+    }
+
+    function buildReportSummary() {
+      let bodyText = "INTERFLON SMEERANALYSE VRAGENLIJST\n====================================\n\n";
+      
+      const form = document.getElementById('surveyForm');
+      const formData = new FormData(form);
+
+      bodyText += "--- KLANT & CONTACTGEGEVENS ---\n";
+      bodyText += "Bedrijf: " + (document.getElementById('clientCompany').value || '-') + "\n";
+      bodyText += "Contactpersoon: " + (document.getElementById('clientContact').value || '-') + "\n";
+      bodyText += "E-mail: " + (document.getElementById('clientEmail').value || '-') + "\n";
+      bodyText += "Telefoon: " + (document.getElementById('clientPhone').value || '-') + "\n";
+      bodyText += "Interflon Adviseur E-mail: " + (document.getElementById('interflonContactEmail').value || '-') + "\n\n";
+
+      bodyText += "--- 1. MACHINEDETAILS ---\n";
+      bodyText += "Machine Naam: " + (document.getElementById('q1').value || '-') + "\n";
+      bodyText += "Machine Merk: " + (document.getElementById('q2').value || '-') + "\n";
+      bodyText += "Toepassing: " + (document.getElementById('q3').value || '-') + "\n";
+      bodyText += "Aantal Machines: " + (document.getElementById('q10').value || '1') + "\n\n";
+
       bodyText += "--- SPECIFICATIE LAGERS ---\n";
-
       const rows = document.querySelectorAll('.bearing-row');
       rows.forEach((r, idx) => {
         const inputs = r.querySelectorAll('input');
@@ -543,378 +811,103 @@
           bodyText += "Lager " + (idx+1) + ": " + aantal + "x " + nr + (rpm ? " (" + rpm + " RPM)" : "") + " - " + positie + "\n";
         }
       });
-      bodyText += "\n";
-      bodyText += "Huidig Smeermiddel: " + (document.getElementById('q11') ? document.getElementById('q11').value : '') + " (€" + (document.getElementById('q12') ? document.getElementById('q12').value : '') + "/L)\n";
-      bodyText += "Interval: " + (document.getElementById('q4') ? document.getElementById('q4').value : '') + "\n";
-      bodyText += "Levensduur lager: " + (document.getElementById('q29') ? document.getElementById('q29').value : '') + " maanden\n";
-      bodyText += "Uren/dag: " + (document.getElementById('q13') ? document.getElementById('q13').value : '') + ", Dagen/week: " + (document.getElementById('q14') ? document.getElementById('q14').value : '') + "\n\n";
-      bodyText += "Omgevingstemp: " + (document.getElementById('q15') ? document.getElementById('q15').value : '') + "°C, Lagertemp: " + (document.getElementById('q16') ? document.getElementById('q16').value : '') + "°C\n";
-      bodyText += "Vocht: " + (document.getElementById('q17') ? document.getElementById('q17').value : '') + "/10, Stof: " + (document.getElementById('q18') ? document.getElementById('q18').value : '') + "/10, Abrasie: " + (document.getElementById('q19') ? document.getElementById('q19').value : '') + "/10\n";
-      bodyText += "Schokken: " + (document.getElementById('q20') ? document.getElementById('q20').value : '') + "/10, Vibratie: " + (document.getElementById('q21') ? document.getElementById('q21').value : '') + "/10, Condensatie: " + (document.getElementById('q22') ? document.getElementById('q22').value : '') + "/10\n\n";
-      bodyText += "Smeerduur: " + (document.getElementById('q24') ? document.getElementById('q24').value : '') + " min, Uurloon: €" + (document.getElementById('q25') ? document.getElementById('q25').value : '') + "\n";
-      bodyText += "Revisieduur: " + (document.getElementById('q26') ? document.getElementById('q26').value : '') + "u, Voorbereiding: " + (document.getElementById('q27') ? document.getElementById('q27').value : '') + "u\n";
-      bodyText += "Downtime kosten: €" + (document.getElementById('q28') ? document.getElementById('q28').value : '') + "/uur, Lagerprijs: €" + (document.getElementById('q30') ? document.getElementById('q30').value : '') + "\n";
 
-      return { targetEmail, clientEmail, company, machine, bodyText };
+      bodyText += "\n--- 2. HUIDIGE SMERING ---\n";
+      bodyText += "Type Smering: " + (document.getElementById('q6').value || '-') + "\n";
+      bodyText += "Huidige Product: " + (document.getElementById('q7').value || '-') + "\n";
+      bodyText += "Smeermethode: " + (document.getElementById('q9').value || '-') + "\n";
+      bodyText += "Smeerinterval: " + (document.getElementById('q11').value || '-') + "\n";
+      bodyText += "Hoeveelheid per beurt: " + (document.getElementById('q12').value || '-') + "\n\n";
+
+      bodyText += "--- 3. BEDRIJFSOMSTANDIGHEDEN ---\n";
+      bodyText += "Bedrijfstemperatuur: " + (document.getElementById('q13').value || '-') + "\n";
+      bodyText += "Omgevingstemperatuur: " + (document.getElementById('q14').value || '-') + "\n";
+      bodyText += "Belasting: " + (document.getElementById('q15').value || '-') + "\n";
+      
+      const omgevingsFactoren = [];
+      document.querySelectorAll('input[name^="14. Omgeving"]:checked').forEach(cb => omgevingsFactoren.push(cb.parentElement.textContent.trim()));
+      bodyText += "Omgevingsfactoren: " + (omgevingsFactoren.length ? omgevingsFactoren.join(', ') : 'Geen') + "\n";
+      bodyText += "Bedrijfsuren per dag: " + (document.getElementById('q16').value || '16') + "\n";
+      bodyText += "Werkdagen per week: " + (document.getElementById('q17').value || '5') + "\n\n";
+
+      bodyText += "--- 4. PROBLEMEN & DOELSTELLINGEN ---\n";
+      const problemen = [];
+      document.querySelectorAll('input[name^="17. Probleem"]:checked').forEach(cb => problemen.push(cb.parentElement.textContent.trim()));
+      bodyText += "Ervaren Problemen: " + (problemen.length ? problemen.join(', ') : 'Geen') + "\n";
+      bodyText += "Levensduur Lager: " + (document.getElementById('q19').value || '-') + "\n";
+      bodyText += "Kosten Vervanging: " + (document.getElementById('q20').value || '-') + "\n";
+      
+      const doelen = [];
+      document.querySelectorAll('input[name^="20. Doel"]:checked').forEach(cb => doelen.push(cb.parentElement.textContent.trim()));
+      bodyText += "Doelstellingen: " + (doelen.length ? doelen.join(', ') : 'Geen') + "\n\n";
+
+      bodyText += "--- 5. EXTRA OPMERKINGEN ---\n";
+      bodyText += (document.getElementById('q22').value || 'Geen opmerkingen') + "\n";
+
+      return bodyText;
     }
 
     function sendViaGmail() {
-      const data = buildReportSummary();
-      if (!data.targetEmail) {
-        alert('Vul a.u.b. het e-mailadres in van de Interflon contactpersoon in het onderste veld.');
-        return;
-      }
-
-      const subject = "Interflon Smeeranalyse Vragenlijst: " + data.company + " - " + data.machine;
-      const gmailUrl = "https://mail.google.com/mail/?view=cm&fs=1&to=" + encodeURIComponent(data.targetEmail) +
-                       "&su=" + encodeURIComponent(subject) +
-                       "&body=" + encodeURIComponent(data.bodyText);
-
+      const targetEmail = document.getElementById('interflonContactEmail').value || 'tom.peckstadt@interflon.com';
+      const subject = encodeURIComponent("Smeeranalyse Vragenlijst - " + (document.getElementById('clientCompany').value || 'Klant'));
+      const body = encodeURIComponent(buildReportSummary());
+      const gmailUrl = "https://mail.google.com/mail/?view=cm&fs=1&to=" + encodeURIComponent(targetEmail) + "&su=" + subject + "&body=" + body;
       window.open(gmailUrl, '_blank');
     }
 
     function sendViaOutlookMailto() {
-      const data = buildReportSummary();
-      if (!data.targetEmail) {
-        alert('Vul a.u.b. het e-mailadres in van de Interflon contactpersoon in het onderste veld.');
-        return;
-      }
-
-      const subject = "Interflon Smeeranalyse Vragenlijst: " + data.company + " - " + data.machine;
-      const mailtoUrl = "mailto:" + encodeURIComponent(data.targetEmail) + 
-                        "?subject=" + encodeURIComponent(subject) +
-                        "&body=" + encodeURIComponent(data.bodyText);
-
-      window.location.href = mailtoUrl;
+      const targetEmail = document.getElementById('interflonContactEmail').value || 'tom.peckstadt@interflon.com';
+      const subject = encodeURIComponent("Smeeranalyse Vragenlijst - " + (document.getElementById('clientCompany').value || 'Klant'));
+      const body = encodeURIComponent(buildReportSummary());
+      window.location.href = "mailto:" + encodeURIComponent(targetEmail) + "?subject=" + subject + "&body=" + body;
     }
 
     function copyFullReportText() {
-      const data = buildReportSummary();
+      const reportText = buildReportSummary();
       if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(data.bodyText).then(() => {
-          alert("📋 Alle antwoorden uit de vragenlijst zijn gekopieerd naar je klembord!\n\nJe kunt ze nu direct plakken (Ctrl + V) in een e-mail naar: " + (data.targetEmail || 'je contactpersoon'));
+        navigator.clipboard.writeText(reportText).then(() => {
+          alert("📋 Alle ingevulde antwoorden zijn gekopieerd naar uw klembord!\n\nU kunt deze nu direct plakken (Ctrl + V) in een e-mailbericht.");
         }).catch(err => {
-          prompt("Kopieer de tekst om te mailen:", data.bodyText);
+          prompt("Kopieer onderstaande antwoorden:", reportText);
         });
       } else {
-        prompt("Kopieer de tekst om te mailen:", data.bodyText);
+        prompt("Kopieer onderstaande antwoorden:", reportText);
       }
     }
 
-
-    let bearingCount = 1;
-    function addBearingRow() {
-      bearingCount++;
-      const container = document.getElementById('bearingRowsContainer');
-      const row = document.createElement('div');
-      row.className = 'bearing-row';
-      row.id = 'bearingRow_' + bearingCount;
-      row.style.cssText = 'display: grid; grid-template-columns: 80px 1fr 120px 140px 36px; gap: 10px; margin-bottom: 10px; align-items: center; animation: fadeIn 0.2s ease-in;';
-      row.innerHTML = `
-        <div>
-          <input type="number" name="Lager ${bearingCount} - Aantal" class="form-control" value="1" min="1" placeholder="Aantal" required>
-        </div>
-        <div>
-          <input type="text" name="Lager ${bearingCount} - Lagernummer" class="form-control" placeholder="Lagernummer (bijv. 2206)" required>
-        </div>
-        <div>
-          <input type="number" name="Lager ${bearingCount} - Toerental RPM" class="form-control" placeholder="Toerental RPM">
-        </div>
-        <div>
-          <select name="Lager ${bearingCount} - As Positie" class="form-control">
-            <option value="Horizontaal">Horizontaal</option>
-            <option value="Verticaal">Verticaal</option>
-          </select>
-        </div>
-        <div>
-          <button type="button" onclick="removeBearingRow('bearingRow_${bearingCount}')" title="Verwijder dit lager" style="background: #fee2e2; border: 1px solid #fca5a5; color: #dc2626; border-radius: 6px; width: 36px; height: 36px; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 16px;">✕</button>
-        </div>
-      `;
-      container.appendChild(row);
-    }
-
-    function removeBearingRow(id) {
-      const row = document.getElementById(id);
-      if (row) row.remove();
-    }
-
-  </script>
-
-  <script>
-    const SURVEY_TRANSLATIONS = {
-      nl: {
-        pageTitle: "Interflon Smeeranalyse - Digital Questionnaire",
-        headerTitle: "Smeeranalyse Vragenlijst",
-        headerSubtitle: "Onderzoek & Optimalisatie van Machine-smering",
-        introTitle: "Welkom bij het Interflon Smeeranalyse Formulier",
-        introText: "Om u een optimaal smeeradvies op maat te kunnen bieden, verzoeken wij u onderstaande vragenlijst zo volledig mogelijk in te vullen. De ingevulde gegevens worden rechtstreeks verzonden naar uw Interflon smeertechnisch adviseur.",
-        sec1Title: "⚙️ 1. Machinedetails & Lagerspecificaties",
-        lblQ1: "1. Naam van de machine *",
-        lblQ2: "2. Merk van de machine",
-        lblQ3: "3. Toepassing van de machine",
-        lblQ4: "4. Aantal identieke machines in het park",
-        lblQ5: "5. Lagers op deze machine *",
-        lblQ5Desc: "Specificeer per lager het <strong>Aantal</strong>, het <strong>Lagernummer</strong>, het <strong>Toerental (RPM)</strong> en de <strong>As Positie</strong>. Klik op \"+ Extra lager toevoegen\" om meer lagers toe te voegen.",
-        colAantal: "Aantal *",
-        colLagerNr: "Lagernummer *",
-        colRpm: "Toerental (RPM)",
-        colPositie: "As Positie",
-        optHoriz: "Horizontaal",
-        optVert: "Verticaal",
-        btnAddBearing: "➕ Extra lager toevoegen",
-
-        sec2Title: "🛢️ 2. Huidige Smering",
-        lblQ6: "6. Welk type smering wordt nu gebruikt?",
-        optVloeibaar: "Vloeibaar vet",
-        optStandaardVet: "Standaard vet (NLGI 2)",
-        optOlie: "Olie",
-        optDroog: "Droogsmering / PTFE",
-        lblQ7: "7. Merk en exacte productnaam van het huidige vet/olie",
-        lblQ8: "8. Hoe wordt de machine momenteel gesmeerd?",
-        optManueelVetspuit: "Manueel met vetspuit",
-        optAutomatischEnkel: "Automatisch (Enkelpunt smeerpatroon)",
-        optCentraalSmeersysteem: "Centraal smeersysteem",
-        optOliebad: "Oliebad / Oliespat",
-        lblQ9: "9. Wat is het huidige smeerinterval? (bijv. 1x per week, 500 uur)",
-        lblQ10: "10. Hoeveelheid vet/olie per smeerbeurt (bijv. 3 slagen vetspuit of 50 ml)",
-
-        sec3Title: "🌡️ 3. Bedrijfsomstandigheden & Omgeving",
-        lblQ11: "11. Bedrijfstemperatuur van het lager/machine (°C)",
-        lblQ12: "12. Omgevingstemperatuur (°C)",
-        lblQ13: "13. Belasting op het lager",
-        optNormaal: "Normaal",
-        optZwaar: "Zwaar / Schokbelasting",
-        optExtreemZwaar: "Extreem zwaar",
-        lblQ14: "14. Omgevingsfactoren (Vink aan wat van toepassing is)",
-        optStof: "Stof / Vuil",
-        optWater: "Water / Vocht",
-        optStoom: "Stoom / Hoge vochtigheid",
-        optChemisch: "Chemicaliën / Zuren",
-        optReiniging: "Hogedruk reiniging (Washdown)",
-        optVoedingsmiddelen: "Voedingsmiddelenindustrie (H1 vereist)",
-        lblQ15: "15. Aantal bedrijfsuren per dag",
-        lblQ16: "16. Aantal werkdagen per week",
-
-        sec4Title: "⚠️ 4. Problemen, Onderhoud & Doelstellingen",
-        lblQ17: "17. Ervaart u momenteel problemen bij deze machine?",
-        optOververhitting: "Oververhitting / Hoge temperatuur",
-        optSlijtage: "Vroegtijdige lagerslijtage / Uitval",
-        optLekkage: "Vetafscheiding / Olielekkage",
-        optVervuiling: "Vervuiling die het lager binnendringt",
-        optHogeArbeid: "Hoge arbeidskost door frequent smeren",
-        lblQ18: "18. Wat is de gemiddelde levensduur van een lager op deze positie?",
-        lblQ19: "19. Wat kost de vervanging van een lager (onderdelen + arbeid + downtime)?",
-        lblQ20: "20. Wat is uw primaire doelstelling voor deze analyse?",
-        optVerlengen: "Levensduur van lagers verlengen",
-        optIntervallen: "Smeerintervallen vergroten / Arbeid besparen",
-        optAutomatiseren: "Smering automatiseren (Single-point lubricators)",
-        optTemperatuur: "Temperatuur verlagen",
-        optEnergie: "Energieverbruik verlagen",
-
-        sec5Title: "📬 5. Uw Contactgegevens & Bestemming",
-        lblClientCompany: "Bedrijfsnaam *",
-        lblClientContact: "Naam contactpersoon *",
-        lblClientEmail: "Uw E-mailadres *",
-        lblClientPhone: "Telefoonnummer",
-        lblInterflonEmail: "Interflon Contactpersoon E-mail (Bestemming) *",
-        lblInterflonEmailSub: "Naar dit e-mailadres wordt het ingevulde rapport verzonden.",
-        lblExtraNotes: "Extra opmerkingen of specifieke vragen",
-
-        btnSubmitDirect: "🚀 1. Verstuur Vragenlijst Direct via Mail Service →",
-        btnSubmitGmail: "✉️ 2. Open in Gmail",
-        btnSubmitOutlook: "📧 3. Open in Outlook",
-        btnSubmitCopy: "📋 4. Kopieer Antwoorden naar Klembord"
-      },
-      en: {
-        pageTitle: "Interflon Lubrication Analysis - Digital Questionnaire",
-        headerTitle: "Lubrication Analysis Questionnaire",
-        headerSubtitle: "Investigation & Optimization of Machine Lubrication",
-        introTitle: "Welcome to the Interflon Lubrication Analysis Form",
-        introText: "In order to provide you with optimal tailored lubrication advice, please complete the questionnaire below as accurately as possible. The entered data will be sent directly to your Interflon technical lubrication advisor.",
-        sec1Title: "⚙️ 1. Machine Details & Bearing Specifications",
-        lblQ1: "1. Name of the machine *",
-        lblQ2: "2. Machine Brand / Manufacturer",
-        lblQ3: "3. Machine Application / Function",
-        lblQ4: "4. Number of identical machines in facility",
-        lblQ5: "5. Bearings on this machine *",
-        lblQ5Desc: "Specify per bearing the <strong>Quantity</strong>, <strong>Part Number</strong>, <strong>Speed (RPM)</strong> and <strong>Shaft Position</strong>. Click \"+ Add extra bearing\" to add more bearings.",
-        colAantal: "Quantity *",
-        colLagerNr: "Part Number *",
-        colRpm: "Speed (RPM)",
-        colPositie: "Shaft Position",
-        optHoriz: "Horizontal",
-        optVert: "Vertical",
-        btnAddBearing: "➕ Add extra bearing",
-
-        sec2Title: "🛢️ 2. Current Lubrication",
-        lblQ6: "6. What type of lubrication is currently used?",
-        optVloeibaar: "Fluid grease",
-        optStandaardVet: "Standard grease (NLGI 2)",
-        optOlie: "Oil",
-        optDroog: "Dry lubrication / PTFE",
-        lblQ7: "7. Brand and exact product name of current grease/oil",
-        lblQ8: "8. How is the machine currently lubricated?",
-        optManueelVetspuit: "Manually with grease gun",
-        optAutomatischEnkel: "Automatic (Single-point lubricator)",
-        optCentraalSmeersysteem: "Centralized lubrication system",
-        optOliebad: "Oil bath / Splash oil",
-        lblQ9: "9. Current lubrication interval (e.g. 1x per week, 500 hours)",
-        lblQ10: "10. Quantity per relubrication (e.g. 3 strokes grease gun or 50 ml)",
-
-        sec3Title: "🌡️ 3. Operating Conditions & Environment",
-        lblQ11: "11. Operating temperature of bearing/machine (°C)",
-        lblQ12: "12. Ambient temperature (°C)",
-        lblQ13: "13. Bearing load level",
-        optNormaal: "Normal",
-        optZwaar: "Heavy / Shock loads",
-        optExtreemZwaar: "Extremely heavy",
-        lblQ14: "14. Environmental factors (Check all that apply)",
-        optStof: "Dust / Dirt",
-        optWater: "Water / Moisture",
-        optStoom: "Steam / High humidity",
-        optChemisch: "Chemicals / Acids",
-        optReiniging: "High-pressure washdown",
-        optVoedingsmiddelen: "Food industry (H1 required)",
-        lblQ15: "15. Operating hours per day",
-        lblQ16: "16. Operating days per week",
-
-        sec4Title: "⚠️ 4. Issues, Maintenance & Objectives",
-        lblQ17: "17. Are you currently experiencing problems on this machine?",
-        optOververhitting: "Overheating / High temperature",
-        optSlijtage: "Premature bearing wear / Failure",
-        optLekkage: "Grease bleeding / Oil leakage",
-        optVervuiling: "Contamination entering bearing",
-        optHogeArbeid: "High labor cost due to frequent greasing",
-        lblQ18: "18. Average lifespan of a bearing at this position?",
-        lblQ19: "19. Cost of replacing a bearing (parts + labor + downtime)?",
-        lblQ20: "20. Primary objective for this analysis?",
-        optVerlengen: "Extend bearing lifespan",
-        optIntervallen: "Extend lubrication intervals / Save labor",
-        optAutomatiseren: "Automate lubrication (Single-point lubricators)",
-        optTemperatuur: "Reduce operating temperature",
-        optEnergie: "Reduce energy consumption",
-
-        sec5Title: "📬 5. Contact Information & Destination",
-        lblClientCompany: "Company Name *",
-        lblClientContact: "Contact Person Name *",
-        lblClientEmail: "Your Email Address *",
-        lblClientPhone: "Phone Number",
-        lblInterflonEmail: "Interflon Representative Email (Destination) *",
-        lblInterflonEmailSub: "The completed questionnaire will be sent to this email address.",
-        lblExtraNotes: "Additional notes or specific questions",
-
-        btnSubmitDirect: "🚀 1. Send Questionnaire Directly via Mail Service →",
-        btnSubmitGmail: "✉️ 2. Open in Gmail",
-        btnSubmitOutlook: "📧 3. Open in Outlook",
-        btnSubmitCopy: "📋 4. Copy Answers to Clipboard"
-      },
-      fr: {
-        pageTitle: "Analyse de Graissage Interflon - Questionnaire Numérique",
-        headerTitle: "Questionnaire d'Analyse de Graissage",
-        headerSubtitle: "Étude & Optimisation de la Lubrification des Machines",
-        introTitle: "Bienvenue sur le Formulaire d'Analyse Interflon",
-        introText: "Afin de vous fournir un conseil en graissage sur mesure optimal, nous vous prions de remplir le questionnaire ci-dessous aussi complètement que possible. Les données saisies seront directement transmises à votre conseiller technique Interflon.",
-        sec1Title: "⚙️ 1. Détails de la Machine & Spécifications des Roulements",
-        lblQ1: "1. Nom de la machine *",
-        lblQ2: "2. Marque / Fabricant de la machine",
-        lblQ3: "3. Application / Fonction de la machine",
-        lblQ4: "4. Nombre de machines identiques dans le parc",
-        lblQ5: "5. Roulements sur cette machine *",
-        lblQ5Desc: "Spécifiez par roulement la <strong>Quantité</strong>, la <strong>Référence (SKF)</strong>, la <strong>Vitesse (TR/MIN)</strong> et la <strong>Position de l'Axe</strong>. Cliquez sur \"+ Ajouter roulement extra\" pour ajouter d'autres roulements.",
-        colAantal: "Quantité *",
-        colLagerNr: "Référence Roulement *",
-        colRpm: "Vitesse (TR/MIN)",
-        colPositie: "Position de l'Axe",
-        optHoriz: "Horizontale",
-        optVert: "Verticale",
-        btnAddBearing: "➕ Ajouter roulement extra",
-
-        sec2Title: "🛢️ 2. Graissage Actuel",
-        lblQ6: "6. Quel type de lubrification est actuellement utilisé?",
-        optVloeibaar: "Graisse fluide",
-        optStandaardVet: "Graisse standard (NLGI 2)",
-        optOlie: "Huile",
-        optDroog: "Lubrification sèche / PTFE",
-        lblQ7: "7. Marque et nom exact du produit actuel (graisse/huile)",
-        lblQ8: "8. Comment la machine est-elle actuellement graissée?",
-        optManueelVetspuit: "Manuellement avec pompe à graisse",
-        optAutomatischEnkel: "Automatique (Graisseur monopoint)",
-        optCentraalSmeersysteem: "Système de graissage centralisé",
-        optOliebad: "Bain d'huile / Barbotage",
-        lblQ9: "9. Intervalle de graissage actuel (ex. 1x par semaine, 500 heures)",
-        lblQ10: "10. Quantité par regraissage (ex. 3 coups de pompe ou 50 ml)",
-
-        sec3Title: "🌡️ 3. Conditions de Fonctionnement & Environnement",
-        lblQ11: "11. Température de fonctionnement du roulement/machine (°C)",
-        lblQ12: "12. Température ambiante (°C)",
-        lblQ13: "13. Niveau de charge sur le roulement",
-        optNormaal: "Normale",
-        optZwaar: "Lourde / Chocs",
-        optExtreemZwaar: "Extrêmement lourde",
-        lblQ14: "14. Facteurs environnementaux (Cochez ce qui s'applique)",
-        optStof: "Poussière / Saleté",
-        optWater: "Eau / Humidité",
-        optStoom: "Vapeur / Forte humidité",
-        optChemisch: "Produits chimiques / Acides",
-        optReiniging: "Nettoyage haute pression (Washdown)",
-        optVoedingsmiddelen: "Industrie alimentaire (H1 requis)",
-        lblQ15: "15. Heures de fonctionnement par jour",
-        lblQ16: "16. Jours de fonctionnement par semaine",
-
-        sec4Title: "⚠️ 4. Problèmes, Maintenance & Objectifs",
-        lblQ17: "17. Rencontrez-vous actuellement des problèmes sur cette machine?",
-        optOververhitting: "Surchauffe / Température élevée",
-        optSlijtage: "Usure prématurée / Panne de roulement",
-        optLekkage: "Séparation d'huile / Fuite de graisse",
-        optVervuiling: "Contamination pénétrant le roulement",
-        optHogeArbeid: "Coût de main-d'œuvre élevé dû au regraissage fréquent",
-        lblQ18: "18. Durée de vie moyenne d'un roulement à cette position?",
-        lblQ19: "19. Coût de remplacement d'un roulement (pièces + main-d'œuvre + arrêt)?",
-        lblQ20: "20. Objectif principal pour cette analyse?",
-        optVerlengen: "Prolonger la durée de vie des roulements",
-        optIntervallen: "Augmenter les intervalles de graissage / Économiser la main-d'œuvre",
-        optAutomatiseren: "Automatiser le graissage (Graisseurs monopoint)",
-        optTemperatuur: "Réduire la température de fonctionnement",
-        optEnergie: "Réduire la consommation d'énergie",
-
-        sec5Title: "📬 5. Vos Coordonnées & Destination",
-        lblClientCompany: "Nom de l'Entreprise *",
-        lblClientContact: "Nom de la Personne de Contact *",
-        lblClientEmail: "Votre Adresse E-mail *",
-        lblClientPhone: "Numéro de Téléphone",
-        lblInterflonEmail: "E-mail du Conseiller Interflon (Destination) *",
-        lblInterflonEmailSub: "Le rapport rempli sera envoyé à cette adresse e-mail.",
-        lblExtraNotes: "Remarques supplémentaires ou questions spécifiques",
-
-        btnSubmitDirect: "🚀 1. Envoyer le Questionnaire Directement via Mail →",
-        btnSubmitGmail: "✉️ 2. Ouvrir dans Gmail",
-        btnSubmitOutlook: "📧 3. Ouvrir dans Outlook",
-        btnSubmitCopy: "📋 4. Copier les Réponses dans le Presse-papier"
-      }
-    };
-
-    function changeSurveyLanguage(lang) {
-      const dict = SURVEY_TRANSLATIONS[lang] || SURVEY_TRANSLATIONS.nl;
-      document.documentElement.lang = lang;
-      
-      // Update headings
-      const h1 = document.querySelector('h1'); if (h1) h1.textContent = dict.headerTitle;
-      const sub = document.querySelector('p[style*="color: #64748b"]'); if (sub) sub.textContent = dict.headerSubtitle;
-
-      // Check URL search param and set select value
-      const sel = document.getElementById('surveyLangSelect');
-      if (sel) sel.value = lang;
-    }
-
-    // Auto-detect lang from URL query parameter
     window.addEventListener('DOMContentLoaded', () => {
-      const params = new URLSearchParams(window.location.search);
-      const langParam = params.get('lang');
+      const urlParams = new URLSearchParams(window.location.search);
+      
+      const langParam = urlParams.get('lang');
       if (langParam && SURVEY_TRANSLATIONS[langParam]) {
         changeSurveyLanguage(langParam);
+      } else {
+        changeSurveyLanguage("nl");
+      }
+
+      const contactEmail = urlParams.get('contact') || urlParams.get('contact_email') || urlParams.get('interflon_email');
+      if (contactEmail) {
+        document.getElementById('interflonContactEmail').value = contactEmail;
+        updateFormSubmitAction(contactEmail);
+      }
+
+      const company = urlParams.get('company') || urlParams.get('client_company');
+      if (company) document.getElementById('clientCompany').value = company;
+
+      const clientContact = urlParams.get('client_contact') || urlParams.get('contact_name');
+      if (clientContact) document.getElementById('clientContact').value = clientContact;
+
+      const clientEmail = urlParams.get('client_email');
+      if (clientEmail) {
+        document.getElementById('clientEmail').value = clientEmail;
+        syncReplyTo(clientEmail);
+      }
+
+      if (urlParams.get('submitted') === 'true') {
+        document.getElementById('successBanner').style.display = 'block';
+        window.scrollTo({ top: 0, behavior: 'smooth' });
       }
     });
   </script>
-
 </body>
 </html>
