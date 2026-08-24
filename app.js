@@ -6708,6 +6708,8 @@ function calculateAutomationLubrication() {
   saveAutomationStateToLocalStorage();
   setTimeout(() => { if (typeof updateRoiAutomationPage === "function") updateRoiAutomationPage(); }, 0);
   
+  var lang = typeof currentLang !== "undefined" ? currentLang : "nl";
+
   const numDevices = getActiveNumDevices();
   const container = document.getElementById("autoDevicesCardsContainer");
   if (container && container.children.length !== numDevices) {
@@ -6731,6 +6733,11 @@ function calculateAutomationLubrication() {
     const needRateStr = dailyNeedCm3.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 4 });
     const roundedDaysStr = Math.round(window.currentMicPolDays || 0).toLocaleString("nl-BE");
 
+    const badgeHeader = lang === "fr" ? "BESOIN DU ROULEMENT CALCULÉ (POUR 1 ROULEMENT)" : (lang === "en" ? "CALCULATED BEARING REQUIREMENT (PER 1 BEARING)" : "BEREKENDE LAGERBEHOEFTE (PER 1 LAGER)");
+    const badgeRateUnit = lang === "fr" ? "ml/jour par roulement" : (lang === "en" ? "ml/day per bearing" : "ml/dag per lager");
+    const badgeDesc = lang === "fr" ? `Quantité d'appoint : <strong>${gqStr} g</strong> &bull; Intervalle : <strong>${roundedDaysStr} jours</strong> (${hDay}h/jour, ${dWeek}j/semaine)` : (lang === "en" ? `Relubrication quantity: <strong>${gqStr} g</strong> &bull; Interval: <strong>${roundedDaysStr} days</strong> (${hDay}h/day, ${dWeek}d/week)` : `Nasmeerhoeveelheid: <strong>${gqStr} g</strong> &bull; Smeerinterval: <strong>${roundedDaysStr} dagen</strong> (${hDay}u/dag, ${dWeek}d/week)`);
+    const badgeSource = lang === "fr" ? "Issu du 'Calcul de Graissage'" : (lang === "en" ? "Sourced from 'Grease Calculation'" : "Afkomstig uit 'Smeercalculatie'");
+
     needBadgeEl.innerHTML = `
       <div style="margin-bottom: 16px; background-color: #f8fafc; border: 1px solid #e2e8f0; border-left: 4px solid #E30613; border-radius: var(--border-radius-sm); padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.03);">
         <div style="display: flex; align-items: center; gap: 10px;">
@@ -6742,18 +6749,18 @@ function calculateAutomationLubrication() {
           </div>
           <div>
             <div style="font-size: 11px; font-weight: 700; color: var(--text-medium); text-transform: uppercase; letter-spacing: 0.5px;">
-              Berekende Lagerbehoefte (Per 1 lager)
+              ${badgeHeader}
             </div>
             <div style="font-size: 14px; font-weight: 800; color: var(--primary-dark); margin-top: 1px;">
-              ${needRateStr} ml/dag per lager
+              ${needRateStr} ${badgeRateUnit}
             </div>
             <div style="font-size: 11.5px; color: var(--text-medium); margin-top: 3px;">
-              Nasmeerhoeveelheid: <strong>${gqStr} g</strong> &bull; Smeerinterval: <strong>${roundedDaysStr} dagen</strong> (${hDay}u/dag, ${dWeek}d/week)
+              ${badgeDesc}
             </div>
           </div>
         </div>
         <div style="background-color: #ffffff; border: 1px solid #cbd5e1; border-radius: 20px; padding: 4px 12px; font-size: 11.5px; font-weight: 600; color: var(--text-dark);">
-          Afkomstig uit 'Smeercalculatie'
+          ${badgeSource}
         </div>
       </div>
     `;
@@ -6774,7 +6781,7 @@ function calculateAutomationLubrication() {
       if (autoDevicesState[i]) autoDevicesState[i].cap = 250;
     }
     const capMl = dev.cap || (isSinglePoint ? 250 : 120);
-    const devName = numDevices === 1 ? "Pulsarlube Smeertoestel" : `Pulsarlube ${devId}`;
+    const devName = numDevices === 1 ? (lang === "fr" ? "Appareil Pulsarlube" : (lang === "en" ? "Pulsarlube Device" : "Pulsarlube Smeertoestel")) : `Pulsarlube ${devId}`;
 
     // 1. Update Verdeelblok Card Info for this device
     const divTitleEl = document.getElementById("dividerBlockTitle_" + devId);
@@ -6788,56 +6795,59 @@ function calculateAutomationLubrication() {
     const divInfo = divDb[points] || divDb[1] || { artNr: "", price: 0 };
 
     if (points === 1) {
-      if (divTitleEl) divTitleEl.textContent = "Directe aansluiting (1 smeerpunt)";
-      if (divDescEl) divDescEl.textContent = "Geen verdeelblok nodig. Toestel wordt rechtstreeks op 1 lager aangesloten.";
-      if (divPriceEl) divPriceEl.textContent = "Geen verdeelblok (€ 0,00)";
+      if (divTitleEl) divTitleEl.textContent = lang === "fr" ? "Raccordement direct (1 point de graissage)" : (lang === "en" ? "Direct connection (1 lubrication point)" : "Directe aansluiting (1 smeerpunt)");
+      if (divDescEl) divDescEl.textContent = lang === "fr" ? "Pas de bloc répartiteur nécessaire. L'appareil est raccordé directement sur 1 roulement." : (lang === "en" ? "No divider block needed. Device is connected directly to 1 bearing." : "Geen verdeelblok nodig. Toestel wordt rechtstreeks op 1 lager aangesloten.");
+      if (divPriceEl) divPriceEl.textContent = lang === "fr" ? "Pas de bloc répartiteur (€ 0,00)" : (lang === "en" ? "No divider block (€ 0.00)" : "Geen verdeelblok (€ 0,00)");
     } else {
-      if (divTitleEl) divTitleEl.textContent = `HU Type Verdeelblok (${points}-poorts)`;
-      if (divDescEl) divDescEl.textContent = `HU Type Divider Block (Art. ${divInfo.artNr}) verdeelt de vetsmering gelijkmatig over ${points} lagers.`;
-      if (divPriceEl) divPriceEl.textContent = `Prijs verdeelblok: € ${divInfo.price.toFixed(2).replace('.', ',')}`;
+      if (divTitleEl) divTitleEl.textContent = lang === "fr" ? `Bloc Répartiteur Type HU (${points} sorties)` : (lang === "en" ? `HU Type Divider Block (${points}-port)` : `HU Type Verdeelblok (${points}-poorts)`);
+      if (divDescEl) divDescEl.textContent = lang === "fr" ? `Le bloc répartiteur type HU (Réf. ${divInfo.artNr}) distribue la graisse uniformément sur ${points} roulements.` : (lang === "en" ? `HU Type Divider Block (Art. ${divInfo.artNr}) distributes grease equally across ${points} bearings.` : `HU Type Divider Block (Art. ${divInfo.artNr}) verdeelt de vetsmering gelijkmatig over ${points} lagers.`);
+      if (divPriceEl) divPriceEl.textContent = lang === "fr" ? `Prix du bloc répartiteur : € ${divInfo.price.toFixed(2).replace('.', ',')}` : (lang === "en" ? `Divider block price: € ${divInfo.price.toFixed(2).replace('.', ',')}` : `Prijs verdeelblok: € ${divInfo.price.toFixed(2).replace('.', ',')}`);
     }
 
-    // 2. Compute recommendation for THIS device (based on points for this device)
+    // 2. Compute recommendation for THIS device
     const totalDailyNeedForDev = dailyNeedCm3 * points;
     const recDays = capMl / totalDailyNeedForDev;
     const recMonths = recDays / 30.4375;
     const recWeeks = recDays / 7;
 
     const recSetting = getRecommendedSettingMonths(recMonths);
-    const dialLabel = `${recSetting.months} ${recSetting.months === 1 ? 'maand' : 'maanden'}`;
-    const theoMonthsStr = recMonths > 10 ? `${Math.round(recMonths)} maanden` : `${recMonths.toLocaleString("nl-BE", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} maanden`;
+    const monthWord = lang === "fr" ? "mois" : (lang === "en" ? (recSetting.months === 1 ? "month" : "months") : (recSetting.months === 1 ? "maand" : "maanden"));
+    const dialLabel = `${recSetting.months} ${monthWord}`;
+    
+    const mWordPlural = lang === "fr" ? "mois" : (lang === "en" ? "months" : "maanden");
+    const theoMonthsStr = recMonths > 10 ? `${Math.round(recMonths)} ${mWordPlural}` : `${recMonths.toLocaleString("nl-BE", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} ${mWordPlural}`;
 
     const dialValEl = document.getElementById("autoDialValue_" + devId);
     const theoValEl = document.getElementById("autoTheoValue_" + devId);
     if (dialValEl) dialValEl.textContent = dialLabel;
     if (theoValEl) theoValEl.textContent = theoMonthsStr;
 
-    const isDialDevice = (deviceKey === "single_point");
-    const settingTerm = isDialDevice ? "draaiknopstand" : "display instelling";
-    const settingLabel = isDialDevice ? "Instelstand op toestel:" : "Display instelling op toestel:";
-
     const recTitleEl = document.getElementById("autoRecTitle_" + devId);
     const recSubtextEl = document.getElementById("autoRecSubtext_" + devId);
-    const roundReason = recSetting.roundedUp ? "afgerond naar boven bij ≥ 0,5" : "afgerond naar beneden bij < 0,5";
-    const pointsText = points === 1 ? "1 lager" : `${points} lagers`;
+    const roundReason = lang === "fr" ? (recSetting.roundedUp ? "arrondi au supérieur si ≥ 0,5" : "arrondi à l'inférieur si < 0,5") : (lang === "en" ? (recSetting.roundedUp ? "rounded up at ≥ 0.5" : "rounded down at < 0.5") : (recSetting.roundedUp ? "afgerond naar boven bij ≥ 0,5" : "afgerond naar beneden bij < 0,5"));
+    const pointsText = lang === "fr" ? (points === 1 ? "1 roulement" : `${points} roulements`) : (lang === "en" ? (points === 1 ? "1 bearing" : `${points} bearings`) : (points === 1 ? "1 lager" : `${points} lagers`));
 
     const smartAdv = getOptimalSmartAdvice(totalDailyNeedForDev, deviceKey, greaseName);
     const isSmartMatch = (capMl === smartAdv.cap && recSetting.months === smartAdv.months);
 
     if (recTitleEl) {
       if (smartAdv.isGracoRecommended) {
-        recTitleEl.textContent = `Advies voor ${pointsText}: Bekijk de optie Graco (Hoge vetbehoefte)`;
+        recTitleEl.textContent = lang === "fr" ? `Conseil pour ${pointsText} : Examiner l'option Graco` : (lang === "en" ? `Advice for ${pointsText}: Consider Graco option` : `Advies voor ${pointsText}: Bekijk de optie Graco`);
+      } else if (isSmartMatch) {
+        const smartMonthWord = lang === "fr" ? "mois" : (lang === "en" ? (smartAdv.months === 1 ? "month" : "months") : (smartAdv.months === 1 ? "maand" : "maanden"));
+        recTitleEl.textContent = lang === "fr" ? `Taille de cartouche recommandée : ${smartAdv.cap} ml sur ${smartAdv.months} ${smartMonthWord}` : (lang === "en" ? `Recommended cartridge size: ${smartAdv.cap} ml set to ${smartAdv.months} ${smartMonthWord}` : `Geadviseerde patroongrootte: ${smartAdv.cap} ml op ${smartAdv.months} ${smartMonthWord}`);
       } else {
-        recTitleEl.textContent = `${dialLabel} (${settingTerm}) op ${capMl} ml | ${pointsText}`;
+        recTitleEl.textContent = lang === "fr" ? `Réglage recommandé : Position ${dialLabel}` : (lang === "en" ? `Recommended setting: Position ${dialLabel}` : `Geadviseerde instelling: Stand ${dialLabel}`);
       }
     }
+
     if (recSubtextEl) {
-      if (smartAdv.isGracoRecommended) {
-        recSubtextEl.innerHTML = `&#9888; <strong>Hoge vetbehoefte voor ${pointsText} (${totalDailyNeedForDev.toFixed(2).replace('.', ',')} ml/dag):</strong> Een 500 ml patroon gaat slechts ${((500 / totalDailyNeedForDev)/30.4375).toFixed(1).replace('.', ',')} maanden mee.<br>👉 <strong>Advies: Bekijk de optie Graco</strong> (centraal smeersysteem / vatpomp voor grote vetvolumes).`;
-      } else if (isSmartMatch) {
-        recSubtextEl.innerHTML = `&check; <strong>Optimaal advies voor ${pointsText}: ${smartAdv.cap} ml patroon ingesteld op ${smartAdv.months} ${smartAdv.months === 1 ? 'maand' : 'maanden'}.</strong><br>&bull; Dit is de <strong>meest voordelige combinatie</strong> (slechts ${smartAdv.cartridgesPerYear.toFixed(1).replace('.', ',')} patronen/jaar &bull; € ${smartAdv.annualCost.toFixed(2).replace('.', ',')}/jaar patronen) en bespaart aanzienlijk op vervangen en onderhoud.`;
+      if (isSmartMatch) {
+        const yearWord = lang === "fr" ? "an" : (lang === "en" ? "year" : "jaar");
+        const packsWord = lang === "fr" ? "cartouches/an" : (lang === "en" ? "cartridges/year" : "patronen/jaar");
+        recSubtextEl.innerHTML = lang === "fr" ? `Consommation de graisse optimale : <strong>${smartAdv.cartridgesPerYear.toFixed(1)} ${packsWord}</strong> (€ ${smartAdv.annualCost.toFixed(2).replace('.', ',')}/${yearWord} en cartouches).` : (lang === "en" ? `Optimal grease consumption: <strong>${smartAdv.cartridgesPerYear.toFixed(1)} ${packsWord}</strong> (€ ${smartAdv.annualCost.toFixed(2).replace('.', ',')}/${yearWord} in cartridges).` : `Optimaal vetverbruik: <strong>${smartAdv.cartridgesPerYear.toFixed(1)} ${packsWord}</strong> (€ ${smartAdv.annualCost.toFixed(2).replace('.', ',')}/${yearWord} aan patronen).`);
       } else {
-        recSubtextEl.innerHTML = `&bull; Huidige selectie: <strong>${capMl} ml patroon op ${dialLabel}</strong> (${roundReason}).<br>&bull; <strong>Slim advies-tip:</strong> Klik op <em>'Neem advies over'</em> om automatisch te kiezen voor <strong>${smartAdv.cap} ml op ${smartAdv.months} ${smartAdv.months === 1 ? 'maand' : 'maanden'}</strong> (slechts € ${smartAdv.annualCost.toFixed(2).replace('.', ',')}/jaar patronen).`;
+        recSubtextEl.innerHTML = lang === "fr" ? `Calcul théorique de <strong>${theoMonthsStr}</strong> (${roundReason} vers le réglage disponible sur l'appareil).` : (lang === "en" ? `Theoretically calculated at <strong>${theoMonthsStr}</strong> (${roundReason} to available setting on device).` : `Theoretisch berekend op <strong>${theoMonthsStr}</strong> (${roundReason} naar beschikbare stand op het toestel).`);
       }
     }
 
@@ -6865,9 +6875,13 @@ function calculateAutomationLubrication() {
     const monthValEl = document.getElementById("autoMonthlyVolumeRes_" + devId);
     const yearValEl = document.getElementById("autoYearlyVolumeRes_" + devId);
 
-    if (resValEl) resValEl.textContent = `${displayDaily1.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ml/dag`;
-    if (monthValEl) monthValEl.textContent = `${displayMonthly1.toLocaleString("nl-BE", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} ml/maand`;
-    if (yearValEl) yearValEl.textContent = `${displayYearly1.toLocaleString("nl-BE", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} ml/jaar`;
+    const daySuffix = lang === "fr" ? "ml/jour" : (lang === "en" ? "ml/day" : "ml/dag");
+    const monthSuffix = lang === "fr" ? "ml/mois" : (lang === "en" ? "ml/month" : "ml/maand");
+    const yearSuffix = lang === "fr" ? "ml/an" : (lang === "en" ? "ml/year" : "ml/jaar");
+
+    if (resValEl) resValEl.textContent = `${displayDaily1.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${daySuffix}`;
+    if (monthValEl) monthValEl.textContent = `${displayMonthly1.toLocaleString("nl-BE", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} ${monthSuffix}`;
+    if (yearValEl) yearValEl.textContent = `${displayYearly1.toLocaleString("nl-BE", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} ${yearSuffix}`;
 
     const displayDailyX = totalDailyNeedForDev;
     const displayMonthlyX = displayDailyX * 30.4375;
@@ -6875,24 +6889,25 @@ function calculateAutomationLubrication() {
 
     const totalHeaderTitleEl = document.getElementById("autoTotalVolumeHeaderTitle_" + devId);
     if (totalHeaderTitleEl) {
-      totalHeaderTitleEl.textContent = `TOTAAL SMEERVOLUME TOESTEL (VOOR ${points} ${points === 1 ? 'LAGER' : 'LAGERS'})`;
+      const bWordUpper = lang === "fr" ? (points === 1 ? "ROULEMENT" : "ROULEMENTS") : (lang === "en" ? (points === 1 ? "BEARING" : "BEARINGS") : (points === 1 ? "LAGER" : "LAGERS"));
+      totalHeaderTitleEl.textContent = lang === "fr" ? `VOLUME TOTAL DE L'APPAREIL (POUR ${points} ${bWordUpper})` : (lang === "en" ? `TOTAL DEVICE LUBRICATION VOLUME (PER ${points} ${bWordUpper})` : `TOTAAL SMEERVOLUME TOESTEL (VOOR ${points} ${bWordUpper})`);
     }
 
     const labelDailyX = document.getElementById("autoDailyVolumeTotalLabel_" + devId);
     const labelMonthlyX = document.getElementById("autoMonthlyVolumeTotalLabel_" + devId);
     const labelYearlyX = document.getElementById("autoYearlyVolumeTotalLabel_" + devId);
 
-    if (labelDailyX) labelDailyX.textContent = `BEREKEND DAGELIJKS SMEERVOLUME (VOOR ${pointsText}):`;
-    if (labelMonthlyX) labelMonthlyX.textContent = `BEREKEND MAANDELIJKS SMEERVOLUME (VOOR ${pointsText}):`;
-    if (labelYearlyX) labelYearlyX.textContent = `BEREKEND JAARLIJKS SMEERVOLUME (VOOR ${pointsText}):`;
+    if (labelDailyX) labelDailyX.textContent = lang === "fr" ? `VOLUME QUOTIDIEN CALCULÉ (POUR ${pointsText}) :` : (lang === "en" ? `CALCULATED DAILY VOLUME (PER ${pointsText}):` : `BEREKEND DAGELIJKS SMEERVOLUME (VOOR ${pointsText}):`);
+    if (labelMonthlyX) labelMonthlyX.textContent = lang === "fr" ? `VOLUME MENSUEL CALCULÉ (POUR ${pointsText}) :` : (lang === "en" ? `CALCULATED MONTHLY VOLUME (PER ${pointsText}):` : `BEREKEND MAANDELIJKS SMEERVOLUME (VOOR ${pointsText}):`);
+    if (labelYearlyX) labelYearlyX.textContent = lang === "fr" ? `VOLUME ANNUEL CALCULÉ (POUR ${pointsText}) :` : (lang === "en" ? `CALCULATED ANNUAL VOLUME (PER ${pointsText}):` : `BEREKEND JAARLIJKS SMEERVOLUME (VOOR ${pointsText}):`);
 
     const resDailyX = document.getElementById("autoDailyVolumeTotalRes_" + devId);
     const resMonthlyX = document.getElementById("autoMonthlyVolumeTotalRes_" + devId);
     const resYearlyX = document.getElementById("autoYearlyVolumeTotalRes_" + devId);
 
-    if (resDailyX) resDailyX.textContent = `${displayDailyX.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ml/dag`;
-    if (resMonthlyX) resMonthlyX.textContent = `${displayMonthlyX.toLocaleString("nl-BE", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} ml/maand`;
-    if (resYearlyX) resYearlyX.textContent = `${displayYearlyX.toLocaleString("nl-BE", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} ml/jaar`;
+    if (resDailyX) resDailyX.textContent = `${displayDailyX.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${daySuffix}`;
+    if (resMonthlyX) resMonthlyX.textContent = `${displayMonthlyX.toLocaleString("nl-BE", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} ${monthSuffix}`;
+    if (resYearlyX) resYearlyX.textContent = `${displayYearlyX.toLocaleString("nl-BE", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} ${yearSuffix}`;
 
     // 4. Match / Under / Over-lubrication Notice Box per Device
     const matchNoticeEl = document.getElementById("autoMatchNotice_" + devId);
@@ -6906,9 +6921,7 @@ function calculateAutomationLubrication() {
       const actualDailyVol = capMl / totalDays;
       const ratio = actualDailyVol / totalDailyNeedForDev;
 
-      let unitLabel = "maanden";
-      if (curUnit === "weeks") unitLabel = "weken";
-      else if (curUnit === "days") unitLabel = "dagen";
+      let unitLabel = lang === "fr" ? (curUnit === "weeks" ? "semaines" : (curUnit === "days" ? "jours" : "mois")) : (lang === "en" ? (curUnit === "weeks" ? "weeks" : (curUnit === "days" ? "days" : "months")) : (curUnit === "weeks" ? "weken" : (curUnit === "days" ? "dagen" : "maanden")));
 
       const actualStr = actualDailyVol.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
       const targetStr = totalDailyNeedForDev.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -6917,50 +6930,81 @@ function calculateAutomationLubrication() {
       const isGracoNeeded = maxTheoMonthsForDev < 2.0;
 
       if (isGracoNeeded) {
-        matchNoticeEl.innerHTML = `
+        matchNoticeEl.innerHTML = lang === "fr" ? `
+          <div style="padding: 12px 14px; background-color: #FEF2F2; border: 1.5px solid #EF4444; border-radius: var(--border-radius-sm); color: #991B1B; font-size: 11.5px; font-weight: 600; line-height: 1.4; box-shadow: 0 1px 3px rgba(227,6,19,0.06);">
+            &#9888; <strong>Besoin élevé en graisse pour Pulsarlube (${targetStr} ml/jour pour ${pointsText}) :</strong><br>
+            Même avec une cartouche maximale de 500 ml réglée sur 1 mois, l'appareil délivre ${actualStr} ml/jour et la cartouche s'épuise après <strong>${maxTheoMonthsForDev.toFixed(1).replace('.', ',')} mois</strong>.<br>
+            👉 <strong>Conseil : Examiner l'option Graco</strong> (système de graissage centralisé / pompe de fût pour grands volumes).
+          </div>
+        ` : (lang === "en" ? `
+          <div style="padding: 12px 14px; background-color: #FEF2F2; border: 1.5px solid #EF4444; border-radius: var(--border-radius-sm); color: #991B1B; font-size: 11.5px; font-weight: 600; line-height: 1.4; box-shadow: 0 1px 3px rgba(227,6,19,0.06);">
+            &#9888; <strong>High grease demand for Pulsarlube (${targetStr} ml/day for ${pointsText}):</strong><br>
+            Even with a maximum 500 ml cartridge set to 1 month, the unit dispenses ${actualStr} ml/day and a 500 ml cartridge empties after <strong>${maxTheoMonthsForDev.toFixed(1).replace('.', ',')} months</strong>.<br>
+            👉 <strong>Advice: Consider Graco option</strong> (central lubrication system / drum pump for continuous lubrication of large volumes).
+          </div>
+        ` : `
           <div style="padding: 12px 14px; background-color: #FEF2F2; border: 1.5px solid #EF4444; border-radius: var(--border-radius-sm); color: #991B1B; font-size: 11.5px; font-weight: 600; line-height: 1.4; box-shadow: 0 1px 3px rgba(227,6,19,0.06);">
             &#9888; <strong>Hoge vetbehoefte voor Pulsarlube (${targetStr} ml/dag voor ${pointsText}):</strong><br>
             Zelfs met een maximaal 500 ml patroon op 1 maand levert het toestel ${actualStr} ml/dag af en raakt een 500 ml patroon al na <strong>${maxTheoMonthsForDev.toFixed(1).replace('.', ',')} maanden</strong> leeg.<br>
             👉 <strong>Advies: Bekijk de optie Graco</strong> (centraal smeersysteem / vatpomp voor continue smering van grote vetvolumes).
           </div>
-        `;
+        `);
       } else if (ratio >= 0.85 && ratio <= 1.15) {
         const targetDevName = (deviceKey === "single_point") ? "Interflon Single Point Lubricator" : devName;
-        matchNoticeEl.innerHTML = `
+        matchNoticeEl.innerHTML = lang === "fr" ? `
+          <div style="padding: 10px 14px; background-color: #ECFDF5; border: 1px solid #A7F3D0; border-radius: var(--border-radius-sm); color: #065F46; font-size: 11.5px; font-weight: 600; line-height: 1.4; box-shadow: 0 1px 3px rgba(0,0,0,0.03);">
+            &check; <strong>Excellente correspondance !</strong> Le réglage sélectionné (<strong>${periodVal} ${unitLabel}</strong>) sur ${targetDevName} délivre <strong>${actualStr} ml/jour</strong>. Cela correspond parfaitement au besoin calculé pour ${pointsText} (<strong>${targetStr} ml/jour</strong>).
+          </div>
+        ` : (lang === "en" ? `
+          <div style="padding: 10px 14px; background-color: #ECFDF5; border: 1px solid #A7F3D0; border-radius: var(--border-radius-sm); color: #065F46; font-size: 11.5px; font-weight: 600; line-height: 1.4; box-shadow: 0 1px 3px rgba(0,0,0,0.03);">
+            &check; <strong>Excellent match!</strong> The selected setting (<strong>${periodVal} ${unitLabel}</strong>) on ${targetDevName} dispenses <strong>${actualStr} ml/day</strong>. This aligns optimally with the calculated demand for ${pointsText} (<strong>${targetStr} ml/day</strong>).
+          </div>
+        ` : `
           <div style="padding: 10px 14px; background-color: #ECFDF5; border: 1px solid #A7F3D0; border-radius: var(--border-radius-sm); color: #065F46; font-size: 11.5px; font-weight: 600; line-height: 1.4; box-shadow: 0 1px 3px rgba(0,0,0,0.03);">
             &check; <strong>Uitstekende match!</strong> De gekozen instelling (<strong>${periodVal} ${unitLabel}</strong>) op ${targetDevName} levert <strong>${actualStr} ml/dag</strong> af. Dit sluit optimaal aan bij de berekende behoefte voor ${pointsText} (<strong>${targetStr} ml/dag</strong>).
           </div>
-        `;
+        `);
       } else if (ratio < 0.85) {
-        matchNoticeEl.innerHTML = `
+        matchNoticeEl.innerHTML = lang === "fr" ? `
+          <div style="padding: 10px 14px; background-color: #FEF3C7; border: 1px solid #FDE68A; border-radius: var(--border-radius-sm); color: #92400E; font-size: 11.5px; font-weight: 600; line-height: 1.4; box-shadow: 0 1px 3px rgba(0,0,0,0.03);">
+            &#9888; <strong>Risque de sous-graissage !</strong> Réglé sur <strong>${periodVal} ${unitLabel}</strong>, ${devName} ne délivre que <strong>${actualStr} ml/jour</strong>, alors que le besoin calculé pour ${pointsText} est de <strong>${targetStr} ml/jour</strong>.<br>
+            <strong>Conseil :</strong> Réduisez la durée de fonctionnement (ex. sur <strong>${dialLabel}</strong>) ou choisissez une cartouche plus grande.
+          </div>
+        ` : (lang === "en" ? `
+          <div style="padding: 10px 14px; background-color: #FEF3C7; border: 1px solid #FDE68A; border-radius: var(--border-radius-sm); color: #92400E; font-size: 11.5px; font-weight: 600; line-height: 1.4; box-shadow: 0 1px 3px rgba(0,0,0,0.03);">
+            &#9888; <strong>Under-lubrication risk!</strong> Set to <strong>${periodVal} ${unitLabel}</strong>, ${devName} dispenses only <strong>${actualStr} ml/day</strong>, while the calculated demand for ${pointsText} is <strong>${targetStr} ml/day</strong>.<br>
+            <strong>Advice:</strong> Set a shorter dispense period (e.g. <strong>${dialLabel}</strong>) or choose a larger cartridge.
+          </div>
+        ` : `
           <div style="padding: 10px 14px; background-color: #FEF3C7; border: 1px solid #FDE68A; border-radius: var(--border-radius-sm); color: #92400E; font-size: 11.5px; font-weight: 600; line-height: 1.4; box-shadow: 0 1px 3px rgba(0,0,0,0.03);">
             &#9888; <strong>Ondersmering risico!</strong> Ingesteld op <strong>${periodVal} ${unitLabel}</strong> levert ${devName} slechts <strong>${actualStr} ml/dag</strong> af, terwijl de berekende behoefte voor ${pointsText} <strong>${targetStr} ml/dag</strong> bedraagt.<br>
             <strong>Advies:</strong> Stel de leeglooptijd korter in (bijv. op <strong>${dialLabel}</strong>) of kies een groter patroon.
           </div>
-        `;
+        `);
       } else {
         const isAlreadyMatchingSetting = (curUnit === "months" && Math.round(periodVal) === recSetting.months);
-        const adviceAdviceText = isAlreadyMatchingSetting ? 
-          `Dit is de meest nabije beschikbare instelling (${dialLabel}) op een ${capMl} ml patroon.` : 
-          `<strong>Advies:</strong> Stel het toestel in op <strong>${dialLabel}</strong> om de dosering optimaal af te stemmen.`;
+        const adviceAdviceText = lang === "fr" ? (isAlreadyMatchingSetting ? `C'est le réglage le plus proche disponible (${dialLabel}) sur une cartouche de ${capMl} ml.` : `<strong>Conseil :</strong> Réglez l'appareil sur <strong>${dialLabel}</strong> pour ajuster le dosage.`) : (lang === "en" ? (isAlreadyMatchingSetting ? `This is the closest available setting (${dialLabel}) on a ${capMl} ml cartridge.` : `<strong>Advice:</strong> Set device to <strong>${dialLabel}</strong> to optimize dosing.`) : (isAlreadyMatchingSetting ? `Dit is de meest nabije beschikbare instelling (${dialLabel}) op een ${capMl} ml patroon.` : `<strong>Advies:</strong> Stel het toestel in op <strong>${dialLabel}</strong> om de dosering optimaal af te stemmen.`));
 
-        matchNoticeEl.innerHTML = `
+        matchNoticeEl.innerHTML = lang === "fr" ? `
+          <div style="padding: 10px 14px; background-color: #EFF6FF; border: 1px solid #BFDBFE; border-radius: var(--border-radius-sm); color: #1E40AF; font-size: 11.5px; font-weight: 600; line-height: 1.4; box-shadow: 0 1px 3px rgba(0,0,0,0.03);">
+            &#8505; <strong>Sur-graissage / Dosage généreux :</strong> Réglé sur <strong>${periodVal} ${unitLabel}</strong>, ${devName} délivre <strong>${actualStr} ml/jour</strong>, alors que le besoin calculé pour ${pointsText} est de <strong>${targetStr} ml/jour</strong>.<br>
+            ${adviceAdviceText}
+          </div>
+        ` : (lang === "en" ? `
+          <div style="padding: 10px 14px; background-color: #EFF6FF; border: 1px solid #BFDBFE; border-radius: var(--border-radius-sm); color: #1E40AF; font-size: 11.5px; font-weight: 600; line-height: 1.4; box-shadow: 0 1px 3px rgba(0,0,0,0.03);">
+            &#8505; <strong>Over-lubrication / Generous dosing:</strong> Set to <strong>${periodVal} ${unitLabel}</strong>, ${devName} dispenses <strong>${actualStr} ml/day</strong>, while the calculated demand for ${pointsText} is <strong>${targetStr} ml/day</strong>.<br>
+            ${adviceAdviceText}
+          </div>
+        ` : `
           <div style="padding: 10px 14px; background-color: #EFF6FF; border: 1px solid #BFDBFE; border-radius: var(--border-radius-sm); color: #1E40AF; font-size: 11.5px; font-weight: 600; line-height: 1.4; box-shadow: 0 1px 3px rgba(0,0,0,0.03);">
             &#8505; <strong>Oversmering / Ruime dosering:</strong> Ingesteld op <strong>${periodVal} ${unitLabel}</strong> levert ${devName} <strong>${actualStr} ml/dag</strong> af, terwijl de berekende behoefte voor ${pointsText} <strong>${targetStr} ml/dag</strong> bedraagt.<br>
             ${adviceAdviceText}
           </div>
-        `;
+        `);
       }
     }
   }
 }
-
-// ==========================================================================
-// MODE SELECTION & CHAIN LOGIC (LAGERBEREKENING VS KETTINGBEREKENING)
-// ==========================================================================
-
-let currentAppMode = "bearing"; // "bearing" or "chain"
-let activeChain = null;
 
 function openModeSelectionModal() {
   changeLanguage(currentLang);
@@ -10375,7 +10419,7 @@ function getSurveyUrl() {
   const clientEmail = localStorage.getItem("client_email") || "";
 
   let params = new URLSearchParams();
-  params.set("v", "20260824_1744");
+  params.set("v", "20260824_2114");
   if (typeof currentLang !== "undefined" && currentLang) params.set("lang", currentLang);
   if (opEmail) params.set("contact", opEmail);
   if (clientCompany) params.set("company", clientCompany);
