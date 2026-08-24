@@ -8,7 +8,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <link rel="stylesheet" href="style.css?v=20260824_1237">
+  <link rel="stylesheet" href="style.css?v=20260824_1509">
 </head>
 <body>
 
@@ -180,6 +180,41 @@
           <button type="submit" class="btn" data-i18n="save">Opslaan</button>
         </div>
       </form>
+    </div>
+  </div>
+
+  <!-- ==========================================================================
+       PHOTO LIBRARY MODAL
+       ========================================================================== -->
+  <div id="photoLibraryModal" class="modal-overlay hidden">
+    <div class="modal-card" style="max-width: 720px; width: 92%;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid #cbd5e1; padding-bottom: 10px;">
+        <h3 class="modal-title" style="margin: 0; color: #0f172a; font-size: 18px; font-weight: 800;">📷 Foto bibliotheek</h3>
+        <button type="button" onclick="closePhotoLibraryModal()" style="background: none; border: none; font-size: 22px; cursor: pointer; color: #64748b;">✕</button>
+      </div>
+      
+      <p class="modal-subtitle" style="margin-bottom: 16px; font-size: 13.5px; color: #64748b;">
+        Upload en beheer tot 20 foto's van de machine, lagers of smeerpunten met een optionele beschrijving.
+      </p>
+
+      <div style="display: flex; justify-content: space-between; align-items: center; background: #f8fafc; padding: 12px 16px; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 16px;">
+        <span id="photoCounterText" style="font-weight: 700; color: #334155; font-size: 14px;">0 / 20 foto's geüpload</span>
+        <div>
+          <input type="file" id="photoFileInput" accept="image/*" multiple style="display: none;" onchange="handlePhotoUpload(event)">
+          <button type="button" class="btn btn-primary" onclick="document.getElementById('photoFileInput').click()" style="padding: 8px 16px; font-size: 13.5px; border-radius: 6px; cursor: pointer; font-weight: 700;">
+            ➕ Foto's toevoegen
+          </button>
+        </div>
+      </div>
+
+      <!-- Photo Grid Container -->
+      <div id="photoGridContainer" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 14px; max-height: 420px; overflow-y: auto; padding: 4px; margin-bottom: 18px;">
+        <!-- Dynamic photo cards rendered by JS -->
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 10px; border-top: 1px solid #cbd5e1; padding-top: 12px;">
+        <button type="button" class="btn btn-secondary" onclick="closePhotoLibraryModal()" style="padding: 10px 20px; font-weight: 700;">Sluiten</button>
+      </div>
     </div>
   </div>
 
@@ -567,6 +602,10 @@
           <button type="button" id="techBadgeBtn" class="user-badge" onclick="openTechModal()">
             <div id="techAvatar" class="user-avatar" style="background-color: #E0F2FE; color: #0369A1;">TD</div>
             <span id="techName" class="user-name" data-i18n="techBadge">Technical data</span>
+          </button>
+          <button type="button" id="photoLibraryBadgeBtn" class="user-badge" onclick="openPhotoLibraryModal()">
+            <div id="photoAvatar" class="user-avatar" style="background-color: #FCE7F3; color: #DB2777;">📷</div>
+            <span id="photoLibraryBadgeText" class="user-name" data-i18n="photoLibraryBadge">Foto bibliotheek</span>
           </button>
         </div>
       </header>
@@ -3022,10 +3061,10 @@
 
   <!-- JavaScript logic imports -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="interflon-data.js?v=20260824_1237"></script>
-  <script src="bearings-db.js?v=20260824_1237"></script>
-  <script src="chains-db.js?v=20260824_1237"></script>
-  <script src="app_v6.js?v=20260824_1237"></script>
+  <script src="interflon-data.js?v=20260824_1509"></script>
+  <script src="bearings-db.js?v=20260824_1509"></script>
+  <script src="chains-db.js?v=20260824_1509"></script>
+  <script src="app_v6.js?v=20260824_1509"></script>
 
   <!-- Interflon Oil Dispenser Information Modal (PowerPoint Viewer) -->
   <div id="oilDispenserInfoModal" class="modal-overlay hidden" style="z-index: 99999;">
