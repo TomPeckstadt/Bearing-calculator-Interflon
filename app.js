@@ -10290,7 +10290,7 @@ function getSurveyUrl() {
   const clientEmail = localStorage.getItem("client_email") || "";
 
   let params = new URLSearchParams();
-  params.set("v", "20260824_1601");
+  params.set("v", "20260824_1606");
   if (typeof currentLang !== "undefined" && currentLang) params.set("lang", currentLang);
   if (opEmail) params.set("contact", opEmail);
   if (clientCompany) params.set("company", clientCompany);
@@ -10303,6 +10303,12 @@ function getSurveyUrl() {
 function openSurveyLink(e) {
   if (e) e.preventDefault();
   const url = getSurveyUrl();
+  window.open(url, '_blank');
+}
+
+
+function printSurveyPage() {
+  const url = getSurveyUrl() + "&autoprint=true";
   window.open(url, '_blank');
 }
 
