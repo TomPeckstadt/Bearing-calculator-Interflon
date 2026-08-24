@@ -3063,6 +3063,12 @@ function handleLogin(event) {
   const val = passwordInput.value ? passwordInput.value.trim().toLowerCase() : "";
 
   if (val === "smeercalculatie") {
+    if (typeof window !== "undefined" && window.history && window.location && (window.location.search || window.location.href.includes("?"))) {
+      try {
+        const cleanUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
+        window.history.replaceState(null, "", cleanUrl);
+      } catch (e) {}
+    }
     sessionStorage.setItem("bearing_calc_logged_in", "true");
     playOpeningAnimation();
   } else {
@@ -10352,7 +10358,7 @@ function getSurveyUrl() {
   const clientEmail = localStorage.getItem("client_email") || "";
 
   let params = new URLSearchParams();
-  params.set("v", "20260824_1712");
+  params.set("v", "20260824_1714");
   if (typeof currentLang !== "undefined" && currentLang) params.set("lang", currentLang);
   if (opEmail) params.set("contact", opEmail);
   if (clientCompany) params.set("company", clientCompany);
