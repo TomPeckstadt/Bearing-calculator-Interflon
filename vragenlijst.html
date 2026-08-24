@@ -442,12 +442,19 @@
       </div>
 
       <div class="btn-group">
-        <button type="submit" class="submit-btn"> Verstuur Vragenlijst via Mail Service →</button>
-        <button type="button" onclick="sendViaOutlookMailto()" class="secondary-btn">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width: 18px; height: 18px;">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" />
-          </svg>
-          Alternatief: Open en Verstuur via uw E-mailprogramma (Outlook)
+        <button type="submit" class="submit-btn">🚀 1. Verstuur Vragenlijst Direct via Mail Service →</button>
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 4px;">
+          <button type="button" onclick="sendViaGmail()" class="secondary-btn" style="background: #ea4335; color: white;">
+            ✉️ 2. Open in Gmail
+          </button>
+          <button type="button" onclick="sendViaOutlookMailto()" class="secondary-btn" style="background: #0078d4; color: white;">
+            📧 3. Open in Outlook
+          </button>
+        </div>
+
+        <button type="button" onclick="copyFullReportText()" class="secondary-btn" style="background: #334155; color: white; margin-top: 2px;">
+          📋 4. Kopieer Antwoorden naar Klembord (om zelf te plakken)
         </button>
       </div>
     </form>
@@ -468,33 +475,28 @@
 
     function prepareFormSubmission(e) {
       const form = document.getElementById('publicSurveyForm');
-      const targetEmail = document.getElementById('interflonContactEmail').value;
-      const clientEmail = document.getElementById('clientEmail').value;
-      const company = document.getElementById('clientCompany').value;
-      const machine = document.getElementById('q1').value;
+      const targetEmail = document.getElementById('interflonContactEmail').value.trim();
+      const clientEmail = document.getElementById('clientEmail').value.trim();
+      const company = document.getElementById('clientCompany').value.trim();
+      const machine = document.getElementById('q1').value.trim();
 
       if (!targetEmail) {
-        alert('Vul a.u.b. het e-mailadres in van de Interflon contactpersoon waarnaar het rapport gestuurd moet worden.');
+        alert('Vul a.u.b. het e-mailadres in van de Interflon contactpersoon in het onderste veld.');
         e.preventDefault();
         return;
       }
 
-      // Update FormSubmit action dynamically to the specified target email address!
+      // Update FormSubmit action dynamically to target email address
       form.action = 'https://formsubmit.co/' + encodeURIComponent(targetEmail);
       document.getElementById('hiddenSubject').value = 'Interflon Smeeranalyse Vragenlijst: ' + company + ' - ' + machine;
       document.getElementById('hiddenReplyTo').value = clientEmail;
     }
 
-    function sendViaOutlookMailto() {
-      const targetEmail = document.getElementById('interflonContactEmail').value;
-      const clientEmail = document.getElementById('clientEmail').value;
-      const company = document.getElementById('clientCompany').value || 'Onbekend Bedrijf';
-      const machine = document.getElementById('q1').value || 'Onbekende Machine';
-
-      if (!targetEmail) {
-        alert('Vul a.u.b. het e-mailadres in van de Interflon contactpersoon waarnaar het rapport gestuurd moet worden.');
-        return;
-      }
+        function buildReportSummary() {
+      const targetEmail = document.getElementById('interflonContactEmail').value.trim();
+      const clientEmail = document.getElementById('clientEmail').value.trim();
+      const company = document.getElementById('clientCompany').value.trim() || 'Onbekend Bedrijf';
+      const machine = document.getElementById('q1').value.trim() || 'Onbekende Machine';
 
       let bodyText = "INTERFLON SMEERANALYSE VRAGENLIJST\n\n";
       bodyText += "Bedrijfsnaam: " + company + "\n";
@@ -502,7 +504,8 @@
       bodyText += "Machine: " + machine + "\n";
       bodyText += "Merk: " + (document.getElementById('q2') ? document.getElementById('q2').value : '') + "\n";
       bodyText += "Toepassing: " + (document.getElementById('q3') ? document.getElementById('q3').value : '') + "\n";
-      bodyText += "Aantal machines: " + (document.getElementById('q10') ? document.getElementById('q10').value : '1') + "\n\n";
+      bodyText += "Aantal machines: " + (document.getElementById('q10') ? document.getElementById('q10').value : '1') + "\n";
+      bodyText += "As Positie: " + (document.getElementById('q23') ? document.getElementById('q23').value : '') + "\n\n";
       bodyText += "--- SPECIFICATIE LAGERS ---\n";
 
       const rows = document.querySelectorAll('.bearing-row');
@@ -516,23 +519,64 @@
         }
       });
       bodyText += "\n";
-      bodyText += "Huidig Smeermiddel: " + document.getElementById('q11').value + " (€" + document.getElementById('q12').value + "/L)\n";
-      bodyText += "Interval: " + document.getElementById('q4').value + "\n";
-      bodyText += "Uren/dag: " + document.getElementById('q13').value + ", Dagen/week: " + document.getElementById('q14').value + "\n\n";
-      bodyText += "Omgevingstemp: " + document.getElementById('q15').value + "°C, Lagertemp: " + document.getElementById('q16').value + "°C\n";
-      bodyText += "Vocht: " + document.getElementById('q17').value + "/10, Stof: " + document.getElementById('q18').value + "/10, Abrasie: " + document.getElementById('q19').value + "/10\n";
-      bodyText += "Schokken: " + document.getElementById('q20').value + "/10, Vibratie: " + document.getElementById('q21').value + "/10, Condensatie: " + document.getElementById('q22').value + "/10\n\n";
-      bodyText += "Smeerduur: " + document.getElementById('q24').value + " min, Uurloon: €" + document.getElementById('q25').value + "\n";
-      bodyText += "Revisieduur: " + document.getElementById('q26').value + "u, Voorbereiding: " + document.getElementById('q27').value + "u\n";
-      bodyText += "Downtime kosten: €" + document.getElementById('q28').value + "/uur, Lagerprijs: €" + document.getElementById('q30').value + "\n";
+      bodyText += "Huidig Smeermiddel: " + (document.getElementById('q11') ? document.getElementById('q11').value : '') + " (€" + (document.getElementById('q12') ? document.getElementById('q12').value : '') + "/L)\n";
+      bodyText += "Interval: " + (document.getElementById('q4') ? document.getElementById('q4').value : '') + "\n";
+      bodyText += "Levensduur lager: " + (document.getElementById('q29') ? document.getElementById('q29').value : '') + " maanden\n";
+      bodyText += "Uren/dag: " + (document.getElementById('q13') ? document.getElementById('q13').value : '') + ", Dagen/week: " + (document.getElementById('q14') ? document.getElementById('q14').value : '') + "\n\n";
+      bodyText += "Omgevingstemp: " + (document.getElementById('q15') ? document.getElementById('q15').value : '') + "°C, Lagertemp: " + (document.getElementById('q16') ? document.getElementById('q16').value : '') + "°C\n";
+      bodyText += "Vocht: " + (document.getElementById('q17') ? document.getElementById('q17').value : '') + "/10, Stof: " + (document.getElementById('q18') ? document.getElementById('q18').value : '') + "/10, Abrasie: " + (document.getElementById('q19') ? document.getElementById('q19').value : '') + "/10\n";
+      bodyText += "Schokken: " + (document.getElementById('q20') ? document.getElementById('q20').value : '') + "/10, Vibratie: " + (document.getElementById('q21') ? document.getElementById('q21').value : '') + "/10, Condensatie: " + (document.getElementById('q22') ? document.getElementById('q22').value : '') + "/10\n\n";
+      bodyText += "Smeerduur: " + (document.getElementById('q24') ? document.getElementById('q24').value : '') + " min, Uurloon: €" + (document.getElementById('q25') ? document.getElementById('q25').value : '') + "\n";
+      bodyText += "Revisieduur: " + (document.getElementById('q26') ? document.getElementById('q26').value : '') + "u, Voorbereiding: " + (document.getElementById('q27') ? document.getElementById('q27').value : '') + "u\n";
+      bodyText += "Downtime kosten: €" + (document.getElementById('q28') ? document.getElementById('q28').value : '') + "/uur, Lagerprijs: €" + (document.getElementById('q30') ? document.getElementById('q30').value : '') + "\n";
 
-      const mailtoUrl = "mailto:" + encodeURIComponent(targetEmail) + 
-                        "?subject=" + encodeURIComponent("Interflon Smeeranalyse Vragenlijst: " + company + " - " + machine) +
-                        "&body=" + encodeURIComponent(bodyText);
+      return { targetEmail, clientEmail, company, machine, bodyText };
+    }
+
+    function sendViaGmail() {
+      const data = buildReportSummary();
+      if (!data.targetEmail) {
+        alert('Vul a.u.b. het e-mailadres in van de Interflon contactpersoon in het onderste veld.');
+        return;
+      }
+
+      const subject = "Interflon Smeeranalyse Vragenlijst: " + data.company + " - " + data.machine;
+      const gmailUrl = "https://mail.google.com/mail/?view=cm&fs=1&to=" + encodeURIComponent(data.targetEmail) +
+                       "&su=" + encodeURIComponent(subject) +
+                       "&body=" + encodeURIComponent(data.bodyText);
+
+      window.open(gmailUrl, '_blank');
+    }
+
+    function sendViaOutlookMailto() {
+      const data = buildReportSummary();
+      if (!data.targetEmail) {
+        alert('Vul a.u.b. het e-mailadres in van de Interflon contactpersoon in het onderste veld.');
+        return;
+      }
+
+      const subject = "Interflon Smeeranalyse Vragenlijst: " + data.company + " - " + data.machine;
+      const mailtoUrl = "mailto:" + encodeURIComponent(data.targetEmail) + 
+                        "?subject=" + encodeURIComponent(subject) +
+                        "&body=" + encodeURIComponent(data.bodyText);
 
       window.location.href = mailtoUrl;
     }
-  
+
+    function copyFullReportText() {
+      const data = buildReportSummary();
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(data.bodyText).then(() => {
+          alert("📋 Alle antwoorden uit de vragenlijst zijn gekopieerd naar je klembord!\n\nJe kunt ze nu direct plakken (Ctrl + V) in een e-mail naar: " + (data.targetEmail || 'je contactpersoon'));
+        }).catch(err => {
+          prompt("Kopieer de tekst om te mailen:", data.bodyText);
+        });
+      } else {
+        prompt("Kopieer de tekst om te mailen:", data.bodyText);
+      }
+    }
+
+
     let bearingCount = 1;
     function addBearingRow() {
       bearingCount++;
