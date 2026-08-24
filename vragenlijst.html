@@ -230,39 +230,50 @@
             <input type="text" name="3. Toepassing" id="q3" class="form-control" placeholder="Bijv. Transportband, Menger, Ventilator, Pomp">
           </div>
           <div class="form-group">
-            <label for="q5">4. (SKF) Lagernummer</label>
-            <input type="text" name="4. Lagernummer" id="q5" class="form-control" placeholder="Bijv. 6208 2RS, 22210 EK">
-          </div>
-        </div>
-
-        <div class="grid-2">
-          <div class="form-group">
-            <label for="q6">5. Aantal identieke lagers voor calculatie</label>
-            <input type="number" name="5. Aantal Lagers" id="q6" class="form-control" min="1" value="1">
-          </div>
-          <div class="form-group">
-            <label for="q10">6. Aantal identieke machines in het park</label>
-            <input type="number" name="6. Aantal Machines" id="q10" class="form-control" min="1" value="1">
-          </div>
-        </div>
-
-        <div class="grid-2">
-          <div class="form-group">
-            <label for="q8">7. Toerental van het lager (RPM)</label>
-            <input type="number" name="7. Toerental RPM" id="q8" class="form-control" placeholder="Bijv. 1450 RPM">
-          </div>
-          <div class="form-group">
-            <label for="q23">8. Positie van de lageras</label>
-            <select name="8. As Positie" id="q23" class="form-control">
-              <option value="Horizontaal">Horizontaal</option>
-              <option value="Verticaal">Verticaal</option>
-            </select>
+            <label for="q10">4. Aantal identieke machines in het park</label>
+            <input type="number" name="4. Aantal Machines" id="q10" class="form-control" min="1" value="1">
           </div>
         </div>
 
         <div class="form-group">
-          <label for="q7">9. Betreft het meerdere verschillende lagers? (Zo ja, vermeld de respectievelijke lagernummers en toerentallen)</label>
-          <textarea name="9. Meerdere Verschillende Lagers" id="q7" class="form-control" rows="2" placeholder="Bijv. Lager A: 6208 (1500 RPM), Lager B: 6310 (1000 RPM)"></textarea>
+          <label for="q23">5. Positie van de lageras</label>
+          <select name="5. As Positie" id="q23" class="form-control">
+            <option value="Horizontaal">Horizontaal</option>
+            <option value="Verticaal">Verticaal</option>
+          </select>
+        </div>
+
+        <!-- Dynamic 3-field Bearing Rows Section -->
+        <div class="form-group" style="margin-top: 24px; background: #ffffff; padding: 20px; border-radius: 12px; border: 1.5px solid #cbd5e1; box-shadow: 0 2px 6px rgba(0,0,0,0.03);">
+          <label style="font-size: 15px; font-weight: 700; color: #0f172a; margin-bottom: 4px; display: block;">
+            6. Lagers op deze machine *
+          </label>
+          <p style="font-size: 13px; color: #64748b; margin-top: 0; margin-bottom: 16px;">
+            Specificeer per lager het <strong>Aantal</strong>, het <strong>(SKF) Lagernummer</strong> en het <strong>Toerental (RPM)</strong>. Klik op "+ Extra lager toevoegen" om meer lagers toe te voegen.
+          </p>
+
+          <div id="bearingRowsContainer">
+            <!-- Initial Bearing Row 1 -->
+            <div class="bearing-row" id="bearingRow_1" style="display: grid; grid-template-columns: 90px 1fr 130px 36px; gap: 10px; margin-bottom: 12px; align-items: end;">
+              <div>
+                <label style="font-size: 11.5px; font-weight: 700; color: #334155; display: block; margin-bottom: 4px;">Aantal *</label>
+                <input type="number" name="Lager 1 - Aantal" class="form-control" value="1" min="1" required>
+              </div>
+              <div>
+                <label style="font-size: 11.5px; font-weight: 700; color: #334155; display: block; margin-bottom: 4px;">Lagernummer *</label>
+                <input type="text" name="Lager 1 - Lagernummer" id="q5" class="form-control" placeholder="bijv. 6208 2RS of 22215" required>
+              </div>
+              <div>
+                <label style="font-size: 11.5px; font-weight: 700; color: #334155; display: block; margin-bottom: 4px;">Toerental (RPM)</label>
+                <input type="number" name="Lager 1 - Toerental RPM" id="q8" class="form-control" placeholder="bijv. 1450">
+              </div>
+              <div></div>
+            </div>
+          </div>
+
+          <button type="button" onclick="addBearingRow()" class="add-bearing-btn" style="background: #ffffff; border: 1.5px dashed #E30613; color: #E30613; font-weight: 700; font-size: 13.5px; padding: 10px 16px; border-radius: 8px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; margin-top: 8px; transition: all 0.2s;">
+            ➕ Extra lager toevoegen
+          </button>
         </div>
       </div>
 
@@ -489,12 +500,22 @@
       bodyText += "Bedrijfsnaam: " + company + "\n";
       bodyText += "Contactpersoon Klant: " + document.getElementById('clientContact').value + " (" + clientEmail + ")\n";
       bodyText += "Machine: " + machine + "\n";
-      bodyText += "Merk: " + document.getElementById('q2').value + "\n";
-      bodyText += "Toepassing: " + document.getElementById('q3').value + "\n";
-      bodyText += "Lagernummer: " + document.getElementById('q5').value + "\n";
-      bodyText += "Aantal lagers: " + document.getElementById('q6').value + "\n";
-      bodyText += "Aantal machines: " + document.getElementById('q10').value + "\n";
-      bodyText += "RPM: " + document.getElementById('q8').value + "\n\n";
+      bodyText += "Merk: " + (document.getElementById('q2') ? document.getElementById('q2').value : '') + "\n";
+      bodyText += "Toepassing: " + (document.getElementById('q3') ? document.getElementById('q3').value : '') + "\n";
+      bodyText += "Aantal machines: " + (document.getElementById('q10') ? document.getElementById('q10').value : '1') + "\n\n";
+      bodyText += "--- SPECIFICATIE LAGERS ---\n";
+
+      const rows = document.querySelectorAll('.bearing-row');
+      rows.forEach((r, idx) => {
+        const inputs = r.querySelectorAll('input');
+        if (inputs.length >= 2) {
+          const aantal = inputs[0].value || '1';
+          const nr = inputs[1].value || '';
+          const rpm = inputs[2] ? inputs[2].value : '';
+          bodyText += "Lager " + (idx+1) + ": " + aantal + "x " + nr + (rpm ? " (" + rpm + " RPM)" : "") + "\n";
+        }
+      });
+      bodyText += "\n";
       bodyText += "Huidig Smeermiddel: " + document.getElementById('q11').value + " (€" + document.getElementById('q12').value + "/L)\n";
       bodyText += "Interval: " + document.getElementById('q4').value + "\n";
       bodyText += "Uren/dag: " + document.getElementById('q13').value + ", Dagen/week: " + document.getElementById('q14').value + "\n\n";
@@ -511,6 +532,37 @@
 
       window.location.href = mailtoUrl;
     }
+  
+    let bearingCount = 1;
+    function addBearingRow() {
+      bearingCount++;
+      const container = document.getElementById('bearingRowsContainer');
+      const row = document.createElement('div');
+      row.className = 'bearing-row';
+      row.id = 'bearingRow_' + bearingCount;
+      row.style.cssText = 'display: grid; grid-template-columns: 90px 1fr 130px 36px; gap: 10px; margin-bottom: 10px; align-items: center; animation: fadeIn 0.2s ease-in;';
+      row.innerHTML = `
+        <div>
+          <input type="number" name="Lager ${bearingCount} - Aantal" class="form-control" value="1" min="1" placeholder="Aantal" required>
+        </div>
+        <div>
+          <input type="text" name="Lager ${bearingCount} - Lagernummer" class="form-control" placeholder="Lagernummer (bijv. 2206)" required>
+        </div>
+        <div>
+          <input type="number" name="Lager ${bearingCount} - Toerental RPM" class="form-control" placeholder="Toerental RPM">
+        </div>
+        <div>
+          <button type="button" onclick="removeBearingRow('bearingRow_${bearingCount}')" title="Verwijder dit lager" style="background: #fee2e2; border: 1px solid #fca5a5; color: #dc2626; border-radius: 6px; width: 36px; height: 36px; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 16px;">✕</button>
+        </div>
+      `;
+      container.appendChild(row);
+    }
+
+    function removeBearingRow(id) {
+      const row = document.getElementById(id);
+      if (row) row.remove();
+    }
+
   </script>
 </body>
 </html>
