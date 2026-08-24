@@ -9,19 +9,11 @@
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 
   <style>
-    :root {
-      --primary-red: #E30613;
-      --primary-dark: #0f172a;
-      --bg-body: #f8fafc;
-      --border-color: #e2e8f0;
-      --text-dark: #0f172a;
-      --text-medium: #475569;
-    }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      background: var(--bg-body);
+      background: #f8fafc;
       font-family: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      color: var(--text-dark);
+      color: #0f172a;
+      margin: 0;
       padding: 20px 12px 60px 12px;
       min-height: 100vh;
     }
@@ -92,6 +84,7 @@
       .grid-2 { grid-template-columns: 1fr; }
       .survey-body { padding: 20px 16px; }
       .survey-header { padding: 24px 16px; }
+      .bearing-row { grid-template-columns: 1fr 1fr !important; gap: 8px !important; }
     }
     .form-group {
       margin-bottom: 16px;
@@ -138,6 +131,8 @@
       border-radius: 6px;
       display: flex;
       align-items: center;
+      justify-content: justify-center;
+      display: inline-flex;
       justify-content: center;
     }
     .submit-btn {
@@ -185,7 +180,7 @@
       color: #166534;
       padding: 20px;
       border-radius: 12px;
-      margin-bottom: 24px;
+      margin: 20px 28px 0 28px;
       text-align: center;
     }
     .success-banner h3 { font-size: 18px; font-weight: 800; margin-bottom: 4px; }
@@ -205,7 +200,7 @@
     </div>
 
     <!-- Success Banner -->
-    <div id="successBanner" class="success-banner" style="margin: 20px 28px 0 28px;">
+    <div id="successBanner" class="success-banner">
       <h3>✅ Vragenlijst Succesvol Verzonden!</h3>
       <p>Hartelijk dank voor uw invoer. Uw Interflon adviseur neemt zo snel mogelijk contact met u op.</p>
     </div>
@@ -239,8 +234,8 @@
             <input type="text" name="3. Toepassing" id="q3" class="form-control" placeholder="Bijv. Transportband, Menger, Ventilator, Pomp">
           </div>
           <div class="form-group">
-            <label for="q12">4. Aantal identieke machines in het park</label>
-            <input type="number" name="4. Aantal Machines" id="q12" class="form-control" min="1" value="1">
+            <label for="q10">4. Aantal identieke machines in het park</label>
+            <input type="number" name="4. Aantal Machines" id="q10" class="form-control" min="1" value="1">
           </div>
         </div>
 
@@ -262,7 +257,7 @@
               </div>
               <div>
                 <label style="font-size: 11.5px; font-weight: 700; color: #334155; display: block; margin-bottom: 4px;">Lagernummer *</label>
-                <input type="text" name="Lager 1 - Lagernummer" id="q4" class="form-control" placeholder="bijv. 6208 2RS of 22215" required>
+                <input type="text" name="Lager 1 - Lagernummer" id="q5" class="form-control" placeholder="bijv. 6208 2RS of 22215" required>
               </div>
               <div>
                 <label style="font-size: 11.5px; font-weight: 700; color: #334155; display: block; margin-bottom: 4px;">Toerental (RPM)</label>
@@ -316,14 +311,14 @@
             </select>
           </div>
           <div class="form-group">
-            <label for="q10">9. Huidige smeerfrequentie / interval</label>
-            <input type="text" name="9. Smeerinterval" id="q10" class="form-control" placeholder="Bijv. 1x per week, 500 uur">
+            <label for="q11">9. Huidige smeerfrequentie / interval</label>
+            <input type="text" name="9. Smeerinterval" id="q11" class="form-control" placeholder="Bijv. 1x per week, 500 uur">
           </div>
         </div>
 
         <div class="form-group">
-          <label for="q11">10. Hoeveelheid vet/olie per smeerbeurt</label>
-          <input type="text" name="10. Hoeveelheid per beurt" id="q11" class="form-control" placeholder="Bijv. 3 slagen vetspuit of 50 ml">
+          <label for="q12">10. Hoeveelheid vet/olie per smeerbeurt</label>
+          <input type="text" name="10. Hoeveelheid per beurt" id="q12" class="form-control" placeholder="Bijv. 3 slagen vetspuit of 50 ml">
         </div>
 
         <div class="grid-2">
@@ -338,7 +333,7 @@
         </div>
       </div>
 
-      <!-- Section 3: Omgeving & Belasting WITH RANGE SLIDERS -->
+      <!-- Section 3: Omgevingscondities & Belastingen WITH RANGE SLIDERS -->
       <div class="survey-section">
         <h2 class="survey-section-title">🌡️ 3. Omgevingscondities & Belastingen</h2>
         <div class="grid-2">
@@ -551,7 +546,7 @@
       bodyText += "Machine Naam: " + (document.getElementById('q1').value || '-') + "\n";
       bodyText += "Machine Merk: " + (document.getElementById('q2').value || '-') + "\n";
       bodyText += "Toepassing: " + (document.getElementById('q3').value || '-') + "\n";
-      bodyText += "Aantal Machines: " + (document.getElementById('q12').value || '1') + "\n\n";
+      bodyText += "Aantal Machines: " + (document.getElementById('q10').value || '1') + "\n\n";
 
       bodyText += "--- SPECIFICATIE LAGERS ---\n";
       const rows = document.querySelectorAll('.bearing-row');
@@ -571,8 +566,8 @@
       bodyText += "Type Smering: " + (document.getElementById('q6').value || '-') + "\n";
       bodyText += "Huidige Product: " + (document.getElementById('q7').value || '-') + "\n";
       bodyText += "Smeermethode: " + (document.getElementById('q9').value || '-') + "\n";
-      bodyText += "Smeerinterval: " + (document.getElementById('q10').value || '-') + "\n";
-      bodyText += "Hoeveelheid per beurt: " + (document.getElementById('q11').value || '-') + "\n";
+      bodyText += "Smeerinterval: " + (document.getElementById('q11').value || '-') + "\n";
+      bodyText += "Hoeveelheid per beurt: " + (document.getElementById('q12').value || '-') + "\n";
       bodyText += "Operationele uren/dag: " + (document.getElementById('q13').value || '16') + "\n";
       bodyText += "Operationele dagen/week: " + (document.getElementById('q14').value || '5') + "\n\n";
 
