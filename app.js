@@ -1028,6 +1028,28 @@ if (typeof window !== "undefined" && window.location && window.location.href.end
 
 const TRANSLATIONS = {
   nl: {
+
+    "menuSearch": "Lager Opzoeken",
+    "menuCalc": "Smeercalculatie",
+    "menuOm": "Opbrengstmodel",
+    "menuAutomation": "Automatisering",
+    "menuRoiAutomation": "ROI Automatisering",
+    "menuInfo": "Informatie",
+    "menuVragenlijst": "Vragenlijst",
+    "btnPdfReport": "Rapport PDF",
+    "btnLogout": "Afmelden",
+    "welcomeModalTitle": "Welkom bij de Interflon Berekeningsmodule",
+    "welcomeModalSubtitle": "Maak uw keuze om de gewenste toepassing te openen:",
+    "selectBearingCalcTitle": "Lagerberekening",
+    "selectBearingCalcDesc": "Bepaal type vet, nasmeervolumes, smeerintervallen en instellingen voor automatisatie.",
+    "selectBearingCalcBtn": "Open Lagerberekening",
+    "selectChainCalcTitle": "Kettingberekening",
+    "selectChainCalcDesc": "Bereken olie-doseringen, volume per minuut, smeerintervallen en instellingen voor automatisatie voor aandrijf- en transportkettingen.",
+    "selectChainCalcBtn": "Open Kettingberekening",
+    "searchBearingTitle": "Lager Opzoeken",
+    "searchBearingDesc": "Voer een lagernummer in om alle technische specificaties weer te geven",
+    "bearingTypesBtn": "Lagertypes",
+
     theoreticalRuntimeLabel: "• Theoretisch berekend:",
 
     displaySettingLabel: "Display instelling op toestel:",
@@ -1503,6 +1525,28 @@ const TRANSLATIONS = {
     btnLagertypes: "Lagertypes"
   },
   en: {
+
+    "menuSearch": "Search Bearing",
+    "menuCalc": "Lubrication Calculation",
+    "menuOm": "TCO Return Model",
+    "menuAutomation": "Automation Settings",
+    "menuRoiAutomation": "ROI Automation",
+    "menuInfo": "Information & Failures",
+    "menuVragenlijst": "Questionnaire",
+    "btnPdfReport": "PDF Report",
+    "btnLogout": "Log Out",
+    "welcomeModalTitle": "Welcome to Interflon Calculation Module",
+    "welcomeModalSubtitle": "Make your choice to open the desired application:",
+    "selectBearingCalcTitle": "Bearing Calculation",
+    "selectBearingCalcDesc": "Determine grease type, relubrication quantities, lubrication intervals and automation settings.",
+    "selectBearingCalcBtn": "Open Bearing Calculation",
+    "selectChainCalcTitle": "Chain Calculation",
+    "selectChainCalcDesc": "Calculate oil dosage, volume per minute, lubrication intervals and automation settings for drive and conveyor chains.",
+    "selectChainCalcBtn": "Open Chain Calculation",
+    "searchBearingTitle": "Search Bearing",
+    "searchBearingDesc": "Enter a bearing number to display all technical specifications",
+    "bearingTypesBtn": "Bearing Types",
+
     theoreticalRuntimeLabel: "• Theoretically calculated:",
 
     displaySettingLabel: "Display setting on lubricator:",
@@ -1977,6 +2021,28 @@ const TRANSLATIONS = {
     btnLagertypes: "Bearing Types"
   },
   fr: {
+
+    "menuSearch": "Rechercher Roulement",
+    "menuCalc": "Calcul de Graissage",
+    "menuOm": "Modèle de Rendement TCO",
+    "menuAutomation": "Réglages Automatisation",
+    "menuRoiAutomation": "ROI Automatisation",
+    "menuInfo": "Informations & Défaillances",
+    "menuVragenlijst": "Questionnaire",
+    "btnPdfReport": "Rapport PDF",
+    "btnLogout": "Déconnexion",
+    "welcomeModalTitle": "Bienvenue dans le Module de Calcul Interflon",
+    "welcomeModalSubtitle": "Faites votre choix pour ouvrir l'application souhaitée:",
+    "selectBearingCalcTitle": "Calcul de Roulements",
+    "selectBearingCalcDesc": "Déterminez le type de graisse, les quantités de regraissage, les intervalles et les réglages d'automatisation.",
+    "selectBearingCalcBtn": "Ouvrir Calcul de Roulements",
+    "selectChainCalcTitle": "Calcul de Chaînes",
+    "selectChainCalcDesc": "Calculez le dosage d'huile, le volume par minute, les intervalles de graissage et les réglages d'automatisation pour chaînes d'entraînement et de convoyeur.",
+    "selectChainCalcBtn": "Ouvrir Calcul de Chaînes",
+    "searchBearingTitle": "Rechercher Roulement",
+    "searchBearingDesc": "Entrez une référence de roulement pour afficher toutes les spécifications techniques",
+    "bearingTypesBtn": "Types de Roulements",
+
     theoreticalRuntimeLabel: "• Calculé théoriquement:",
 
     displaySettingLabel: "Réglage écran sur l'appareil:",
