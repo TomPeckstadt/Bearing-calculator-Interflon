@@ -1028,6 +1028,10 @@ if (typeof window !== "undefined" && window.location && window.location.href.end
 
 const TRANSLATIONS = {
   nl: {
+    "devicePulsarlubePlc": "Pulsarlube PLC (Centrale Sturing)",
+    "unitBedrijfsuren": "bedrijfsuren / jaar",
+    "techBrandLabel": "Merk van de machine",
+    "thickenerSelectLabel": "Selecteer verdikker huidig vet",
     "modeModalSubtitle": "Maak uw keuze om de gewenste toepassing te openen:",
     "modeModalTitle": "Welkom bij de Interflon Berekeningsmodule",
 
@@ -1527,6 +1531,10 @@ const TRANSLATIONS = {
     btnLagertypes: "Lagertypes"
   },
   en: {
+    "devicePulsarlubePlc": "Pulsarlube PLC (Central Control)",
+    "unitBedrijfsuren": "operating hours / year",
+    "techBrandLabel": "Machine brand / manufacturer",
+    "thickenerSelectLabel": "Select current grease thickener",
     "modeModalSubtitle": "Make your choice to open the desired application:",
     "modeModalTitle": "Welcome to Interflon Calculation Module",
 
@@ -2025,6 +2033,10 @@ const TRANSLATIONS = {
     btnLagertypes: "Bearing Types"
   },
   fr: {
+    "devicePulsarlubePlc": "Pulsarlube PLC (Commande Centralisée)",
+    "unitBedrijfsuren": "heures de fonctionnement / an",
+    "techBrandLabel": "Marque / Fabricant de la machine",
+    "thickenerSelectLabel": "Sélectionnez l'épaississant de la graisse actuelle",
     "modeModalSubtitle": "Faites votre choix pour ouvrir l'application souhaitée:",
     "modeModalTitle": "Bienvenue dans le Module de Calcul Interflon",
 
