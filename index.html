@@ -8,7 +8,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <link rel="stylesheet" href="style.css?v=20260824_1606">
+  <link rel="stylesheet" href="style.css?v=20260824_1619">
 </head>
 <body>
 
@@ -215,6 +215,17 @@
       <div style="display: flex; justify-content: flex-end; gap: 10px; border-top: 1px solid #cbd5e1; padding-top: 12px;">
         <button type="button" class="btn btn-secondary" onclick="closePhotoLibraryModal()" style="padding: 10px 20px; font-weight: 700;">Sluiten</button>
       </div>
+    </div>
+  </div>
+
+  <!-- ==========================================================================
+       PHOTO LIGHTBOX MODAL (ENLARGED PHOTO VIEW)
+       ========================================================================== -->
+  <div id="photoLightboxModal" class="modal-overlay hidden" style="z-index: 11000; background: rgba(15, 23, 42, 0.9);" onclick="closePhotoLightboxModal()">
+    <div style="position: relative; max-width: 90vw; max-height: 90vh; display: flex; flex-direction: column; align-items: center; justify-content: center;" onclick="event.stopPropagation()">
+      <button type="button" onclick="closePhotoLightboxModal()" title="Sluiten" style="position: absolute; top: -16px; right: -16px; background: #E30613; color: white; border: 2px solid white; width: 38px; height: 38px; border-radius: 50%; font-size: 18px; font-weight: 800; cursor: pointer; z-index: 10; box-shadow: 0 4px 12px rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center;">✕</button>
+      <img id="photoLightboxImg" src="" alt="Vergrote foto" style="max-width: 90vw; max-height: 80vh; object-fit: contain; border-radius: 12px; box-shadow: 0 12px 36px rgba(0,0,0,0.6); background: #000;">
+      <div id="photoLightboxCaption" style="margin-top: 14px; color: #ffffff; font-size: 15px; font-weight: 600; text-align: center; max-width: 85vw; background: rgba(15,23,42,0.85); padding: 10px 20px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2);"></div>
     </div>
   </div>
 
@@ -3066,10 +3077,10 @@
 
   <!-- JavaScript logic imports -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="interflon-data.js?v=20260824_1606"></script>
-  <script src="bearings-db.js?v=20260824_1606"></script>
-  <script src="chains-db.js?v=20260824_1606"></script>
-  <script src="app_v6.js?v=20260824_1606"></script>
+  <script src="interflon-data.js?v=20260824_1619"></script>
+  <script src="bearings-db.js?v=20260824_1619"></script>
+  <script src="chains-db.js?v=20260824_1619"></script>
+  <script src="app_v6.js?v=20260824_1619"></script>
 
   <!-- Interflon Oil Dispenser Information Modal (PowerPoint Viewer) -->
   <div id="oilDispenserInfoModal" class="modal-overlay hidden" style="z-index: 99999;">
