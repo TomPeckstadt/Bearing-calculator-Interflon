@@ -90,6 +90,7 @@ function onDeviceCapChange(devId) {
     dev.userEditedPeriod = false;
   }
   if (typeof renderAutoDevicesUI === "function") renderAutoDevicesUI();
+  if (typeof renderPhotoGrid === "function") renderPhotoGrid();
   calculateAutomationLubrication();
   if (typeof updateRoiAutomationPage === "function") updateRoiAutomationPage();
 }
@@ -1029,6 +1030,19 @@ if (typeof window !== "undefined" && window.location && window.location.href.end
 
 const TRANSLATIONS = {
   nl: {
+    photoLibraryBadge: "Foto bibliotheek",
+    photoLibraryTitle: "📷 Foto bibliotheek",
+    photoLibrarySubtitle: "Upload en beheer tot 20 foto's van de machine, lagers of smeerpunten met een optionele beschrijving.",
+    btnAddPhotos: "➕ Foto's toevoegen",
+    btnClose: "Sluiten",
+    noPhotosYet: "Nog geen foto's aanwezig.",
+    noPhotosHint: "Klik hierboven op \"➕ Foto's toevoegen\" om tot 20 foto's toe te voegen.",
+    photoLabel: "Foto",
+    enlargeLabel: "🔍 Vergroot",
+    clickToEnlarge: "Klik om te vergroten 🔍",
+    addDescPlaceholder: "Beschrijving toevoegen...",
+    deletePhotoTitle: "Verwijderen",
+
     autoNumDevicesLabel: "Aantal Pulsarlube toestellen dat u wil plaatsen:",
     autoNumDevicesHint: "Verdeel de te smeren lagers over 1 of meerdere toestellen (bijvoorbeeld 1 toestel met 4 lagers en 1 toestel met 2 lagers).",
     autoRecHeader: "GEADVISEERDE INSTELLING OP TOESTEL",
@@ -10356,7 +10370,7 @@ function getSurveyUrl() {
   const clientEmail = localStorage.getItem("client_email") || "";
 
   let params = new URLSearchParams();
-  params.set("v", "20260824_1650");
+  params.set("v", "20260824_1652");
   if (typeof currentLang !== "undefined" && currentLang) params.set("lang", currentLang);
   if (opEmail) params.set("contact", opEmail);
   if (clientCompany) params.set("company", clientCompany);
@@ -10510,9 +10524,12 @@ function deletePhoto(id) {
 function renderPhotoGrid() {
   const container = document.getElementById("photoGridContainer");
   const counterText = document.getElementById("photoCounterText");
+  const lang = currentLang || "nl";
+  const t = (TRANSLATIONS && TRANSLATIONS[lang]) ? TRANSLATIONS[lang] : photoTranslations["nl"];
 
   if (counterText) {
-    counterText.innerText = photoLibrary.length + " / 20 foto's geüpload";
+    const uploadedSuffix = lang === "fr" ? "photos téléchargées" : (lang === "en" ? "photos uploaded" : "foto's geüpload");
+    counterText.innerText = photoLibrary.length + " / 20 " + uploadedSuffix;
   }
 
   if (!container) return;
@@ -10522,8 +10539,8 @@ function renderPhotoGrid() {
     container.innerHTML = `
       <div style="grid-column: 1 / -1; text-align: center; color: #94a3b8; padding: 40px 10px; background: #f8fafc; border-radius: 10px; border: 1.5px dashed #cbd5e1;">
         <span style="font-size: 32px; display: block; margin-bottom: 8px;">📷</span>
-        <p style="margin: 0; font-size: 14px; font-weight: 600;">Nog geen foto's aanwezig.</p>
-        <p style="margin: 4px 0 0 0; font-size: 12.5px;">Klik hierboven op "➕ Foto's toevoegen" om tot 20 foto's toe te voegen.</p>
+        <p style="margin: 0; font-size: 14px; font-weight: 600;">${t.noPhotosYet || "Nog geen foto's aanwezig."}</p>
+        <p style="margin: 4px 0 0 0; font-size: 12.5px;">${t.noPhotosHint || "Klik hierboven op '➕ Foto's toevoegen' om tot 20 foto's toe te voegen."}</p>
       </div>
     `;
     return;
@@ -10532,15 +10549,21 @@ function renderPhotoGrid() {
   photoLibrary.forEach((photo, idx) => {
     const card = document.createElement("div");
     card.style.cssText = "background: #ffffff; border: 1px solid #cbd5e1; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 6px rgba(0,0,0,0.04); display: flex; flex-direction: column;";
+    const photoBadge = (t.photoLabel || "Foto") + " " + (idx + 1);
+    const enlargeTxt = t.enlargeLabel || "🔍 Vergroot";
+    const clickTitle = t.clickToEnlarge || "Klik om te vergroten 🔍";
+    const descPlaceholder = t.addDescPlaceholder || "Beschrijving toevoegen...";
+    const delTitle = t.deletePhotoTitle || "Verwijderen";
+
     card.innerHTML = `
       <div style="position: relative; width: 100%; height: 140px; background: #000; overflow: hidden;">
-        <img src="${photo.dataUrl}" alt="Foto ${idx+1}" onclick="openPhotoLightbox('${photo.id}')" title="Klik om te vergroten 🔍" style="width: 100%; height: 100%; object-fit: cover; cursor: pointer; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
-        <div onclick="openPhotoLightbox('${photo.id}')" title="Klik om te vergroten 🔍" style="position: absolute; bottom: 6px; right: 6px; background: rgba(15,23,42,0.75); color: #fff; border-radius: 4px; padding: 2px 6px; font-size: 11px; cursor: pointer; pointer-events: auto;">🔍 Vergroot</div>
-        <span style="position: absolute; top: 6px; left: 6px; background: rgba(15,23,42,0.75); color: #fff; font-size: 11px; font-weight: 700; padding: 2px 7px; border-radius: 4px;">Foto ${idx+1}</span>
-        <button type="button" onclick="deletePhoto('${photo.id}')" title="Verwijderen" style="position: absolute; top: 6px; right: 6px; background: rgba(227,6,19,0.9); color: #fff; border: none; width: 26px; height: 26px; border-radius: 50%; cursor: pointer; font-size: 13px; font-weight: 800; display: flex; align-items: center; justify-content: center;">✕</button>
+        <img src="${photo.dataUrl}" alt="${photoBadge}" onclick="openPhotoLightbox('${photo.id}')" title="${clickTitle}" style="width: 100%; height: 100%; object-fit: cover; cursor: pointer; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+        <div onclick="openPhotoLightbox('${photo.id}')" title="${clickTitle}" style="position: absolute; bottom: 6px; right: 6px; background: rgba(15,23,42,0.75); color: #fff; border-radius: 4px; padding: 2px 6px; font-size: 11px; cursor: pointer; pointer-events: auto;">${enlargeTxt}</div>
+        <span style="position: absolute; top: 6px; left: 6px; background: rgba(15,23,42,0.75); color: #fff; font-size: 11px; font-weight: 700; padding: 2px 7px; border-radius: 4px;">${photoBadge}</span>
+        <button type="button" onclick="deletePhoto('${photo.id}')" title="${delTitle}" style="position: absolute; top: 6px; right: 6px; background: rgba(227,6,19,0.9); color: #fff; border: none; width: 26px; height: 26px; border-radius: 50%; cursor: pointer; font-size: 13px; font-weight: 800; display: flex; align-items: center; justify-content: center;">✕</button>
       </div>
       <div style="padding: 10px; flex: 1; display: flex; flex-direction: column; gap: 6px;">
-        <input type="text" value="${photo.description || ''}" placeholder="Beschrijving toevoegen..." oninput="updatePhotoDescription('${photo.id}', this.value)" style="width: 100%; padding: 6px 10px; font-size: 12.5px; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box;">
+        <input type="text" value="${photo.description || ''}" placeholder="${descPlaceholder}" oninput="updatePhotoDescription('${photo.id}', this.value)" style="width: 100%; padding: 6px 10px; font-size: 12.5px; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box;">
       </div>
     `;
     container.appendChild(card);
