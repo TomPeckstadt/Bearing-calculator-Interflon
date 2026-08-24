@@ -8,7 +8,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <link rel="stylesheet" href="style.css?v=20260824_1619">
+  <link rel="stylesheet" href="style.css?v=20260824_1650">
 </head>
 <body>
 
@@ -1594,7 +1594,7 @@
 
               <!-- Multi-Device Selection Dropdown -->
               <div id="autoMultiDeviceSelectorContainer" style="margin-top: 16px; padding-top: 14px; border-top: 1px solid #e2e8f0; text-align: left;">
-                <label for="autoNumDevicesSelect" style="display: block; font-size: 12.5px; font-weight: 700; color: var(--text-dark); margin-bottom: 6px;">
+                <label for="autoNumDevicesSelect" style="display: block; font-size: 12.5px; font-weight: 700; color: var(--text-dark); margin-bottom: 6px;" data-i18n="autoNumDevicesLabel">
                   Aantal Pulsarlube toestellen dat u wil plaatsen:
                 </label>
                 <select id="autoNumDevicesSelect" class="form-select" style="width: 100%; padding: 8px 12px; font-weight: 600; border-radius: var(--border-radius-sm); border: 1px solid #cbd5e1;" onchange="onAutoNumDevicesChange()">
@@ -1603,7 +1603,7 @@
                   <option value="3">3 toestellen (Pulsarlube A, B & C)</option>
                   <option value="4">4 toestellen (Pulsarlube A, B, C & D)</option>
                 </select>
-                <span style="display: block; font-size: 11px; color: var(--text-medium); margin-top: 5px; line-height: 1.35;">
+                <span style="display: block; font-size: 11px; color: var(--text-medium); margin-top: 5px; line-height: 1.35;" data-i18n="autoNumDevicesHint">
                   Verdeel de te smeren lagers over 1 of meerdere toestellen (bijvoorbeeld 1 toestel met 4 lagers en 1 toestel met 2 lagers).
                 </span>
               </div>
@@ -1635,7 +1635,7 @@
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width: 14px; height: 14px;">
                       <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
                     </svg>
-                    <span>Neem advies over</span>
+                    <span data-i18n="btnApplyRec">Neem advies over</span>
                   </button>
                 </div>
                 <div id="autoRecTitle" style="font-size: 22px; font-weight: 800; color: var(--primary-red); margin: 2px 0 4px 0;">
@@ -1648,13 +1648,13 @@
 
               <!-- Calculation Inputs for Lubricator -->
               <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: var(--border-radius-sm); padding: 16px; margin-bottom: 16px;">
-                <h5 id="automationCalcHeaderTitle" style="margin: 0 0 12px 0; font-size: 13px; font-weight: 700; color: var(--text-dark);">
+                <h5 id="automationCalcHeaderTitle" style="margin: 0 0 12px 0; font-size: 13px; font-weight: 700; color: var(--text-dark);" data-i18n="autoCalcHeaderTitle">
                   Smeerinterval & Dosering voor 1 lager
                 </h5>
                 
                 <div style="display: flex; flex-direction: column; gap: 12px;">
                   <div>
-                    <label for="singlePointNumBearingsInput" style="display: block; font-size: 12px; font-weight: 600; color: var(--text-dark); margin-bottom: 4px;">
+                    <label for="singlePointNumBearingsInput" style="display: block; font-size: 12px; font-weight: 600; color: var(--text-dark); margin-bottom: 4px;" data-i18n="labelNumBearings">
                       Aantal te smeren lagers
                     </label>
                     <input type="number" id="singlePointNumBearingsInput" class="form-input" value="1" min="1" max="100" step="1" oninput="onSinglePointNumBearingsChange()" style="width: 100%; padding: 8px 12px; border-radius: var(--border-radius-sm); border: 1px solid #cbd5e1; font-weight: 700; color: #0f172a;" title="Voer het aantal te smeren lagers / single point toestellen in">
@@ -1690,12 +1690,12 @@
                       <div style="font-weight: 700; color: var(--primary-red); display: flex; align-items: center; justify-content: space-between; gap: 6px;">
                         <span id="autoDialLabelContainer" style="display: inline-flex; align-items: center; gap: 6px;">
                           <img src="draaiknop.png?v=230" alt="Draaiknop" style="width: 22px; height: 22px; object-fit: contain;">
-                          <span>Instelstand draaiknop toestel:</span>
+                          <span data-i18n="autoDialSetting">Instelstand draaiknop toestel:</span>
                         </span>
                         <span id="autoDialValue" style="font-size: 12.5px; font-weight: 800; background-color: #FEF2F2; color: var(--primary-red); padding: 2px 8px; border-radius: 4px; border: 1px solid #FECACA;">1 maand</span>
                       </div>
                       <div style="color: var(--text-medium); font-size: 11px; margin-top: 4px; display: flex; justify-content: space-between;">
-                        <span>• Theoretisch berekend:</span>
+                        <span data-i18n="autoTheoCalculated">• Theoretisch berekend:</span>
                         <strong id="autoTheoValue" style="color: var(--text-dark);">0,9 maanden</strong>
                       </div>
                     </div>
@@ -1805,14 +1805,14 @@
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width: 14px; height: 14px;">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
                 </svg>
-                <span>Synchroon met Automatisering</span>
+                <span data-i18n="roiSyncLabel">Synchroon met Automatisering</span>
               </div>
               <h2 id="roiDeviceTitle" style="font-size: 22px; font-weight: 800; color: #0f172a; margin: 0 0 4px 0;">Interflon Single Point Lubricator</h2>
               <p id="roiDeviceSubtext" style="color: #64748b; font-size: 13.5px; margin: 0;">Patrooninhoud: <strong>125 ml</strong> &bull; Geselecteerd vet: <strong>Interflon Grease MP2/3</strong></p>
             </div>
           </div>
           <div style="background: #f8fafc; border: 1px solid #cbd5e1; border-radius: var(--border-radius-md); padding: 12px 18px; text-align: right;">
-            <div style="font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">Berekend Vetverbruik</div>
+            <div style="font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;" data-i18n="roiCalculatedGreaseCons">Berekend Vetverbruik</div>
             <div id="roiHeaderYearlyMl" style="font-size: 18px; font-weight: 800; color: var(--primary-dark); margin-top: 2px;">257,1 ml / jaar</div>
           </div>
         </div>
@@ -1821,12 +1821,12 @@
         <div style="background: #ffffff; border-radius: var(--border-radius-lg); padding: 16px 24px; box-shadow: var(--shadow-sm); border: 1px solid #e2e8f0; margin-bottom: 24px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px;">
           <div style="display: flex; align-items: flex-start; gap: 12px; flex: 1; min-width: 280px;">
             <div style="color: #0284c7; font-size: 18px; line-height: 1; margin-top: 2px;">ℹ️</div>
-            <div style="color: #334155; font-size: 13px; line-height: 1.55; font-weight: 500;">
+            <div style="color: #334155; font-size: 13px; line-height: 1.55; font-weight: 500;" data-i18n="roiLifetimeInfoText">
               De overstap van manuele naar automatische smering verlengt de levensduur van lagers in de praktijk doorgaans met 50% tot 300% (een factor 1,5 tot 4). In zware, vervuilde of continu draaiende toepassingen kan de levensduur zelfs met een factor 4 tot 8 toenemen.
             </div>
           </div>
           <div style="display: flex; align-items: center; gap: 10px; flex-shrink: 0;">
-            <label for="roiLifetimeFactorSelect" style="font-size: 13px; font-weight: 700; color: #334155; white-space: nowrap;">Levensduur verlenging:</label>
+            <label for="roiLifetimeFactorSelect" style="font-size: 13px; font-weight: 700; color: #334155; white-space: nowrap;" data-i18n="roiLifetimeExtensionLabel">Levensduur verlenging:</label>
             <select id="roiLifetimeFactorSelect" onchange="updateRoiAutomationPage()" style="background: #f8fafc; border: 1.5px solid #cbd5e1; color: #0f172a; font-weight: 700; border-radius: 8px; padding: 6px 12px; font-size: 13px; outline: none; cursor: pointer; box-shadow: 0 1px 2px rgba(0,0,0,0.05);" title="Selecteer levensduurverlenging door automatische smering">
               <option value="0" selected>0% (factor 1)</option>
               <option value="50">50% (factor 1,5)</option>
@@ -1852,14 +1852,14 @@
             <div id="roiManCardHeader" style="background-color: #fef2f2; border-bottom: 1px solid #fecaca; padding: 14px 18px; display: flex; align-items: center; justify-content: space-between; gap: 10px; transition: all 0.3s ease;">
               <div style="display: flex; align-items: center; gap: 10px;">
                 <div>
-                  <h3 id="roiManCardTitle" style="font-size: 16px; font-weight: 800; color: #991b1b; margin: 0; transition: color 0.3s ease;">Manuele Smering</h3>
+                  <h3 id="roiManCardTitle" style="font-size: 16px; font-weight: 800; color: #991b1b; margin: 0; transition: color 0.3s ease;" data-i18n="roiManualCardTitle">Manuele Smering</h3>
                   <span id="roiManCardSubtext" style="font-size: 11px; color: #b91c1c; font-weight: 600; transition: color 0.3s ease;">Met Interflon product (op jaarbasis)</span>
                 </div>
               </div>
               <div style="display: flex; align-items: center;">
                 <select id="roiManualModeSelect" onchange="updateRoiAutomationPage()" class="tco-mode-select" style="background-color: rgba(153, 27, 27, 0.08); color: #991b1b; border: 1px solid #fecaca; font-weight: 700; border-radius: 12px; padding: 4px 8px; font-size: 11px; outline: none; cursor: pointer; transition: all 0.3s ease;" title="Kies vergelijkingsbasis voor manuele smering">
-                  <option value="interflon">Manuele smering met Interflon product</option>
-                  <option value="huidig">Manuele smering met huidig product</option>
+                  <option value="interflon" data-i18n="roiOptionManualInterflon">Manuele smering met Interflon product</option>
+                  <option value="huidig" data-i18n="roiOptionManualCurrent">Manuele smering met huidig product</option>
                 </select>
               </div>
             </div>
@@ -1867,49 +1867,49 @@
             <div style="padding: 20px; flex: 1; display: flex; flex-direction: column; justify-content: space-between;">
               <div style="display: flex; flex-direction: column; gap: 12px;">
                 <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed #e2e8f0; padding-bottom: 8px;">
-                  <span style="color: #64748b; font-size: 13px;">Jaarlijks vetverbruik:</span>
+                  <span style="color: #64748b; font-size: 13px;" data-i18n="roiLabelYearlyCons">Jaarlijks vetverbruik:</span>
                   <strong id="roiManYearlyMl" style="color: #1e293b; font-size: 13.5px;">257,1 ml</strong>
                 </div>
                 <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed #e2e8f0; padding-bottom: 8px;">
-                  <span style="color: #64748b; font-size: 13px;">Prijs vet per liter:</span>
+                  <span style="color: #64748b; font-size: 13px;" data-i18n="roiLabelPricePerLiter">Prijs vet per liter:</span>
                   <strong id="roiManGreasePrice" style="color: #1e293b; font-size: 13.5px;">€ 70,50 / L</strong>
                 </div>
                 <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed #e2e8f0; padding-bottom: 8px;">
-                  <span style="color: #64748b; font-size: 13px;">Jaarlijkse vetkost:</span>
+                  <span style="color: #64748b; font-size: 13px;" data-i18n="roiLabelYearlyGreaseCost">Jaarlijkse vetkost:</span>
                   <strong id="roiManGreaseCost" style="color: #1e293b; font-size: 13.5px;">€ 18,13 / jaar</strong>
                 </div>
                 <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed #e2e8f0; padding-bottom: 8px;">
-                  <span style="color: #64748b; font-size: 13px;">Totaal lagersmeerbeurten/jaar:</span>
+                  <span style="color: #64748b; font-size: 13px;" data-i18n="roiLabelTotalBeurten">Totaal lagersmeerbeurten/jaar:</span>
                   <strong id="roiManBeurten" style="color: #1e293b; font-size: 13.5px;">17,6 beurten</strong>
                 </div>
                 <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed #e2e8f0; padding-bottom: 8px;">
-                  <span style="color: #64748b; font-size: 13px;">Tijd per smeerbeurt (minuten):</span>
+                  <span style="color: #64748b; font-size: 13px;" data-i18n="roiLabelTimePerBeurt">Tijd per smeerbeurt (minuten):</span>
                   <strong id="roiManWorkTime" style="color: #1e293b; font-size: 13.5px;">10 min (0,17 u)</strong>
                 </div>
                 <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed #e2e8f0; padding-bottom: 8px;">
-                  <span style="color: #64748b; font-size: 13px;">Uurloon technieker:</span>
+                  <span style="color: #64748b; font-size: 13px;" data-i18n="roiLabelHourlyRate">Uurloon technieker:</span>
                   <strong id="roiManHourlyRate" style="color: #1e293b; font-size: 13.5px;">€ 50,00 / uur</strong>
                 </div>
                 <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed #e2e8f0; padding-bottom: 8px;">
-                  <span style="color: #64748b; font-size: 13px;">Jaarlijkse arbeidskost:</span>
+                  <span style="color: #64748b; font-size: 13px;" data-i18n="roiLabelYearlyLaborCost">Jaarlijkse arbeidskost:</span>
                   <strong id="roiManLaborCost" style="color: #dc2626; font-size: 14px;">€ 146,67 / jaar</strong>
                 </div>
                 <div id="roiManRepairRow" style="display: none; justify-content: space-between; align-items: center; border-bottom: 1px dashed #e2e8f0; padding-bottom: 8px;">
-                  <span style="color: #64748b; font-size: 13px;">Tijdsbesteding revisie (jaar):</span>
+                  <span style="color: #64748b; font-size: 13px;" data-i18n="roiLabelRepairTime">Tijdsbesteding revisie (jaar):</span>
                   <strong id="roiManRepairCost" style="color: #0284c7; font-size: 13.5px;">€ 0,00 / jaar</strong>
                 </div>
                 <div id="roiManMatRow" style="display: none; justify-content: space-between; align-items: center; border-bottom: 1px dashed #e2e8f0; padding-bottom: 8px;">
-                  <span style="color: #64748b; font-size: 13px;">Materiaalkost onderdelen (jaar):</span>
+                  <span style="color: #64748b; font-size: 13px;" data-i18n="roiLabelPartsCost">Materiaalkost onderdelen (jaar):</span>
                   <strong id="roiManMatCost" style="color: #0284c7; font-size: 13.5px;">€ 0,00 / jaar</strong>
                 </div>
                 <div id="roiManDowntimeRow" style="display: none; justify-content: space-between; align-items: center; border-bottom: 1px dashed #e2e8f0; padding-bottom: 8px;">
-                  <span style="color: #64748b; font-size: 13px;">Downtime kost (jaar):</span>
+                  <span style="color: #64748b; font-size: 13px;" data-i18n="roiLabelDowntimeCost">Downtime kost (jaar):</span>
                   <strong id="roiManDowntimeCost" style="color: #0284c7; font-size: 13.5px;">€ 0,00 / jaar</strong>
                 </div>
               </div>
 
               <div id="roiManTotalBox" style="margin-top: 20px; background-color: #fff1f2; border: 1px solid #fecdd3; border-radius: var(--border-radius-md); padding: 14px 16px; text-align: center; transition: all 0.3s ease;">
-                <div id="roiManTotalTitle" style="font-size: 11.5px; font-weight: 700; color: #9f1239; text-transform: uppercase; letter-spacing: 0.5px; transition: color 0.3s ease;">Totale Jaarkost Manueel</div>
+                <div id="roiManTotalTitle" style="font-size: 11.5px; font-weight: 700; color: #9f1239; text-transform: uppercase; letter-spacing: 0.5px; transition: color 0.3s ease;" data-i18n="roiTotalManualTitle">Totale Jaarkost Manueel</div>
                 <div id="roiManTotalCost" style="font-size: 24px; font-weight: 900; color: #9f1239; margin-top: 2px; transition: color 0.3s ease;">€ 164,80</div>
               </div>
             </div>
@@ -1920,8 +1920,8 @@
             <div style="background-color: #f0fdf4; border-bottom: 1px solid #a7f3d0; padding: 16px 20px; display: flex; align-items: center; justify-content: space-between;">
               <div style="display: flex; align-items: center; gap: 10px;">
                 <div>
-                  <h3 style="font-size: 17px; font-weight: 800; color: #065f46; margin: 0;">Automatische Smering</h3>
-                  <span style="font-size: 11.5px; color: #047857; font-weight: 600;">Met gekozen smeerunit (op jaarbasis)</span>
+                  <h3 style="font-size: 17px; font-weight: 800; color: #065f46; margin: 0;" data-i18n="roiAutoCardTitle">Automatische Smering</h3>
+                  <span style="font-size: 11.5px; color: #047857; font-weight: 600;" data-i18n="roiAutoCardSubtext">Met gekozen smeerunit (op jaarbasis)</span>
                 </div>
               </div>
               
@@ -1930,38 +1930,38 @@
             <div style="padding: 20px; flex: 1; display: flex; flex-direction: column; justify-content: space-between;">
               <div style="display: flex; flex-direction: column; gap: 12px;">
                 <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed #e2e8f0; padding-bottom: 8px;">
-                  <span style="color: #64748b; font-size: 13px;">Gekozen smeerunit:</span>
+                  <span style="color: #64748b; font-size: 13px;" data-i18n="roiLabelChosenDevice">Gekozen smeerunit:</span>
                   <strong id="roiAutoDeviceName" style="color: #1e293b; font-size: 13.5px;">Interflon Single Point</strong>
                 </div>
                 <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed #e2e8f0; padding-bottom: 8px;">
-                  <span style="color: #64748b; font-size: 13px;">Verbruik patronen/jaar:</span>
+                  <span style="color: #64748b; font-size: 13px;" data-i18n="roiLabelCartridgesCons">Verbruik patronen/jaar:</span>
                   <strong id="roiAutoPatronen" style="color: #1e293b; font-size: 13.5px;">2,1 patronen/jaar</strong>
                 </div>
                 <div id="roiAutoDevicePriceRow" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed #e2e8f0; padding-bottom: 8px;">
-                  <span style="color: #64748b; font-size: 13px;">Prijs leeg toestel:</span>
+                  <span style="color: #64748b; font-size: 13px;" data-i18n="roiLabelEmptyDevicePrice">Prijs leeg toestel:</span>
                   <strong id="roiAutoDevicePrice" style="color: #1e293b; font-size: 13.5px;">€ 0,00 (Inbegrepen)</strong>
                 </div>
                 <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed #e2e8f0; padding-bottom: 8px;">
-                  <span style="color: #64748b; font-size: 13px;">Prijs per patroon / servicepack:</span>
+                  <span style="color: #64748b; font-size: 13px;" data-i18n="roiLabelPricePerPack">Prijs per patroon / servicepack:</span>
                   <strong id="roiAutoPackPrice" style="color: #1e293b; font-size: 13.5px;">€ 54,60 / stuk</strong>
                 </div>
                 <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed #e2e8f0; padding-bottom: 8px;">
-                  <span style="color: #64748b; font-size: 13px;">Jaarlijkse kosten patronen:</span>
+                  <span style="color: #64748b; font-size: 13px;" data-i18n="roiLabelYearlyPacksCost">Jaarlijkse kosten patronen:</span>
                   <strong id="roiAutoPacksTotal" style="color: #1e293b; font-size: 13.5px;">€ 114,66 / jaar</strong>
                 </div>
                 <div id="roiAutoAccessoriesRow" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed #e2e8f0; padding-bottom: 8px;">
-                  <span style="color: #64748b; font-size: 13px;">Pulsarlube installatiekit:</span>
+                  <span style="color: #64748b; font-size: 13px;" data-i18n="roiLabelInstallKit">Pulsarlube installatiekit:</span>
                   <strong id="roiAutoAccCost" style="color: #1e293b; font-size: 13.5px;">€ 0,00</strong>
                 </div>
                 <div id="roiAutoDividerBlockRow" style="display: flex; flex-direction: column; gap: 4px; border-bottom: 1px dashed #e2e8f0; padding-bottom: 8px;">
                   <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <span style="color: #64748b; font-size: 13px;">Verdeelblok(ken):</span>
+                    <span style="color: #64748b; font-size: 13px;" data-i18n="roiLabelDividerBlocks">Verdeelblok(ken):</span>
                     <strong id="roiAutoDividerBlockTotalCost" style="color: #1e293b; font-size: 13.5px;">€ 0,00</strong>
                   </div>
                   <div id="roiAutoDividerBlockCost" style="color: #475569; font-size: 11.5px; line-height: 1.4; padding-left: 8px; border-left: 2px solid #cbd5e1; margin-top: 2px;"></div>
                 </div>
                 <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed #e2e8f0; padding-bottom: 8px;">
-                  <span style="color: #64748b; font-size: 13px;">Arbeidskost patroonwissels:</span>
+                  <span style="color: #64748b; font-size: 13px;" data-i18n="roiLabelCartridgeChangeLabor">Arbeidskost patroonwissels:</span>
                   <strong id="roiAutoLaborCost" style="color: #059669; font-size: 13.5px;">€ 0,00 / jaar</strong>
                 </div>
                 <div id="roiAutoRepairRow" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed #e2e8f0; padding-bottom: 8px;">
@@ -1981,11 +1981,11 @@
               <div style="margin-top: 20px; background-color: #f0fdf4; border: 1px solid #bbf7d0; border-radius: var(--border-radius-md); padding: 14px 16px; text-align: center;">
                 <div style="display: flex; justify-content: space-around; gap: 10px;">
                   <div>
-                    <div style="font-size: 10.5px; font-weight: 700; color: #15803d; text-transform: uppercase;">Jaar 1 Totaal</div>
+                    <div style="font-size: 10.5px; font-weight: 700; color: #15803d; text-transform: uppercase;" data-i18n="roiYear1Total">Jaar 1 Totaal</div>
                     <div id="roiAutoYear1Total" style="font-size: 20px; font-weight: 900; color: #15803d; margin-top: 2px;">€ 114,66</div>
                   </div>
                   <div style="border-left: 1px solid #86efac; padding-left: 10px;">
-                    <div style="font-size: 10.5px; font-weight: 700; color: #166534; text-transform: uppercase;">Jaar 2+ Terugkerend</div>
+                    <div style="font-size: 10.5px; font-weight: 700; color: #166534; text-transform: uppercase;" data-i18n="roiYear2PlusRecurring">Jaar 2+ Terugkerend</div>
                     <div id="roiAutoRecurringTotal" style="font-size: 20px; font-weight: 900; color: #166534; margin-top: 2px;">€ 114,66</div>
                   </div>
                 </div>
@@ -2005,8 +2005,8 @@
                 </svg>
               </div>
               <div>
-                <h3 style="font-size: 19px; font-weight: 800; color: #0f172a; margin: 0;">Financiële Analyse & ROI Resultaat</h3>
-                <span style="font-size: 12.5px; color: #64748b;">Directe vergelijking manuele arbeid & vet vs. automatische smeermodule</span>
+                <h3 style="font-size: 19px; font-weight: 800; color: #0f172a; margin: 0;" data-i18n="roiFinancialAnalysisTitle">Financiële Analyse & ROI Resultaat</h3>
+                <span style="font-size: 12.5px; color: #64748b;" data-i18n="roiFinancialAnalysisSubtitle">Directe vergelijking manuele arbeid & vet vs. automatische smeermodule</span>
               </div>
             </div>
           </div>
@@ -3077,10 +3077,10 @@
 
   <!-- JavaScript logic imports -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="interflon-data.js?v=20260824_1619"></script>
-  <script src="bearings-db.js?v=20260824_1619"></script>
-  <script src="chains-db.js?v=20260824_1619"></script>
-  <script src="app_v6.js?v=20260824_1619"></script>
+  <script src="interflon-data.js?v=20260824_1650"></script>
+  <script src="bearings-db.js?v=20260824_1650"></script>
+  <script src="chains-db.js?v=20260824_1650"></script>
+  <script src="app_v6.js?v=20260824_1650"></script>
 
   <!-- Interflon Oil Dispenser Information Modal (PowerPoint Viewer) -->
   <div id="oilDispenserInfoModal" class="modal-overlay hidden" style="z-index: 99999;">
