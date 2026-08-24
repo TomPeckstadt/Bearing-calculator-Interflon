@@ -1778,42 +1778,32 @@ h1, h2, h3, h4, .brand-text {
 
 .login-card-top-header {
   position: relative;
-  margin: 0 -32px 24px -32px;
-  padding: 28px 24px 20px 24px;
-  background: rgba(255, 255, 255, 0.4);
+  margin: 0 -32px 20px -32px;
+  padding: 215px 24px 16px 24px;
+  background: transparent;
   border-bottom: 1px solid rgba(226, 232, 240, 0.8);
   overflow: hidden;
 }
 
 .login-card-bg-watermark {
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  top: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 380px;
+  height: 210px;
   background-image: url('interflon-logo.jpg');
   background-size: contain;
   background-position: center center;
   background-repeat: no-repeat;
   mix-blend-mode: multiply;
-  opacity: 0.18;
+  opacity: 0.95;
   pointer-events: none;
 }
 
 .login-card-header-content {
   position: relative;
   z-index: 2;
-}
-
-.login-logo-banner-img {
-  width: 100%;
-  max-width: 260px;
-  height: auto;
-  max-height: 120px;
-  object-fit: contain;
-  mix-blend-mode: multiply;
-  display: block;
-  margin: 0 auto 12px auto;
 }
 
 .login-card h2 {
