@@ -2642,7 +2642,6 @@ function changeLanguage(lang) {
   document.querySelectorAll("[data-i18n]").forEach(el => {
     const key = el.getAttribute("data-i18n");
     if (TRANSLATIONS[lang] && TRANSLATIONS[lang][key]) {
-      // Use innerHTML for formatting tags inside alert text, intro and legal disclaimer
       if (key === "estimatedNote" || key === "legalDisclaimerText" || key === "infoIntro" || key === "searchEmptyDesc" || key.startsWith("omCost") || key.startsWith("omSavings") || key === "omTotalSavingsLabel") {
         el.innerHTML = TRANSLATIONS[lang][key];
       } else {
@@ -2660,41 +2659,25 @@ function changeLanguage(lang) {
   });
 
   // Re-load labels in the specs area
-  if (activeBearing) {
+  if (typeof activeBearing !== "undefined" && activeBearing) {
     const specTypeEl = document.getElementById("specType");
     if (specTypeEl) {
       specTypeEl.textContent = translateBearingType(activeBearing.type);
     }
   }
 
-  // Update calculator selection banner and fields
-  updateCalculatorFields();
-
-  // Re-run grease calculations to update dynamic variables and output formatting
-  calculateGrease();
-
-  // Update Automation & ROI Automation Pages for active language
-  if (typeof updateAutomationPage === "function") updateAutomationPage();
-  if (typeof renderAutoDevicesUI === "function") renderAutoDevicesUI();
-  if (typeof updateRoiAutomationPage === "function") updateRoiAutomationPage();
-
-  // Re-run TCO calculations to apply locale formatting
-  if (typeof updateTcoFrequencies === "function") {
-    updateTcoFrequencies();
-  }
-  if (typeof calculateTco === "function") {
-    calculateTco();
-  }
-
-  if (typeof updateOmMetadata === "function") {
-    updateOmMetadata();
-  }
-  if (typeof loadOperatorDetails === "function") {
-    loadOperatorDetails();
-  }
-  if (typeof loadClientDetails === "function") {
-    loadClientDetails();
-  }
+  // Safely trigger optional UI updates
+  try { if (typeof updateCalculatorFields === "function") updateCalculatorFields(); } catch(e) {}
+  try { if (typeof calculateGrease === "function") calculateGrease(); } catch(e) {}
+  try { if (typeof updateAutomationPage === "function") updateAutomationPage(); } catch(e) {}
+  try { if (typeof renderAutoDevicesUI === "function") renderAutoDevicesUI(); } catch(e) {}
+  try { if (typeof updateRoiAutomationPage === "function") updateRoiAutomationPage(); } catch(e) {}
+  try { if (typeof renderPhotoGrid === "function") renderPhotoGrid(); } catch(e) {}
+  try { if (typeof updateTcoFrequencies === "function") updateTcoFrequencies(); } catch(e) {}
+  try { if (typeof calculateTco === "function") calculateTco(); } catch(e) {}
+  try { if (typeof updateOmMetadata === "function") updateOmMetadata(); } catch(e) {}
+  try { if (typeof loadOperatorDetails === "function") loadOperatorDetails(); } catch(e) {}
+  try { if (typeof loadClientDetails === "function") loadClientDetails(); } catch(e) {}
 }
 
 
@@ -3069,22 +3052,26 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 function handleLogin(event) {
-  event.preventDefault();
+  if (event) event.preventDefault();
   const passwordInput = document.getElementById("passwordInput");
   const loginError = document.getElementById("loginError");
   const loginOverlay = document.getElementById("loginOverlay");
 
-  // Paswoord controle (hardcoded smeercalculatie voor deze versie)
-  if (passwordInput.value === "smeercalculatie") {
+  if (!passwordInput) return false;
+
+  const val = passwordInput.value ? passwordInput.value.trim().toLowerCase() : "";
+
+  if (val === "smeercalculatie") {
     sessionStorage.setItem("bearing_calc_logged_in", "true");
     playOpeningAnimation();
   } else {
-    loginError.style.display = "flex";
+    if (loginError) loginError.style.display = "flex";
     passwordInput.classList.add("error-shake");
     setTimeout(() => {
       passwordInput.classList.remove("error-shake");
     }, 400);
   }
+  return false;
 }
 
 function playOpeningAnimation() {
@@ -10405,7 +10392,7 @@ function getSurveyUrl() {
   const clientEmail = localStorage.getItem("client_email") || "";
 
   let params = new URLSearchParams();
-  params.set("v", "20260824_1701");
+  params.set("v", "20260824_1707");
   if (typeof currentLang !== "undefined" && currentLang) params.set("lang", currentLang);
   if (opEmail) params.set("contact", opEmail);
   if (clientCompany) params.set("company", clientCompany);
