@@ -371,9 +371,9 @@ function renderAutoDevicesUI() {
             </div>
           </div>
           <div style="line-height: 1.35; flex: 1;">
-            <div id="dividerBlockTitle_${devId}" style="font-size: 12px; font-weight: 800; color: var(--primary-dark);">Directe aansluiting (1 smeerpunt)</div>
-            <div id="dividerBlockDesc_${devId}" style="font-size: 11px; color: var(--text-medium); margin-top: 2px;">Geen verdeelblok nodig. Toestel wordt rechtstreeks op 1 lager aangesloten.</div>
-            <div id="dividerBlockPriceTag_${devId}" style="font-size: 11.5px; font-weight: 700; color: var(--primary-red); margin-top: 3px;">Geen verdeelblok (€ 0,00)</div>
+            <div id="dividerBlockTitle_${devId}" style="font-size: 12px; font-weight: 800; color: var(--primary-dark);">${lang === "fr" ? "Raccordement direct (1 point de graissage)" : (lang === "en" ? "Direct connection (1 lubrication point)" : "Directe aansluiting (1 smeerpunt)")}</div>
+            <div id="dividerBlockDesc_${devId}" style="font-size: 11px; color: var(--text-medium); margin-top: 2px;">${lang === "fr" ? "Pas de bloc répartiteur nécessaire. L'appareil est raccordé directement sur 1 roulement." : (lang === "en" ? "No divider block needed. Device is connected directly to 1 bearing." : "Geen verdeelblok nodig. Toestel wordt rechtstreeks op 1 lager aangesloten.")}</div>
+            <div id="dividerBlockPriceTag_${devId}" style="font-size: 11.5px; font-weight: 700; color: var(--primary-red); margin-top: 3px;">${lang === "fr" ? "Pas de bloc répartiteur (€ 0,00)" : (lang === "en" ? "No divider block (€ 0.00)" : "Geen verdeelblok (€ 0,00)")}</div>
           </div>
         </div>
       </div>
@@ -1030,6 +1030,20 @@ if (typeof window !== "undefined" && window.location && window.location.href.end
 
 const TRANSLATIONS = {
   nl: {
+    autoNumDevOpt1: "1 toestel (Pulsarlube A)",
+    autoNumDevOpt2: "2 toestellen (Pulsarlube A & Pulsarlube B)",
+    autoNumDevOpt3: "3 toestellen (Pulsarlube A, B & C)",
+    autoNumDevOpt4: "4 toestellen (Pulsarlube A, B, C & D)",
+    roiNetYearlySavingTitle: "Structurele Jaarlijkse Besparing",
+    roiFromYear2: "Vanaf Jaar 2",
+    roiYear1NetTitle: "Netto Resultaat Jaar 1",
+    roiInclInstall: "Inclusief initiële installatie",
+    roiPaybackTitle: "Terugverdientijd (ROI)",
+    roiPaybackSubtitle: "Investerings-terugverdientijd",
+    roiSavingsAfter: "Besparing na",
+    roiImportantNoteHeader: "Belangrijke toelichting:",
+    roiImportantNoteText: "Bovenstaande berekening weerspiegelt uitsluitend de directe overgang van handmatige naar automatische smering. In de praktijk ontstaat het grootste financiële en operationele voordeel echter door een verhoogde bedrijfszekerheid (hogere output), een langere levensduur van componenten (minder reserveonderdelen) en een aanzienlijke reductie in revisie-uren.",
+
     photoLibraryBadge: "Foto bibliotheek",
     photoLibraryTitle: "📷 Foto bibliotheek",
     photoLibrarySubtitle: "Upload en beheer tot 20 foto's van de machine, lagers of smeerpunten met een optionele beschrijving.",
@@ -9412,12 +9426,16 @@ function updateRoiAutomationPage() {
       const d = (typeof autoDevicesState !== "undefined" && autoDevicesState[i]) ? autoDevicesState[i] : { id: String.fromCharCode(65 + i), points: 1, cap: 120, period: 6, unit: "months" };
       const pts = d.points || 1;
       totalPointsAllDevices += pts;
-      devBreakdownText.push(`Pulsarlube ${d.id}: ${pts} ${pts === 1 ? 'lager' : 'lagers'}`);
+      const lang = currentLang || "nl";
+      const bearingWord = lang === "fr" ? (pts === 1 ? "roulement" : "roulements") : (lang === "en" ? (pts === 1 ? "bearing" : "bearings") : (pts === 1 ? "lager" : "lagers"));
+      devBreakdownText.push(`Pulsarlube ${d.id}: ${pts} ${bearingWord}`);
     }
   }
 
   if (roiSubtextEl) {
-    const devListStr = (numDevices === 1 || deviceKey === "single_point") ? `${totalPointsAllDevices} ${totalPointsAllDevices === 1 ? 'lager' : 'lagers'}` : devBreakdownText.join(" &bull; ");
+    const lang = currentLang || "nl";
+    const ptsWord = lang === "fr" ? (totalPointsAllDevices === 1 ? "roulement" : "roulements") : (lang === "en" ? (totalPointsAllDevices === 1 ? "bearing" : "bearings") : (totalPointsAllDevices === 1 ? "lager" : "lagers"));
+    const devListStr = (numDevices === 1 || deviceKey === "single_point") ? `${totalPointsAllDevices} ${ptsWord}` : devBreakdownText.join(" &bull; ");
     const lang = currentLang || "nl";
     const numDevLabel = lang === "fr" ? "Nombre d'appareils :" : (lang === "en" ? "Number of devices:" : "Aantal toestellen:");
     const selGreaseLabel = lang === "fr" ? "Graisse sélectionnée :" : (lang === "en" ? "Selected grease:" : "Geselecteerd vet:");
@@ -9429,7 +9447,10 @@ function updateRoiAutomationPage() {
   const yearlyMlTotal = dailyNeedCm3 * totalPointsAllDevices * 365.25;
 
   const headerMlEl = document.getElementById("roiHeaderYearlyMl");
-  if (headerMlEl) headerMlEl.textContent = `${yearlyMlTotal.toLocaleString("nl-BE", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} ml / jaar (${totalPointsAllDevices} ${totalPointsAllDevices === 1 ? 'lager' : 'lagers'})`;
+  const lang = currentLang || "nl";
+  const yearStr = lang === "fr" ? "an" : (lang === "en" ? "year" : "jaar");
+  const bearingStr = lang === "fr" ? (totalPointsAllDevices === 1 ? "roulement" : "roulements") : (lang === "en" ? (totalPointsAllDevices === 1 ? "bearing" : "bearings") : (totalPointsAllDevices === 1 ? "lager" : "lagers"));
+  if (headerMlEl) headerMlEl.textContent = `${yearlyMlTotal.toLocaleString(lang === "fr" ? "fr-FR" : (lang === "en" ? "en-US" : "nl-BE"), { minimumFractionDigits: 1, maximumFractionDigits: 1 })} ml / ${yearStr} (${totalPointsAllDevices} ${bearingStr})`;
 
   // 3. Card 1: Manuele Smering (Met Interflon vs Met Huidig Product)
   const manualModeSelect = document.getElementById("roiManualModeSelect");
@@ -9552,13 +9573,15 @@ function updateRoiAutomationPage() {
       roiManCardHeader.style.backgroundColor = "#f0f9ff";
       roiManCardHeader.style.borderBottomColor = "#bae6fd";
     }
+    const lang = currentLang || "nl";
     if (roiManCardTitle) {
       roiManCardTitle.style.color = "#0369a1";
-      roiManCardTitle.textContent = "Manuele Smering";
+      roiManCardTitle.textContent = lang === "fr" ? "Lubrification Manuelle" : (lang === "en" ? "Manual Lubrication" : "Manuele Smering");
     }
     if (roiManCardSubtext) {
       roiManCardSubtext.style.color = "#0284c7";
-      roiManCardSubtext.textContent = "Met huidig product (op jaarbasis)";
+      const lang = currentLang || "nl";
+      roiManCardSubtext.textContent = lang === "fr" ? "Avec produit actuel (base annuelle)" : (lang === "en" ? "With current product (annual basis)" : "Met huidig product (op jaarbasis)");
     }
     if (roiManLaborCost) roiManLaborCost.style.color = "#0284c7";
     if (manRepairCostEl) manRepairCostEl.style.color = "#0284c7";
@@ -9609,13 +9632,15 @@ function updateRoiAutomationPage() {
       roiManCardHeader.style.backgroundColor = "#fef2f2";
       roiManCardHeader.style.borderBottomColor = "#fecaca";
     }
+    const lang = currentLang || "nl";
     if (roiManCardTitle) {
       roiManCardTitle.style.color = "#991b1b";
-      roiManCardTitle.textContent = "Manuele Smering";
+      roiManCardTitle.textContent = lang === "fr" ? "Lubrification Manuelle" : (lang === "en" ? "Manual Lubrication" : "Manuele Smering");
     }
     if (roiManCardSubtext) {
       roiManCardSubtext.style.color = "#b91c1c";
-      roiManCardSubtext.textContent = "Met Interflon product (op jaarbasis)";
+      const lang = currentLang || "nl";
+      roiManCardSubtext.textContent = lang === "fr" ? "Avec produit Interflon (base annuelle)" : (lang === "en" ? "With Interflon product (annual basis)" : "Met Interflon product (op jaarbasis)");
     }
     if (roiManLaborCost) roiManLaborCost.style.color = "#dc2626";
     if (manRepairCostEl) manRepairCostEl.style.color = "#dc2626";
@@ -9729,8 +9754,10 @@ function updateRoiAutomationPage() {
   const autoRecurringTotal = totalCartridgesCostYear + autoLaborCost + autoRepairCost + autoMatCost + autoDowntimeCost;
 
   const autoLaborCostEl = document.getElementById("roiAutoLaborCost");
+  const lang = currentLang || "nl";
+  const yrSuffix = lang === "fr" ? "an" : (lang === "en" ? "year" : "jaar");
   if (autoLaborCostEl) {
-    autoLaborCostEl.textContent = `€ ${autoLaborCost.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / jaar`;
+    autoLaborCostEl.textContent = `€ ${autoLaborCost.toLocaleString(lang === "fr" ? "fr-FR" : (lang === "en" ? "en-US" : "nl-BE"), { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / ${yrSuffix}`;
     autoLaborCostEl.style.color = "#059669";
   }
 
@@ -9755,17 +9782,25 @@ function updateRoiAutomationPage() {
   }
 
   if (autoDeviceNameEl) autoDeviceNameEl.textContent = fullDeviceTitle;
-  if (autoPatronenEl) autoPatronenEl.textContent = `${totalCartridgesPerYear.toLocaleString("nl-BE", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} patronen/jaar`;
+  const lang = currentLang || "nl";
+  const cartYearSuffix = lang === "fr" ? "cartouches/an" : (lang === "en" ? "cartridges/year" : "patronen/jaar");
+  if (autoPatronenEl) autoPatronenEl.textContent = `${totalCartridgesPerYear.toLocaleString(lang === "fr" ? "fr-FR" : (lang === "en" ? "en-US" : "nl-BE"), { minimumFractionDigits: 1, maximumFractionDigits: 1 })} ${cartYearSuffix}`;
   if (autoDevicePriceEl) {
     if (deviceKey === "single_point") {
-      autoDevicePriceEl.textContent = `€ 0,00 (Gevuld toestel)`;
+      const lang = currentLang || "nl";
+      const filledTxt = lang === "fr" ? "(Appareil rempli)" : (lang === "en" ? "(Filled device)" : "(Gevuld toestel)");
+      autoDevicePriceEl.textContent = `€ 0,00 ${filledTxt}`;
     } else {
       const devPrefix = numDevices === 1 ? "1x" : `${numDevices}x`;
       autoDevicePriceEl.textContent = `€ ${totalUnitsPrice.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} (${devPrefix} Art. ${artNrUnitStr})`;
     }
   }
-  if (autoPackPriceEl) autoPackPriceEl.textContent = `€ ${servicepackUnitPrice.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / stuk (Art. ${artNrServicepackStr})`;
-  if (autoPacksTotalEl) autoPacksTotalEl.textContent = `€ ${totalCartridgesCostYear.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / jaar`;
+  const lang = currentLang || "nl";
+  const pieceTxt = lang === "fr" ? "pièce" : (lang === "en" ? "piece" : "stuk");
+  if (autoPackPriceEl) autoPackPriceEl.textContent = `€ ${servicepackUnitPrice.toLocaleString(lang === "fr" ? "fr-FR" : (lang === "en" ? "en-US" : "nl-BE"), { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / ${pieceTxt} (Art. ${artNrServicepackStr})`;
+  const lang = currentLang || "nl";
+  const yearSuffix = lang === "fr" ? "an" : (lang === "en" ? "year" : "jaar");
+  if (autoPacksTotalEl) autoPacksTotalEl.textContent = `€ ${totalCartridgesCostYear.toLocaleString(lang === "fr" ? "fr-FR" : (lang === "en" ? "en-US" : "nl-BE"), { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / ${yearSuffix}`;
   if (autoAccCostEl) {
     if (totalInstallKitPrice > 0) {
       const kitPrefix = numDevices === 1 ? "1x" : `${numDevices}x`;
@@ -10370,7 +10405,7 @@ function getSurveyUrl() {
   const clientEmail = localStorage.getItem("client_email") || "";
 
   let params = new URLSearchParams();
-  params.set("v", "20260824_1652");
+  params.set("v", "20260824_1701");
   if (typeof currentLang !== "undefined" && currentLang) params.set("lang", currentLang);
   if (opEmail) params.set("contact", opEmail);
   if (clientCompany) params.set("company", clientCompany);
