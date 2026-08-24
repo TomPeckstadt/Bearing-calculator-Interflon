@@ -1605,7 +1605,7 @@ function getSurveyUrl() {
   const clientEmail = localStorage.getItem("client_email") || "";
 
   let params = new URLSearchParams();
-  params.set("v", "20260824_2124");
+  params.set("v", "20260824_2128");
   if (typeof currentLang !== "undefined" && currentLang) params.set("lang", currentLang);
   if (opEmail) params.set("contact", opEmail);
   if (clientCompany) params.set("company", clientCompany);
@@ -1951,4 +1951,23 @@ if (typeof window !== "undefined") {
   if (typeof closeModeSelectionModal !== "undefined") window.closeModeSelectionModal = closeModeSelectionModal;
   if (typeof selectAppMode !== "undefined") window.selectAppMode = selectAppMode;
   if (typeof handleLogout !== "undefined") window.handleLogout = handleLogout;
+}
+
+
+function toggleSearchEmptyState(hasSelectedBearing) {
+  const emptyEl = document.getElementById("emptySearchState");
+  const resultsArea = document.getElementById("searchResultsArea");
+  if (hasSelectedBearing) {
+    if (emptyEl) emptyEl.style.display = "none";
+    if (resultsArea) {
+      resultsArea.classList.remove("hidden");
+      resultsArea.style.display = "grid";
+    }
+  } else {
+    if (emptyEl) emptyEl.style.display = "block";
+    if (resultsArea) {
+      resultsArea.classList.add("hidden");
+      resultsArea.style.display = "none";
+    }
+  }
 }
