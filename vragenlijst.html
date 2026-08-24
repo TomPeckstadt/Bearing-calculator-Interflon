@@ -194,6 +194,32 @@
     }
     .success-banner h3 { font-size: 18px; font-weight: 800; margin-bottom: 4px; }
     .success-banner p { font-size: 14px; }
+
+    @media print {
+      body {
+        background: #ffffff !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+      .survey-container {
+        box-shadow: none !important;
+        border: none !important;
+        max-width: 100% !important;
+        margin: 0 !important;
+        border-radius: 0 !important;
+      }
+      .submit-btn, .btn-secondary, button[onclick="addBearingRow()"], button[onclick*="removeBearingRow"] {
+        display: none !important;
+      }
+      .survey-section {
+        break-inside: avoid;
+        page-break-inside: avoid;
+        border: 1px solid #cbd5e1 !important;
+        background: #f8fafc !important;
+      }
+    }
   </style>
 </head>
 <body>
@@ -1017,6 +1043,13 @@
       if (urlParams.get('submitted') === 'true') {
         document.getElementById('successBanner').style.display = 'block';
         window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+
+      
+      if (urlParams.get('autoprint') === 'true' || urlParams.get('autoPrint') === 'true') {
+        setTimeout(() => {
+          window.print();
+        }, 600);
       }
 
       // Initialize bearing letters and dropdowns across Sections 2, 3, and 4
