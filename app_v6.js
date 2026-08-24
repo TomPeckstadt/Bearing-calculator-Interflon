@@ -1028,6 +1028,8 @@ if (typeof window !== "undefined" && window.location && window.location.href.end
 
 const TRANSLATIONS = {
   nl: {
+    "modeModalSubtitle": "Maak uw keuze om de gewenste toepassing te openen:",
+    "modeModalTitle": "Welkom bij de Interflon Berekeningsmodule",
 
     "menuSearch": "Lager Opzoeken",
     "menuCalc": "Smeercalculatie",
@@ -1525,6 +1527,8 @@ const TRANSLATIONS = {
     btnLagertypes: "Lagertypes"
   },
   en: {
+    "modeModalSubtitle": "Make your choice to open the desired application:",
+    "modeModalTitle": "Welcome to Interflon Calculation Module",
 
     "menuSearch": "Search Bearing",
     "menuCalc": "Lubrication Calculation",
@@ -2021,6 +2025,8 @@ const TRANSLATIONS = {
     btnLagertypes: "Bearing Types"
   },
   fr: {
+    "modeModalSubtitle": "Faites votre choix pour ouvrir l'application souhaitée:",
+    "modeModalTitle": "Bienvenue dans le Module de Calcul Interflon",
 
     "menuSearch": "Rechercher Roulement",
     "menuCalc": "Calcul de Graissage",
@@ -6883,6 +6889,8 @@ let currentAppMode = "bearing"; // "bearing" or "chain"
 let activeChain = null;
 
 function openModeSelectionModal() {
+  changeLanguage(currentLang);
+
   const modal = document.getElementById("modeSelectionModal");
   if (modal) {
     modal.classList.remove("hidden");
