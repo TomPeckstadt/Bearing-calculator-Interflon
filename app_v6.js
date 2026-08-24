@@ -5546,25 +5546,26 @@ function runBearingPdfExport(includeTco, includeRoi) {
         drawCell(startX3, curY, 60, 6.5, "Kostenbesparing / park", savings_park, "green-total");
 
         curY += 6.5;
-        drawCell(startX1, curY, 54, 6.5, "", "");
-        drawCell(startX2, curY, 54, 6.5, "", "");
         const prodCostEl = document.getElementById("omProdCostPercent");
-        drawCell(startX3, curY, 60, 6.5, "% Product / Totale Kost", prodCostEl ? prodCostEl.textContent : "0%", "grey");
+        drawCell(startX1, curY, 54, 6.5, "", "");
+        drawCell(startX2, curY, 54, 6.5, "% Product / Totale Kost", prodCostEl ? prodCostEl.textContent : "0%", "grey");
+        drawCell(startX3, curY, 60, 6.5, "Aantal jaren voor TCO", tco_yrs, "grey");
 
         curY += 6.5;
         const totalCostY1El = document.getElementById("omTotalCostYears1");
         const totalCostY2El = document.getElementById("omTotalCostYears2");
-        drawCell(startX1, curY, 54, 6.5, `Kostprijs / mach. na ${tco_yrs} jr`, totalCostY1El ? totalCostY1El.textContent : "€ 0,00", "pink-total");
-        drawCell(startX2, curY, 54, 6.5, `Kostprijs / mach. na ${tco_yrs} jr`, totalCostY2El ? totalCostY2El.textContent : "€ 0,00", "pink-total");
-        drawCell(startX3, curY, 60, 6.5, "Aantal jaren voor TCO", tco_yrs, "grey");
+        const savingsMachYEl = document.getElementById("omSavingsMachineYears");
+        drawCell(startX1, curY, 54, 6.5, `Kostprijs / machine na ${tco_yrs} jaar (€)`, totalCostY1El ? totalCostY1El.textContent : "€ 0,00", "pink-total");
+        drawCell(startX2, curY, 54, 6.5, `Kostprijs / machine na ${tco_yrs} jaar (€)`, totalCostY2El ? totalCostY2El.textContent : "€ 0,00", "pink-total");
+        drawCell(startX3, curY, 60, 6.5, `Kostenbesparing / machine / na ${tco_yrs} jaar (€)`, savingsMachYEl ? savingsMachYEl.textContent : "€ 0,00", "green-total");
 
         curY += 6.5;
         const totalParkY1El = document.getElementById("omTotalParkCostYears1");
         const totalParkY2El = document.getElementById("omTotalParkCostYears2");
         const totalSavYEl = document.getElementById("omTotalSavingsYears");
-        drawCell(startX1, curY, 54, 6.5, `Kostprijs / park na ${tco_yrs} jr`, totalParkY1El ? totalParkY1El.textContent : "€ 0,00", "pink-total");
-        drawCell(startX2, curY, 54, 6.5, `Kostprijs / park na ${tco_yrs} jr`, totalParkY2El ? totalParkY2El.textContent : "€ 0,00", "pink-total");
-        drawCell(startX3, curY, 60, 6.5, `Kostenbesparing na ${tco_yrs} jaar (€)`, totalSavYEl ? totalSavYEl.textContent : "€ 0,00", "green-total");
+        drawCell(startX1, curY, 54, 6.5, `Kostprijs / machinepark na ${tco_yrs} jaar (€)`, totalParkY1El ? totalParkY1El.textContent : "€ 0,00", "pink-total");
+        drawCell(startX2, curY, 54, 6.5, `Kostprijs / machinepark na ${tco_yrs} jaar (€)`, totalParkY2El ? totalParkY2El.textContent : "€ 0,00", "pink-total");
+        drawCell(startX3, curY, 60, 6.5, `Kostenbesparing / machinepark / na ${tco_yrs} jaar (€)`, totalSavYEl ? totalSavYEl.textContent : "€ 0,00", "green-total");
 
         // Page 2 Footer
         doc.setFont("helvetica", "normal");
@@ -10289,7 +10290,7 @@ function getSurveyUrl() {
   const clientEmail = localStorage.getItem("client_email") || "";
 
   let params = new URLSearchParams();
-  params.set("v", "20260824_1509");
+  params.set("v", "20260824_1601");
   if (typeof currentLang !== "undefined" && currentLang) params.set("lang", currentLang);
   if (opEmail) params.set("contact", opEmail);
   if (clientCompany) params.set("company", clientCompany);
