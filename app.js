@@ -10290,7 +10290,7 @@ function getSurveyUrl() {
   const clientEmail = localStorage.getItem("client_email") || "";
 
   let params = new URLSearchParams();
-  params.set("v", "20260824_1606");
+  params.set("v", "20260824_1619");
   if (typeof currentLang !== "undefined" && currentLang) params.set("lang", currentLang);
   if (opEmail) params.set("contact", opEmail);
   if (clientCompany) params.set("company", clientCompany);
@@ -10315,15 +10315,20 @@ function printSurveyPage() {
 function copySurveyLink() {
   const url = getSurveyUrl();
 
+  const dummy = document.createElement("textarea");
+  dummy.value = url;
+  document.body.appendChild(dummy);
+  dummy.select();
+  try {
+    document.execCommand("copy");
+  } catch (e) {}
+  document.body.removeChild(dummy);
+
   if (navigator.clipboard && navigator.clipboard.writeText) {
-    navigator.clipboard.writeText(url).then(() => {
-      alert("📋 Unieke vragenlijst-link gekopieerd met alle ingestelde klant- en contactgegevens!\n\nLink: " + url + "\n\nPlak deze link (Ctrl + V) in een e-mail naar uw klant.");
-    }).catch(err => {
-      prompt("Kopieer onderstaande link om naar uw klant te sturen:", url);
-    });
-  } else {
-    prompt("Kopieer onderstaande link om naar uw klant te sturen:", url);
+    navigator.clipboard.writeText(url).catch(() => {});
   }
+
+  alert("📋 Unieke vragenlijst-link is gekopieerd naar uw klembord!\n\nLink: " + url + "\n\nU kunt deze link nu direct plakken (Ctrl + V) in een e-mail naar uw klant.");
 }
 
 // ==========================================================================
@@ -10463,7 +10468,8 @@ function renderPhotoGrid() {
     card.style.cssText = "background: #ffffff; border: 1px solid #cbd5e1; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 6px rgba(0,0,0,0.04); display: flex; flex-direction: column;";
     card.innerHTML = `
       <div style="position: relative; width: 100%; height: 140px; background: #000; overflow: hidden;">
-        <img src="${photo.dataUrl}" alt="Foto ${idx+1}" style="width: 100%; height: 100%; object-fit: cover;">
+        <img src="${photo.dataUrl}" alt="Foto ${idx+1}" onclick="openPhotoLightbox('${photo.id}')" title="Klik om te vergroten 🔍" style="width: 100%; height: 100%; object-fit: cover; cursor: pointer; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+        <div onclick="openPhotoLightbox('${photo.id}')" title="Klik om te vergroten 🔍" style="position: absolute; bottom: 6px; right: 6px; background: rgba(15,23,42,0.75); color: #fff; border-radius: 4px; padding: 2px 6px; font-size: 11px; cursor: pointer; pointer-events: auto;">🔍 Vergroot</div>
         <span style="position: absolute; top: 6px; left: 6px; background: rgba(15,23,42,0.75); color: #fff; font-size: 11px; font-weight: 700; padding: 2px 7px; border-radius: 4px;">Foto ${idx+1}</span>
         <button type="button" onclick="deletePhoto('${photo.id}')" title="Verwijderen" style="position: absolute; top: 6px; right: 6px; background: rgba(227,6,19,0.9); color: #fff; border: none; width: 26px; height: 26px; border-radius: 50%; cursor: pointer; font-size: 13px; font-weight: 800; display: flex; align-items: center; justify-content: center;">✕</button>
       </div>
@@ -10473,4 +10479,31 @@ function renderPhotoGrid() {
     `;
     container.appendChild(card);
   });
+}
+
+
+function openPhotoLightbox(id) {
+  const item = photoLibrary.find(p => p.id === id);
+  if (!item) return;
+
+  const modal = document.getElementById("photoLightboxModal");
+  const img = document.getElementById("photoLightboxImg");
+  const caption = document.getElementById("photoLightboxCaption");
+
+  if (img) img.src = item.dataUrl;
+  if (caption) {
+    if (item.description && item.description.trim()) {
+      caption.innerText = item.description.trim();
+      caption.style.display = "block";
+    } else {
+      caption.innerText = "";
+      caption.style.display = "none";
+    }
+  }
+  if (modal) modal.classList.remove("hidden");
+}
+
+function closePhotoLightboxModal() {
+  const modal = document.getElementById("photoLightboxModal");
+  if (modal) modal.classList.add("hidden");
 }
