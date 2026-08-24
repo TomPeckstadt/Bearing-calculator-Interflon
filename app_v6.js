@@ -520,7 +520,7 @@ function initUniversalInputPersistence() {
   try {
     const allInputs = document.querySelectorAll("input[id], select[id]");
     allInputs.forEach(el => {
-      if (el.id === "passwordInput" || el.type === "hidden" || el.type === "file") return;
+      if (el.id === "passwordInput" || el.id === "langSelect" || el.type === "hidden" || el.type === "file") return;
 
       const savedVal = localStorage.getItem("app_field_" + el.id);
       if (savedVal !== null && savedVal !== "") {
@@ -2630,6 +2630,7 @@ function translateBearingType(typeStr) {
 function changeLanguage(lang) {
   if (!TRANSLATIONS[lang]) return;
   localStorage.setItem("bearing_calc_lang", lang);
+  localStorage.setItem("app_field_langSelect", lang);
   currentLang = lang;
 
   // Sync select dropdown if it exists
@@ -3082,24 +3083,10 @@ function playOpeningAnimation() {
   const passwordInput = document.getElementById('passwordInput');
   const loginError = document.getElementById('loginError');
 
-  // Show and fade in video overlay immediately, and fade out the form card
-  if (videoOverlay) {
-    videoOverlay.classList.add('active');
-  }
-  if (loginCard) {
-    loginCard.classList.add('fade-out');
-  }
-
-  // Set playback rate safely (1.4x like PDC dashboard)
-  if (video) {
-    try {
-      video.playbackRate = 1.4;
-    } catch (e) {
-      console.warn('Could not set playbackRate:', e);
-    }
-    // Try to play with sound first by unmuting
-    video.muted = false;
-  }
+  // Hide login overlay immediately so user is never trapped on login screen
+  if (loginOverlay) loginOverlay.classList.add('hidden');
+  if (loginError) loginError.style.display = 'none';
+  if (passwordInput) passwordInput.value = '';
 
   let animationFinished = false;
 
@@ -3107,65 +3094,38 @@ function playOpeningAnimation() {
     if (animationFinished) return;
     animationFinished = true;
 
-    // Hide the login overlay entirely
-    if (loginOverlay) {
-      loginOverlay.classList.add('hidden');
-    }
-    if (loginError) {
-      loginError.style.display = 'none';
-    }
-    if (passwordInput) {
-      passwordInput.value = '';
-    }
-    
-    // Fade out the video overlay
     if (videoOverlay) {
       videoOverlay.style.opacity = '0';
       setTimeout(() => {
         videoOverlay.classList.remove('active');
-        // Reset styles for future logins (if user logs out)
         videoOverlay.style.opacity = '';
-        if (loginCard) {
-          loginCard.classList.remove('fade-out');
-        }
+        if (loginCard) loginCard.classList.remove('fade-out');
         openModeSelectionModal();
-      }, 500);
+      }, 300);
     } else {
       openModeSelectionModal();
     }
   };
 
+  // 1.5 second max safety timeout - app will open NO MATTER WHAT
+  const timer = setTimeout(proceedToApp, 1500);
+
+  if (videoOverlay) videoOverlay.classList.add('active');
+  if (loginCard) loginCard.classList.add('fade-out');
+
   if (video) {
-    video.play().then(() => {
-      console.log('Video playback started with sound.');
-    }).catch(err => {
-      console.warn('Autoplay with sound failed, falling back to muted:', err);
-      // Fall back to muted (which is guaranteed to work since muted is in HTML markup)
-      video.muted = true;
-      video.play().catch(err2 => {
-        console.error('Autoplay fully blocked, moving directly to dashboard:', err2);
-        proceedToApp();
-      });
-    });
-
-    // Transition when video ends
-    video.onended = () => {
-      proceedToApp();
-    };
-
-    // Transition on error
-    video.onerror = (e) => {
-      console.error('Video playback error, moving to dashboard...', e);
-      proceedToApp();
-    };
+    video.currentTime = 0;
+    video.muted = true; // Muted is guaranteed to play without browser autoplay blocks
+    video.onended = () => { clearTimeout(timer); proceedToApp(); };
+    video.onerror = () => { clearTimeout(timer); proceedToApp(); };
+    const p = video.play();
+    if (p && typeof p.catch === "function") {
+      p.catch(() => { clearTimeout(timer); proceedToApp(); });
+    }
   } else {
+    clearTimeout(timer);
     proceedToApp();
   }
-
-  // Safety timeout fallback (8 seconds)
-  setTimeout(() => {
-    proceedToApp();
-  }, 8000);
 }
 
 
@@ -10392,7 +10352,7 @@ function getSurveyUrl() {
   const clientEmail = localStorage.getItem("client_email") || "";
 
   let params = new URLSearchParams();
-  params.set("v", "20260824_1707");
+  params.set("v", "20260824_1712");
   if (typeof currentLang !== "undefined" && currentLang) params.set("lang", currentLang);
   if (opEmail) params.set("contact", opEmail);
   if (clientCompany) params.set("company", clientCompany);
