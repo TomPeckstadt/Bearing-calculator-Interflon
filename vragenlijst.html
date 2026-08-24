@@ -463,10 +463,31 @@
   <script>
     window.addEventListener('DOMContentLoaded', () => {
       const urlParams = new URLSearchParams(window.location.search);
-      const contact = urlParams.get('contact');
-      if (contact) {
-        document.getElementById('interflonContactEmail').value = contact;
+      
+      // Auto pre-fill Interflon Contact Email
+      const contactEmail = urlParams.get('contact') || urlParams.get('contact_email') || urlParams.get('interflon_email');
+      if (contactEmail) {
+        document.getElementById('interflonContactEmail').value = contactEmail;
       }
+
+      // Auto pre-fill Client Company
+      const company = urlParams.get('company') || urlParams.get('client_company');
+      if (company) {
+        document.getElementById('clientCompany').value = company;
+      }
+
+      // Auto pre-fill Client Contact Person Name
+      const clientContact = urlParams.get('client_contact') || urlParams.get('contact_name');
+      if (clientContact) {
+        document.getElementById('clientContact').value = clientContact;
+      }
+
+      // Auto pre-fill Client Email Address
+      const clientEmail = urlParams.get('client_email');
+      if (clientEmail) {
+        document.getElementById('clientEmail').value = clientEmail;
+      }
+
       if (urlParams.get('submitted') === 'true') {
         document.getElementById('successBanner').style.display = 'block';
         window.scrollTo({ top: 0, behavior: 'smooth' });
