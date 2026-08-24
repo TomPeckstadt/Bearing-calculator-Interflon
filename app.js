@@ -10289,7 +10289,7 @@ function getSurveyUrl() {
   const clientEmail = localStorage.getItem("client_email") || "";
 
   let params = new URLSearchParams();
-  params.set("v", "20260824_1237");
+  params.set("v", "20260824_1509");
   if (typeof currentLang !== "undefined" && currentLang) params.set("lang", currentLang);
   if (opEmail) params.set("contact", opEmail);
   if (clientCompany) params.set("company", clientCompany);
@@ -10317,4 +10317,153 @@ function copySurveyLink() {
   } else {
     prompt("Kopieer onderstaande link om naar uw klant te sturen:", url);
   }
+}
+
+// ==========================================================================
+// PHOTO LIBRARY LOGIC
+// ==========================================================================
+let photoLibrary = [];
+
+function loadPhotoLibrary() {
+  try {
+    const saved = localStorage.getItem("photo_library");
+    photoLibrary = saved ? JSON.parse(saved) : [];
+  } catch (e) {
+    photoLibrary = [];
+  }
+  renderPhotoGrid();
+}
+
+function savePhotoLibraryToStorage() {
+  try {
+    localStorage.setItem("photo_library", JSON.stringify(photoLibrary));
+  } catch (e) {
+    console.warn("Storage quota exceeded when saving photo library:", e);
+  }
+  renderPhotoGrid();
+}
+
+function openPhotoLibraryModal() {
+  loadPhotoLibrary();
+  const modal = document.getElementById("photoLibraryModal");
+  if (modal) modal.classList.remove("hidden");
+}
+
+function closePhotoLibraryModal() {
+  const modal = document.getElementById("photoLibraryModal");
+  if (modal) modal.classList.add("hidden");
+}
+
+function handlePhotoUpload(event) {
+  const files = event.target.files;
+  if (!files || files.length === 0) return;
+
+  const remainingSlots = 20 - photoLibrary.length;
+  if (remainingSlots <= 0) {
+    alert("U heeft het maximale aantal van 20 foto's bereikt.");
+    event.target.value = "";
+    return;
+  }
+
+  const filesToProcess = Array.from(files).slice(0, remainingSlots);
+  let processedCount = 0;
+
+  filesToProcess.forEach(file => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        let width = img.width;
+        let height = img.height;
+        const maxDim = 1000;
+
+        if (width > maxDim || height > maxDim) {
+          if (width > height) {
+            height = Math.round((height * maxDim) / width);
+            width = maxDim;
+          } else {
+            width = Math.round((width * maxDim) / height);
+            height = maxDim;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0, width, height);
+
+        const compressedDataUrl = canvas.toDataURL("image/jpeg", 0.8);
+
+        photoLibrary.push({
+          id: Date.now() + "_" + Math.random().toString(36).substr(2, 5),
+          dataUrl: compressedDataUrl,
+          description: "",
+          filename: file.name
+        });
+
+        processedCount++;
+        if (processedCount === filesToProcess.length) {
+          event.target.value = "";
+          savePhotoLibraryToStorage();
+        }
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+function updatePhotoDescription(id, text) {
+  const item = photoLibrary.find(p => p.id === id);
+  if (item) {
+    item.description = text;
+    try {
+      localStorage.setItem("photo_library", JSON.stringify(photoLibrary));
+    } catch (e) {}
+  }
+}
+
+function deletePhoto(id) {
+  photoLibrary = photoLibrary.filter(p => p.id !== id);
+  savePhotoLibraryToStorage();
+}
+
+function renderPhotoGrid() {
+  const container = document.getElementById("photoGridContainer");
+  const counterText = document.getElementById("photoCounterText");
+
+  if (counterText) {
+    counterText.innerText = photoLibrary.length + " / 20 foto's geüpload";
+  }
+
+  if (!container) return;
+  container.innerHTML = "";
+
+  if (photoLibrary.length === 0) {
+    container.innerHTML = `
+      <div style="grid-column: 1 / -1; text-align: center; color: #94a3b8; padding: 40px 10px; background: #f8fafc; border-radius: 10px; border: 1.5px dashed #cbd5e1;">
+        <span style="font-size: 32px; display: block; margin-bottom: 8px;">📷</span>
+        <p style="margin: 0; font-size: 14px; font-weight: 600;">Nog geen foto's aanwezig.</p>
+        <p style="margin: 4px 0 0 0; font-size: 12.5px;">Klik hierboven op "➕ Foto's toevoegen" om tot 20 foto's toe te voegen.</p>
+      </div>
+    `;
+    return;
+  }
+
+  photoLibrary.forEach((photo, idx) => {
+    const card = document.createElement("div");
+    card.style.cssText = "background: #ffffff; border: 1px solid #cbd5e1; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 6px rgba(0,0,0,0.04); display: flex; flex-direction: column;";
+    card.innerHTML = `
+      <div style="position: relative; width: 100%; height: 140px; background: #000; overflow: hidden;">
+        <img src="${photo.dataUrl}" alt="Foto ${idx+1}" style="width: 100%; height: 100%; object-fit: cover;">
+        <span style="position: absolute; top: 6px; left: 6px; background: rgba(15,23,42,0.75); color: #fff; font-size: 11px; font-weight: 700; padding: 2px 7px; border-radius: 4px;">Foto ${idx+1}</span>
+        <button type="button" onclick="deletePhoto('${photo.id}')" title="Verwijderen" style="position: absolute; top: 6px; right: 6px; background: rgba(227,6,19,0.9); color: #fff; border: none; width: 26px; height: 26px; border-radius: 50%; cursor: pointer; font-size: 13px; font-weight: 800; display: flex; align-items: center; justify-content: center;">✕</button>
+      </div>
+      <div style="padding: 10px; flex: 1; display: flex; flex-direction: column; gap: 6px;">
+        <input type="text" value="${photo.description || ''}" placeholder="Beschrijving toevoegen..." oninput="updatePhotoDescription('${photo.id}', this.value)" style="width: 100%; padding: 6px 10px; font-size: 12.5px; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box;">
+      </div>
+    `;
+    container.appendChild(card);
+  });
 }
