@@ -1,4 +1,17 @@
 
+// Emergency runtime hide guard for cached language selectors
+if (typeof document !== "undefined") {
+  document.addEventListener("DOMContentLoaded", function() {
+    const ls = document.getElementById("langSelect");
+    if (ls && ls.tagName === "SELECT") {
+      ls.style.display = "none";
+      const group = ls.closest(".form-group");
+      if (group) group.style.display = "none";
+    }
+  });
+}
+
+
 function getVerdeelblokImage(callback) {
   const img = new Image();
   img.crossOrigin = "Anonymous";
@@ -10398,7 +10411,7 @@ function getSurveyUrl() {
   const clientEmail = localStorage.getItem("client_email") || "";
 
   let params = new URLSearchParams();
-  params.set("v", "20260825_2115");
+  params.set("v", "20260825_2118");
   if (typeof currentLang !== "undefined" && currentLang) params.set("lang", currentLang);
   if (opEmail) params.set("contact", opEmail);
   if (clientCompany) params.set("company", clientCompany);
