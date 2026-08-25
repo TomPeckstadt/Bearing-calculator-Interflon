@@ -9366,6 +9366,21 @@ function getAutomationPriceInfo(deviceKey, capMl, greaseName, numPoints = 1, cus
 }
 
 function updateRoiAutomationPage() {
+  var lang = typeof currentLang !== "undefined" ? currentLang : "nl";
+  var t = (typeof TRANSLATIONS !== "undefined" && TRANSLATIONS[lang]) ? TRANSLATIONS[lang] : {};
+
+  // Update static titles & subheadings on page load/switch
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n');
+    if (t[key]) {
+      if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
+        el.placeholder = t[key];
+      } else {
+        el.textContent = t[key];
+      }
+    }
+  });
+
   const pVal = (id) => {
     const prefixes = ["omShared", "om", "chainOmShared", "chainOm"];
     for (const p of prefixes) {
@@ -9386,6 +9401,7 @@ function updateRoiAutomationPage() {
   };
   const deviceSelect = document.getElementById("automationDeviceSelect") || document.getElementById("autoDeviceSelect");
   const deviceKey = deviceSelect ? deviceSelect.value : "single_point";
+  const isSinglePoint = (deviceKey === "single_point");
 
   const numDevices = getActiveNumDevices();
 
@@ -9408,7 +9424,7 @@ function updateRoiAutomationPage() {
     imgSrc = "pulsarlube-plc.png?v=20260823_1525";
   }
 
-  const fullDeviceTitle = numDevices === 1 ? baseDeviceName : `${numDevices}x ${baseDeviceName}`;
+  const fullDeviceTitle = numDevices === 1 ? baseDeviceName : (numDevices + "x " + baseDeviceName);
 
   if (roiImgEl) roiImgEl.src = imgSrc;
   if (roiTitleEl) roiTitleEl.textContent = fullDeviceTitle;
@@ -9429,20 +9445,17 @@ function updateRoiAutomationPage() {
       const d = (typeof autoDevicesState !== "undefined" && autoDevicesState[i]) ? autoDevicesState[i] : { id: String.fromCharCode(65 + i), points: 1, cap: 120, period: 6, unit: "months" };
       const pts = d.points || 1;
       totalPointsAllDevices += pts;
-      var lang = currentLang || "nl";
       const bearingWord = lang === "fr" ? (pts === 1 ? "roulement" : "roulements") : (lang === "en" ? (pts === 1 ? "bearing" : "bearings") : (pts === 1 ? "lager" : "lagers"));
-      devBreakdownText.push(`Pulsarlube ${d.id}: ${pts} ${bearingWord}`);
+      devBreakdownText.push("Pulsarlube " + d.id + ": " + pts + " " + bearingWord);
     }
   }
 
   if (roiSubtextEl) {
-    var lang = currentLang || "nl";
     const ptsWord = lang === "fr" ? (totalPointsAllDevices === 1 ? "roulement" : "roulements") : (lang === "en" ? (totalPointsAllDevices === 1 ? "bearing" : "bearings") : (totalPointsAllDevices === 1 ? "lager" : "lagers"));
-    const devListStr = (numDevices === 1 || deviceKey === "single_point") ? `${totalPointsAllDevices} ${ptsWord}` : devBreakdownText.join(" &bull; ");
-    var lang = currentLang || "nl";
+    const devListStr = (numDevices === 1 || deviceKey === "single_point") ? (totalPointsAllDevices + " " + ptsWord) : devBreakdownText.join(" &bull; ");
     const numDevLabel = lang === "fr" ? "Nombre d'appareils :" : (lang === "en" ? "Number of devices:" : "Aantal toestellen:");
     const selGreaseLabel = lang === "fr" ? "Graisse sélectionnée :" : (lang === "en" ? "Selected grease:" : "Geselecteerd vet:");
-    roiSubtextEl.innerHTML = `${numDevLabel} <strong>${numDevices}</strong> (${devListStr}) &bull; ${selGreaseLabel} <strong>${greaseName}</strong>`;
+    roiSubtextEl.innerHTML = numDevLabel + " <strong>" + numDevices + "</strong> (" + devListStr + ") &bull; " + selGreaseLabel + " <strong>" + greaseName + "</strong>";
   }
 
   // 2. Annual Volume calculation for ALL points combined
@@ -9450,10 +9463,10 @@ function updateRoiAutomationPage() {
   const yearlyMlTotal = dailyNeedCm3 * totalPointsAllDevices * 365.25;
 
   const headerMlEl = document.getElementById("roiHeaderYearlyMl");
-  var lang = currentLang || "nl";
   const yearStr = lang === "fr" ? "an" : (lang === "en" ? "year" : "jaar");
   const bearingStr = lang === "fr" ? (totalPointsAllDevices === 1 ? "roulement" : "roulements") : (lang === "en" ? (totalPointsAllDevices === 1 ? "bearing" : "bearings") : (totalPointsAllDevices === 1 ? "lager" : "lagers"));
-  if (headerMlEl) headerMlEl.textContent = `${yearlyMlTotal.toLocaleString(lang === "fr" ? "fr-FR" : (lang === "en" ? "en-US" : "nl-BE"), { minimumFractionDigits: 1, maximumFractionDigits: 1 })} ml / ${yearStr} (${totalPointsAllDevices} ${bearingStr})`;
+  const locCode = lang === "fr" ? "fr-FR" : (lang === "en" ? "en-US" : "nl-BE");
+  if (headerMlEl) headerMlEl.textContent = yearlyMlTotal.toLocaleString(locCode, { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + " ml / " + yearStr + " (" + totalPointsAllDevices + " " + bearingStr + ")";
 
   // 3. Card 1: Manuele Smering (Met Interflon vs Met Huidig Product)
   const manualModeSelect = document.getElementById("roiManualModeSelect");
@@ -9504,13 +9517,10 @@ function updateRoiAutomationPage() {
   const manMatCostEl = document.getElementById("roiManMatCost");
   const manDowntimeCostEl = document.getElementById("roiManDowntimeCost");
 
-  // Bulletproof Helper for TCO inputs
-
-
   const tcoSets = pVal("SetsPerMachine") || 1;
   const numBearingsForTco = (tcoSets > 0) ? Math.max(tcoSets, totalPointsAllDevices) : (totalPointsAllDevices || 1);
 
-  // TCO extra costs (Col 1: Huidige Situatie, Col 2: Interflon)
+  // TCO extra costs
   const p1_lifetime = pVal("Lifetime1") || pVal("RepairFreq1") || 12;
   const p2_lifetime = pVal("Lifetime2") || pVal("RepairFreq2") || 36;
 
@@ -9525,7 +9535,6 @@ function updateRoiAutomationPage() {
   const p2_downtime_h = pVal("DowntimeH2") || pVal("PrepH") || 1;
   const p2_downtime_freq = p2_lifetime > 0 ? (12 / p2_lifetime) : 0.3333;
 
-  // Values depending on mode:
   const activeLifetime = (manualMode === "huidig") ? p1_lifetime : p2_lifetime;
   const activeRepairFreq = activeLifetime;
   const activeDtH = (manualMode === "huidig") ? p1_downtime_h : p2_downtime_h;
@@ -9535,7 +9544,6 @@ function updateRoiAutomationPage() {
   let manualMatCost = activeLifetime > 0 ? ((12 / activeLifetime) * shared_parts_cost * numBearingsForTco) : 0;
   let manualDowntimeCost = activeDtH * activeDtFreq * shared_downtime_rate * numBearingsForTco;
 
-  // Auto lubricator Card 2 costs (uses Interflon 36-month lifetime p2 + lifetime extension factor):
   const lifetimeFactorEl = document.getElementById("roiLifetimeFactorSelect");
   const lifetimeFactorPct = lifetimeFactorEl ? (parseFloat(lifetimeFactorEl.value) || 0) : 0;
   const lifetimeMult = 1 + (lifetimeFactorPct / 100);
@@ -9556,34 +9564,33 @@ function updateRoiAutomationPage() {
   const autoMatCostEl = document.getElementById("roiAutoMatCost");
   const autoDowntimeCostEl = document.getElementById("roiAutoDowntimeCost");
 
+  const perYearSuffix = lang === "fr" ? " / an" : (lang === "en" ? " / year" : " / jaar");
+
   if (autoRepairCostEl) {
-    autoRepairCostEl.textContent = `€ ${autoRepairCost.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / jaar`;
+    autoRepairCostEl.textContent = "€ " + autoRepairCost.toLocaleString(locCode, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + perYearSuffix;
     autoRepairCostEl.style.color = "#059669";
   }
   if (autoMatCostEl) {
-    autoMatCostEl.textContent = `€ ${autoMatCost.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / jaar`;
+    autoMatCostEl.textContent = "€ " + autoMatCost.toLocaleString(locCode, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + perYearSuffix;
     autoMatCostEl.style.color = "#059669";
   }
   if (autoDowntimeCostEl) {
-    autoDowntimeCostEl.textContent = `€ ${autoDowntimeCost.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / jaar`;
+    autoDowntimeCostEl.textContent = "€ " + autoDowntimeCost.toLocaleString(locCode, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + perYearSuffix;
     autoDowntimeCostEl.style.color = "#059669";
   }
 
   if (manualMode === "huidig") {
-    // 1. Theme: Blue / Slate
     if (roiManCardContainer) roiManCardContainer.style.borderColor = "#bae6fd";
     if (roiManCardHeader) {
       roiManCardHeader.style.backgroundColor = "#f0f9ff";
       roiManCardHeader.style.borderBottomColor = "#bae6fd";
     }
-    var lang = currentLang || "nl";
     if (roiManCardTitle) {
       roiManCardTitle.style.color = "#0369a1";
       roiManCardTitle.textContent = lang === "fr" ? "Lubrification Manuelle" : (lang === "en" ? "Manual Lubrication" : "Manuele Smering");
     }
     if (roiManCardSubtext) {
       roiManCardSubtext.style.color = "#0284c7";
-      var lang = currentLang || "nl";
       roiManCardSubtext.textContent = lang === "fr" ? "Avec produit actuel (base annuelle)" : (lang === "en" ? "With current product (annual basis)" : "Met huidig product (op jaarbasis)");
     }
     if (roiManLaborCost) roiManLaborCost.style.color = "#0284c7";
@@ -9602,295 +9609,186 @@ function updateRoiAutomationPage() {
       manualModeSelect.style.borderColor = "#bae6fd";
     }
 
-    // 2. Populate 3 extra rows text
-    if (manRepairCostEl) manRepairCostEl.textContent = `€ ${manualRepairCost.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / jaar`;
-    if (manMatCostEl) manMatCostEl.textContent = `€ ${manualMatCost.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / jaar`;
-    if (manDowntimeCostEl) manDowntimeCostEl.textContent = `€ ${manualDowntimeCost.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / jaar`;
+    if (manRepairCostEl) manRepairCostEl.textContent = "€ " + manualRepairCost.toLocaleString(locCode, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + perYearSuffix;
+    if (manMatCostEl) manMatCostEl.textContent = "€ " + manualMatCost.toLocaleString(locCode, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + perYearSuffix;
+    if (manDowntimeCostEl) manDowntimeCostEl.textContent = "€ " + manualDowntimeCost.toLocaleString(locCode, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + perYearSuffix;
 
-    // 3. Read Huidige Situatie values
     const currentPriceInput = document.getElementById("omProdPrice1") || document.getElementById("chainOmProdPrice1") || document.getElementById("tcoPriceCurrentInput");
     manualGreasePricePerLiter = currentPriceInput ? (parseFloat(currentPriceInput.value) || 20.00) : 20.00;
 
-    const freqElId = (manualMode === "huidig") ? "omProdFreq1" : "omProdFreq2";
-    const currentFreqInput = document.getElementById(freqElId) || document.getElementById("chain" + freqElId.charAt(0).toUpperCase() + freqElId.slice(1)) || document.getElementById("tcoFreqCurrentInput");
-    manualBeurtenPerYear = currentFreqInput ? (parseFloat(currentFreqInput.value) || (manualMode === "huidig" ? 26.0 : 13.1)) : (manualMode === "huidig" ? 26.0 : 13.1);
+    const freqElId = "omProdFreq1";
+    const currentFreqInput = document.getElementById(freqElId) || document.getElementById("chainOmProdFreq1") || document.getElementById("tcoFreqCurrentInput");
+    manualBeurtenPerYear = currentFreqInput ? (parseFloat(currentFreqInput.value) || 26.0) : 26.0;
 
-    const currentConsInput = document.getElementById("omProdCons1") || document.getElementById("chainOmProdCons1") || document.getElementById("tcoQtyCurrentInput");
-    const manualConsPerBeurtGrams = currentConsInput ? parseFloat(currentConsInput.value) || 0 : 0;
-
-    if (manualConsPerBeurtGrams > 0) {
-      manualYearlyMl = (manualConsPerBeurtGrams * manualBeurtenPerYear * numBearingsForTco) / 0.92;
-    } else {
-      manualYearlyMl = manualBeurtenPerYearInterflon > 0 ? (yearlyMlTotal * (manualBeurtenPerYear / manualBeurtenPerYearInterflon)) : yearlyMlTotal;
-    }
-
-    manualGreaseCost = (manualYearlyMl / 1000) * manualGreasePricePerLiter;
-    manualLaborHours = numBearingsForTco * manualBeurtenPerYear * (workTimeMinutes / 60);
-    manualLaborCost = manualLaborHours * hourlyRate;
-    manualTotalCost = manualGreaseCost + manualLaborCost + manualRepairCost + manualMatCost + manualDowntimeCost;
   } else {
-    // 1. Theme: Red / Rose (Default Interflon)
-    if (roiManCardContainer) roiManCardContainer.style.borderColor = "#fee2e2";
+    if (roiManCardContainer) roiManCardContainer.style.borderColor = "#fed7aa";
     if (roiManCardHeader) {
-      roiManCardHeader.style.backgroundColor = "#fef2f2";
-      roiManCardHeader.style.borderBottomColor = "#fecaca";
+      roiManCardHeader.style.backgroundColor = "#fff7ed";
+      roiManCardHeader.style.borderBottomColor = "#fed7aa";
     }
-    var lang = currentLang || "nl";
     if (roiManCardTitle) {
-      roiManCardTitle.style.color = "#991b1b";
+      roiManCardTitle.style.color = "#c2410c";
       roiManCardTitle.textContent = lang === "fr" ? "Lubrification Manuelle" : (lang === "en" ? "Manual Lubrication" : "Manuele Smering");
     }
     if (roiManCardSubtext) {
-      roiManCardSubtext.style.color = "#b91c1c";
-      var lang = currentLang || "nl";
+      roiManCardSubtext.style.color = "#ea580c";
       roiManCardSubtext.textContent = lang === "fr" ? "Avec produit Interflon (base annuelle)" : (lang === "en" ? "With Interflon product (annual basis)" : "Met Interflon product (op jaarbasis)");
     }
-    if (roiManLaborCost) roiManLaborCost.style.color = "#dc2626";
-    if (manRepairCostEl) manRepairCostEl.style.color = "#dc2626";
-    if (manMatCostEl) manMatCostEl.style.color = "#dc2626";
-    if (manDowntimeCostEl) manDowntimeCostEl.style.color = "#dc2626";
+    if (roiManLaborCost) roiManLaborCost.style.color = "#ea580c";
+    if (manRepairCostEl) manRepairCostEl.style.color = "#ea580c";
+    if (manMatCostEl) manMatCostEl.style.color = "#ea580c";
+    if (manDowntimeCostEl) manDowntimeCostEl.style.color = "#ea580c";
     if (roiManTotalBox) {
-      roiManTotalBox.style.backgroundColor = "#fff1f2";
-      roiManTotalBox.style.borderColor = "#fecdd3";
+      roiManTotalBox.style.backgroundColor = "#fff7ed";
+      roiManTotalBox.style.borderColor = "#fed7aa";
     }
-    if (roiManTotalTitle) roiManTotalTitle.style.color = "#9f1239";
-    if (roiManTotalCost) roiManTotalCost.style.color = "#9f1239";
+    if (roiManTotalTitle) roiManTotalTitle.style.color = "#c2410c";
+    if (roiManTotalCost) roiManTotalCost.style.color = "#c2410c";
     if (manualModeSelect) {
-      manualModeSelect.style.backgroundColor = "rgba(153, 27, 27, 0.08)";
-      manualModeSelect.style.color = "#991b1b";
-      manualModeSelect.style.borderColor = "#fecaca";
+      manualModeSelect.style.backgroundColor = "rgba(234, 88, 12, 0.08)";
+      manualModeSelect.style.color = "#c2410c";
+      manualModeSelect.style.borderColor = "#fed7aa";
     }
 
-    // Populate 3 extra rows text in Mode Interflon
-    if (manRepairCostEl) manRepairCostEl.textContent = `€ ${manualRepairCost.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / jaar`;
-    if (manMatCostEl) manMatCostEl.textContent = `€ ${manualMatCost.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / jaar`;
-    if (manDowntimeCostEl) manDowntimeCostEl.textContent = `€ ${manualDowntimeCost.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / jaar`;
+    if (manRepairCostEl) manRepairCostEl.textContent = "€ " + manualRepairCost.toLocaleString(locCode, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + perYearSuffix;
+    if (manMatCostEl) manMatCostEl.textContent = "€ " + manualMatCost.toLocaleString(locCode, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + perYearSuffix;
+    if (manDowntimeCostEl) manDowntimeCostEl.textContent = "€ " + manualDowntimeCost.toLocaleString(locCode, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + perYearSuffix;
 
-    manualGreaseCost = (yearlyMlTotal / 1000) * greasePricePerLiter;
-    manualLaborHours = numBearingsForTco * manualBeurtenPerYear * (workTimeMinutes / 60);
-    manualLaborCost = manualLaborHours * hourlyRate;
-    manualTotalCost = manualGreaseCost + manualLaborCost + manualRepairCost + manualMatCost + manualDowntimeCost;
+    manualGreasePricePerLiter = greasePricePerLiter;
+    manualBeurtenPerYear = manualBeurtenPerYearInterflon;
   }
 
-  if (manYearlyMlEl) manYearlyMlEl.textContent = `${manualYearlyMl.toLocaleString("nl-BE", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} ml`;
-  if (manGreasePriceEl) manGreasePriceEl.textContent = `€ ${manualGreasePricePerLiter.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / L`;
-  if (manGreaseCostEl) manGreaseCostEl.textContent = `€ ${manualGreaseCost.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / jaar`;
-  const effectiveManBearings = (manualMode === "huidig") ? numBearingsForTco : totalPointsAllDevices;
-  if (manBeurtenEl) {
-    if (effectiveManBearings > 1) {
-      manBeurtenEl.textContent = `${(manualBeurtenPerYear * effectiveManBearings).toLocaleString("nl-BE", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} (${manualBeurtenPerYear.toLocaleString("nl-BE", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} beurten x ${effectiveManBearings} lagers)`;
-    } else {
-      manBeurtenEl.textContent = `${manualBeurtenPerYear.toLocaleString("nl-BE", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} beurten`;
-    }
-  }
-  if (manWorkTimeEl) manWorkTimeEl.textContent = `${workTimeMinutes} min/beurt (${(manualLaborHours).toFixed(1).replace('.',',')} u/jaar)`;
-  if (manHourlyRateEl) manHourlyRateEl.textContent = `€ ${hourlyRate.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / uur`;
-  if (manLaborCostEl) manLaborCostEl.textContent = `€ ${manualLaborCost.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / jaar`;
-  if (manTotalCostEl) manTotalCostEl.textContent = `€ ${manualTotalCost.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  manualGreaseCost = (manualYearlyMl / 1000) * manualGreasePricePerLiter;
+  manualLaborHours = (manualBeurtenPerYear * workTimeMinutes) / 60;
+  manualLaborCost = manualLaborHours * hourlyRate;
+  manualTotalCost = manualGreaseCost + manualLaborCost + manualRepairCost + manualMatCost + manualDowntimeCost;
 
-  // 4. Card 2: Automatische Smering (Aggregated across all devices A, B, C, D)
-  let totalUnitsPrice = 0;
-  let totalInstallKitPrice = 0;
-  let totalDividerBlockPrice = 0;
-  let totalCartridgesPerYear = 0;
-  let totalCartridgesCostYear = 0;
+  if (manYearlyMlEl) manYearlyMlEl.textContent = manualYearlyMl.toLocaleString(locCode, { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + " ml";
+  if (manGreasePriceEl) manGreasePriceEl.textContent = "€ " + manualGreasePricePerLiter.toLocaleString(locCode, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " / L";
+  if (manGreaseCostEl) manGreaseCostEl.textContent = "€ " + manualGreaseCost.toLocaleString(locCode, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + perYearSuffix;
+  const beurtenWord = lang === "fr" ? "interventions" : (lang === "en" ? "events" : "beurten");
+  if (manBeurtenEl) manBeurtenEl.textContent = manualBeurtenPerYear.toLocaleString(locCode, { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + " " + beurtenWord;
+  const hWord = lang === "fr" ? "h" : (lang === "en" ? "h" : "u");
+  if (manWorkTimeEl) manWorkTimeEl.textContent = workTimeMinutes.toLocaleString(locCode) + " min (" + manualLaborHours.toFixed(2).replace('.', ',') + " " + hWord + ")";
+  const perHourSuffix = lang === "fr" ? " / heure" : (lang === "en" ? " / hour" : " / uur");
+  if (manHourlyRateEl) manHourlyRateEl.textContent = "€ " + hourlyRate.toLocaleString(locCode, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + perHourSuffix;
+  if (manLaborCostEl) manLaborCostEl.textContent = "€ " + manualLaborCost.toLocaleString(locCode, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + perYearSuffix;
+  if (manTotalCostEl) manTotalCostEl.textContent = "€ " + manualTotalCost.toLocaleString(locCode, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
-  let servicepackUnitPrice = 0;
-  let artNrServicepackStr = "";
-  let artNrUnitStr = "";
-  let divBlockDetailParts = [];
+  // 4. Card 2: Automatische Smering (Interflon Smeertoestellen)
+  const autoDevTypeNameEl = document.getElementById("roiAutoDevTypeName");
+  const autoPacksCountEl = document.getElementById("roiAutoPacksCount");
+  const autoEmptyDevPriceEl = document.getElementById("roiAutoEmptyDevPrice");
+  const autoPackPriceEl = document.getElementById("roiAutoPackPrice");
+  const autoYearlyPacksCostEl = document.getElementById("roiAutoYearlyPacksCost");
+  const autoInstallKitCostEl = document.getElementById("roiAutoInstallKitCost");
+  const autoDividerCostEl = document.getElementById("roiAutoDividerCost");
+  const autoChangeLaborCostEl = document.getElementById("roiAutoChangeLaborCost");
 
-  const spCapEl = document.getElementById("autoCartridgeCap_A") || document.getElementById("autoCartridgeCap");
-  const spCapVal = (spCapEl ? parseInt(spCapEl.value, 10) : 0) || (typeof autoDevicesState !== "undefined" && autoDevicesState[0] ? autoDevicesState[0].cap : 0) || 125;
-  const spPeriodEl = document.getElementById("autoDispensePeriod_A") || document.getElementById("autoDispensePeriod");
-  const spPeriodVal = (spPeriodEl ? parseFloat(spPeriodEl.value) : 0) || (typeof autoDevicesState !== "undefined" && autoDevicesState[0] ? autoDevicesState[0].period : 0) || 4;
-  const spUnitEl = document.getElementById("autoDispenseUnit_A") || document.getElementById("autoDispenseUnit");
-  const spUnitVal = (spUnitEl ? spUnitEl.value : "") || (typeof autoDevicesState !== "undefined" && autoDevicesState[0] ? autoDevicesState[0].unit : "months");
+  const autoYear1TotalEl = document.getElementById("roiAutoYear1Total");
+  const autoYear2PlusTotalEl = document.getElementById("roiAutoYear2PlusTotal");
+
+  if (autoDevTypeNameEl) autoDevTypeNameEl.textContent = fullDeviceTitle;
+
+  let totalEmptyDeviceCostAll = 0;
+  let totalInstallKitCostAll = 0;
+  let totalDividerCostAll = 0;
+  let totalPacksCountAll = 0;
+  let totalYearlyPacksCostAll = 0;
+  let totalChangeLaborHoursAll = 0;
 
   for (let i = 0; i < numDevices; i++) {
-    const d = (typeof autoDevicesState !== "undefined" && autoDevicesState[i]) ? autoDevicesState[i] : { id: String.fromCharCode(65 + i), points: 1, cap: 120, period: 6, unit: "months" };
-    const pts = (deviceKey === "single_point") ? 1 : (d.points || 1);
-    const devCapEl = document.getElementById("autoCartridgeCap_" + d.id);
-    const devCapVal = devCapEl ? parseInt(devCapEl.value, 10) : 0;
-    const cap = (deviceKey === "single_point") ? spCapVal : (devCapVal || d.cap || 120);
+    const dState = (typeof autoDevicesState !== "undefined" && autoDevicesState[i]) ? autoDevicesState[i] : { id: String.fromCharCode(65 + i), points: 1, cap: 120, period: 6, unit: "months" };
+    const devPoints = isSinglePoint ? 1 : (dState.points || 1);
+    const pInfo = getAutomationPriceInfo(deviceKey, dState.cap, greaseName, devPoints, dState.customPackPrice || (i === 0 ? window.customSinglePointPackPrice : 0));
 
-    const devPeriodEl = document.getElementById("autoDispensePeriod_" + d.id);
-    const devPeriodVal = devPeriodEl ? parseFloat(devPeriodEl.value) : 0;
-    const devUnitEl = document.getElementById("autoDispenseUnit_" + d.id);
-    const devUnitVal = devUnitEl ? devUnitEl.value : "";
+    totalEmptyDeviceCostAll += pInfo.emptyDevicePrice;
+    totalInstallKitCostAll += pInfo.installKitPrice;
+    totalDividerCostAll += pInfo.dividerBlockPrice;
 
-    const period = (deviceKey === "single_point") ? spPeriodVal : (devPeriodVal || d.period || 6);
-    const unit = (deviceKey === "single_point") ? spUnitVal : (devUnitVal || d.unit || "months");
+    let daysInPeriod = dState.period;
+    if (dState.unit === "months") daysInPeriod = dState.period * 30.4375;
+    else if (dState.unit === "weeks") daysInPeriod = dState.period * 7;
 
-    const domCustomPriceEl = document.getElementById("autoCustomPackPrice_" + d.id) || document.getElementById("autoCustomPackPrice_A");
-    const domCustomVal = domCustomPriceEl ? parseFloat(domCustomPriceEl.value) : 0;
-    const spCustomFallback = window.customSinglePointPackPrice || (typeof autoDevicesState !== "undefined" && autoDevicesState[0] ? autoDevicesState[0].customPackPrice : 0);
-    const activeCustomPrice = (!isNaN(domCustomVal) && domCustomVal > 0) ? domCustomVal : (d.customPackPrice || ((deviceKey === "single_point" || i === 0) ? spCustomFallback : 0));
-    const pInfo = getAutomationPriceInfo(deviceKey, cap, greaseName, pts, activeCustomPrice);
-    
-    totalUnitsPrice += pInfo.unitPrice;
-    totalInstallKitPrice += pInfo.installKitPrice;
-    totalDividerBlockPrice += pInfo.dividerBlockPrice;
+    const packsPerYear = daysInPeriod > 0 ? (365.25 / daysInPeriod) : 2;
+    totalPacksCountAll += packsPerYear;
+    totalYearlyPacksCostAll += (packsPerYear * pInfo.servicepackPrice);
 
-    artNrUnitStr = pInfo.artNrUnit;
-    artNrServicepackStr = pInfo.artNrServicepack;
-    servicepackUnitPrice = pInfo.servicepackPrice;
-
-    const yearlyMlDev = dailyNeedCm3 * pts * 365.25;
-    let cartsDev = 0;
-    if (period > 0) {
-      cartsDev = unit === "weeks" ? (52.1785 / period) : (12 / period);
-    } else {
-      cartsDev = cap > 0 ? (yearlyMlDev / cap) : 0;
-    }
-    totalCartridgesPerYear += cartsDev;
-    totalCartridgesCostYear += (cartsDev * pInfo.servicepackPrice);
-
-    if (pInfo.dividerBlockPrice > 0) {
-      const labelName = numDevices === 1 ? "Verdeelblok" : `Toestel ${d.id}`;
-      divBlockDetailParts.push(`${labelName}: € ${pInfo.dividerBlockPrice.toFixed(2).replace('.', ',')} (Art. ${pInfo.artNrDividerBlock})`);
-    }
+    totalChangeLaborHoursAll += (packsPerYear * (15 / 60));
   }
 
-  const autoLaborCost = totalCartridgesPerYear * (15 / 60) * hourlyRate;
-  const autoYear1Total = totalUnitsPrice + totalInstallKitPrice + totalDividerBlockPrice + totalCartridgesCostYear + autoLaborCost + autoRepairCost + autoMatCost + autoDowntimeCost;
-  const autoRecurringTotal = totalCartridgesCostYear + autoLaborCost + autoRepairCost + autoMatCost + autoDowntimeCost;
+  const totalChangeLaborCostAll = totalChangeLaborHoursAll * hourlyRate;
 
-  const autoLaborCostEl = document.getElementById("roiAutoLaborCost");
-  var lang = currentLang || "nl";
-  const yrSuffix = lang === "fr" ? "an" : (lang === "en" ? "year" : "jaar");
-  if (autoLaborCostEl) {
-    autoLaborCostEl.textContent = `€ ${autoLaborCost.toLocaleString(lang === "fr" ? "fr-FR" : (lang === "en" ? "en-US" : "nl-BE"), { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / ${yrSuffix}`;
-    autoLaborCostEl.style.color = "#059669";
-  }
+  const autoYear1TotalAll = totalEmptyDeviceCostAll + totalInstallKitCostAll + totalDividerCostAll + totalYearlyPacksCostAll + totalChangeLaborCostAll + autoRepairCost + autoMatCost + autoDowntimeCost;
+  const autoYear2PlusTotalAll = totalYearlyPacksCostAll + totalChangeLaborCostAll + autoRepairCost + autoMatCost + autoDowntimeCost;
 
-  const autoDeviceNameEl = document.getElementById("roiAutoDeviceName");
-  const autoPatronenEl = document.getElementById("roiAutoPatronen");
-  const autoDevicePriceEl = document.getElementById("roiAutoDevicePrice");
-  const autoPackPriceEl = document.getElementById("roiAutoPackPrice");
-  const autoPacksTotalEl = document.getElementById("roiAutoPacksTotal");
-  const autoAccCostEl = document.getElementById("roiAutoAccCost");
-  const autoYear1TotalEl = document.getElementById("roiAutoYear1Total");
-  const autoRecurringTotalEl = document.getElementById("roiAutoRecurringTotal");
-
-  const devicePriceRow = document.getElementById("roiAutoDevicePriceRow");
-  const accessoriesRow = document.getElementById("roiAutoAccessoriesRow");
-
-  if (deviceKey === "single_point") {
-    if (devicePriceRow) devicePriceRow.style.display = "none";
-    if (accessoriesRow) accessoriesRow.style.display = "none";
-  } else {
-    if (devicePriceRow) devicePriceRow.style.display = "flex";
-    if (accessoriesRow) accessoriesRow.style.display = "flex";
-  }
-
-  if (autoDeviceNameEl) autoDeviceNameEl.textContent = fullDeviceTitle;
-  var lang = currentLang || "nl";
-  const cartYearSuffix = lang === "fr" ? "cartouches/an" : (lang === "en" ? "cartridges/year" : "patronen/jaar");
-  if (autoPatronenEl) autoPatronenEl.textContent = `${totalCartridgesPerYear.toLocaleString(lang === "fr" ? "fr-FR" : (lang === "en" ? "en-US" : "nl-BE"), { minimumFractionDigits: 1, maximumFractionDigits: 1 })} ${cartYearSuffix}`;
-  if (autoDevicePriceEl) {
-    if (deviceKey === "single_point") {
-      var lang = currentLang || "nl";
-      const filledTxt = lang === "fr" ? "(Appareil rempli)" : (lang === "en" ? "(Filled device)" : "(Gevuld toestel)");
-      autoDevicePriceEl.textContent = `€ 0,00 ${filledTxt}`;
-    } else {
-      const devPrefix = numDevices === 1 ? "1x" : `${numDevices}x`;
-      autoDevicePriceEl.textContent = `€ ${totalUnitsPrice.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} (${devPrefix} Art. ${artNrUnitStr})`;
-    }
-  }
-  var lang = currentLang || "nl";
-  const pieceTxt = lang === "fr" ? "pièce" : (lang === "en" ? "piece" : "stuk");
-  if (autoPackPriceEl) autoPackPriceEl.textContent = `€ ${servicepackUnitPrice.toLocaleString(lang === "fr" ? "fr-FR" : (lang === "en" ? "en-US" : "nl-BE"), { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / ${pieceTxt} (Art. ${artNrServicepackStr})`;
-  var lang = currentLang || "nl";
-  const yearSuffix = lang === "fr" ? "an" : (lang === "en" ? "year" : "jaar");
-  if (autoPacksTotalEl) autoPacksTotalEl.textContent = `€ ${totalCartridgesCostYear.toLocaleString(lang === "fr" ? "fr-FR" : (lang === "en" ? "en-US" : "nl-BE"), { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / ${yearSuffix}`;
-  if (autoAccCostEl) {
-    if (totalInstallKitPrice > 0) {
-      const kitPrefix = numDevices === 1 ? "1x" : `${numDevices}x`;
-      autoAccCostEl.textContent = `€ ${totalInstallKitPrice.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} (${kitPrefix} Eenmalig)`;
-    } else {
-      autoAccCostEl.textContent = `€ 0,00`;
-    }
-  }
-  const autoDivBlockRow = document.getElementById("roiAutoDividerBlockRow");
-  const autoDivBlockTotalCostEl = document.getElementById("roiAutoDividerBlockTotalCost");
-  const autoDivBlockCostEl = document.getElementById("roiAutoDividerBlockCost");
+  const cartSuffix = lang === "fr" ? " cartouches/an" : (lang === "en" ? " cartridges/year" : " patronen/jaar");
+  if (autoPacksCountEl) autoPacksCountEl.textContent = totalPacksCountAll.toLocaleString(locCode, { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + cartSuffix;
   
-  if (autoDivBlockRow) {
-    if (totalDividerBlockPrice > 0) {
-      autoDivBlockRow.style.display = "flex";
-      if (autoDivBlockTotalCostEl) {
-        autoDivBlockTotalCostEl.textContent = `€ ${totalDividerBlockPrice.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} (Eenmalig)`;
-      }
-      if (autoDivBlockCostEl) {
-        if (numDevices === 1) {
-          const pInfo = getAutomationPriceInfo(deviceKey, 120, greaseName, autoDevicesState[0].points || 1);
-          autoDivBlockCostEl.innerHTML = `Art. ${pInfo.artNrDividerBlock} (${autoDevicesState[0].points}-poorts verdeelblok)`;
-        } else {
-          let listHtml = "";
-          for (let i = 0; i < numDevices; i++) {
-            const d = (typeof autoDevicesState !== "undefined" && autoDevicesState[i]) ? autoDevicesState[i] : { id: String.fromCharCode(65 + i), points: 1, cap: 120, period: 6, unit: "months" };
-            const pInfo = getAutomationPriceInfo(deviceKey, d.cap || 120, greaseName, d.points || 1);
-            if (pInfo.dividerBlockPrice > 0) {
-              listHtml += `<div>&bull; <strong>Toestel ${d.id}:</strong> € ${pInfo.dividerBlockPrice.toFixed(2).replace('.', ',')} <em>(Art. ${pInfo.artNrDividerBlock} &bull; ${d.points}-poorts)</em></div>`;
-            } else {
-              listHtml += `<div>&bull; <strong>Toestel ${d.id}:</strong> € 0,00 <em>(Directe aansluiting &bull; 1 lager)</em></div>`;
-            }
-          }
-          autoDivBlockCostEl.innerHTML = listHtml;
-        }
-      }
+  const incStr = lang === "fr" ? " (Inclus)" : (lang === "en" ? " (Included)" : " (Inbegrepen)");
+  if (autoEmptyDevPriceEl) autoEmptyDevPriceEl.textContent = "€ " + totalEmptyDeviceCostAll.toLocaleString(locCode, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + (totalEmptyDeviceCostAll === 0 ? incStr : "");
+
+  const avgPackPrice = totalPacksCountAll > 0 ? (totalYearlyPacksCostAll / totalPacksCountAll) : 0;
+  const pieceSuffix = lang === "fr" ? " / pièce" : (lang === "en" ? " / pc" : " / stuk");
+  if (autoPackPriceEl) autoPackPriceEl.textContent = "€ " + avgPackPrice.toLocaleString(locCode, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + pieceSuffix;
+  if (autoYearlyPacksCostEl) autoYearlyPacksCostEl.textContent = "€ " + totalYearlyPacksCostAll.toLocaleString(locCode, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + perYearSuffix;
+
+  if (autoInstallKitCostEl) autoInstallKitCostEl.textContent = "€ " + totalInstallKitCostAll.toLocaleString(locCode, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + (totalInstallKitCostAll === 0 ? incStr : "");
+  if (autoDividerCostEl) autoDividerCostEl.textContent = "€ " + totalDividerCostAll.toLocaleString(locCode, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + (totalDividerCostAll === 0 ? incStr : "");
+  if (autoChangeLaborCostEl) autoChangeLaborCostEl.textContent = "€ " + totalChangeLaborCostAll.toLocaleString(locCode, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + perYearSuffix;
+
+  if (autoYear1TotalEl) autoYear1TotalEl.textContent = "€ " + autoYear1TotalAll.toLocaleString(locCode, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  if (autoYear2PlusTotalEl) autoYear2PlusTotalEl.textContent = "€ " + autoYear2PlusTotalAll.toLocaleString(locCode, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+  // 5. Financiële Analyse & ROI Resultaat
+  const savingYear2Plus = manualTotalCost - autoYear2PlusTotalAll;
+  const savingYear1 = manualTotalCost - autoYear1TotalAll;
+
+  const resSavingEl = document.getElementById("roiNetYearlySavingVal");
+  const resYear1El = document.getElementById("roiYear1NetVal");
+  const resPaybackEl = document.getElementById("roiPaybackVal");
+
+  if (resSavingEl) {
+    resSavingEl.textContent = (savingYear2Plus >= 0 ? "+ € " : "- € ") + Math.abs(savingYear2Plus).toLocaleString(locCode, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + perYearSuffix;
+    resSavingEl.style.color = savingYear2Plus >= 0 ? "#059669" : "#dc2626";
+  }
+
+  if (resYear1El) {
+    resYear1El.textContent = (savingYear1 >= 0 ? "+ € " : "- € ") + Math.abs(savingYear1).toLocaleString(locCode, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    resYear1El.style.color = savingYear1 >= 0 ? "#059669" : "#dc2626";
+  }
+
+  const initialInv = totalEmptyDeviceCostAll + totalInstallKitCostAll + totalDividerCostAll;
+  let paybackMonths = 0;
+  if (savingYear2Plus > 0) {
+    paybackMonths = (initialInv / (savingYear2Plus / 12));
+  }
+
+  if (resPaybackEl) {
+    if (paybackMonths <= 0 || savingYear1 > 0) {
+      resPaybackEl.textContent = t.roiDirectlyProfitable || (lang === "fr" ? "Directement Rentable" : (lang === "en" ? "Directly Profitable" : "Direct Rendabel"));
+      resPaybackEl.style.color = "#059669";
     } else {
-      autoDivBlockRow.style.display = "none";
-    }
-  }
-  if (autoYear1TotalEl) autoYear1TotalEl.textContent = `€ ${autoYear1Total.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-  if (autoRecurringTotalEl) autoRecurringTotalEl.textContent = `€ ${autoRecurringTotal.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-
-  // 5. Summary ROI Box
-  const netYearlySaving = manualTotalCost - autoRecurringTotal;
-  const year1NetResult = manualTotalCost - autoYear1Total;
-
-  const netYearlySavingEl = document.getElementById("roiNetYearlySaving");
-  const year1NetResultEl = document.getElementById("roiYear1NetResult");
-  const paybackPeriodEl = document.getElementById("roiPaybackPeriod");
-
-  if (netYearlySavingEl) {
-    const sign = netYearlySaving >= 0 ? "+" : "-";
-    netYearlySavingEl.textContent = `${sign} € ${Math.abs(netYearlySaving).toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / jaar`;
-    netYearlySavingEl.style.color = netYearlySaving >= 0 ? "#16a34a" : "#dc2626";
-  }
-
-  if (year1NetResultEl) {
-    const sign = year1NetResult >= 0 ? "+" : "-";
-    year1NetResultEl.textContent = `${sign} € ${Math.abs(year1NetResult).toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} (Jaar 1)`;
-    year1NetResultEl.style.color = year1NetResult >= 0 ? "#16a34a" : "#dc2626";
-  }
-
-  if (paybackPeriodEl) {
-    const initialInvestment = autoYear1Total - autoRecurringTotal;
-    if (initialInvestment <= 0) {
-      paybackPeriodEl.textContent = " Directe Terugverdientijd (0 maanden)";
-    } else if (netYearlySaving <= 0) {
-      paybackPeriodEl.textContent = " Geen terugverdientijd mogelijk";
-    } else {
-      const paybackYears = initialInvestment / netYearlySaving;
-      const paybackMonths = paybackYears * 12;
-      paybackPeriodEl.textContent = ` ${paybackMonths.toFixed(1).replace('.', ',')} maanden (${paybackYears.toFixed(2).replace('.', ',')} jaar)`;
+      const msWord = lang === "fr" ? "mois" : (lang === "en" ? "months" : "maanden");
+      resPaybackEl.textContent = paybackMonths.toFixed(1).replace('.', ',') + " " + msWord;
+      resPaybackEl.style.color = "#0f172a";
     }
   }
 
-  // 6. Multi-year Cumulative Savings Calculation (Besparing na N jaar)
-  const roiYearsInput = document.getElementById("roiYearsInput");
-  const roiMultiYearSavingEl = document.getElementById("roiMultiYearSaving");
+  const multiYearSelect = document.getElementById("roiMultiYearSelect");
+  const multiYears = multiYearSelect ? (parseInt(multiYearSelect.value) || 3) : 3;
 
-  const numYears = roiYearsInput ? (parseInt(roiYearsInput.value, 10) || 1) : 1;
-  const multiYearSaving = year1NetResult + Math.max(0, numYears - 1) * netYearlySaving;
+  let multiYearSaving = 0;
+  if (multiYears === 1) {
+    multiYearSaving = savingYear1;
+  } else {
+    multiYearSaving = savingYear1 + ((multiYears - 1) * savingYear2Plus);
+  }
 
-  if (roiMultiYearSavingEl) {
-    const sign = multiYearSaving >= 0 ? "+" : "-";
-    roiMultiYearSavingEl.textContent = `${sign} € ${Math.abs(multiYearSaving).toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-    roiMultiYearSavingEl.style.color = multiYearSaving >= 0 ? "#059669" : "#dc2626";
+  const multiYearResEl = document.getElementById("roiMultiYearSavingVal");
+  if (multiYearResEl) {
+    multiYearResEl.textContent = (multiYearSaving >= 0 ? "+ € " : "- € ") + Math.abs(multiYearSaving).toLocaleString(locCode, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    multiYearResEl.style.color = multiYearSaving >= 0 ? "#059669" : "#dc2626";
   }
 }
 
@@ -10408,7 +10306,7 @@ function getSurveyUrl() {
   const clientEmail = localStorage.getItem("client_email") || "";
 
   let params = new URLSearchParams();
-  params.set("v", "20260825_2030");
+  params.set("v", "20260825_2035");
   if (typeof currentLang !== "undefined" && currentLang) params.set("lang", currentLang);
   if (opEmail) params.set("contact", opEmail);
   if (clientCompany) params.set("company", clientCompany);
