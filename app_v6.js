@@ -1021,7 +1021,7 @@ function getRecommendedSettingMonths(recMonths) {
 let activeBearing = null;
 let tcoUploadedImageBase64 = "";
 let chainTcoUploadedImageBase64 = "";
-let currentLang = localStorage.getItem("bearing_calc_lang") || "nl";
+let currentLang = "nl"; localStorage.setItem("bearing_calc_lang", "nl");
 
 // Clean up trailing '?' from URL if present
 if (typeof window !== "undefined" && window.location && window.location.href.endsWith("?")) {
@@ -2630,57 +2630,27 @@ function translateBearingType(typeStr) {
 }
 
 function changeLanguage(lang) {
-  if (!TRANSLATIONS[lang]) return;
-  localStorage.setItem("bearing_calc_lang", lang);
-  localStorage.setItem("app_field_langSelect", lang);
-  currentLang = lang;
+  lang = "nl";
+  localStorage.setItem("bearing_calc_lang", "nl");
+  localStorage.setItem("app_field_langSelect", "nl");
+  currentLang = "nl";
 
-  // Sync select dropdown if it exists
   const langSelect = document.getElementById("langSelect");
-  if (langSelect) {
-    langSelect.value = lang;
-  }
+  if (langSelect) langSelect.value = "nl";
 
-  // Update text values
   document.querySelectorAll("[data-i18n]").forEach(el => {
     const key = el.getAttribute("data-i18n");
-    if (TRANSLATIONS[lang] && TRANSLATIONS[lang][key]) {
-      if (key === "estimatedNote" || key === "legalDisclaimerText" || key === "infoIntro" || key === "searchEmptyDesc" || key.startsWith("omCost") || key.startsWith("omSavings") || key === "omTotalSavingsLabel") {
-        el.innerHTML = TRANSLATIONS[lang][key];
+    if (TRANSLATIONS["nl"] && TRANSLATIONS["nl"][key]) {
+      if (key === "estimatedNote" || key === "legalDisclaimerText") {
+        el.innerHTML = TRANSLATIONS["nl"][key];
       } else {
-        el.textContent = TRANSLATIONS[lang][key];
+        el.textContent = TRANSLATIONS["nl"][key];
       }
     }
   });
 
-  // Update placeholders
-  document.querySelectorAll("[data-i18n-placeholder]").forEach(el => {
-    const key = el.getAttribute("data-i18n-placeholder");
-    if (TRANSLATIONS[lang] && TRANSLATIONS[lang][key]) {
-      el.placeholder = TRANSLATIONS[lang][key];
-    }
-  });
-
-  // Re-load labels in the specs area
-  if (typeof activeBearing !== "undefined" && activeBearing) {
-    const specTypeEl = document.getElementById("specType");
-    if (specTypeEl) {
-      specTypeEl.textContent = translateBearingType(activeBearing.type);
-    }
-  }
-
-  // Safely trigger optional UI updates
-  try { if (typeof updateCalculatorFields === "function") updateCalculatorFields(); } catch(e) {}
-  try { if (typeof calculateGrease === "function") calculateGrease(); } catch(e) {}
-  try { if (typeof updateAutomationPage === "function") updateAutomationPage(); } catch(e) {}
-  try { if (typeof renderAutoDevicesUI === "function") renderAutoDevicesUI(); } catch(e) {}
-  try { if (typeof updateRoiAutomationPage === "function") updateRoiAutomationPage(); } catch(e) {}
-  try { if (typeof renderPhotoGrid === "function") renderPhotoGrid(); } catch(e) {}
-  try { if (typeof updateTcoFrequencies === "function") updateTcoFrequencies(); } catch(e) {}
-  try { if (typeof calculateTco === "function") calculateTco(); } catch(e) {}
-  try { if (typeof updateOmMetadata === "function") updateOmMetadata(); } catch(e) {}
-  try { if (typeof loadOperatorDetails === "function") loadOperatorDetails(); } catch(e) {}
-  try { if (typeof loadClientDetails === "function") loadClientDetails(); } catch(e) {}
+  if (typeof renderAutoDevicesUI === "function") renderAutoDevicesUI();
+  if (typeof updateRoiAutomationPage === "function") updateRoiAutomationPage();
 }
 
 
@@ -10428,7 +10398,7 @@ function getSurveyUrl() {
   const clientEmail = localStorage.getItem("client_email") || "";
 
   let params = new URLSearchParams();
-  params.set("v", "20260825_2045");
+  params.set("v", "20260825_2115");
   if (typeof currentLang !== "undefined" && currentLang) params.set("lang", currentLang);
   if (opEmail) params.set("contact", opEmail);
   if (clientCompany) params.set("company", clientCompany);
