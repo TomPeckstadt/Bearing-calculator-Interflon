@@ -1809,3 +1809,50 @@ h1, h2, h3, h4, .brand-text {
   margin-bottom: 0;
   font-weight: 500;
 }
+
+
+/* Global Viewport & Flexbox Container Fixes */
+html, body {
+  overflow-x: hidden !important;
+  max-width: 100vw !important;
+}
+
+.app-container {
+  display: flex;
+  flex: 1;
+  min-height: 100vh;
+  width: 100% !important;
+  max-width: 100vw !important;
+  box-sizing: border-box !important;
+}
+
+.main-content {
+  flex: 1 !important;
+  min-width: 0 !important; /* Prevents flex children from expanding beyond screen */
+  width: calc(100% - var(--sidebar-width)) !important;
+  max-width: calc(100vw - var(--sidebar-width)) !important;
+  margin-left: var(--sidebar-width) !important;
+  padding: 30px 40px !important;
+  min-height: 100vh !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 30px !important;
+  box-sizing: border-box !important;
+  overflow-x: auto !important; /* Enables clean horizontal scroll container for wide tables */
+}
+
+/* Ensure grids and tables never overflow screen width */
+.om-table-container,
+.table-responsive,
+.calc-grid,
+.roi-grid,
+.section-card,
+table {
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+.om-table-container {
+  overflow-x: auto !important;
+  -webkit-overflow-scrolling: touch !important;
+}
