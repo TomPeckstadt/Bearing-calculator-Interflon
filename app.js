@@ -2654,7 +2654,7 @@ function changeLanguage(lang) {
   document.querySelectorAll("[data-i18n]").forEach(el => {
     const key = el.getAttribute("data-i18n");
     if (TRANSLATIONS["nl"] && TRANSLATIONS["nl"][key]) {
-      if (key === "estimatedNote" || key === "legalDisclaimerText") {
+      if (key === "estimatedNote" || key === "legalDisclaimerText" || (TRANSLATIONS[lang] && TRANSLATIONS[lang][key] && TRANSLATIONS[lang][key].includes("<"))) {
         el.innerHTML = TRANSLATIONS["nl"][key];
       } else {
         el.textContent = TRANSLATIONS["nl"][key];
@@ -10411,7 +10411,7 @@ function getSurveyUrl() {
   const clientEmail = localStorage.getItem("client_email") || "";
 
   let params = new URLSearchParams();
-  params.set("v", "20260825_2118");
+  params.set("v", "20260825_2231");
   if (typeof currentLang !== "undefined" && currentLang) params.set("lang", currentLang);
   if (opEmail) params.set("contact", opEmail);
   if (clientCompany) params.set("company", clientCompany);
