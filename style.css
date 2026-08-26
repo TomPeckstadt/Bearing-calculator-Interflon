@@ -1856,3 +1856,20 @@ table {
   overflow-x: auto !important;
   -webkit-overflow-scrolling: touch !important;
 }
+
+
+/* Header Pill Badges Overflow & Wrap Fix */
+.main-header > div:last-child {
+  display: flex !important;
+  gap: 8px !important;
+  align-items: center !important;
+  flex-wrap: wrap !important;
+  justify-content: flex-end !important;
+  max-width: 100% !important;
+}
+
+.user-badge, .mode-switch-badge {
+  flex-shrink: 1 !important;
+  white-space: nowrap !important;
+  max-width: 100% !important;
+}
