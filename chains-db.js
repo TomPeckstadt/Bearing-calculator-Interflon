@@ -5,7 +5,7 @@ const CHAINS_DB = [
   {
     "designation": "04B-1",
     "norm": "ISO / BS / DIN",
-    "strand": "Simplex (1 strand)",
+    "strand": "Simplex (1-sporig)",
     "strandsCount": 1,
     "pitch": 6,
     "width": 2.8,
@@ -18,7 +18,7 @@ const CHAINS_DB = [
   {
     "designation": "04B-2",
     "norm": "ISO / BS / DIN",
-    "strand": "Duplex (2 strands)",
+    "strand": "Duplex (2-sporig)",
     "strandsCount": 2,
     "pitch": 6,
     "width": 2.8,
@@ -31,7 +31,7 @@ const CHAINS_DB = [
   {
     "designation": "05B-1",
     "norm": "ISO / BS / DIN",
-    "strand": "Simplex (1 strand)",
+    "strand": "Simplex (1-sporig)",
     "strandsCount": 1,
     "pitch": 8,
     "width": 3,
@@ -44,7 +44,7 @@ const CHAINS_DB = [
   {
     "designation": "05B-2",
     "norm": "ISO / BS / DIN",
-    "strand": "Duplex (2 strands)",
+    "strand": "Duplex (2-sporig)",
     "strandsCount": 2,
     "pitch": 8,
     "width": 3,
@@ -57,7 +57,7 @@ const CHAINS_DB = [
   {
     "designation": "06B-1",
     "norm": "ISO / BS / DIN",
-    "strand": "Simplex (1 strand)",
+    "strand": "Simplex (1-sporig)",
     "strandsCount": 1,
     "pitch": 9.525,
     "width": 5.72,
@@ -70,7 +70,7 @@ const CHAINS_DB = [
   {
     "designation": "06B-2",
     "norm": "ISO / BS / DIN",
-    "strand": "Duplex (2 strands)",
+    "strand": "Duplex (2-sporig)",
     "strandsCount": 2,
     "pitch": 9.525,
     "width": 5.72,
@@ -83,7 +83,7 @@ const CHAINS_DB = [
   {
     "designation": "06B-3",
     "norm": "ISO / BS / DIN",
-    "strand": "Triplex (3 strands)",
+    "strand": "Triplex (3-sporig)",
     "strandsCount": 3,
     "pitch": 9.525,
     "width": 5.72,
@@ -96,7 +96,7 @@ const CHAINS_DB = [
   {
     "designation": "08B-1",
     "norm": "ISO / BS / DIN",
-    "strand": "Simplex (1 strand)",
+    "strand": "Simplex (1-sporig)",
     "strandsCount": 1,
     "pitch": 12.7,
     "width": 7.75,
@@ -109,7 +109,7 @@ const CHAINS_DB = [
   {
     "designation": "08B-2",
     "norm": "ISO / BS / DIN",
-    "strand": "Duplex (2 strands)",
+    "strand": "Duplex (2-sporig)",
     "strandsCount": 2,
     "pitch": 12.7,
     "width": 7.75,
@@ -122,7 +122,7 @@ const CHAINS_DB = [
   {
     "designation": "08B-3",
     "norm": "ISO / BS / DIN",
-    "strand": "Triplex (3 strands)",
+    "strand": "Triplex (3-sporig)",
     "strandsCount": 3,
     "pitch": 12.7,
     "width": 7.75,
@@ -135,7 +135,7 @@ const CHAINS_DB = [
   {
     "designation": "10B-1",
     "norm": "ISO / BS / DIN",
-    "strand": "Simplex (1 strand)",
+    "strand": "Simplex (1-sporig)",
     "strandsCount": 1,
     "pitch": 15.875,
     "width": 9.65,
@@ -148,7 +148,7 @@ const CHAINS_DB = [
   {
     "designation": "10B-2",
     "norm": "ISO / BS / DIN",
-    "strand": "Duplex (2 strands)",
+    "strand": "Duplex (2-sporig)",
     "strandsCount": 2,
     "pitch": 15.875,
     "width": 9.65,
@@ -161,7 +161,7 @@ const CHAINS_DB = [
   {
     "designation": "10B-3",
     "norm": "ISO / BS / DIN",
-    "strand": "Triplex (3 strands)",
+    "strand": "Triplex (3-sporig)",
     "strandsCount": 3,
     "pitch": 15.875,
     "width": 9.65,
@@ -174,7 +174,7 @@ const CHAINS_DB = [
   {
     "designation": "12B-1",
     "norm": "ISO / BS / DIN",
-    "strand": "Simplex (1 strand)",
+    "strand": "Simplex (1-sporig)",
     "strandsCount": 1,
     "pitch": 19.05,
     "width": 11.68,
@@ -187,7 +187,7 @@ const CHAINS_DB = [
   {
     "designation": "12B-2",
     "norm": "ISO / BS / DIN",
-    "strand": "Duplex (2 strands)",
+    "strand": "Duplex (2-sporig)",
     "strandsCount": 2,
     "pitch": 19.05,
     "width": 11.68,
@@ -200,7 +200,7 @@ const CHAINS_DB = [
   {
     "designation": "12B-3",
     "norm": "ISO / BS / DIN",
-    "strand": "Triplex (3 strands)",
+    "strand": "Triplex (3-sporig)",
     "strandsCount": 3,
     "pitch": 19.05,
     "width": 11.68,
@@ -213,7 +213,7 @@ const CHAINS_DB = [
   {
     "designation": "16B-1",
     "norm": "ISO / BS / DIN",
-    "strand": "Simplex (1 strand)",
+    "strand": "Simplex (1-sporig)",
     "strandsCount": 1,
     "pitch": 25.4,
     "width": 17.02,
@@ -226,7 +226,7 @@ const CHAINS_DB = [
   {
     "designation": "16B-2",
     "norm": "ISO / BS / DIN",
-    "strand": "Duplex (2 strands)",
+    "strand": "Duplex (2-sporig)",
     "strandsCount": 2,
     "pitch": 25.4,
     "width": 17.02,
@@ -239,7 +239,7 @@ const CHAINS_DB = [
   {
     "designation": "16B-3",
     "norm": "ISO / BS / DIN",
-    "strand": "Triplex (3 strands)",
+    "strand": "Triplex (3-sporig)",
     "strandsCount": 3,
     "pitch": 25.4,
     "width": 17.02,
@@ -252,7 +252,7 @@ const CHAINS_DB = [
   {
     "designation": "20B-1",
     "norm": "ISO / BS / DIN",
-    "strand": "Simplex (1 strand)",
+    "strand": "Simplex (1-sporig)",
     "strandsCount": 1,
     "pitch": 31.75,
     "width": 19.56,
@@ -265,7 +265,7 @@ const CHAINS_DB = [
   {
     "designation": "20B-2",
     "norm": "ISO / BS / DIN",
-    "strand": "Duplex (2 strands)",
+    "strand": "Duplex (2-sporig)",
     "strandsCount": 2,
     "pitch": 31.75,
     "width": 19.56,
@@ -278,7 +278,7 @@ const CHAINS_DB = [
   {
     "designation": "20B-3",
     "norm": "ISO / BS / DIN",
-    "strand": "Triplex (3 strands)",
+    "strand": "Triplex (3-sporig)",
     "strandsCount": 3,
     "pitch": 31.75,
     "width": 19.56,
@@ -291,7 +291,7 @@ const CHAINS_DB = [
   {
     "designation": "24B-1",
     "norm": "ISO / BS / DIN",
-    "strand": "Simplex (1 strand)",
+    "strand": "Simplex (1-sporig)",
     "strandsCount": 1,
     "pitch": 38.1,
     "width": 25.4,
@@ -304,7 +304,7 @@ const CHAINS_DB = [
   {
     "designation": "24B-2",
     "norm": "ISO / BS / DIN",
-    "strand": "Duplex (2 strands)",
+    "strand": "Duplex (2-sporig)",
     "strandsCount": 2,
     "pitch": 38.1,
     "width": 25.4,
@@ -317,7 +317,7 @@ const CHAINS_DB = [
   {
     "designation": "24B-3",
     "norm": "ISO / BS / DIN",
-    "strand": "Triplex (3 strands)",
+    "strand": "Triplex (3-sporig)",
     "strandsCount": 3,
     "pitch": 38.1,
     "width": 25.4,
@@ -330,7 +330,7 @@ const CHAINS_DB = [
   {
     "designation": "28B-1",
     "norm": "ISO / BS / DIN",
-    "strand": "Simplex (1 strand)",
+    "strand": "Simplex (1-sporig)",
     "strandsCount": 1,
     "pitch": 44.45,
     "width": 30.99,
@@ -343,7 +343,7 @@ const CHAINS_DB = [
   {
     "designation": "28B-2",
     "norm": "ISO / BS / DIN",
-    "strand": "Duplex (2 strands)",
+    "strand": "Duplex (2-sporig)",
     "strandsCount": 2,
     "pitch": 44.45,
     "width": 30.99,
@@ -356,7 +356,7 @@ const CHAINS_DB = [
   {
     "designation": "28B-3",
     "norm": "ISO / BS / DIN",
-    "strand": "Triplex (3 strands)",
+    "strand": "Triplex (3-sporig)",
     "strandsCount": 3,
     "pitch": 44.45,
     "width": 30.99,
@@ -369,7 +369,7 @@ const CHAINS_DB = [
   {
     "designation": "32B-1",
     "norm": "ISO / BS / DIN",
-    "strand": "Simplex (1 strand)",
+    "strand": "Simplex (1-sporig)",
     "strandsCount": 1,
     "pitch": 50.8,
     "width": 30.99,
@@ -382,7 +382,7 @@ const CHAINS_DB = [
   {
     "designation": "32B-2",
     "norm": "ISO / BS / DIN",
-    "strand": "Duplex (2 strands)",
+    "strand": "Duplex (2-sporig)",
     "strandsCount": 2,
     "pitch": 50.8,
     "width": 30.99,
@@ -395,7 +395,7 @@ const CHAINS_DB = [
   {
     "designation": "32B-3",
     "norm": "ISO / BS / DIN",
-    "strand": "Triplex (3 strands)",
+    "strand": "Triplex (3-sporig)",
     "strandsCount": 3,
     "pitch": 50.8,
     "width": 30.99,
@@ -408,7 +408,7 @@ const CHAINS_DB = [
   {
     "designation": "40B-1",
     "norm": "ISO / BS / DIN",
-    "strand": "Simplex (1 strand)",
+    "strand": "Simplex (1-sporig)",
     "strandsCount": 1,
     "pitch": 63.5,
     "width": 38.1,
@@ -421,7 +421,7 @@ const CHAINS_DB = [
   {
     "designation": "40B-2",
     "norm": "ISO / BS / DIN",
-    "strand": "Duplex (2 strands)",
+    "strand": "Duplex (2-sporig)",
     "strandsCount": 2,
     "pitch": 63.5,
     "width": 38.1,
@@ -434,7 +434,7 @@ const CHAINS_DB = [
   {
     "designation": "40B-3",
     "norm": "ISO / BS / DIN",
-    "strand": "Triplex (3 strands)",
+    "strand": "Triplex (3-sporig)",
     "strandsCount": 3,
     "pitch": 63.5,
     "width": 38.1,
@@ -447,7 +447,7 @@ const CHAINS_DB = [
   {
     "designation": "48B-1",
     "norm": "ISO / BS / DIN",
-    "strand": "Simplex (1 strand)",
+    "strand": "Simplex (1-sporig)",
     "strandsCount": 1,
     "pitch": 76.2,
     "width": 45.72,
@@ -460,7 +460,7 @@ const CHAINS_DB = [
   {
     "designation": "48B-2",
     "norm": "ISO / BS / DIN",
-    "strand": "Duplex (2 strands)",
+    "strand": "Duplex (2-sporig)",
     "strandsCount": 2,
     "pitch": 76.2,
     "width": 45.72,
@@ -473,7 +473,7 @@ const CHAINS_DB = [
   {
     "designation": "48B-3",
     "norm": "ISO / BS / DIN",
-    "strand": "Triplex (3 strands)",
+    "strand": "Triplex (3-sporig)",
     "strandsCount": 3,
     "pitch": 76.2,
     "width": 45.72,
@@ -486,7 +486,7 @@ const CHAINS_DB = [
   {
     "designation": "56B-1",
     "norm": "ISO / BS / DIN",
-    "strand": "Simplex (1 strand)",
+    "strand": "Simplex (1-sporig)",
     "strandsCount": 1,
     "pitch": 88.9,
     "width": 53.34,
@@ -499,7 +499,7 @@ const CHAINS_DB = [
   {
     "designation": "64B-1",
     "norm": "ISO / BS / DIN",
-    "strand": "Simplex (1 strand)",
+    "strand": "Simplex (1-sporig)",
     "strandsCount": 1,
     "pitch": 101.6,
     "width": 60.96,
@@ -512,7 +512,7 @@ const CHAINS_DB = [
   {
     "designation": "72B-1",
     "norm": "ISO / BS / DIN",
-    "strand": "Simplex (1 strand)",
+    "strand": "Simplex (1-sporig)",
     "strandsCount": 1,
     "pitch": 114.3,
     "width": 68.58,
@@ -525,7 +525,7 @@ const CHAINS_DB = [
   {
     "designation": "ANSI 25",
     "norm": "ANSI / ASA",
-    "strand": "Bushed chain (1 strand)",
+    "strand": "Busketting (1-sporig)",
     "strandsCount": 1,
     "pitch": 6.35,
     "width": 3.18,
@@ -538,7 +538,7 @@ const CHAINS_DB = [
   {
     "designation": "ANSI 35",
     "norm": "ANSI / ASA",
-    "strand": "Bushed chain (1 strand)",
+    "strand": "Busketting (1-sporig)",
     "strandsCount": 1,
     "pitch": 9.525,
     "width": 4.76,
@@ -551,7 +551,7 @@ const CHAINS_DB = [
   {
     "designation": "ANSI 41",
     "norm": "ANSI / ASA",
-    "strand": "Narrow light series (1 strand)",
+    "strand": "Smalle lichte serie (1-sporig)",
     "strandsCount": 1,
     "pitch": 12.7,
     "width": 6.35,
@@ -564,7 +564,7 @@ const CHAINS_DB = [
   {
     "designation": "ANSI 40",
     "norm": "ANSI / ASA",
-    "strand": "Simplex (1 strand)",
+    "strand": "Simplex (1-sporig)",
     "strandsCount": 1,
     "pitch": 12.7,
     "width": 7.94,
@@ -577,7 +577,7 @@ const CHAINS_DB = [
   {
     "designation": "ANSI 40-2",
     "norm": "ANSI / ASA",
-    "strand": "Duplex (2 strands)",
+    "strand": "Duplex (2-sporig)",
     "strandsCount": 2,
     "pitch": 12.7,
     "width": 7.94,
@@ -590,7 +590,7 @@ const CHAINS_DB = [
   {
     "designation": "ANSI 50",
     "norm": "ANSI / ASA",
-    "strand": "Simplex (1 strand)",
+    "strand": "Simplex (1-sporig)",
     "strandsCount": 1,
     "pitch": 15.875,
     "width": 9.53,
@@ -603,7 +603,7 @@ const CHAINS_DB = [
   {
     "designation": "ANSI 50-2",
     "norm": "ANSI / ASA",
-    "strand": "Duplex (2 strands)",
+    "strand": "Duplex (2-sporig)",
     "strandsCount": 2,
     "pitch": 15.875,
     "width": 9.53,
@@ -616,7 +616,7 @@ const CHAINS_DB = [
   {
     "designation": "ANSI 60",
     "norm": "ANSI / ASA",
-    "strand": "Simplex (1 strand)",
+    "strand": "Simplex (1-sporig)",
     "strandsCount": 1,
     "pitch": 19.05,
     "width": 12.7,
@@ -629,7 +629,7 @@ const CHAINS_DB = [
   {
     "designation": "ANSI 60H",
     "norm": "ANSI / ASA Heavy",
-    "strand": "Heavy duty (1 strand)",
+    "strand": "Zware uitvoering (1-sporig)",
     "strandsCount": 1,
     "pitch": 19.05,
     "width": 12.7,
@@ -642,7 +642,7 @@ const CHAINS_DB = [
   {
     "designation": "ANSI 60-2",
     "norm": "ANSI / ASA",
-    "strand": "Duplex (2 strands)",
+    "strand": "Duplex (2-sporig)",
     "strandsCount": 2,
     "pitch": 19.05,
     "width": 12.7,
@@ -655,7 +655,7 @@ const CHAINS_DB = [
   {
     "designation": "ANSI 80",
     "norm": "ANSI / ASA",
-    "strand": "Simplex (1 strand)",
+    "strand": "Simplex (1-sporig)",
     "strandsCount": 1,
     "pitch": 25.4,
     "width": 15.88,
@@ -668,7 +668,7 @@ const CHAINS_DB = [
   {
     "designation": "ANSI 80H",
     "norm": "ANSI / ASA Heavy",
-    "strand": "Heavy duty (1 strand)",
+    "strand": "Zware uitvoering (1-sporig)",
     "strandsCount": 1,
     "pitch": 25.4,
     "width": 15.88,
@@ -681,7 +681,7 @@ const CHAINS_DB = [
   {
     "designation": "ANSI 80-2",
     "norm": "ANSI / ASA",
-    "strand": "Duplex (2 strands)",
+    "strand": "Duplex (2-sporig)",
     "strandsCount": 2,
     "pitch": 25.4,
     "width": 15.88,
@@ -694,7 +694,7 @@ const CHAINS_DB = [
   {
     "designation": "ANSI 100",
     "norm": "ANSI / ASA",
-    "strand": "Simplex (1 strand)",
+    "strand": "Simplex (1-sporig)",
     "strandsCount": 1,
     "pitch": 31.75,
     "width": 19.05,
@@ -707,7 +707,7 @@ const CHAINS_DB = [
   {
     "designation": "ANSI 100H",
     "norm": "ANSI / ASA Heavy",
-    "strand": "Heavy duty (1 strand)",
+    "strand": "Zware uitvoering (1-sporig)",
     "strandsCount": 1,
     "pitch": 31.75,
     "width": 19.05,
@@ -720,7 +720,7 @@ const CHAINS_DB = [
   {
     "designation": "ANSI 100-2",
     "norm": "ANSI / ASA",
-    "strand": "Duplex (2 strands)",
+    "strand": "Duplex (2-sporig)",
     "strandsCount": 2,
     "pitch": 31.75,
     "width": 19.05,
@@ -733,7 +733,7 @@ const CHAINS_DB = [
   {
     "designation": "ANSI 120",
     "norm": "ANSI / ASA",
-    "strand": "Simplex (1 strand)",
+    "strand": "Simplex (1-sporig)",
     "strandsCount": 1,
     "pitch": 38.1,
     "width": 25.4,
@@ -746,7 +746,7 @@ const CHAINS_DB = [
   {
     "designation": "ANSI 140",
     "norm": "ANSI / ASA",
-    "strand": "Simplex (1 strand)",
+    "strand": "Simplex (1-sporig)",
     "strandsCount": 1,
     "pitch": 44.45,
     "width": 25.4,
@@ -759,7 +759,7 @@ const CHAINS_DB = [
   {
     "designation": "ANSI 160",
     "norm": "ANSI / ASA",
-    "strand": "Simplex (1 strand)",
+    "strand": "Simplex (1-sporig)",
     "strandsCount": 1,
     "pitch": 50.8,
     "width": 31.75,
@@ -772,7 +772,7 @@ const CHAINS_DB = [
   {
     "designation": "ANSI 180",
     "norm": "ANSI / ASA",
-    "strand": "Simplex (1 strand)",
+    "strand": "Simplex (1-sporig)",
     "strandsCount": 1,
     "pitch": 57.15,
     "width": 35.71,
@@ -785,7 +785,7 @@ const CHAINS_DB = [
   {
     "designation": "ANSI 200",
     "norm": "ANSI / ASA",
-    "strand": "Simplex (1 strand)",
+    "strand": "Simplex (1-sporig)",
     "strandsCount": 1,
     "pitch": 63.5,
     "width": 38.1,
@@ -798,7 +798,7 @@ const CHAINS_DB = [
   {
     "designation": "ANSI 240",
     "norm": "ANSI / ASA",
-    "strand": "Simplex (1 strand)",
+    "strand": "Simplex (1-sporig)",
     "strandsCount": 1,
     "pitch": 76.2,
     "width": 47.63,
@@ -1123,7 +1123,7 @@ const CHAINS_DB = [
   {
     "designation": "BL422 / LH0822",
     "norm": "Fleyer (ANSI BL/LH)",
-    "strand": "Heavy Duty Leaf Chain (2x2)",
+    "strand": "Zware Leaf Chain (2x2)",
     "strandsCount": 1,
     "pitch": 12.7,
     "width": 4.45,
@@ -1136,7 +1136,7 @@ const CHAINS_DB = [
   {
     "designation": "BL444 / LH0844",
     "norm": "Fleyer (ANSI BL/LH)",
-    "strand": "Heavy Duty Leaf Chain (4x4)",
+    "strand": "Zware Leaf Chain (4x4)",
     "strandsCount": 1,
     "pitch": 12.7,
     "width": 8.9,
@@ -1149,7 +1149,7 @@ const CHAINS_DB = [
   {
     "designation": "BL522 / LH1022",
     "norm": "Fleyer (ANSI BL/LH)",
-    "strand": "Heavy Duty Leaf Chain (2x2)",
+    "strand": "Zware Leaf Chain (2x2)",
     "strandsCount": 1,
     "pitch": 15.875,
     "width": 5.08,
@@ -1162,7 +1162,7 @@ const CHAINS_DB = [
   {
     "designation": "BL634 / LH1234",
     "norm": "Fleyer (ANSI BL/LH)",
-    "strand": "Heavy Duty Leaf Chain (3x4)",
+    "strand": "Zware Leaf Chain (3x4)",
     "strandsCount": 1,
     "pitch": 19.05,
     "width": 12.7,
@@ -1175,7 +1175,7 @@ const CHAINS_DB = [
   {
     "designation": "BL844 / LH1644",
     "norm": "Fleyer (ANSI BL/LH)",
-    "strand": "Heavy Duty Leaf Chain (4x4)",
+    "strand": "Zware Leaf Chain (4x4)",
     "strandsCount": 1,
     "pitch": 25.4,
     "width": 15.88,
@@ -1188,7 +1188,7 @@ const CHAINS_DB = [
   {
     "designation": "BL846 / LH1646",
     "norm": "Fleyer (ANSI BL/LH)",
-    "strand": "Heavy Duty Leaf Chain (4x6)",
+    "strand": "Zware Leaf Chain (4x6)",
     "strandsCount": 1,
     "pitch": 25.4,
     "width": 23.82,
@@ -1201,7 +1201,7 @@ const CHAINS_DB = [
   {
     "designation": "BL1046 / LH2046",
     "norm": "Fleyer (ANSI BL/LH)",
-    "strand": "Heavy Duty Leaf Chain (4x6)",
+    "strand": "Zware Leaf Chain (4x6)",
     "strandsCount": 1,
     "pitch": 31.75,
     "width": 28.58,
@@ -1214,7 +1214,7 @@ const CHAINS_DB = [
   {
     "designation": "BL1246 / LH2446",
     "norm": "Fleyer (ANSI BL/LH)",
-    "strand": "Heavy Duty Leaf Chain (4x6)",
+    "strand": "Zware Leaf Chain (4x6)",
     "strandsCount": 1,
     "pitch": 38.1,
     "width": 34.29,
@@ -1227,7 +1227,7 @@ const CHAINS_DB = [
   {
     "designation": "A2040",
     "norm": "Double Pitch (DIN 8181)",
-    "strand": "Drive series (Small roller)",
+    "strand": "Aandrijfserie (Kleine rol)",
     "strandsCount": 1,
     "pitch": 25.4,
     "width": 7.94,
@@ -1240,7 +1240,7 @@ const CHAINS_DB = [
   {
     "designation": "A2050",
     "norm": "Double Pitch (DIN 8181)",
-    "strand": "Drive series (Small roller)",
+    "strand": "Aandrijfserie (Kleine rol)",
     "strandsCount": 1,
     "pitch": 31.75,
     "width": 9.53,
@@ -1253,7 +1253,7 @@ const CHAINS_DB = [
   {
     "designation": "A2060",
     "norm": "Double Pitch (DIN 8181)",
-    "strand": "Drive series (Small roller)",
+    "strand": "Aandrijfserie (Kleine rol)",
     "strandsCount": 1,
     "pitch": 38.1,
     "width": 12.7,
@@ -1266,7 +1266,7 @@ const CHAINS_DB = [
   {
     "designation": "A2080",
     "norm": "Double Pitch (DIN 8181)",
-    "strand": "Drive series (Small roller)",
+    "strand": "Aandrijfserie (Kleine rol)",
     "strandsCount": 1,
     "pitch": 50.8,
     "width": 15.88,
@@ -1279,7 +1279,7 @@ const CHAINS_DB = [
   {
     "designation": "C2040",
     "norm": "Double Pitch Conveyor",
-    "strand": "Conveyor S-type (Small roller)",
+    "strand": "Transport S-type (Kleine rol)",
     "strandsCount": 1,
     "pitch": 25.4,
     "width": 7.94,
@@ -1292,7 +1292,7 @@ const CHAINS_DB = [
   {
     "designation": "C2050",
     "norm": "Double Pitch Conveyor",
-    "strand": "Conveyor S-type (Small roller)",
+    "strand": "Transport S-type (Kleine rol)",
     "strandsCount": 1,
     "pitch": 31.75,
     "width": 9.53,
@@ -1305,7 +1305,7 @@ const CHAINS_DB = [
   {
     "designation": "C2060",
     "norm": "Double Pitch Conveyor",
-    "strand": "Conveyor S-type (Small roller)",
+    "strand": "Transport S-type (Kleine rol)",
     "strandsCount": 1,
     "pitch": 38.1,
     "width": 12.7,
@@ -1318,7 +1318,7 @@ const CHAINS_DB = [
   {
     "designation": "C2080",
     "norm": "Double Pitch Conveyor",
-    "strand": "Conveyor S-type (Small roller)",
+    "strand": "Transport S-type (Kleine rol)",
     "strandsCount": 1,
     "pitch": 50.8,
     "width": 15.88,
@@ -1331,7 +1331,7 @@ const CHAINS_DB = [
   {
     "designation": "C2100",
     "norm": "Double Pitch Conveyor",
-    "strand": "Conveyor S-type (Small roller)",
+    "strand": "Transport S-type (Kleine rol)",
     "strandsCount": 1,
     "pitch": 63.5,
     "width": 19.05,
@@ -1344,7 +1344,7 @@ const CHAINS_DB = [
   {
     "designation": "C2120",
     "norm": "Double Pitch Conveyor",
-    "strand": "Conveyor S-type (Small roller)",
+    "strand": "Transport S-type (Kleine rol)",
     "strandsCount": 1,
     "pitch": 76.2,
     "width": 25.4,
@@ -1357,7 +1357,7 @@ const CHAINS_DB = [
   {
     "designation": "C2160",
     "norm": "Double Pitch Conveyor",
-    "strand": "Conveyor S-type (Small roller)",
+    "strand": "Transport S-type (Kleine rol)",
     "strandsCount": 1,
     "pitch": 101.6,
     "width": 31.75,
@@ -1370,7 +1370,7 @@ const CHAINS_DB = [
   {
     "designation": "C2042",
     "norm": "Double Pitch Conveyor",
-    "strand": "Conveyor R-type (Large carrier roller)",
+    "strand": "Transport R-type (Grote draagrol)",
     "strandsCount": 1,
     "pitch": 25.4,
     "width": 7.94,
@@ -1383,7 +1383,7 @@ const CHAINS_DB = [
   {
     "designation": "C2052",
     "norm": "Double Pitch Conveyor",
-    "strand": "Conveyor R-type (Large carrier roller)",
+    "strand": "Transport R-type (Grote draagrol)",
     "strandsCount": 1,
     "pitch": 31.75,
     "width": 9.53,
@@ -1396,7 +1396,7 @@ const CHAINS_DB = [
   {
     "designation": "C2062",
     "norm": "Double Pitch Conveyor",
-    "strand": "Conveyor R-type (Large carrier roller)",
+    "strand": "Transport R-type (Grote draagrol)",
     "strandsCount": 1,
     "pitch": 38.1,
     "width": 12.7,
@@ -1409,7 +1409,7 @@ const CHAINS_DB = [
   {
     "designation": "C2082",
     "norm": "Double Pitch Conveyor",
-    "strand": "Conveyor R-type (Large carrier roller)",
+    "strand": "Transport R-type (Grote draagrol)",
     "strandsCount": 1,
     "pitch": 50.8,
     "width": 15.88,
@@ -1422,7 +1422,7 @@ const CHAINS_DB = [
   {
     "designation": "C2102",
     "norm": "Double Pitch Conveyor",
-    "strand": "Conveyor R-type (Large carrier roller)",
+    "strand": "Transport R-type (Grote draagrol)",
     "strandsCount": 1,
     "pitch": 63.5,
     "width": 19.05,
@@ -1435,7 +1435,7 @@ const CHAINS_DB = [
   {
     "designation": "C2122",
     "norm": "Double Pitch Conveyor",
-    "strand": "Conveyor R-type (Large carrier roller)",
+    "strand": "Transport R-type (Grote draagrol)",
     "strandsCount": 1,
     "pitch": 76.2,
     "width": 25.4,
@@ -1448,7 +1448,7 @@ const CHAINS_DB = [
   {
     "designation": "C2162",
     "norm": "Double Pitch Conveyor",
-    "strand": "Conveyor R-type (Large carrier roller)",
+    "strand": "Transport R-type (Grote draagrol)",
     "strandsCount": 1,
     "pitch": 101.6,
     "width": 31.75,
@@ -1461,7 +1461,7 @@ const CHAINS_DB = [
   {
     "designation": "C2060H",
     "norm": "Double Pitch Heavy",
-    "strand": "Conveyor Heavy Duty (S-type)",
+    "strand": "Transport Zwaar (S-type)",
     "strandsCount": 1,
     "pitch": 38.1,
     "width": 12.7,
@@ -1474,7 +1474,7 @@ const CHAINS_DB = [
   {
     "designation": "C2062H",
     "norm": "Double Pitch Heavy",
-    "strand": "Conveyor Heavy Duty (R-type Carrier Roller)",
+    "strand": "Transport Zwaar (R-type Draagrol)",
     "strandsCount": 1,
     "pitch": 38.1,
     "width": 12.7,
@@ -1487,7 +1487,7 @@ const CHAINS_DB = [
   {
     "designation": "C2080H",
     "norm": "Double Pitch Heavy",
-    "strand": "Conveyor Heavy Duty (S-type)",
+    "strand": "Transport Zwaar (S-type)",
     "strandsCount": 1,
     "pitch": 50.8,
     "width": 15.88,
@@ -1500,7 +1500,7 @@ const CHAINS_DB = [
   {
     "designation": "C2082H",
     "norm": "Double Pitch Heavy",
-    "strand": "Conveyor Heavy Duty (R-type Carrier Roller)",
+    "strand": "Transport Zwaar (R-type Draagrol)",
     "strandsCount": 1,
     "pitch": 50.8,
     "width": 15.88,
@@ -1513,7 +1513,7 @@ const CHAINS_DB = [
   {
     "designation": "M20",
     "norm": "DIN 8167 / ISO 1977",
-    "strand": "Solid pin (20 kN breaking load)",
+    "strand": "Massieve pen (20 kN breuklast)",
     "strandsCount": 1,
     "pitch": 50,
     "width": 16,
@@ -1526,7 +1526,7 @@ const CHAINS_DB = [
   {
     "designation": "M28",
     "norm": "DIN 8167 / ISO 1977",
-    "strand": "Solid pin (28 kN breaking load)",
+    "strand": "Massieve pen (28 kN breuklast)",
     "strandsCount": 1,
     "pitch": 63,
     "width": 18,
@@ -1539,7 +1539,7 @@ const CHAINS_DB = [
   {
     "designation": "M40",
     "norm": "DIN 8167 / ISO 1977",
-    "strand": "Solid pin (40 kN breaking load)",
+    "strand": "Massieve pen (40 kN breuklast)",
     "strandsCount": 1,
     "pitch": 80,
     "width": 20,
@@ -1552,7 +1552,7 @@ const CHAINS_DB = [
   {
     "designation": "M56",
     "norm": "DIN 8167 / ISO 1977",
-    "strand": "Solid pin (56 kN breaking load)",
+    "strand": "Massieve pen (56 kN breuklast)",
     "strandsCount": 1,
     "pitch": 100,
     "width": 24,
@@ -1565,7 +1565,7 @@ const CHAINS_DB = [
   {
     "designation": "M80",
     "norm": "DIN 8167 / ISO 1977",
-    "strand": "Solid pin (80 kN breaking load)",
+    "strand": "Massieve pen (80 kN breuklast)",
     "strandsCount": 1,
     "pitch": 125,
     "width": 28,
@@ -1578,7 +1578,7 @@ const CHAINS_DB = [
   {
     "designation": "M112",
     "norm": "DIN 8167 / ISO 1977",
-    "strand": "Solid pin (112 kN breaking load)",
+    "strand": "Massieve pen (112 kN breuklast)",
     "strandsCount": 1,
     "pitch": 160,
     "width": 32,
@@ -1591,7 +1591,7 @@ const CHAINS_DB = [
   {
     "designation": "M160",
     "norm": "DIN 8167 / ISO 1977",
-    "strand": "Solid pin (160 kN breaking load)",
+    "strand": "Massieve pen (160 kN breuklast)",
     "strandsCount": 1,
     "pitch": 160,
     "width": 37,
@@ -1604,7 +1604,7 @@ const CHAINS_DB = [
   {
     "designation": "M224",
     "norm": "DIN 8167 / ISO 1977",
-    "strand": "Solid pin (224 kN breaking load)",
+    "strand": "Massieve pen (224 kN breuklast)",
     "strandsCount": 1,
     "pitch": 200,
     "width": 43,
@@ -1617,7 +1617,7 @@ const CHAINS_DB = [
   {
     "designation": "M315",
     "norm": "DIN 8167 / ISO 1977",
-    "strand": "Solid pin (315 kN breaking load)",
+    "strand": "Massieve pen (315 kN breuklast)",
     "strandsCount": 1,
     "pitch": 200,
     "width": 48,
@@ -1630,7 +1630,7 @@ const CHAINS_DB = [
   {
     "designation": "M450",
     "norm": "DIN 8167 / ISO 1977",
-    "strand": "Solid pin (450 kN breaking load)",
+    "strand": "Massieve pen (450 kN breuklast)",
     "strandsCount": 1,
     "pitch": 250,
     "width": 56,
@@ -1643,7 +1643,7 @@ const CHAINS_DB = [
   {
     "designation": "M630",
     "norm": "DIN 8167 / ISO 1977",
-    "strand": "Solid pin (630 kN breaking load)",
+    "strand": "Massieve pen (630 kN breuklast)",
     "strandsCount": 1,
     "pitch": 315,
     "width": 65,
@@ -1656,7 +1656,7 @@ const CHAINS_DB = [
   {
     "designation": "M900",
     "norm": "DIN 8167 / ISO 1977",
-    "strand": "Solid pin (900 kN breaking load)",
+    "strand": "Massieve pen (900 kN breuklast)",
     "strandsCount": 1,
     "pitch": 400,
     "width": 78,
@@ -1669,7 +1669,7 @@ const CHAINS_DB = [
   {
     "designation": "MT40",
     "norm": "DIN 8167 Holle Pen",
-    "strand": "Hollow pin (40 kN breaking load)",
+    "strand": "Holle pen (40 kN breuklast)",
     "strandsCount": 1,
     "pitch": 80,
     "width": 20,
@@ -1682,7 +1682,7 @@ const CHAINS_DB = [
   {
     "designation": "MT56",
     "norm": "DIN 8167 Holle Pen",
-    "strand": "Hollow pin (56 kN breaking load)",
+    "strand": "Holle pen (56 kN breuklast)",
     "strandsCount": 1,
     "pitch": 100,
     "width": 24,
@@ -1695,7 +1695,7 @@ const CHAINS_DB = [
   {
     "designation": "MT80",
     "norm": "DIN 8167 Holle Pen",
-    "strand": "Hollow pin (80 kN breaking load)",
+    "strand": "Holle pen (80 kN breuklast)",
     "strandsCount": 1,
     "pitch": 125,
     "width": 28,
@@ -1708,7 +1708,7 @@ const CHAINS_DB = [
   {
     "designation": "MT112",
     "norm": "DIN 8167 Holle Pen",
-    "strand": "Hollow pin (112 kN breaking load)",
+    "strand": "Holle pen (112 kN breuklast)",
     "strandsCount": 1,
     "pitch": 160,
     "width": 32,
@@ -1721,7 +1721,7 @@ const CHAINS_DB = [
   {
     "designation": "MT160",
     "norm": "DIN 8167 Holle Pen",
-    "strand": "Hollow pin (160 kN breaking load)",
+    "strand": "Holle pen (160 kN breuklast)",
     "strandsCount": 1,
     "pitch": 160,
     "width": 37,
@@ -1734,7 +1734,7 @@ const CHAINS_DB = [
   {
     "designation": "MT224",
     "norm": "DIN 8167 Holle Pen",
-    "strand": "Hollow pin (224 kN breaking load)",
+    "strand": "Holle pen (224 kN breuklast)",
     "strandsCount": 1,
     "pitch": 200,
     "width": 43,
@@ -1747,7 +1747,7 @@ const CHAINS_DB = [
   {
     "designation": "MT315",
     "norm": "DIN 8167 Holle Pen",
-    "strand": "Hollow pin (315 kN breaking load)",
+    "strand": "Holle pen (315 kN breuklast)",
     "strandsCount": 1,
     "pitch": 200,
     "width": 48,
@@ -1760,7 +1760,7 @@ const CHAINS_DB = [
   {
     "designation": "FV40",
     "norm": "DIN 8165 Heavy Conveyor",
-    "strand": "Heavy conveyor chain (40 kN)",
+    "strand": "Zware transportketting (40 kN)",
     "strandsCount": 1,
     "pitch": 63,
     "width": 18,
@@ -1773,7 +1773,7 @@ const CHAINS_DB = [
   {
     "designation": "FV63",
     "norm": "DIN 8165 Heavy Conveyor",
-    "strand": "Heavy conveyor chain (63 kN)",
+    "strand": "Zware transportketting (63 kN)",
     "strandsCount": 1,
     "pitch": 100,
     "width": 22,
@@ -1786,7 +1786,7 @@ const CHAINS_DB = [
   {
     "designation": "FV90",
     "norm": "DIN 8165 Heavy Conveyor",
-    "strand": "Heavy conveyor chain (90 kN)",
+    "strand": "Zware transportketting (90 kN)",
     "strandsCount": 1,
     "pitch": 125,
     "width": 25,
@@ -1799,7 +1799,7 @@ const CHAINS_DB = [
   {
     "designation": "FV112",
     "norm": "DIN 8165 Heavy Conveyor",
-    "strand": "Heavy conveyor chain (112 kN)",
+    "strand": "Zware transportketting (112 kN)",
     "strandsCount": 1,
     "pitch": 160,
     "width": 30,
@@ -1812,7 +1812,7 @@ const CHAINS_DB = [
   {
     "designation": "FV140",
     "norm": "DIN 8165 Heavy Conveyor",
-    "strand": "Heavy conveyor chain (140 kN)",
+    "strand": "Zware transportketting (140 kN)",
     "strandsCount": 1,
     "pitch": 160,
     "width": 35,
@@ -1825,7 +1825,7 @@ const CHAINS_DB = [
   {
     "designation": "FV180",
     "norm": "DIN 8165 Heavy Conveyor",
-    "strand": "Heavy conveyor chain (180 kN)",
+    "strand": "Zware transportketting (180 kN)",
     "strandsCount": 1,
     "pitch": 200,
     "width": 45,
@@ -1838,7 +1838,7 @@ const CHAINS_DB = [
   {
     "designation": "FV250",
     "norm": "DIN 8165 Heavy Conveyor",
-    "strand": "Heavy conveyor chain (250 kN)",
+    "strand": "Zware transportketting (250 kN)",
     "strandsCount": 1,
     "pitch": 200,
     "width": 55,
@@ -1851,7 +1851,7 @@ const CHAINS_DB = [
   {
     "designation": "FV315",
     "norm": "DIN 8165 Heavy Conveyor",
-    "strand": "Heavy conveyor chain (315 kN)",
+    "strand": "Zware transportketting (315 kN)",
     "strandsCount": 1,
     "pitch": 250,
     "width": 65,
@@ -1864,7 +1864,7 @@ const CHAINS_DB = [
   {
     "designation": "FV400",
     "norm": "DIN 8165 Heavy Conveyor",
-    "strand": "Heavy conveyor chain (400 kN)",
+    "strand": "Zware transportketting (400 kN)",
     "strandsCount": 1,
     "pitch": 250,
     "width": 70,
@@ -1877,7 +1877,7 @@ const CHAINS_DB = [
   {
     "designation": "FV500",
     "norm": "DIN 8165 Heavy Conveyor",
-    "strand": "Heavy conveyor chain (500 kN)",
+    "strand": "Zware transportketting (500 kN)",
     "strandsCount": 1,
     "pitch": 315,
     "width": 80,
@@ -1890,7 +1890,7 @@ const CHAINS_DB = [
   {
     "designation": "FVC63",
     "norm": "DIN 8165 Holle Pen",
-    "strand": "Hollow pin heavy series (63 kN)",
+    "strand": "Holle pen zware serie (63 kN)",
     "strandsCount": 1,
     "pitch": 100,
     "width": 22,
@@ -1903,7 +1903,7 @@ const CHAINS_DB = [
   {
     "designation": "FVC90",
     "norm": "DIN 8165 Holle Pen",
-    "strand": "Hollow pin heavy series (90 kN)",
+    "strand": "Holle pen zware serie (90 kN)",
     "strandsCount": 1,
     "pitch": 125,
     "width": 25,
@@ -1916,7 +1916,7 @@ const CHAINS_DB = [
   {
     "designation": "FVC112",
     "norm": "DIN 8165 Holle Pen",
-    "strand": "Hollow pin heavy series (112 kN)",
+    "strand": "Holle pen zware serie (112 kN)",
     "strandsCount": 1,
     "pitch": 160,
     "width": 30,
@@ -1929,7 +1929,7 @@ const CHAINS_DB = [
   {
     "designation": "FVC140",
     "norm": "DIN 8165 Holle Pen",
-    "strand": "Hollow pin heavy series (140 kN)",
+    "strand": "Holle pen zware serie (140 kN)",
     "strandsCount": 1,
     "pitch": 160,
     "width": 35,
@@ -1942,7 +1942,7 @@ const CHAINS_DB = [
   {
     "designation": "FVC180",
     "norm": "DIN 8165 Holle Pen",
-    "strand": "Hollow pin heavy series (180 kN)",
+    "strand": "Holle pen zware serie (180 kN)",
     "strandsCount": 1,
     "pitch": 200,
     "width": 45,
@@ -1955,7 +1955,7 @@ const CHAINS_DB = [
   {
     "designation": "FVC250",
     "norm": "DIN 8165 Holle Pen",
-    "strand": "Hollow pin heavy series (250 kN)",
+    "strand": "Holle pen zware serie (250 kN)",
     "strandsCount": 1,
     "pitch": 200,
     "width": 55,
@@ -1968,7 +1968,7 @@ const CHAINS_DB = [
   {
     "designation": "FVC315",
     "norm": "DIN 8165 Holle Pen",
-    "strand": "Hollow pin heavy series (315 kN)",
+    "strand": "Holle pen zware serie (315 kN)",
     "strandsCount": 1,
     "pitch": 250,
     "width": 65,
@@ -1981,7 +1981,7 @@ const CHAINS_DB = [
   {
     "designation": "Serie 812",
     "norm": "Slatband (Staal)",
-    "strand": "Single Hinge (82.5 mm width)",
+    "strand": "Enkel Scharnier (82.5 mm breedte)",
     "strandsCount": 1,
     "pitch": 38.1,
     "width": 82.5,
@@ -1994,7 +1994,7 @@ const CHAINS_DB = [
   {
     "designation": "Serie 815",
     "norm": "Slatband (RVS)",
-    "strand": "Stainless Single Hinge (82.5 mm)",
+    "strand": "RVS Enkel Scharnier (82.5 mm)",
     "strandsCount": 1,
     "pitch": 38.1,
     "width": 82.5,
@@ -2007,7 +2007,7 @@ const CHAINS_DB = [
   {
     "designation": "Serie 802",
     "norm": "Slatband (Staal)",
-    "strand": "Double Hinge (190.5 mm width)",
+    "strand": "Dubbel Scharnier (190.5 mm breedte)",
     "strandsCount": 1,
     "pitch": 38.1,
     "width": 190.5,
@@ -2020,7 +2020,7 @@ const CHAINS_DB = [
   {
     "designation": "Serie 805",
     "norm": "Slatband (RVS)",
-    "strand": "Stainless Double Hinge (190.5 mm)",
+    "strand": "RVS Dubbel Scharnier (190.5 mm)",
     "strandsCount": 1,
     "pitch": 38.1,
     "width": 190.5,
@@ -2033,7 +2033,7 @@ const CHAINS_DB = [
   {
     "designation": "Serie 881",
     "norm": "Slatband (Staal Bocht)",
-    "strand": "Side-flexing with Tab",
+    "strand": "Bochtgangbaar met Tab",
     "strandsCount": 1,
     "pitch": 38.1,
     "width": 82.5,
@@ -2046,7 +2046,7 @@ const CHAINS_DB = [
   {
     "designation": "Serie 8811",
     "norm": "Slatband (Staal Bocht)",
-    "strand": "Side-flexing with Magnet",
+    "strand": "Bochtgangbaar met Magneet",
     "strandsCount": 1,
     "pitch": 38.1,
     "width": 82.5,
@@ -2059,7 +2059,7 @@ const CHAINS_DB = [
   {
     "designation": "Serie 820",
     "norm": "Slatband (Kunststof POM)",
-    "strand": "Straight-running Plastic (82.5 mm)",
+    "strand": "Rechtlopend Kunststof (82.5 mm)",
     "strandsCount": 1,
     "pitch": 38.1,
     "width": 82.5,
@@ -2072,7 +2072,7 @@ const CHAINS_DB = [
   {
     "designation": "Serie LF820",
     "norm": "Slatband (Low Friction POM)",
-    "strand": "Low Friction Plastic (82.5 mm)",
+    "strand": "Low Friction Kunststof (82.5 mm)",
     "strandsCount": 1,
     "pitch": 38.1,
     "width": 82.5,
@@ -2085,7 +2085,7 @@ const CHAINS_DB = [
   {
     "designation": "Serie 880",
     "norm": "Slatband (Kunststof POM Bocht)",
-    "strand": "Side-flexing with Tab",
+    "strand": "Bochtlopend met Tab",
     "strandsCount": 1,
     "pitch": 38.1,
     "width": 82.5,
@@ -2098,7 +2098,7 @@ const CHAINS_DB = [
   {
     "designation": "Serie 882",
     "norm": "Slatband (Kunststof POM Bocht)",
-    "strand": "Side-flexing Heavy Duty (190.5 mm)",
+    "strand": "Bochtlopend Zwaar (190.5 mm)",
     "strandsCount": 1,
     "pitch": 38.1,
     "width": 190.5,
@@ -2111,7 +2111,7 @@ const CHAINS_DB = [
   {
     "designation": "Serie 879",
     "norm": "Slatband (Kunststof POM Bocht)",
-    "strand": "Side-flexing Beveled",
+    "strand": "Bochtlopend Beveled",
     "strandsCount": 1,
     "pitch": 38.1,
     "width": 82.5,
@@ -2124,7 +2124,7 @@ const CHAINS_DB = [
   {
     "designation": "Grade 80 (4x12)",
     "norm": "Ronde Schalm (EN 818-2)",
-    "strand": "Grade 80 Lifting Chain",
+    "strand": "Grade 80 Hijsketting",
     "strandsCount": 1,
     "pitch": 12,
     "width": 5.2,
@@ -2137,7 +2137,7 @@ const CHAINS_DB = [
   {
     "designation": "Grade 80 (5x15)",
     "norm": "Ronde Schalm (EN 818-2)",
-    "strand": "Grade 80 Lifting Chain",
+    "strand": "Grade 80 Hijsketting",
     "strandsCount": 1,
     "pitch": 15,
     "width": 6.5,
@@ -2150,7 +2150,7 @@ const CHAINS_DB = [
   {
     "designation": "Grade 80 (6x18)",
     "norm": "Ronde Schalm (EN 818-2)",
-    "strand": "Grade 80 Lifting Chain",
+    "strand": "Grade 80 Hijsketting",
     "strandsCount": 1,
     "pitch": 18,
     "width": 7.8,
@@ -2163,7 +2163,7 @@ const CHAINS_DB = [
   {
     "designation": "Grade 80 (7x21)",
     "norm": "Ronde Schalm (EN 818-2)",
-    "strand": "Grade 80 Lifting Chain",
+    "strand": "Grade 80 Hijsketting",
     "strandsCount": 1,
     "pitch": 21,
     "width": 9.1,
@@ -2176,7 +2176,7 @@ const CHAINS_DB = [
   {
     "designation": "Grade 80 (8x24)",
     "norm": "Ronde Schalm (EN 818-2)",
-    "strand": "Grade 80 Lifting Chain",
+    "strand": "Grade 80 Hijsketting",
     "strandsCount": 1,
     "pitch": 24,
     "width": 10.4,
@@ -2189,7 +2189,7 @@ const CHAINS_DB = [
   {
     "designation": "Grade 80 (10x30)",
     "norm": "Ronde Schalm (EN 818-2)",
-    "strand": "Grade 80 Lifting Chain",
+    "strand": "Grade 80 Hijsketting",
     "strandsCount": 1,
     "pitch": 30,
     "width": 13,
@@ -2202,7 +2202,7 @@ const CHAINS_DB = [
   {
     "designation": "Grade 80 (13x39)",
     "norm": "Ronde Schalm (EN 818-2)",
-    "strand": "Grade 80 Lifting Chain",
+    "strand": "Grade 80 Hijsketting",
     "strandsCount": 1,
     "pitch": 39,
     "width": 16.9,
@@ -2215,7 +2215,7 @@ const CHAINS_DB = [
   {
     "designation": "Grade 80 (16x48)",
     "norm": "Ronde Schalm (EN 818-2)",
-    "strand": "Grade 80 Lifting Chain",
+    "strand": "Grade 80 Hijsketting",
     "strandsCount": 1,
     "pitch": 48,
     "width": 20.8,
@@ -2228,7 +2228,7 @@ const CHAINS_DB = [
   {
     "designation": "Grade 80 (18x54)",
     "norm": "Ronde Schalm (EN 818-2)",
-    "strand": "Grade 80 Lifting Chain",
+    "strand": "Grade 80 Hijsketting",
     "strandsCount": 1,
     "pitch": 54,
     "width": 23.4,
@@ -2241,7 +2241,7 @@ const CHAINS_DB = [
   {
     "designation": "Grade 80 (20x60)",
     "norm": "Ronde Schalm (EN 818-2)",
-    "strand": "Grade 80 Lifting Chain",
+    "strand": "Grade 80 Hijsketting",
     "strandsCount": 1,
     "pitch": 60,
     "width": 26,
@@ -2254,7 +2254,7 @@ const CHAINS_DB = [
   {
     "designation": "Grade 80 (22x66)",
     "norm": "Ronde Schalm (EN 818-2)",
-    "strand": "Grade 80 Lifting Chain",
+    "strand": "Grade 80 Hijsketting",
     "strandsCount": 1,
     "pitch": 66,
     "width": 28.6,
@@ -2267,7 +2267,7 @@ const CHAINS_DB = [
   {
     "designation": "Grade 80 (26x78)",
     "norm": "Ronde Schalm (EN 818-2)",
-    "strand": "Grade 80 Lifting Chain",
+    "strand": "Grade 80 Hijsketting",
     "strandsCount": 1,
     "pitch": 78,
     "width": 33.8,
@@ -2280,7 +2280,7 @@ const CHAINS_DB = [
   {
     "designation": "Grade 80 (32x96)",
     "norm": "Ronde Schalm (EN 818-2)",
-    "strand": "Grade 80 Lifting Chain",
+    "strand": "Grade 80 Hijsketting",
     "strandsCount": 1,
     "pitch": 96,
     "width": 41.6,
@@ -2293,7 +2293,7 @@ const CHAINS_DB = [
   {
     "designation": "Grade 100 (6x18)",
     "norm": "Ronde Schalm (EN 818-4)",
-    "strand": "Grade 100 High Performance",
+    "strand": "Grade 100 Hoogwaardig",
     "strandsCount": 1,
     "pitch": 18,
     "width": 7.8,
@@ -2306,7 +2306,7 @@ const CHAINS_DB = [
   {
     "designation": "Grade 100 (8x24)",
     "norm": "Ronde Schalm (EN 818-4)",
-    "strand": "Grade 100 High Performance",
+    "strand": "Grade 100 Hoogwaardig",
     "strandsCount": 1,
     "pitch": 24,
     "width": 10.4,
@@ -2319,7 +2319,7 @@ const CHAINS_DB = [
   {
     "designation": "Grade 100 (10x30)",
     "norm": "Ronde Schalm (EN 818-4)",
-    "strand": "Grade 100 High Performance",
+    "strand": "Grade 100 Hoogwaardig",
     "strandsCount": 1,
     "pitch": 30,
     "width": 13,
@@ -2332,7 +2332,7 @@ const CHAINS_DB = [
   {
     "designation": "Grade 100 (13x39)",
     "norm": "Ronde Schalm (EN 818-4)",
-    "strand": "Grade 100 High Performance",
+    "strand": "Grade 100 Hoogwaardig",
     "strandsCount": 1,
     "pitch": 39,
     "width": 16.9,
@@ -2345,7 +2345,7 @@ const CHAINS_DB = [
   {
     "designation": "Grade 100 (16x48)",
     "norm": "Ronde Schalm (EN 818-4)",
-    "strand": "Grade 100 High Performance",
+    "strand": "Grade 100 Hoogwaardig",
     "strandsCount": 1,
     "pitch": 48,
     "width": 20.8,
@@ -2358,7 +2358,7 @@ const CHAINS_DB = [
   {
     "designation": "Grade 120 (8x24)",
     "norm": "Ronde Schalm (EN 818)",
-    "strand": "Grade 120 Ultra Strength",
+    "strand": "Grade 120 Ultrasterk",
     "strandsCount": 1,
     "pitch": 24,
     "width": 10.4,
@@ -2371,7 +2371,7 @@ const CHAINS_DB = [
   {
     "designation": "Grade 120 (10x30)",
     "norm": "Ronde Schalm (EN 818)",
-    "strand": "Grade 120 Ultra Strength",
+    "strand": "Grade 120 Ultrasterk",
     "strandsCount": 1,
     "pitch": 30,
     "width": 13,
@@ -2384,7 +2384,7 @@ const CHAINS_DB = [
   {
     "designation": "Grade 120 (13x39)",
     "norm": "Ronde Schalm (EN 818)",
-    "strand": "Grade 120 Ultra Strength",
+    "strand": "Grade 120 Ultrasterk",
     "strandsCount": 1,
     "pitch": 39,
     "width": 16.9,
