@@ -127,7 +127,7 @@ function onDevicePeriodInput(devId) {
 
 function getOptimalSmartAdvice(totalDailyNeedCm3, deviceKey, greaseName) {
   if (!totalDailyNeedCm3 || totalDailyNeedCm3 <= 0) {
-    return { cap: 120, months: 6, annualCost: 109.2, cartridgesPerYear: 2, unitPackPrice: 54.60, theoMonths: 5.7, label: "Standaard 120 ml op 6 maanden" };
+    return { cap: 120, months: 6, annualCost: 109.2, cartridgesPerYear: 2, unitPackPrice: 54.60, theoMonths: 5.7, label: "Standard 120 ml at 6 months" };
   }
 
   const devKey = deviceKey || "single_point";
@@ -285,8 +285,8 @@ function renderAutomationDeviceCards() { return renderAutoDevicesUI(); }
 window.renderAutomationDeviceCards = renderAutomationDeviceCards;
 
 function renderAutoDevicesUI() {
-  var lang = currentLang || "nl";
-  lang = currentLang || "nl";
+  var lang = currentLang || "en";
+  lang = currentLang || "en";
   loadAutomationStateFromLocalStorage();
   const container = document.getElementById("autoDevicesCardsContainer");
   if (!container) return;
@@ -335,7 +335,7 @@ function renderAutoDevicesUI() {
       autoDevicesState[i].points = 1;
     }
     const devId = dev.id;
-    lang = currentLang || "nl";
+    lang = currentLang || "en";
     const devName = isSinglePoint ? "Interflon Single Point Lubricator" : (numDevices === 1 ? (lang === "fr" ? "Appareil Pulsarlube" : (lang === "en" ? "Pulsarlube Device" : "Pulsarlube Smeertoestel")) : ("Pulsarlube " + devId));
     const headerTitle = (isSinglePoint || numDevices === 1) ? (lang === "fr" ? "Paramètres de l'Appareil & Réglage de Lubrification" : (lang === "en" ? "Device Parameters & Lubrication Setting" : "Toestel Parameters & Smeerinstelling")) : (devName + (lang === "fr" ? " - Réglage & Volume" : (lang === "en" ? " - Setting & Volume" : " - Smeerinstelling & Volumecalculatie")));
     const pointsLabel = isSinglePoint ? (lang === "fr" ? "Nombre de points de graissage / roulements :" : (lang === "en" ? "Number of lubrication points / bearings:" : "Aantal te smeren smeerpunten / lagers:")) : (lang === "fr" ? `Nombre de points de graissage pour ${devName} :` : (lang === "en" ? `Nombre de points de graissage pour ${devName}:` : `Aantal smeerpunten voor ${devName}:`));
@@ -448,8 +448,8 @@ function renderAutoDevicesUI() {
             <div style="display: flex; gap: 8px;">
               <input type="number" id="autoDispensePeriod_${devId}" class="form-input" value="${dev.period}" min="1" max="24" step="1" oninput="onDevicePeriodInput('${devId}')" style="flex: 1; padding: 8px 12px; border-radius: var(--border-radius-sm); border: 1px solid #cbd5e1;">
               <select id="autoDispenseUnit_${devId}" class="form-select" onchange="onDeviceCapChange('${devId}')" style="width: 120px; padding: 8px 12px; border-radius: var(--border-radius-sm); border: 1px solid #cbd5e1;">
-                <option value="months"${dev.unit === 'months' ? ' selected' : ''}>maanden</option>
-                <option value="weeks"${dev.unit === 'weeks' ? ' selected' : ''}>weken</option>
+                <option value="months"${dev.unit === 'months' ? ' selected' : ''}>months</option>
+                <option value="weeks"${dev.unit === 'weeks' ? ' selected' : ''}>weeks</option>
                 <option value="days"${dev.unit === 'days' ? ' selected' : ''}>dagen</option>
               </select>
             </div>
@@ -462,8 +462,8 @@ function renderAutoDevicesUI() {
                 <span id="autoDialValue_${devId}" style="font-size: 12.5px; font-weight: 800; background-color: #FEF2F2; color: var(--primary-red); padding: 2px 8px; border-radius: 4px; border: 1px solid #FECACA;">1 maand</span>
               </div>
               <div style="color: var(--text-medium); font-size: 11px; margin-top: 4px; display: flex; justify-content: space-between;">
-                <span>• Theoretisch berekend:</span>
-                <strong id="autoTheoValue_${devId}" style="color: var(--text-dark);">0,9 maanden</strong>
+                <span>• Theoretically calculated:</span>
+                <strong id="autoTheoValue_${devId}" style="color: var(--text-dark);">0.9 months</strong>
               </div>
             </div>
           </div>
@@ -766,8 +766,8 @@ function renderPdfAutomationExtraPage(doc, autoData, autoDataUrl, autoRatio, wat
     const actualDailyVol = capMl / totalDays;
     const cartridgesPerYearDev = 12 / periodMonths;
 
-    let unitLabel = "maanden";
-    if (curUnit === "weeks") unitLabel = "weken";
+    let unitLabel = "months";
+    if (curUnit === "weeks") unitLabel = "weeks";
     else if (curUnit === "days") unitLabel = "dagen";
 
     // Column positions
@@ -864,7 +864,7 @@ function renderPdfAutomationExtraPage(doc, autoData, autoDataUrl, autoRatio, wat
     doc.setFont("helvetica", "bold");
     doc.setFontSize(9);
     doc.setTextColor(227, 6, 19);
-    doc.text(`${recSetting.months} maanden op ${capMl} ml | ${pts} ${pts === 1 ? 'lager' : 'lagers'}`, cardX + 5, innerY + 11);
+    doc.text(`${recSetting.months} months at ${capMl} ml | ${pts} ${pts === 1 ? 'lager' : 'lagers'}`, cardX + 5, innerY + 11);
 
     doc.setFont("helvetica", "normal");
     doc.setFontSize(6);
@@ -892,7 +892,7 @@ function renderPdfAutomationExtraPage(doc, autoData, autoDataUrl, autoRatio, wat
     doc.setFont("helvetica", "normal");
     doc.setFontSize(6);
     doc.setTextColor(100, 116, 139);
-    doc.text(`Theoretisch berekend: ${recMonths.toFixed(1).replace('.',',')} maanden`, cardX + 5, innerY + 15);
+    doc.text(`Theoretically calculated: ${recMonths.toFixed(1).replace('.',',')} months`, cardX + 5, innerY + 15);
 
     innerY += 21;
 
@@ -1029,12 +1029,12 @@ function getRecommendedSettingMonths(recMonths) {
   }
 }
 // App Logic - SKF Lager Smeercalculator
-// Beheert inloggen, paginanavigatie, zoeken naar lagers en dynamische visualisatie.
+// Manages login, page navigation, bearing search and dynamic visualization.
 
 let activeBearing = null;
 let tcoUploadedImageBase64 = "";
 let chainTcoUploadedImageBase64 = "";
-let currentLang = "nl"; localStorage.setItem("bearing_calc_lang", "nl");
+let currentLang = "en"; localStorage.setItem("bearing_calc_lang", "en");
 
 // Clean up trailing '?' from URL if present
 if (typeof window !== "undefined" && window.location && window.location.href.endsWith("?")) {
@@ -1079,7 +1079,7 @@ const TRANSLATIONS = {
     autoCalcHeaderTitle: "Smeerinterval & Dosering voor 1 lager",
     labelNumBearings: "Aantal te smeren lagers",
     autoDialSetting: "Instelstand draaiknop toestel:",
-    autoTheoCalculated: "• Theoretisch berekend:",
+    autoTheoCalculated: "• Theoretically calculated:",
     autoVolHeader1: "SMEERVOLUME (VOOR 1 LAGER)",
     autoDailyVol1: "Berekend Dagelijks Smeervolume (voor 1 lager):",
     autoMonthlyVol1: "Berekend Maandelijks Smeervolume (voor 1 lager):",
@@ -1106,9 +1106,9 @@ const TRANSLATIONS = {
     roiLabelTimePerBeurt: "Tijd per smeerbeurt (minuten):",
     roiLabelHourlyRate: "Uurloon technieker:",
     roiLabelYearlyLaborCost: "Jaarlijkse arbeidskost:",
-    roiLabelRepairTime: "Tijdsbesteding revisie (jaar):",
-    roiLabelPartsCost: "Materiaalkost onderdelen (jaar):",
-    roiLabelDowntimeCost: "Downtime kost (jaar):",
+    roiLabelRepairTime: "Tijdsbesteding revisie (years):",
+    roiLabelPartsCost: "Materiaalkost onderdelen (years):",
+    roiLabelDowntimeCost: "Downtime kost (years):",
     roiTotalManualTitle: "Totale Jaarkost Manueel",
     roiAutoCardTitle: "Automatische Smering",
     roiAutoCardSubtext: "Met gekozen smeerunit (op jaarbasis)",
@@ -1151,9 +1151,9 @@ const TRANSLATIONS = {
     "selectChainCalcBtn": "Open Kettingberekening",
     "searchBearingTitle": "Lager Opzoeken",
     "searchBearingDesc": "Voer een lagernummer in om alle technische specificaties weer te geven",
-    "bearingTypesBtn": "Lagertypes",
+    "bearingTypesBtn": "BearingTypes",
 
-    theoreticalRuntimeLabel: "• Theoretisch berekend:",
+    theoreticalRuntimeLabel: "• Theoretically calculated:",
 
     displaySettingLabel: "Display instelling op toestel:",
 
@@ -1199,11 +1199,11 @@ const TRANSLATIONS = {
 
     roiYear1TotalLabel: "Jaar 1 Totaal",
 
-    roiDowntimeCostLabel: "Downtime kost (jaar):",
+    roiDowntimeCostLabel: "Downtime kost (years):",
 
-    roiPartsCostLabel: "Materiaalkost onderdelen (jaar):",
+    roiPartsCostLabel: "Materiaalkost onderdelen (years):",
 
-    roiRevisionLaborLabel: "Tijdsbesteding revisie (jaar):",
+    roiRevisionLaborLabel: "Tijdsbesteding revisie (years):",
 
     roiCartridgeChangeLaborLabel: "Arbeidskost patroonwissels:",
 
@@ -1241,11 +1241,11 @@ const TRANSLATIONS = {
 
     chainOutputTitle: "Berekend Smeerdebiet Ketting",
 
-    chainEnvHeavy: "Zwaar belast / Buitenopstelling (+80% smeerbehoefte)",
+    chainEnvHeavy: "Heavy load / Outdoor (+80% lubrication demand)",
 
-    chainEnvHumid: "Vochtig / Nat (+50% smeerbehoefte)",
+    chainEnvHumid: "Moist / Wet (+50% lubrication demand)",
 
-    chainEnvDusty: "Stoffig / Vuil (+30% smeerbehoefte)",
+    chainEnvDusty: "Dusty / Dirty (+30% lubrication demand)",
 
     chainEnvNormal: "Normaal (Schoon, droog, 20°C)",
 
@@ -1263,7 +1263,7 @@ const TRANSLATIONS = {
 
     chainSelectOilLabel: "Selecteer Interflon Kettingolie",
 
-    chainInputParamsTitle: "Invoerparameters Ketting",
+    chainInputParamsTitle: "Input parameters Ketting",
 
     chainVisualDimensions: "Visuele Afmetingen",
 
@@ -1326,15 +1326,15 @@ const TRANSLATIONS = {
     descDaysPerWeek: "Aantal dagen dat de machine per week operationeel is.",
     bearingDimensionsTitle: "Lager Afmetingen & Massa",
     correctionFactorsTitle: "Correctiefactoren",
-    speedGreaseLimitsTitle: "Snelheid & Vetlimieten",
+    speedGreaseLimitsTitle: "Speed & Grease limits",
     resGreaseLimitLabel: "Vet DN-limiet",
-    freeVolInitFillTitle: "Vrije Volume & Initiële Vulling",
-    resFreeVolLabel: "Vrije volume (V)",
+    freeVolInitFillTitle: "Free Volume & Initial Fill",
+    resFreeVolLabel: "Free volume (V)",
     frequencyIntervalTitle: "Smeerfrequentie / Smeerinterval",
     pageSearchTitle: "Lager Opzoeken",
     pageSearchSubtitle: "Geef een SKF lagernummer op om alle technische specificaties te tonen.",
     pageCalcTitle: "Smeercalculatie",
-    pageCalcSubtitle: "Bereken de optimale smeerhoeveelheid en smeerinterval op basis van lagertype en bedrijfsparameters.",
+    pageCalcSubtitle: "Calculate optimal lubrication quantity and interval based on bearing type and operating parameters.",
     pageInfoTitle: "Informatie",
     pageInfoSubtitle: "Uitleg over werking, gebruikte formules en het ontwerp van de applicatie.",
     menuAutomation: "Automatisering",
@@ -1361,11 +1361,11 @@ const TRANSLATIONS = {
     modeModalTitle: "Welkom bij Interflon Berekeningsmodule",
     modeModalSubtitle: "Maak uw keuze om de gewenste toepassing te openen:",
     loginTitle: "Interflon Smeercalculator",
-    loginSubtitle: "Voer het paswoord in om toegang te krijgen tot de applicatie.",
-    passwordLabel: "Paswoord",
-    passwordPlaceholder: "Vul paswoord in...",
-    loginBtn: "Inloggen",
-    loginError: "Onjuist paswoord. Probeer opnieuw.",
+    loginSubtitle: "Enter password to access application.",
+    passwordLabel: "Password",
+    passwordPlaceholder: "Enter password...",
+    loginBtn: "Login",
+    loginError: "Incorrect password. Probeer opnieuw.",
     menuSearch: "Lager Zoeken",
     menuCalc: "Berekening",
     menuInfo: "Informatie",
@@ -1397,9 +1397,9 @@ const TRANSLATIONS = {
     searchInputLabel: "Zoek lager op typenummer...",
     searchInputPlaceholder: "Bijv. 6204 of NU209...",
     btnManual: "Handmatige Invoer",
-    customAnalyze: "Analyseer...",
+    customAnalyze: "Analyze...",
     selectedBearingTitle: "Lagerspecificaties:",
-    bearingType: "Lagertype",
+    bearingType: "Bearing type",
     boreDiameter: "Boring / Asdiameter (d)",
     outerDiameter: "Buitendiameter (D)",
     widthB: "Breedte (B)",
@@ -1412,7 +1412,7 @@ const TRANSLATIONS = {
     calcTitle: "Berekening & Smeeradvies",
     calcBearingLabel: "Lager:",
     btnPdfReport: "Rapport PDF",
-    cardInputs: "Invoerparameters",
+    cardInputs: "Input parameters",
     inputGreaseLabel: "Selecteer Interflon Vet",
     inputTempLabel: "Bedrijfstemperatuur (°C)",
     inputSpeedLabel: "Operationeel Toerental (RPM)",
@@ -1453,8 +1453,8 @@ const TRANSLATIONS = {
     taOptionVert: "Verticale as / Extreem (0,15)",
     unitHours: "bedrijfsuren",
     unitDays: "dagen",
-    unitWeeks: "weken",
-    unitMonths: "maanden",
+    unitWeeks: "weeks",
+    unitMonths: "months",
     unitStrokes: "slagen",
     unitGrams: "gram",
     unitGramsVet: "gram vet",
@@ -1526,24 +1526,24 @@ const TRANSLATIONS = {
     densityInfoTextPre: "Het geselecteerde vet heeft een dichtheid van",
     densityInfoTextPost: "Vulhoeveelheid = cm³ x dichtheid.",
     lblDays: "Dagen",
-    lblWeeks: "Weken",
-    lblMonths: "Maanden",
+    lblWeeks: "Weeks",
+    lblMonths: "Months",
     tcoModeFormula: "Volgens formule",
     tcoModePractical: "Huidige praktijk",
     tcoModeHintFormula: "SKF Formule (FC)",
     tcoModeHintPractical: "Actueel: {days}d / smeerbeurt",
     tcoModeHintNoDays: "Vul interval in bij Tech. Gegevens",
     
-    // Bearing types translation
-    "Eenrijig groefkogellager": "Eenrijig groefkogellager",
-    "Dubbelrijig groefkogellager": "Dubbelrijig groefkogellager",
-    "Pendelrollager": "Pendelrollager",
-    "Cilinderlager": "Cilinderlager",
-    "Kegellager": "Kegellager",
-    "Hoekcontactkogellager": "Hoekcontactkogellager",
-    "Dubbelrijig hoekcontactkogellager": "Dubbelrijig hoekcontactkogellager",
-    "Pendelkogellager": "Pendelkogellager",
-    "Axiaalkogellager": "Axiaalkogellager",
+    // BearingTypes translation
+    "Single row deep groove ball bearing": "Single row deep groove ball bearing",
+    "Double row deep groove ball bearing": "Double row deep groove ball bearing",
+    "Spherical roller bearing": "Spherical roller bearing",
+    "Cylindrical roller bearing": "Cylindrical roller bearing",
+    "Tapered roller bearing": "Tapered roller bearing",
+    "Angular contact ball bearing": "Angular contact ball bearing",
+    "Double row angular contact ball bearing": "Double row angular contact ball bearing",
+    "Self-aligning ball bearing": "Self-aligning ball bearing",
+    "Thrust ball bearing": "Thrust ball bearing",
     menuOm: "Opbrengstmodel",
     pageOmTitle: "Opbrengstmodel (TCO)",
     pageOmSubtitle: "Calculatiesheet berekening kostenbesparingen door inzet van Interflon smeermiddelen volgens TCO.",
@@ -1553,7 +1553,7 @@ const TRANSLATIONS = {
     omTypeHuidigLabel: "Type Huidig",
     omTypeNieuwLabel: "Type Nieuw",
     omTableTitle: "TCO Calculatie Model",
-    omInstructionText: "Vul de grijze cellen in",
+    omInstructionText: "Vul de grey cells in",
     omAutoInstructionText: "De blauwe cellen zijn automatisch berekend maar kunnen handmatig aangepast worden",
     omGroupCurrent: "Huidige situatie",
     omGroupInterflon: "Nieuwe situatie (Interflon)",
@@ -1567,17 +1567,17 @@ const TRANSLATIONS = {
     omLaborLabel: "TIJDSBESTEDING",
     omLubesPerYear: "Aantal smeerbeurten / jaar / per lager",
     omWorktimePerLube: "Werktijd / smeerbeurt (minuten)",
-    omRepairFreq: "Revisiefrequentie (maanden)",
+    omRepairFreq: "Overhaul frequency (months)",
     omRepairDuration: "Revisietijd / Downtime / H",
     omLaborRate: "Prijs werkuur / H (€)",
     omAnnLaborCost: "Kostprijs tijdsbesteding / machine / jaar (€)",
     omPrepDuration: "Voorbereidingstijd revisie (H)",
     omMaterialLabel: "MATERIAAL",
-    omMaterialLifetime: "Levensduur lager (maanden)",
+    omMaterialLifetime: "Bearing lifespan (months)",
     omSparePartsCost: "Kostprijs wisselstukken / set (€)",
     omSetsPerMachine: "Aantal lagers / machine",
     chainOmSetsPerMachine: "Aantal kettingen / machine",
-    chainOmMaterialLifetime: "Levensduur ketting (maanden)",
+    chainOmMaterialLifetime: "Chain lifespan (months)",
     omAnnMatCost: "Kostprijs materiaal / machine / jaar (€)",
     omNumMachines: "Aantal machines",
     omDowntimeLabel: "DOWN-TIME",
@@ -1625,7 +1625,7 @@ const TRANSLATIONS = {
     bearingStatusTitle: "Lager Status & Smering",
     btnProductInfo: "Ga naar productinfo",
     bearingIllustrationTitle: "Lager Type Illustratie",
-    btnLagertypes: "Lagertypes"
+    btnLagertypes: "BearingTypes"
   },
   en: {
     "devicePulsarlubePlc": "Pulsarlube PLC (Central Control)",
@@ -2036,16 +2036,16 @@ const TRANSLATIONS = {
     tcoModeHintPractical: "Actual: {days}d / relubrication",
     tcoModeHintNoDays: "Set interval in Tech. Data",
     
-    // Bearing types translation
-    "Eenrijig groefkogellager": "Single row deep groove ball bearing",
-    "Dubbelrijig groefkogellager": "Double row deep groove ball bearing",
-    "Pendelrollager": "Spherical roller bearing",
-    "Cilinderlager": "Cylindrical roller bearing",
-    "Kegellager": "Tapered roller bearing",
-    "Hoekcontactkogellager": "Angular contact ball bearing",
-    "Dubbelrijig hoekcontactkogellager": "Double row angular contact ball bearing",
-    "Pendelkogellager": "Self-aligning ball bearing",
-    "Axiaalkogellager": "Thrust ball bearing",
+    // BearingTypes translation
+    "Single row deep groove ball bearing": "Single row deep groove ball bearing",
+    "Double row deep groove ball bearing": "Double row deep groove ball bearing",
+    "Spherical roller bearing": "Spherical roller bearing",
+    "Cylindrical roller bearing": "Cylindrical roller bearing",
+    "Tapered roller bearing": "Tapered roller bearing",
+    "Angular contact ball bearing": "Angular contact ball bearing",
+    "Double row angular contact ball bearing": "Double row angular contact ball bearing",
+    "Self-aligning ball bearing": "Self-aligning ball bearing",
+    "Thrust ball bearing": "Thrust ball bearing",
     menuOm: "TCO Yield Model",
     pageOmTitle: "TCO Yield Model (TCO)",
     pageOmSubtitle: "Calculation of cost savings through the use of Interflon lubricants according to TCO.",
@@ -2538,16 +2538,16 @@ const TRANSLATIONS = {
     tcoModeHintPractical: "Actuel : {days}j / graissage",
     tcoModeHintNoDays: "Saisir intervalle dans Données Tech.",
     
-    // Bearing types translation
-    "Eenrijig groefkogellager": "Roulement rigide à billes à une rangée",
-    "Dubbelrijig groefkogellager": "Roulement rigide à billes à deux rangées",
-    "Pendelrollager": "Roulement à rotule sur rouleaux",
-    "Cilinderlager": "Roulement à rouleaux cylindriques",
-    "Kegellager": "Roulement à rouleaux coniques",
-    "Hoekcontactkogellager": "Roulement à billes à contact oblique",
-    "Dubbelrijig hoekcontactkogellager": "Roulement à billes à contact oblique à deux rangées",
-    "Pendelkogellager": "Roulement à rotule sur billes",
-    "Axiaalkogellager": "Butée à billes",
+    // BearingTypes translation
+    "Single row deep groove ball bearing": "Roulement rigide à billes à une rangée",
+    "Double row deep groove ball bearing": "Roulement rigide à billes à deux rangées",
+    "Spherical roller bearing": "Roulement à rotule sur rouleaux",
+    "Cylindrical roller bearing": "Roulement à rouleaux cylindriques",
+    "Tapered roller bearing": "Roulement à rouleaux coniques",
+    "Angular contact ball bearing": "Roulement à billes à contact oblique",
+    "Double row angular contact ball bearing": "Roulement à billes à contact oblique à deux rangées",
+    "Self-aligning ball bearing": "Roulement à rotule sur billes",
+    "Thrust ball bearing": "Butée à billes",
     menuOm: "Modèle de rendement TCO",
     pageOmTitle: "Modèle TCO",
     pageOmSubtitle: "Calcul des économies de coûts grâce à l'utilisation des lubrifiants Interflon selon le TCO.",
@@ -2635,7 +2635,7 @@ const TRANSLATIONS = {
 
 function translateBearingType(typeStr) {
   if (!typeStr) return "-";
-  lang = currentLang || "nl";
+  lang = currentLang || "en";
   if (TRANSLATIONS[lang] && TRANSLATIONS[lang][typeStr]) {
     return TRANSLATIONS[lang][typeStr];
   }
@@ -2643,22 +2643,31 @@ function translateBearingType(typeStr) {
 }
 
 function changeLanguage(lang) {
-  lang = "nl";
-  localStorage.setItem("bearing_calc_lang", "nl");
-  localStorage.setItem("app_field_langSelect", "nl");
-  currentLang = "nl";
+  lang = lang || "en";
+  localStorage.setItem("bearing_calc_lang", lang);
+  localStorage.setItem("app_field_langSelect", lang);
+  currentLang = lang;
 
   const langSelect = document.getElementById("langSelect");
-  if (langSelect) langSelect.value = "nl";
+  if (langSelect) langSelect.value = lang;
+
+  const langDict = (typeof TRANSLATIONS !== "undefined" && (TRANSLATIONS[lang] || TRANSLATIONS["en"])) || {};
 
   document.querySelectorAll("[data-i18n]").forEach(el => {
     const key = el.getAttribute("data-i18n");
-    if (TRANSLATIONS["nl"] && TRANSLATIONS["nl"][key]) {
-      if (key === "estimatedNote" || key === "legalDisclaimerText" || (TRANSLATIONS[lang] && TRANSLATIONS[lang][key] && TRANSLATIONS[lang][key].includes("<"))) {
-        el.innerHTML = TRANSLATIONS["nl"][key];
+    if (langDict[key]) {
+      if (key === "estimatedNote" || key === "legalDisclaimerText" || langDict[key].includes("<")) {
+        el.innerHTML = langDict[key];
       } else {
-        el.textContent = TRANSLATIONS["nl"][key];
+        el.textContent = langDict[key];
       }
+    }
+  });
+
+  document.querySelectorAll("[data-i18n-placeholder]").forEach(el => {
+    const key = el.getAttribute("data-i18n-placeholder");
+    if (langDict[key]) {
+      el.setAttribute("placeholder", langDict[key]);
     }
   });
 
@@ -3295,7 +3304,7 @@ function switchPage(pageId) {
     }
     if (targetSubtitle) {
       targetSubtitle.setAttribute("data-i18n", "pageCalcSubtitle");
-      targetSubtitle.textContent = "Bereken de optimale smeerbehoefte en nasmeer-intervallen voor uw lager.";
+      targetSubtitle.textContent = "Calculate optimal lubrication demand and relubrication intervals for your bearing.";
     }
     updateCalculatorFields();
 
@@ -3542,7 +3551,7 @@ function handleSearchInput() {
     if (input.length >= 2) {
       html += `
         <div class="autocomplete-suggestion" style="border-top: 1px dashed var(--accent-yellow-border-soft);" onclick="selectBearing('${input}')">
-          <span class="suggestion-name" style="color: var(--primary-blue); font-weight: 600;">Analyseer "${input}"...</span>
+          <span class="suggestion-name" style="color: var(--primary-blue); font-weight: 600;">Analyze "${input}"...</span>
           <span class="suggestion-meta">Dynamische Parser</span>
         </div>
       `;
@@ -3563,13 +3572,13 @@ function handleSearchInput() {
     `;
   }).join("");
 
-  // Voeg Analyseer optie toe als er geen exacte match is en de gebruiker typt
+  // Voeg Analyze optie toe als er geen exacte match is en de gebruiker typt
   if (input.length > 0) {
     const exactMatchExists = matches.some(key => key.toUpperCase() === cleanInput);
     if (!exactMatchExists && input.length >= 2) {
       html += `
         <div class="autocomplete-suggestion" style="border-top: 1px dashed var(--accent-yellow-border-soft);" onclick="selectBearing('${input}')">
-          <span class="suggestion-name" style="color: var(--primary-blue); font-weight: 600;">Analyseer "${input}"...</span>
+          <span class="suggestion-name" style="color: var(--primary-blue); font-weight: 600;">Analyze "${input}"...</span>
           <span class="suggestion-meta">Dynamische Parser</span>
         </div>
       `;
@@ -3677,23 +3686,23 @@ function updateBearingImage(type) {
   
   let src = "bearing-groove-ball.png"; // Default type illustration fallback
   
-  if (type === "Eenrijig groefkogellager") {
+  if (type === "Single row deep groove ball bearing") {
     src = "bearing-groove-ball.png";
-  } else if (type === "Dubbelrijig groefkogellager") {
+  } else if (type === "Double row deep groove ball bearing") {
     src = "bearing-double-groove-ball.png";
-  } else if (type === "Pendelrollager") {
+  } else if (type === "Spherical roller bearing") {
     src = "bearing-spherical-roller.png";
-  } else if (type === "Cilinderlager") {
+  } else if (type === "Cylindrical roller bearing") {
     src = "bearing-cylindrical-roller.png";
-  } else if (type === "Kegellager") {
+  } else if (type === "Tapered roller bearing") {
     src = "bearing-tapered-roller.png";
-  } else if (type === "Hoekcontactkogellager") {
+  } else if (type === "Angular contact ball bearing") {
     src = "bearing-angular-contact.png";
-  } else if (type === "Dubbelrijig hoekcontactkogellager") {
+  } else if (type === "Double row angular contact ball bearing") {
     src = "bearing-double-angular-contact.png";
-  } else if (type === "Pendelkogellager") {
+  } else if (type === "Self-aligning ball bearing") {
     src = "bearing-self-aligning-ball.png";
-  } else if (type === "Axiaalkogellager") {
+  } else if (type === "Thrust ball bearing") {
     src = "bearing-thrust-ball.png";
   }
   
@@ -3825,13 +3834,13 @@ function updateCalculatorFields() {
   const massInput = document.getElementById("inputMassManual");
   const limitInput = document.getElementById("inputLimitingSpeed");
 
-  lang = currentLang || "nl";
-  const langData = TRANSLATIONS[lang] || TRANSLATIONS["nl"];
+  lang = currentLang || "en";
+  const langData = TRANSLATIONS[lang] || TRANSLATIONS["en"];
 
   if (activeBearing) {
     // Vul velden in van actieve lager
     const selectedPrefix = lang === "nl" ? "Geselecteerd" : lang === "en" ? "Selected" : "Sélectionné";
-    const typeLabel = langData.bearingType || "Lagertype";
+    const typeLabel = langData.bearingType || "Bearing type";
     const customLabel = lang === "nl" ? "Bedrijfsparameters kunnen hieronder worden aangepast." : lang === "en" ? "Operating parameters can be customized below." : "Les paramètres de fonctionnement peuvent être modifiés ci-dessous.";
     
     bannerTitle.textContent = `${selectedPrefix}: SKF ${activeBearing.designation.toUpperCase()}`;
@@ -4036,7 +4045,7 @@ function calculateGrease() {
     }
   }
 
-  // 3. Vrije Volume (V)
+  // 3. Free Volume (V)
   // Formula: V = [π/4 x B x (D² – d²) x 10^-9 – G / 7800] m³
   const vol_total_m3 = (Math.PI / 4) * B * (D * D - d * d) * 1e-9;
   const vol_steel_m3 = (isNaN(mass) || mass <= 0) ? (vol_total_m3 * 0.62) : (mass / 7800);
@@ -4047,7 +4056,7 @@ function calculateGrease() {
   if (freeVolM3Element) freeVolM3Element.textContent = vol_free_m3.toFixed(6);
   if (freeVolCmElement) freeVolCmElement.textContent = Math.round(vol_free_cm3);
 
-  // 4. Initiële vulhoeveelheid (40% van vrije volume)
+  // 4. Initial fill volume (40% of free volume)
   const fillPercent = 40;
   const fill_cm3 = vol_free_cm3 * (fillPercent / 100);
   const fill_grams = fill_cm3 * density;
@@ -4256,7 +4265,7 @@ function updateChainTcoModeHint(mode) {
   }
   if (!hintEl) return;
 
-  const langData = TRANSLATIONS[currentLang] || TRANSLATIONS["nl"];
+  const langData = TRANSLATIONS[currentLang] || TRANSLATIONS["en"];
   if (mode === "practical") {
     const techIntervalVal = localStorage.getItem("tech_interval");
     const intervalDays = techIntervalVal ? parseFloat(techIntervalVal) : 0;
@@ -4314,7 +4323,7 @@ function updateTcoModeHint(mode) {
   }
   if (!hintEl) return;
 
-  const langData = TRANSLATIONS[currentLang] || TRANSLATIONS["nl"];
+  const langData = TRANSLATIONS[currentLang] || TRANSLATIONS["en"];
   if (mode === "practical") {
     const techIntervalVal = localStorage.getItem("tech_interval");
     const intervalDays = techIntervalVal ? parseFloat(techIntervalVal) : 0;
@@ -4408,7 +4417,7 @@ function updateOperatorBadge(name) {
     }
     userAvatarEl.textContent = initials || "IF";
   } else {
-    const langData = TRANSLATIONS[currentLang || "nl"] || TRANSLATIONS["nl"];
+    const langData = TRANSLATIONS[currentLang || "en"] || TRANSLATIONS["en"];
     userNameEl.textContent = langData.operatorBadge || "Interflon contactpersoon";
     userAvatarEl.textContent = "IF";
   }
@@ -4484,8 +4493,8 @@ function updateClientBadge(company, contact) {
     }
     clientAvatarEl.textContent = initials || "KL";
   } else {
-    lang = currentLang || "nl";
-    const langData = TRANSLATIONS[lang] || TRANSLATIONS["nl"];
+    lang = currentLang || "en";
+    const langData = TRANSLATIONS[lang] || TRANSLATIONS["en"];
     clientNameEl.textContent = langData.clientBadge || "Klant";
     
     if (lang === "en") {
@@ -4783,7 +4792,7 @@ function openPricelistModal() {
   if (container) {
     container.innerHTML = "";
     
-    lang = currentLang || "nl";
+    lang = currentLang || "en";
     const noPkgsText = (TRANSLATIONS[lang] && TRANSLATIONS[lang].noPackagesFound) || "Geen verpakkingen gevonden voor dit product.";
     
     // Look up in appropriate pricelist
@@ -4924,7 +4933,7 @@ function confirmPdfExport() {
 
 function runBearingPdfExport(includeTco, includeRoi) {
   const { jsPDF } = window.jspdf;
-  const langData = TRANSLATIONS[currentLang] || TRANSLATIONS["nl"];
+  const langData = TRANSLATIONS[currentLang] || TRANSLATIONS["en"];
   
   if (!jsPDF) {
     alert(langData.pdfErrorLib || "Fout: PDF-bibliotheek kon niet worden geladen. Controleer uw internetverbinding.");
@@ -5045,7 +5054,7 @@ function runBearingPdfExport(includeTco, includeRoi) {
 
       // Rechter kolom: Lager details (y=46 tot y=76)
       let bearingNum = currentLang === "nl" ? "Handmatige invoer" : currentLang === "en" ? "Manual input" : "Saisie manuelle";
-      let bearingType = currentLang === "nl" ? "Groefkogellager" : currentLang === "en" ? "Deep groove ball bearing" : "Roulement rigide à billes";
+      let bearingType = currentLang === "nl" ? "Deep groove ball bearing" : currentLang === "en" ? "Deep groove ball bearing" : "Roulement rigide à billes";
       if (activeBearing) {
         bearingNum = activeBearing.designation.toUpperCase();
         bearingType = translateBearingType(activeBearing.type);
@@ -6223,7 +6232,7 @@ function updateBearingAnimation(speed, limitingSpeed, ndm, dnMax, fc, temp, temp
   const statusDot = document.getElementById("bearingAnimStatusDot");
   const statusLabel = document.getElementById("bearingAnimStatusLabel");
   const container = document.getElementById("bearingAnimContainer");
-  lang = currentLang || "nl";
+  lang = currentLang || "en";
   
   if (rpmVal) {
     rpmVal.textContent = isNaN(bearingAnimState.rpm) ? "-" : Math.round(bearingAnimState.rpm).toLocaleString(lang === "nl" ? "nl-NL" : "en-US");
@@ -6511,7 +6520,7 @@ function openProductInfoPage() {
 }
 
 function openLagertypesPage() {
-  lang = currentLang || "nl";
+  lang = currentLang || "en";
   window.open(`lagertypes.html?lang=${lang}`, "_blank");
 }
 
@@ -6586,7 +6595,7 @@ function updateAutomationPage() {
   if (device === "pulsarlube_m2") {
     if (titleEl) titleEl.textContent = "Pulsarlube M2";
     if (imgEl) imgEl.src = "pulsarlube-m2.png";
-    const langData = (typeof TRANSLATIONS !== "undefined" && TRANSLATIONS[currentLang || "nl"]) || {};
+    const langData = (typeof TRANSLATIONS !== "undefined" && TRANSLATIONS[currentLang || "en"]) || {};
     if (descEl) {
       descEl.innerHTML = langData.descPulsarlubeM2 || "De <strong>Pulsarlube M2</strong> is een elektro-mechanische automatische smeerunit die <strong>continu 24u/24u en 7d/7d doorsmeert</strong>, gestuurd door een interne micro-processor en pomp. Dit garandeert een uiterst nauwkeurige en constante vetdosering.";
     }
@@ -6594,7 +6603,7 @@ function updateAutomationPage() {
   } else if (device === "pulsarlube_msp") {
     if (titleEl) titleEl.textContent = "Pulsarlube MSP";
     if (imgEl) imgEl.src = "pulsarlube-msp.png";
-    const langData = (typeof TRANSLATIONS !== "undefined" && TRANSLATIONS[currentLang || "nl"]) || {};
+    const langData = (typeof TRANSLATIONS !== "undefined" && TRANSLATIONS[currentLang || "en"]) || {};
     if (descEl) {
       descEl.innerHTML = langData.descPulsarlubeMsp || "De <strong>Pulsarlube MSP</strong> is een extern gevoede, elektro-mechanische automatische smeerunit. Het toestel werkt synchroon met de machine en doseert enkel smeervet gedurende de actieve bedrijfsuren van de installatie.";
     }
@@ -6602,7 +6611,7 @@ function updateAutomationPage() {
   } else if (device === "pulsarlube_plc") {
     if (titleEl) titleEl.textContent = "Pulsarlube PLC";
     if (imgEl) imgEl.src = "pulsarlube-plc.png?v=20260823_1525";
-    const langData = (typeof TRANSLATIONS !== "undefined" && TRANSLATIONS[currentLang || "nl"]) || {};
+    const langData = (typeof TRANSLATIONS !== "undefined" && TRANSLATIONS[currentLang || "en"]) || {};
     if (descEl) {
       descEl.innerHTML = langData.descPulsarlubePlc || "De <strong>Pulsarlube PLC</strong> is een geavanceerde, extern gestuurde elektro-mechanische smeerunit die rechtstreeks wordt aangestuurd door de <strong>PLC-besturing van de machine</strong>. Het toestel doseert uiterst nauwkeurig enkel tijdens actieve machinetijd.";
     }
@@ -6611,7 +6620,7 @@ function updateAutomationPage() {
     // Default: Single Point Lubricator
     if (titleEl) titleEl.textContent = "Interflon Single Point Lubricator";
     if (imgEl) imgEl.src = "interflon-single-point-lubricator.png";
-    const langData = (typeof TRANSLATIONS !== "undefined" && TRANSLATIONS[currentLang || "nl"]) || {};
+    const langData = (typeof TRANSLATIONS !== "undefined" && TRANSLATIONS[currentLang || "en"]) || {};
     if (descEl) {
       descEl.innerHTML = langData.descSinglePoint || "De <strong>Interflon Single Point Lubricator</strong> zorgt voor een continue, geautomatiseerde smering van uw lagers. Dit voorkomt onder- en oversmering en verlengt de levensduur van uw roterende apparatuur significant.";
     }
@@ -6619,7 +6628,7 @@ function updateAutomationPage() {
   }
 
   if (toggleLabel) {
-    lang = currentLang || "nl";
+    lang = currentLang || "en";
     const key = "btnShowDimensions";
     if (TRANSLATIONS[lang] && TRANSLATIONS[lang][key]) {
       toggleLabel.textContent = TRANSLATIONS[lang][key];
@@ -6787,8 +6796,8 @@ function calculateAutomationLubrication() {
     const recWeeks = recDays / 7;
 
     const recSetting = getRecommendedSettingMonths(recMonths);
-    const dialLabel = `${recSetting.months} ${recSetting.months === 1 ? 'maand' : 'maanden'}`;
-    const theoMonthsStr = recMonths > 10 ? `${Math.round(recMonths)} maanden` : `${recMonths.toLocaleString("nl-BE", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} maanden`;
+    const dialLabel = `${recSetting.months} ${recSetting.months === 1 ? 'month' : 'months'}`;
+    const theoMonthsStr = recMonths > 10 ? `${Math.round(recMonths)} months` : `${recMonths.toLocaleString("nl-BE", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} months`;
 
     const dialValEl = document.getElementById("autoDialValue_" + devId);
     const theoValEl = document.getElementById("autoTheoValue_" + devId);
@@ -6816,11 +6825,11 @@ function calculateAutomationLubrication() {
     }
     if (recSubtextEl) {
       if (smartAdv.isGracoRecommended) {
-        recSubtextEl.innerHTML = `&#9888; <strong>Hoge vetbehoefte voor ${pointsText} (${totalDailyNeedForDev.toFixed(2).replace('.', ',')} ml/dag):</strong> Een 500 ml patroon gaat slechts ${((500 / totalDailyNeedForDev)/30.4375).toFixed(1).replace('.', ',')} maanden mee.<br>👉 <strong>Advies: Bekijk de optie Graco</strong> (centraal smeersysteem / vatpomp voor grote vetvolumes).`;
+        recSubtextEl.innerHTML = `&#9888; <strong>Hoge vetbehoefte voor ${pointsText} (${totalDailyNeedForDev.toFixed(2).replace('.', ',')} ml/dag):</strong> Een 500 ml patroon gaat slechts ${((500 / totalDailyNeedForDev)/30.4375).toFixed(1).replace('.', ',')} months.<br>👉 <strong>Advies: Bekijk de optie Graco</strong> (centraal smeersysteem / vatpomp voor grote vetvolumes).`;
       } else if (isSmartMatch) {
-        recSubtextEl.innerHTML = `&check; <strong>Optimaal advies voor ${pointsText}: ${smartAdv.cap} ml patroon ingesteld op ${smartAdv.months} ${smartAdv.months === 1 ? 'maand' : 'maanden'}.</strong><br>&bull; Dit is de <strong>meest voordelige combinatie</strong> (slechts ${smartAdv.cartridgesPerYear.toFixed(1).replace('.', ',')} patronen/jaar &bull; € ${smartAdv.annualCost.toFixed(2).replace('.', ',')}/jaar patronen) en bespaart aanzienlijk op vervangen en onderhoud.`;
+        recSubtextEl.innerHTML = `&check; <strong>Optimaal advies voor ${pointsText}: ${smartAdv.cap} ml patroon ingesteld op ${smartAdv.months} ${smartAdv.months === 1 ? 'month' : 'months'}.</strong><br>&bull; Dit is de <strong>meest voordelige combinatie</strong> (slechts ${smartAdv.cartridgesPerYear.toFixed(1).replace('.', ',')} patronen/jaar &bull; € ${smartAdv.annualCost.toFixed(2).replace('.', ',')}/jaar patronen) en bespaart aanzienlijk op vervangen en onderhoud.`;
       } else {
-        recSubtextEl.innerHTML = `&bull; Huidige selectie: <strong>${capMl} ml patroon op ${dialLabel}</strong> (${roundReason}).<br>&bull; <strong>Slim advies-tip:</strong> Klik op <em>'Neem advies over'</em> om automatisch te kiezen voor <strong>${smartAdv.cap} ml op ${smartAdv.months} ${smartAdv.months === 1 ? 'maand' : 'maanden'}</strong> (slechts € ${smartAdv.annualCost.toFixed(2).replace('.', ',')}/jaar patronen).`;
+        recSubtextEl.innerHTML = `&bull; Huidige selectie: <strong>${capMl} ml patroon op ${dialLabel}</strong> (${roundReason}).<br>&bull; <strong>Slim advies-tip:</strong> Klik op <em>'Neem advies over'</em> om automatisch te kiezen voor <strong>${smartAdv.cap} ml op ${smartAdv.months} ${smartAdv.months === 1 ? 'month' : 'months'}</strong> (slechts € ${smartAdv.annualCost.toFixed(2).replace('.', ',')}/jaar patronen).`;
       }
     }
 
@@ -6897,7 +6906,7 @@ function calculateAutomationLubrication() {
         const actualDailyVol = capMl / totalDays;
         const ratio = totalDailyNeedForDev > 0 ? (actualDailyVol / totalDailyNeedForDev) : 1;
 
-        let unitLabel = lang === "fr" ? (curUnit === "weeks" ? "semaines" : (curUnit === "days" ? "jours" : "mois")) : (lang === "en" ? (curUnit === "weeks" ? "weeks" : (curUnit === "days" ? "days" : "months")) : (curUnit === "weeks" ? "weken" : (curUnit === "days" ? "dagen" : "maanden")));
+        let unitLabel = lang === "fr" ? (curUnit === "weeks" ? "semaines" : (curUnit === "days" ? "jours" : "mois")) : (lang === "en" ? (curUnit === "weeks" ? "weeks" : (curUnit === "days" ? "days" : "months")) : (curUnit === "weeks" ? "weeks" : (curUnit === "days" ? "days" : "months")));
 
         const locCode = lang === "fr" ? "fr-FR" : (lang === "en" ? "en-US" : "nl-BE");
         const actualStr = (actualDailyVol / points).toLocaleString(locCode, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -6928,7 +6937,7 @@ function calculateAutomationLubrication() {
           ` : `
             <div style="padding: 12px 14px; background-color: #FEF2F2; border: 1.5px solid #EF4444; border-radius: var(--border-radius-sm); color: #991B1B; font-size: 11.5px; font-weight: 600; line-height: 1.4; box-shadow: 0 1px 3px rgba(227,6,19,0.06);">
               ⚠️ <strong>Hoge vetbehoefte voor Pulsarlube (${targetDevTotalStr} ml/dag voor ${pointsText}):</strong><br>
-              Zelfs met een maximaal 500 ml patroon op 1 maand levert het toestel ${actualDevTotalStr} ml/dag af en raakt een 500 ml patroon al na <strong>${maxTheoMonthsForDev.toFixed(1).replace('.', ',')} maanden</strong> leeg.<br>
+              Zelfs met een maximaal 500 ml patroon op 1 maand levert het toestel ${actualDevTotalStr} ml/dag af en raakt een 500 ml patroon al na <strong>${maxTheoMonthsForDev.toFixed(1).replace('.', ',')} months.</strong><br>
               👉 <strong>Advies: Bekijk de optie Graco</strong> (centraal smeersysteem / vatpomp voor continue smering van grote vetvolumes).
             </div>
           `);
@@ -7358,7 +7367,7 @@ function calculateChainGrease() {
 // ==========================================================================
 function runChainPdfExport(includeTco, includeRoi) {
   const { jsPDF } = window.jspdf;
-  const langData = TRANSLATIONS[currentLang] || TRANSLATIONS["nl"];
+  const langData = TRANSLATIONS[currentLang] || TRANSLATIONS["en"];
   
   if (!jsPDF) {
     alert(langData.pdfErrorLib || "Fout: PDF-bibliotheek kon niet worden geladen. Controleer uw internetverbinding.");
@@ -7901,8 +7910,8 @@ function runChainPdfExport(includeTco, includeRoi) {
           drawCell(startX3, curY, 60, 6, "Prijs werkuur / H (€)", shared_labor_rate, "blue");
 
           curY += 6;
-          drawCell(startX1, curY, 54, 6, "Revisiefrequentie (maanden)", p1_rep_freq, "blue");
-          drawCell(startX2, curY, 54, 6, "Revisiefrequentie (maanden)", p2_rep_freq, "blue");
+          drawCell(startX1, curY, 54, 6, "Overhaul frequency (months)", p1_rep_freq, "blue");
+          drawCell(startX2, curY, 54, 6, "Overhaul frequency (months)", p2_rep_freq, "blue");
           drawCell(startX3, curY, 60, 6, "Voorbereidingstijd revisie (H)", shared_prep_h, "blue");
 
           curY += 6;
@@ -7920,8 +7929,8 @@ function runChainPdfExport(includeTco, includeRoi) {
           drawCell(startX3, curY, 60, 5, "Algemene info", null, "section");
 
           curY += 5;
-          drawCell(startX1, curY, 54, 6, "Levensduur ketting (maanden)", p1_lifetime, "blue");
-          drawCell(startX2, curY, 54, 6, "Levensduur ketting (maanden)", p2_lifetime, "blue");
+          drawCell(startX1, curY, 54, 6, "Chain lifespan (months)", p1_lifetime, "blue");
+          drawCell(startX2, curY, 54, 6, "Chain lifespan (months)", p2_lifetime, "blue");
           drawCell(startX3, curY, 60, 6, "Kostprijs wisselstukken / set (€)", shared_parts_cost, "blue");
 
           curY += 6;
@@ -8022,7 +8031,7 @@ function runChainPdfExport(includeTco, includeRoi) {
         const autoChainData = {
           deviceName: chainDeviceName,
           cartridgeCap: chainCapMlVal,
-          dispensePeriod: (chainAutoPeriodEl && chainAutoUnitEl) ? (chainAutoPeriodEl.value + " " + chainAutoUnitEl.options[chainAutoUnitEl.selectedIndex].text) : "3 maanden",
+          dispensePeriod: (chainAutoPeriodEl && chainAutoUnitEl) ? (chainAutoPeriodEl.value + " " + chainAutoUnitEl.options[chainAutoUnitEl.selectedIndex].text) : "3 months",
           dailyVol: chainAutoDailyEl ? chainAutoDailyEl.textContent.trim() : "--",
           monthlyVol: chainAutoMonthlyEl ? chainAutoMonthlyEl.textContent.trim() : "--",
           yearlyVol: chainAutoYearlyEl ? chainAutoYearlyEl.textContent.trim() : "--",
@@ -8599,8 +8608,8 @@ function calculateChainAutomation() {
   const recWeeks = recDays / 7;
 
   const recSetting = getRecommendedSettingMonths(recMonths);
-  const dialLabel = `${recSetting.months} ${recSetting.months === 1 ? 'maand' : 'maanden'}`;
-  const theoMonthsStr = recMonths > 10 ? `${Math.round(recMonths)} maanden` : `${recMonths.toLocaleString("nl-BE", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} maanden`;
+  const dialLabel = `${recSetting.months} ${recSetting.months === 1 ? 'month' : 'months'}`;
+  const theoMonthsStr = recMonths > 10 ? `${Math.round(recMonths)} months` : `${recMonths.toLocaleString("nl-BE", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} months`;
 
   const chainDialValEl = document.getElementById("chainAutoDialValue");
   const chainTheoValEl = document.getElementById("chainAutoTheoValue");
@@ -8639,7 +8648,7 @@ function calculateChainAutomation() {
   } else if (unit === "weeks") {
     recPeriodVal = recWeeks;
     const roundedW = recWeeks > 10 ? Math.round(recWeeks) : Math.round(recWeeks * 10) / 10;
-    recTitleText = `${dialLabel} (${settingTerm}) | Theoretisch: ${roundedW.toLocaleString("nl-BE")} weken`;
+    recTitleText = `${dialLabel} (${settingTerm}) | Theoretisch: ${roundedW.toLocaleString("nl-BE")} weeks`;
   } else {
     recPeriodVal = recDays;
     recTitleText = `${dialLabel} (${settingTerm}) | Theoretisch: ${Math.round(recDays)} dagen`;
@@ -8660,7 +8669,7 @@ function calculateChainAutomation() {
     capLabelEl.textContent = `${containerNounCap} Capaciteit (ml)`;
   }
 
-  recSubtextEl.innerHTML = `${settingLabel} <strong>${dialLabel}</strong> (${roundReason}).<br>• Theoretisch berekende looptijd: <strong>${theoMonthsStr}</strong> (~ ${Math.round(recWeeks)} weken / ${Math.round(recDays)} dagen) bij ${capMl} ml ${containerNoun} (behoefte: ${reqText}).`;
+  recSubtextEl.innerHTML = `${settingLabel} <strong>${dialLabel}</strong> (${roundReason}).<br>• Theoretisch berekende looptijd: <strong>${theoMonthsStr}</strong> (~ ${Math.round(recWeeks)} weeks / ${Math.round(recDays)} days) bij ${capMl} ml ${containerNoun} (behoefte: ${reqText}).`;
   }
 
   // AUTO-FILL period input with recommended device setting position if user hasn't manually overridden it
@@ -8678,10 +8687,10 @@ function calculateChainAutomation() {
   const dailyMl = capMl / periodDays;
   const monthlyMl = capMl / (periodDays / 30.4375);
 
-  let unitLabel = "maanden";
-  if (unit === "weeks") unitLabel = periodVal === 1 ? "week" : "weken";
+  let unitLabel = "months";
+  if (unit === "weeks") unitLabel = periodVal === 1 ? "week" : "weeks";
   else if (unit === "days") unitLabel = periodVal === 1 ? "dag" : "dagen";
-  else if (unit === "months") unitLabel = periodVal === 1 ? "maand" : "maanden";
+  else if (unit === "months") unitLabel = periodVal === 1 ? "month" : "months";
 
   const activeSettingLabel = `${periodVal.toLocaleString("nl-BE", { maximumFractionDigits: 1 })} ${unitLabel}`;
   if (chainDialValEl) chainDialValEl.textContent = activeSettingLabel;
@@ -9432,17 +9441,17 @@ function updateRoiAutomationPage() {
       const d = (typeof autoDevicesState !== "undefined" && autoDevicesState[i]) ? autoDevicesState[i] : { id: String.fromCharCode(65 + i), points: 1, cap: 120, period: 6, unit: "months" };
       const pts = d.points || 1;
       totalPointsAllDevices += pts;
-      var lang = currentLang || "nl";
+      var lang = currentLang || "en";
       const bearingWord = lang === "fr" ? (pts === 1 ? "roulement" : "roulements") : (lang === "en" ? (pts === 1 ? "bearing" : "bearings") : (pts === 1 ? "lager" : "lagers"));
       devBreakdownText.push(`Pulsarlube ${d.id}: ${pts} ${bearingWord}`);
     }
   }
 
   if (roiSubtextEl) {
-    var lang = currentLang || "nl";
+    var lang = currentLang || "en";
     const ptsWord = lang === "fr" ? (totalPointsAllDevices === 1 ? "roulement" : "roulements") : (lang === "en" ? (totalPointsAllDevices === 1 ? "bearing" : "bearings") : (totalPointsAllDevices === 1 ? "lager" : "lagers"));
     const devListStr = (numDevices === 1 || deviceKey === "single_point") ? `${totalPointsAllDevices} ${ptsWord}` : devBreakdownText.join(" &bull; ");
-    var lang = currentLang || "nl";
+    var lang = currentLang || "en";
     const numDevLabel = lang === "fr" ? "Nombre d'appareils :" : (lang === "en" ? "Number of devices:" : "Aantal toestellen:");
     const selGreaseLabel = lang === "fr" ? "Graisse sélectionnée :" : (lang === "en" ? "Selected grease:" : "Geselecteerd vet:");
     roiSubtextEl.innerHTML = `${numDevLabel} <strong>${numDevices}</strong> (${devListStr}) &bull; ${selGreaseLabel} <strong>${greaseName}</strong>`;
@@ -9453,7 +9462,7 @@ function updateRoiAutomationPage() {
   const yearlyMlTotal = dailyNeedCm3 * totalPointsAllDevices * 365.25;
 
   const headerMlEl = document.getElementById("roiHeaderYearlyMl");
-  var lang = currentLang || "nl";
+  var lang = currentLang || "en";
   const yearStr = lang === "fr" ? "an" : (lang === "en" ? "year" : "jaar");
   const bearingStr = lang === "fr" ? (totalPointsAllDevices === 1 ? "roulement" : "roulements") : (lang === "en" ? (totalPointsAllDevices === 1 ? "bearing" : "bearings") : (totalPointsAllDevices === 1 ? "lager" : "lagers"));
   if (headerMlEl) headerMlEl.textContent = `${yearlyMlTotal.toLocaleString(lang === "fr" ? "fr-FR" : (lang === "en" ? "en-US" : "nl-BE"), { minimumFractionDigits: 1, maximumFractionDigits: 1 })} ml / ${yearStr} (${totalPointsAllDevices} ${bearingStr})`;
@@ -9579,14 +9588,14 @@ function updateRoiAutomationPage() {
       roiManCardHeader.style.backgroundColor = "#f0f9ff";
       roiManCardHeader.style.borderBottomColor = "#bae6fd";
     }
-    var lang = currentLang || "nl";
+    var lang = currentLang || "en";
     if (roiManCardTitle) {
       roiManCardTitle.style.color = "#0369a1";
       roiManCardTitle.textContent = lang === "fr" ? "Lubrification Manuelle" : (lang === "en" ? "Manual Lubrication" : "Manuele Smering");
     }
     if (roiManCardSubtext) {
       roiManCardSubtext.style.color = "#0284c7";
-      var lang = currentLang || "nl";
+      var lang = currentLang || "en";
       roiManCardSubtext.textContent = lang === "fr" ? "Avec produit actuel (base annuelle)" : (lang === "en" ? "With current product (annual basis)" : "Met huidig product (op jaarbasis)");
     }
     if (roiManLaborCost) roiManLaborCost.style.color = "#0284c7";
@@ -9638,14 +9647,14 @@ function updateRoiAutomationPage() {
       roiManCardHeader.style.backgroundColor = "#fef2f2";
       roiManCardHeader.style.borderBottomColor = "#fecaca";
     }
-    var lang = currentLang || "nl";
+    var lang = currentLang || "en";
     if (roiManCardTitle) {
       roiManCardTitle.style.color = "#991b1b";
       roiManCardTitle.textContent = lang === "fr" ? "Lubrification Manuelle" : (lang === "en" ? "Manual Lubrication" : "Manuele Smering");
     }
     if (roiManCardSubtext) {
       roiManCardSubtext.style.color = "#b91c1c";
-      var lang = currentLang || "nl";
+      var lang = currentLang || "en";
       roiManCardSubtext.textContent = lang === "fr" ? "Avec produit Interflon (base annuelle)" : (lang === "en" ? "With Interflon product (annual basis)" : "Met Interflon product (op jaarbasis)");
     }
     if (roiManLaborCost) roiManLaborCost.style.color = "#dc2626";
@@ -9686,7 +9695,7 @@ function updateRoiAutomationPage() {
       manBeurtenEl.textContent = `${manualBeurtenPerYear.toLocaleString("nl-BE", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} beurten`;
     }
   }
-  if (manWorkTimeEl) manWorkTimeEl.textContent = `${workTimeMinutes} min/beurt (${(manualLaborHours).toFixed(1).replace('.',',')} u/jaar)`;
+  if (manWorkTimeEl) manWorkTimeEl.textContent = `${workTimeMinutes} min/beurt (${(manualLaborHours).toFixed(1).replace('.',',')} u/years)`;
   if (manHourlyRateEl) manHourlyRateEl.textContent = `€ ${hourlyRate.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / uur`;
   if (manLaborCostEl) manLaborCostEl.textContent = `€ ${manualLaborCost.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / jaar`;
   if (manTotalCostEl) manTotalCostEl.textContent = `€ ${manualTotalCost.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -9760,7 +9769,7 @@ function updateRoiAutomationPage() {
   const autoRecurringTotal = totalCartridgesCostYear + autoLaborCost + autoRepairCost + autoMatCost + autoDowntimeCost;
 
   const autoLaborCostEl = document.getElementById("roiAutoLaborCost");
-  var lang = currentLang || "nl";
+  var lang = currentLang || "en";
   const yrSuffix = lang === "fr" ? "an" : (lang === "en" ? "year" : "jaar");
   if (autoLaborCostEl) {
     autoLaborCostEl.textContent = `€ ${autoLaborCost.toLocaleString(lang === "fr" ? "fr-FR" : (lang === "en" ? "en-US" : "nl-BE"), { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / ${yrSuffix}`;
@@ -9788,12 +9797,12 @@ function updateRoiAutomationPage() {
   }
 
   if (autoDeviceNameEl) autoDeviceNameEl.textContent = fullDeviceTitle;
-  var lang = currentLang || "nl";
+  var lang = currentLang || "en";
   const cartYearSuffix = lang === "fr" ? "cartouches/an" : (lang === "en" ? "cartridges/year" : "patronen/jaar");
   if (autoPatronenEl) autoPatronenEl.textContent = `${totalCartridgesPerYear.toLocaleString(lang === "fr" ? "fr-FR" : (lang === "en" ? "en-US" : "nl-BE"), { minimumFractionDigits: 1, maximumFractionDigits: 1 })} ${cartYearSuffix}`;
   if (autoDevicePriceEl) {
     if (deviceKey === "single_point") {
-      var lang = currentLang || "nl";
+      var lang = currentLang || "en";
       const filledTxt = lang === "fr" ? "(Appareil rempli)" : (lang === "en" ? "(Filled device)" : "(Gevuld toestel)");
       autoDevicePriceEl.textContent = `€ 0,00 ${filledTxt}`;
     } else {
@@ -9801,10 +9810,10 @@ function updateRoiAutomationPage() {
       autoDevicePriceEl.textContent = `€ ${totalUnitsPrice.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} (${devPrefix} Art. ${artNrUnitStr})`;
     }
   }
-  var lang = currentLang || "nl";
+  var lang = currentLang || "en";
   const pieceTxt = lang === "fr" ? "pièce" : (lang === "en" ? "piece" : "stuk");
   if (autoPackPriceEl) autoPackPriceEl.textContent = `€ ${servicepackUnitPrice.toLocaleString(lang === "fr" ? "fr-FR" : (lang === "en" ? "en-US" : "nl-BE"), { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / ${pieceTxt} (Art. ${artNrServicepackStr})`;
-  var lang = currentLang || "nl";
+  var lang = currentLang || "en";
   const yearSuffix = lang === "fr" ? "an" : (lang === "en" ? "year" : "jaar");
   if (autoPacksTotalEl) autoPacksTotalEl.textContent = `€ ${totalCartridgesCostYear.toLocaleString(lang === "fr" ? "fr-FR" : (lang === "en" ? "en-US" : "nl-BE"), { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / ${yearSuffix}`;
   if (autoAccCostEl) {
@@ -9873,17 +9882,17 @@ function updateRoiAutomationPage() {
   if (paybackPeriodEl) {
     const initialInvestment = autoYear1Total - autoRecurringTotal;
     if (initialInvestment <= 0) {
-      paybackPeriodEl.textContent = " Directe Terugverdientijd (0 maanden)";
+      paybackPeriodEl.textContent = " Direct Payback Period (0 months)";
     } else if (netYearlySaving <= 0) {
       paybackPeriodEl.textContent = " Geen terugverdientijd mogelijk";
     } else {
       const paybackYears = initialInvestment / netYearlySaving;
       const paybackMonths = paybackYears * 12;
-      paybackPeriodEl.textContent = ` ${paybackMonths.toFixed(1).replace('.', ',')} maanden (${paybackYears.toFixed(2).replace('.', ',')} jaar)`;
+      paybackPeriodEl.textContent = ` ${paybackMonths.toFixed(1).replace('.', ',')} months (${paybackYears.toFixed(2).replace('.', ',')} years)`;
     }
   }
 
-  // 6. Multi-year Cumulative Savings Calculation (Besparing na N jaar)
+  // 6. Multi-year Cumulative Savings Calculation (Besparing na N years)
   const roiYearsInput = document.getElementById("roiYearsInput");
   const roiMultiYearSavingEl = document.getElementById("roiMultiYearSaving");
 
@@ -10565,8 +10574,8 @@ function deletePhoto(id) {
 function renderPhotoGrid() {
   const container = document.getElementById("photoGridContainer");
   const counterText = document.getElementById("photoCounterText");
-  var lang = currentLang || "nl";
-  const t = (TRANSLATIONS && TRANSLATIONS[lang]) ? TRANSLATIONS[lang] : photoTranslations["nl"];
+  var lang = currentLang || "en";
+  const t = (TRANSLATIONS && TRANSLATIONS[lang]) ? TRANSLATIONS[lang] : photoTranslations["en"];
 
   if (counterText) {
     const uploadedSuffix = lang === "fr" ? "photos téléchargées" : (lang === "en" ? "photos uploaded" : "foto's geüpload");
