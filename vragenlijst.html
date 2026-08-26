@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="nl">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Interflon Smeeranalyse - Vragenlijst</title>
-  <meta name="description" content="Vul de vragenlijst in voor een nauwkeurige Interflon smeeranalyse en TCO-kostenberekening van uw machines.">
+  <title>Interflon Lubrication Analysis - Questionnaire</title>
+  <meta name="description" content="Fill in the questionnaire for an accurate Interflon lubrication analysis and TCO cost calculation for your machinery.">
   <link rel="icon" type="image/png" href="interflon-logo-clean.png">
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 
@@ -285,33 +285,33 @@
           </p>
 
           <div id="bearingRowsContainer">
-            <!-- Initial Bearing Row 1 (Lager A) -->
+            <!-- Initial Bearing Row 1 (Bearing A) -->
             <div class="bearing-row" id="bearingRow_1" data-letter="A" style="display: grid; grid-template-columns: 75px 65px 1fr 1fr 100px 120px 36px; gap: 8px; margin-bottom: 12px; align-items: end;">
               <div>
                 <label style="font-size: 11.5px; font-weight: 700; color: #334155; display: block; margin-bottom: 4px;">Lager</label>
-                <span class="bearing-badge">Lager A</span>
+                <span class="bearing-badge">Bearing A</span>
               </div>
               <div>
                 <label style="font-size: 11.5px; font-weight: 700; color: #334155; display: block; margin-bottom: 4px;">Aantal *</label>
-                <input type="number" name="Lager A - Aantal" class="form-control bearing-qty-input" value="1" min="1" required onchange="onBearingRowChanged()">
+                <input type="number" name="Bearing A - Aantal" class="form-control bearing-qty-input" value="1" min="1" required onchange="onBearingRowChanged()">
               </div>
               <div>
                 <label style="font-size: 11.5px; font-weight: 700; color: #334155; display: block; margin-bottom: 4px;">Lagernummer *</label>
-                <input type="text" name="Lager A - Lagernummer" id="q5" class="form-control bearing-nr-input" placeholder="bijv. 6208 2RS of 22215" required oninput="onBearingRowChanged()">
+                <input type="text" name="Bearing A - Lagernummer" id="q5" class="form-control bearing-nr-input" placeholder="bijv. 6208 2RS of 22215" required oninput="onBearingRowChanged()">
               </div>
               <div>
                 <label style="font-size: 11.5px; font-weight: 700; color: #334155; display: block; margin-bottom: 4px;">Omschrijving / Positie</label>
-                <input type="text" name="Lager A - Omschrijving" class="form-control bearing-desc-input" placeholder="bijv. Keerzijde transportband" oninput="onBearingRowChanged()">
+                <input type="text" name="Bearing A - Omschrijving" class="form-control bearing-desc-input" placeholder="bijv. Keerzijde transportband" oninput="onBearingRowChanged()">
               </div>
               <div>
                 <label style="font-size: 11.5px; font-weight: 700; color: #334155; display: block; margin-bottom: 4px;">Toerental (RPM)</label>
-                <input type="number" name="Lager A - Toerental RPM" id="q8" class="form-control bearing-rpm-input" placeholder="bijv. 1450" oninput="onBearingRowChanged()">
+                <input type="number" name="Bearing A - Toerental RPM" id="q8" class="form-control bearing-rpm-input" placeholder="bijv. 1450" oninput="onBearingRowChanged()">
               </div>
               <div>
                 <label style="font-size: 11.5px; font-weight: 700; color: #334155; display: block; margin-bottom: 4px;">As Positie</label>
-                <select name="Lager A - As Positie" class="form-control bearing-pos-input" onchange="onBearingRowChanged()">
-                  <option value="Horizontaal">Horizontaal</option>
-                  <option value="Verticaal">Verticaal</option>
+                <select name="Bearing A - As Positie" class="form-control bearing-pos-input" onchange="onBearingRowChanged()">
+                  <option value="Horizontal">Horizontal</option>
+                  <option value="Vertical">Vertical</option>
                 </select>
               </div>
               <div></div>
@@ -339,7 +339,7 @@
             </span>
           </div>
           <select id="bearingSelectorSection2" class="form-control" style="width: auto; min-width: 240px; font-weight: 700; border-color: #E30613; color: #E30613; background: #fff5f5;" onchange="switchSection2Bearing(this.value)">
-            <option value="A">Lager A</option>
+            <option value="A">Bearing A</option>
           </select>
         </div>
 
@@ -362,25 +362,25 @@
               <input type="number" id="q4_freq_num" class="form-control" style="flex: 1;" placeholder="Bijv. 1, 500" oninput="saveCurrentSection2Data()">
               <select id="q4_freq_unit" class="form-control" style="width: 130px;" onchange="saveCurrentSection2Data()">
                 <option value="Uren">Uren</option>
-                <option value="Weken" selected>Weken</option>
-                <option value="Maanden">Maanden</option>
+                <option value="Weeks" selected>Weeks</option>
+                <option value="Months">Months</option>
                 <option value="Jaren">Jaren</option>
               </select>
             </div>
           </div>
           <div class="form-group">
-            <label for="q29_life">9. Wat is de huidige gemiddelde levensduur van het lager (Maanden)?</label>
-            <input type="number" id="q29_life" class="form-control" placeholder="Bijv. 12 maanden" oninput="saveCurrentSection2Data()">
+            <label for="q29_life">9. Wat is de huidige gemiddelde levensduur van het lager (Months)?</label>
+            <input type="number" id="q29_life" class="form-control" placeholder="E.g. 12 months" oninput="saveCurrentSection2Data()">
           </div>
         </div>
 
         <div class="grid-2">
           <div class="form-group">
-            <label for="q13">10. Operationele uren per dag</label>
+            <label for="q13">10. Operational hours per day</label>
             <input type="number" id="q13" class="form-control" min="1" max="24" value="16" oninput="saveCurrentSection2Data()">
           </div>
           <div class="form-group">
-            <label for="q14">11. Operationele dagen per week</label>
+            <label for="q14">11. Operational days per week</label>
             <input type="number" id="q14" class="form-control" min="1" max="7" value="5" oninput="saveCurrentSection2Data()">
           </div>
         </div>
@@ -401,7 +401,7 @@
             </span>
           </div>
           <select id="bearingSelectorSection3" class="form-control" style="width: auto; min-width: 240px; font-weight: 700; border-color: #E30613; color: #E30613; background: #fff5f5;" onchange="switchSection3Bearing(this.value)">
-            <option value="A">Lager A</option>
+            <option value="A">Bearing A</option>
           </select>
         </div>
 
@@ -482,39 +482,39 @@
             </span>
           </div>
           <select id="bearingSelectorSection4" class="form-control" style="width: auto; min-width: 240px; font-weight: 700; border-color: #E30613; color: #E30613; background: #fff5f5;" onchange="switchSection4Bearing(this.value)">
-            <option value="A">Lager A</option>
+            <option value="A">Bearing A</option>
           </select>
         </div>
 
         <div class="grid-2">
           <div class="form-group">
-            <label for="q24">20. Tijdsduur per smeerbeurt (minuten)</label>
+            <label for="q24">20. Time per lubrication service (minutes)</label>
             <input type="number" id="q24" class="form-control" placeholder="Bijv. 10 minuten" oninput="saveCurrentSection4Data()">
           </div>
           <div class="form-group">
-            <label for="q25">21. Uurloon onderhoudstechnicus (€/uur)</label>
+            <label for="q25">21. Hourly rate maintenance technician (€/hour)</label>
             <input type="number" step="0.01" id="q25" class="form-control" placeholder="Bijv. 65.00" oninput="saveCurrentSection4Data()">
           </div>
         </div>
 
         <div class="grid-2">
           <div class="form-group">
-            <label for="q26">22. Tijdsduur revisie/vervanging lager (uren)</label>
+            <label for="q26">22. Duration of bearing replacement/overhaul (hours)</label>
             <input type="number" step="0.5" id="q26" class="form-control" placeholder="Bijv. 3 uren" oninput="saveCurrentSection4Data()">
           </div>
           <div class="form-group">
-            <label for="q27">23. Voorbereidingstijd revisie (uren)</label>
+            <label for="q27">23. Overhaul preparation time (hours)</label>
             <input type="number" step="0.5" id="q27" class="form-control" placeholder="Bijv. 1 uur" oninput="saveCurrentSection4Data()">
           </div>
         </div>
 
         <div class="grid-2">
           <div class="form-group">
-            <label for="q28">24. Kostprijs stilstand / downtime (€/uur)</label>
+            <label for="q28">24. Downtime cost rate (€/hour)</label>
             <input type="number" step="0.01" id="q28" class="form-control" placeholder="Bijv. 450.00" oninput="saveCurrentSection4Data()">
           </div>
           <div class="form-group">
-            <label for="q30">25. Prijs lager + wisselstukken (€)</label>
+            <label for="q30">25. Price bearing + spare parts (€)</label>
             <input type="number" step="0.01" id="q30" class="form-control" placeholder="Bijv. 125.00" oninput="saveCurrentSection4Data()">
           </div>
         </div>
@@ -522,24 +522,24 @@
 
       <!-- Section 5: Contact & Verzenden -->
       <div class="survey-section">
-        <h2 class="survey-section-title">📩 5. Uw Contactgegevens & Verzenden</h2>
+        <h2 class="survey-section-title">📩 5. Your Contact Details & Send</h2>
         <div class="grid-2">
           <div class="form-group">
-            <label for="clientCompany">Bedrijfsnaam *</label>
-            <input type="text" name="Bedrijfsnaam" id="clientCompany" class="form-control" placeholder="Uw bedrijfsnaam" required>
+            <label for="clientCompany">Company Name *</label>
+            <input type="text" name="Company Name" id="clientCompany" class="form-control" placeholder="Your company name" required>
           </div>
           <div class="form-group">
-            <label for="clientContact">Naam contactpersoon *</label>
+            <label for="clientContact">Contact Person Name *</label>
             <input type="text" name="Contactpersoon" id="clientContact" class="form-control" placeholder="Uw naam" required>
           </div>
         </div>
         <div class="grid-2">
           <div class="form-group">
-            <label for="clientEmail">Uw E-mailadres *</label>
+            <label for="clientEmail">Your Email Address *</label>
             <input type="email" name="Klant Email" id="clientEmail" class="form-control" placeholder="naam@bedrijf.com" required onchange="syncReplyTo(this.value)">
           </div>
           <div class="form-group">
-            <label for="interflonContactEmail">Interflon Contactpersoon E-mail (Bestemming)</label>
+            <label for="interflonContactEmail">Interflon Advisor Email (Destination)</label>
             <input type="email" name="Interflon Adviseur Email" id="interflonContactEmail" class="form-control" placeholder="contactpersoon@interflon.com" value="tom.peckstadt@interflon.com" onchange="updateFormSubmitAction(this.value)">
           </div>
         </div>
@@ -548,7 +548,7 @@
       <!-- Action Buttons -->
       <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 10px;">
         <button type="submit" class="submit-btn">
-          🚀 1. Verstuur Vragenlijst Direct via Mail Service →
+          🚀 1. Send Questionnaire Directly via Mail Service →
         </button>
 
         <div class="grid-2">
@@ -562,7 +562,7 @@
         </div>
 
         <button type="button" onclick="copyFullReportText()" class="btn-secondary">
-          📋 4. Kopieer uw antwoorden naar klembord om zelf in een mail te plakken
+          📋 4. Copy your answers to clipboard to paste into email
         </button>
       </div>
 
@@ -578,7 +578,7 @@
     
     // Maps storing section inputs per bearing letter
     let bearingDataMapSec2 = {
-      'A': { q11: '', q12_price: '', q4_freq_num: '', q4_freq_unit: 'Weken', q29_life: '', q13: '16', q14: '5' }
+      'A': { q11: '', q12_price: '', q4_freq_num: '', q4_freq_unit: 'Weeks', q29_life: '', q13: '16', q14: '5' }
     };
     let bearingDataMapSec3 = {
       'A': { q15: '', q16: '', q17: '3', q18: '4', q19: '2', q20: '3', q21: '3', q22: '2' }
@@ -607,7 +607,7 @@
         
         // Update badge inside row
         const badge = r.querySelector('.bearing-badge');
-        if (badge) badge.innerText = 'Lager ' + letter;
+        if (badge) badge.innerText = 'Bearing ' + letter;
 
         // Update name attributes in row
         const qtyIn = r.querySelector('.bearing-qty-input');
@@ -616,14 +616,14 @@
         const rpmIn = r.querySelector('.bearing-rpm-input');
         const posIn = r.querySelector('.bearing-pos-input');
 
-        if (qtyIn) qtyIn.name = 'Lager ' + letter + ' - Aantal';
-        if (nrIn) nrIn.name = 'Lager ' + letter + ' - Lagernummer';
-        if (descIn) descIn.name = 'Lager ' + letter + ' - Omschrijving';
-        if (rpmIn) rpmIn.name = 'Lager ' + letter + ' - Toerental RPM';
-        if (posIn) posIn.name = 'Lager ' + letter + ' - As Positie';
+        if (qtyIn) qtyIn.name = 'Bearing ' + letter + ' - Aantal';
+        if (nrIn) nrIn.name = 'Bearing ' + letter + ' - Lagernummer';
+        if (descIn) descIn.name = 'Bearing ' + letter + ' - Omschrijving';
+        if (rpmIn) rpmIn.name = 'Bearing ' + letter + ' - Toerental RPM';
+        if (posIn) posIn.name = 'Bearing ' + letter + ' - As Positie';
 
         // Ensure state entries exist
-        if (!bearingDataMapSec2[letter]) bearingDataMapSec2[letter] = { q11: '', q12_price: '', q4_freq_num: '', q4_freq_unit: 'Weken', q29_life: '', q13: '16', q14: '5' };
+        if (!bearingDataMapSec2[letter]) bearingDataMapSec2[letter] = { q11: '', q12_price: '', q4_freq_num: '', q4_freq_unit: 'Weeks', q29_life: '', q13: '16', q14: '5' };
         if (!bearingDataMapSec3[letter]) bearingDataMapSec3[letter] = { q15: '', q16: '', q17: '3', q18: '4', q19: '2', q20: '3', q21: '3', q22: '2' };
         if (!bearingDataMapSec4[letter]) bearingDataMapSec4[letter] = { q24: '', q25: '', q26: '', q27: '', q28: '', q30: '' };
 
@@ -635,7 +635,7 @@
         else if (nrVal) labelDetails = ' (' + nrVal + ')';
         else if (descVal) labelDetails = ' (' + descVal + ')';
 
-        const optText = 'Lager ' + letter + labelDetails;
+        const optText = 'Bearing ' + letter + labelDetails;
 
         const opt2 = document.createElement('option');
         opt2.value = letter;
@@ -685,24 +685,24 @@
       
       row.innerHTML = `
         <div>
-          <span class="bearing-badge">Lager ${letter}</span>
+          <span class="bearing-badge">Bearing ${letter}</span>
         </div>
         <div>
-          <input type="number" name="Lager ${letter} - Aantal" class="form-control bearing-qty-input" value="1" min="1" placeholder="1" required onchange="onBearingRowChanged()">
+          <input type="number" name="Bearing ${letter} - Aantal" class="form-control bearing-qty-input" value="1" min="1" placeholder="1" required onchange="onBearingRowChanged()">
         </div>
         <div>
-          <input type="text" name="Lager ${letter} - Lagernummer" class="form-control bearing-nr-input" placeholder="bijv. 6208 2RS of 22215" required oninput="onBearingRowChanged()">
+          <input type="text" name="Bearing ${letter} - Lagernummer" class="form-control bearing-nr-input" placeholder="bijv. 6208 2RS of 22215" required oninput="onBearingRowChanged()">
         </div>
         <div>
-          <input type="text" name="Lager ${letter} - Omschrijving" class="form-control bearing-desc-input" placeholder="bijv. Keerzijde transportband" oninput="onBearingRowChanged()">
+          <input type="text" name="Bearing ${letter} - Omschrijving" class="form-control bearing-desc-input" placeholder="bijv. Keerzijde transportband" oninput="onBearingRowChanged()">
         </div>
         <div>
-          <input type="number" name="Lager ${letter} - Toerental RPM" class="form-control bearing-rpm-input" placeholder="1450" oninput="onBearingRowChanged()">
+          <input type="number" name="Bearing ${letter} - Toerental RPM" class="form-control bearing-rpm-input" placeholder="1450" oninput="onBearingRowChanged()">
         </div>
         <div>
-          <select name="Lager ${letter} - As Positie" class="form-control bearing-pos-input" onchange="onBearingRowChanged()">
-            <option value="Horizontaal">Horizontaal</option>
-            <option value="Verticaal">Verticaal</option>
+          <select name="Bearing ${letter} - As Positie" class="form-control bearing-pos-input" onchange="onBearingRowChanged()">
+            <option value="Horizontal">Horizontal</option>
+            <option value="Vertical">Vertical</option>
           </select>
         </div>
         <div>
@@ -711,7 +711,7 @@
       `;
       container.appendChild(row);
 
-      bearingDataMapSec2[letter] = { q11: '', q12_price: '', q4_freq_num: '', q4_freq_unit: 'Weken', q29_life: '', q13: '16', q14: '5' };
+      bearingDataMapSec2[letter] = { q11: '', q12_price: '', q4_freq_num: '', q4_freq_unit: 'Weeks', q29_life: '', q13: '16', q14: '5' };
       bearingDataMapSec3[letter] = { q15: '', q16: '', q17: '3', q18: '4', q19: '2', q20: '3', q21: '3', q22: '2' };
       bearingDataMapSec4[letter] = { q24: '', q25: '', q26: '', q27: '', q28: '', q30: '' };
 
@@ -730,7 +730,7 @@
       const row = btn.closest('.bearing-row');
       const rows = document.querySelectorAll('.bearing-row');
       if (rows.length <= 1) {
-        alert('Er moet minimaal 1 lager aanwezig zijn op de machine.');
+        alert('There must be at least 1 bearing present on the machine.');
         return;
       }
       if (row) row.remove();
@@ -759,11 +759,11 @@
     }
 
     function loadSection2DataForBearing(letter) {
-      const data = bearingDataMapSec2[letter] || { q11: '', q12_price: '', q4_freq_num: '', q4_freq_unit: 'Weken', q29_life: '', q13: '16', q14: '5' };
+      const data = bearingDataMapSec2[letter] || { q11: '', q12_price: '', q4_freq_num: '', q4_freq_unit: 'Weeks', q29_life: '', q13: '16', q14: '5' };
       document.getElementById('q11').value = data.q11 || '';
       document.getElementById('q12_price').value = data.q12_price || '';
       document.getElementById('q4_freq_num').value = data.q4_freq_num || '';
-      document.getElementById('q4_freq_unit').value = data.q4_freq_unit || 'Weken';
+      document.getElementById('q4_freq_unit').value = data.q4_freq_unit || 'Weeks';
       document.getElementById('q29_life').value = data.q29_life || '';
       document.getElementById('q13').value = data.q13 || '16';
       document.getElementById('q14').value = data.q14 || '5';
@@ -882,35 +882,35 @@
           container.appendChild(inp);
         };
 
-        if (descVal) createHidden('Lager ' + letter + ' - Omschrijving', descVal);
+        if (descVal) createHidden('Bearing ' + letter + ' - Omschrijving', descVal);
 
-        const freqStr = d2.q4_freq_num ? (d2.q4_freq_num + ' ' + (d2.q4_freq_unit || 'Weken')) : '-';
+        const freqStr = d2.q4_freq_num ? (d2.q4_freq_num + ' ' + (d2.q4_freq_unit || 'Weeks')) : '-';
 
         // Section 2 per bearing
-        createHidden('Lager ' + letter + ' - 6. Huidig Smeermiddel', d2.q11);
-        createHidden('Lager ' + letter + ' - 7. Prijs per Liter (€)', d2.q12_price ? '€' + d2.q12_price : '-');
-        createHidden('Lager ' + letter + ' - 8. Smeerfrequentie', freqStr);
-        createHidden('Lager ' + letter + ' - 9. Gemiddelde Levensduur (mnd)', d2.q29_life ? d2.q29_life + ' mnd' : '-');
-        createHidden('Lager ' + letter + ' - 10. Uren per dag', d2.q13 || '16');
-        createHidden('Lager ' + letter + ' - 11. Dagen per week', d2.q14 || '5');
+        createHidden('Bearing ' + letter + ' - 6. Huidig Smeermiddel', d2.q11);
+        createHidden('Bearing ' + letter + ' - 7. Prijs per Liter (€)', d2.q12_price ? '€' + d2.q12_price : '-');
+        createHidden('Bearing ' + letter + ' - 8. Smeerfrequentie', freqStr);
+        createHidden('Bearing ' + letter + ' - 9. Gemiddelde Levensduur (mnd)', d2.q29_life ? d2.q29_life + ' mnd' : '-');
+        createHidden('Bearing ' + letter + ' - 10. Uren per dag', d2.q13 || '16');
+        createHidden('Bearing ' + letter + ' - 11. Days per week', d2.q14 || '5');
 
         // Section 3 per bearing
-        createHidden('Lager ' + letter + ' - 12. Omgevingstemp (°C)', d3.q15 ? d3.q15 + ' °C' : '-');
-        createHidden('Lager ' + letter + ' - 13. Lagertemp (°C)', d3.q16 ? d3.q16 + ' °C' : '-');
-        createHidden('Lager ' + letter + ' - 14. Water Vocht Stoom (1-10)', d3.q17 || '3');
-        createHidden('Lager ' + letter + ' - 15. Stof Zand (1-10)', d3.q18 || '4');
-        createHidden('Lager ' + letter + ' - 16. Abrasief Vervuiling (1-10)', d3.q19 || '2');
-        createHidden('Lager ' + letter + ' - 17. Schokbelasting (1-10)', d3.q20 || '3');
-        createHidden('Lager ' + letter + ' - 18. Vibraties (1-10)', d3.q21 || '3');
-        createHidden('Lager ' + letter + ' - 19. Condensatie (1-10)', d3.q22 || '2');
+        createHidden('Bearing ' + letter + ' - 12. Omgevingstemp (°C)', d3.q15 ? d3.q15 + ' °C' : '-');
+        createHidden('Bearing ' + letter + ' - 13. Lagertemp (°C)', d3.q16 ? d3.q16 + ' °C' : '-');
+        createHidden('Bearing ' + letter + ' - 14. Water Vocht Stoom (1-10)', d3.q17 || '3');
+        createHidden('Bearing ' + letter + ' - 15. Stof Zand (1-10)', d3.q18 || '4');
+        createHidden('Bearing ' + letter + ' - 16. Abrasief Vervuiling (1-10)', d3.q19 || '2');
+        createHidden('Bearing ' + letter + ' - 17. Schokbelasting (1-10)', d3.q20 || '3');
+        createHidden('Bearing ' + letter + ' - 18. Vibraties (1-10)', d3.q21 || '3');
+        createHidden('Bearing ' + letter + ' - 19. Condensation (1-10)', d3.q22 || '2');
 
         // Section 4 per bearing
-        createHidden('Lager ' + letter + ' - 20. Tijdsduur per beurt (min)', d4.q24 ? d4.q24 + ' min' : '-');
-        createHidden('Lager ' + letter + ' - 21. Uurloon technicus (€)', d4.q25 ? '€' + d4.q25 : '-');
-        createHidden('Lager ' + letter + ' - 22. Downtime per lager (H)', d4.q26 ? d4.q26 + ' H' : '-');
-        createHidden('Lager ' + letter + ' - 23. Voorbereidingstijd (H)', d4.q27 ? d4.q27 + ' H' : '-');
-        createHidden('Lager ' + letter + ' - 24. Downtime kost (€/H)', d4.q28 ? '€' + d4.q28 : '-');
-        createHidden('Lager ' + letter + ' - 25. Prijs wisselstukken (€)', d4.q30 ? '€' + d4.q30 : '-');
+        createHidden('Bearing ' + letter + ' - 20. Tijdsduur per beurt (min)', d4.q24 ? d4.q24 + ' min' : '-');
+        createHidden('Bearing ' + letter + ' - 21. Uurloon technicus (€)', d4.q25 ? '€' + d4.q25 : '-');
+        createHidden('Bearing ' + letter + ' - 22. Downtime per lager (H)', d4.q26 ? d4.q26 + ' H' : '-');
+        createHidden('Bearing ' + letter + ' - 23. Voorbereidingstijd (H)', d4.q27 ? d4.q27 + ' H' : '-');
+        createHidden('Bearing ' + letter + ' - 24. Downtime kost (€/H)', d4.q28 ? '€' + d4.q28 : '-');
+        createHidden('Bearing ' + letter + ' - 25. Prijs wisselstukken (€)', d4.q30 ? '€' + d4.q30 : '-');
       });
     }
 
@@ -919,7 +919,7 @@
       saveCurrentSection3Data();
       saveCurrentSection4Data();
 
-      let bodyText = "INTERFLON SMEERANALYSE VRAGENLIJST\n====================================\n\n";
+      let bodyText = "INTERFLON LUBRICATION ANALYSIS QUESTIONNAIRE\n====================================\n\n";
       
       bodyText += "--- KLANT & CONTACTGEGEVENS ---\n";
       bodyText += "Bedrijf: " + (document.getElementById('clientCompany').value || '-') + "\n";
@@ -950,9 +950,9 @@
           const descIn = r.querySelector('.bearing-desc-input');
           const desc = descIn ? descIn.value.trim() : '';
           const rpm = inputs[3] ? inputs[3].value : '';
-          const positie = select ? select.value : 'Horizontaal';
+          const positie = select ? select.value : 'Horizontal';
 
-          const freqStr = d2.q4_freq_num ? (d2.q4_freq_num + ' ' + (d2.q4_freq_unit || 'Weken')) : '-';
+          const freqStr = d2.q4_freq_num ? (d2.q4_freq_num + ' ' + (d2.q4_freq_unit || 'Weeks')) : '-';
 
           bodyText += "========================================\n";
           bodyText += "📌 [LAGER " + letter + "]: " + aantal + "x " + (nr || 'Lager') + (desc ? " - " + desc : "") + (rpm ? " (" + rpm + " RPM)" : "") + " - " + positie + "\n";
@@ -961,7 +961,7 @@
           bodyText += "  • Huidig smeermiddel: " + (d2.q11 || '-') + "\n";
           bodyText += "  • Prijs smeermiddel: " + (d2.q12_price ? '€' + d2.q12_price + ' / L' : '-') + "\n";
           bodyText += "  • Smeerfrequentie/interval: " + freqStr + "\n";
-          bodyText += "  • Gemiddelde levensduur: " + (d2.q29_life ? d2.q29_life + ' maanden' : '-') + "\n";
+          bodyText += "  • Gemiddelde levensduur: " + (d2.q29_life ? d2.q29_life + ' months' : '-') + "\n";
           bodyText += "  • Operationele uren/dag: " + (d2.q13 || '16') + "\n";
           bodyText += "  • Operationele dagen/week: " + (d2.q14 || '5') + "\n\n";
 
@@ -1010,7 +1010,7 @@
       const reportText = buildReportSummary();
       if (navigator.clipboard && navigator.clipboard.writeText) {
         navigator.clipboard.writeText(reportText).then(() => {
-          alert("📋 Alle ingevulde antwoorden zijn gekopieerd naar uw klembord!\n\nU kunt deze nu direct plakken (Ctrl + V) in een e-mailbericht.");
+          alert("📋 All filled answers have been copied to your clipboard!\n\nYou can now paste them (Ctrl + V) directly into an email.");
         }).catch(err => {
           prompt("Kopieer onderstaande antwoorden:", reportText);
         });
