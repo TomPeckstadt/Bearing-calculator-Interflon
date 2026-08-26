@@ -2,15 +2,15 @@
 // Bevat afmetingen (d, D, B) en basisgegevens van de meest voorkomende lagers.
 
 const BEARING_TYPES = {
-  GROOVE_BALL: "Eenrijig groefkogellager",
-  DOUBLE_ROW_GROOVE_BALL: "Dubbelrijig groefkogellager",
-  SPHERICAL_ROLLER: "Pendelrollager",
-  CYLINDRICAL_ROLLER: "Cilinderlager",
-  TAPERED_ROLLER: "Kegellager",
-  ANGULAR_CONTACT: "Hoekcontactkogellager",
-  DOUBLE_ROW_ANGULAR_CONTACT: "Dubbelrijig hoekcontactkogellager",
-  SELF_ALIGNING_BALL: "Pendelkogellager",
-  THRUST_BALL: "Axiaalkogellager"
+  GROOVE_BALL: "Single row deep groove ball bearing",
+  DOUBLE_ROW_GROOVE_BALL: "Double row deep groove ball bearing",
+  SPHERICAL_ROLLER: "Spherical roller bearing",
+  CYLINDRICAL_ROLLER: "Cylindrical roller bearing",
+  TAPERED_ROLLER: "Tapered roller bearing",
+  ANGULAR_CONTACT: "Single row angular contact ball bearing",
+  DOUBLE_ROW_ANGULAR_CONTACT: "Double row angular contact ball bearing",
+  SELF_ALIGNING_BALL: "Self-aligning ball bearing",
+  THRUST_BALL: "Thrust ball bearing"
 };
 
 // Database met exacte fabrieksspecificaties
@@ -389,7 +389,7 @@ function parseBearingDesignation(input) {
       D: D || Math.round(d * 1.8),
       B: B || Math.round(d * 0.3),
       estimated: true,
-      note: "Afmetingen zijn geschat op basis van de SKF-aanduiding. Gelieve te verifiëren."
+      note: "Dimensions are estimated based on SKF designation. Please verify."
     };
   }
 
