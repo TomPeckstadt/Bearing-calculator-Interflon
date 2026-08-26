@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="nl">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Interflon Bearing Types Guide</title>
+  <title>Interflon Lagertypes Wijzer</title>
   
   <!-- Typography & Icons -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -505,12 +505,12 @@
         <img src="interflon-logo.jpg" alt="Interflon">
       </div>
       <div class="header-text" style="text-align: center; flex: 1;">
-        <h1 id="mainTitle">Interflon Bearing Types Guide</h1>
-        <p id="mainSubtitle">An overview of bearing types, load capacities, and speed ratings.</p>
+        <h1 id="mainTitle">Interflon Lagertypes Wijzer</h1>
+        <p id="mainSubtitle">Een overzicht van mechanische lagertypen, belastbaarheid en toerentalgrenzen.</p>
       </div>
       <div class="lang-toggle">
-        <button class="lang-btn" onclick="changeLanguage('nl')">NL</button>
-        <button class="lang-btn active" onclick="changeLanguage('en')">EN</button>
+        <button class="lang-btn active" onclick="changeLanguage('nl')">NL</button>
+        <button class="lang-btn" onclick="changeLanguage('en')">EN</button>
         <button class="lang-btn" onclick="changeLanguage('fr')">FR</button>
       </div>
     </header>
@@ -520,7 +520,7 @@
       
       <!-- BELASTINGEN / LOADS Box -->
       <div class="pdf-legend-box" style="flex: 1; min-width: 280px; max-width: 380px; background: #F1F4F9; border: 1px solid var(--border-color); border-radius: var(--border-radius-md); padding: 15px 20px; display: flex; flex-direction: column; align-items: center; box-shadow: var(--shadow-sm);">
-        <h4 id="legendLoadsTitle" style="font-family: 'Outfit', sans-serif; font-size: 13px; font-weight: 700; color: var(--primary-blue); margin: 0 0 15px 0; text-transform: uppercase; letter-spacing: 0.5px;">LOADS</h4>
+        <h4 id="legendLoadsTitle" style="font-family: 'Outfit', sans-serif; font-size: 13px; font-weight: 700; color: var(--primary-blue); margin: 0 0 15px 0; text-transform: uppercase; letter-spacing: 0.5px;">BELASTINGEN</h4>
         <div style="display: flex; justify-content: space-around; width: 100%; align-items: flex-end; flex: 1; margin-bottom: 5px;">
           <!-- Column 1: Zwaar -->
           <div style="display: flex; flex-direction: column; align-items: center; gap: 8px; width: 30%;">
@@ -528,7 +528,7 @@
               <rect x="7" y="0" width="6" height="23" fill="currentColor" />
               <polygon points="2,21 10,33 18,21" fill="currentColor" />
             </svg>
-            <span id="legendLoadHeavy" style="font-family: 'Outfit', sans-serif; font-size: 12px; font-weight: 600; color: var(--text-dark); text-align: center; white-space: nowrap;">heavy</span>
+            <span id="legendLoadHeavy" style="font-family: 'Outfit', sans-serif; font-size: 12px; font-weight: 600; color: var(--text-dark); text-align: center; white-space: nowrap;">zware</span>
           </div>
           <!-- Column 2: Middelgroot -->
           <div style="display: flex; flex-direction: column; align-items: center; gap: 8px; width: 30%;">
@@ -536,7 +536,7 @@
               <rect x="7" y="0" width="6" height="23" fill="currentColor" />
               <polygon points="2,21 10,33 18,21" fill="currentColor" />
             </svg>
-            <span id="legendLoadMedium" style="font-family: 'Outfit', sans-serif; font-size: 12px; font-weight: 600; color: var(--text-dark); text-align: center; white-space: nowrap;">medium</span>
+            <span id="legendLoadMedium" style="font-family: 'Outfit', sans-serif; font-size: 12px; font-weight: 600; color: var(--text-dark); text-align: center; white-space: nowrap;">middelgrote</span>
           </div>
           <!-- Column 3: Laag -->
           <div style="display: flex; flex-direction: column; align-items: center; gap: 8px; width: 30%;">
@@ -544,21 +544,21 @@
               <rect x="7" y="0" width="6" height="23" fill="currentColor" />
               <polygon points="2,21 10,33 18,21" fill="currentColor" />
             </svg>
-            <span id="legendLoadLight" style="font-family: 'Outfit', sans-serif; font-size: 12px; font-weight: 600; color: var(--text-dark); text-align: center; white-space: nowrap;">light</span>
+            <span id="legendLoadLight" style="font-family: 'Outfit', sans-serif; font-size: 12px; font-weight: 600; color: var(--text-dark); text-align: center; white-space: nowrap;">lage</span>
           </div>
         </div>
       </div>
 
       <!-- TOERENTALLEN / SPEEDS Box -->
       <div class="pdf-legend-box" style="flex: 1; min-width: 280px; max-width: 380px; background: #F1F4F9; border: 1px solid var(--border-color); border-radius: var(--border-radius-md); padding: 15px 20px; display: flex; flex-direction: column; align-items: center; box-shadow: var(--shadow-sm);">
-        <h4 id="legendSpeedsTitle" style="font-family: 'Outfit', sans-serif; font-size: 13px; font-weight: 700; color: var(--primary-blue); margin: 0 0 15px 0; text-transform: uppercase; letter-spacing: 0.5px;">SPEED RATINGS</h4>
+        <h4 id="legendSpeedsTitle" style="font-family: 'Outfit', sans-serif; font-size: 13px; font-weight: 700; color: var(--primary-blue); margin: 0 0 15px 0; text-transform: uppercase; letter-spacing: 0.5px;">TOERENTALLEN</h4>
         <div style="display: flex; justify-content: space-around; width: 100%; align-items: flex-end; flex: 1; margin-bottom: 5px;">
           <!-- Column 1: Hoge -->
           <div style="display: flex; flex-direction: column; align-items: center; gap: 8px; width: 30%;">
             <svg width="30" height="35" viewBox="0 0 32 35" style="color: #EF4444;">
               <path d="M26 4 C26 22, 19 28, 12 28 C9 28, 7 26, 6 24 L10 20 L2 22 L5 30 L8 26 C12 29, 16 29, 20 27 C27 23, 31 16, 31 4 Z" fill="currentColor" stroke="#374151" stroke-width="1" />
             </svg>
-            <span id="legendSpeedHigh" style="font-family: 'Outfit', sans-serif; font-size: 12px; font-weight: 600; color: var(--text-dark); text-align: center; white-space: nowrap;">high</span>
+            <span id="legendSpeedHigh" style="font-family: 'Outfit', sans-serif; font-size: 12px; font-weight: 600; color: var(--text-dark); text-align: center; white-space: nowrap;">hoge</span>
           </div>
           <!-- Column 2: Middelgrote -->
           <div style="display: flex; flex-direction: column; align-items: center; gap: 8px; width: 30%;">
@@ -571,14 +571,14 @@
               </defs>
               <path d="M26 4 C26 22, 19 28, 12 28 C9 28, 7 26, 6 24 L10 20 L2 22 L5 30 L8 26 C12 29, 16 29, 20 27 C27 23, 31 16, 31 4 Z" fill="url(#speedMediumGradient)" stroke="#374151" stroke-width="1" />
             </svg>
-            <span id="legendSpeedMedium" style="font-family: 'Outfit', sans-serif; font-size: 12px; font-weight: 600; color: var(--text-dark); text-align: center; white-space: nowrap;">medium</span>
+            <span id="legendSpeedMedium" style="font-family: 'Outfit', sans-serif; font-size: 12px; font-weight: 600; color: var(--text-dark); text-align: center; white-space: nowrap;">middelgrote</span>
           </div>
           <!-- Column 3: Lage -->
           <div style="display: flex; flex-direction: column; align-items: center; gap: 8px; width: 30%;">
             <svg width="30" height="35" viewBox="0 0 32 35" style="color: #FFFF00;">
               <path d="M26 4 C26 22, 19 28, 12 28 C9 28, 7 26, 6 24 L10 20 L2 22 L5 30 L8 26 C12 29, 16 29, 20 27 C27 23, 31 16, 31 4 Z" fill="currentColor" stroke="#374151" stroke-width="1" />
             </svg>
-            <span id="legendSpeedLow" style="font-family: 'Outfit', sans-serif; font-size: 12px; font-weight: 600; color: var(--text-dark); text-align: center; white-space: nowrap;">low</span>
+            <span id="legendSpeedLow" style="font-family: 'Outfit', sans-serif; font-size: 12px; font-weight: 600; color: var(--text-dark); text-align: center; white-space: nowrap;">lage</span>
           </div>
         </div>
       </div>
@@ -597,8 +597,8 @@
       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
       </svg>
-      <h3 id="lblNoResultsTitle">No bearing types found</h3>
-      <p id="lblNoResultsDesc" style="color: var(--text-medium); margin-top: 8px;">Try a different search term.</p>
+      <h3 id="lblNoResultsTitle">Geen lagertypes gevonden</h3>
+      <p id="lblNoResultsDesc" style="color: var(--text-medium); margin-top: 8px;">Probeer een andere zoekterm.</p>
     </div>
     
     <!-- Footer -->
@@ -607,7 +607,7 @@
         <img src="interflon-logo.jpg" alt="Interflon">
       </div>
       <div class="footer-text" id="lblFooterText">
-        © 2026 Interflon - A world without friction. All rights reserved.
+        © 2026 Interflon - A world without friction. Alle rechten voorbehouden.
       </div>
     </footer>
     
@@ -617,7 +617,7 @@
     // Data translation maps
     const TRANSLATIONS = {
       nl: {
-        mainTitle: "Interflon Bearing types Wijzer",
+        mainTitle: "Interflon Lagertypes Wijzer",
         mainSubtitle: "Een overzicht van mechanische lagertypen, belastbaarheid en toerentalgrenzen.",
         legendLoadsTitle: "BELASTINGEN",
         legendSpeedsTitle: "TOERENTALLEN",
@@ -627,7 +627,7 @@
         legendSpeedHigh: "hoge",
         legendSpeedMedium: "middelgrote",
         legendSpeedLow: "lage",
-        searchPlaceholder: "Search by bearing type (e.g. deep groove, spherical roller...)",
+        searchPlaceholder: "Zoek op lagertype (bijv. groefkogel, tonlager...)",
         lblLegendBelastingen: "Belastingen:",
         lblLegendToerentallen: "Toerental:",
         lblZwaar: "Zwaar",
@@ -778,7 +778,7 @@
         category: "ball",
         img: "crop-groove-ball.png",
         names: {
-          nl: "Deep groove ball bearing",
+          nl: "Groefkogellager",
           en: "Deep groove ball bearing",
           fr: "Roulement à billes à gorge profonde"
         },
@@ -802,7 +802,7 @@
         category: "ball",
         img: "crop-angular-contact.png",
         names: {
-          nl: "Angular contact ball bearing",
+          nl: "Hoekcontactkogellager",
           en: "Angular contact ball bearing",
           fr: "Roulement à billes à contact oblique"
         },
@@ -832,7 +832,7 @@
         category: "roller",
         img: "crop-cylindrical-roller.png",
         names: {
-          nl: "Cylindrical roller bearing",
+          nl: "Cilinderlager",
           en: "Cylindrical roller bearing",
           fr: "Roulement à rouleaux cylindriques"
         },
@@ -875,7 +875,7 @@
         category: "roller",
         img: "crop-tapered-roller.png",
         names: {
-          nl: "Tapered roller bearing",
+          nl: "Kegellager",
           en: "Tapered roller bearing",
           fr: "Roulement à rouleaux coniques"
         },
@@ -888,7 +888,7 @@
         category: "thrust",
         img: "crop-thrust-ball.png",
         names: {
-          nl: "Thrust ball bearing (Kogelkraaglager)",
+          nl: "Axiaalkogellager (Kogelkraaglager)",
           en: "Thrust ball bearing",
           fr: "Butée à billes"
         },
@@ -927,7 +927,7 @@
         category: "ball",
         img: "crop-self-aligning-ball.png",
         names: {
-          nl: "Self-aligning ball bearing",
+          nl: "Pendelkogellager",
           en: "Self-aligning ball bearing",
           fr: "Roulement à billes auto-aligneur"
         },
@@ -940,7 +940,7 @@
         category: "roller",
         img: "crop-spherical-roller.png",
         names: {
-          nl: "Spherical roller bearing (Tonlager)",
+          nl: "Pendelrollager (Tonlager)",
           en: "Spherical roller bearing",
           fr: "Roulement à rotule sur rouleaux"
         },
