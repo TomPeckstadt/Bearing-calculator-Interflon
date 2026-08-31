@@ -8726,19 +8726,19 @@ function calculateChainAutomation() {
   const roundReason = recSetting.roundedUp ? "afgerond naar boven bij ≥ 0,5" : "afgerond naar beneden bij < 0,5";
 
   if (recTitleEl) recTitleEl.textContent = recTitleText;
-  if (recSubtextEl) {
-    const reqText = device.isContinuous
-      ? `${avgCalendarDailyMl.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ml/dag`
-      : `${operatingDailyCm3.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ml/draaidag (${hoursPerDay}u/dag, ${daysPerWeek}d/wk)`;
-    const containerNoun = (deviceKey === "interflon_oil_dispenser") ? "reservoir" : "patroon";
+  const containerNoun = (deviceKey === "interflon_oil_dispenser") ? "reservoir" : "patroon";
   const containerNounCap = (deviceKey === "interflon_oil_dispenser") ? "Reservoir" : "Patroon";
+  const reqText = device.isContinuous
+    ? `${avgCalendarDailyMl.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ml/dag`
+    : `${operatingDailyCm3.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ml/draaidag (${hoursPerDay}u/dag, ${daysPerWeek}d/wk)`;
 
   const capLabelEl = document.getElementById("chainAutoCapLabel");
   if (capLabelEl) {
     capLabelEl.textContent = `${containerNounCap} Capaciteit (ml)`;
   }
 
-  recSubtextEl.innerHTML = `${settingLabel} <strong>${dialLabel}</strong> (${roundReason}).<br>• Theoretisch berekende looptijd: <strong>${theoMonthsStr}</strong> (~ ${Math.round(recWeeks)} weken / ${Math.round(recDays)} dagen) bij ${capMl} ml ${containerNoun} (behoefte: ${reqText}).`;
+  if (recSubtextEl) {
+    recSubtextEl.innerHTML = `${settingLabel} <strong>${dialLabel}</strong> (${roundReason}).<br>• Theoretisch berekende looptijd: <strong>${theoMonthsStr}</strong> (~ ${Math.round(recWeeks)} weken / ${Math.round(recDays)} dagen) bij ${capMl} ml ${containerNoun} (behoefte: ${reqText}).`;
   }
 
   // AUTO-FILL period input with recommended device setting position if user hasn't manually overridden it
@@ -9625,7 +9625,7 @@ function updateRoiAutomationPage() {
   let autoMatCost = (p2_lifetime > 0 ? ((12 / p2_lifetime) * shared_parts_cost * numBearingsForTco) : 0) / lifetimeMult;
   let autoDowntimeCost = (p2_downtime_h * p2_downtime_freq * shared_downtime_rate * numBearingsForTco) / lifetimeMult;
 
-  if (manRepairRow) manRepairRow.style.display = "flex";
+  if (manRepairRow && manRepairRow.style) manRepairRow.style.display = "flex";
   if (manMatRow) manMatRow.style.display = "flex";
   if (manDowntimeRow) manDowntimeRow.style.display = "flex";
 
@@ -10489,7 +10489,7 @@ function getSurveyUrl() {
   const clientEmail = localStorage.getItem("client_email") || "";
 
   let params = new URLSearchParams();
-  params.set("v", "20260831_1804");
+  params.set("v", "20260831_1943");
   if (typeof currentLang !== "undefined" && currentLang) params.set("lang", currentLang);
   if (opEmail) params.set("contact", opEmail);
   if (clientCompany) params.set("company", clientCompany);
