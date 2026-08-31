@@ -8,7 +8,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <link rel="stylesheet" href="style.css?v=20260831_1527">
+  <link rel="stylesheet" href="style.css?v=20260831_1542">
 </head>
 <body>
 
@@ -2348,7 +2348,8 @@
               
               <div class="form-group" style="margin-top: 14px; margin-bottom: 15px;">
                 <label for="chainAppMethodSelect" style="font-weight: 700; color: var(--text-dark);" data-i18n="chainAppMethodLabel">Applicatiemethode</label>
-                <select id="chainAppMethodSelect" class="form-control" onchange="calculateChainGrease();" style="padding-left: 16px;">
+                abel oninput="calculateChainGrease(); calculateChainAutomation();" onchange="calculateChainGrease(); calculateChainAutomation();">
+                <select id="chainAppMethodSelect" class="form-control"  style="padding-left: 16px;">
                   <option value="manual" selected data-i18n="chainAppManual">Manueel met kwast / oliekan</option>
                   <option value="auto" data-i18n="chainAppAuto">Automatische smering (Maximale efficiëntie)</option>
                   <option value="aerosol" data-i18n="chainAppAerosol">Spuitbus / Aerosol (Lube Spray)</option>
@@ -2356,7 +2357,8 @@
                 <span class="input-label-description" data-i18n="descChainAppMethod">Bepaalt het reële praktijkverbruik per smeerbeurt inclusief weting en afvloeiverlies.</span>
               </div><div class="form-group" style="margin-bottom: 18px;">
                 <label for="chainProductSelect" style="font-weight: 700; color: var(--text-dark);">Selecteer Interflon Kettingolie</label>
-                <select id="chainProductSelect" class="form-control" onchange="calculateChainGrease(); calculateChainAutomation();" style="padding-left: 16px;">
+                abel oninput="calculateChainGrease(); calculateChainAutomation();" onchange="calculateChainGrease(); calculateChainAutomation();">
+                <select id="chainProductSelect" class="form-control"  style="padding-left: 16px;">
                   <optgroup label="Industriële Ketting- & Smeeroliën">
                     <option value="Interflon Lube TF">Interflon Lube TF (Multifunctionele MicPol® ketting- & droogolie)</option>
                     <option value="Interflon Lube EP+">Interflon Lube EP+ (Sterk kruipende EP olie voor zware kettingen)</option>
@@ -2405,25 +2407,25 @@
               <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
                 <div class="form-group">
                   <label for="chainLengthInput" style="font-size: 12px; font-weight: 600;">Kettinglengte (meters)</label>
-                  <input type="number" id="chainLengthInput" class="form-control" value="5.0" min="0.1" step="0.1" oninput="calculateChainGrease(); calculateChainAutomation();">
+                           <input type="number" id="chainLengthInput" class="form-control" value="5.0" min="0.1" step="0.1"  oninput="calculateChainGrease(); calculateChainAutomation();" onchange="calculateChainGrease(); calculateChainAutomation();">
                 </div>
 
                 <div class="form-group">
                   <label for="chainSpeedInput" style="font-size: 12px; font-weight: 600;">Kettingsnelheid (m/s)</label>
-                  <input type="number" id="chainSpeedInput" class="form-control" value="1.5" min="0.01" step="0.1" oninput="calculateChainGrease(); calculateChainAutomation();">
+                           <input type="number" id="chainSpeedInput" class="form-control" value="1.5" min="0.01" step="0.1"  oninput="calculateChainGrease(); calculateChainAutomation();" onchange="calculateChainGrease(); calculateChainAutomation();">
                 </div>
               </div>
 
               <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
                 <div class="form-group">
                   <label for="chainHoursPerDayInput" style="font-size: 12px; font-weight: 600;">Operationele uren/dag</label>
-                  <input type="number" id="chainHoursPerDayInput" class="form-control" value="24" min="1" max="24" step="1" oninput="calculateChainGrease(); calculateChainAutomation();">
+                           <input type="number" id="chainHoursPerDayInput" class="form-control" value="24" min="1" max="24" step="1"  oninput="calculateChainGrease(); calculateChainAutomation();" onchange="calculateChainGrease(); calculateChainAutomation();">
                   <span style="font-size: 10.5px; color: var(--text-medium); display: block; margin-top: 2px;">Aantal uren dat de machine per dag operationeel is.</span>
                 </div>
 
                 <div class="form-group">
                   <label for="chainDaysPerWeekInput" style="font-size: 12px; font-weight: 600;">Operationele dagen/week</label>
-                  <input type="number" id="chainDaysPerWeekInput" class="form-control" value="7" min="1" max="7" step="1" oninput="calculateChainGrease(); calculateChainAutomation();">
+                           <input type="number" id="chainDaysPerWeekInput" class="form-control" value="7" min="1" max="7" step="1"  oninput="calculateChainGrease(); calculateChainAutomation();" onchange="calculateChainGrease(); calculateChainAutomation();">
                   <span style="font-size: 10.5px; color: var(--text-medium); display: block; margin-top: 2px;">Aantal dagen dat de machine per week operationeel is.</span>
                 </div>
               </div>
@@ -2431,20 +2433,17 @@
               <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
                 <div class="form-group">
                   <label for="chainTempInput" style="font-size: 12px; font-weight: 600;">Bedrijfstemperatuur (°C)</label>
-                  <input type="number" id="chainTempInput" class="form-control" value="20" min="-40" max="300" step="1" oninput="calculateChainGrease(); calculateChainAutomation();">
+                           <input type="number" id="chainTempInput" class="form-control" value="20" min="-40" max="300" step="1"  oninput="calculateChainGrease(); calculateChainAutomation();" onchange="calculateChainGrease(); calculateChainAutomation();">
                   <span style="font-size: 10.5px; color: var(--text-medium); display: block; margin-top: 2px;">Temperatuur van de ketting.</span>
                 </div>
 
-                <div class="form-group">
-                  <label for="chainFactorInput" style="font-size: 12px; font-weight: 600;">Convertiefactor MicPol®</label>
-                  <input type="number" id="chainFactorInput" class="form-control" value="4" min="1" max="10" step="0.5" oninput="calculateChainGrease(); calculateChainAutomation();">
-                  <span style="font-size: 10.5px; color: var(--text-medium); display: block; margin-top: 2px;">Standtijdfactor t.o.v. conventionele olie.</span>
-                </div>
+                
               </div>
 
               <div class="form-group" style="margin-bottom: 12px;">
                 <label for="chainEnvSelect" style="font-size: 12px; font-weight: 600;">Omgevingsomstandigheden</label>
-                <select id="chainEnvSelect" class="form-select" onchange="calculateChainGrease()">
+                abel oninput="calculateChainGrease(); calculateChainAutomation();" onchange="calculateChainGrease(); calculateChainAutomation();">
+                <select id="chainEnvSelect" class="form-select" >
                   <option value="normal">Normaal (Schoon, droog, 20°C)</option>
                   <option value="dusty">Stoffig / Vuil (+30% smeerbehoefte)</option>
                   <option value="wet">Vochtig / Nat (+50% smeerbehoefte)</option>
@@ -3118,10 +3117,10 @@
 
   <!-- JavaScript logic imports -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="interflon-data.js?v=20260831_1527"></script>
-  <script src="bearings-db.js?v=20260831_1527"></script>
-  <script src="chains-db.js?v=20260831_1527"></script>
-  <script src="app_v6.js?v=20260831_1527"></script>
+  <script src="interflon-data.js?v=20260831_1542"></script>
+  <script src="bearings-db.js?v=20260831_1542"></script>
+  <script src="chains-db.js?v=20260831_1542"></script>
+  <script src="app_v6.js?v=20260831_1542"></script>
 
   <!-- Interflon Oil Dispenser Information Modal (PowerPoint Viewer) -->
   <div id="oilDispenserInfoModal" class="modal-overlay hidden" style="z-index: 99999;">
