@@ -1,4 +1,3 @@
-
 // Emergency runtime hide guard for cached language selectors
 if (typeof document !== "undefined") {
   document.addEventListener("DOMContentLoaded", function() {
@@ -10411,7 +10410,7 @@ function getSurveyUrl() {
   const clientEmail = localStorage.getItem("client_email") || "";
 
   let params = new URLSearchParams();
-  params.set("v", "20260831_1351");
+  params.set("v", "20260831_1400");
   if (typeof currentLang !== "undefined" && currentLang) params.set("lang", currentLang);
   if (opEmail) params.set("contact", opEmail);
   if (clientCompany) params.set("company", clientCompany);
@@ -10660,7 +10659,9 @@ if (typeof window !== "undefined") {
 
 
 // ==========================================================================
-// CALCULATIE OPSLAAN & IMPORTEREN (SAVE & IMPORT CALCULATION STATE)
+
+// ==========================================================================
+// CALCULATIE OPSLAAN & IMPORTEREN (SAVE & IMPORT CALCULATION STATE - FIXED)
 // ==========================================================================
 
 function sanitizeFilename(str) {
@@ -10712,7 +10713,7 @@ async function exportCalculationData() {
     const localStorageData = {};
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i);
-      if (key && (key.startsWith("bearing_calc_") || key.startsWith("app_field_") || key.includes("operator") || key.includes("client") || key.includes("tech"))) {
+      if (key && (key.startsWith("bearing_calc_") || key.startsWith("app_field_") || key.includes("operator") || key.includes("client") || key.includes("tech") || key === "autoDevicesState" || key === "photoLibrary")) {
         localStorageData[key] = localStorage.getItem(key);
       }
     }
@@ -10747,7 +10748,8 @@ async function exportCalculationData() {
       autoDevicesState: (typeof autoDevicesState !== "undefined") ? autoDevicesState : null,
       currentSelectedBearing: (typeof currentSelectedBearing !== "undefined") ? currentSelectedBearing : null,
       currentChainData: (typeof currentChainData !== "undefined") ? currentChainData : null,
-      activeCalculationMode: (typeof activeCalculationMode !== "undefined") ? activeCalculationMode : "bearing"
+      activeCalculationMode: (typeof activeCalculationMode !== "undefined") ? activeCalculationMode : "bearing",
+      photoLibrary: (typeof photoLibrary !== "undefined") ? photoLibrary : null
     };
 
     const jsonString = JSON.stringify(exportData, null, 2);
@@ -10813,7 +10815,14 @@ function handleImportFileSelected(event) {
 
       const isEnglish = (typeof currentLang !== "undefined" && currentLang === "en");
 
-      // 1. Restore localStorage
+      // STEP 1: Purge existing field storage keys so no stale values linger
+      Object.keys(localStorage).forEach(k => {
+        if (k.startsWith("app_field_") || k.startsWith("bearing_calc_")) {
+          localStorage.removeItem(k);
+        }
+      });
+
+      // STEP 2: Restore localStorage from imported file
       if (data.localStorage) {
         Object.keys(data.localStorage).forEach(k => {
           if (data.localStorage[k] !== null && data.localStorage[k] !== undefined) {
@@ -10822,23 +10831,10 @@ function handleImportFileSelected(event) {
         });
       }
 
-      // 2. Restore inputs
-      if (data.inputs) {
-        Object.keys(data.inputs).forEach(id => {
-          const el = document.getElementById(id);
-          if (el) {
-            if (el.type === "checkbox" || el.type === "radio") {
-              el.checked = !!data.inputs[id];
-            } else {
-              el.value = data.inputs[id];
-            }
-          }
-        });
-      }
-
-      // 3. Restore global state
+      // STEP 3: Restore global states
       if (data.autoDevicesState && Array.isArray(data.autoDevicesState)) {
         window.autoDevicesState = data.autoDevicesState;
+        try { localStorage.setItem("autoDevicesState", JSON.stringify(data.autoDevicesState)); } catch(err){}
       }
       if (data.currentSelectedBearing) {
         window.currentSelectedBearing = data.currentSelectedBearing;
@@ -10846,15 +10842,47 @@ function handleImportFileSelected(event) {
       if (data.currentChainData) {
         window.currentChainData = data.currentChainData;
       }
+      if (data.photoLibrary && Array.isArray(data.photoLibrary)) {
+        window.photoLibrary = data.photoLibrary;
+        try { localStorage.setItem("photoLibrary", JSON.stringify(data.photoLibrary)); } catch(err){}
+      }
 
-      // 4. Trigger calculations & UI updates
+      // STEP 4: Restore inputs, sync to localStorage, AND dispatch input/change events
+      if (data.inputs) {
+        Object.keys(data.inputs).forEach(id => {
+          const val = data.inputs[id];
+          const el = document.getElementById(id);
+
+          // Save to localStorage for universal input persistence
+          localStorage.setItem("app_field_" + id, val);
+
+          if (el) {
+            if (el.type === "checkbox" || el.type === "radio") {
+              el.checked = !!val;
+            } else {
+              el.value = val;
+            }
+            // Trigger input and change events so inline handlers and listeners fire!
+            try {
+              el.dispatchEvent(new Event("input", { bubbles: true }));
+              el.dispatchEvent(new Event("change", { bubbles: true }));
+            } catch(e) {}
+          }
+        });
+      }
+
+      // STEP 5: Re-render UI components & trigger recalculations
+      if (window.currentSelectedBearing && typeof displayBearingData === "function") {
+        displayBearingData(window.currentSelectedBearing);
+      }
       if (typeof calculateBearing === "function") calculateBearing();
       if (typeof calculateTco === "function") calculateTco();
+      if (typeof renderAutoDevicesUI === "function") renderAutoDevicesUI();
       if (typeof calculateAutomationLubrication === "function") calculateAutomationLubrication();
       if (typeof updateRoiAutomationPage === "function") updateRoiAutomationPage();
       if (typeof calculateChain === "function") calculateChain();
-      if (typeof renderAutoDevicesUI === "function") renderAutoDevicesUI();
       if (typeof renderPhotoGrid === "function") renderPhotoGrid();
+      if (typeof updateHeaderBadges === "function") updateHeaderBadges();
 
       const compName = data.clientCompany || (data.inputs && data.inputs.clientCompanyInput) || "";
       const msg = isEnglish
