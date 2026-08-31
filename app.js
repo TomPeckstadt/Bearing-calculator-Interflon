@@ -1239,6 +1239,12 @@ const TRANSLATIONS = {
     chainDailyVolumeLabel: "Dagelijks smeervolume:",
 
     chainOutputTitle: "Berekend Smeerdebiet Ketting",
+    chainAppMethodLabel: "Applicatiemethode",
+    chainAppManual: "Manueel met kwast / oliekan",
+    chainAppAuto: "Automatische smering (Maximale efficiëntie)",
+    chainAppAerosol: "Spuitbus / Aerosol (Lube Spray)",
+    descChainAppMethod: "Bepaalt het reële praktijkverbruik per smeerbeurt inclusief weting en afvloeiverlies.",
+    chainRealPassTitle: "Reëel Volume per 1 Smeerbeurt",
 
     chainEnvHeavy: "Zwaar belast / Buitenopstelling (+80% smeerbehoefte)",
 
@@ -7251,6 +7257,12 @@ function calculateChainGrease() {
   const envSelect = document.getElementById("chainEnvSelect");
 
   const resDaily = document.getElementById("chainResDaily");
+  const appMethodSelect = document.getElementById("chainAppMethodSelect");
+  const appMethod = appMethodSelect ? appMethodSelect.value : "manual";
+  const resRealPassMl = document.getElementById("chainResRealPassMl");
+  const resRealPassDetail = document.getElementById("chainResRealPassDetail");
+  const resTheoPassMl = document.getElementById("chainResTheoPassMl");
+  const appMethodBadge = document.getElementById("chainAppMethodBadge");
   const resHourly = document.getElementById("chainResHourly");
   const resWeekly = document.getElementById("chainResWeekly");
   const resMonthly = document.getElementById("chainResMonthly");
@@ -7289,6 +7301,48 @@ function calculateChainGrease() {
   const dailyCm3 = (baseDailyCm3 * (hoursPerDay / 24));
   const hourlyMl = hoursPerDay > 0 ? (dailyCm3 / hoursPerDay) : 0;
   const dropsPerMin = (hourlyMl * 20) / 60; // 20 drops per ml standard oil
+
+  // Calculate Theoretical & Real Volume per 1 Single Lubrication Pass
+  const pinDiam = pitch * 0.38; // Pin outer diameter estimate (mm)
+  const clearanceGap = 0.03; // Radial clearance gap (mm)
+  const hingesPerMeter = 1000 / (pitch || 12.7);
+  const totalHinges = (lengthM * hingesPerMeter) * strands;
+  
+  // Theoretical micro-clearance volume (ml)
+  const theoHingeVolMm3 = Math.PI * pinDiam * clearanceGap * width;
+  const theoPassMl = Math.max(0.1, (totalHinges * theoHingeVolMm3 * 2.5) / 1000);
+
+  // Application method factor for workshop real consumption
+  let appFactor = 10.0; // Default: Manual brush / oil can (10x)
+  let appLabel = isEnglish ? "Manual" : "Manueel";
+  if (appMethod === "auto") {
+    appFactor = 5.0; // Automatic lubrication (5x)
+    appLabel = isEnglish ? "Automatic" : "Automatisch";
+  } else if (appMethod === "aerosol") {
+    appFactor = 25.0; // Aerosol / Spray can (25x)
+    appLabel = isEnglish ? "Spray Can" : "Spuitbus";
+  }
+
+  const realPassMl = theoPassMl * appFactor;
+  const realPassLiters = realPassMl / 1000;
+
+  if (appMethodBadge) appMethodBadge.textContent = appLabel;
+  if (resTheoPassMl) resTheoPassMl.textContent = `${theoPassMl.toLocaleString(isEnglish ? "en-US" : "nl-BE", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} ml`;
+  if (resRealPassMl) {
+    const passWord = isEnglish ? "lubrication pass" : "smeerbeurt";
+    resRealPassMl.textContent = `${realPassMl.toLocaleString(isEnglish ? "en-US" : "nl-BE", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} ml / ${passWord}`;
+  }
+  if (resRealPassDetail) {
+    const literWord = isEnglish ? "Liter per pass" : "Liter per beurt";
+    const theoLabel = isEnglish ? "Pure theoretical micro-clearance:" : "Puur theoretische micro-speling:";
+    if (appMethod === "aerosol") {
+      const sprayCans = (realPassMl / 400).toFixed(1).replace('.', ',');
+      const cansWord = isEnglish ? "spray cans of 400 ml" : "spuitbussen van 400 ml";
+      resRealPassDetail.innerHTML = `± ${realPassLiters.toFixed(2).replace('.', ',')} ${literWord} (${sprayCans} ${cansWord}) &bull; <em>${theoLabel} <span id="chainResTheoPassMl">${theoPassMl.toLocaleString(isEnglish ? "en-US" : "nl-BE", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} ml</span></em>`;
+    } else {
+      resRealPassDetail.innerHTML = `± ${realPassLiters.toFixed(2).replace('.', ',')} ${literWord} &bull; <em>${theoLabel} <span id="chainResTheoPassMl">${theoPassMl.toLocaleString(isEnglish ? "en-US" : "nl-BE", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} ml</span></em>`;
+    }
+  }
 
   const weeklyCm3 = dailyCm3 * daysPerWeek;
   const yearlyLiters = (weeklyCm3 * 52.14) / 1000;
@@ -10410,7 +10464,7 @@ function getSurveyUrl() {
   const clientEmail = localStorage.getItem("client_email") || "";
 
   let params = new URLSearchParams();
-  params.set("v", "20260831_1400");
+  params.set("v", "20260831_1508");
   if (typeof currentLang !== "undefined" && currentLang) params.set("lang", currentLang);
   if (opEmail) params.set("contact", opEmail);
   if (clientCompany) params.set("company", clientCompany);
