@@ -1239,6 +1239,7 @@ const TRANSLATIONS = {
     chainDailyVolumeLabel: "Dagelijks smeervolume:",
 
     chainOutputTitle: "Berekend Smeerdebiet Ketting",
+    chainDosageOverviewTitle: "Periodiek Smeerdebiet Overzicht",
     chainAppMethodLabel: "Applicatiemethode",
     chainAppManual: "Manueel met kwast / oliekan",
     chainAppAuto: "Automatische smering (Maximale efficiëntie)",
@@ -7095,7 +7096,7 @@ function selectAppMode(mode) {
   if (mode === "chain") {
     switchPage("chainSearch");
     if (typeof CHAINS_DB !== "undefined" && CHAINS_DB.length > 0 && !activeChain) {
-      selectChain(CHAINS_DB[3]); // Default 08B-1
+      selectChain(CHAINS_DB[3]); if(typeof calculateChainGrease === 'function') calculateChainGrease();
     }
   } else {
     switchPage("search");
@@ -7246,6 +7247,9 @@ function updateChainCalculatorFields() {
 }
 
 function calculateChainGrease() {
+  if (typeof CHAINS_DB !== "undefined" && Array.isArray(CHAINS_DB) && CHAINS_DB.length > 0 && !activeChain) {
+    activeChain = CHAINS_DB[3] || CHAINS_DB[0];
+  }
   updateChainCalculatorFields();
 
   const lengthInput = document.getElementById("chainLengthInput");
@@ -10464,7 +10468,7 @@ function getSurveyUrl() {
   const clientEmail = localStorage.getItem("client_email") || "";
 
   let params = new URLSearchParams();
-  params.set("v", "20260831_1508");
+  params.set("v", "20260831_1514");
   if (typeof currentLang !== "undefined" && currentLang) params.set("lang", currentLang);
   if (opEmail) params.set("contact", opEmail);
   if (clientCompany) params.set("company", clientCompany);
