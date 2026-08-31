@@ -1,3 +1,8 @@
+var currentLang = "nl";
+var currentAppMode = "bearing";
+var activeChain = null;
+var isEnglish = false;
+
 // Emergency runtime hide guard for cached language selectors
 if (typeof document !== "undefined") {
   document.addEventListener("DOMContentLoaded", function() {
@@ -1053,7 +1058,7 @@ function getRecommendedSettingMonths(recMonths) {
 let activeBearing = null;
 let tcoUploadedImageBase64 = "";
 let chainTcoUploadedImageBase64 = "";
-let currentLang = "nl"; localStorage.setItem("bearing_calc_lang", "nl");
+var currentLang = "nl"; localStorage.setItem("bearing_calc_lang", "nl");
 
 // Clean up trailing '?' from URL if present
 if (typeof window !== "undefined" && window.location && window.location.href.endsWith("?")) {
@@ -7021,8 +7026,8 @@ function calculateAutomationLubrication() {
 // MODE SELECTION & CHAIN LOGIC (LAGERBEREKENING VS KETTINGBEREKENING)
 // ==========================================================================
 
-let currentAppMode = "bearing"; // "bearing" or "chain"
-let activeChain = null;
+currentAppMode = "bearing"; // "bearing" or "chain"
+var activeChain = null;
 
 function openModeSelectionModal() {
   changeLanguage(currentLang);
@@ -7267,6 +7272,7 @@ function updateChainCalculatorFields() {
 }
 
 function calculateChainGrease() {
+  const isEnglish = typeof currentLang !== "undefined" && currentLang === "en";
   if (typeof CHAINS_DB !== "undefined" && Array.isArray(CHAINS_DB) && CHAINS_DB.length > 0 && !activeChain) {
     activeChain = CHAINS_DB[3] || CHAINS_DB[0];
   }
@@ -10489,7 +10495,7 @@ function getSurveyUrl() {
   const clientEmail = localStorage.getItem("client_email") || "";
 
   let params = new URLSearchParams();
-  params.set("v", "20260831_1943");
+  params.set("v", "20260831_2045");
   if (typeof currentLang !== "undefined" && currentLang) params.set("lang", currentLang);
   if (opEmail) params.set("contact", opEmail);
   if (clientCompany) params.set("company", clientCompany);
