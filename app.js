@@ -7320,7 +7320,7 @@ function calculateChainGrease() {
   }
 
   // Base daily oil requirement for continuous 24h operation with MicPol® technology:
-  const baseDailyCm3 = (width * strands * lengthM * speedMS * envFactor * tempFactor * (0.32 / micpolFactor));
+  const baseDailyCm3 = (width * strands * lengthM * speedMS * envFactor * tempFactor * 0.32);
 
   // Scaled by actual operational hours per day (hoursPerDay / 24):
   const dailyCm3 = (baseDailyCm3 * (hoursPerDay / 24));
@@ -10489,7 +10489,7 @@ function getSurveyUrl() {
   const clientEmail = localStorage.getItem("client_email") || "";
 
   let params = new URLSearchParams();
-  params.set("v", "20260831_1527");
+  params.set("v", "20260831_1542");
   if (typeof currentLang !== "undefined" && currentLang) params.set("lang", currentLang);
   if (opEmail) params.set("contact", opEmail);
   if (clientCompany) params.set("company", clientCompany);
