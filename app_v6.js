@@ -7281,9 +7281,10 @@ function calculateChainGrease() {
   const env = envSelect ? envSelect.value : "normal";
 
   // Pitch (mm) and Width (mm) from activeChain or default (1/2" chain)
-  const pitch = activeChain ? activeChain.pitch : 12.7;
-  const width = activeChain ? activeChain.width : 7.75;
-  const strands = activeChain ? activeChain.strandsCount : 1;
+  const pitch = (activeChain && parseFloat(activeChain.pitch)) ? parseFloat(activeChain.pitch) : 12.7;
+  const width = (activeChain && parseFloat(activeChain.width)) ? parseFloat(activeChain.width) : 7.75;
+  const strands = (activeChain && parseInt(activeChain.strandsCount, 10)) ? parseInt(activeChain.strandsCount, 10) : 1;
+  // Pin diameter assigned below
 
   let envFactor = 1.0;
   if (env === "dusty") envFactor = 1.3;
@@ -7307,7 +7308,7 @@ function calculateChainGrease() {
   const dropsPerMin = (hourlyMl * 20) / 60; // 20 drops per ml standard oil
 
   // Calculate Theoretical & Real Volume per 1 Single Lubrication Pass
-  const pinDiam = pitch * 0.38; // Pin outer diameter estimate (mm)
+  const pinDiam = (activeChain && parseFloat(activeChain.pinDiameter)) ? parseFloat(activeChain.pinDiameter) : (pitch * 0.38); // Pin outer diameter estimate (mm)
   const clearanceGap = 0.03; // Radial clearance gap (mm)
   const hingesPerMeter = 1000 / (pitch || 12.7);
   const totalHinges = (lengthM * hingesPerMeter) * strands;
@@ -10468,7 +10469,7 @@ function getSurveyUrl() {
   const clientEmail = localStorage.getItem("client_email") || "";
 
   let params = new URLSearchParams();
-  params.set("v", "20260831_1514");
+  params.set("v", "20260831_1519");
   if (typeof currentLang !== "undefined" && currentLang) params.set("lang", currentLang);
   if (opEmail) params.set("contact", opEmail);
   if (clientCompany) params.set("company", clientCompany);
@@ -10962,3 +10963,16 @@ if (typeof window !== "undefined") {
   window.triggerImportCalculation = triggerImportCalculation;
   window.handleImportFileSelected = handleImportFileSelected;
 }
+
+
+// Auto-run chain calculation on init
+document.addEventListener("DOMContentLoaded", function() {
+  setTimeout(function() {
+    if (typeof CHAINS_DB !== "undefined" && Array.isArray(CHAINS_DB) && CHAINS_DB.length > 0 && !activeChain) {
+      activeChain = CHAINS_DB[3] || CHAINS_DB[0];
+    }
+    if (typeof calculateChainGrease === "function") {
+      calculateChainGrease();
+    }
+  }, 100);
+});
