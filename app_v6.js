@@ -583,6 +583,26 @@ function initUniversalInputPersistence() {
     if (typeof recalculateTcoModel === "function") recalculateTcoModel();
     if (typeof recalculateChainTcoModel === "function") recalculateChainTcoModel();
     if (typeof calculateAutomationLubrication === "function") calculateAutomationLubrication();
+    if (typeof calculateChainGrease === "function") calculateChainGrease();
+
+    const chainInputIds = [
+      "chainLengthInput", "chainSpeedInput", "chainHoursPerDayInput",
+      "chainDaysPerWeekInput", "chainTempInput", "chainFactorInput",
+      "chainEnvSelect", "chainProductSelect", "chainAppMethodSelect"
+    ];
+    chainInputIds.forEach(function(id) {
+      const el = document.getElementById(id);
+      if (el) {
+        el.addEventListener("input", function() {
+          if (typeof calculateChainGrease === "function") calculateChainGrease();
+          if (typeof calculateChainAutomation === "function") calculateChainAutomation();
+        });
+        el.addEventListener("change", function() {
+          if (typeof calculateChainGrease === "function") calculateChainGrease();
+          if (typeof calculateChainAutomation === "function") calculateChainAutomation();
+        });
+      }
+    });
   if (typeof updateRoiAutomationPage === "function") updateRoiAutomationPage();
   if (typeof updateRoiAutomationPage === "function") updateRoiAutomationPage();
     if (typeof calculateChainAutomationLubrication === "function") calculateChainAutomationLubrication();
@@ -10469,7 +10489,7 @@ function getSurveyUrl() {
   const clientEmail = localStorage.getItem("client_email") || "";
 
   let params = new URLSearchParams();
-  params.set("v", "20260831_1519");
+  params.set("v", "20260831_1527");
   if (typeof currentLang !== "undefined" && currentLang) params.set("lang", currentLang);
   if (opEmail) params.set("contact", opEmail);
   if (clientCompany) params.set("company", clientCompany);
