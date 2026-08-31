@@ -10411,7 +10411,7 @@ function getSurveyUrl() {
   const clientEmail = localStorage.getItem("client_email") || "";
 
   let params = new URLSearchParams();
-  params.set("v", "20260826_1029");
+  params.set("v", "20260831_1351");
   if (typeof currentLang !== "undefined" && currentLang) params.set("lang", currentLang);
   if (opEmail) params.set("contact", opEmail);
   if (clientCompany) params.set("company", clientCompany);
@@ -10656,4 +10656,223 @@ if (typeof window !== "undefined") {
   window.closeModeSelectionModal = closeModeSelectionModal;
   window.selectAppMode = selectAppMode;
   window.handleLogout = handleLogout;
+}
+
+
+// ==========================================================================
+// CALCULATIE OPSLAAN & IMPORTEREN (SAVE & IMPORT CALCULATION STATE)
+// ==========================================================================
+
+function sanitizeFilename(str) {
+  if (!str) return "";
+  return str.toString()
+    .trim()
+    .replace(/[^a-zA-Z0-9_\-\s]/g, "")
+    .replace(/\s+/g, "_");
+}
+
+function showToastNotification(message, isError = false) {
+  let toast = document.getElementById("appToastNotification");
+  if (!toast) {
+    toast = document.createElement("div");
+    toast.id = "appToastNotification";
+    toast.style.cssText = "position: fixed; bottom: 24px; right: 24px; z-index: 99999; padding: 14px 22px; background: #0f172a; color: #ffffff; font-size: 14px; font-weight: 700; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); border-left: 5px solid #10b981; transition: all 0.3s ease; opacity: 0; transform: translateY(20px); pointer-events: none;";
+    document.body.appendChild(toast);
+  }
+  toast.style.borderColor = isError ? "#ef4444" : "#10b981";
+  toast.textContent = message;
+  toast.style.opacity = "1";
+  toast.style.transform = "translateY(0)";
+  toast.style.pointerEvents = "auto";
+
+  setTimeout(() => {
+    toast.style.opacity = "0";
+    toast.style.transform = "translateY(20px)";
+    toast.style.pointerEvents = "none";
+  }, 4000);
+}
+
+async function exportCalculationData() {
+  try {
+    const isEnglish = (typeof currentLang !== "undefined" && currentLang === "en");
+
+    // 1. Gather all inputs across all tabs
+    const inputsData = {};
+    document.querySelectorAll("input, select, textarea").forEach(el => {
+      if (el.id && el.id !== "passwordInput" && el.id !== "importJsonFileInput") {
+        if (el.type === "checkbox" || el.type === "radio") {
+          inputsData[el.id] = el.checked;
+        } else {
+          inputsData[el.id] = el.value;
+        }
+      }
+    });
+
+    // 2. Gather localStorage
+    const localStorageData = {};
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && (key.startsWith("bearing_calc_") || key.startsWith("app_field_") || key.includes("operator") || key.includes("client") || key.includes("tech"))) {
+        localStorageData[key] = localStorage.getItem(key);
+      }
+    }
+
+    // 3. Gather client details for filename
+    const compVal = document.getElementById("clientCompanyInput") ? document.getElementById("clientCompanyInput").value : (localStorage.getItem("app_field_clientCompanyInput") || "");
+    const contactVal = document.getElementById("clientContactInput") ? document.getElementById("clientContactInput").value : (localStorage.getItem("app_field_clientContactInput") || "");
+
+    const cleanComp = sanitizeFilename(compVal);
+    const cleanContact = sanitizeFilename(contactVal);
+    const dateStr = new Date().toISOString().split("T")[0];
+
+    let filename = "";
+    if (cleanComp && cleanContact) {
+      filename = `${cleanComp}_${cleanContact}_${dateStr}.json`;
+    } else if (cleanComp) {
+      filename = `${cleanComp}_${dateStr}.json`;
+    } else if (cleanContact) {
+      filename = `${cleanContact}_${dateStr}.json`;
+    } else {
+      filename = isEnglish ? `Interflon_Calculation_${dateStr}.json` : `Calculatie_Interflon_${dateStr}.json`;
+    }
+
+    // 4. Construct complete export object
+    const exportData = {
+      appVersion: "2026.1",
+      exportedAt: new Date().toISOString(),
+      clientCompany: compVal,
+      clientContact: contactVal,
+      inputs: inputsData,
+      localStorage: localStorageData,
+      autoDevicesState: (typeof autoDevicesState !== "undefined") ? autoDevicesState : null,
+      currentSelectedBearing: (typeof currentSelectedBearing !== "undefined") ? currentSelectedBearing : null,
+      currentChainData: (typeof currentChainData !== "undefined") ? currentChainData : null,
+      activeCalculationMode: (typeof activeCalculationMode !== "undefined") ? activeCalculationMode : "bearing"
+    };
+
+    const jsonString = JSON.stringify(exportData, null, 2);
+
+    // 5. Save file (using showSaveFilePicker if available, else Blob download)
+    if (typeof window.showSaveFilePicker === "function") {
+      try {
+        const handle = await window.showSaveFilePicker({
+          suggestedName: filename,
+          types: [{
+            description: isEnglish ? 'Interflon Calculation File (*.json)' : 'Interflon Calculatie Bestand (*.json)',
+            accept: { 'application/json': ['.json'] }
+          }]
+        });
+        const writable = await handle.createWritable();
+        await writable.write(jsonString);
+        await writable.close();
+        showToastNotification(isEnglish ? "Calculation successfully saved!" : "Calculatie succesvol opgeslagen!");
+        return;
+      } catch (err) {
+        if (err.name === "AbortError") return; // User cancelled
+      }
+    }
+
+    // Fallback Blob download
+    const blob = new Blob([jsonString], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    showToastNotification(isEnglish ? `Calculation saved: ${filename}` : `Calculatie opgeslagen: ${filename}`);
+  } catch (e) {
+    console.error("Error exporting calculation data:", e);
+    showToastNotification("Fout bij opslaan van calculatie.", true);
+  }
+}
+
+function triggerImportCalculation() {
+  const fileInput = document.getElementById("importJsonFileInput");
+  if (fileInput) {
+    fileInput.value = "";
+    fileInput.click();
+  }
+}
+
+function handleImportFileSelected(event) {
+  const file = event.target.files && event.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const data = JSON.parse(e.target.result);
+      if (!data || (!data.inputs && !data.localStorage)) {
+        showToastNotification("Ongeldig calculatiebestand.", true);
+        return;
+      }
+
+      const isEnglish = (typeof currentLang !== "undefined" && currentLang === "en");
+
+      // 1. Restore localStorage
+      if (data.localStorage) {
+        Object.keys(data.localStorage).forEach(k => {
+          if (data.localStorage[k] !== null && data.localStorage[k] !== undefined) {
+            localStorage.setItem(k, data.localStorage[k]);
+          }
+        });
+      }
+
+      // 2. Restore inputs
+      if (data.inputs) {
+        Object.keys(data.inputs).forEach(id => {
+          const el = document.getElementById(id);
+          if (el) {
+            if (el.type === "checkbox" || el.type === "radio") {
+              el.checked = !!data.inputs[id];
+            } else {
+              el.value = data.inputs[id];
+            }
+          }
+        });
+      }
+
+      // 3. Restore global state
+      if (data.autoDevicesState && Array.isArray(data.autoDevicesState)) {
+        window.autoDevicesState = data.autoDevicesState;
+      }
+      if (data.currentSelectedBearing) {
+        window.currentSelectedBearing = data.currentSelectedBearing;
+      }
+      if (data.currentChainData) {
+        window.currentChainData = data.currentChainData;
+      }
+
+      // 4. Trigger calculations & UI updates
+      if (typeof calculateBearing === "function") calculateBearing();
+      if (typeof calculateTco === "function") calculateTco();
+      if (typeof calculateAutomationLubrication === "function") calculateAutomationLubrication();
+      if (typeof updateRoiAutomationPage === "function") updateRoiAutomationPage();
+      if (typeof calculateChain === "function") calculateChain();
+      if (typeof renderAutoDevicesUI === "function") renderAutoDevicesUI();
+      if (typeof renderPhotoGrid === "function") renderPhotoGrid();
+
+      const compName = data.clientCompany || (data.inputs && data.inputs.clientCompanyInput) || "";
+      const msg = isEnglish
+        ? (compName ? `Calculation for ${compName} successfully imported!` : "Calculation successfully imported!")
+        : (compName ? `Calculatie van ${compName} succesvol geïmporteerd!` : "Calculatie succesvol geïmporteerd!");
+
+      showToastNotification(msg);
+    } catch (err) {
+      console.error("Import error:", err);
+      showToastNotification("Fout bij inlezen van bestand.", true);
+    }
+  };
+  reader.readAsText(file);
+}
+
+// Make globally accessible
+if (typeof window !== "undefined") {
+  window.exportCalculationData = exportCalculationData;
+  window.triggerImportCalculation = triggerImportCalculation;
+  window.handleImportFileSelected = handleImportFileSelected;
 }
