@@ -293,14 +293,32 @@
       color: #e2e8f0 !important;
     }
 
+    #rasterInteractiveWrapper.raster-modal-fullscreen {
+      padding: 8px 16px 10px 16px !important;
+    }
+
+    #rasterInteractiveWrapper.raster-modal-fullscreen #rasterFullscreenHeader {
+      margin-bottom: 6px !important;
+      padding-bottom: 6px !important;
+    }
+
+    #rasterInteractiveWrapper.raster-modal-fullscreen #rasterControlsRow {
+      margin-bottom: 6px !important;
+    }
+
+    #rasterInteractiveWrapper.raster-modal-fullscreen #devicesFilterBarContainer {
+      margin-bottom: 6px !important;
+      padding: 4px 12px !important;
+    }
+
     #rasterInteractiveWrapper.raster-modal-fullscreen #layoutGridContainer {
       flex: 1 1 0% !important;
-      height: calc(100vh - 160px) !important;
-      max-height: calc(100vh - 160px) !important;
+      height: auto !important;
+      max-height: none !important;
       min-height: 0 !important;
-      grid-template-columns: 2.2fr 1.1fr !important;
+      grid-template-columns: minmax(0, 1fr) 330px !important;
       grid-template-rows: 100% !important;
-      gap: 14px !important;
+      gap: 12px !important;
       margin-top: 2px !important;
       overflow: hidden !important;
     }
@@ -627,6 +645,14 @@
               </span>
               <div style="display: flex; align-items: center; gap: 8px;">
                 <span id="canvasZoomInfo" style="color: #cbd5e1; font-family: monospace; font-size: 11px;">Bereik: tot 10 m (Centrum: 0,0)</span>
+                <!-- Interactive Zoom Controls -->
+                <div style="display: inline-flex; align-items: center; gap: 3px; background: rgba(30, 41, 59, 0.85); padding: 2px 6px; border-radius: 6px; border: 1px solid #334155;">
+                  <span style="color: #94a3b8; font-size: 10.5px; font-weight: 700; margin-right: 2px;">Zoom:</span>
+                  <button type="button" onclick="adjustRasterZoom(-0.2)" style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.2); color: #fff; border-radius: 4px; padding: 1px 6px; font-size: 11px; cursor: pointer;" title="Uitzoomen">➖</button>
+                  <span id="rasterZoomLabel" style="color: #38bdf8; font-family: monospace; font-size: 11px; font-weight: 700; min-width: 38px; text-align: center;">100%</span>
+                  <button type="button" onclick="adjustRasterZoom(0.2)" style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.2); color: #fff; border-radius: 4px; padding: 1px 6px; font-size: 11px; cursor: pointer;" title="Inzoomen">➕</button>
+                  <button type="button" onclick="resetRasterZoom()" style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.2); color: #cbd5e1; border-radius: 4px; padding: 1px 5px; font-size: 10px; cursor: pointer;" title="Herstel zoom naar passend en centreer">100%</button>
+                </div>
                 <button type="button" id="btnHeaderVergroot" onclick="toggleRasterFullscreen()" style="background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.25); color: #ffffff; padding: 2px 7px; font-size: 11px; border-radius: 4px; cursor: pointer; display: flex; align-items: center; gap: 4px;" title="Vergroot naar volledig scherm">
                   ⛶ Vergroot
                 </button>
@@ -651,7 +677,7 @@
 
               <!-- Quick Helper Tip -->
               <div style="position: absolute; top: 8px; right: 8px; background: rgba(15,23,42,0.8); backdrop-filter: blur(4px); border: 1px solid #334155; padding: 4px 8px; border-radius: 6px; font-size: 10.5px; color: #94a3b8; pointer-events: none;">
-                💡 Tip: Versleep een lager om afstand aan te passen
+                💡 Tip: Versleep lagers om te verplaatsen • Muiswiel of ➕/➖ om te zoomen
               </div>
             </div>
 
@@ -1038,17 +1064,45 @@
       { x: 3.5, y: 0.0 }
     ];
 
+    let rasterZoom = 1.0;
+    let rasterPanX = 0;
+    let rasterPanY = 0;
+    let isCanvasPanning = false;
+    let panStartClientX = 0;
+    let panStartClientY = 0;
+
     function getPixelsPerMeter(canvas) {
       const gridRange = machineRangeMeters;
-      const minDim = Math.min(canvas.width, canvas.height);
-      const factor = layoutViewMode === '3d' ? 0.38 : 0.44;
-      return (minDim * factor) / gridRange;
+      const dpr = window.devicePixelRatio || 1;
+      let basePpm;
+
+      if (layoutViewMode === '3d') {
+        // In 3D isometric projection, the entire machine floor square [-gridRange, gridRange]^2 has:
+        // Screen height = 2 * gridRange * ppm
+        // Screen width  = 2 * cos(30°) * 2 * gridRange * ppm = 3.464 * gridRange * ppm
+        const padY = (isRasterFullscreen ? 35 : 25) * dpr;
+        const padX = (isRasterFullscreen ? 40 : 25) * dpr;
+        const availH = Math.max(100, canvas.height - padY * 2);
+        const availW = Math.max(100, canvas.width - padX * 2);
+
+        const ppmH = availH / (2 * gridRange);
+        const ppmW = availW / (3.464 * gridRange);
+        basePpm = Math.min(ppmH, ppmW);
+      } else {
+        // 2D top-down view: 2 * gridRange in both dimensions
+        const pad = (isRasterFullscreen ? 35 : 25) * dpr;
+        const avail = Math.max(100, Math.min(canvas.width, canvas.height) - pad * 2);
+        basePpm = avail / (2 * gridRange);
+      }
+
+      return basePpm * (rasterZoom || 1.0);
     }
 
     // Convert world coordinates (meters) to screen coordinates (pixels)
     function worldToScreen(x, y, canvas) {
-      const cx = canvas.width / 2;
-      const cy = canvas.height / 2;
+      const dpr = window.devicePixelRatio || 1;
+      const cx = canvas.width / 2 + (rasterPanX || 0) * dpr;
+      const cy = canvas.height / 2 + (rasterPanY || 0) * dpr;
       const ppm = getPixelsPerMeter(canvas);
 
       if (layoutViewMode === '3d') {
@@ -1068,8 +1122,9 @@
 
     // Convert screen coordinates (pixels) to world coordinates (meters)
     function screenToWorld(u, v, canvas) {
-      const cx = canvas.width / 2;
-      const cy = canvas.height / 2;
+      const dpr = window.devicePixelRatio || 1;
+      const cx = canvas.width / 2 + (rasterPanX || 0) * dpr;
+      const cy = canvas.height / 2 + (rasterPanY || 0) * dpr;
       const ppm = getPixelsPerMeter(canvas);
 
       if (layoutViewMode === '3d') {
@@ -1085,6 +1140,22 @@
         const y = (cy - v) / ppm;
         return { x, y };
       }
+    }
+
+    function adjustRasterZoom(delta) {
+      rasterZoom = Math.max(0.6, Math.min(3.0, Math.round((rasterZoom + delta) * 100) / 100));
+      const lbl = document.getElementById('rasterZoomLabel');
+      if (lbl) lbl.textContent = Math.round(rasterZoom * 100) + '%';
+      drawBearingLayout();
+    }
+
+    function resetRasterZoom() {
+      rasterZoom = isRasterFullscreen ? 1.4 : 1.0;
+      rasterPanX = 0;
+      rasterPanY = 0;
+      const lbl = document.getElementById('rasterZoomLabel');
+      if (lbl) lbl.textContent = Math.round(rasterZoom * 100) + '%';
+      drawBearingLayout();
     }
 
     function setLayoutViewMode(mode) {
@@ -1634,7 +1705,26 @@
           }
           canvas.style.cursor = 'grabbing';
           drawBearingLayout();
+        } else {
+          isCanvasPanning = true;
+          panStartClientX = e.clientX;
+          panStartClientY = e.clientY;
+          canvas.style.cursor = 'grabbing';
         }
+      });
+
+      // Mouse Wheel Zoom
+      canvas.addEventListener('wheel', function(e) {
+        e.preventDefault();
+        const delta = e.deltaY < 0 ? 0.15 : -0.15;
+        adjustRasterZoom(delta);
+      }, { passive: false });
+
+      // Double-click resets pan
+      canvas.addEventListener('dblclick', function(e) {
+        rasterPanX = 0;
+        rasterPanY = 0;
+        drawBearingLayout();
       });
 
       // Mouse Move
@@ -1671,6 +1761,12 @@
 
           drawBearingLayout();
           renderDistancesOverview();
+        } else if (isCanvasPanning) {
+          rasterPanX += (e.clientX - panStartClientX);
+          rasterPanY += (e.clientY - panStartClientY);
+          panStartClientX = e.clientX;
+          panStartClientY = e.clientY;
+          drawBearingLayout();
         } else {
           const hit = getHitObject(e.clientX, e.clientY);
           const newHoverBearing = hit && hit.type === 'bearing' ? hit.letter : null;
@@ -1687,6 +1783,10 @@
 
       // Mouse Up / Leave
       window.addEventListener('mouseup', function() {
+        if (isCanvasPanning) {
+          isCanvasPanning = false;
+          canvas.style.cursor = (hoveredBearingLetter || hoveredDeviceId) ? 'grab' : 'default';
+        }
         if (draggedBearingLetter || draggedDeviceId) {
           draggedBearingLetter = null;
           draggedDeviceId = null;
@@ -2021,8 +2121,23 @@
       ctx.stroke();
       ctx.clip();
 
+      // Temporarily render standard un-panned 100% overview for export
+      const prevZoom = rasterZoom;
+      const prevPanX = rasterPanX;
+      const prevPanY = rasterPanY;
+      rasterZoom = 1.0;
+      rasterPanX = 0;
+      rasterPanY = 0;
+      drawBearingLayout();
+
       ctx.drawImage(sourceCanvas, leftX, leftY, leftW, leftH);
       ctx.restore();
+
+      // Restore interactive zoom & pan
+      rasterZoom = prevZoom;
+      rasterPanX = prevPanX;
+      rasterPanY = prevPanY;
+      drawBearingLayout();
 
       // Right Card: The Distances Overview
       const rightX = 750;
@@ -2292,10 +2407,18 @@
       if (isRasterFullscreen) {
         wrapper.classList.add('raster-modal-fullscreen');
         document.body.style.overflow = 'hidden';
+        rasterZoom = 1.4; // Generous 140% scale in enlarged modal for clear spacing
+        rasterPanX = 0;
+        rasterPanY = 0;
       } else {
         wrapper.classList.remove('raster-modal-fullscreen');
         document.body.style.overflow = '';
+        rasterZoom = 1.0;
+        rasterPanX = 0;
+        rasterPanY = 0;
       }
+      const zoomLbl = document.getElementById('rasterZoomLabel');
+      if (zoomLbl) zoomLbl.textContent = Math.round(rasterZoom * 100) + '%';
 
       // Smooth redraw once layout dimensions adapt
       setTimeout(function() {
