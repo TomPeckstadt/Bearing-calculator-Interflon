@@ -430,11 +430,12 @@
             <div style="display: flex; align-items: center; gap: 6px; background: #ffffff; padding: 4px 10px; border-radius: 8px; border: 1px solid #cbd5e1;">
               <label for="layoutScaleSelect" style="font-size: 12px; font-weight: 700; color: #334155; margin: 0;">Machine Bereik:</label>
               <select id="layoutScaleSelect" class="form-control" style="width: auto; padding: 3px 8px; font-size: 12px; font-weight: 700; height: 30px;" onchange="onLayoutScaleChange(this.value)">
-                <option value="4">4 × 4 m (Compact)</option>
-                <option value="6">6 × 6 m (Klein)</option>
-                <option value="10" selected>10 × 10 m (Standaard)</option>
-                <option value="20">20 × 20 m (Middelgroot)</option>
-                <option value="40">40 × 40 m (Groot / Transportlijn)</option>
+                <option value="4">Tot 4 meter (Compact)</option>
+                <option value="6">Tot 6 meter (Klein)</option>
+                <option value="10" selected>Tot 10 meter (Standaard • 10 × 10 m)</option>
+                <option value="15">Tot 15 meter (Middelgroot)</option>
+                <option value="20">Tot 20 meter (Groot)</option>
+                <option value="30">Tot 30 meter (Transportlijn)</option>
               </select>
             </div>
 
@@ -738,10 +739,10 @@
     ];
 
     function getPixelsPerMeter(canvas) {
-      const halfRange = machineRangeMeters / 2;
+      const gridRange = machineRangeMeters;
       const minDim = Math.min(canvas.width, canvas.height);
       const factor = layoutViewMode === '3d' ? 0.38 : 0.44;
-      return (minDim * factor) / halfRange;
+      return (minDim * factor) / gridRange;
     }
 
     // Convert world coordinates (meters) to screen coordinates (pixels)
@@ -814,7 +815,7 @@
       machineRangeMeters = parseFloat(val) || 10;
       const infoEl = document.getElementById('canvasZoomInfo');
       if (infoEl) {
-        infoEl.textContent = 'Bereik: ' + machineRangeMeters + ' × ' + machineRangeMeters + ' m (Centrum: 0,0)';
+        infoEl.textContent = 'Bereik: tot ' + machineRangeMeters + ' m (Centrum: 0,0)';
       }
       drawBearingLayout();
       renderDistancesOverview();
@@ -882,16 +883,16 @@
 
       const cx = canvas.width / 2;
       const cy = canvas.height / 2;
-      const halfRange = machineRangeMeters / 2;
+      const gridRange = machineRangeMeters;
       const ppm = getPixelsPerMeter(canvas);
 
       // --- 1. DRAW 3D / 2D MACHINE FLOOR GRID ---
       if (layoutViewMode === '3d') {
-        // Isometric Floor Plane
-        const pTop = worldToScreen(0, halfRange, canvas);
-        const pRight = worldToScreen(halfRange, 0, canvas);
-        const pBottom = worldToScreen(0, -halfRange, canvas);
-        const pLeft = worldToScreen(-halfRange, 0, canvas);
+        // Isometric Floor Plane (Full range reaches at least machineRangeMeters in all directions)
+        const pTop = worldToScreen(0, gridRange, canvas);
+        const pRight = worldToScreen(gridRange, 0, canvas);
+        const pBottom = worldToScreen(0, -gridRange, canvas);
+        const pLeft = worldToScreen(-gridRange, 0, canvas);
 
         ctx.beginPath();
         ctx.moveTo(pTop.u, pTop.v);
@@ -906,78 +907,92 @@
         ctx.stroke();
 
         // Isometric Grid Lines
-        const step = machineRangeMeters <= 10 ? 1 : machineRangeMeters <= 20 ? 2 : 5;
+        const step = machineRangeMeters <= 6 ? 1 : machineRangeMeters <= 15 ? 2 : 5;
         ctx.lineWidth = 0.8 * dpr;
 
-        for (let m = -halfRange; m <= halfRange; m += step) {
+        for (let m = -gridRange; m <= gridRange; m += step) {
           const isCenter = Math.abs(m) < 0.01;
           ctx.strokeStyle = isCenter ? 'rgba(148, 163, 184, 0.4)' : 'rgba(51, 65, 85, 0.45)';
 
-          const l1 = worldToScreen(-halfRange, m, canvas);
-          const l2 = worldToScreen(halfRange, m, canvas);
+          const l1 = worldToScreen(-gridRange, m, canvas);
+          const l2 = worldToScreen(gridRange, m, canvas);
           ctx.beginPath();
           ctx.moveTo(l1.u, l1.v);
           ctx.lineTo(l2.u, l2.v);
           ctx.stroke();
 
-          const l3 = worldToScreen(m, -halfRange, canvas);
-          const l4 = worldToScreen(m, halfRange, canvas);
+          const l3 = worldToScreen(m, -gridRange, canvas);
+          const l4 = worldToScreen(m, gridRange, canvas);
           ctx.beginPath();
           ctx.moveTo(l3.u, l3.v);
           ctx.lineTo(l4.u, l4.v);
           ctx.stroke();
         }
 
-        // Concentric distance guide rings
-        const ringStep = machineRangeMeters <= 10 ? 2 : machineRangeMeters <= 20 ? 4 : 8;
-        for (let r = ringStep; r <= halfRange; r += ringStep) {
+        // Concentric distance guide rings with distance tags
+        const ringStep = machineRangeMeters <= 6 ? 1 : machineRangeMeters <= 12 ? 2 : machineRangeMeters <= 20 ? 4 : 5;
+        for (let r = ringStep; r <= gridRange; r += ringStep) {
           ctx.beginPath();
-          for (let angle = 0; angle <= Math.PI * 2 + 0.1; angle += 0.1) {
+          for (let angle = 0; angle <= Math.PI * 2 + 0.1; angle += 0.08) {
             const rx = Math.cos(angle) * r;
             const ry = Math.sin(angle) * r;
             const pt = worldToScreen(rx, ry, canvas);
             if (angle === 0) ctx.moveTo(pt.u, pt.v);
             else ctx.lineTo(pt.u, pt.v);
           }
-          ctx.strokeStyle = 'rgba(56, 189, 248, 0.15)';
+          ctx.strokeStyle = 'rgba(56, 189, 248, 0.16)';
           ctx.setLineDash([4 * dpr, 4 * dpr]);
           ctx.stroke();
           ctx.setLineDash([]);
+
+          // Ring label (distance in meters)
+          const lblPt = worldToScreen(r, 0, canvas);
+          ctx.font = 'bold ' + Math.round(9 * dpr) + 'px sans-serif';
+          ctx.fillStyle = 'rgba(56, 189, 248, 0.55)';
+          ctx.textAlign = 'left';
+          ctx.textBaseline = 'bottom';
+          ctx.fillText(r + 'm', lblPt.u + 3 * dpr, lblPt.v - 2 * dpr);
         }
 
       } else {
         // 2D Blueprint Grid
-        const step = machineRangeMeters <= 10 ? 1 : machineRangeMeters <= 20 ? 2 : 5;
+        const step = machineRangeMeters <= 6 ? 1 : machineRangeMeters <= 15 ? 2 : 5;
         ctx.lineWidth = 0.8 * dpr;
 
-        for (let m = -halfRange; m <= halfRange; m += step) {
+        for (let m = -gridRange; m <= gridRange; m += step) {
           const isCenter = Math.abs(m) < 0.01;
           ctx.strokeStyle = isCenter ? 'rgba(148, 163, 184, 0.5)' : 'rgba(51, 65, 85, 0.4)';
 
-          const l1 = worldToScreen(-halfRange, m, canvas);
-          const l2 = worldToScreen(halfRange, m, canvas);
+          const l1 = worldToScreen(-gridRange, m, canvas);
+          const l2 = worldToScreen(gridRange, m, canvas);
           ctx.beginPath();
           ctx.moveTo(l1.u, l1.v);
           ctx.lineTo(l2.u, l2.v);
           ctx.stroke();
 
-          const l3 = worldToScreen(m, -halfRange, canvas);
-          const l4 = worldToScreen(m, halfRange, canvas);
+          const l3 = worldToScreen(m, -gridRange, canvas);
+          const l4 = worldToScreen(m, gridRange, canvas);
           ctx.beginPath();
           ctx.moveTo(l3.u, l3.v);
           ctx.lineTo(l4.u, l4.v);
           ctx.stroke();
         }
 
-        // Distance circles
-        const ringStep = machineRangeMeters <= 10 ? 2 : machineRangeMeters <= 20 ? 4 : 8;
-        for (let r = ringStep; r <= halfRange; r += ringStep) {
+        // Distance circles with distance tags
+        const ringStep = machineRangeMeters <= 6 ? 1 : machineRangeMeters <= 12 ? 2 : machineRangeMeters <= 20 ? 4 : 5;
+        for (let r = ringStep; r <= gridRange; r += ringStep) {
           ctx.beginPath();
           ctx.arc(cx, cy, r * ppm, 0, Math.PI * 2);
           ctx.strokeStyle = 'rgba(56, 189, 248, 0.18)';
           ctx.setLineDash([4 * dpr, 4 * dpr]);
           ctx.stroke();
           ctx.setLineDash([]);
+
+          ctx.font = 'bold ' + Math.round(9 * dpr) + 'px sans-serif';
+          ctx.fillStyle = 'rgba(56, 189, 248, 0.6)';
+          ctx.textAlign = 'left';
+          ctx.textBaseline = 'bottom';
+          ctx.fillText(r + 'm', cx + r * ppm + 3 * dpr, cy - 2 * dpr);
         }
       }
 
@@ -1188,7 +1203,7 @@
 
         if (draggedBearingLetter) {
           const world = screenToWorld(mouseU, mouseV, canvas);
-          const maxR = machineRangeMeters / 2;
+          const maxR = machineRangeMeters;
           
           const clampedX = Math.max(-maxR, Math.min(maxR, world.x));
           const clampedY = Math.max(-maxR, Math.min(maxR, world.y));
@@ -1250,7 +1265,7 @@
           const mouseV = (touch.clientY - rect.top) * dpr;
 
           const world = screenToWorld(mouseU, mouseV, canvas);
-          const maxR = machineRangeMeters / 2;
+          const maxR = machineRangeMeters;
 
           bearingPositions[draggedBearingLetter] = {
             x: Math.round(Math.max(-maxR, Math.min(maxR, world.x)) * 10) / 10,
@@ -1416,7 +1431,7 @@
       ctx.font = '13px "Outfit", sans-serif';
       ctx.fillStyle = '#94a3b8';
       ctx.textAlign = 'right';
-      ctx.fillText('Bereik: ' + machineRangeMeters + ' × ' + machineRangeMeters + ' m | Centrum (0,0)', outW - 24, 30);
+      ctx.fillText('Bereik: tot ' + machineRangeMeters + ' m | Centrum (0,0)', outW - 24, 30);
 
       // Left Card: The 3D Machine Canvas
       const leftW = 710;
