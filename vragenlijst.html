@@ -2676,12 +2676,12 @@
 
         const omgevingstemp = d3.q15 ? (d3.q15 + ' °C') : '-';
         const lagertemp = d3.q16 ? (d3.q16 + ' °C') : '-';
-        const waterVocht = (d3.q17 || '3') + '/10';
-        const stofZand = (d3.q18 || '4') + '/10';
-        const abrasief = (d3.q19 || '2') + '/10';
-        const schokbelasting = (d3.q20 || '3') + '/10';
-        const vibraties = (d3.q21 || '3') + '/10';
-        const condensatie = (d3.q22 || '2') + '/10';
+        const waterVocht = (d3.q17 || '3') + ' op 10';
+        const stofZand = (d3.q18 || '4') + ' op 10';
+        const abrasief = (d3.q19 || '2') + ' op 10';
+        const schokbelasting = (d3.q20 || '3') + ' op 10';
+        const vibraties = (d3.q21 || '3') + ' op 10';
+        const condensatie = (d3.q22 || '2') + ' op 10';
 
         const tijdsduurSmeerbeurt = d4.q24 ? (d4.q24 + ' min') : '-';
         const uurloon = d4.q25 ? ('€ ' + parseFloat(d4.q25).toFixed(2).replace('.', ',') + ' / uur') : '-';
