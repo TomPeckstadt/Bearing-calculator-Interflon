@@ -705,13 +705,9 @@
 
             <!-- Statistics & Guidelines Box at bottom -->
             <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px 12px; margin-top: 12px;">
-              <div style="display: flex; justify-content: space-between; font-size: 11.5px; color: #475569; margin-bottom: 4px;">
+              <div style="display: flex; justify-content: space-between; font-size: 11.5px; color: #475569; margin-bottom: 8px;">
                 <span>Max. leidingafstand:</span>
                 <strong id="statMaxDistance" style="color: #0f172a; font-weight: 800;">-</strong>
-              </div>
-              <div style="display: flex; justify-content: space-between; font-size: 11.5px; color: #475569; margin-bottom: 8px;">
-                <span>Gemiddelde afstand:</span>
-                <strong id="statAvgDistance" style="color: #0f172a; font-weight: 800;">-</strong>
               </div>
               <div style="font-size: 10.5px; color: #64748b; border-top: 1px solid #e2e8f0; padding-top: 6px; display: flex; gap: 8px; justify-content: space-between;">
                 <span style="color: #166534;">● ≤ 3m (Ideaal)</span>
@@ -1908,8 +1904,6 @@
         if (badgeEl) badgeEl.textContent = rows.length + (rows.length === 1 ? ' Lager' : ' Lagers');
         const maxEl = document.getElementById('statMaxDistance');
         if (maxEl) maxEl.textContent = '-';
-        const avgEl = document.getElementById('statAvgDistance');
-        if (avgEl) avgEl.textContent = '-';
         return;
       }
 
@@ -2015,12 +2009,6 @@
 
       const maxEl = document.getElementById('statMaxDistance');
       if (maxEl) maxEl.textContent = distCount > 0 ? (overallMaxDist.toFixed(1).replace('.', ',') + ' m') : '-';
-
-      const avgEl = document.getElementById('statAvgDistance');
-      if (avgEl) {
-        const avg = distCount > 0 ? (totalDistSum / distCount) : 0;
-        avgEl.textContent = distCount > 0 ? (avg.toFixed(1).replace('.', ',') + ' m') : '-';
-      }
     }
 
     let activeBearingSec2 = 'A';
@@ -2321,11 +2309,11 @@
       });
 
       // Bottom statistics card
-      const statBoxY = rightY + rightH - 85;
+      const statBoxY = rightY + rightH - 74;
       ctx.fillStyle = '#f1f5f9';
       ctx.beginPath();
-      if (ctx.roundRect) ctx.roundRect(rightX + 16, statBoxY, rightW - 32, 68, 8);
-      else ctx.rect(rightX + 16, statBoxY, rightW - 32, 68);
+      if (ctx.roundRect) ctx.roundRect(rightX + 16, statBoxY, rightW - 32, 56, 8);
+      else ctx.rect(rightX + 16, statBoxY, rightW - 32, 56);
       ctx.fill();
       ctx.strokeStyle = '#cbd5e1';
       ctx.lineWidth = 1;
@@ -2341,24 +2329,14 @@
       ctx.textAlign = 'right';
       ctx.fillText(distCount > 0 ? (overallMax.toFixed(1).replace('.', ',') + ' m') : '-', rightX + rightW - 26, statBoxY + 10);
 
-      ctx.font = '12px "Outfit", sans-serif';
-      ctx.fillStyle = '#475569';
-      ctx.textAlign = 'left';
-      ctx.fillText('Gemiddelde afstand:', rightX + 26, statBoxY + 28);
-      ctx.font = 'bold 12px "Outfit", sans-serif';
-      ctx.fillStyle = '#0f172a';
-      ctx.textAlign = 'right';
-      const avg = distCount > 0 ? (totalSum / distCount) : 0;
-      ctx.fillText(distCount > 0 ? (avg.toFixed(1).replace('.', ',') + ' m') : '-', rightX + rightW - 26, statBoxY + 28);
-
       ctx.font = '10px "Outfit", sans-serif';
       ctx.textAlign = 'center';
       ctx.fillStyle = '#166534';
-      ctx.fillText('● ≤ 3m (Ideaal)', rightX + 85, statBoxY + 48);
+      ctx.fillText('● ≤ 3m (Ideaal)', rightX + 85, statBoxY + 34);
       ctx.fillStyle = '#92400e';
-      ctx.fillText('● 3-4m (Goed)', rightX + rightW / 2, statBoxY + 48);
+      ctx.fillText('● 3-4m (Goed)', rightX + rightW / 2, statBoxY + 34);
       ctx.fillStyle = '#991b1b';
-      ctx.fillText('● > 4m (Let op)', rightX + rightW - 85, statBoxY + 48);
+      ctx.fillText('● > 4m (Let op)', rightX + rightW - 85, statBoxY + 34);
 
       ctx.restore();
 
