@@ -210,7 +210,7 @@
 
     @media print {
 
-      #btnView3D, #btnView2D, #layoutScaleSelect, button[onclick*="resetBearingPositions"] {
+      #rasterToolbarPanel, #btnView3D, #btnView2D, #layoutScaleSelect, button[onclick*="resetBearingPositions"] {
         display: none !important;
       }
 
@@ -268,47 +268,260 @@
       flex-shrink: 0 !important;
     }
 
-    #rasterInteractiveWrapper.raster-modal-fullscreen #rasterControlsRow {
-      flex-shrink: 0 !important;
-      margin-bottom: 8px !important;
+    /* =========================================================================
+       UNIFIED RASTER TOOLBAR DESIGN SYSTEM
+       ========================================================================= */
+    .raster-toolbar-panel {
+      background: #f8fafc;
+      border: 1px solid #cbd5e1;
+      border-radius: 10px;
+      padding: 8px 12px;
+      margin-bottom: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.03);
     }
 
+    .raster-toolbar-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .raster-toolbar-divider {
+      height: 1px;
+      background: #e2e8f0;
+      width: 100%;
+      margin: 0;
+    }
+
+    .raster-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      height: 32px;
+      padding: 0 11px;
+      font-family: "Outfit", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-size: 12px;
+      font-weight: 700;
+      border-radius: 7px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      white-space: nowrap;
+      box-sizing: border-box;
+      line-height: 1;
+    }
+
+    .raster-btn-secondary {
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      color: #334155;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+    }
+    .raster-btn-secondary:hover {
+      background: #f1f5f9;
+      border-color: #94a3b8;
+      color: #0f172a;
+    }
+
+    .raster-btn-download {
+      background: #eff6ff;
+      border: 1px solid #93c5fd;
+      color: #1e40af;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+    }
+    .raster-btn-download:hover {
+      background: #dbeafe;
+      border-color: #60a5fa;
+      color: #1e3a8a;
+    }
+
+    .raster-btn-fullscreen {
+      background: #ecfdf5;
+      border: 1px solid #6ee7b7;
+      color: #065f46;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+    }
+    .raster-btn-fullscreen:hover {
+      background: #d1fae5;
+      border-color: #34d399;
+      color: #047857;
+    }
+
+    .raster-btn-add {
+      background: #ffffff;
+      border: 1.5px dashed #93c5fd;
+      color: #1d4ed8;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+      padding: 0 10px;
+    }
+    .raster-btn-add:hover {
+      background: #eff6ff;
+      border-color: #3b82f6;
+      color: #1e40af;
+    }
+
+    .raster-toggle-group {
+      display: inline-flex;
+      align-items: center;
+      background: #e2e8f0;
+      border-radius: 7px;
+      padding: 2px;
+      height: 32px;
+      box-sizing: border-box;
+      gap: 2px;
+    }
+
+    .raster-toggle-btn {
+      border: none;
+      background: transparent;
+      color: #64748b;
+      font-family: "Outfit", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-weight: 700;
+      font-size: 12px;
+      padding: 0 9px;
+      height: 28px;
+      border-radius: 5px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      transition: all 0.15s ease;
+      white-space: nowrap;
+    }
+
+    .raster-toggle-btn.active {
+      background: #ffffff;
+      color: #0f172a;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    .raster-select-group {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 7px;
+      padding: 0 8px 0 10px;
+      height: 32px;
+      box-sizing: border-box;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+    }
+
+    .raster-select-group label {
+      font-size: 12px;
+      font-weight: 700;
+      color: #475569;
+      margin: 0;
+      white-space: nowrap;
+    }
+
+    .raster-select-group select {
+      border: none;
+      background: transparent;
+      font-family: "Outfit", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-size: 12px;
+      font-weight: 700;
+      color: #0f172a;
+      outline: none;
+      cursor: pointer;
+      padding: 0;
+      height: 100%;
+    }
+
+    /* FULLSCREEN DARK THEME OVERRIDES FOR UNIFIED TOOLBAR */
+    #rasterInteractiveWrapper.raster-modal-fullscreen .raster-toolbar-panel {
+      background: rgba(15, 23, 42, 0.8) !important;
+      border: 1px solid rgba(255, 255, 255, 0.12) !important;
+      padding: 6px 12px !important;
+      margin-bottom: 8px !important;
+      gap: 6px !important;
+      box-shadow: none !important;
+      flex-shrink: 0 !important;
+    }
+
+    #rasterInteractiveWrapper.raster-modal-fullscreen .raster-toolbar-divider {
+      background: rgba(255, 255, 255, 0.08) !important;
+    }
+
+    #rasterInteractiveWrapper.raster-modal-fullscreen .raster-btn-secondary {
+      background: rgba(30, 41, 59, 0.8) !important;
+      border: 1px solid rgba(255, 255, 255, 0.18) !important;
+      color: #f1f5f9 !important;
+      box-shadow: none !important;
+    }
+    #rasterInteractiveWrapper.raster-modal-fullscreen .raster-btn-secondary:hover {
+      background: rgba(51, 65, 85, 0.95) !important;
+      border-color: rgba(255, 255, 255, 0.35) !important;
+      color: #ffffff !important;
+    }
+
+    #rasterInteractiveWrapper.raster-modal-fullscreen .raster-btn-download {
+      background: rgba(37, 99, 235, 0.18) !important;
+      border: 1px solid rgba(96, 165, 250, 0.4) !important;
+      color: #93c5fd !important;
+      box-shadow: none !important;
+    }
+    #rasterInteractiveWrapper.raster-modal-fullscreen .raster-btn-download:hover {
+      background: rgba(37, 99, 235, 0.35) !important;
+      border-color: #60a5fa !important;
+      color: #ffffff !important;
+    }
+
+    #rasterInteractiveWrapper.raster-modal-fullscreen .raster-btn-add {
+      background: rgba(37, 99, 235, 0.12) !important;
+      border: 1.5px dashed rgba(96, 165, 250, 0.45) !important;
+      color: #93c5fd !important;
+      box-shadow: none !important;
+    }
+    #rasterInteractiveWrapper.raster-modal-fullscreen .raster-btn-add:hover {
+      background: rgba(37, 99, 235, 0.28) !important;
+      border-color: #60a5fa !important;
+      color: #ffffff !important;
+    }
+
+    #rasterInteractiveWrapper.raster-modal-fullscreen .raster-toggle-group {
+      background: rgba(15, 23, 42, 0.9) !important;
+      border: 1px solid rgba(255, 255, 255, 0.15) !important;
+    }
+    #rasterInteractiveWrapper.raster-modal-fullscreen .raster-toggle-btn {
+      color: #94a3b8 !important;
+    }
+    #rasterInteractiveWrapper.raster-modal-fullscreen .raster-toggle-btn.active {
+      background: #2563EB !important;
+      color: #ffffff !important;
+      box-shadow: 0 1px 6px rgba(37, 99, 235, 0.4) !important;
+    }
+
+    #rasterInteractiveWrapper.raster-modal-fullscreen .raster-select-group {
+      background: rgba(15, 23, 42, 0.9) !important;
+      border: 1px solid rgba(255, 255, 255, 0.15) !important;
+      box-shadow: none !important;
+    }
+    #rasterInteractiveWrapper.raster-modal-fullscreen .raster-select-group label {
+      color: #94a3b8 !important;
+    }
+    #rasterInteractiveWrapper.raster-modal-fullscreen .raster-select-group select {
+      color: #f1f5f9 !important;
+    }
+    #rasterInteractiveWrapper.raster-modal-fullscreen .raster-select-group select option {
+      background: #0f172a !important;
+      color: #f1f5f9 !important;
+    }
+
+    #rasterInteractiveWrapper.raster-modal-fullscreen .filter-bar-label {
+      color: #cbd5e1 !important;
+    }
     #rasterInteractiveWrapper.raster-modal-fullscreen #btnOpenFullscreen {
       display: none !important;
     }
-
     #rasterInteractiveWrapper.raster-modal-fullscreen #btnHeaderVergroot {
       display: none !important;
-    }
-
-    #rasterInteractiveWrapper.raster-modal-fullscreen #devicesFilterBarContainer {
-      flex-shrink: 0 !important;
-      background: rgba(30, 41, 59, 0.75) !important;
-      border-color: #334155 !important;
-      margin-bottom: 8px !important;
-      padding: 6px 12px !important;
-    }
-
-    #rasterInteractiveWrapper.raster-modal-fullscreen #devicesFilterBarContainer span {
-      color: #e2e8f0 !important;
-    }
-
-    #rasterInteractiveWrapper.raster-modal-fullscreen {
-      padding: 8px 16px 10px 16px !important;
-    }
-
-    #rasterInteractiveWrapper.raster-modal-fullscreen #rasterFullscreenHeader {
-      margin-bottom: 6px !important;
-      padding-bottom: 6px !important;
-    }
-
-    #rasterInteractiveWrapper.raster-modal-fullscreen #rasterControlsRow {
-      margin-bottom: 6px !important;
-    }
-
-    #rasterInteractiveWrapper.raster-modal-fullscreen #devicesFilterBarContainer {
-      margin-bottom: 6px !important;
-      padding: 4px 12px !important;
     }
 
     #rasterInteractiveWrapper.raster-modal-fullscreen #layoutGridContainer {
@@ -578,58 +791,62 @@
             </button>
           </div>
 
-          <!-- Section Controls Row -->
-          <div id="rasterControlsRow" style="display: flex; justify-content: flex-end; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 12px;">
-            <!-- View Mode Toggle -->
-            <div style="display: inline-flex; background: #e2e8f0; border-radius: 8px; padding: 2px;">
-              <button type="button" id="btnView3D" onclick="setLayoutViewMode('3d')" style="border: none; background: #ffffff; color: #0f172a; font-weight: 700; font-size: 12px; padding: 5px 10px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-                🧊 3D Isometrisch
-              </button>
-              <button type="button" id="btnView2D" onclick="setLayoutViewMode('2d')" style="border: none; background: transparent; color: #64748b; font-weight: 700; font-size: 12px; padding: 5px 10px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 4px;">
-                📐 2D Bovenaanzicht
-              </button>
+        <!-- UNIFIED RASTER TOOLBAR PANEL (2-TIER COHESIVE SYSTEM) -->
+        <div class="raster-toolbar-panel" id="rasterToolbarPanel">
+          <!-- Tier 1: Weergave, Bereik en Snelle Acties -->
+          <div class="raster-toolbar-row" id="rasterControlsRow">
+            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+              <div class="raster-toggle-group">
+                <button type="button" id="btnView3D" class="raster-toggle-btn active" onclick="setLayoutViewMode('3d')" title="3D Isometrisch perspectief">
+                  🧊 3D
+                </button>
+                <button type="button" id="btnView2D" class="raster-toggle-btn" onclick="setLayoutViewMode('2d')" title="2D Bovenaanzicht (vlak)">
+                  📐 2D
+                </button>
+              </div>
+
+              <div class="raster-select-group">
+                <label for="layoutScaleSelect">Bereik:</label>
+                <select id="layoutScaleSelect" onchange="onLayoutScaleChange(this.value)">
+                  <option value="4">Tot 4 m (Compact)</option>
+                  <option value="6">Tot 6 m (Klein)</option>
+                  <option value="10" selected>10 × 10 m (Standaard)</option>
+                  <option value="15">Tot 15 m (Middel)</option>
+                  <option value="20">Tot 20 m (Groot)</option>
+                  <option value="30">Tot 30 m (Transportlijn)</option>
+                </select>
+              </div>
             </div>
 
-            <!-- Machine Scale Dropdown -->
-            <div style="display: flex; align-items: center; gap: 6px; background: #ffffff; padding: 4px 10px; border-radius: 8px; border: 1px solid #cbd5e1;">
-              <label for="layoutScaleSelect" style="font-size: 12px; font-weight: 700; color: #334155; margin: 0;">Machine Bereik:</label>
-              <select id="layoutScaleSelect" class="form-control" style="width: auto; padding: 3px 8px; font-size: 12px; font-weight: 700; height: 30px;" onchange="onLayoutScaleChange(this.value)">
-                <option value="4">Tot 4 meter (Compact)</option>
-                <option value="6">Tot 6 meter (Klein)</option>
-                <option value="10" selected>Tot 10 meter (Standaard • 10 × 10 m)</option>
-                <option value="15">Tot 15 meter (Middelgroot)</option>
-                <option value="20">Tot 20 meter (Groot)</option>
-                <option value="30">Tot 30 meter (Transportlijn)</option>
-              </select>
+            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+              <button type="button" onclick="resetBearingPositions()" class="raster-btn raster-btn-secondary" title="Herstel standaardposities">
+                🔄 Reset
+              </button>
+              <button type="button" onclick="downloadLayoutImage()" class="raster-btn raster-btn-download" title="Download haarscherpe afbeelding van deze lay-out">
+                📸 Download
+              </button>
+              <button type="button" id="btnOpenFullscreen" onclick="toggleRasterFullscreen()" class="raster-btn raster-btn-fullscreen" title="Vergroot het machineraster naar bijna het volledige scherm">
+                ⛶ Vergroten
+              </button>
             </div>
-
-            <button type="button" onclick="resetBearingPositions()" class="btn-secondary" style="width: auto; padding: 5px 10px; font-size: 12px; height: 32px; gap: 4px;" title="Herstel standaardposities">
-              🔄 Reset
-            </button>
-            <button type="button" onclick="downloadLayoutImage()" class="btn-secondary" style="width: auto; padding: 5px 12px; font-size: 12px; height: 32px; gap: 5px; color: #1e40af; border-color: #93c5fd; background: #eff6ff;" title="Download haarscherpe afbeelding van deze lay-out">
-              📸 Download Afbeelding
-            </button>
-            <button type="button" id="btnOpenFullscreen" onclick="toggleRasterFullscreen()" class="btn-secondary" style="width: auto; padding: 5px 12px; font-size: 12px; height: 32px; gap: 5px; color: #047857; border-color: #6ee7b7; background: #ecfdf5; font-weight: 700;" title="Vergroot het machineraster naar bijna het volledige scherm voor optimaal positioneren">
-              ⛶ Raster Vergroten
-            </button>
           </div>
 
-        <!-- 2-Column Grid Layout: Left 3D Field (~68%), Right Distances Table (~32%) -->
-        
-        <!-- Multi-Select Measurement Points / Lubrication Devices Filter Bar -->
-        <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; padding: 8px 14px; background: #f1f5f9; border-radius: 10px; border: 1px solid #cbd5e1;" id="devicesFilterBarContainer">
-          <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-            <span style="font-size: 12px; font-weight: 700; color: #334155; display: inline-flex; align-items: center; gap: 5px;">
-              <span>📍 Toon afstanden vanaf:</span>
-            </span>
-            <div id="deviceFilterPills" style="display: inline-flex; align-items: center; gap: 6px; flex-wrap: wrap;">
-              <!-- Rendered dynamically by renderDeviceFilterPills() -->
+          <!-- Subtle Divider -->
+          <div class="raster-toolbar-divider"></div>
+
+          <!-- Tier 2: Meetpunten & Smeertoestellen Selectie -->
+          <div class="raster-toolbar-row" id="devicesFilterBarContainer">
+            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap; width: 100%;">
+              <span class="filter-bar-label" style="font-size: 12px; font-weight: 700; color: #475569; display: inline-flex; align-items: center; gap: 5px; white-space: nowrap;">
+                <span>📍 Meten vanaf:</span>
+              </span>
+              <div id="deviceFilterPills" style="display: inline-flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+                <!-- Rendered dynamically by renderDeviceFilterPills() -->
+              </div>
+              <button type="button" onclick="addNewDevice()" class="raster-btn raster-btn-add" title="Voeg een extra meetpunt of smeertoestel toe">
+                ➕ Toestel
+              </button>
             </div>
-          </div>
-          <div style="display: flex; align-items: center; gap: 6px;">
-            <button type="button" onclick="addNewDevice()" class="btn-secondary" style="width: auto; padding: 4px 10px; font-size: 11.5px; height: 28px; gap: 4px; border-style: dashed; color: #1e40af; border-color: #93c5fd; background: #eff6ff;" title="Voeg een extra meetpunt of smeertoestel toe">
-              ➕ Toestel Toevoegen
-            </button>
           </div>
         </div>
 
@@ -932,8 +1149,9 @@
       const container = document.getElementById('deviceFilterPills');
       if (!container) return;
       container.innerHTML = '';
+      const isDark = isRasterFullscreen;
 
-      // 1. Centraal Punt Pill
+      // 1. Centraal Punt Pill (32px height, perfect contrast)
       const cpBtn = document.createElement('button');
       cpBtn.type = 'button';
       cpBtn.onclick = function() {
@@ -942,21 +1160,42 @@
         drawBearingLayout();
         renderDistancesOverview();
       };
-      cpBtn.style.cssText = 'border: 1.5px solid ' + (showCentralPoint ? '#E30613' : '#cbd5e1') + '; ' +
-        'background: ' + (showCentralPoint ? '#fee2e2' : '#ffffff') + '; ' +
-        'color: ' + (showCentralPoint ? '#991b1b' : '#64748b') + '; ' +
-        'font-weight: 700; font-size: 11.5px; padding: 3px 9px; border-radius: 6px; cursor: pointer; ' +
-        'display: inline-flex; align-items: center; gap: 5px; transition: all 0.15s; height: 28px;';
-      cpBtn.innerHTML = '<span style="width: 8px; height: 8px; border-radius: 50%; background: ' + (showCentralPoint ? '#E30613' : '#94a3b8') + ';"></span>' +
-        '<span>Centraal Punt (0,0)</span>';
+
+      if (isDark) {
+        cpBtn.style.cssText = 'border: 1.5px solid ' + (showCentralPoint ? '#f43f5e' : 'rgba(255,255,255,0.18)') + '; ' +
+          'background: ' + (showCentralPoint ? 'rgba(244, 63, 94, 0.22)' : 'rgba(15, 23, 42, 0.7)') + '; ' +
+          'color: ' + (showCentralPoint ? '#ffffff' : '#94a3b8') + '; ' +
+          'font-family: "Outfit", sans-serif; font-weight: 700; font-size: 12px; padding: 0 10px; border-radius: 7px; cursor: pointer; ' +
+          'display: inline-flex; align-items: center; gap: 6px; transition: all 0.15s; height: 32px; box-sizing: border-box; ' +
+          (showCentralPoint ? 'box-shadow: 0 0 10px rgba(244,63,94,0.35);' : '');
+      } else {
+        cpBtn.style.cssText = 'border: 1.5px solid ' + (showCentralPoint ? '#dc2626' : '#cbd5e1') + '; ' +
+          'background: ' + (showCentralPoint ? '#fef2f2' : '#ffffff') + '; ' +
+          'color: ' + (showCentralPoint ? '#991b1b' : '#64748b') + '; ' +
+          'font-family: "Outfit", sans-serif; font-weight: 700; font-size: 12px; padding: 0 10px; border-radius: 7px; cursor: pointer; ' +
+          'display: inline-flex; align-items: center; gap: 6px; transition: all 0.15s; height: 32px; box-sizing: border-box; box-shadow: 0 1px 2px rgba(0,0,0,0.04);';
+      }
+
+      cpBtn.innerHTML = '<span style="width: 8px; height: 8px; border-radius: 50%; background: ' + (showCentralPoint ? '#dc2626' : '#94a3b8') + '; box-shadow: ' + (showCentralPoint ? '0 0 6px #dc2626' : 'none') + '; flex-shrink: 0;"></span>' +
+        '<span>Centraal Punt</span>';
       cpBtn.title = showCentralPoint ? 'Centraal Punt afstanden zijn AAN (klik om te verbergen)' : 'Centraal Punt afstanden zijn UIT (klik om te tonen)';
       container.appendChild(cpBtn);
 
-      // 2. Each Device Pill
+      // 2. Each Device Pill (32px height, vivid borders, clear text, responsive hover)
       devices.forEach((dev, idx) => {
         const pal = DEVICE_PALETTES[dev.paletteIndex % DEVICE_PALETTES.length];
         const devPill = document.createElement('div');
-        devPill.style.cssText = 'display: inline-flex; align-items: center; border-radius: 6px; overflow: hidden; border: 1.5px solid ' + (dev.active ? pal.color : '#cbd5e1') + ';';
+
+        if (isDark) {
+          devPill.style.cssText = 'display: inline-flex; align-items: center; border-radius: 7px; overflow: hidden; height: 32px; box-sizing: border-box; ' +
+            'border: 1.5px solid ' + (dev.active ? pal.color : 'rgba(255,255,255,0.18)') + '; ' +
+            'background: ' + (dev.active ? 'rgba(15, 23, 42, 0.95)' : 'rgba(15, 23, 42, 0.7)') + '; ' +
+            (dev.active ? 'box-shadow: 0 0 10px ' + pal.color + '45;' : '');
+        } else {
+          devPill.style.cssText = 'display: inline-flex; align-items: center; border-radius: 7px; overflow: hidden; height: 32px; box-sizing: border-box; ' +
+            'border: 1.5px solid ' + (dev.active ? pal.color : '#cbd5e1') + '; ' +
+            'background: ' + (dev.active ? pal.lightBg : '#ffffff') + '; box-shadow: 0 1px 2px rgba(0,0,0,0.04);';
+        }
 
         const btn = document.createElement('button');
         btn.type = 'button';
@@ -966,24 +1205,28 @@
           drawBearingLayout();
           renderDistancesOverview();
         };
-        btn.style.cssText = 'border: none; ' +
-          'background: ' + (dev.active ? pal.lightBg : '#ffffff') + '; ' +
-          'color: ' + (dev.active ? pal.color : '#64748b') + '; ' +
-          'font-weight: 700; font-size: 11.5px; padding: 3px 8px; cursor: pointer; ' +
-          'display: inline-flex; align-items: center; gap: 5px; height: 25px;';
-        btn.innerHTML = '<span style="width: 8px; height: 8px; border-radius: 2px; background: ' + (dev.active ? pal.color : '#94a3b8') + ';"></span>' +
-          '<span>' + dev.name + ' (' + dev.short + ')</span>';
+
+        const textColor = isDark ? (dev.active ? '#ffffff' : '#94a3b8') : (dev.active ? pal.color : '#64748b');
+        btn.style.cssText = 'border: none; background: transparent; ' +
+          'color: ' + textColor + '; ' +
+          'font-family: "Outfit", sans-serif; font-weight: 700; font-size: 12px; padding: 0 8px 0 10px; cursor: pointer; ' +
+          'display: inline-flex; align-items: center; gap: 6px; height: 100%;';
+        
+        btn.innerHTML = '<span style="width: 8px; height: 8px; border-radius: 2px; background: ' + (dev.active ? pal.color : '#94a3b8') + '; box-shadow: ' + (dev.active ? '0 0 6px ' + pal.color : 'none') + '; flex-shrink: 0;"></span>' +
+          '<span>' + dev.name + '</span>';
         btn.title = dev.active ? dev.name + ' afstanden zijn AAN (klik om te verbergen)' : dev.name + ' afstanden zijn UIT (klik om te tonen)';
         devPill.appendChild(btn);
 
-        // Delete button for this device
+        // Delete button
         const delBtn = document.createElement('button');
         delBtn.type = 'button';
         delBtn.title = 'Verwijder ' + dev.name;
-        delBtn.style.cssText = 'border: none; border-left: 1px solid ' + (dev.active ? pal.border : '#e2e8f0') + '; background: ' + (dev.active ? pal.lightBg : '#ffffff') + '; color: #94a3b8; font-size: 12px; font-weight: 700; padding: 0 6px; cursor: pointer; height: 25px; display: flex; align-items: center; justify-content: center;';
+        const delBorder = isDark ? 'rgba(255,255,255,0.15)' : (dev.active ? pal.border : '#e2e8f0');
+        delBtn.style.cssText = 'border: none; border-left: 1px solid ' + delBorder + '; background: transparent; ' +
+          'color: #94a3b8; font-size: 13px; font-weight: 700; padding: 0 7px; cursor: pointer; height: 100%; display: flex; align-items: center; justify-content: center; transition: all 0.15s;';
         delBtn.innerHTML = '&times;';
-        delBtn.onmouseenter = function() { delBtn.style.color = '#dc2626'; delBtn.style.background = '#fee2e2'; };
-        delBtn.onmouseleave = function() { delBtn.style.color = '#94a3b8'; delBtn.style.background = dev.active ? pal.lightBg : '#ffffff'; };
+        delBtn.onmouseenter = function() { delBtn.style.color = '#ef4444'; delBtn.style.background = isDark ? 'rgba(239,68,68,0.25)' : '#fee2e2'; };
+        delBtn.onmouseleave = function() { delBtn.style.color = '#94a3b8'; delBtn.style.background = 'transparent'; };
         delBtn.onclick = function(e) {
           e.stopPropagation();
           deleteDevice(dev.id);
@@ -1160,19 +1403,11 @@
       const btn2D = document.getElementById('btnView2D');
       if (btn3D && btn2D) {
         if (mode === '3d') {
-          btn3D.style.background = '#ffffff';
-          btn3D.style.color = '#0f172a';
-          btn3D.style.boxShadow = '0 1px 3px rgba(0,0,0,0.1)';
-          btn2D.style.background = 'transparent';
-          btn2D.style.color = '#64748b';
-          btn2D.style.boxShadow = 'none';
+          btn3D.classList.add('active');
+          btn2D.classList.remove('active');
         } else {
-          btn2D.style.background = '#ffffff';
-          btn2D.style.color = '#0f172a';
-          btn2D.style.boxShadow = '0 1px 3px rgba(0,0,0,0.1)';
-          btn3D.style.background = 'transparent';
-          btn3D.style.color = '#64748b';
-          btn3D.style.boxShadow = 'none';
+          btn2D.classList.add('active');
+          btn3D.classList.remove('active');
         }
       }
       drawBearingLayout();
@@ -2397,6 +2632,9 @@
       }
       const zoomLbl = document.getElementById('rasterZoomLabel');
       if (zoomLbl) zoomLbl.textContent = Math.round(rasterZoom * 100) + '%';
+
+      // Re-render filter pills to match dark/light theme instantly
+      renderDeviceFilterPills();
 
       // Smooth redraw once layout dimensions adapt
       setTimeout(function() {
