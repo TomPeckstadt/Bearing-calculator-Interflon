@@ -1117,6 +1117,26 @@
         <button type="button" onclick="copyFullReportText()" class="btn-secondary">
           📋 4. Kopieer uw antwoorden naar klembord om zelf in een mail te plakken
         </button>
+
+        <!-- Interflon Medewerkers: Vragenlijst Opslaan & Importeren -->
+        <div style="margin-top: 6px; padding: 14px 16px; background: #f8fafc; border: 1.5px dashed #cbd5e1; border-radius: 8px;">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; flex-wrap: wrap; gap: 8px;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span style="background: #e2e8f0; color: #1e293b; font-size: 0.72rem; padding: 3px 8px; border-radius: 4px; text-transform: uppercase; font-weight: 800; letter-spacing: 0.5px;">Enkel voor Interflon medewerkers</span>
+              <span style="font-size: 0.85rem; font-weight: 700; color: #334155;">Configuratiebeheer</span>
+            </div>
+            <div style="font-size: 0.78rem; color: #64748b;">Sla alle ingevulde data en het machineraster op of importeer een bestand.</div>
+          </div>
+          <div class="grid-2">
+            <button type="button" onclick="exportQuestionnaireFile()" class="btn-secondary" style="background: #ffffff; border-color: #0284c7; color: #0369a1; font-weight: 700; padding: 10px 14px;">
+              💾 Vragenlijst opslaan
+            </button>
+            <button type="button" onclick="document.getElementById('importQuestionnaireFileInput').click()" class="btn-secondary" style="background: #ffffff; border-color: #059669; color: #047857; font-weight: 700; padding: 10px 14px;">
+              📂 Vragenlijst importeren
+            </button>
+            <input type="file" id="importQuestionnaireFileInput" accept=".json,application/json" style="display: none;" onchange="importQuestionnaireFile(event)">
+          </div>
+        </div>
       </div>
 
     </form>
@@ -1482,16 +1502,17 @@
       renderDistancesOverview();
     }
 
-    function drawBearingLayout() {
-      const canvas = document.getElementById('bearingLayoutCanvas');
+    function drawBearingLayout(targetCanvas) {
+      const canvas = targetCanvas || document.getElementById('bearingLayoutCanvas');
       if (!canvas) return;
 
-      const rect = canvas.getBoundingClientRect();
-      const dpr = window.devicePixelRatio || 1;
-      
-      if (canvas.width !== Math.floor(rect.width * dpr) || canvas.height !== Math.floor(rect.height * dpr)) {
-        canvas.width = Math.floor(rect.width * dpr);
-        canvas.height = Math.floor(rect.height * dpr);
+      const dpr = targetCanvas ? 1 : (window.devicePixelRatio || 1);
+      if (!targetCanvas) {
+        const rect = canvas.getBoundingClientRect();
+        if (canvas.width !== Math.floor(rect.width * dpr) || canvas.height !== Math.floor(rect.height * dpr)) {
+          canvas.width = Math.floor(rect.width * dpr);
+          canvas.height = Math.floor(rect.height * dpr);
+        }
       }
 
       const ctx = canvas.getContext('2d');
@@ -2269,31 +2290,37 @@
       const sourceCanvas = document.getElementById('bearingLayoutCanvas');
       if (!sourceCanvas) return null;
 
-      const outW = 1200;
-      const outH = 680;
+      // High-resolution widescreen canvas (1600 x 900) - Enlarged layout format
+      const outW = 1600;
+      const outH = 900;
       const compCanvas = document.createElement('canvas');
       compCanvas.width = outW;
       compCanvas.height = outH;
       const ctx = compCanvas.getContext('2d');
 
-      // Sleek header & background
-      ctx.fillStyle = '#0f172a';
+      // 1. Dark Background
+      ctx.fillStyle = '#090e17';
       ctx.fillRect(0, 0, outW, outH);
 
-      // Title Bar
-      ctx.fillStyle = '#1e293b';
-      ctx.fillRect(0, 0, outW, 60);
+      // 2. Title Bar
+      ctx.fillStyle = '#0f172a';
+      ctx.fillRect(0, 0, outW, 64);
 
       // Interflon Red accent line
       ctx.fillStyle = '#E30613';
-      ctx.fillRect(0, 58, outW, 2);
+      ctx.fillRect(0, 62, outW, 2);
 
-      // Title text
-      ctx.font = 'bold 18px "Outfit", sans-serif';
+      // Title & Logo mark
+      ctx.fillStyle = '#E30613';
+      ctx.beginPath();
+      ctx.arc(30, 32, 6, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.font = 'bold 20px "Outfit", sans-serif';
       ctx.fillStyle = '#ffffff';
       ctx.textAlign = 'left';
       ctx.textBaseline = 'middle';
-      ctx.fillText('INTERFLON SMEERANALYSE • 3D MACHINE LAY-OUT & AFSTANDEN', 24, 30);
+      ctx.fillText('INTERFLON SMEERANALYSE • 3D MACHINE LAY-OUT & AFSTANDEN', 46, 32);
 
       // Determine active origins
       const activeOrigins = [];
@@ -2321,52 +2348,63 @@
 
       const activeNames = activeOrigins.map(o => o.short).join(' + ') || 'Geen';
 
-      // Machine range subtitle
-      ctx.font = '13px "Outfit", sans-serif';
+      // Header info tag
+      ctx.font = '700 13px "Outfit", sans-serif';
       ctx.fillStyle = '#94a3b8';
       ctx.textAlign = 'right';
-      ctx.fillText('Bereik: tot ' + machineRangeMeters + ' m | Meetpunten: ' + activeNames, outW - 24, 30);
+      ctx.fillText('Machine Bereik: tot ' + machineRangeMeters + ' m | Meetpunten: ' + activeNames + ' | Weergave: ' + (layoutViewMode === '3d' ? '3D Isometrisch' : '2D Bovenaanzicht'), outW - 32, 32);
 
-      // Left Card: The 3D Machine Canvas
-      const leftW = 710;
-      const leftH = 580;
-      const leftX = 20;
-      const leftY = 80;
+      // 3. Left Card: The Enlarged 3D Machine Raster
+      const leftX = 24;
+      const leftY = 82;
+      const leftW = 1070;
+      const leftH = 794;
 
       ctx.save();
-      ctx.fillStyle = '#020617';
+      ctx.fillStyle = '#0b1120';
       ctx.beginPath();
       if (ctx.roundRect) ctx.roundRect(leftX, leftY, leftW, leftH, 12);
       else ctx.rect(leftX, leftY, leftW, leftH);
       ctx.fill();
-      ctx.strokeStyle = '#334155';
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.12)';
       ctx.lineWidth = 1.5;
       ctx.stroke();
       ctx.clip();
 
-      // Temporarily render standard un-panned 100% overview for export
+      // Render raster at enlarged scale (140% scale / enlarged canvas)
+      const offscreenRaster = document.createElement('canvas');
+      offscreenRaster.width = leftW;
+      offscreenRaster.height = leftH;
+      
       const prevZoom = rasterZoom;
       const prevPanX = rasterPanX;
       const prevPanY = rasterPanY;
-      rasterZoom = 1.0;
+      const prevFs = isRasterFullscreen;
+      
+      // Force enlarged view mode parameters
+      rasterZoom = 1.4; // Enlarged 140% scale
       rasterPanX = 0;
       rasterPanY = 0;
-      drawBearingLayout();
+      isRasterFullscreen = true;
 
-      ctx.drawImage(sourceCanvas, leftX, leftY, leftW, leftH);
+      // Draw layout directly to offscreen raster canvas
+      drawBearingLayout(offscreenRaster);
+
+      ctx.drawImage(offscreenRaster, leftX, leftY, leftW, leftH);
       ctx.restore();
 
-      // Restore interactive zoom & pan
+      // Restore original view parameters
       rasterZoom = prevZoom;
       rasterPanX = prevPanX;
       rasterPanY = prevPanY;
+      isRasterFullscreen = prevFs;
       drawBearingLayout();
 
-      // Right Card: The Distances Overview
-      const rightX = 750;
-      const rightY = 80;
-      const rightW = 430;
-      const rightH = 580;
+      // 4. Right Card: Distances Overview (Afstanden Overzicht)
+      const rightX = 1114;
+      const rightY = 82;
+      const rightW = 462;
+      const rightH = 794;
 
       ctx.save();
       ctx.fillStyle = '#ffffff';
@@ -2379,35 +2417,35 @@
       ctx.stroke();
       ctx.clip();
 
-      // Right Card Header
-      ctx.font = 'bold 16px "Outfit", sans-serif';
+      // Header of right card
+      ctx.font = 'bold 18px "Outfit", sans-serif';
       ctx.fillStyle = '#0f172a';
       ctx.textAlign = 'left';
       ctx.textBaseline = 'top';
-      ctx.fillText('Afstanden Overzicht', rightX + 20, rightY + 18);
+      ctx.fillText('Afstanden Overzicht', rightX + 24, rightY + 22);
 
       const rows = document.querySelectorAll('.bearing-row');
       ctx.font = 'bold 12px "Outfit", sans-serif';
       ctx.fillStyle = '#1e40af';
       ctx.textAlign = 'right';
-      ctx.fillText(rows.length + (rows.length === 1 ? ' Lager' : ' Lagers'), rightX + rightW - 20, rightY + 20);
+      ctx.fillText(rows.length + (rows.length === 1 ? ' Lager' : ' Lagers'), rightX + rightW - 24, rightY + 26);
 
       ctx.font = '12px "Outfit", sans-serif';
       ctx.fillStyle = '#64748b';
       ctx.textAlign = 'left';
-      ctx.fillText(activeOrigins.length > 1 ? 'Gemeten leidingafstanden per actief meetpunt:' : 'Gemeten leidingafstand (' + activeNames + '):', rightX + 20, rightY + 44);
+      ctx.fillText(activeOrigins.length > 1 ? 'Gemeten leidingafstanden per actief meetpunt:' : 'Gemeten leidingafstand (' + activeNames + '):', rightX + 24, rightY + 50);
 
       // Separator line
       ctx.strokeStyle = '#e2e8f0';
       ctx.lineWidth = 1;
       ctx.beginPath();
-      ctx.moveTo(rightX + 20, rightY + 68);
-      ctx.lineTo(rightX + rightW - 20, rightY + 68);
+      ctx.moveTo(rightX + 24, rightY + 74);
+      ctx.lineTo(rightX + rightW - 24, rightY + 74);
       ctx.stroke();
 
       // Render Bearing Cards
-      let itemY = rightY + 80;
-      const cardH = 54;
+      let itemY = rightY + 88;
+      const cardH = 58;
       let overallMax = 0;
       let totalSum = 0;
       let distCount = 0;
@@ -2445,8 +2483,8 @@
         // Card background
         ctx.fillStyle = '#f8fafc';
         ctx.beginPath();
-        if (ctx.roundRect) ctx.roundRect(rightX + 16, itemY, rightW - 32, cardH, 8);
-        else ctx.rect(rightX + 16, itemY, rightW - 32, cardH);
+        if (ctx.roundRect) ctx.roundRect(rightX + 20, itemY, rightW - 40, cardH, 8);
+        else ctx.rect(rightX + 20, itemY, rightW - 40, cardH);
         ctx.fill();
         ctx.strokeStyle = '#e2e8f0';
         ctx.lineWidth = 1;
@@ -2455,37 +2493,37 @@
         // Badge: Lager Letter
         ctx.fillStyle = '#2563EB';
         ctx.beginPath();
-        if (ctx.roundRect) ctx.roundRect(rightX + 26, itemY + 12, 58, 24, 4);
-        else ctx.rect(rightX + 26, itemY + 12, 58, 24);
+        if (ctx.roundRect) ctx.roundRect(rightX + 32, itemY + 14, 62, 28, 6);
+        else ctx.rect(rightX + 32, itemY + 14, 62, 28);
         ctx.fill();
 
-        ctx.font = 'bold 11.5px "Outfit", sans-serif';
+        ctx.font = 'bold 12px "Outfit", sans-serif';
         ctx.fillStyle = '#ffffff';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        ctx.fillText('Lager ' + letter, rightX + 55, itemY + 24);
+        ctx.fillText('Lager ' + letter, rightX + 63, itemY + 28);
 
         // Lager Designation & Description
-        ctx.font = 'bold 12.5px "Outfit", sans-serif';
+        ctx.font = 'bold 13px "Outfit", sans-serif';
         ctx.fillStyle = '#0f172a';
         ctx.textAlign = 'left';
         ctx.textBaseline = 'top';
-        ctx.fillText(nrVal.length > 20 ? nrVal.substring(0, 18) + '...' : nrVal, rightX + 92, itemY + 10);
+        ctx.fillText(nrVal.length > 22 ? nrVal.substring(0, 20) + '...' : nrVal, rightX + 104, itemY + 12);
 
         if (descVal) {
-          ctx.font = '10.5px "Outfit", sans-serif';
+          ctx.font = '11px "Outfit", sans-serif';
           ctx.fillStyle = '#64748b';
-          ctx.fillText(descVal.length > 24 ? descVal.substring(0, 22) + '...' : descVal, rightX + 92, itemY + 28);
+          ctx.fillText(descVal.length > 26 ? descVal.substring(0, 24) + '...' : descVal, rightX + 104, itemY + 32);
         }
 
         // Distances
         if (originDists.length === 1) {
           const od = originDists[0];
-          ctx.font = 'bold 14px "Outfit", sans-serif';
+          ctx.font = 'bold 15px "Outfit", sans-serif';
           ctx.fillStyle = '#E30613';
           ctx.textAlign = 'right';
           ctx.textBaseline = 'top';
-          ctx.fillText(od.d.toFixed(1).replace('.', ',') + ' m', rightX + rightW - 26, itemY + 9);
+          ctx.fillText(od.d.toFixed(1).replace('.', ',') + ' m', rightX + rightW - 32, itemY + 11);
 
           let statusBg = '#dcfce7';
           let statusCol = '#166534';
@@ -2500,26 +2538,25 @@
             statusTxt = 'Goed (3-4m)';
           }
 
-          ctx.font = 'bold 9.5px "Outfit", sans-serif';
-          const sWidth = ctx.measureText(statusTxt).width + 12;
+          ctx.font = 'bold 10px "Outfit", sans-serif';
+          const sWidth = ctx.measureText(statusTxt).width + 14;
           ctx.fillStyle = statusBg;
           ctx.beginPath();
-          if (ctx.roundRect) ctx.roundRect(rightX + rightW - 26 - sWidth, itemY + 29, sWidth, 16, 4);
-          else ctx.rect(rightX + rightW - 26 - sWidth, itemY + 29, sWidth, 16);
+          if (ctx.roundRect) ctx.roundRect(rightX + rightW - 32 - sWidth, itemY + 32, sWidth, 18, 4);
+          else ctx.rect(rightX + rightW - 32 - sWidth, itemY + 32, sWidth, 18);
           ctx.fill();
 
           ctx.fillStyle = statusCol;
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
-          ctx.fillText(statusTxt, rightX + rightW - 26 - sWidth / 2, itemY + 37);
+          ctx.fillText(statusTxt, rightX + rightW - 32 - sWidth / 2, itemY + 41);
         } else if (originDists.length > 1) {
-          // Multi-origin: render mini distance badges on right side
-          let badgeX = rightX + rightW - 26;
+          let badgeX = rightX + rightW - 32;
           originDists.forEach(od => {
             const isClosest = (od.origin.id === closestOriginId);
             const badgeStr = od.origin.short + ': ' + od.d.toFixed(1).replace('.', ',') + 'm';
-            ctx.font = 'bold 9.5px "Outfit", sans-serif';
-            const bWidth = ctx.measureText(badgeStr).width + 10;
+            ctx.font = 'bold 10.5px "Outfit", sans-serif';
+            const bWidth = ctx.measureText(badgeStr).width + 12;
             badgeX -= bWidth;
 
             let bBg = od.d <= 3.0 ? '#dcfce7' : (od.d <= 4.0 ? '#fef3c7' : '#fee2e2');
@@ -2527,51 +2564,51 @@
             
             ctx.fillStyle = bBg;
             ctx.beginPath();
-            if (ctx.roundRect) ctx.roundRect(badgeX, itemY + (isClosest ? 10 : 28), bWidth, 16, 3);
-            else ctx.rect(badgeX, itemY + (isClosest ? 10 : 28), bWidth, 16);
+            if (ctx.roundRect) ctx.roundRect(badgeX, itemY + (isClosest ? 11 : 31), bWidth, 18, 4);
+            else ctx.rect(badgeX, itemY + (isClosest ? 11 : 31), bWidth, 18);
             ctx.fill();
 
             ctx.fillStyle = bCol;
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
-            ctx.fillText(badgeStr, badgeX + bWidth / 2, itemY + (isClosest ? 18 : 36));
+            ctx.fillText(badgeStr, badgeX + bWidth / 2, itemY + (isClosest ? 20 : 40));
 
-            badgeX -= 4; // gap
+            badgeX -= 6;
           });
         }
 
-        itemY += cardH + 8;
+        itemY += cardH + 10;
       });
 
       // Bottom statistics card
-      const statBoxY = rightY + rightH - 74;
+      const statBoxY = rightY + rightH - 80;
       ctx.fillStyle = '#f1f5f9';
       ctx.beginPath();
-      if (ctx.roundRect) ctx.roundRect(rightX + 16, statBoxY, rightW - 32, 56, 8);
-      else ctx.rect(rightX + 16, statBoxY, rightW - 32, 56);
+      if (ctx.roundRect) ctx.roundRect(rightX + 20, statBoxY, rightW - 40, 62, 8);
+      else ctx.rect(rightX + 20, statBoxY, rightW - 40, 62);
       ctx.fill();
       ctx.strokeStyle = '#cbd5e1';
       ctx.lineWidth = 1;
       ctx.stroke();
 
-      ctx.font = '12px "Outfit", sans-serif';
+      ctx.font = '13px "Outfit", sans-serif';
       ctx.fillStyle = '#475569';
       ctx.textAlign = 'left';
       ctx.textBaseline = 'top';
-      ctx.fillText('Max. leidingafstand:', rightX + 26, statBoxY + 10);
-      ctx.font = 'bold 12px "Outfit", sans-serif';
+      ctx.fillText('Max. leidingafstand:', rightX + 32, statBoxY + 12);
+      ctx.font = 'bold 14px "Outfit", sans-serif';
       ctx.fillStyle = '#0f172a';
       ctx.textAlign = 'right';
-      ctx.fillText(distCount > 0 ? (overallMax.toFixed(1).replace('.', ',') + ' m') : '-', rightX + rightW - 26, statBoxY + 10);
+      ctx.fillText(distCount > 0 ? (overallMax.toFixed(1).replace('.', ',') + ' m') : '-', rightX + rightW - 32, statBoxY + 12);
 
-      ctx.font = '10px "Outfit", sans-serif';
+      ctx.font = '11px "Outfit", sans-serif';
       ctx.textAlign = 'center';
       ctx.fillStyle = '#166534';
-      ctx.fillText('● ≤ 3m (Ideaal)', rightX + 85, statBoxY + 34);
+      ctx.fillText('● ≤ 3m (Ideaal)', rightX + 95, statBoxY + 38);
       ctx.fillStyle = '#92400e';
-      ctx.fillText('● 3-4m (Goed)', rightX + rightW / 2, statBoxY + 34);
+      ctx.fillText('● 3-4m (Goed)', rightX + rightW / 2, statBoxY + 38);
       ctx.fillStyle = '#991b1b';
-      ctx.fillText('● > 4m (Let op)', rightX + rightW - 85, statBoxY + 34);
+      ctx.fillText('● > 4m (Let op)', rightX + rightW - 95, statBoxY + 38);
 
       ctx.restore();
 
@@ -2660,6 +2697,245 @@
       link.download = 'Interflon_Machine_Layout_3D.png';
       link.href = compCanvas.toDataURL('image/png');
       link.click();
+    }
+
+    // =========================================================================
+    // QUESTIONNAIRE IMPORT & EXPORT (FOR INTERFLON MEDEWERKERS)
+    // =========================================================================
+    function exportQuestionnaireFile() {
+      saveCurrentSection2Data();
+      saveCurrentSection3Data();
+      saveCurrentSection4Data();
+
+      // Collect bearing rows
+      const bearingRowsData = [];
+      const rows = document.querySelectorAll('.bearing-row');
+      rows.forEach((row, idx) => {
+        const letter = row.getAttribute('data-letter') || LETTERS[idx] || ('L' + (idx + 1));
+        const qtyIn = row.querySelector('.bearing-qty-input');
+        const nrIn = row.querySelector('.bearing-nr-input');
+        const descIn = row.querySelector('.bearing-desc-input');
+        const rpmIn = row.querySelector('.bearing-rpm-input');
+        const posIn = row.querySelector('.bearing-pos-input');
+        bearingRowsData.push({
+          letter: letter,
+          qty: qtyIn ? qtyIn.value : '1',
+          nr: nrIn ? nrIn.value : '',
+          desc: descIn ? descIn.value : '',
+          rpm: rpmIn ? rpmIn.value : '',
+          pos: posIn ? posIn.value : 'Horizontaal'
+        });
+      });
+
+      const generalData = {
+        machineName: document.getElementById('q1') ? document.getElementById('q1').value : '',
+        machineBrand: document.getElementById('q2') ? document.getElementById('q2').value : '',
+        application: document.getElementById('q3') ? document.getElementById('q3').value : '',
+        machineCount: document.getElementById('q10') ? document.getElementById('q10').value : '1'
+      };
+
+      const contactData = {
+        clientCompany: document.getElementById('clientCompany') ? document.getElementById('clientCompany').value : '',
+        clientContact: document.getElementById('clientContact') ? document.getElementById('clientContact').value : '',
+        clientEmail: document.getElementById('clientEmail') ? document.getElementById('clientEmail').value : '',
+        interflonContactEmail: document.getElementById('interflonContactEmail') ? document.getElementById('interflonContactEmail').value : ''
+      };
+
+      const rasterData = {
+        machineRangeMeters: machineRangeMeters,
+        layoutViewMode: layoutViewMode,
+        showCentralPoint: showCentralPoint,
+        bearingPositions: JSON.parse(JSON.stringify(bearingPositions)),
+        devices: JSON.parse(JSON.stringify(devices))
+      };
+
+      const exportPackage = {
+        fileType: 'Interflon_Smeeranalyse_Vragenlijst',
+        version: '1.0',
+        exportDate: new Date().toISOString(),
+        general: generalData,
+        contact: contactData,
+        bearings: bearingRowsData,
+        bearingDataMapSec2: JSON.parse(JSON.stringify(bearingDataMapSec2)),
+        bearingDataMapSec3: JSON.parse(JSON.stringify(bearingDataMapSec3)),
+        bearingDataMapSec4: JSON.parse(JSON.stringify(bearingDataMapSec4)),
+        activeBearings: {
+          sec2: activeBearingSec2,
+          sec3: activeBearingSec3,
+          sec4: activeBearingSec4
+        },
+        raster: rasterData
+      };
+
+      const jsonStr = JSON.stringify(exportPackage, null, 2);
+      const blob = new Blob([jsonStr], { type: 'application/json' });
+      const cleanName = (generalData.machineName || 'Machine').trim().replace(/[^a-zA-Z0-9_\u00C0-\u017F-]/g, '_');
+      const d = new Date();
+      const dateStr = d.getFullYear() + '' + String(d.getMonth() + 1).padStart(2, '0') + String(d.getDate()).padStart(2, '0');
+      const filename = 'Interflon_Vragenlijst_' + cleanName + '_' + dateStr + '.json';
+
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    }
+
+    function importQuestionnaireFile(event) {
+      const file = event.target.files && event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const data = JSON.parse(e.target.result);
+          if (!data || (!data.bearings && !data.general)) {
+            alert('Ongeldig bestand. Controleer of dit een geldig Interflon vragenlijstbestand (.json) is.');
+            return;
+          }
+
+          // 1. General machine info
+          if (data.general) {
+            if (document.getElementById('q1')) document.getElementById('q1').value = data.general.machineName || '';
+            if (document.getElementById('q2')) document.getElementById('q2').value = data.general.machineBrand || '';
+            if (document.getElementById('q3')) document.getElementById('q3').value = data.general.application || '';
+            if (document.getElementById('q10')) document.getElementById('q10').value = data.general.machineCount || '1';
+          }
+
+          // 2. Contact info
+          if (data.contact) {
+            if (document.getElementById('clientCompany')) document.getElementById('clientCompany').value = data.contact.clientCompany || '';
+            if (document.getElementById('clientContact')) document.getElementById('clientContact').value = data.contact.clientContact || '';
+            if (document.getElementById('clientEmail')) {
+              document.getElementById('clientEmail').value = data.contact.clientEmail || '';
+              if (typeof syncReplyTo === 'function') syncReplyTo(data.contact.clientEmail || '');
+            }
+            if (document.getElementById('interflonContactEmail')) {
+              const email = data.contact.interflonContactEmail || 'tom.peckstadt@interflon.com';
+              document.getElementById('interflonContactEmail').value = email;
+              if (typeof updateFormSubmitAction === 'function') updateFormSubmitAction(email);
+            }
+          }
+
+          // 3. Dynamic bearing rows
+          if (Array.isArray(data.bearings) && data.bearings.length > 0) {
+            const container = document.getElementById('bearingRowsContainer');
+            if (container) {
+              container.innerHTML = '';
+              data.bearings.forEach((b, idx) => {
+                const letter = b.letter || LETTERS[idx] || ('L' + (idx + 1));
+                const isFirst = (idx === 0);
+                const row = document.createElement('div');
+                row.className = 'bearing-row';
+                row.id = 'bearingRow_' + (idx + 1);
+                row.setAttribute('data-letter', letter);
+                row.style.cssText = 'display: grid; grid-template-columns: 75px 65px 1fr 1fr 100px 120px 36px; gap: 8px; margin-bottom: ' + (isFirst ? '12px' : '10px') + '; align-items: ' + (isFirst ? 'end' : 'center') + ';';
+
+                row.innerHTML = `
+                  <div>
+                    ${isFirst ? '<label style="font-size: 11.5px; font-weight: 700; color: #334155; display: block; margin-bottom: 4px;">Lager</label>' : ''}
+                    <span class="bearing-badge">Lager ${letter}</span>
+                  </div>
+                  <div>
+                    ${isFirst ? '<label style="font-size: 11.5px; font-weight: 700; color: #334155; display: block; margin-bottom: 4px;">Aantal *</label>' : ''}
+                    <input type="number" name="Lager ${letter} - Aantal" class="form-control bearing-qty-input" min="1" required onchange="onBearingRowChanged()">
+                  </div>
+                  <div>
+                    ${isFirst ? '<label style="font-size: 11.5px; font-weight: 700; color: #334155; display: block; margin-bottom: 4px;">Lagernummer *</label>' : ''}
+                    <input type="text" name="Lager ${letter} - Lagernummer" ${isFirst ? 'id="q5"' : ''} class="form-control bearing-nr-input" placeholder="bijv. 6208 2RS of 22215" required oninput="onBearingRowChanged()">
+                  </div>
+                  <div>
+                    ${isFirst ? '<label style="font-size: 11.5px; font-weight: 700; color: #334155; display: block; margin-bottom: 4px;">Omschrijving / Positie</label>' : ''}
+                    <input type="text" name="Lager ${letter} - Omschrijving" class="form-control bearing-desc-input" placeholder="bijv. Keerzijde transportband" oninput="onBearingRowChanged()">
+                  </div>
+                  <div>
+                    ${isFirst ? '<label style="font-size: 11.5px; font-weight: 700; color: #334155; display: block; margin-bottom: 4px;">Toerental (RPM)</label>' : ''}
+                    <input type="number" name="Lager ${letter} - Toerental RPM" ${isFirst ? 'id="q8"' : ''} class="form-control bearing-rpm-input" placeholder="bijv. 1450" oninput="onBearingRowChanged()">
+                  </div>
+                  <div>
+                    ${isFirst ? '<label style="font-size: 11.5px; font-weight: 700; color: #334155; display: block; margin-bottom: 4px;">As Positie</label>' : ''}
+                    <select name="Lager ${letter} - As Positie" class="form-control bearing-pos-input" onchange="onBearingRowChanged()">
+                      <option value="Horizontaal">Horizontaal</option>
+                      <option value="Verticaal">Verticaal</option>
+                    </select>
+                  </div>
+                  <div>
+                    ${!isFirst ? `<button type="button" onclick="removeBearingRow(this)" title="Sluiten" style="background: #fee2e2; border: 1px solid #fca5a5; color: #dc2626; border-radius: 6px; width: 36px; height: 36px; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 16px;">✕</button>` : ''}
+                  </div>
+                `;
+                container.appendChild(row);
+
+                // Populate input values safely via DOM properties
+                const qtyIn = row.querySelector('.bearing-qty-input');
+                if (qtyIn) qtyIn.value = b.qty || '1';
+                const nrIn = row.querySelector('.bearing-nr-input');
+                if (nrIn) nrIn.value = b.nr || '';
+                const descIn = row.querySelector('.bearing-desc-input');
+                if (descIn) descIn.value = b.desc || '';
+                const rpmIn = row.querySelector('.bearing-rpm-input');
+                if (rpmIn) rpmIn.value = b.rpm || '';
+                const posIn = row.querySelector('.bearing-pos-input');
+                if (posIn) posIn.value = b.pos || 'Horizontaal';
+              });
+            }
+          }
+
+          // 4. Bearing data maps
+          if (data.bearingDataMapSec2) bearingDataMapSec2 = JSON.parse(JSON.stringify(data.bearingDataMapSec2));
+          if (data.bearingDataMapSec3) bearingDataMapSec3 = JSON.parse(JSON.stringify(data.bearingDataMapSec3));
+          if (data.bearingDataMapSec4) bearingDataMapSec4 = JSON.parse(JSON.stringify(data.bearingDataMapSec4));
+
+          // 5. Active bearing keys
+          const firstLetter = (data.bearings && data.bearings[0] && data.bearings[0].letter) || 'A';
+          activeBearingSec2 = (data.activeBearings && data.activeBearings.sec2) || firstLetter;
+          activeBearingSec3 = (data.activeBearings && data.activeBearings.sec3) || firstLetter;
+          activeBearingSec4 = (data.activeBearings && data.activeBearings.sec4) || firstLetter;
+
+          // 6. Raster State (restore bearingPositions BEFORE updating letters & dropdown)
+          if (data.raster) {
+            if (data.raster.bearingPositions) {
+              bearingPositions = JSON.parse(JSON.stringify(data.raster.bearingPositions));
+            }
+            if (Array.isArray(data.raster.devices)) {
+              devices = JSON.parse(JSON.stringify(data.raster.devices));
+            }
+            if (typeof data.raster.showCentralPoint === 'boolean') {
+              showCentralPoint = data.raster.showCentralPoint;
+            }
+            if (data.raster.machineRangeMeters) {
+              machineRangeMeters = Number(data.raster.machineRangeMeters);
+              const scaleSelect = document.getElementById('layoutScaleSelect');
+              if (scaleSelect) scaleSelect.value = machineRangeMeters;
+              const infoEl = document.getElementById('canvasZoomInfo');
+              if (infoEl) infoEl.textContent = 'Bereik: tot ' + machineRangeMeters + ' m (Centrum: 0,0)';
+            }
+            if (data.raster.layoutViewMode) {
+              setLayoutViewMode(data.raster.layoutViewMode);
+            }
+          }
+
+          // 7. Update dropdowns, load active bearing values, and sync layout
+          updateBearingLettersAndDropdown();
+
+          // 8. Redraw layout, device pills, distances, and formsubmit attachment
+          renderDeviceFilterPills();
+          drawBearingLayout();
+          renderDistancesOverview();
+          updateFormSubmitAttachment();
+
+          alert('✅ Vragenlijst succesvol geïmporteerd!\nAlle machinegegevens, lagers en het machineraster zijn hersteld.');
+          window.dispatchEvent(new CustomEvent('questionnaireImported', { detail: data }));
+        } catch (err) {
+          console.error("Fout bij importeren van vragenlijst:", err);
+          alert('Er is een fout opgetreden bij het inlezen van het bestand: ' + err.message);
+        } finally {
+          event.target.value = '';
+        }
+      };
+      reader.readAsText(file);
     }
 
     function updateBearingLettersAndDropdown() {
