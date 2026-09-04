@@ -2690,11 +2690,35 @@
       }
     });
 
-    function downloadLayoutImage() {
+    async function downloadLayoutImage() {
       const compCanvas = generateCompositeLayoutCanvas();
       if (!compCanvas) return;
+      const filename = 'Interflon_Machine_Layout_3D.png';
+
+      // Open native Windows Verkenner "Opslaan als" dialog if supported (Edge, Chrome)
+      if ('showSaveFilePicker' in window) {
+        try {
+          const fileHandle = await window.showSaveFilePicker({
+            suggestedName: filename,
+            types: [{
+              description: 'PNG Afbeelding (*.png)',
+              accept: { 'image/png': ['.png'] }
+            }]
+          });
+          const blob = await new Promise(resolve => compCanvas.toBlob(resolve, 'image/png'));
+          if (!blob) return;
+          const writableStream = await fileHandle.createWritable();
+          await writableStream.write(blob);
+          await writableStream.close();
+          return;
+        } catch (err) {
+          if (err.name === 'AbortError') return;
+          console.warn('showSaveFilePicker error, falling back to download:', err);
+        }
+      }
+
       const link = document.createElement('a');
-      link.download = 'Interflon_Machine_Layout_3D.png';
+      link.download = filename;
       link.href = compCanvas.toDataURL('image/png');
       link.click();
     }
@@ -2702,7 +2726,7 @@
     // =========================================================================
     // QUESTIONNAIRE IMPORT & EXPORT (FOR INTERFLON MEDEWERKERS)
     // =========================================================================
-    function exportQuestionnaireFile() {
+    async function exportQuestionnaireFile() {
       saveCurrentSection2Data();
       saveCurrentSection3Data();
       saveCurrentSection4Data();
@@ -2774,6 +2798,27 @@
       const dateStr = d.getFullYear() + '' + String(d.getMonth() + 1).padStart(2, '0') + String(d.getDate()).padStart(2, '0');
       const filename = 'Interflon_Vragenlijst_' + cleanName + '_' + dateStr + '.json';
 
+      // Open native Windows Verkenner "Opslaan als" dialog if supported (Edge, Chrome)
+      if ('showSaveFilePicker' in window) {
+        try {
+          const fileHandle = await window.showSaveFilePicker({
+            suggestedName: filename,
+            types: [{
+              description: 'Interflon Vragenlijst Bestand (*.json)',
+              accept: { 'application/json': ['.json'] }
+            }]
+          });
+          const writableStream = await fileHandle.createWritable();
+          await writableStream.write(blob);
+          await writableStream.close();
+          return;
+        } catch (err) {
+          if (err.name === 'AbortError') return; // Gebruiker heeft geannuleerd
+          console.warn('showSaveFilePicker fout, val terug op standaard download:', err);
+        }
+      }
+
+      // Fallback voor browsers zonder showSaveFilePicker
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
