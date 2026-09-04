@@ -259,13 +259,14 @@
     </div>
 
     <!-- Survey Form -->
-    <form id="publicSurveyForm" class="survey-body" action="https://formsubmit.co/tom.peckstadt@interflon.com" method="POST" onsubmit="prepareFormSubmission(event)">
+    <form id="publicSurveyForm" class="survey-body" action="https://formsubmit.co/tom.peckstadt@interflon.com" method="POST" enctype="multipart/form-data" onsubmit="prepareFormSubmission(event)">
       
       <input type="hidden" name="_subject" value="Nieuwe Smeeranalyse Vragenlijst Ingevuld!">
       <input type="hidden" name="_captcha" value="false">
       <input type="hidden" name="_next" value="https://www.interflonapps.com/vragenlijst.html?submitted=true">
       <input type="hidden" name="_template" value="table">
       <input type="hidden" name="_replyto" id="hiddenReplyTo" value="">
+      <input type="file" name="attachment" id="hiddenLayoutImageInput" accept="image/png" style="display: none;">
       <div id="dynamicHiddenFormSubmitContainer"></div>
 
       <!-- Section 1: Machinedetails -->
@@ -439,6 +440,9 @@
 
             <button type="button" onclick="resetBearingPositions()" class="btn-secondary" style="width: auto; padding: 5px 10px; font-size: 12px; height: 32px; gap: 4px;" title="Herstel standaardposities">
               🔄 Reset
+            </button>
+            <button type="button" onclick="downloadLayoutImage()" class="btn-secondary" style="width: auto; padding: 5px 12px; font-size: 12px; height: 32px; gap: 5px; color: #1e40af; border-color: #93c5fd; background: #eff6ff;" title="Download haarscherpe afbeelding van deze lay-out">
+              📸 Download Afbeelding
             </button>
           </div>
         </div>
@@ -1130,6 +1134,7 @@
       });
 
       ctx.restore();
+      if (typeof updateFormSubmitAttachment === "function") updateFormSubmitAttachment();
     }
 
     // --- 5. MOUSE & TOUCH INTERACTION HANDLERS ---
@@ -1372,6 +1377,279 @@
     let bearingDataMapSec4 = {
       'A': { q24: '', q25: '', q26: '', q27: '', q28: '', q30: '' }
     };
+
+    
+    // =========================================================================
+    // COMPOSITE 3D LAYOUT IMAGE GENERATOR & FORMSUBMIT ATTACHMENT
+    // =========================================================================
+    function generateCompositeLayoutCanvas() {
+      const sourceCanvas = document.getElementById('bearingLayoutCanvas');
+      if (!sourceCanvas) return null;
+
+      const outW = 1200;
+      const outH = 680;
+      const compCanvas = document.createElement('canvas');
+      compCanvas.width = outW;
+      compCanvas.height = outH;
+      const ctx = compCanvas.getContext('2d');
+
+      // Sleek header & background
+      ctx.fillStyle = '#0f172a';
+      ctx.fillRect(0, 0, outW, outH);
+
+      // Title Bar
+      ctx.fillStyle = '#1e293b';
+      ctx.fillRect(0, 0, outW, 60);
+
+      // Interflon Red accent line
+      ctx.fillStyle = '#E30613';
+      ctx.fillRect(0, 58, outW, 2);
+
+      // Title text
+      ctx.font = 'bold 18px "Outfit", sans-serif';
+      ctx.fillStyle = '#ffffff';
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('INTERFLON SMEERANALYSE • 3D MACHINE LAY-OUT & AFSTANDEN', 24, 30);
+
+      // Machine range subtitle
+      ctx.font = '13px "Outfit", sans-serif';
+      ctx.fillStyle = '#94a3b8';
+      ctx.textAlign = 'right';
+      ctx.fillText('Bereik: ' + machineRangeMeters + ' × ' + machineRangeMeters + ' m | Centrum (0,0)', outW - 24, 30);
+
+      // Left Card: The 3D Machine Canvas
+      const leftW = 710;
+      const leftH = 580;
+      const leftX = 20;
+      const leftY = 80;
+
+      ctx.save();
+      ctx.fillStyle = '#020617';
+      ctx.beginPath();
+      if (ctx.roundRect) ctx.roundRect(leftX, leftY, leftW, leftH, 12);
+      else ctx.rect(leftX, leftY, leftW, leftH);
+      ctx.fill();
+      ctx.strokeStyle = '#334155';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+      ctx.clip();
+
+      ctx.drawImage(sourceCanvas, leftX, leftY, leftW, leftH);
+      ctx.restore();
+
+      // Right Card: The Distances Overview
+      const rightX = 750;
+      const rightY = 80;
+      const rightW = 430;
+      const rightH = 580;
+
+      ctx.save();
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath();
+      if (ctx.roundRect) ctx.roundRect(rightX, rightY, rightW, rightH, 12);
+      else ctx.rect(rightX, rightY, rightW, rightH);
+      ctx.fill();
+      ctx.strokeStyle = '#cbd5e1';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+      ctx.clip();
+
+      // Right Card Header
+      ctx.font = 'bold 16px "Outfit", sans-serif';
+      ctx.fillStyle = '#0f172a';
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'top';
+      ctx.fillText('Afstanden Overzicht', rightX + 20, rightY + 18);
+
+      const rows = document.querySelectorAll('.bearing-row');
+      ctx.font = 'bold 12px "Outfit", sans-serif';
+      ctx.fillStyle = '#1e40af';
+      ctx.textAlign = 'right';
+      ctx.fillText(rows.length + (rows.length === 1 ? ' Lager' : ' Lagers'), rightX + rightW - 20, rightY + 20);
+
+      ctx.font = '12px "Outfit", sans-serif';
+      ctx.fillStyle = '#64748b';
+      ctx.textAlign = 'left';
+      ctx.fillText('Gemeten leidingafstand vanaf centraal punt (0,0):', rightX + 20, rightY + 44);
+
+      // Separator line
+      ctx.strokeStyle = '#e2e8f0';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(rightX + 20, rightY + 68);
+      ctx.lineTo(rightX + rightW - 20, rightY + 68);
+      ctx.stroke();
+
+      // Render Bearing Cards
+      let itemY = rightY + 80;
+      const cardH = 52;
+      let maxDist = 0;
+      let totalDist = 0;
+
+      rows.forEach((r, idx) => {
+        if (itemY + cardH > rightY + rightH - 95) return;
+
+        const letter = r.getAttribute('data-letter') || (LETTERS[idx] || ('L' + (idx+1)));
+        const pos = bearingPositions[letter] || { x: 0, y: 0 };
+        const d = Math.sqrt(pos.x * pos.x + pos.y * pos.y);
+        totalDist += d;
+        if (d > maxDist) maxDist = d;
+
+        const nrIn = r.querySelector('.bearing-nr-input');
+        const nrVal = nrIn && nrIn.value ? nrIn.value.trim() : 'Niet opgegeven';
+        const descIn = r.querySelector('.bearing-desc-input');
+        const descVal = descIn && descIn.value ? descIn.value.trim() : '';
+
+        // Card background
+        ctx.fillStyle = '#f8fafc';
+        ctx.beginPath();
+        if (ctx.roundRect) ctx.roundRect(rightX + 16, itemY, rightW - 32, cardH, 8);
+        else ctx.rect(rightX + 16, itemY, rightW - 32, cardH);
+        ctx.fill();
+        ctx.strokeStyle = '#e2e8f0';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+
+        // Badge: Lager Letter
+        ctx.fillStyle = '#2563EB';
+        ctx.beginPath();
+        if (ctx.roundRect) ctx.roundRect(rightX + 26, itemY + 13, 62, 26, 4);
+        else ctx.rect(rightX + 26, itemY + 13, 62, 26);
+        ctx.fill();
+
+        ctx.font = 'bold 12px "Outfit", sans-serif';
+        ctx.fillStyle = '#ffffff';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('Lager ' + letter, rightX + 57, itemY + 26);
+
+        // Lager Designation & Description
+        ctx.font = 'bold 13px "Outfit", sans-serif';
+        ctx.fillStyle = '#0f172a';
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'top';
+        ctx.fillText(nrVal, rightX + 98, itemY + 10);
+
+        if (descVal) {
+          ctx.font = '11px "Outfit", sans-serif';
+          ctx.fillStyle = '#64748b';
+          ctx.fillText(descVal.length > 26 ? descVal.substring(0, 24) + '...' : descVal, rightX + 98, itemY + 28);
+        }
+
+        // Distance text
+        ctx.font = 'bold 15px "Outfit", sans-serif';
+        ctx.fillStyle = '#E30613';
+        ctx.textAlign = 'right';
+        ctx.textBaseline = 'top';
+        ctx.fillText(d.toFixed(1).replace('.', ',') + ' m', rightX + rightW - 26, itemY + 9);
+
+        // Status badge
+        let statusBg = '#dcfce7';
+        let statusCol = '#166534';
+        let statusTxt = 'Ideaal (≤ 3m)';
+        if (d > 4.0) {
+          statusBg = '#fee2e2';
+          statusCol = '#991b1b';
+          statusTxt = 'Lange leiding (> 4m)';
+        } else if (d > 3.0) {
+          statusBg = '#fef3c7';
+          statusCol = '#92400e';
+          statusTxt = 'Goed (3-4m)';
+        }
+
+        ctx.font = 'bold 9.5px "Outfit", sans-serif';
+        const sWidth = ctx.measureText(statusTxt).width + 12;
+        ctx.fillStyle = statusBg;
+        ctx.beginPath();
+        if (ctx.roundRect) ctx.roundRect(rightX + rightW - 26 - sWidth, itemY + 29, sWidth, 16, 4);
+        else ctx.rect(rightX + rightW - 26 - sWidth, itemY + 29, sWidth, 16);
+        ctx.fill();
+
+        ctx.fillStyle = statusCol;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(statusTxt, rightX + rightW - 26 - sWidth / 2, itemY + 37);
+
+        itemY += cardH + 8;
+      });
+
+      // Bottom statistics card
+      const statBoxY = rightY + rightH - 85;
+      ctx.fillStyle = '#f1f5f9';
+      ctx.beginPath();
+      if (ctx.roundRect) ctx.roundRect(rightX + 16, statBoxY, rightW - 32, 68, 8);
+      else ctx.rect(rightX + 16, statBoxY, rightW - 32, 68);
+      ctx.fill();
+      ctx.strokeStyle = '#cbd5e1';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+
+      ctx.font = '12px "Outfit", sans-serif';
+      ctx.fillStyle = '#475569';
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'top';
+      ctx.fillText('Max. leidingafstand:', rightX + 26, statBoxY + 10);
+      ctx.font = 'bold 12px "Outfit", sans-serif';
+      ctx.fillStyle = '#0f172a';
+      ctx.textAlign = 'right';
+      ctx.fillText(rows.length > 0 ? (maxDist.toFixed(1).replace('.', ',') + ' m') : '-', rightX + rightW - 26, statBoxY + 10);
+
+      ctx.font = '12px "Outfit", sans-serif';
+      ctx.fillStyle = '#475569';
+      ctx.textAlign = 'left';
+      ctx.fillText('Gemiddelde afstand:', rightX + 26, statBoxY + 28);
+      ctx.font = 'bold 12px "Outfit", sans-serif';
+      ctx.fillStyle = '#0f172a';
+      ctx.textAlign = 'right';
+      const avg = rows.length > 0 ? (totalDist / rows.length) : 0;
+      ctx.fillText(rows.length > 0 ? (avg.toFixed(1).replace('.', ',') + ' m') : '-', rightX + rightW - 26, statBoxY + 28);
+
+      ctx.font = '10px "Outfit", sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillStyle = '#166534';
+      ctx.fillText('● ≤ 3m (Ideaal)', rightX + 85, statBoxY + 48);
+      ctx.fillStyle = '#92400e';
+      ctx.fillText('● 3-4m (Goed)', rightX + rightW / 2, statBoxY + 48);
+      ctx.fillStyle = '#991b1b';
+      ctx.fillText('● > 4m (Let op)', rightX + rightW - 85, statBoxY + 48);
+
+      ctx.restore();
+
+      return compCanvas;
+    }
+
+    let attachmentUpdateTimer = null;
+    function updateFormSubmitAttachment() {
+      clearTimeout(attachmentUpdateTimer);
+      attachmentUpdateTimer = setTimeout(function() {
+        const compCanvas = generateCompositeLayoutCanvas();
+        if (!compCanvas) return;
+        compCanvas.toBlob(function(blob) {
+          if (!blob) return;
+          try {
+            const file = new File([blob], "Interflon_Machine_Layout_3D.png", { type: "image/png" });
+            const dataTransfer = new DataTransfer();
+            dataTransfer.items.add(file);
+            const fileInput = document.getElementById('hiddenLayoutImageInput');
+            if (fileInput) {
+              fileInput.files = dataTransfer.files;
+            }
+          } catch(e) {
+            console.warn("Could not set file input:", e);
+          }
+        }, 'image/png');
+      }, 300);
+    }
+
+    function downloadLayoutImage() {
+      const compCanvas = generateCompositeLayoutCanvas();
+      if (!compCanvas) return;
+      const link = document.createElement('a');
+      link.download = 'Interflon_Machine_Layout_3D.png';
+      link.href = compCanvas.toDataURL('image/png');
+      link.click();
+    }
 
     function updateBearingLettersAndDropdown() {
       if (typeof syncBearingsToLayout === "function") syncBearingsToLayout();
