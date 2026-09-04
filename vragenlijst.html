@@ -629,6 +629,7 @@
       <input type="hidden" name="_template" value="table">
       <input type="hidden" name="_replyto" id="hiddenReplyTo" value="">
       <input type="file" name="attachment" id="hiddenLayoutImageInput" accept="image/png" style="display: none;">
+      <input type="file" name="attachment2" id="hiddenLayoutCsvInput" accept=".csv,text/csv" style="display: none;">
       <div id="dynamicHiddenFormSubmitContainer"></div>
 
       <!-- Section 1: Machinedetails -->
@@ -2616,10 +2617,302 @@
       return compCanvas;
     }
 
+    function collectAllBearingsData() {
+      if (typeof saveCurrentSection2Data === "function") saveCurrentSection2Data();
+      if (typeof saveCurrentSection3Data === "function") saveCurrentSection3Data();
+      if (typeof saveCurrentSection4Data === "function") saveCurrentSection4Data();
+
+      const client = {
+        company: (document.getElementById('clientCompany') ? document.getElementById('clientCompany').value.trim() : '') || '-',
+        contact: (document.getElementById('clientContact') ? document.getElementById('clientContact').value.trim() : '') || '-',
+        email: (document.getElementById('clientEmail') ? document.getElementById('clientEmail').value.trim() : '') || '-',
+        advisorEmail: (document.getElementById('interflonContactEmail') ? document.getElementById('interflonContactEmail').value.trim() : '') || '-'
+      };
+
+      const machine = {
+        name: (document.getElementById('q1') ? document.getElementById('q1').value.trim() : '') || '-',
+        brand: (document.getElementById('q2') ? document.getElementById('q2').value.trim() : '') || '-',
+        application: (document.getElementById('q3') ? document.getElementById('q3').value.trim() : '') || '-',
+        count: (document.getElementById('q10') ? document.getElementById('q10').value.trim() : '') || '1'
+      };
+
+      const bearings = [];
+      const rows = document.querySelectorAll('.bearing-row');
+
+      rows.forEach((r, idx) => {
+        const letter = r.getAttribute('data-letter') || (LETTERS[idx] || ('L' + (idx + 1)));
+        const qtyIn = r.querySelector('.bearing-qty-input');
+        const nrIn = r.querySelector('.bearing-nr-input');
+        const descIn = r.querySelector('.bearing-desc-input');
+        const rpmIn = r.querySelector('.bearing-rpm-input');
+        const posIn = r.querySelector('.bearing-pos-input');
+
+        const d2 = (typeof bearingDataMapSec2 !== "undefined" && bearingDataMapSec2[letter]) ? bearingDataMapSec2[letter] : {};
+        const d3 = (typeof bearingDataMapSec3 !== "undefined" && bearingDataMapSec3[letter]) ? bearingDataMapSec3[letter] : {};
+        const d4 = (typeof bearingDataMapSec4 !== "undefined" && bearingDataMapSec4[letter]) ? bearingDataMapSec4[letter] : {};
+
+        const aantal = (qtyIn && qtyIn.value) ? qtyIn.value.trim() : '1';
+        const lagernummer = (nrIn && nrIn.value) ? nrIn.value.trim() : '-';
+        const omschrijving = (descIn && descIn.value) ? descIn.value.trim() : '-';
+        const rpm = (rpmIn && rpmIn.value) ? (rpmIn.value.trim() + ' RPM') : '-';
+        const asPositie = (posIn && posIn.value) ? posIn.value : 'Horizontaal';
+
+        const smeermiddel = d2.q11 ? d2.q11.trim() : '-';
+        const prijsLiter = d2.q12_price ? ('€ ' + parseFloat(d2.q12_price).toFixed(2).replace('.', ',') + ' / L') : '-';
+        const freqNum = d2.q4_freq_num ? String(d2.q4_freq_num).trim() : '';
+        const freqUnit = d2.q4_freq_unit || 'Weken';
+        const interval = freqNum ? (freqNum + ' ' + freqUnit) : '-';
+        const levensduur = d2.q29_life ? (d2.q29_life + ' mnd') : '-';
+        const urenPerDag = (d2.q13 || '16') + ' uur';
+        const dagenPerWeek = (d2.q14 || '5') + ' dagen';
+
+        const pos = (typeof bearingPositions !== "undefined" && bearingPositions[letter]) ? bearingPositions[letter] : { x: 0, y: 0 };
+        let minD = Math.hypot(pos.x, pos.y);
+        if (typeof activeOrigins !== "undefined" && activeOrigins && activeOrigins.length > 0) {
+          minD = Math.min(...activeOrigins.map(o => o.getDist(pos.x, pos.y)));
+        }
+        const leidingAfstand = minD.toFixed(1).replace('.', ',') + ' m';
+        const coordinaten = 'X: ' + pos.x.toFixed(1) + 'm, Y: ' + pos.y.toFixed(1) + 'm';
+
+        const omgevingstemp = d3.q15 ? (d3.q15 + ' °C') : '-';
+        const lagertemp = d3.q16 ? (d3.q16 + ' °C') : '-';
+        const waterVocht = (d3.q17 || '3') + '/10';
+        const stofZand = (d3.q18 || '4') + '/10';
+        const abrasief = (d3.q19 || '2') + '/10';
+        const schokbelasting = (d3.q20 || '3') + '/10';
+        const vibraties = (d3.q21 || '3') + '/10';
+        const condensatie = (d3.q22 || '2') + '/10';
+
+        const tijdsduurSmeerbeurt = d4.q24 ? (d4.q24 + ' min') : '-';
+        const uurloon = d4.q25 ? ('€ ' + parseFloat(d4.q25).toFixed(2).replace('.', ',') + ' / uur') : '-';
+        const downtimeUur = d4.q26 ? (d4.q26 + ' uur') : '-';
+        const voorbereiding = d4.q27 ? (d4.q27 + ' uur') : '-';
+        const downtimeKost = d4.q28 ? ('€ ' + parseFloat(d4.q28).toFixed(2).replace('.', ',') + ' / uur') : '-';
+        const prijsWisselstuk = d4.q30 ? ('€ ' + parseFloat(d4.q30).toFixed(2).replace('.', ',')) : '-';
+
+        bearings.push({
+          letter,
+          aantal,
+          lagernummer,
+          omschrijving,
+          rpm,
+          asPositie,
+          smeermiddel,
+          prijsLiter,
+          interval,
+          levensduur,
+          urenPerDag,
+          dagenPerWeek,
+          leidingAfstand,
+          coordinaten,
+          omgevingstemp,
+          lagertemp,
+          waterVocht,
+          stofZand,
+          abrasief,
+          schokbelasting,
+          vibraties,
+          condensatie,
+          tijdsduurSmeerbeurt,
+          uurloon,
+          downtimeUur,
+          voorbereiding,
+          downtimeKost,
+          prijsWisselstuk
+        });
+      });
+
+      return { client, machine, bearings };
+    }
+
+    function generateExcelMatrixCsv() {
+      const data = collectAllBearingsData();
+      const escapeCsv = (str) => {
+        if (str === null || str === undefined) return '""';
+        const s = String(str).replace(/"/g, '""');
+        return `"${s}"`;
+      };
+
+      const rows = [];
+      rows.push([escapeCsv('INTERFLON SMEERANALYSE & CONDITIE RAPPORT')].join(';'));
+      rows.push([escapeCsv('Aangemaakt op'), escapeCsv(new Date().toLocaleString('nl-NL'))].join(';'));
+      rows.push('');
+      rows.push([escapeCsv('=== ALGEMENE GEGEVENS & CONTACT ===')].join(';'));
+      rows.push([escapeCsv('Bedrijfsnaam'), escapeCsv(data.client.company)].join(';'));
+      rows.push([escapeCsv('Contactpersoon'), escapeCsv(data.client.contact)].join(';'));
+      rows.push([escapeCsv('Klant E-mailadres'), escapeCsv(data.client.email)].join(';'));
+      rows.push([escapeCsv('Interflon Adviseur E-mail'), escapeCsv(data.client.advisorEmail)].join(';'));
+      rows.push([escapeCsv('Naam van de machine'), escapeCsv(data.machine.name)].join(';'));
+      rows.push([escapeCsv('Merk van de machine'), escapeCsv(data.machine.brand)].join(';'));
+      rows.push([escapeCsv('Toepassing van de machine'), escapeCsv(data.machine.application)].join(';'));
+      rows.push([escapeCsv('Aantal identieke machines in park'), escapeCsv(data.machine.count)].join(';'));
+      rows.push([escapeCsv('Aantal geanalyseerde lagers'), escapeCsv(data.bearings.length)].join(';'));
+      rows.push('');
+
+      rows.push([escapeCsv('=== EXCEL MATRIX VERGELIJKINGSTABEL ===')].join(';'));
+      
+      const header = [escapeCsv('Specificatie / Conditie')];
+      data.bearings.forEach(b => {
+        const descSuffix = (b.lagernummer && b.lagernummer !== '-') ? ` (${b.lagernummer})` : '';
+        header.push(escapeCsv(`Lager ${b.letter}${descSuffix}`));
+      });
+      rows.push(header.join(';'));
+
+      const metrics = [
+        { label: '01. Aantal stuks op machine', key: 'aantal' },
+        { label: '02. Lagernummer / type', key: 'lagernummer' },
+        { label: '03. Omschrijving / Positie', key: 'omschrijving' },
+        { label: '04. Toerental (RPM)', key: 'rpm' },
+        { label: '05. As Positie', key: 'asPositie' },
+        { label: '06. Huidig Smeermiddel', key: 'smeermiddel' },
+        { label: '07. Prijs per Liter smeermiddel', key: 'prijsLiter' },
+        { label: '08. Huidige Smeerfrequentie / Interval', key: 'interval' },
+        { label: '09. Gemiddelde Levensduur', key: 'levensduur' },
+        { label: '10. Operationele Uren / Dag', key: 'urenPerDag' },
+        { label: '11. Operationele Dagen / Week', key: 'dagenPerWeek' },
+        { label: '12. Leidingafstand tot centraal punt', key: 'leidingAfstand' },
+        { label: '13. Coördinaten op raster (X, Y)', key: 'coordinaten' },
+        { label: '14. Omgevingstemperatuur (°C)', key: 'omgevingstemp' },
+        { label: '15. Lagertemperatuur (°C)', key: 'lagertemp' },
+        { label: '16. Water / Vocht / Stoom (1-10)', key: 'waterVocht' },
+        { label: '17. Stof / Zand (1-10)', key: 'stofZand' },
+        { label: '18. Abrasieve Vervuiling (1-10)', key: 'abrasief' },
+        { label: '19. Schokbelasting (1-10)', key: 'schokbelasting' },
+        { label: '20. Vibraties & Trillingen (1-10)', key: 'vibraties' },
+        { label: '21. Condensatie (1-10)', key: 'condensatie' },
+        { label: '22. Tijdsduur per smeerbeurt', key: 'tijdsduurSmeerbeurt' },
+        { label: '23. Uurloon technicus', key: 'uurloon' },
+        { label: '24. Downtime per lagerschade', key: 'downtimeUur' },
+        { label: '25. Voorbereidingstijd wissel', key: 'voorbereiding' },
+        { label: '26. Downtime kosten per uur', key: 'downtimeKost' },
+        { label: '27. Prijs wisselstukken / lager', key: 'prijsWisselstuk' }
+      ];
+
+      metrics.forEach(m => {
+        const row = [escapeCsv(m.label)];
+        data.bearings.forEach(b => {
+          row.push(escapeCsv(b[m.key] || '-'));
+        });
+        rows.push(row.join(';'));
+      });
+
+      return '\uFEFF' + rows.join('\r\n');
+    }
+
+    function generateAsciiMatrixTable(data) {
+      if (!data || !data.bearings || data.bearings.length === 0) return '';
+      const padRight = (str, len) => {
+        const s = String(str || '');
+        return s.length >= len ? s.substring(0, len) : s + ' '.repeat(len - s.length);
+      };
+
+      const colWidthProp = 36;
+      const colWidthBearing = 22;
+      const numBearings = data.bearings.length;
+
+      let out = '';
+      const sepLine = '='.repeat(colWidthProp + 3 + (colWidthBearing + 3) * numBearings);
+      const thinLine = '-'.repeat(colWidthProp + 3 + (colWidthBearing + 3) * numBearings);
+
+      out += sepLine + '\n';
+      out += 'EXCEL MATRIX VERGELIJKINGSTABEL (OVERZICHT LAGERS)\n';
+      out += thinLine + '\n';
+
+      let header = padRight('Specificatie / Conditie', colWidthProp);
+      data.bearings.forEach(b => {
+        const title = 'Lager ' + b.letter + (b.lagernummer && b.lagernummer !== '-' ? ' (' + b.lagernummer + ')' : '');
+        header += ' | ' + padRight(title, colWidthBearing);
+      });
+      out += header + '\n' + thinLine + '\n';
+
+      const metrics = [
+        { label: '01. Aantal stuks op machine', key: 'aantal' },
+        { label: '02. Lagernummer / type', key: 'lagernummer' },
+        { label: '03. Omschrijving / Positie', key: 'omschrijving' },
+        { label: '04. Toerental (RPM)', key: 'rpm' },
+        { label: '05. As Positie', key: 'asPositie' },
+        { label: '06. Huidig Smeermiddel', key: 'smeermiddel' },
+        { label: '07. Prijs per Liter', key: 'prijsLiter' },
+        { label: '08. Smeerfrequentie / Interval', key: 'interval' },
+        { label: '09. Gemiddelde Levensduur', key: 'levensduur' },
+        { label: '10. Operationele Uren / Dag', key: 'urenPerDag' },
+        { label: '11. Operationele Dagen / Week', key: 'dagenPerWeek' },
+        { label: '12. Leidingafstand meetpunt', key: 'leidingAfstand' },
+        { label: '13. Coördinaten raster (X, Y)', key: 'coordinaten' },
+        { label: '14. Omgevingstemperatuur (°C)', key: 'omgevingstemp' },
+        { label: '15. Lagertemperatuur (°C)', key: 'lagertemp' },
+        { label: '16. Water / Vocht / Stoom (1-10)', key: 'waterVocht' },
+        { label: '17. Stof / Zand (1-10)', key: 'stofZand' },
+        { label: '18. Abrasieve Vervuiling (1-10)', key: 'abrasief' },
+        { label: '19. Schokbelasting (1-10)', key: 'schokbelasting' },
+        { label: '20. Vibraties & Trillingen (1-10)', key: 'vibraties' },
+        { label: '21. Condensatie (1-10)', key: 'condensatie' },
+        { label: '22. Tijdsduur per smeerbeurt', key: 'tijdsduurSmeerbeurt' },
+        { label: '23. Uurloon technicus', key: 'uurloon' },
+        { label: '24. Downtime per lager', key: 'downtimeUur' },
+        { label: '25. Voorbereidingstijd wissel', key: 'voorbereiding' },
+        { label: '26. Downtime kosten per uur', key: 'downtimeKost' },
+        { label: '27. Prijs wisselstukken / lager', key: 'prijsWisselstuk' }
+      ];
+
+      metrics.forEach(m => {
+        let rowStr = padRight(m.label, colWidthProp);
+        data.bearings.forEach(b => {
+          rowStr += ' | ' + padRight(b[m.key] || '-', colWidthBearing);
+        });
+        out += rowStr + '\n';
+      });
+
+      out += sepLine + '\n';
+      return out;
+    }
+
+    function dataURItoBlob(dataURI) {
+      try {
+        const byteString = atob(dataURI.split(',')[1]);
+        const mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0];
+        const ab = new ArrayBuffer(byteString.length);
+        const ia = new Uint8Array(ab);
+        for (let i = 0; i < byteString.length; i++) {
+          ia[i] = byteString.charCodeAt(i);
+        }
+        return new Blob([ab], { type: mimeString });
+      } catch(e) {
+        console.warn("Error converting dataURI to blob:", e);
+        return null;
+      }
+    }
+
+    function updateFormSubmitCsvAttachment() {
+      try {
+        if (typeof generateExcelMatrixCsv !== "function") return;
+        const csvContent = generateExcelMatrixCsv();
+        const machineInput = document.getElementById('q1');
+        const machineName = (machineInput && machineInput.value) ? machineInput.value.trim() : 'Machine';
+        const cleanName = machineName.replace(/[^a-zA-Z0-9_-]/g, '_').substring(0, 30);
+        const filename = `Interflon_Smeeranalyse_${cleanName || 'Machine'}.csv`;
+
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const file = new File([blob], filename, { type: 'text/csv' });
+        const dataTransfer = new DataTransfer();
+        dataTransfer.items.add(file);
+        const csvInput = document.getElementById('hiddenLayoutCsvInput');
+        if (csvInput) {
+          csvInput.files = dataTransfer.files;
+        }
+      } catch(e) {
+        console.warn("Could not set CSV file input:", e);
+      }
+    }
+
     let attachmentUpdateTimer = null;
     function updateFormSubmitAttachment() {
       clearTimeout(attachmentUpdateTimer);
       attachmentUpdateTimer = setTimeout(function() {
+        // 1. Sync CSV spreadsheet attachment
+        updateFormSubmitCsvAttachment();
+
+        // 2. Sync 3D Machine Layout PNG image attachment
         const compCanvas = generateCompositeLayoutCanvas();
         if (!compCanvas) return;
         compCanvas.toBlob(function(blob) {
@@ -3253,140 +3546,162 @@
     }
 
     function prepareFormSubmission(e) {
-      // Save current active inputs before submitting
-      saveCurrentSection2Data();
-      saveCurrentSection3Data();
-      saveCurrentSection4Data();
+      const data = collectAllBearingsData();
 
-      // Create dynamic hidden inputs for FormSubmit with data for ALL bearings
+      // 1. Sync CSV spreadsheet attachment
+      updateFormSubmitCsvAttachment();
+
+      // 2. Ensure layout image attachment is populated
+      const imgInput = document.getElementById('hiddenLayoutImageInput');
+      if (imgInput && (!imgInput.files || imgInput.files.length === 0)) {
+        const compCanvas = generateCompositeLayoutCanvas();
+        if (compCanvas) {
+          try {
+            const dataUrl = compCanvas.toDataURL('image/png');
+            const blob = dataURItoBlob(dataUrl);
+            if (blob) {
+              const file = new File([blob], "Interflon_Machine_Layout_3D.png", { type: "image/png" });
+              const dt = new DataTransfer();
+              dt.items.add(file);
+              imgInput.files = dt.files;
+            }
+          } catch(err) {
+            console.warn("Could not generate image blob synchronously:", err);
+          }
+        }
+      }
+
+      // 3. Populate dynamic hidden fields with clean structure
       const container = document.getElementById('dynamicHiddenFormSubmitContainer');
       container.innerHTML = '';
 
-      const rows = document.querySelectorAll('.bearing-row');
-      rows.forEach((r, idx) => {
-        const letter = r.getAttribute('data-letter') || (LETTERS[idx] || ('L' + (idx+1)));
-        const d2 = bearingDataMapSec2[letter] || {};
-        const d3 = bearingDataMapSec3[letter] || {};
-        const d4 = bearingDataMapSec4[letter] || {};
+      const addHidden = (name, val) => {
+        const inp = document.createElement('input');
+        inp.type = 'hidden';
+        inp.name = name;
+        inp.value = val || '-';
+        container.appendChild(inp);
+      };
 
-        const descIn = r.querySelector('.bearing-desc-input');
-        const descVal = descIn && descIn.value ? descIn.value.trim() : '';
-        
-        const createHidden = (name, val) => {
-          const inp = document.createElement('input');
-          inp.type = 'hidden';
-          inp.name = name;
-          inp.value = val || '-';
-          container.appendChild(inp);
-        };
+      // --- DEEL A: ALGEMENE INFO (BOVENAAN) ---
+      addHidden('01. Bedrijfsnaam', data.client.company);
+      addHidden('02. Contactpersoon', data.client.contact);
+      addHidden('03. Klant E-mailadres', data.client.email);
+      addHidden('04. Interflon Adviseur E-mail', data.client.advisorEmail);
+      addHidden('05. Naam van de machine', data.machine.name);
+      addHidden('06. Merk van de machine', data.machine.brand);
+      addHidden('07. Toepassing van de machine', data.machine.application);
+      addHidden('08. Aantal identieke machines in park', data.machine.count);
+      addHidden('09. Geanalyseerde Lagers', data.bearings.map(b => 'Lager ' + b.letter + (b.lagernummer !== '-' ? ' (' + b.lagernummer + ')' : '')).join(', ') + ' (Totaal: ' + data.bearings.length + ')');
 
-        if (descVal) createHidden('Lager ' + letter + ' - Omschrijving', descVal);
+      // --- DEEL B: EXCEL MATRIX STRUCTUUR (LAGERS NAAST ELKAAR PER RIJ) ---
+      const bearingHeaderLetters = data.bearings.map(b => '[ LAGER ' + b.letter + ' ]').join('   |   ');
+      addHidden('=== EXCEL MATRIX VERGELIJKING ===', bearingHeaderLetters);
 
-        const freqStr = d2.q4_freq_num ? (d2.q4_freq_num + ' ' + (d2.q4_freq_unit || 'Weken')) : '-';
+      const matrixMetrics = [
+        { label: '10. Aantal stuks op machine', key: 'aantal', format: (b) => `[${b.letter}]: ${b.aantal} stuks` },
+        { label: '11. Lagernummer / type', key: 'lagernummer', format: (b) => `[${b.letter}]: ${b.lagernummer}` },
+        { label: '12. Omschrijving / Positie', key: 'omschrijving', format: (b) => `[${b.letter}]: ${b.omschrijving}` },
+        { label: '13. Toerental (RPM)', key: 'rpm', format: (b) => `[${b.letter}]: ${b.rpm}` },
+        { label: '14. As Positie', key: 'asPositie', format: (b) => `[${b.letter}]: ${b.asPositie}` },
+        { label: '15. Huidig Smeermiddel', key: 'smeermiddel', format: (b) => `[${b.letter}]: ${b.smeermiddel}` },
+        { label: '16. Prijs per Liter', key: 'prijsLiter', format: (b) => `[${b.letter}]: ${b.prijsLiter}` },
+        { label: '17. Smeerfrequentie / Interval', key: 'interval', format: (b) => `[${b.letter}]: ${b.interval}` },
+        { label: '18. Gemiddelde Levensduur', key: 'levensduur', format: (b) => `[${b.letter}]: ${b.levensduur}` },
+        { label: '19. Operationele Uren / Dag', key: 'urenPerDag', format: (b) => `[${b.letter}]: ${b.urenPerDag}` },
+        { label: '20. Operationele Dagen / Week', key: 'dagenPerWeek', format: (b) => `[${b.letter}]: ${b.dagenPerWeek}` },
+        { label: '21. Leidingafstand tot centraal punt', key: 'leidingAfstand', format: (b) => `[${b.letter}]: ${b.leidingAfstand}` },
+        { label: '22. Coördinaten op raster (X, Y)', key: 'coordinaten', format: (b) => `[${b.letter}]: ${b.coordinaten}` },
+        { label: '23. Omgevingstemperatuur (°C)', key: 'omgevingstemp', format: (b) => `[${b.letter}]: ${b.omgevingstemp}` },
+        { label: '24. Lagertemperatuur (°C)', key: 'lagertemp', format: (b) => `[${b.letter}]: ${b.lagertemp}` },
+        { label: '25. Water / Vocht / Stoom (1-10)', key: 'waterVocht', format: (b) => `[${b.letter}]: ${b.waterVocht}` },
+        { label: '26. Stof / Zand (1-10)', key: 'stofZand', format: (b) => `[${b.letter}]: ${b.stofZand}` },
+        { label: '27. Abrasieve Vervuiling (1-10)', key: 'abrasief', format: (b) => `[${b.letter}]: ${b.abrasief}` },
+        { label: '28. Schokbelasting (1-10)', key: 'schokbelasting', format: (b) => `[${b.letter}]: ${b.schokbelasting}` },
+        { label: '29. Vibraties & Trillingen (1-10)', key: 'vibraties', format: (b) => `[${b.letter}]: ${b.vibraties}` },
+        { label: '30. Condensatie (1-10)', key: 'condensatie', format: (b) => `[${b.letter}]: ${b.condensatie}` },
+        { label: '31. Tijdsduur per smeerbeurt', key: 'tijdsduurSmeerbeurt', format: (b) => `[${b.letter}]: ${b.tijdsduurSmeerbeurt}` },
+        { label: '32. Uurloon technicus (€)', key: 'uurloon', format: (b) => `[${b.letter}]: ${b.uurloon}` },
+        { label: '33. Downtime per lager (uur)', key: 'downtimeUur', format: (b) => `[${b.letter}]: ${b.downtimeUur}` },
+        { label: '34. Voorbereidingstijd (uur)', key: 'voorbereiding', format: (b) => `[${b.letter}]: ${b.voorbereiding}` },
+        { label: '35. Downtime kosten per uur (€)', key: 'downtimeKost', format: (b) => `[${b.letter}]: ${b.downtimeKost}` },
+        { label: '36. Prijs wisselstukken (€)', key: 'prijsWisselstuk', format: (b) => `[${b.letter}]: ${b.prijsWisselstuk}` }
+      ];
 
-        // Section 2 per bearing
-        createHidden('Lager ' + letter + ' - 6. Huidig Smeermiddel', d2.q11);
-        createHidden('Lager ' + letter + ' - 7. Prijs per Liter (€)', d2.q12_price ? '€' + d2.q12_price : '-');
-        createHidden('Lager ' + letter + ' - 8. Smeerfrequentie', freqStr);
-        createHidden('Lager ' + letter + ' - 9. Gemiddelde Levensduur (mnd)', d2.q29_life ? d2.q29_life + ' mnd' : '-');
-        createHidden('Lager ' + letter + ' - 10. Uren per dag', d2.q13 || '16');
-        createHidden('Lager ' + letter + ' - 11. Dagen per week', d2.q14 || '5');
-
-        // Section 3: 3D Layout Coordinates & Distances
-        const pos = (typeof bearingPositions !== "undefined" && bearingPositions[letter]) ? bearingPositions[letter] : { x: 0, y: 0 };
-        const dist = Math.sqrt(pos.x * pos.x + pos.y * pos.y);
-        createHidden('Lager ' + letter + ' - Afstand tot centraal punt', dist.toFixed(1).replace('.', ',') + ' meter');
-        createHidden('Lager ' + letter + ' - Positie op machine', 'X: ' + pos.x.toFixed(1) + 'm, Y: ' + pos.y.toFixed(1) + 'm');
-
-        // Section 3 per bearing
-        createHidden('Lager ' + letter + ' - 12. Omgevingstemp (°C)', d3.q15 ? d3.q15 + ' °C' : '-');
-        createHidden('Lager ' + letter + ' - 13. Lagertemp (°C)', d3.q16 ? d3.q16 + ' °C' : '-');
-        createHidden('Lager ' + letter + ' - 14. Water Vocht Stoom (1-10)', d3.q17 || '3');
-        createHidden('Lager ' + letter + ' - 15. Stof Zand (1-10)', d3.q18 || '4');
-        createHidden('Lager ' + letter + ' - 16. Abrasief Vervuiling (1-10)', d3.q19 || '2');
-        createHidden('Lager ' + letter + ' - 17. Schokbelasting (1-10)', d3.q20 || '3');
-        createHidden('Lager ' + letter + ' - 18. Vibraties (1-10)', d3.q21 || '3');
-        createHidden('Lager ' + letter + ' - 19. Condensatie (1-10)', d3.q22 || '2');
-
-        // Section 4 per bearing
-        createHidden('Lager ' + letter + ' - 20. Tijdsduur per beurt (min)', d4.q24 ? d4.q24 + ' min' : '-');
-        createHidden('Lager ' + letter + ' - 21. Uurloon technicus (€)', d4.q25 ? '€' + d4.q25 : '-');
-        createHidden('Lager ' + letter + ' - 22. Downtime per lager (H)', d4.q26 ? d4.q26 + ' H' : '-');
-        createHidden('Lager ' + letter + ' - 23. Voorbereidingstijd (H)', d4.q27 ? d4.q27 + ' H' : '-');
-        createHidden('Lager ' + letter + ' - 24. Downtime kost (€/H)', d4.q28 ? '€' + d4.q28 : '-');
-        createHidden('Lager ' + letter + ' - 25. Prijs wisselstukken (€)', d4.q30 ? '€' + d4.q30 : '-');
+      matrixMetrics.forEach(m => {
+        const combinedVal = data.bearings.map(b => m.format(b)).join('   |   ');
+        addHidden(m.label, combinedVal);
       });
+
+      // --- DEEL C: VISUELE EXCEL MATRIX TABEL TEKST ---
+      const asciiTable = generateAsciiMatrixTable(data);
+      addHidden('📊 VOLLEDIGE EXCEL MATRIX OVERZICHT', '\n' + asciiTable);
+
+      // --- DEEL D: BIJLAGEN INFORMATIE ---
+      addHidden('📎 BIJLAGEN IN DEZE E-MAIL', '1x 3D Machine Layout (PNG afbeelding)  +  1x Excel Vergelijkingsbestand (CSV spreadsheet voor Excel)');
+
+      // If actual submit event, strip name attributes from visible inputs so FormSubmit does not send 75 messy duplicate lines!
+      if (e && e.type === 'submit') {
+        const rawInputs = document.querySelectorAll('#publicSurveyForm input[name], #publicSurveyForm select[name], #publicSurveyForm textarea[name]');
+        rawInputs.forEach(el => {
+          if (el.closest('#dynamicHiddenFormSubmitContainer')) return;
+          if (el.name.startsWith('_') || el.name === 'attachment' || el.name === 'attachment2') return;
+          el.setAttribute('data-submit-name', el.name);
+          el.removeAttribute('name');
+        });
+
+        // Safety restore after 2.5 seconds in case submission was cancelled or halted
+        setTimeout(() => {
+          document.querySelectorAll('#publicSurveyForm [data-submit-name]').forEach(el => {
+            el.setAttribute('name', el.getAttribute('data-submit-name'));
+            el.removeAttribute('data-submit-name');
+          });
+        }, 2500);
+      }
     }
 
     function buildReportSummary() {
-      saveCurrentSection2Data();
-      saveCurrentSection3Data();
-      saveCurrentSection4Data();
+      const data = collectAllBearingsData();
 
-      let bodyText = "INTERFLON SMEERANALYSE VRAGENLIJST\n====================================\n\n";
-      
-      bodyText += "--- KLANT & CONTACTGEGEVENS ---\n";
-      bodyText += "Bedrijf: " + (document.getElementById('clientCompany').value || '-') + "\n";
-      bodyText += "Contactpersoon: " + (document.getElementById('clientContact').value || '-') + "\n";
-      bodyText += "E-mail: " + (document.getElementById('clientEmail').value || '-') + "\n";
-      bodyText += "Interflon Adviseur E-mail: " + (document.getElementById('interflonContactEmail').value || '-') + "\n\n";
+      let bodyText = "INTERFLON SMEERANALYSE & CONDITIE RAPPORT\n";
+      bodyText += "========================================================\n\n";
 
-      bodyText += "--- 1. MACHINEDETAILS ---\n";
-      bodyText += "Machine Naam: " + (document.getElementById('q1').value || '-') + "\n";
-      bodyText += "Machine Merk: " + (document.getElementById('q2').value || '-') + "\n";
-      bodyText += "Toepassing: " + (document.getElementById('q3').value || '-') + "\n";
-      bodyText += "Aantal Machines: " + (document.getElementById('q10').value || '1') + "\n\n";
+      bodyText += "--- 1. ALGEMENE GEGEVENS & CONTACT ---\n";
+      bodyText += "Bedrijf: " + data.client.company + "\n";
+      bodyText += "Contactpersoon: " + data.client.contact + "\n";
+      bodyText += "Klant E-mail: " + data.client.email + "\n";
+      bodyText += "Interflon Adviseur E-mail: " + data.client.advisorEmail + "\n";
+      bodyText += "Machine Naam: " + data.machine.name + "\n";
+      bodyText += "Machine Merk: " + data.machine.brand + "\n";
+      bodyText += "Toepassing: " + data.machine.application + "\n";
+      bodyText += "Aantal Machines in Park: " + data.machine.count + "\n";
+      bodyText += "Aantal Geanalyseerde Lagers: " + data.bearings.length + "\n\n";
 
-      bodyText += "--- SPECIFICATIES & CONDITIES PER LAGER ---\n";
-      const rows = document.querySelectorAll('.bearing-row');
-      rows.forEach((r, idx) => {
-        const letter = r.getAttribute('data-letter') || (LETTERS[idx] || ('L' + (idx+1)));
-        const inputs = r.querySelectorAll('input');
-        const select = r.querySelector('select');
-        
-        const d2 = bearingDataMapSec2[letter] || {};
-        const d3 = bearingDataMapSec3[letter] || {};
-        const d4 = bearingDataMapSec4[letter] || {};
+      bodyText += "--- 2. EXCEL MATRIX OVERZICHT (LAGERS NAAST ELKAAR) ---\n\n";
+      bodyText += generateAsciiMatrixTable(data) + "\n\n";
 
-        if (inputs.length >= 2) {
-          const aantal = inputs[0].value || '1';
-          const nr = inputs[1].value || '';
-          const descIn = r.querySelector('.bearing-desc-input');
-          const desc = descIn ? descIn.value.trim() : '';
-          const rpm = inputs[3] ? inputs[3].value : '';
-          const positie = select ? select.value : 'Horizontaal';
-
-          const freqStr = d2.q4_freq_num ? (d2.q4_freq_num + ' ' + (d2.q4_freq_unit || 'Weken')) : '-';
-
-          bodyText += "========================================\n";
-          bodyText += "📌 [LAGER " + letter + "]: " + aantal + "x " + (nr || 'Lager') + (desc ? " - " + desc : "") + (rpm ? " (" + rpm + " RPM)" : "") + " - " + positie + "\n";
-          bodyText += "========================================\n";
-          bodyText += "2. SMEERSITUATIE:\n";
-          bodyText += "  • Huidig smeermiddel: " + (d2.q11 || '-') + "\n";
-          bodyText += "  • Prijs smeermiddel: " + (d2.q12_price ? '€' + d2.q12_price + ' / L' : '-') + "\n";
-          bodyText += "  • Smeerfrequentie/interval: " + freqStr + "\n";
-          bodyText += "  • Gemiddelde levensduur: " + (d2.q29_life ? d2.q29_life + ' maanden' : '-') + "\n";
-          bodyText += "  • Operationele uren/dag: " + (d2.q13 || '16') + "\n";
-          bodyText += "  • Operationele dagen/week: " + (d2.q14 || '5') + "\n\n";
-
-          bodyText += "3. OMGEVING & BELASTINGEN:\n";
-          bodyText += "  • Omgevingstemperatuur: " + (d3.q15 ? d3.q15 + ' °C' : '-') + "\n";
-          bodyText += "  • Lagertemperatuur: " + (d3.q16 ? d3.q16 + ' °C' : '-') + "\n";
-          bodyText += "  • Water / Vocht / Stoom (1-10): " + (d3.q17 || '3') + "\n";
-          bodyText += "  • Stof / Zand (1-10): " + (d3.q18 || '4') + "\n";
-          bodyText += "  • Abrasieve stoffen (1-10): " + (d3.q19 || '2') + "\n";
-          bodyText += "  • Schokbelastingen (1-10): " + (d3.q20 || '3') + "\n";
-          bodyText += "  • Vibraties & trillingen (1-10): " + (d3.q21 || '3') + "\n";
-          bodyText += "  • Condensatie (1-10): " + (d3.q22 || '2') + "\n\n";
-
-          bodyText += "4. ONDERHOUDS- & DOWNTIMEKOSTEN:\n";
-          bodyText += "  • Tijdsduur per beurt: " + (d4.q24 ? d4.q24 + ' min' : '-') + "\n";
-          bodyText += "  • Uurloon technicus: " + (d4.q25 ? '€' + d4.q25 : '-') + "\n";
-          bodyText += "  • Downtime per lager: " + (d4.q26 ? d4.q26 + ' uur' : '-') + "\n";
-          bodyText += "  • Voorbereidingstijd: " + (d4.q27 ? d4.q27 + ' uur' : '-') + "\n";
-          bodyText += "  • Downtime kost/uur: " + (d4.q28 ? '€' + d4.q28 : '-') + "\n";
-          bodyText += "  • Prijs wisselstukken: " + (d4.q30 ? '€' + d4.q30 : '-') + "\n\n";
-        }
+      bodyText += "--- 3. GEDETAILLEERD OVERZICHT PER LAGER ---\n";
+      data.bearings.forEach(b => {
+        bodyText += "========================================\n";
+        bodyText += "📌 [LAGER " + b.letter + "]: " + b.aantal + "x " + b.lagernummer + (b.omschrijving !== '-' ? " - " + b.omschrijving : "") + (b.rpm !== '-' ? " (" + b.rpm + ")" : "") + " - " + b.asPositie + "\n";
+        bodyText += "========================================\n";
+        bodyText += "• Huidig Smeermiddel: " + b.smeermiddel + "\n";
+        bodyText += "• Prijs Smeermiddel: " + b.prijsLiter + "\n";
+        bodyText += "• Smeerfrequentie / Interval: " + b.interval + "\n";
+        bodyText += "• Gemiddelde Levensduur: " + b.levensduur + "\n";
+        bodyText += "• Operationele Uren/Dag: " + b.urenPerDag + "\n";
+        bodyText += "• Operationele Dagen/Week: " + b.dagenPerWeek + "\n";
+        bodyText += "• Leidingafstand tot meetpunt: " + b.leidingAfstand + "\n";
+        bodyText += "• Coördinaten op raster: " + b.coordinaten + "\n";
+        bodyText += "• Omgevingstemperatuur: " + b.omgevingstemp + "\n";
+        bodyText += "• Lagertemperatuur: " + b.lagertemp + "\n";
+        bodyText += "• Condities (Vocht / Stof / Abrasief / Schok / Vibratie / Condens): " +
+          b.waterVocht + " | " + b.stofZand + " | " + b.abrasief + " | " + b.schokbelasting + " | " + b.vibraties + " | " + b.condensatie + "\n";
+        bodyText += "• Tijdsduur per beurt: " + b.tijdsduurSmeerbeurt + "\n";
+        bodyText += "• Uurloon technicus: " + b.uurloon + "\n";
+        bodyText += "• Downtime per lager: " + b.downtimeUur + " (Voorbereiding: " + b.voorbereiding + ")\n";
+        bodyText += "• Downtime kost/uur: " + b.downtimeKost + "\n";
+        bodyText += "• Prijs wisselstukken: " + b.prijsWisselstuk + "\n\n";
       });
 
       return bodyText;
