@@ -518,7 +518,7 @@
           </div>
 
           <!-- Section Controls Row -->
-          <div style="display: flex; justify-content: flex-end; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 12px;">
+          <div id="rasterControlsRow" style="display: flex; justify-content: flex-end; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 12px;">
             <!-- View Mode Toggle -->
             <div style="display: inline-flex; background: #e2e8f0; border-radius: 8px; padding: 2px;">
               <button type="button" id="btnView3D" onclick="setLayoutViewMode('3d')" style="border: none; background: #ffffff; color: #0f172a; font-weight: 700; font-size: 12px; padding: 5px 10px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
@@ -552,7 +552,6 @@
               ⛶ Raster Vergroten
             </button>
           </div>
-        </div>
 
         <!-- 2-Column Grid Layout: Left 3D Field (~68%), Right Distances Table (~32%) -->
         
@@ -655,6 +654,7 @@
           </div>
 
         </div>
+        </div><!-- end #rasterInteractiveWrapper -->
       </div>
 
       <!-- Section 3: Omgevingscondities & Belastingen WITH PER-BEARING DROPDOWN -->
