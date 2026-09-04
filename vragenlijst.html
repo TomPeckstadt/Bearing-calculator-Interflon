@@ -449,6 +449,24 @@
         </div>
 
         <!-- 2-Column Grid Layout: Left 3D Field (~68%), Right Distances Table (~32%) -->
+        
+        <!-- Multi-Select Measurement Points / Lubrication Devices Filter Bar -->
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; padding: 8px 14px; background: #f1f5f9; border-radius: 10px; border: 1px solid #cbd5e1;" id="devicesFilterBarContainer">
+          <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+            <span style="font-size: 12px; font-weight: 700; color: #334155; display: inline-flex; align-items: center; gap: 5px;">
+              <span>📍 Toon afstanden vanaf:</span>
+            </span>
+            <div id="deviceFilterPills" style="display: inline-flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+              <!-- Rendered dynamically by renderDeviceFilterPills() -->
+            </div>
+          </div>
+          <div style="display: flex; align-items: center; gap: 6px;">
+            <button type="button" onclick="addNewDevice()" class="btn-secondary" style="width: auto; padding: 4px 10px; font-size: 11.5px; height: 28px; gap: 4px; border-style: dashed; color: #1e40af; border-color: #93c5fd; background: #eff6ff;" title="Voeg een extra meetpunt of smeertoestel toe">
+              ➕ Toestel Toevoegen
+            </button>
+          </div>
+        </div>
+
         <div style="display: grid; grid-template-columns: 1.6fr 1.4fr; gap: 16px; align-items: stretch;" id="layoutGridContainer">
           
           <!-- LEFT PANEL: 3D / Isometric Canvas Field -->
@@ -713,6 +731,134 @@
 
   <script>
     // State management for per-bearing Section 2, 3, and 4 answers
+    
+    // =========================================================================
+    // SECTION 3: MULTI-DEVICE & EXTRA MEASUREMENT POINTS ENGINE
+    // =========================================================================
+    const DEVICE_PALETTES = [
+      { color: '#2563EB', line: '#60a5fa', tagBg: 'rgba(30, 58, 138, 0.92)', badgeBg: '#dbeafe', badgeText: '#1e40af', lightBg: '#eff6ff', border: '#93c5fd' }, // Blue
+      { color: '#059669', line: '#34d399', tagBg: 'rgba(6, 78, 59, 0.92)', badgeBg: '#d1fae5', badgeText: '#065f46', lightBg: '#f0fdf4', border: '#86efac' }, // Green
+      { color: '#d97706', line: '#fbbf24', tagBg: 'rgba(120, 53, 15, 0.92)', badgeBg: '#fef3c7', badgeText: '#92400e', lightBg: '#fffbeb', border: '#fde68a' }, // Amber
+      { color: '#7c3aed', line: '#c084fc', tagBg: 'rgba(91, 33, 182, 0.92)', badgeBg: '#ede9fe', badgeText: '#5b21b6', lightBg: '#f5f3ff', border: '#ddd6fe' }, // Purple
+      { color: '#0891b2', line: '#22d3ee', tagBg: 'rgba(21, 94, 117, 0.92)', badgeBg: '#cffafe', badgeText: '#155e75', lightBg: '#ecfeff', border: '#a5f3fc' }  // Cyan
+    ];
+
+    let showCentralPoint = true; // Centraal Punt (0,0) filter toggle
+    let devices = [
+      { id: 'dev-1', name: 'Toestel 1', short: 'T1', x: -3.0, y: -2.5, active: false, paletteIndex: 0 },
+      { id: 'dev-2', name: 'Toestel 2', short: 'T2', x: 3.0, y: 2.5, active: false, paletteIndex: 1 }
+    ];
+
+    let draggedDeviceId = null;
+    let hoveredDeviceId = null;
+
+    function renderDeviceFilterPills() {
+      const container = document.getElementById('deviceFilterPills');
+      if (!container) return;
+      container.innerHTML = '';
+
+      // 1. Centraal Punt Pill
+      const cpBtn = document.createElement('button');
+      cpBtn.type = 'button';
+      cpBtn.onclick = function() {
+        showCentralPoint = !showCentralPoint;
+        renderDeviceFilterPills();
+        drawBearingLayout();
+        renderDistancesOverview();
+      };
+      cpBtn.style.cssText = 'border: 1.5px solid ' + (showCentralPoint ? '#E30613' : '#cbd5e1') + '; ' +
+        'background: ' + (showCentralPoint ? '#fee2e2' : '#ffffff') + '; ' +
+        'color: ' + (showCentralPoint ? '#991b1b' : '#64748b') + '; ' +
+        'font-weight: 700; font-size: 11.5px; padding: 3px 9px; border-radius: 6px; cursor: pointer; ' +
+        'display: inline-flex; align-items: center; gap: 5px; transition: all 0.15s; height: 28px;';
+      cpBtn.innerHTML = '<span style="width: 8px; height: 8px; border-radius: 50%; background: ' + (showCentralPoint ? '#E30613' : '#94a3b8') + ';"></span>' +
+        '<span>Centraal Punt (0,0)</span>';
+      cpBtn.title = showCentralPoint ? 'Centraal Punt afstanden zijn AAN (klik om te verbergen)' : 'Centraal Punt afstanden zijn UIT (klik om te tonen)';
+      container.appendChild(cpBtn);
+
+      // 2. Each Device Pill
+      devices.forEach((dev, idx) => {
+        const pal = DEVICE_PALETTES[dev.paletteIndex % DEVICE_PALETTES.length];
+        const devPill = document.createElement('div');
+        devPill.style.cssText = 'display: inline-flex; align-items: center; border-radius: 6px; overflow: hidden; border: 1.5px solid ' + (dev.active ? pal.color : '#cbd5e1') + ';';
+
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.onclick = function() {
+          dev.active = !dev.active;
+          renderDeviceFilterPills();
+          drawBearingLayout();
+          renderDistancesOverview();
+        };
+        btn.style.cssText = 'border: none; ' +
+          'background: ' + (dev.active ? pal.lightBg : '#ffffff') + '; ' +
+          'color: ' + (dev.active ? pal.color : '#64748b') + '; ' +
+          'font-weight: 700; font-size: 11.5px; padding: 3px 8px; cursor: pointer; ' +
+          'display: inline-flex; align-items: center; gap: 5px; height: 25px;';
+        btn.innerHTML = '<span style="width: 8px; height: 8px; border-radius: 2px; background: ' + (dev.active ? pal.color : '#94a3b8') + ';"></span>' +
+          '<span>' + dev.name + ' (' + dev.short + ')</span>';
+        btn.title = dev.active ? dev.name + ' afstanden zijn AAN (klik om te verbergen)' : dev.name + ' afstanden zijn UIT (klik om te tonen)';
+        devPill.appendChild(btn);
+
+        // Delete button for this device
+        const delBtn = document.createElement('button');
+        delBtn.type = 'button';
+        delBtn.title = 'Verwijder ' + dev.name;
+        delBtn.style.cssText = 'border: none; border-left: 1px solid ' + (dev.active ? pal.border : '#e2e8f0') + '; background: ' + (dev.active ? pal.lightBg : '#ffffff') + '; color: #94a3b8; font-size: 12px; font-weight: 700; padding: 0 6px; cursor: pointer; height: 25px; display: flex; align-items: center; justify-content: center;';
+        delBtn.innerHTML = '&times;';
+        delBtn.onmouseenter = function() { delBtn.style.color = '#dc2626'; delBtn.style.background = '#fee2e2'; };
+        delBtn.onmouseleave = function() { delBtn.style.color = '#94a3b8'; delBtn.style.background = dev.active ? pal.lightBg : '#ffffff'; };
+        delBtn.onclick = function(e) {
+          e.stopPropagation();
+          deleteDevice(dev.id);
+        };
+        devPill.appendChild(delBtn);
+
+        container.appendChild(devPill);
+      });
+    }
+
+    function addNewDevice() {
+      const nextNum = devices.length + 1;
+      const paletteIndex = devices.length % DEVICE_PALETTES.length;
+      const presets = [
+        { x: -3.0, y: -2.5 },
+        { x: 3.0, y: 2.5 },
+        { x: -3.0, y: 2.5 },
+        { x: 3.0, y: -2.5 },
+        { x: 0.0, y: 4.0 },
+        { x: 0.0, y: -4.0 }
+      ];
+      const p = presets[(nextNum - 1) % presets.length];
+      const scaleAdj = machineRangeMeters / 10;
+      
+      const newDev = {
+        id: 'dev-' + Date.now(),
+        name: 'Toestel ' + nextNum,
+        short: 'T' + nextNum,
+        x: Math.round(p.x * scaleAdj * 10) / 10,
+        y: Math.round(p.y * scaleAdj * 10) / 10,
+        active: true, // Activated by default upon adding
+        paletteIndex: paletteIndex
+      };
+      devices.push(newDev);
+      renderDeviceFilterPills();
+      drawBearingLayout();
+      renderDistancesOverview();
+    }
+
+    function deleteDevice(devId) {
+      devices = devices.filter(d => d.id !== devId);
+      devices.forEach((d, idx) => {
+        d.name = 'Toestel ' + (idx + 1);
+        d.short = 'T' + (idx + 1);
+        d.paletteIndex = idx % DEVICE_PALETTES.length;
+      });
+      renderDeviceFilterPills();
+      drawBearingLayout();
+      renderDistancesOverview();
+    }
+
     const LETTERS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'];
 
     // =========================================================================
@@ -832,6 +978,21 @@
           y: Math.round(preset.y * scaleAdj * 10) / 10
         };
       });
+
+      // Reset devices to standard presets
+      const devPresets = [
+        { x: -3.0, y: -2.5 },
+        { x: 3.0, y: 2.5 },
+        { x: -3.0, y: 2.5 },
+        { x: 3.0, y: -2.5 }
+      ];
+      devices.forEach((dev, idx) => {
+        const dp = devPresets[idx % devPresets.length];
+        const scaleAdj = machineRangeMeters / 10;
+        dev.x = Math.round(dp.x * scaleAdj * 10) / 10;
+        dev.y = Math.round(dp.y * scaleAdj * 10) / 10;
+      });
+
       drawBearingLayout();
       renderDistancesOverview();
     }
@@ -888,7 +1049,6 @@
 
       // --- 1. DRAW 3D / 2D MACHINE FLOOR GRID ---
       if (layoutViewMode === '3d') {
-        // Isometric Floor Plane (Full range reaches at least machineRangeMeters in all directions)
         const pTop = worldToScreen(0, gridRange, canvas);
         const pRight = worldToScreen(gridRange, 0, canvas);
         const pBottom = worldToScreen(0, -gridRange, canvas);
@@ -929,7 +1089,7 @@
           ctx.stroke();
         }
 
-        // Concentric distance guide rings with distance tags
+        // Concentric distance guide rings with meter tags
         const ringStep = machineRangeMeters <= 6 ? 1 : machineRangeMeters <= 12 ? 2 : machineRangeMeters <= 20 ? 4 : 5;
         for (let r = ringStep; r <= gridRange; r += ringStep) {
           ctx.beginPath();
@@ -945,7 +1105,6 @@
           ctx.stroke();
           ctx.setLineDash([]);
 
-          // Ring label (distance in meters)
           const lblPt = worldToScreen(r, 0, canvas);
           ctx.font = 'bold ' + Math.round(9 * dpr) + 'px sans-serif';
           ctx.fillStyle = 'rgba(56, 189, 248, 0.55)';
@@ -978,7 +1137,6 @@
           ctx.stroke();
         }
 
-        // Distance circles with distance tags
         const ringStep = machineRangeMeters <= 6 ? 1 : machineRangeMeters <= 12 ? 2 : machineRangeMeters <= 20 ? 4 : 5;
         for (let r = ringStep; r <= gridRange; r += ringStep) {
           ctx.beginPath();
@@ -996,62 +1154,107 @@
         }
       }
 
-      // --- 2. DRAW CONNECTING LINES & DISTANCES TO BEARINGS ---
-      const centerScreen = worldToScreen(0, 0, canvas);
-      const rows = document.querySelectorAll('.bearing-row');
-
-      rows.forEach((r, idx) => {
-        const letter = r.getAttribute('data-letter') || (LETTERS[idx] || ('L' + (idx+1)));
-        const pos = bearingPositions[letter] || { x: 0, y: 0 };
-        const bScreen = worldToScreen(pos.x, pos.y, canvas);
-        const distM = Math.sqrt(pos.x * pos.x + pos.y * pos.y);
-
-        ctx.beginPath();
-        ctx.moveTo(centerScreen.u, centerScreen.v);
-        ctx.lineTo(bScreen.u, bScreen.v);
-        ctx.strokeStyle = (hoveredBearingLetter === letter || draggedBearingLetter === letter) ? '#60a5fa' : 'rgba(148, 163, 184, 0.6)';
-        ctx.lineWidth = 1.5 * dpr;
-        ctx.setLineDash([5 * dpr, 4 * dpr]);
-        ctx.stroke();
-        ctx.setLineDash([]);
-
-        // Midpoint distance tag
-        const midU = (centerScreen.u + bScreen.u) / 2;
-        const midV = (centerScreen.v + bScreen.v) / 2;
-        const distStr = distM.toFixed(1).replace('.', ',') + ' m';
-
-        ctx.font = 'bold ' + Math.round(10.5 * dpr) + 'px sans-serif';
-        const textWidth = ctx.measureText(distStr).width;
-        const padX = 6 * dpr;
-        const padY = 3 * dpr;
-
-        ctx.fillStyle = 'rgba(15, 23, 42, 0.9)';
-        ctx.beginPath();
-        if (ctx.roundRect) {
-          ctx.roundRect(midU - textWidth/2 - padX, midV - 8*dpr - padY, textWidth + padX*2, 16*dpr + padY, 4 * dpr);
-        } else {
-          ctx.rect(midU - textWidth/2 - padX, midV - 8*dpr - padY, textWidth + padX*2, 16*dpr + padY);
+      // --- 2. GATHER ACTIVE ORIGINS FOR DISTANCES ---
+      const activeOrigins = [];
+      if (showCentralPoint) {
+        activeOrigins.push({
+          id: 'cp',
+          name: 'Centraal Punt',
+          short: 'CP',
+          x: 0,
+          y: 0,
+          lineColor: '#38bdf8',
+          tagBg: 'rgba(15, 23, 42, 0.92)',
+          tagBorder: '#38bdf8',
+          tagText: '#38bdf8',
+          dash: [5 * dpr, 4 * dpr]
+        });
+      }
+      devices.forEach(dev => {
+        if (dev.active) {
+          const pal = DEVICE_PALETTES[dev.paletteIndex % DEVICE_PALETTES.length];
+          activeOrigins.push({
+            id: dev.id,
+            name: dev.name,
+            short: dev.short,
+            x: dev.x,
+            y: dev.y,
+            lineColor: pal.line,
+            tagBg: pal.tagBg,
+            tagBorder: pal.line,
+            tagText: '#ffffff',
+            dash: [4 * dpr, 3 * dpr]
+          });
         }
-        ctx.fill();
-        ctx.strokeStyle = '#38bdf8';
-        ctx.lineWidth = 1 * dpr;
-        ctx.stroke();
-
-        ctx.fillStyle = '#38bdf8';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText(distStr, midU, midV - 1*dpr);
       });
 
-      // --- 3. DRAW CENTRAL REFERENCE POINT (0,0) ---
+      // --- 3. DRAW CONNECTING LINES & DISTANCES FROM ACTIVE ORIGINS TO BEARINGS ---
+      const rows = document.querySelectorAll('.bearing-row');
+
+      activeOrigins.forEach((origin, origIdx) => {
+        const origScreen = worldToScreen(origin.x, origin.y, canvas);
+
+        rows.forEach((r, idx) => {
+          const letter = r.getAttribute('data-letter') || (LETTERS[idx] || ('L' + (idx+1)));
+          const pos = bearingPositions[letter] || { x: 0, y: 0 };
+          const bScreen = worldToScreen(pos.x, pos.y, canvas);
+          const distM = Math.hypot(pos.x - origin.x, pos.y - origin.y);
+
+          // Draw line
+          ctx.beginPath();
+          ctx.moveTo(origScreen.u, origScreen.v);
+          ctx.lineTo(bScreen.u, bScreen.v);
+          
+          const isHighlighted = (hoveredBearingLetter === letter || draggedBearingLetter === letter || hoveredDeviceId === origin.id || draggedDeviceId === origin.id);
+          ctx.strokeStyle = isHighlighted ? '#ffffff' : origin.lineColor;
+          ctx.lineWidth = (isHighlighted ? 2.2 : 1.4) * dpr;
+          ctx.setLineDash(origin.dash);
+          ctx.stroke();
+          ctx.setLineDash([]);
+
+          // Stagger distance badges along line if multiple origins are active to avoid overlap
+          const offsetRatio = activeOrigins.length > 1 ? (0.42 + (origIdx * 0.16)) : 0.5;
+          const midU = origScreen.u + (bScreen.u - origScreen.u) * offsetRatio;
+          const midV = origScreen.v + (bScreen.v - origScreen.v) * offsetRatio;
+
+          const distStr = (activeOrigins.length > 1 ? (origin.short + ': ') : '') + distM.toFixed(1).replace('.', ',') + ' m';
+
+          ctx.font = 'bold ' + Math.round(10 * dpr) + 'px sans-serif';
+          const textWidth = ctx.measureText(distStr).width;
+          const padX = 5 * dpr;
+          const padY = 2.5 * dpr;
+
+          ctx.fillStyle = origin.tagBg;
+          ctx.beginPath();
+          if (ctx.roundRect) {
+            ctx.roundRect(midU - textWidth/2 - padX, midV - 8*dpr - padY, textWidth + padX*2, 16*dpr + padY, 4 * dpr);
+          } else {
+            ctx.rect(midU - textWidth/2 - padX, midV - 8*dpr - padY, textWidth + padX*2, 16*dpr + padY);
+          }
+          ctx.fill();
+          ctx.strokeStyle = isHighlighted ? '#ffffff' : origin.tagBorder;
+          ctx.lineWidth = (isHighlighted ? 1.5 : 1) * dpr;
+          ctx.stroke();
+
+          ctx.fillStyle = origin.tagText;
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(distStr, midU, midV - 0.5 * dpr);
+        });
+      });
+
+      // --- 4. DRAW CENTRAL REFERENCE POINT (0,0) ---
+      const centerScreen = worldToScreen(0, 0, canvas);
+      const isCpActive = showCentralPoint;
+
       ctx.beginPath();
       ctx.arc(centerScreen.u, centerScreen.v, 14 * dpr, 0, Math.PI * 2);
-      ctx.fillStyle = 'rgba(227, 6, 19, 0.2)';
+      ctx.fillStyle = isCpActive ? 'rgba(227, 6, 19, 0.25)' : 'rgba(227, 6, 19, 0.08)';
       ctx.fill();
 
       ctx.beginPath();
       ctx.arc(centerScreen.u, centerScreen.v, 8 * dpr, 0, Math.PI * 2);
-      ctx.fillStyle = '#E30613';
+      ctx.fillStyle = isCpActive ? '#E30613' : 'rgba(227, 6, 19, 0.6)';
       ctx.fill();
       ctx.strokeStyle = '#ffffff';
       ctx.lineWidth = 2 * dpr;
@@ -1063,12 +1266,85 @@
       ctx.fill();
 
       ctx.font = 'bold ' + Math.round(11 * dpr) + 'px sans-serif';
-      ctx.fillStyle = '#ffffff';
+      ctx.fillStyle = isCpActive ? '#ffffff' : '#94a3b8';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'top';
       ctx.fillText('Centraal Punt (0,0)', centerScreen.u, centerScreen.v + 12 * dpr);
 
-      // --- 4. DRAW BEARING NODES (A, B, C...) ---
+      // --- 5. DRAW EXTRA DEVICES (TOESTELLEN) ---
+      devices.forEach(dev => {
+        const dScreen = worldToScreen(dev.x, dev.y, canvas);
+        const pal = DEVICE_PALETTES[dev.paletteIndex % DEVICE_PALETTES.length];
+        const isHovered = (hoveredDeviceId === dev.id);
+        const isDragged = (draggedDeviceId === dev.id);
+        const dSize = (isHovered || isDragged ? 30 : 26) * dpr;
+
+        // Ground shadow
+        ctx.beginPath();
+        ctx.ellipse(dScreen.u, dScreen.v + 4 * dpr, dSize * 0.55, dSize * 0.28, 0, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.45)';
+        ctx.fill();
+
+        // Rounded Hexagon / Squircle Body
+        ctx.save();
+        ctx.beginPath();
+        if (ctx.roundRect) {
+          ctx.roundRect(dScreen.u - dSize/2, dScreen.v - dSize/2, dSize, dSize, 6 * dpr);
+        } else {
+          ctx.rect(dScreen.u - dSize/2, dScreen.v - dSize/2, dSize, dSize);
+        }
+
+        const grad = ctx.createLinearGradient(dScreen.u - dSize/2, dScreen.v - dSize/2, dScreen.u + dSize/2, dScreen.v + dSize/2);
+        if (isDragged) {
+          grad.addColorStop(0, '#f59e0b');
+          grad.addColorStop(1, '#b45309');
+        } else if (dev.active) {
+          grad.addColorStop(0, pal.line);
+          grad.addColorStop(1, pal.color);
+        } else {
+          grad.addColorStop(0, '#475569');
+          grad.addColorStop(1, '#1e293b');
+        }
+        ctx.fillStyle = grad;
+        ctx.fill();
+        ctx.strokeStyle = isHovered || isDragged ? '#ffffff' : (dev.active ? '#ffffff' : '#64748b');
+        ctx.lineWidth = (isHovered || isDragged ? 2.5 : 1.8) * dpr;
+        ctx.stroke();
+
+        // Icon / Text inside device node
+        ctx.font = 'bold ' + Math.round(11 * dpr) + 'px sans-serif';
+        ctx.fillStyle = '#ffffff';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(dev.short, dScreen.u, dScreen.v);
+        ctx.restore();
+
+        // Device name tag underneath
+        const tagText = dev.name + (dev.active ? '' : ' (Uit)');
+        ctx.font = 'bold ' + Math.round(10 * dpr) + 'px sans-serif';
+        const tagW = ctx.measureText(tagText).width;
+        const padX = 5 * dpr;
+        const padY = 2 * dpr;
+
+        ctx.fillStyle = dev.active ? 'rgba(15, 23, 42, 0.92)' : 'rgba(15, 23, 42, 0.7)';
+        ctx.beginPath();
+        if (ctx.roundRect) {
+          ctx.roundRect(dScreen.u - tagW/2 - padX, dScreen.v + dSize/2 + 3 * dpr, tagW + padX*2, 14 * dpr + padY, 4 * dpr);
+        } else {
+          ctx.rect(dScreen.u - tagW/2 - padX, dScreen.v + dSize/2 + 3 * dpr, tagW + padX*2, 14 * dpr + padY);
+        }
+        ctx.fill();
+        ctx.strokeStyle = dev.active ? pal.line : '#475569';
+        ctx.lineWidth = 1 * dpr;
+        ctx.stroke();
+
+        ctx.fillStyle = dev.active ? '#ffffff' : '#94a3b8';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'top';
+        ctx.fillText(tagText, dScreen.u, dScreen.v + dSize/2 + 4.5 * dpr);
+      });
+
+      // --- 6. DRAW BEARING NODES (A, B, C...) ---
       rows.forEach((r, idx) => {
         const letter = r.getAttribute('data-letter') || (LETTERS[idx] || ('L' + (idx+1)));
         const pos = bearingPositions[letter] || { x: 0, y: 0 };
@@ -1157,38 +1433,51 @@
       const canvas = document.getElementById('bearingLayoutCanvas');
       if (!canvas) return;
 
-      function getHitBearing(clientX, clientY) {
+      function getHitObject(clientX, clientY) {
         const rect = canvas.getBoundingClientRect();
         const dpr = window.devicePixelRatio || 1;
         const mouseU = (clientX - rect.left) * dpr;
         const mouseV = (clientY - rect.top) * dpr;
+        const hitRadius = 22 * dpr;
 
+        // Check devices first
+        for (let i = devices.length - 1; i >= 0; i--) {
+          const dev = devices[i];
+          const dScreen = worldToScreen(dev.x, dev.y, canvas);
+          const dx = mouseU - dScreen.u;
+          const dy = mouseV - dScreen.v;
+          if (dx * dx + dy * dy <= hitRadius * hitRadius) {
+            return { type: 'device', id: dev.id };
+          }
+        }
+
+        // Check bearings
         const rows = document.querySelectorAll('.bearing-row');
-        let hitLetter = null;
-
-        rows.forEach((r, idx) => {
+        for (let idx = 0; idx < rows.length; idx++) {
+          const r = rows[idx];
           const letter = r.getAttribute('data-letter') || (LETTERS[idx] || ('L' + (idx+1)));
           const pos = bearingPositions[letter];
-          if (!pos) return;
-
+          if (!pos) continue;
           const bScreen = worldToScreen(pos.x, pos.y, canvas);
-          const hitRadius = 24 * dpr;
           const dx = mouseU - bScreen.u;
           const dy = mouseV - bScreen.v;
-
           if (dx * dx + dy * dy <= hitRadius * hitRadius) {
-            hitLetter = letter;
+            return { type: 'bearing', letter: letter };
           }
-        });
+        }
 
-        return hitLetter;
+        return null;
       }
 
       // Mouse Down
       canvas.addEventListener('mousedown', function(e) {
-        const hit = getHitBearing(e.clientX, e.clientY);
+        const hit = getHitObject(e.clientX, e.clientY);
         if (hit) {
-          draggedBearingLetter = hit;
+          if (hit.type === 'bearing') {
+            draggedBearingLetter = hit.letter;
+          } else if (hit.type === 'device') {
+            draggedDeviceId = hit.id;
+          }
           canvas.style.cursor = 'grabbing';
           drawBearingLayout();
         }
@@ -1204,7 +1493,6 @@
         if (draggedBearingLetter) {
           const world = screenToWorld(mouseU, mouseV, canvas);
           const maxR = machineRangeMeters;
-          
           const clampedX = Math.max(-maxR, Math.min(maxR, world.x));
           const clampedY = Math.max(-maxR, Math.min(maxR, world.y));
 
@@ -1215,10 +1503,28 @@
 
           drawBearingLayout();
           renderDistancesOverview();
+        } else if (draggedDeviceId) {
+          const world = screenToWorld(mouseU, mouseV, canvas);
+          const maxR = machineRangeMeters;
+          const clampedX = Math.max(-maxR, Math.min(maxR, world.x));
+          const clampedY = Math.max(-maxR, Math.min(maxR, world.y));
+
+          const dev = devices.find(d => d.id === draggedDeviceId);
+          if (dev) {
+            dev.x = Math.round(clampedX * 10) / 10;
+            dev.y = Math.round(clampedY * 10) / 10;
+          }
+
+          drawBearingLayout();
+          renderDistancesOverview();
         } else {
-          const hit = getHitBearing(e.clientX, e.clientY);
-          if (hit !== hoveredBearingLetter) {
-            hoveredBearingLetter = hit;
+          const hit = getHitObject(e.clientX, e.clientY);
+          const newHoverBearing = hit && hit.type === 'bearing' ? hit.letter : null;
+          const newHoverDevice = hit && hit.type === 'device' ? hit.id : null;
+
+          if (newHoverBearing !== hoveredBearingLetter || newHoverDevice !== hoveredDeviceId) {
+            hoveredBearingLetter = newHoverBearing;
+            hoveredDeviceId = newHoverDevice;
             canvas.style.cursor = hit ? 'grab' : 'default';
             drawBearingLayout();
           }
@@ -1227,16 +1533,18 @@
 
       // Mouse Up / Leave
       window.addEventListener('mouseup', function() {
-        if (draggedBearingLetter) {
+        if (draggedBearingLetter || draggedDeviceId) {
           draggedBearingLetter = null;
-          canvas.style.cursor = hoveredBearingLetter ? 'grab' : 'default';
+          draggedDeviceId = null;
+          canvas.style.cursor = (hoveredBearingLetter || hoveredDeviceId) ? 'grab' : 'default';
           drawBearingLayout();
         }
       });
 
       canvas.addEventListener('mouseleave', function() {
-        if (hoveredBearingLetter && !draggedBearingLetter) {
+        if (!draggedBearingLetter && !draggedDeviceId && (hoveredBearingLetter || hoveredDeviceId)) {
           hoveredBearingLetter = null;
+          hoveredDeviceId = null;
           canvas.style.cursor = 'default';
           drawBearingLayout();
         }
@@ -1246,9 +1554,13 @@
       canvas.addEventListener('touchstart', function(e) {
         if (e.touches.length === 1) {
           const touch = e.touches[0];
-          const hit = getHitBearing(touch.clientX, touch.clientY);
+          const hit = getHitObject(touch.clientX, touch.clientY);
           if (hit) {
-            draggedBearingLetter = hit;
+            if (hit.type === 'bearing') {
+              draggedBearingLetter = hit.letter;
+            } else if (hit.type === 'device') {
+              draggedDeviceId = hit.id;
+            }
             e.preventDefault();
             drawBearingLayout();
           }
@@ -1256,7 +1568,7 @@
       }, { passive: false });
 
       canvas.addEventListener('touchmove', function(e) {
-        if (draggedBearingLetter && e.touches.length === 1) {
+        if ((draggedBearingLetter || draggedDeviceId) && e.touches.length === 1) {
           e.preventDefault();
           const touch = e.touches[0];
           const rect = canvas.getBoundingClientRect();
@@ -1266,11 +1578,18 @@
 
           const world = screenToWorld(mouseU, mouseV, canvas);
           const maxR = machineRangeMeters;
+          const clampedX = Math.round(Math.max(-maxR, Math.min(maxR, world.x)) * 10) / 10;
+          const clampedY = Math.round(Math.max(-maxR, Math.min(maxR, world.y)) * 10) / 10;
 
-          bearingPositions[draggedBearingLetter] = {
-            x: Math.round(Math.max(-maxR, Math.min(maxR, world.x)) * 10) / 10,
-            y: Math.round(Math.max(-maxR, Math.min(maxR, world.y)) * 10) / 10
-          };
+          if (draggedBearingLetter) {
+            bearingPositions[draggedBearingLetter] = { x: clampedX, y: clampedY };
+          } else if (draggedDeviceId) {
+            const dev = devices.find(d => d.id === draggedDeviceId);
+            if (dev) {
+              dev.x = clampedX;
+              dev.y = clampedY;
+            }
+          }
 
           drawBearingLayout();
           renderDistancesOverview();
@@ -1278,8 +1597,9 @@
       }, { passive: false });
 
       window.addEventListener('touchend', function() {
-        if (draggedBearingLetter) {
+        if (draggedBearingLetter || draggedDeviceId) {
           draggedBearingLetter = null;
+          draggedDeviceId = null;
           drawBearingLayout();
         }
       });
@@ -1297,41 +1617,83 @@
       const rows = document.querySelectorAll('.bearing-row');
       container.innerHTML = '';
 
-      let maxDist = 0;
-      let totalDist = 0;
-      let count = 0;
+      // Determine active origins
+      const activeOrigins = [];
+      if (showCentralPoint) {
+        activeOrigins.push({
+          id: 'cp',
+          name: 'Centraal Punt (0,0)',
+          short: 'Centraal',
+          color: '#E30613',
+          badgeBg: '#fee2e2',
+          badgeText: '#991b1b',
+          getDist: (bx, by) => Math.hypot(bx, by)
+        });
+      }
+      devices.forEach(dev => {
+        if (dev.active) {
+          const pal = DEVICE_PALETTES[dev.paletteIndex % DEVICE_PALETTES.length];
+          activeOrigins.push({
+            id: dev.id,
+            name: dev.name,
+            short: dev.short,
+            color: pal.color,
+            badgeBg: pal.badgeBg,
+            badgeText: pal.badgeText,
+            getDist: (bx, by) => Math.hypot(bx - dev.x, by - dev.y)
+          });
+        }
+      });
+
+      if (activeOrigins.length === 0) {
+        container.innerHTML = '<div style="padding: 24px 16px; text-align: center; color: #64748b; font-size: 13px; line-height: 1.5; background: #f8fafc; border-radius: 8px; border: 1px dashed #cbd5e1;">' +
+          '💡 <strong>Geen meetpunten actief</strong><br>Schakel in de filterbalk hierboven minimaal 1 punt in (bijv. <em>Centraal Punt</em> of <em>Toestel 1</em>) om de leidingafstanden te tonen.' +
+          '</div>';
+        
+        const badgeEl = document.getElementById('totalBearingsBadge');
+        if (badgeEl) badgeEl.textContent = rows.length + (rows.length === 1 ? ' Lager' : ' Lagers');
+        const maxEl = document.getElementById('statMaxDistance');
+        if (maxEl) maxEl.textContent = '-';
+        const avgEl = document.getElementById('statAvgDistance');
+        if (avgEl) avgEl.textContent = '-';
+        return;
+      }
+
+      let overallMaxDist = 0;
+      let totalDistSum = 0;
+      let distCount = 0;
 
       rows.forEach((r, idx) => {
         const letter = r.getAttribute('data-letter') || (LETTERS[idx] || ('L' + (idx+1)));
         const pos = bearingPositions[letter] || { x: 0, y: 0 };
-        const d = Math.sqrt(pos.x * pos.x + pos.y * pos.y);
-        
-        count++;
-        totalDist += d;
-        if (d > maxDist) maxDist = d;
 
         const nrIn = r.querySelector('.bearing-nr-input');
         const nrVal = nrIn && nrIn.value ? nrIn.value.trim() : 'Niet opgegeven';
         const descIn = r.querySelector('.bearing-desc-input');
         const descVal = descIn && descIn.value ? descIn.value.trim() : '';
 
-        let statusBadge = '';
-        if (d <= 3.0) {
-          statusBadge = '<span style="font-size: 9.5px; font-weight: 700; padding: 2px 6px; border-radius: 4px; background: #dcfce7; color: #166534; display: inline-block;">Ideaal (≤ 3m)</span>';
-        } else if (d <= 4.0) {
-          statusBadge = '<span style="font-size: 9.5px; font-weight: 700; padding: 2px 6px; border-radius: 4px; background: #fef3c7; color: #92400e; display: inline-block;">Goed (3-4m)</span>';
-        } else {
-          statusBadge = '<span style="font-size: 9.5px; font-weight: 700; padding: 2px 6px; border-radius: 4px; background: #fee2e2; color: #991b1b; display: inline-block;">Lange leiding (> 4m)</span>';
-        }
+        // Calculate distance to each active origin
+        const originDists = activeOrigins.map(origin => {
+          const d = origin.getDist(pos.x, pos.y);
+          totalDistSum += d;
+          distCount++;
+          if (d > overallMaxDist) overallMaxDist = d;
+          return { origin, d };
+        });
+
+        // Find closest origin
+        let minD = Infinity;
+        let closestOriginId = null;
+        originDists.forEach(od => {
+          if (od.d < minD) {
+            minD = od.d;
+            closestOriginId = od.origin.id;
+          }
+        });
 
         const card = document.createElement('div');
-        card.style.cssText = 'background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 8px; padding: 8px 12px; display: flex; align-items: center; justify-content: space-between; gap: 10px; transition: all 0.2s; cursor: pointer;';
+        card.style.cssText = 'background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 8px; padding: 10px 12px; display: flex; flex-direction: column; gap: 8px; transition: all 0.2s; cursor: pointer;';
         
-        // Full hover tooltip on mouseover
-        const fullTooltip = 'Lager ' + letter + (nrVal ? ': ' + nrVal : '') + (descVal ? ' (' + descVal + ')' : '') + ' • Afstand: ' + d.toFixed(1).replace('.', ',') + ' m';
-        card.setAttribute('title', fullTooltip);
-
-        // Hover effect to highlight bearing on canvas
         card.onmouseenter = function() {
           card.style.background = '#eff6ff';
           card.style.borderColor = '#3b82f6';
@@ -1349,32 +1711,61 @@
           drawBearingLayout();
         };
 
-        card.innerHTML = 
-          '<div style="display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0;">' +
-            '<span style="background: #2563EB; color: white; padding: 3px 8px; border-radius: 5px; font-weight: 800; font-size: 11.5px; flex-shrink: 0; box-shadow: 0 1px 3px rgba(37,99,235,0.3);">Lager ' + letter + '</span>' +
-            '<div style="flex: 1; min-width: 0; overflow: visible;">' +
-              '<div style="font-size: 13px; font-weight: 700; color: #0f172a; word-break: break-word; line-height: 1.3;" title="' + nrVal + '">' + nrVal + '</div>' +
-              (descVal ? '<div style="font-size: 11px; color: #64748b; word-break: break-word; line-height: 1.3; margin-top: 2px;" title="' + descVal + '">' + descVal + '</div>' : '') +
+        // Header: Lager badge + Naam
+        let headerHtml = 
+          '<div style="display: flex; align-items: center; justify-content: space-between; gap: 10px;">' +
+            '<div style="display: flex; align-items: center; gap: 8px; min-width: 0;">' +
+              '<span style="background: #2563EB; color: white; padding: 2px 7px; border-radius: 5px; font-weight: 800; font-size: 11.5px; flex-shrink: 0; box-shadow: 0 1px 3px rgba(37,99,235,0.3);">Lager ' + letter + '</span>' +
+              '<div style="min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">' +
+                '<span style="font-size: 13px; font-weight: 700; color: #0f172a;" title="' + nrVal + '">' + nrVal + '</span>' +
+                (descVal ? ' <span style="font-size: 11px; color: #64748b;" title="' + descVal + '">(' + descVal + ')</span>' : '') +
+              '</div>' +
             '</div>' +
-          '</div>' +
-          '<div style="text-align: right; flex-shrink: 0; margin-left: 6px;">' +
-            '<div style="font-size: 14px; font-weight: 800; color: #E30613; margin-bottom: 2px;">' + d.toFixed(1).replace('.', ',') + ' m</div>' +
-            statusBadge +
           '</div>';
 
+        // Distances row
+        let distRowsHtml = '<div style="display: flex; flex-wrap: wrap; gap: 6px; align-items: center;">';
+
+        originDists.forEach(od => {
+          const isClosest = (originDists.length > 1 && od.origin.id === closestOriginId);
+          
+          let statusBg = '#dcfce7';
+          let statusCol = '#166534';
+          let statusBorder = '#86efac';
+          if (od.d > 4.0) {
+            statusBg = '#fee2e2';
+            statusCol = '#991b1b';
+            statusBorder = '#fca5a5';
+          } else if (od.d > 3.0) {
+            statusBg = '#fef3c7';
+            statusCol = '#92400e';
+            statusBorder = '#fde68a';
+          }
+
+          distRowsHtml += 
+            '<div style="display: inline-flex; align-items: center; gap: 5px; background: ' + statusBg + '; border: 1px solid ' + statusBorder + '; border-radius: 5px; padding: 2px 7px; font-size: 11px;">' +
+              '<span style="font-weight: 700; color: ' + od.origin.color + ';">' + od.origin.short + ':</span>' +
+              '<span style="font-weight: 800; color: ' + statusCol + ';">' + od.d.toFixed(1).replace('.', ',') + ' m</span>' +
+              (isClosest ? '<span style="font-size: 9px; font-weight: 800; color: #15803d; background: #bbf7d0; padding: 1px 4px; border-radius: 3px;" title="Kortste afstand">⭐ Dichtstbij</span>' : '') +
+            '</div>';
+        });
+
+        distRowsHtml += '</div>';
+
+        card.innerHTML = headerHtml + distRowsHtml;
         container.appendChild(card);
       });
 
       const badgeEl = document.getElementById('totalBearingsBadge');
-      if (badgeEl) badgeEl.textContent = count + (count === 1 ? ' Lager' : ' Lagers');
+      if (badgeEl) badgeEl.textContent = rows.length + (rows.length === 1 ? ' Lager' : ' Lagers');
 
       const maxEl = document.getElementById('statMaxDistance');
-      if (maxEl) maxEl.textContent = count > 0 ? (maxDist.toFixed(1).replace('.', ',') + ' m') : '-';
+      if (maxEl) maxEl.textContent = distCount > 0 ? (overallMaxDist.toFixed(1).replace('.', ',') + ' m') : '-';
 
       const avgEl = document.getElementById('statAvgDistance');
       if (avgEl) {
-        const avg = count > 0 ? (totalDist / count) : 0;
-        avgEl.textContent = count > 0 ? (avg.toFixed(1).replace('.', ',') + ' m') : '-';
+        const avg = distCount > 0 ? (totalDistSum / distCount) : 0;
+        avgEl.textContent = distCount > 0 ? (avg.toFixed(1).replace('.', ',') + ' m') : '-';
       }
     }
 
@@ -1427,11 +1818,37 @@
       ctx.textBaseline = 'middle';
       ctx.fillText('INTERFLON SMEERANALYSE • 3D MACHINE LAY-OUT & AFSTANDEN', 24, 30);
 
+      // Determine active origins
+      const activeOrigins = [];
+      if (showCentralPoint) {
+        activeOrigins.push({
+          id: 'cp',
+          name: 'Centraal Punt (0,0)',
+          short: 'Centraal',
+          color: '#E30613',
+          getDist: (bx, by) => Math.hypot(bx, by)
+        });
+      }
+      devices.forEach(dev => {
+        if (dev.active) {
+          const pal = DEVICE_PALETTES[dev.paletteIndex % DEVICE_PALETTES.length];
+          activeOrigins.push({
+            id: dev.id,
+            name: dev.name,
+            short: dev.short,
+            color: pal.color,
+            getDist: (bx, by) => Math.hypot(bx - dev.x, by - dev.y)
+          });
+        }
+      });
+
+      const activeNames = activeOrigins.map(o => o.short).join(' + ') || 'Geen';
+
       // Machine range subtitle
       ctx.font = '13px "Outfit", sans-serif';
       ctx.fillStyle = '#94a3b8';
       ctx.textAlign = 'right';
-      ctx.fillText('Bereik: tot ' + machineRangeMeters + ' m | Centrum (0,0)', outW - 24, 30);
+      ctx.fillText('Bereik: tot ' + machineRangeMeters + ' m | Meetpunten: ' + activeNames, outW - 24, 30);
 
       // Left Card: The 3D Machine Canvas
       const leftW = 710;
@@ -1486,7 +1903,7 @@
       ctx.font = '12px "Outfit", sans-serif';
       ctx.fillStyle = '#64748b';
       ctx.textAlign = 'left';
-      ctx.fillText('Gemeten leidingafstand vanaf centraal punt (0,0):', rightX + 20, rightY + 44);
+      ctx.fillText(activeOrigins.length > 1 ? 'Gemeten leidingafstanden per actief meetpunt:' : 'Gemeten leidingafstand (' + activeNames + '):', rightX + 20, rightY + 44);
 
       // Separator line
       ctx.strokeStyle = '#e2e8f0';
@@ -1498,23 +1915,40 @@
 
       // Render Bearing Cards
       let itemY = rightY + 80;
-      const cardH = 52;
-      let maxDist = 0;
-      let totalDist = 0;
+      const cardH = 54;
+      let overallMax = 0;
+      let totalSum = 0;
+      let distCount = 0;
 
       rows.forEach((r, idx) => {
         if (itemY + cardH > rightY + rightH - 95) return;
 
         const letter = r.getAttribute('data-letter') || (LETTERS[idx] || ('L' + (idx+1)));
         const pos = bearingPositions[letter] || { x: 0, y: 0 };
-        const d = Math.sqrt(pos.x * pos.x + pos.y * pos.y);
-        totalDist += d;
-        if (d > maxDist) maxDist = d;
 
         const nrIn = r.querySelector('.bearing-nr-input');
         const nrVal = nrIn && nrIn.value ? nrIn.value.trim() : 'Niet opgegeven';
         const descIn = r.querySelector('.bearing-desc-input');
         const descVal = descIn && descIn.value ? descIn.value.trim() : '';
+
+        // Calculate distances to active origins
+        const originDists = activeOrigins.map(origin => {
+          const d = origin.getDist(pos.x, pos.y);
+          totalSum += d;
+          distCount++;
+          if (d > overallMax) overallMax = d;
+          return { origin, d };
+        });
+
+        // Find minimum distance
+        let minD = Infinity;
+        let closestOriginId = null;
+        originDists.forEach(od => {
+          if (od.d < minD) {
+            minD = od.d;
+            closestOriginId = od.origin.id;
+          }
+        });
 
         // Card background
         ctx.fillStyle = '#f8fafc';
@@ -1529,62 +1963,90 @@
         // Badge: Lager Letter
         ctx.fillStyle = '#2563EB';
         ctx.beginPath();
-        if (ctx.roundRect) ctx.roundRect(rightX + 26, itemY + 13, 62, 26, 4);
-        else ctx.rect(rightX + 26, itemY + 13, 62, 26);
+        if (ctx.roundRect) ctx.roundRect(rightX + 26, itemY + 12, 58, 24, 4);
+        else ctx.rect(rightX + 26, itemY + 12, 58, 24);
         ctx.fill();
 
-        ctx.font = 'bold 12px "Outfit", sans-serif';
+        ctx.font = 'bold 11.5px "Outfit", sans-serif';
         ctx.fillStyle = '#ffffff';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        ctx.fillText('Lager ' + letter, rightX + 57, itemY + 26);
+        ctx.fillText('Lager ' + letter, rightX + 55, itemY + 24);
 
         // Lager Designation & Description
-        ctx.font = 'bold 13px "Outfit", sans-serif';
+        ctx.font = 'bold 12.5px "Outfit", sans-serif';
         ctx.fillStyle = '#0f172a';
         ctx.textAlign = 'left';
         ctx.textBaseline = 'top';
-        ctx.fillText(nrVal, rightX + 98, itemY + 10);
+        ctx.fillText(nrVal.length > 20 ? nrVal.substring(0, 18) + '...' : nrVal, rightX + 92, itemY + 10);
 
         if (descVal) {
-          ctx.font = '11px "Outfit", sans-serif';
+          ctx.font = '10.5px "Outfit", sans-serif';
           ctx.fillStyle = '#64748b';
-          ctx.fillText(descVal.length > 26 ? descVal.substring(0, 24) + '...' : descVal, rightX + 98, itemY + 28);
+          ctx.fillText(descVal.length > 24 ? descVal.substring(0, 22) + '...' : descVal, rightX + 92, itemY + 28);
         }
 
-        // Distance text
-        ctx.font = 'bold 15px "Outfit", sans-serif';
-        ctx.fillStyle = '#E30613';
-        ctx.textAlign = 'right';
-        ctx.textBaseline = 'top';
-        ctx.fillText(d.toFixed(1).replace('.', ',') + ' m', rightX + rightW - 26, itemY + 9);
+        // Distances
+        if (originDists.length === 1) {
+          const od = originDists[0];
+          ctx.font = 'bold 14px "Outfit", sans-serif';
+          ctx.fillStyle = '#E30613';
+          ctx.textAlign = 'right';
+          ctx.textBaseline = 'top';
+          ctx.fillText(od.d.toFixed(1).replace('.', ',') + ' m', rightX + rightW - 26, itemY + 9);
 
-        // Status badge
-        let statusBg = '#dcfce7';
-        let statusCol = '#166534';
-        let statusTxt = 'Ideaal (≤ 3m)';
-        if (d > 4.0) {
-          statusBg = '#fee2e2';
-          statusCol = '#991b1b';
-          statusTxt = 'Lange leiding (> 4m)';
-        } else if (d > 3.0) {
-          statusBg = '#fef3c7';
-          statusCol = '#92400e';
-          statusTxt = 'Goed (3-4m)';
+          let statusBg = '#dcfce7';
+          let statusCol = '#166534';
+          let statusTxt = 'Ideaal (≤ 3m)';
+          if (od.d > 4.0) {
+            statusBg = '#fee2e2';
+            statusCol = '#991b1b';
+            statusTxt = 'Lange leiding (> 4m)';
+          } else if (od.d > 3.0) {
+            statusBg = '#fef3c7';
+            statusCol = '#92400e';
+            statusTxt = 'Goed (3-4m)';
+          }
+
+          ctx.font = 'bold 9.5px "Outfit", sans-serif';
+          const sWidth = ctx.measureText(statusTxt).width + 12;
+          ctx.fillStyle = statusBg;
+          ctx.beginPath();
+          if (ctx.roundRect) ctx.roundRect(rightX + rightW - 26 - sWidth, itemY + 29, sWidth, 16, 4);
+          else ctx.rect(rightX + rightW - 26 - sWidth, itemY + 29, sWidth, 16);
+          ctx.fill();
+
+          ctx.fillStyle = statusCol;
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(statusTxt, rightX + rightW - 26 - sWidth / 2, itemY + 37);
+        } else if (originDists.length > 1) {
+          // Multi-origin: render mini distance badges on right side
+          let badgeX = rightX + rightW - 26;
+          originDists.forEach(od => {
+            const isClosest = (od.origin.id === closestOriginId);
+            const badgeStr = od.origin.short + ': ' + od.d.toFixed(1).replace('.', ',') + 'm';
+            ctx.font = 'bold 9.5px "Outfit", sans-serif';
+            const bWidth = ctx.measureText(badgeStr).width + 10;
+            badgeX -= bWidth;
+
+            let bBg = od.d <= 3.0 ? '#dcfce7' : (od.d <= 4.0 ? '#fef3c7' : '#fee2e2');
+            let bCol = od.d <= 3.0 ? '#166534' : (od.d <= 4.0 ? '#92400e' : '#991b1b');
+            
+            ctx.fillStyle = bBg;
+            ctx.beginPath();
+            if (ctx.roundRect) ctx.roundRect(badgeX, itemY + (isClosest ? 10 : 28), bWidth, 16, 3);
+            else ctx.rect(badgeX, itemY + (isClosest ? 10 : 28), bWidth, 16);
+            ctx.fill();
+
+            ctx.fillStyle = bCol;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(badgeStr, badgeX + bWidth / 2, itemY + (isClosest ? 18 : 36));
+
+            badgeX -= 4; // gap
+          });
         }
-
-        ctx.font = 'bold 9.5px "Outfit", sans-serif';
-        const sWidth = ctx.measureText(statusTxt).width + 12;
-        ctx.fillStyle = statusBg;
-        ctx.beginPath();
-        if (ctx.roundRect) ctx.roundRect(rightX + rightW - 26 - sWidth, itemY + 29, sWidth, 16, 4);
-        else ctx.rect(rightX + rightW - 26 - sWidth, itemY + 29, sWidth, 16);
-        ctx.fill();
-
-        ctx.fillStyle = statusCol;
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText(statusTxt, rightX + rightW - 26 - sWidth / 2, itemY + 37);
 
         itemY += cardH + 8;
       });
@@ -1608,7 +2070,7 @@
       ctx.font = 'bold 12px "Outfit", sans-serif';
       ctx.fillStyle = '#0f172a';
       ctx.textAlign = 'right';
-      ctx.fillText(rows.length > 0 ? (maxDist.toFixed(1).replace('.', ',') + ' m') : '-', rightX + rightW - 26, statBoxY + 10);
+      ctx.fillText(distCount > 0 ? (overallMax.toFixed(1).replace('.', ',') + ' m') : '-', rightX + rightW - 26, statBoxY + 10);
 
       ctx.font = '12px "Outfit", sans-serif';
       ctx.fillStyle = '#475569';
@@ -1617,8 +2079,8 @@
       ctx.font = 'bold 12px "Outfit", sans-serif';
       ctx.fillStyle = '#0f172a';
       ctx.textAlign = 'right';
-      const avg = rows.length > 0 ? (totalDist / rows.length) : 0;
-      ctx.fillText(rows.length > 0 ? (avg.toFixed(1).replace('.', ',') + ' m') : '-', rightX + rightW - 26, statBoxY + 28);
+      const avg = distCount > 0 ? (totalSum / distCount) : 0;
+      ctx.fillText(distCount > 0 ? (avg.toFixed(1).replace('.', ',') + ' m') : '-', rightX + rightW - 26, statBoxY + 28);
 
       ctx.font = '10px "Outfit", sans-serif';
       ctx.textAlign = 'center';
@@ -2143,6 +2605,7 @@
     });
   
     window.addEventListener('DOMContentLoaded', function() {
+      if (typeof renderDeviceFilterPills === "function") renderDeviceFilterPills();
       if (typeof initCanvasInteractions === "function") initCanvasInteractions();
       if (typeof syncBearingsToLayout === "function") setTimeout(syncBearingsToLayout, 100);
     });
