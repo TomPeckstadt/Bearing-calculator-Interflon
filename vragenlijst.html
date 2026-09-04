@@ -444,7 +444,7 @@
         </div>
 
         <!-- 2-Column Grid Layout: Left 3D Field (~68%), Right Distances Table (~32%) -->
-        <div style="display: grid; grid-template-columns: 2.1fr 1fr; gap: 16px; align-items: stretch;" id="layoutGridContainer">
+        <div style="display: grid; grid-template-columns: 1.6fr 1.4fr; gap: 16px; align-items: stretch;" id="layoutGridContainer">
           
           <!-- LEFT PANEL: 3D / Isometric Canvas Field -->
           <div style="background: #0f172a; border-radius: 12px; padding: 14px; box-shadow: 0 4px 16px rgba(15,23,42,0.12); border: 1px solid #1e293b; display: flex; flex-direction: column;">
@@ -1101,27 +1101,29 @@
         ctx.textBaseline = 'middle';
         ctx.fillText(letter, bScreen.u, bScreen.v);
 
-        // Tag label underneath node
+        // Tag label underneath node with full text on hover
         let labelText = 'Lager ' + letter;
         if (nrVal) labelText += ': ' + nrVal;
+        if (isHovered && descVal) labelText += ' (' + descVal + ')';
 
-        ctx.font = 'bold ' + Math.round(10.5 * dpr) + 'px sans-serif';
+        ctx.font = 'bold ' + Math.round((isHovered ? 11.5 : 10.5) * dpr) + 'px sans-serif';
         const tagWidth = ctx.measureText(labelText).width;
-        const tagPad = 5 * dpr;
+        const tagPad = (isHovered ? 8 : 5) * dpr;
+        const tagHeight = (isHovered ? 18 : 16) * dpr;
 
-        ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
+        ctx.fillStyle = isHovered ? 'rgba(15, 23, 42, 0.95)' : 'rgba(15, 23, 42, 0.85)';
         ctx.beginPath();
         if (ctx.roundRect) {
-          ctx.roundRect(bScreen.u - tagWidth/2 - tagPad, bScreen.v + radius + 4 * dpr, tagWidth + tagPad*2, 16 * dpr, 4 * dpr);
+          ctx.roundRect(bScreen.u - tagWidth/2 - tagPad, bScreen.v + radius + 4 * dpr, tagWidth + tagPad*2, tagHeight, 4 * dpr);
         } else {
-          ctx.rect(bScreen.u - tagWidth/2 - tagPad, bScreen.v + radius + 4 * dpr, tagWidth + tagPad*2, 16 * dpr);
+          ctx.rect(bScreen.u - tagWidth/2 - tagPad, bScreen.v + radius + 4 * dpr, tagWidth + tagPad*2, tagHeight);
         }
         ctx.fill();
-        ctx.strokeStyle = '#475569';
-        ctx.lineWidth = 1 * dpr;
+        ctx.strokeStyle = isHovered ? '#60a5fa' : '#475569';
+        ctx.lineWidth = (isHovered ? 1.5 : 1) * dpr;
         ctx.stroke();
 
-        ctx.fillStyle = '#f8fafc';
+        ctx.fillStyle = isHovered ? '#93c5fd' : '#f8fafc';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'top';
         ctx.fillText(labelText, bScreen.u, bScreen.v + radius + 6 * dpr);
@@ -1303,18 +1305,40 @@
         }
 
         const card = document.createElement('div');
-        card.style.cssText = 'background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 8px 10px; display: flex; align-items: center; justify-content: space-between; gap: 8px; transition: all 0.15s;';
+        card.style.cssText = 'background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 8px; padding: 8px 12px; display: flex; align-items: center; justify-content: space-between; gap: 10px; transition: all 0.2s; cursor: pointer;';
         
+        // Full hover tooltip on mouseover
+        const fullTooltip = 'Lager ' + letter + (nrVal ? ': ' + nrVal : '') + (descVal ? ' (' + descVal + ')' : '') + ' • Afstand: ' + d.toFixed(1).replace('.', ',') + ' m';
+        card.setAttribute('title', fullTooltip);
+
+        // Hover effect to highlight bearing on canvas
+        card.onmouseenter = function() {
+          card.style.background = '#eff6ff';
+          card.style.borderColor = '#3b82f6';
+          card.style.transform = 'translateY(-1px)';
+          card.style.boxShadow = '0 3px 8px rgba(37,99,235,0.12)';
+          hoveredBearingLetter = letter;
+          drawBearingLayout();
+        };
+        card.onmouseleave = function() {
+          card.style.background = '#f8fafc';
+          card.style.borderColor = '#e2e8f0';
+          card.style.transform = 'none';
+          card.style.boxShadow = 'none';
+          hoveredBearingLetter = null;
+          drawBearingLayout();
+        };
+
         card.innerHTML = 
-          '<div style="display: flex; align-items: center; gap: 8px; overflow: hidden;">' +
-            '<span style="background: #2563EB; color: white; padding: 2px 8px; border-radius: 4px; font-weight: 800; font-size: 11px; flex-shrink: 0;">Lager ' + letter + '</span>' +
-            '<div style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">' +
-              '<div style="font-size: 12px; font-weight: 700; color: #0f172a; text-overflow: ellipsis; overflow: hidden;">' + nrVal + '</div>' +
-              (descVal ? '<div style="font-size: 10px; color: #64748b; text-overflow: ellipsis; overflow: hidden;">' + descVal + '</div>' : '') +
+          '<div style="display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0;">' +
+            '<span style="background: #2563EB; color: white; padding: 3px 8px; border-radius: 5px; font-weight: 800; font-size: 11.5px; flex-shrink: 0; box-shadow: 0 1px 3px rgba(37,99,235,0.3);">Lager ' + letter + '</span>' +
+            '<div style="flex: 1; min-width: 0; overflow: visible;">' +
+              '<div style="font-size: 13px; font-weight: 700; color: #0f172a; word-break: break-word; line-height: 1.3;" title="' + nrVal + '">' + nrVal + '</div>' +
+              (descVal ? '<div style="font-size: 11px; color: #64748b; word-break: break-word; line-height: 1.3; margin-top: 2px;" title="' + descVal + '">' + descVal + '</div>' : '') +
             '</div>' +
           '</div>' +
-          '<div style="text-align: right; flex-shrink: 0;">' +
-            '<div style="font-size: 13.5px; font-weight: 800; color: #E30613;">' + d.toFixed(1).replace('.', ',') + ' m</div>' +
+          '<div style="text-align: right; flex-shrink: 0; margin-left: 6px;">' +
+            '<div style="font-size: 14px; font-weight: 800; color: #E30613; margin-bottom: 2px;">' + d.toFixed(1).replace('.', ',') + ' m</div>' +
             statusBadge +
           '</div>';
 
