@@ -195,7 +195,22 @@
     .success-banner h3 { font-size: 18px; font-weight: 800; margin-bottom: 4px; }
     .success-banner p { font-size: 14px; }
 
+    
+    @media (max-width: 860px) {
+      #layoutGridContainer {
+        grid-template-columns: 1fr !important;
+      }
+      #canvasWrapper {
+        height: 360px !important;
+      }
+    }
+
     @media print {
+
+      #btnView3D, #btnView2D, #layoutScaleSelect, button[onclick*="resetBearingPositions"] {
+        display: none !important;
+      }
+
       body {
         background: #ffffff !important;
         padding: 0 !important;
@@ -386,9 +401,127 @@
         </div>
       </div>
 
+      
+      <!-- Section 3: Positiebepaling Lagers & Afstanden Machine (3D / 2.5D Interactive Grid) -->
+      <div class="survey-section" id="sectionBearingLayout">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px; margin-bottom: 14px;">
+          <div>
+            <h2 class="survey-section-title" style="margin-bottom: 4px;">📐 3. Positiebepaling Lagers & Afstanden Machine</h2>
+            <p style="font-size: 13px; color: #64748b; margin: 0; line-height: 1.4;">
+              Sleep de lagers (A, B, C...) naar hun reële fysieke positie op de machine. De app berekent realtime de leidingafstand in meters tot het centrale smeerpunt.
+            </p>
+          </div>
+          <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+            <!-- View Mode Toggle -->
+            <div style="display: inline-flex; background: #e2e8f0; border-radius: 8px; padding: 2px;">
+              <button type="button" id="btnView3D" onclick="setLayoutViewMode('3d')" style="border: none; background: #ffffff; color: #0f172a; font-weight: 700; font-size: 12px; padding: 5px 10px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                🧊 3D Isometrisch
+              </button>
+              <button type="button" id="btnView2D" onclick="setLayoutViewMode('2d')" style="border: none; background: transparent; color: #64748b; font-weight: 700; font-size: 12px; padding: 5px 10px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 4px;">
+                📐 2D Bovenaanzicht
+              </button>
+            </div>
+
+            <!-- Machine Scale Dropdown -->
+            <div style="display: flex; align-items: center; gap: 6px; background: #ffffff; padding: 4px 10px; border-radius: 8px; border: 1px solid #cbd5e1;">
+              <label for="layoutScaleSelect" style="font-size: 12px; font-weight: 700; color: #334155; margin: 0;">Machine Bereik:</label>
+              <select id="layoutScaleSelect" class="form-control" style="width: auto; padding: 3px 8px; font-size: 12px; font-weight: 700; height: 30px;" onchange="onLayoutScaleChange(this.value)">
+                <option value="6">6 × 6 m (Compact)</option>
+                <option value="10" selected>10 × 10 m (Standaard)</option>
+                <option value="20">20 × 20 m (Middelgroot)</option>
+                <option value="40">40 × 40 m (Groot / Transportlijn)</option>
+              </select>
+            </div>
+
+            <button type="button" onclick="resetBearingPositions()" class="btn-secondary" style="width: auto; padding: 5px 10px; font-size: 12px; height: 32px; gap: 4px;" title="Herstel standaardposities">
+              🔄 Reset
+            </button>
+          </div>
+        </div>
+
+        <!-- 2-Column Grid Layout: Left 3D Field (~68%), Right Distances Table (~32%) -->
+        <div style="display: grid; grid-template-columns: 2.1fr 1fr; gap: 16px; align-items: stretch;" id="layoutGridContainer">
+          
+          <!-- LEFT PANEL: 3D / Isometric Canvas Field -->
+          <div style="background: #0f172a; border-radius: 12px; padding: 14px; box-shadow: 0 4px 16px rgba(15,23,42,0.12); border: 1px solid #1e293b; display: flex; flex-direction: column;">
+            
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; color: #94a3b8; font-size: 11.5px; font-weight: 600;">
+              <span style="display: inline-flex; align-items: center; gap: 6px;">
+                <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #10b981; box-shadow: 0 0 6px #10b981;"></span>
+                <span>Interactief Machineraster &bull; Klik en sleep de lagers</span>
+              </span>
+              <span id="canvasZoomInfo" style="color: #cbd5e1; font-family: monospace; font-size: 11px;">Bereik: 10 × 10 m (Centrum: 0,0)</span>
+            </div>
+
+            <!-- Canvas Container with Responsive Sizing -->
+            <div style="position: relative; width: 100%; height: 440px; border-radius: 10px; overflow: hidden; background: radial-gradient(circle at center, #1e293b 0%, #090d16 100%); touch-action: none; border: 1px solid #334155;" id="canvasWrapper">
+              <canvas id="bearingLayoutCanvas" style="display: block; width: 100%; height: 100%; cursor: default;"></canvas>
+              
+              <!-- Floating Legend overlay -->
+              <div style="position: absolute; bottom: 8px; left: 8px; background: rgba(15,23,42,0.85); backdrop-filter: blur(4px); border: 1px solid #334155; padding: 6px 12px; border-radius: 6px; font-size: 11px; color: #e2e8f0; display: flex; gap: 14px; pointer-events: none;">
+                <span style="display: flex; align-items: center; gap: 6px;">
+                  <span style="width: 10px; height: 10px; border-radius: 50%; background: #E30613; display: inline-block; box-shadow: 0 0 6px #E30613;"></span>
+                  <strong>Centraal Smeerpunt</strong> (0,0)
+                </span>
+                <span style="display: flex; align-items: center; gap: 6px;">
+                  <span style="width: 10px; height: 10px; border-radius: 50%; background: #2563EB; display: inline-block; box-shadow: 0 0 6px #2563EB;"></span>
+                  <strong>Lagers</strong> (Versleepbaar)
+                </span>
+              </div>
+
+              <!-- Quick Helper Tip -->
+              <div style="position: absolute; top: 8px; right: 8px; background: rgba(15,23,42,0.8); backdrop-filter: blur(4px); border: 1px solid #334155; padding: 4px 8px; border-radius: 6px; font-size: 10.5px; color: #94a3b8; pointer-events: none;">
+                💡 Tip: Versleep een lager om afstand aan te passen
+              </div>
+            </div>
+
+          </div>
+
+          <!-- RIGHT PANEL: Distance Overview & Statistics -->
+          <div style="background: #ffffff; border-radius: 12px; padding: 16px; border: 1.5px solid #cbd5e1; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
+            <div>
+              <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1.5px solid #f1f5f9; padding-bottom: 10px; margin-bottom: 10px;">
+                <h3 style="font-size: 14px; font-weight: 800; color: #0f172a; margin: 0; display: flex; align-items: center; gap: 6px;">
+                  📏 Afstanden Overzicht
+                </h3>
+                <span id="totalBearingsBadge" style="background: #eff6ff; color: #1e40af; border: 1px solid #bfdbfe; font-size: 11px; font-weight: 800; padding: 2px 8px; border-radius: 12px;">1 Lager</span>
+              </div>
+
+              <p style="font-size: 11.5px; color: #64748b; margin-top: 0; margin-bottom: 12px; line-height: 1.35;">
+                Afstand van het centrale punt tot elk lager (cruciaal voor leidingweerstand bij centrale smeersystemen):
+              </p>
+
+              <!-- Dynamic list of distances -->
+              <div id="bearingDistancesList" style="display: flex; flex-direction: column; gap: 8px; max-height: 285px; overflow-y: auto; padding-right: 4px;">
+                <!-- Rendered dynamically by JavaScript -->
+              </div>
+            </div>
+
+            <!-- Statistics & Guidelines Box at bottom -->
+            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px 12px; margin-top: 12px;">
+              <div style="display: flex; justify-content: space-between; font-size: 11.5px; color: #475569; margin-bottom: 4px;">
+                <span>Max. leidingafstand:</span>
+                <strong id="statMaxDistance" style="color: #0f172a; font-weight: 800;">-</strong>
+              </div>
+              <div style="display: flex; justify-content: space-between; font-size: 11.5px; color: #475569; margin-bottom: 8px;">
+                <span>Gemiddelde afstand:</span>
+                <strong id="statAvgDistance" style="color: #0f172a; font-weight: 800;">-</strong>
+              </div>
+              <div style="font-size: 10.5px; color: #64748b; border-top: 1px solid #e2e8f0; padding-top: 6px; display: flex; gap: 8px; justify-content: space-between;">
+                <span style="color: #166534;">● ≤ 3m (Ideaal)</span>
+                <span style="color: #92400e;">● 3-6m (Goed)</span>
+                <span style="color: #991b1b;">● > 6m (Let op)</span>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+      </div>
+
       <!-- Section 3: Omgevingscondities & Belastingen WITH PER-BEARING DROPDOWN -->
       <div class="survey-section">
-        <h2 class="survey-section-title">🌡️ 3. Omgevingscondities & Belastingen</h2>
+        <h2 class="survey-section-title">🌡️ 4. Omgevingscondities & Belastingen</h2>
         
         <!-- Bearing Selector Bar for Section 3 -->
         <div style="background: #ffffff; padding: 14px 18px; border-radius: 10px; border: 1.5px solid #cbd5e1; margin-bottom: 18px; display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap;">
@@ -469,7 +602,7 @@
 
       <!-- Section 4: Onderhoud & Downtime WITH PER-BEARING DROPDOWN -->
       <div class="survey-section">
-        <h2 class="survey-section-title">⏱️ 4. Onderhouds- & Downtimekosten</h2>
+        <h2 class="survey-section-title">⏱️ 5. Onderhouds- & Downtimekosten</h2>
         
         <!-- Bearing Selector Bar for Section 4 -->
         <div style="background: #ffffff; padding: 14px 18px; border-radius: 10px; border: 1.5px solid #cbd5e1; margin-bottom: 18px; display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap;">
@@ -522,7 +655,7 @@
 
       <!-- Section 5: Contact & Verzenden -->
       <div class="survey-section">
-        <h2 class="survey-section-title">📩 5. Uw Contactgegevens & Verzenden</h2>
+        <h2 class="survey-section-title">📩 6. Uw Contactgegevens & Verzenden</h2>
         <div class="grid-2">
           <div class="form-group">
             <label for="clientCompany">Bedrijfsnaam *</label>
@@ -572,6 +705,631 @@
   <script>
     // State management for per-bearing Section 2, 3, and 4 answers
     const LETTERS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'];
+
+    // =========================================================================
+    // SECTION 3: 3D / 2.5D BEARING POSITIONING & DISTANCE CALCULATION ENGINE
+    // =========================================================================
+    let layoutViewMode = '3d'; // '3d' or '2d'
+    let machineRangeMeters = 10; // Default: 10m x 10m
+    let bearingPositions = {
+      'A': { x: -2.2, y: 1.8 }
+    };
+    let draggedBearingLetter = null;
+    let hoveredBearingLetter = null;
+
+    // Standard preset positions to avoid overlap when adding multiple bearings
+    const PRESET_COORDS = [
+      { x: -2.2, y: 1.8 },
+      { x: 2.4, y: 1.8 },
+      { x: -2.4, y: -1.8 },
+      { x: 2.2, y: -1.8 },
+      { x: 0.0, y: 2.8 },
+      { x: 0.0, y: -2.8 },
+      { x: -3.5, y: 0.0 },
+      { x: 3.5, y: 0.0 }
+    ];
+
+    function getPixelsPerMeter(canvas) {
+      const halfRange = machineRangeMeters / 2;
+      const minDim = Math.min(canvas.width, canvas.height);
+      const factor = layoutViewMode === '3d' ? 0.38 : 0.44;
+      return (minDim * factor) / halfRange;
+    }
+
+    // Convert world coordinates (meters) to screen coordinates (pixels)
+    function worldToScreen(x, y, canvas) {
+      const cx = canvas.width / 2;
+      const cy = canvas.height / 2;
+      const ppm = getPixelsPerMeter(canvas);
+
+      if (layoutViewMode === '3d') {
+        // Isometric 2:1 projection
+        const cos30 = 0.866;
+        const sin30 = 0.5;
+        const u = cx + (x - y) * cos30 * ppm;
+        const v = cy + (x + y) * sin30 * ppm;
+        return { u, v };
+      } else {
+        // 2D top-down projection
+        const u = cx + x * ppm;
+        const v = cy - y * ppm;
+        return { u, v };
+      }
+    }
+
+    // Convert screen coordinates (pixels) to world coordinates (meters)
+    function screenToWorld(u, v, canvas) {
+      const cx = canvas.width / 2;
+      const cy = canvas.height / 2;
+      const ppm = getPixelsPerMeter(canvas);
+
+      if (layoutViewMode === '3d') {
+        const cos30 = 0.866;
+        const sin30 = 0.5;
+        const du = (u - cx) / (cos30 * ppm);
+        const dv = (v - cy) / (sin30 * ppm);
+        const x = (du + dv) / 2;
+        const y = (dv - du) / 2;
+        return { x, y };
+      } else {
+        const x = (u - cx) / ppm;
+        const y = (cy - v) / ppm;
+        return { x, y };
+      }
+    }
+
+    function setLayoutViewMode(mode) {
+      layoutViewMode = mode;
+      const btn3D = document.getElementById('btnView3D');
+      const btn2D = document.getElementById('btnView2D');
+      if (btn3D && btn2D) {
+        if (mode === '3d') {
+          btn3D.style.background = '#ffffff';
+          btn3D.style.color = '#0f172a';
+          btn3D.style.boxShadow = '0 1px 3px rgba(0,0,0,0.1)';
+          btn2D.style.background = 'transparent';
+          btn2D.style.color = '#64748b';
+          btn2D.style.boxShadow = 'none';
+        } else {
+          btn2D.style.background = '#ffffff';
+          btn2D.style.color = '#0f172a';
+          btn2D.style.boxShadow = '0 1px 3px rgba(0,0,0,0.1)';
+          btn3D.style.background = 'transparent';
+          btn3D.style.color = '#64748b';
+          btn3D.style.boxShadow = 'none';
+        }
+      }
+      drawBearingLayout();
+    }
+
+    function onLayoutScaleChange(val) {
+      machineRangeMeters = parseFloat(val) || 10;
+      const infoEl = document.getElementById('canvasZoomInfo');
+      if (infoEl) {
+        infoEl.textContent = 'Bereik: ' + machineRangeMeters + ' × ' + machineRangeMeters + ' m (Centrum: 0,0)';
+      }
+      drawBearingLayout();
+      renderDistancesOverview();
+    }
+
+    function resetBearingPositions() {
+      const rows = document.querySelectorAll('.bearing-row');
+      rows.forEach((r, idx) => {
+        const letter = r.getAttribute('data-letter') || (LETTERS[idx] || ('L' + (idx+1)));
+        const preset = PRESET_COORDS[idx % PRESET_COORDS.length];
+        const scaleAdj = machineRangeMeters / 10;
+        bearingPositions[letter] = {
+          x: Math.round(preset.x * scaleAdj * 10) / 10,
+          y: Math.round(preset.y * scaleAdj * 10) / 10
+        };
+      });
+      drawBearingLayout();
+      renderDistancesOverview();
+    }
+
+    function syncBearingsToLayout() {
+      const rows = document.querySelectorAll('.bearing-row');
+      const activeLetters = [];
+
+      rows.forEach((r, idx) => {
+        const letter = r.getAttribute('data-letter') || (LETTERS[idx] || ('L' + (idx+1)));
+        activeLetters.push(letter);
+
+        if (!bearingPositions[letter]) {
+          const preset = PRESET_COORDS[idx % PRESET_COORDS.length];
+          const scaleAdj = machineRangeMeters / 10;
+          bearingPositions[letter] = {
+            x: Math.round(preset.x * scaleAdj * 10) / 10,
+            y: Math.round(preset.y * scaleAdj * 10) / 10
+          };
+        }
+      });
+
+      // Remove any positions for bearings that were deleted
+      Object.keys(bearingPositions).forEach(key => {
+        if (!activeLetters.includes(key)) {
+          delete bearingPositions[key];
+        }
+      });
+
+      drawBearingLayout();
+      renderDistancesOverview();
+    }
+
+    function drawBearingLayout() {
+      const canvas = document.getElementById('bearingLayoutCanvas');
+      if (!canvas) return;
+
+      const rect = canvas.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      
+      if (canvas.width !== Math.floor(rect.width * dpr) || canvas.height !== Math.floor(rect.height * dpr)) {
+        canvas.width = Math.floor(rect.width * dpr);
+        canvas.height = Math.floor(rect.height * dpr);
+      }
+
+      const ctx = canvas.getContext('2d');
+      ctx.save();
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      const cx = canvas.width / 2;
+      const cy = canvas.height / 2;
+      const halfRange = machineRangeMeters / 2;
+      const ppm = getPixelsPerMeter(canvas);
+
+      // --- 1. DRAW 3D / 2D MACHINE FLOOR GRID ---
+      if (layoutViewMode === '3d') {
+        // Isometric Floor Plane
+        const pTop = worldToScreen(0, halfRange, canvas);
+        const pRight = worldToScreen(halfRange, 0, canvas);
+        const pBottom = worldToScreen(0, -halfRange, canvas);
+        const pLeft = worldToScreen(-halfRange, 0, canvas);
+
+        ctx.beginPath();
+        ctx.moveTo(pTop.u, pTop.v);
+        ctx.lineTo(pRight.u, pRight.v);
+        ctx.lineTo(pBottom.u, pBottom.v);
+        ctx.lineTo(pLeft.u, pLeft.v);
+        ctx.closePath();
+        ctx.fillStyle = '#0c1322';
+        ctx.fill();
+        ctx.strokeStyle = '#334155';
+        ctx.lineWidth = 1.5 * dpr;
+        ctx.stroke();
+
+        // Isometric Grid Lines
+        const step = machineRangeMeters <= 10 ? 1 : machineRangeMeters <= 20 ? 2 : 5;
+        ctx.lineWidth = 0.8 * dpr;
+
+        for (let m = -halfRange; m <= halfRange; m += step) {
+          const isCenter = Math.abs(m) < 0.01;
+          ctx.strokeStyle = isCenter ? 'rgba(148, 163, 184, 0.4)' : 'rgba(51, 65, 85, 0.45)';
+
+          const l1 = worldToScreen(-halfRange, m, canvas);
+          const l2 = worldToScreen(halfRange, m, canvas);
+          ctx.beginPath();
+          ctx.moveTo(l1.u, l1.v);
+          ctx.lineTo(l2.u, l2.v);
+          ctx.stroke();
+
+          const l3 = worldToScreen(m, -halfRange, canvas);
+          const l4 = worldToScreen(m, halfRange, canvas);
+          ctx.beginPath();
+          ctx.moveTo(l3.u, l3.v);
+          ctx.lineTo(l4.u, l4.v);
+          ctx.stroke();
+        }
+
+        // Concentric distance guide rings
+        const ringStep = machineRangeMeters <= 10 ? 2 : machineRangeMeters <= 20 ? 4 : 8;
+        for (let r = ringStep; r <= halfRange; r += ringStep) {
+          ctx.beginPath();
+          for (let angle = 0; angle <= Math.PI * 2 + 0.1; angle += 0.1) {
+            const rx = Math.cos(angle) * r;
+            const ry = Math.sin(angle) * r;
+            const pt = worldToScreen(rx, ry, canvas);
+            if (angle === 0) ctx.moveTo(pt.u, pt.v);
+            else ctx.lineTo(pt.u, pt.v);
+          }
+          ctx.strokeStyle = 'rgba(56, 189, 248, 0.15)';
+          ctx.setLineDash([4 * dpr, 4 * dpr]);
+          ctx.stroke();
+          ctx.setLineDash([]);
+        }
+
+      } else {
+        // 2D Blueprint Grid
+        const step = machineRangeMeters <= 10 ? 1 : machineRangeMeters <= 20 ? 2 : 5;
+        ctx.lineWidth = 0.8 * dpr;
+
+        for (let m = -halfRange; m <= halfRange; m += step) {
+          const isCenter = Math.abs(m) < 0.01;
+          ctx.strokeStyle = isCenter ? 'rgba(148, 163, 184, 0.5)' : 'rgba(51, 65, 85, 0.4)';
+
+          const l1 = worldToScreen(-halfRange, m, canvas);
+          const l2 = worldToScreen(halfRange, m, canvas);
+          ctx.beginPath();
+          ctx.moveTo(l1.u, l1.v);
+          ctx.lineTo(l2.u, l2.v);
+          ctx.stroke();
+
+          const l3 = worldToScreen(m, -halfRange, canvas);
+          const l4 = worldToScreen(m, halfRange, canvas);
+          ctx.beginPath();
+          ctx.moveTo(l3.u, l3.v);
+          ctx.lineTo(l4.u, l4.v);
+          ctx.stroke();
+        }
+
+        // Distance circles
+        const ringStep = machineRangeMeters <= 10 ? 2 : machineRangeMeters <= 20 ? 4 : 8;
+        for (let r = ringStep; r <= halfRange; r += ringStep) {
+          ctx.beginPath();
+          ctx.arc(cx, cy, r * ppm, 0, Math.PI * 2);
+          ctx.strokeStyle = 'rgba(56, 189, 248, 0.18)';
+          ctx.setLineDash([4 * dpr, 4 * dpr]);
+          ctx.stroke();
+          ctx.setLineDash([]);
+        }
+      }
+
+      // --- 2. DRAW CONNECTING LINES & DISTANCES TO BEARINGS ---
+      const centerScreen = worldToScreen(0, 0, canvas);
+      const rows = document.querySelectorAll('.bearing-row');
+
+      rows.forEach((r, idx) => {
+        const letter = r.getAttribute('data-letter') || (LETTERS[idx] || ('L' + (idx+1)));
+        const pos = bearingPositions[letter] || { x: 0, y: 0 };
+        const bScreen = worldToScreen(pos.x, pos.y, canvas);
+        const distM = Math.sqrt(pos.x * pos.x + pos.y * pos.y);
+
+        ctx.beginPath();
+        ctx.moveTo(centerScreen.u, centerScreen.v);
+        ctx.lineTo(bScreen.u, bScreen.v);
+        ctx.strokeStyle = (hoveredBearingLetter === letter || draggedBearingLetter === letter) ? '#60a5fa' : 'rgba(148, 163, 184, 0.6)';
+        ctx.lineWidth = 1.5 * dpr;
+        ctx.setLineDash([5 * dpr, 4 * dpr]);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // Midpoint distance tag
+        const midU = (centerScreen.u + bScreen.u) / 2;
+        const midV = (centerScreen.v + bScreen.v) / 2;
+        const distStr = distM.toFixed(1).replace('.', ',') + ' m';
+
+        ctx.font = 'bold ' + Math.round(10.5 * dpr) + 'px sans-serif';
+        const textWidth = ctx.measureText(distStr).width;
+        const padX = 6 * dpr;
+        const padY = 3 * dpr;
+
+        ctx.fillStyle = 'rgba(15, 23, 42, 0.9)';
+        ctx.beginPath();
+        if (ctx.roundRect) {
+          ctx.roundRect(midU - textWidth/2 - padX, midV - 8*dpr - padY, textWidth + padX*2, 16*dpr + padY, 4 * dpr);
+        } else {
+          ctx.rect(midU - textWidth/2 - padX, midV - 8*dpr - padY, textWidth + padX*2, 16*dpr + padY);
+        }
+        ctx.fill();
+        ctx.strokeStyle = '#38bdf8';
+        ctx.lineWidth = 1 * dpr;
+        ctx.stroke();
+
+        ctx.fillStyle = '#38bdf8';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(distStr, midU, midV - 1*dpr);
+      });
+
+      // --- 3. DRAW CENTRAL REFERENCE POINT (0,0) ---
+      ctx.beginPath();
+      ctx.arc(centerScreen.u, centerScreen.v, 14 * dpr, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(227, 6, 19, 0.2)';
+      ctx.fill();
+
+      ctx.beginPath();
+      ctx.arc(centerScreen.u, centerScreen.v, 8 * dpr, 0, Math.PI * 2);
+      ctx.fillStyle = '#E30613';
+      ctx.fill();
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 2 * dpr;
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.arc(centerScreen.u, centerScreen.v, 3 * dpr, 0, Math.PI * 2);
+      ctx.fillStyle = '#ffffff';
+      ctx.fill();
+
+      ctx.font = 'bold ' + Math.round(11 * dpr) + 'px sans-serif';
+      ctx.fillStyle = '#ffffff';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'top';
+      ctx.fillText('Centraal Punt (0,0)', centerScreen.u, centerScreen.v + 12 * dpr);
+
+      // --- 4. DRAW BEARING NODES (A, B, C...) ---
+      rows.forEach((r, idx) => {
+        const letter = r.getAttribute('data-letter') || (LETTERS[idx] || ('L' + (idx+1)));
+        const pos = bearingPositions[letter] || { x: 0, y: 0 };
+        const bScreen = worldToScreen(pos.x, pos.y, canvas);
+
+        const nrIn = r.querySelector('.bearing-nr-input');
+        const nrVal = nrIn && nrIn.value ? nrIn.value.trim() : '';
+        const descIn = r.querySelector('.bearing-desc-input');
+        const descVal = descIn && descIn.value ? descIn.value.trim() : '';
+
+        const isHovered = (hoveredBearingLetter === letter);
+        const isDragged = (draggedBearingLetter === letter);
+        const radius = (isHovered || isDragged ? 16 : 14) * dpr;
+
+        // Shadow under bearing
+        ctx.beginPath();
+        ctx.ellipse(bScreen.u, bScreen.v + 3 * dpr, radius, radius * 0.5, 0, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
+        ctx.fill();
+
+        // 3D Sphere / Pill Node
+        const grad = ctx.createRadialGradient(
+          bScreen.u - radius * 0.3, bScreen.v - radius * 0.3, radius * 0.1,
+          bScreen.u, bScreen.v, radius
+        );
+        if (isDragged) {
+          grad.addColorStop(0, '#f59e0b');
+          grad.addColorStop(1, '#b45309');
+        } else if (isHovered) {
+          grad.addColorStop(0, '#60a5fa');
+          grad.addColorStop(1, '#1d4ed8');
+        } else {
+          grad.addColorStop(0, '#3b82f6');
+          grad.addColorStop(1, '#1d4ed8');
+        }
+
+        ctx.beginPath();
+        ctx.arc(bScreen.u, bScreen.v, radius, 0, Math.PI * 2);
+        ctx.fillStyle = grad;
+        ctx.fill();
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 2 * dpr;
+        ctx.stroke();
+
+        // Bearing Letter inside node
+        ctx.font = 'bold ' + Math.round(12 * dpr) + 'px sans-serif';
+        ctx.fillStyle = '#ffffff';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(letter, bScreen.u, bScreen.v);
+
+        // Tag label underneath node
+        let labelText = 'Lager ' + letter;
+        if (nrVal) labelText += ': ' + nrVal;
+
+        ctx.font = 'bold ' + Math.round(10.5 * dpr) + 'px sans-serif';
+        const tagWidth = ctx.measureText(labelText).width;
+        const tagPad = 5 * dpr;
+
+        ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
+        ctx.beginPath();
+        if (ctx.roundRect) {
+          ctx.roundRect(bScreen.u - tagWidth/2 - tagPad, bScreen.v + radius + 4 * dpr, tagWidth + tagPad*2, 16 * dpr, 4 * dpr);
+        } else {
+          ctx.rect(bScreen.u - tagWidth/2 - tagPad, bScreen.v + radius + 4 * dpr, tagWidth + tagPad*2, 16 * dpr);
+        }
+        ctx.fill();
+        ctx.strokeStyle = '#475569';
+        ctx.lineWidth = 1 * dpr;
+        ctx.stroke();
+
+        ctx.fillStyle = '#f8fafc';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'top';
+        ctx.fillText(labelText, bScreen.u, bScreen.v + radius + 6 * dpr);
+      });
+
+      ctx.restore();
+    }
+
+    // --- 5. MOUSE & TOUCH INTERACTION HANDLERS ---
+    function initCanvasInteractions() {
+      const canvas = document.getElementById('bearingLayoutCanvas');
+      if (!canvas) return;
+
+      function getHitBearing(clientX, clientY) {
+        const rect = canvas.getBoundingClientRect();
+        const dpr = window.devicePixelRatio || 1;
+        const mouseU = (clientX - rect.left) * dpr;
+        const mouseV = (clientY - rect.top) * dpr;
+
+        const rows = document.querySelectorAll('.bearing-row');
+        let hitLetter = null;
+
+        rows.forEach((r, idx) => {
+          const letter = r.getAttribute('data-letter') || (LETTERS[idx] || ('L' + (idx+1)));
+          const pos = bearingPositions[letter];
+          if (!pos) return;
+
+          const bScreen = worldToScreen(pos.x, pos.y, canvas);
+          const hitRadius = 24 * dpr;
+          const dx = mouseU - bScreen.u;
+          const dy = mouseV - bScreen.v;
+
+          if (dx * dx + dy * dy <= hitRadius * hitRadius) {
+            hitLetter = letter;
+          }
+        });
+
+        return hitLetter;
+      }
+
+      // Mouse Down
+      canvas.addEventListener('mousedown', function(e) {
+        const hit = getHitBearing(e.clientX, e.clientY);
+        if (hit) {
+          draggedBearingLetter = hit;
+          canvas.style.cursor = 'grabbing';
+          drawBearingLayout();
+        }
+      });
+
+      // Mouse Move
+      canvas.addEventListener('mousemove', function(e) {
+        const rect = canvas.getBoundingClientRect();
+        const dpr = window.devicePixelRatio || 1;
+        const mouseU = (e.clientX - rect.left) * dpr;
+        const mouseV = (e.clientY - rect.top) * dpr;
+
+        if (draggedBearingLetter) {
+          const world = screenToWorld(mouseU, mouseV, canvas);
+          const maxR = machineRangeMeters / 2;
+          
+          const clampedX = Math.max(-maxR, Math.min(maxR, world.x));
+          const clampedY = Math.max(-maxR, Math.min(maxR, world.y));
+
+          bearingPositions[draggedBearingLetter] = {
+            x: Math.round(clampedX * 10) / 10,
+            y: Math.round(clampedY * 10) / 10
+          };
+
+          drawBearingLayout();
+          renderDistancesOverview();
+        } else {
+          const hit = getHitBearing(e.clientX, e.clientY);
+          if (hit !== hoveredBearingLetter) {
+            hoveredBearingLetter = hit;
+            canvas.style.cursor = hit ? 'grab' : 'default';
+            drawBearingLayout();
+          }
+        }
+      });
+
+      // Mouse Up / Leave
+      window.addEventListener('mouseup', function() {
+        if (draggedBearingLetter) {
+          draggedBearingLetter = null;
+          canvas.style.cursor = hoveredBearingLetter ? 'grab' : 'default';
+          drawBearingLayout();
+        }
+      });
+
+      canvas.addEventListener('mouseleave', function() {
+        if (hoveredBearingLetter && !draggedBearingLetter) {
+          hoveredBearingLetter = null;
+          canvas.style.cursor = 'default';
+          drawBearingLayout();
+        }
+      });
+
+      // Touch Events for Mobile / Tablet Support
+      canvas.addEventListener('touchstart', function(e) {
+        if (e.touches.length === 1) {
+          const touch = e.touches[0];
+          const hit = getHitBearing(touch.clientX, touch.clientY);
+          if (hit) {
+            draggedBearingLetter = hit;
+            e.preventDefault();
+            drawBearingLayout();
+          }
+        }
+      }, { passive: false });
+
+      canvas.addEventListener('touchmove', function(e) {
+        if (draggedBearingLetter && e.touches.length === 1) {
+          e.preventDefault();
+          const touch = e.touches[0];
+          const rect = canvas.getBoundingClientRect();
+          const dpr = window.devicePixelRatio || 1;
+          const mouseU = (touch.clientX - rect.left) * dpr;
+          const mouseV = (touch.clientY - rect.top) * dpr;
+
+          const world = screenToWorld(mouseU, mouseV, canvas);
+          const maxR = machineRangeMeters / 2;
+
+          bearingPositions[draggedBearingLetter] = {
+            x: Math.round(Math.max(-maxR, Math.min(maxR, world.x)) * 10) / 10,
+            y: Math.round(Math.max(-maxR, Math.min(maxR, world.y)) * 10) / 10
+          };
+
+          drawBearingLayout();
+          renderDistancesOverview();
+        }
+      }, { passive: false });
+
+      window.addEventListener('touchend', function() {
+        if (draggedBearingLetter) {
+          draggedBearingLetter = null;
+          drawBearingLayout();
+        }
+      });
+
+      window.addEventListener('resize', function() {
+        drawBearingLayout();
+      });
+    }
+
+    // --- 6. RENDER DISTANCES OVERVIEW LIST & STATISTICS (RIGHT PANEL) ---
+    function renderDistancesOverview() {
+      const container = document.getElementById('bearingDistancesList');
+      if (!container) return;
+
+      const rows = document.querySelectorAll('.bearing-row');
+      container.innerHTML = '';
+
+      let maxDist = 0;
+      let totalDist = 0;
+      let count = 0;
+
+      rows.forEach((r, idx) => {
+        const letter = r.getAttribute('data-letter') || (LETTERS[idx] || ('L' + (idx+1)));
+        const pos = bearingPositions[letter] || { x: 0, y: 0 };
+        const d = Math.sqrt(pos.x * pos.x + pos.y * pos.y);
+        
+        count++;
+        totalDist += d;
+        if (d > maxDist) maxDist = d;
+
+        const nrIn = r.querySelector('.bearing-nr-input');
+        const nrVal = nrIn && nrIn.value ? nrIn.value.trim() : 'Niet opgegeven';
+        const descIn = r.querySelector('.bearing-desc-input');
+        const descVal = descIn && descIn.value ? descIn.value.trim() : '';
+
+        let statusBadge = '';
+        if (d <= 3.0) {
+          statusBadge = '<span style="font-size: 9.5px; font-weight: 700; padding: 2px 6px; border-radius: 4px; background: #dcfce7; color: #166534; display: inline-block;">Ideaal (≤ 3m)</span>';
+        } else if (d <= 6.0) {
+          statusBadge = '<span style="font-size: 9.5px; font-weight: 700; padding: 2px 6px; border-radius: 4px; background: #fef3c7; color: #92400e; display: inline-block;">Goed (3-6m)</span>';
+        } else {
+          statusBadge = '<span style="font-size: 9.5px; font-weight: 700; padding: 2px 6px; border-radius: 4px; background: #fee2e2; color: #991b1b; display: inline-block;">Lange leiding (> 6m)</span>';
+        }
+
+        const card = document.createElement('div');
+        card.style.cssText = 'background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 8px 10px; display: flex; align-items: center; justify-content: space-between; gap: 8px; transition: all 0.15s;';
+        
+        card.innerHTML = 
+          '<div style="display: flex; align-items: center; gap: 8px; overflow: hidden;">' +
+            '<span style="background: #2563EB; color: white; padding: 2px 8px; border-radius: 4px; font-weight: 800; font-size: 11px; flex-shrink: 0;">Lager ' + letter + '</span>' +
+            '<div style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">' +
+              '<div style="font-size: 12px; font-weight: 700; color: #0f172a; text-overflow: ellipsis; overflow: hidden;">' + nrVal + '</div>' +
+              (descVal ? '<div style="font-size: 10px; color: #64748b; text-overflow: ellipsis; overflow: hidden;">' + descVal + '</div>' : '') +
+            '</div>' +
+          '</div>' +
+          '<div style="text-align: right; flex-shrink: 0;">' +
+            '<div style="font-size: 13.5px; font-weight: 800; color: #E30613;">' + d.toFixed(1).replace('.', ',') + ' m</div>' +
+            statusBadge +
+          '</div>';
+
+        container.appendChild(card);
+      });
+
+      const badgeEl = document.getElementById('totalBearingsBadge');
+      if (badgeEl) badgeEl.textContent = count + (count === 1 ? ' Lager' : ' Lagers');
+
+      const maxEl = document.getElementById('statMaxDistance');
+      if (maxEl) maxEl.textContent = count > 0 ? (maxDist.toFixed(1).replace('.', ',') + ' m') : '-';
+
+      const avgEl = document.getElementById('statAvgDistance');
+      if (avgEl) {
+        const avg = count > 0 ? (totalDist / count) : 0;
+        avgEl.textContent = count > 0 ? (avg.toFixed(1).replace('.', ',') + ' m') : '-';
+      }
+    }
+
     let activeBearingSec2 = 'A';
     let activeBearingSec3 = 'A';
     let activeBearingSec4 = 'A';
@@ -588,6 +1346,7 @@
     };
 
     function updateBearingLettersAndDropdown() {
+      if (typeof syncBearingsToLayout === "function") syncBearingsToLayout();
       const rows = document.querySelectorAll('.bearing-row');
       const selector2 = document.getElementById('bearingSelectorSection2');
       const selector3 = document.getElementById('bearingSelectorSection3');
@@ -894,6 +1653,12 @@
         createHidden('Lager ' + letter + ' - 10. Uren per dag', d2.q13 || '16');
         createHidden('Lager ' + letter + ' - 11. Dagen per week', d2.q14 || '5');
 
+        // Section 3: 3D Layout Coordinates & Distances
+        const pos = (typeof bearingPositions !== "undefined" && bearingPositions[letter]) ? bearingPositions[letter] : { x: 0, y: 0 };
+        const dist = Math.sqrt(pos.x * pos.x + pos.y * pos.y);
+        createHidden('Lager ' + letter + ' - Afstand tot centraal punt', dist.toFixed(1).replace('.', ',') + ' meter');
+        createHidden('Lager ' + letter + ' - Positie op machine', 'X: ' + pos.x.toFixed(1) + 'm, Y: ' + pos.y.toFixed(1) + 'm');
+
         // Section 3 per bearing
         createHidden('Lager ' + letter + ' - 12. Omgevingstemp (°C)', d3.q15 ? d3.q15 + ' °C' : '-');
         createHidden('Lager ' + letter + ' - 13. Lagertemp (°C)', d3.q16 ? d3.q16 + ' °C' : '-');
@@ -1055,6 +1820,12 @@
       // Initialize bearing letters and dropdowns across Sections 2, 3, and 4
       updateBearingLettersAndDropdown();
     });
-  </script>
+  
+    window.addEventListener('DOMContentLoaded', function() {
+      if (typeof initCanvasInteractions === "function") initCanvasInteractions();
+      if (typeof syncBearingsToLayout === "function") setTimeout(syncBearingsToLayout, 100);
+    });
+
+</script>
 </body>
 </html>
