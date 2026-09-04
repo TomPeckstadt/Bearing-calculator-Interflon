@@ -1110,7 +1110,7 @@
         const cos30 = 0.866;
         const sin30 = 0.5;
         const u = cx + (x - y) * cos30 * ppm;
-        const v = cy + (x + y) * sin30 * ppm;
+        const v = cy - (x + y) * sin30 * ppm;
         return { u, v };
       } else {
         // 2D top-down projection
@@ -1132,8 +1132,8 @@
         const sin30 = 0.5;
         const du = (u - cx) / (cos30 * ppm);
         const dv = (v - cy) / (sin30 * ppm);
-        const x = (du + dv) / 2;
-        const y = (dv - du) / 2;
+        const x = (du - dv) / 2;
+        const y = (-dv - du) / 2;
         return { x, y };
       } else {
         const x = (u - cx) / ppm;
@@ -1274,10 +1274,10 @@
 
       // --- 1. DRAW 3D / 2D MACHINE FLOOR GRID ---
       if (layoutViewMode === '3d') {
-        const pTop = worldToScreen(0, gridRange, canvas);
-        const pRight = worldToScreen(gridRange, 0, canvas);
-        const pBottom = worldToScreen(0, -gridRange, canvas);
-        const pLeft = worldToScreen(-gridRange, 0, canvas);
+        const pTop = worldToScreen(gridRange, gridRange, canvas);
+        const pRight = worldToScreen(gridRange, -gridRange, canvas);
+        const pBottom = worldToScreen(-gridRange, -gridRange, canvas);
+        const pLeft = worldToScreen(-gridRange, gridRange, canvas);
 
         ctx.beginPath();
         ctx.moveTo(pTop.u, pTop.v);
