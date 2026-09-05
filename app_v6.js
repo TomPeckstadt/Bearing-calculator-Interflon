@@ -640,6 +640,244 @@ window.applySurveyConfig = applySurveyConfig;
 window.handleSurveyConfigFile = handleSurveyConfigFile;
 window.parseSurveyPackageToConfig = parseSurveyPackageToConfig;
 
+// ==========================================
+// IMPORT BEARING FROM QUESTIONNAIRE (SEARCH TAB)
+// ==========================================
+function getQuestionnaireBearings() {
+  const bearingsList = [];
+  try {
+    // 1. Check full questionnaire data
+    const fullSaved = localStorage.getItem('interflon_questionnaire_full_data') || localStorage.getItem('interflon_last_questionnaire_data');
+    let fullData = null;
+    if (fullSaved) {
+      try { fullData = JSON.parse(fullSaved); } catch (e) {}
+    }
+
+    // 2. Check survey raster config
+    const rasterSaved = localStorage.getItem('interflon_survey_raster_config');
+    let rasterConfig = null;
+    if (rasterSaved) {
+      try { rasterConfig = JSON.parse(rasterSaved); } catch (e) {}
+    }
+
+    if (fullData && Array.isArray(fullData.bearings) && fullData.bearings.length > 0) {
+      fullData.bearings.forEach((b, idx) => {
+        const nr = (b.nr || b.lagernummer || b.bearingNr || '').trim();
+        const letter = b.letter || String.fromCharCode(65 + idx);
+        const desc = (b.desc || b.description || b.omschrijving || '').trim();
+        const rpm = b.rpm || b.toerental || '';
+        const pos = b.pos || b.asPositie || '';
+        const qty = b.qty || 1;
+        if (nr) {
+          bearingsList.push({ letter, nr, desc, rpm, pos, qty });
+        }
+      });
+    } else if (rasterConfig && Array.isArray(rasterConfig.bearings) && rasterConfig.bearings.length > 0) {
+      rasterConfig.bearings.forEach((b, idx) => {
+        const nr = (b.nr || b.lagernummer || b.bearingNr || '').trim();
+        const letter = b.letter || String.fromCharCode(65 + idx);
+        const desc = (b.desc || '').trim();
+        const rpm = b.rpm || '';
+        const pos = b.pos || '';
+        const qty = b.qty || 1;
+        if (nr) {
+          bearingsList.push({ letter, nr, desc, rpm, pos, qty });
+        }
+      });
+    }
+  } catch (err) {
+    console.warn('Error reading questionnaire bearings:', err);
+  }
+  return bearingsList;
+}
+
+function formatSurveyBearingOptionText(b) {
+  let text = `Lager ${b.letter}: ${b.nr}`;
+  const details = [];
+  if (b.desc) details.push(b.desc);
+  if (b.rpm) details.push(`${b.rpm} RPM`);
+  if (details.length > 0) {
+    text += ` (${details.join(' - ')})`;
+  }
+  return text;
+}
+
+function populateSurveyBearingsDropdown(bearings) {
+  const selectEl = document.getElementById("surveyBearingSelect");
+  if (!selectEl) return;
+
+  const lang = (typeof currentLang !== 'undefined' && currentLang) ? currentLang : 'nl';
+  const count = (bearings && bearings.length) ? bearings.length : 0;
+  const placeholderText = (lang === 'en')
+    ? (count > 0 ? `-- Choose a bearing from questionnaire (${count}) --` : '-- No bearings in questionnaire --')
+    : ((lang === 'fr')
+      ? (count > 0 ? `-- Choisir un roulement du questionnaire (${count}) --` : '-- Aucun roulement dans le questionnaire --')
+      : (count > 0 ? `-- Kies een lager uit de vragenlijst (${count}) --` : '-- Geen lagers in vragenlijst --'));
+
+  const currentVal = selectEl.value;
+  selectEl.innerHTML = `<option value="">${placeholderText}</option>`;
+
+  if (bearings && bearings.length > 0) {
+    bearings.forEach(b => {
+      const opt = document.createElement("option");
+      opt.value = b.nr;
+      opt.textContent = formatSurveyBearingOptionText(b);
+      opt.dataset.letter = b.letter || "";
+      opt.dataset.nr = b.nr;
+      opt.dataset.desc = b.desc || "";
+      opt.dataset.rpm = b.rpm || "";
+      opt.dataset.pos = b.pos || "";
+      selectEl.appendChild(opt);
+    });
+
+    if (currentVal && Array.from(selectEl.options).some(o => o.value === currentVal)) {
+      selectEl.value = currentVal;
+    }
+  }
+}
+
+function handleImportBearingFromSurveyClick() {
+  const bearings = getQuestionnaireBearings();
+  const wrapper = document.getElementById("surveyBearingSelectWrapper");
+  const selectEl = document.getElementById("surveyBearingSelect");
+
+  if (!bearings || bearings.length === 0) {
+    const lang = (typeof currentLang !== 'undefined' && currentLang) ? currentLang : 'nl';
+    const msg = (lang === 'en')
+      ? 'No active questionnaire configuration or bearings found in the app.\n\nWould you like to select a saved questionnaire JSON file from your computer now?'
+      : ((lang === 'fr')
+        ? 'Aucun questionnaire actif ou roulement trouvé dans l\'application.\n\nSouhaitez-vous sélectionner maintenant un fichier questionnaire JSON enregistré sur votre ordinateur ?'
+        : 'Er is momenteel geen actieve vragenlijst ingevuld of geïmporteerd in de app.\n\nWilt u nu een opgeslagen vragenlijstbestand (.json) van uw computer selecteren om direct te importeren?');
+    if (confirm(msg)) {
+      const fileInput = document.getElementById('surveyBearingFileInput') || document.getElementById('surveyConfigFileSelector');
+      if (fileInput) {
+        fileInput.value = '';
+        fileInput.click();
+      }
+    }
+    return;
+  }
+
+  // Populate dropdown with latest bearings
+  populateSurveyBearingsDropdown(bearings);
+
+  // Show dropdown wrapper if hidden
+  if (wrapper) {
+    wrapper.style.display = "flex";
+  }
+
+  // Focus the dropdown
+  if (selectEl) {
+    selectEl.focus();
+  }
+}
+
+function onSurveyBearingSelected(selectEl) {
+  if (!selectEl) return;
+  const selectedNr = selectEl.value;
+  if (!selectedNr) return;
+
+  const searchInput = document.getElementById("bearingSearchInput");
+  if (searchInput) {
+    searchInput.value = selectedNr;
+  }
+
+  const opt = selectEl.options[selectEl.selectedIndex];
+  const rpm = opt && opt.dataset ? opt.dataset.rpm : "";
+  if (rpm) {
+    const rpmVal = parseFloat(rpm);
+    const rpmInput = document.getElementById("rpmInput");
+    if (rpmInput && !isNaN(rpmVal) && rpmVal > 0) {
+      rpmInput.value = rpmVal;
+      if (typeof calculateGrease === "function") calculateGrease();
+    }
+  }
+
+  // Load details in UI
+  if (typeof loadBearingDetails === "function") {
+    loadBearingDetails(selectedNr);
+  }
+
+  // Close suggestions box if open
+  const suggBox = document.getElementById("suggestionsBox");
+  if (suggBox) suggBox.style.display = "none";
+
+  const letter = opt && opt.dataset ? opt.dataset.letter : "";
+  const lang = (typeof currentLang !== 'undefined' && currentLang) ? currentLang : 'nl';
+  const msg = (lang === 'en')
+    ? `Bearing ${letter ? letter + ' ' : ''}(${selectedNr}) selected from questionnaire`
+    : ((lang === 'fr')
+      ? `Roulement ${letter ? letter + ' ' : ''}(${selectedNr}) sélectionné du questionnaire`
+      : `Lager ${letter ? letter + ' ' : ''}(${selectedNr}) geselecteerd uit vragenlijst`);
+  if (typeof showToastNotification === "function") {
+    showToastNotification(msg);
+  }
+}
+
+function refreshSurveyBearingsList(showToast) {
+  const bearings = getQuestionnaireBearings();
+  populateSurveyBearingsDropdown(bearings);
+  if (showToast) {
+    const lang = (typeof currentLang !== 'undefined' && currentLang) ? currentLang : 'nl';
+    const msg = (lang === 'en')
+      ? `Questionnaire bearings refreshed (${bearings.length} found)`
+      : ((lang === 'fr')
+        ? `Roulements du questionnaire actualisés (${bearings.length} trouvés)`
+        : `Vragenlijst lagers vernieuwd (${bearings.length} gevonden)`);
+    if (typeof showToastNotification === "function") {
+      showToastNotification(msg);
+    }
+  }
+}
+
+function handleSurveyBearingFileImport(event) {
+  const file = event.target.files && event.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const data = JSON.parse(e.target.result);
+      try {
+        localStorage.setItem('interflon_questionnaire_full_data', JSON.stringify(data));
+        localStorage.setItem('interflon_last_questionnaire_data', JSON.stringify(data));
+        if (data.surveyRasterConfig) {
+          localStorage.setItem('interflon_survey_raster_config', JSON.stringify(data.surveyRasterConfig));
+        }
+      } catch (errLs) {}
+
+      const bearings = getQuestionnaireBearings();
+      if (!bearings || bearings.length === 0) {
+        showToastNotification("Geen lagers gevonden in dit vragenlijstbestand.", true);
+        return;
+      }
+
+      populateSurveyBearingsDropdown(bearings);
+      const wrapper = document.getElementById("surveyBearingSelectWrapper");
+      if (wrapper) wrapper.style.display = "flex";
+
+      const selectEl = document.getElementById("surveyBearingSelect");
+      if (selectEl) {
+        selectEl.focus();
+      }
+
+      showToastNotification(`Vragenlijst geladen: ${bearings.length} lagers beschikbaar.`);
+    } catch (err) {
+      console.error("Fout bij inlezen vragenlijst:", err);
+      alert("Kon het bestand niet verwerken. Zorg dat het een geldig Interflon vragenlijstbestand (.json) is.");
+    }
+  };
+  reader.readAsText(file);
+}
+
+window.getQuestionnaireBearings = getQuestionnaireBearings;
+window.formatSurveyBearingOptionText = formatSurveyBearingOptionText;
+window.populateSurveyBearingsDropdown = populateSurveyBearingsDropdown;
+window.handleImportBearingFromSurveyClick = handleImportBearingFromSurveyClick;
+window.onSurveyBearingSelected = onSurveyBearingSelected;
+window.refreshSurveyBearingsList = refreshSurveyBearingsList;
+window.handleSurveyBearingFileImport = handleSurveyBearingFileImport;
+
 // Cross-tab BroadcastChannel listener for questionnaire synchronization
 try {
   if (typeof BroadcastChannel !== 'undefined') {
@@ -647,6 +885,9 @@ try {
     surveyChannel.onmessage = function(ev) {
       if (ev.data && (ev.data.type === 'QUESTIONNAIRE_IMPORTED' || ev.data.type === 'CONFIG_UPDATED')) {
         console.log("Vragenlijst update ontvangen vanuit Vragenlijst tab.");
+        if (typeof refreshSurveyBearingsList === 'function') {
+          refreshSurveyBearingsList(false);
+        }
       }
     };
   }
@@ -2030,7 +2271,11 @@ const TRANSLATIONS = {
     bearingStatusTitle: "Lager Status & Smering",
     btnProductInfo: "Ga naar productinfo",
     bearingIllustrationTitle: "Lager Type Illustratie",
-    btnLagertypes: "Lagertypes"
+    btnLagertypes: "Lagertypes",
+    btnSaveCalc: "Opbrengstmodel opslaan",
+    btnImportCalc: "Opbrengstmodel importeren",
+    btnImportBearingFromSurvey: "Importeer een lager uit de vragenlijst",
+    surveyBearingSelectPlaceholder: "-- Kies een lager uit de vragenlijst --"
   },
   en: {
     "devicePulsarlubePlc": "Pulsarlube PLC (Central Control)",
@@ -2536,7 +2781,11 @@ const TRANSLATIONS = {
     bearingStatusTitle: "Bearing Status & Lubrication",
     btnProductInfo: "Go to product info",
     bearingIllustrationTitle: "Bearing Type Illustration",
-    btnLagertypes: "Bearing Types"
+    btnLagertypes: "Bearing Types",
+    btnSaveCalc: "Save Yield Model",
+    btnImportCalc: "Import Yield Model",
+    btnImportBearingFromSurvey: "Import a bearing from questionnaire",
+    surveyBearingSelectPlaceholder: "-- Choose a bearing from questionnaire --"
   },
   fr: {
     "devicePulsarlubePlc": "Pulsarlube PLC (Commande Centralisée)",
@@ -3042,7 +3291,11 @@ const TRANSLATIONS = {
     bearingStatusTitle: "Statut du Roulement & Lubrification",
     btnProductInfo: "Aller aux infos produit",
     bearingIllustrationTitle: "Illustration du type de roulement",
-    btnLagertypes: "Types de roulement"
+    btnLagertypes: "Types de roulement",
+    btnSaveCalc: "Enregistrer modèle de rentabilité",
+    btnImportCalc: "Importer modèle de rentabilité",
+    btnImportBearingFromSurvey: "Importer un roulement du questionnaire",
+    surveyBearingSelectPlaceholder: "-- Choisir un roulement du questionnaire --"
   }
 };
 
@@ -3077,6 +3330,12 @@ function changeLanguage(lang) {
 
   if (typeof renderAutoDevicesUI === "function") renderAutoDevicesUI();
   if (typeof updateRoiAutomationPage === "function") updateRoiAutomationPage();
+  if (typeof refreshSurveyBearingsList === "function") {
+    const wrapper = document.getElementById("surveyBearingSelectWrapper");
+    if (wrapper && wrapper.style.display !== "none") {
+      refreshSurveyBearingsList(false);
+    }
+  }
 }
 
 
@@ -11181,7 +11440,7 @@ async function exportCalculationData() {
     const localStorageData = {};
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i);
-      if (key && (key.startsWith("bearing_calc_") || key.startsWith("app_field_") || key.includes("operator") || key.includes("client") || key.includes("tech") || key === "autoDevicesState" || key === "photoLibrary")) {
+      if (key && (key.startsWith("bearing_calc_") || key.startsWith("app_field_") || key.includes("operator") || key.includes("client") || key.includes("tech") || key === "autoDevicesState" || key === "photoLibrary" || key.startsWith("interflon_"))) {
         localStorageData[key] = localStorage.getItem(key);
       }
     }
