@@ -6542,8 +6542,8 @@ function openProductInfoPage() {
 }
 
 function openLagertypesPage() {
-  lang = currentLang || "nl";
-  window.open(`lagertypes.html?lang=${lang}`, "_blank");
+  const lang = currentLang || "nl";
+  window.open(`lagertypes.html?lang=${lang}&t=${Date.now()}`, "_blank");
 }
 
 // ==========================================================================
