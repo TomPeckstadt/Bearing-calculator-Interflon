@@ -890,15 +890,30 @@ function onSurveyBearingSelected(selectEl) {
   const searchInput = document.getElementById("bearingSearchInput");
   if (searchInput) {
     searchInput.value = selectedNr;
+    try { localStorage.setItem("app_field_bearingSearchInput", selectedNr); } catch(e) {}
   }
 
+  // Load details in UI
+  if (typeof loadBearingDetails === "function") {
+    loadBearingDetails(selectedNr);
+  }
+
+  // Automatically take over RPM in grease calculation (Bedrijfssnelheid / Toerental)
   if (rpm) {
     const rpmVal = parseFloat(rpm);
-    const rpmInput = document.getElementById("rpmInput");
-    if (rpmInput && !isNaN(rpmVal) && rpmVal > 0) {
-      rpmInput.value = rpmVal;
-      if (typeof calculateGrease === "function") calculateGrease();
+    const speedInput = document.getElementById("inputSpeed") || document.getElementById("rpmInput");
+    if (speedInput && !isNaN(rpmVal) && rpmVal > 0) {
+      speedInput.value = rpmVal;
+      try {
+        localStorage.setItem("app_field_inputSpeed", rpmVal);
+      } catch(e) {}
+      speedInput.dispatchEvent(new Event("input", { bubbles: true }));
+      speedInput.dispatchEvent(new Event("change", { bubbles: true }));
     }
+  }
+
+  if (typeof calculateGrease === "function") {
+    calculateGrease();
   }
 
   // Update selected bearing info badge directly under dropdown
@@ -925,11 +940,6 @@ function onSurveyBearingSelected(selectEl) {
       pEl.style.display = pos ? 'inline' : 'none';
     }
     badge.style.display = "flex";
-  }
-
-  // Load details in UI
-  if (typeof loadBearingDetails === "function") {
-    loadBearingDetails(selectedNr);
   }
 
   // Close suggestions box if open
