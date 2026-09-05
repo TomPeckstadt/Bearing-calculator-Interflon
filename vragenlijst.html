@@ -4906,15 +4906,15 @@
 
             // Populate input values safely via DOM properties
             const qtyIn = row.querySelector('.bearing-qty-input');
-            if (qtyIn) qtyIn.value = b.qty || '1';
+            if (qtyIn) qtyIn.value = b.qty || b.aantal || '1';
             const nrIn = row.querySelector('.bearing-nr-input');
-            if (nrIn) nrIn.value = b.nr || '';
+            if (nrIn) nrIn.value = b.nr || b.lagernummer || b.bearingNr || '';
             const descIn = row.querySelector('.bearing-desc-input');
-            if (descIn) descIn.value = b.desc || '';
+            if (descIn) descIn.value = b.desc || b.description || b.omschrijving || b.positie || '';
             const rpmIn = row.querySelector('.bearing-rpm-input');
-            if (rpmIn) rpmIn.value = b.rpm || '';
+            if (rpmIn) rpmIn.value = b.rpm || b.toerental || '';
             const posIn = row.querySelector('.bearing-pos-input');
-            if (posIn) posIn.value = b.pos || 'Horizontaal';
+            if (posIn) posIn.value = b.pos || b.asPositie || 'Horizontaal';
           });
         }
       }
@@ -4931,6 +4931,34 @@
       activeBearingSec4 = (data.activeBearings && data.activeBearings.sec4) || firstLetter;
 
       // 6. Raster State (restore bearingPositions BEFORE updating letters & dropdown)
+      if (!data.raster && data.surveyRasterConfig) {
+        const sc = data.surveyRasterConfig;
+        data.raster = {
+          machineRangeMeters: 10,
+          bearingPositions: {},
+          devices: []
+        };
+        if (Array.isArray(sc.bearings)) {
+          sc.bearings.forEach(b => {
+            if (b.letter) {
+              data.raster.bearingPositions[b.letter] = { x: (b.x !== undefined ? b.x : 0), y: (b.y !== undefined ? b.y : 0) };
+            }
+          });
+        }
+        if (Array.isArray(sc.devices)) {
+          data.raster.devices = sc.devices.map((d, i) => ({
+            id: d.surveyId || d.id || ('dev-' + (i + 1)),
+            name: d.name || ('Toestel ' + (i + 1)),
+            short: d.short || ('T' + (i + 1)),
+            type: d.type || 'pulsarlube_m2',
+            x: (d.x !== undefined ? d.x : 0),
+            y: (d.y !== undefined ? d.y : 0),
+            active: true,
+            paletteIndex: i % 8
+          }));
+        }
+      }
+
       if (data.raster) {
         if (data.raster.bearingPositions) {
           bearingPositions = JSON.parse(JSON.stringify(data.raster.bearingPositions));
@@ -4995,6 +5023,80 @@
     }
     window.restoreQuestionnaireDOM = restoreQuestionnaireDOM;
 
+    function extractQuestionnaireData(raw) {
+      if (!raw || typeof raw !== 'object') return null;
+
+      // 1. Direct questionnaire export
+      if (raw.bearings || raw.general || raw.fileType === 'Interflon_Smeeranalyse_Vragenlijst') {
+        return raw;
+      }
+
+      // 2. Dossier / calculation export from calculator containing localStorage
+      if (raw.localStorage && typeof raw.localStorage === 'object') {
+        const keys = [
+          'interflon_questionnaire_full_data',
+          'interflon_last_questionnaire_data',
+          'interflon_survey_raster_config'
+        ];
+        for (const k of keys) {
+          if (raw.localStorage[k]) {
+            let val = raw.localStorage[k];
+            if (typeof val === 'string') {
+              try { val = JSON.parse(val); } catch(e) {}
+            }
+            if (val && (val.bearings || val.general || val.raster)) {
+              return val;
+            }
+          }
+        }
+      }
+
+      // 3. Nested properties
+      const nestKeys = ['data', 'questionnaire', 'fullData', 'surveyRasterConfig', 'exportPackage'];
+      for (const key of nestKeys) {
+        if (raw[key] && typeof raw[key] === 'object') {
+          const nested = extractQuestionnaireData(raw[key]);
+          if (nested) return nested;
+        }
+      }
+
+      // 4. Dossier with inputs fallback
+      if (raw.inputs || raw.clientCompany || raw.clientContact) {
+        const inputs = raw.inputs || {};
+        const fallback = {
+          general: {
+            machineName: inputs.techMachineInput || inputs.omTechMachine || '',
+            machineBrand: inputs.techBrandInput || inputs.omTechBrand || '',
+            application: inputs.techAppInput || inputs.omTechApp || '',
+            machineCount: inputs.omSharedNumMachines || '1'
+          },
+          contact: {
+            clientCompany: raw.clientCompany || inputs.clientCompanyInput || inputs.omClientCompany || '',
+            clientContact: raw.clientContact || inputs.clientContactInput || inputs.omClientContact || '',
+            clientEmail: inputs.clientEmailInput || inputs.omClientEmail || '',
+            interflonContactEmail: inputs.opEmailInput || inputs.omOpEmail || ''
+          },
+          bearings: []
+        };
+        if (inputs.bearingSearchInput) {
+          fallback.bearings.push({
+            letter: 'A',
+            qty: '1',
+            nr: inputs.bearingSearchInput,
+            desc: '',
+            rpm: inputs.inputSpeed || '',
+            pos: 'Horizontaal'
+          });
+        }
+        if (fallback.general.machineName || fallback.contact.clientCompany || fallback.bearings.length > 0) {
+          return fallback;
+        }
+      }
+
+      return null;
+    }
+    window.extractQuestionnaireData = extractQuestionnaireData;
+
     function importQuestionnaireFile(event) {
       const file = event.target.files && event.target.files[0];
       if (!file) return;
@@ -5002,9 +5104,10 @@
       const reader = new FileReader();
       reader.onload = function(e) {
         try {
-          const data = JSON.parse(e.target.result);
-          if (!data || (!data.bearings && !data.general)) {
-            alert('Ongeldig bestand. Controleer of dit een geldig Interflon vragenlijstbestand (.json) is.');
+          const raw = JSON.parse(e.target.result);
+          const data = extractQuestionnaireData(raw);
+          if (!data || (!data.bearings && !data.general && !data.raster)) {
+            alert('Ongeldig bestand. Controleer of dit een geldig Interflon vragenlijstbestand (.json) of opgeslagen dossierbestand is.');
             return;
           }
           restoreQuestionnaireDOM(data, true);
