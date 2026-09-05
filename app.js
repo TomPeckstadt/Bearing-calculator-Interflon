@@ -300,19 +300,37 @@ function importConfigFromSurvey(customData) {
     }
   }
 
-  // If no valid config in localStorage, prompt user to select a JSON file
+  // If no direct config, check full questionnaire data in localStorage
   if (!config || !config.numDevices || !Array.isArray(config.devices) || config.devices.length === 0) {
-    const fileInput = document.getElementById('surveyConfigFileSelector');
-    if (fileInput) {
-      fileInput.value = '';
-      fileInput.click();
-    } else {
-      const msg = (typeof currentLang !== 'undefined' && currentLang === 'en')
-        ? 'No active questionnaire configuration found in browser memory. Please open the questionnaire first or upload a questionnaire JSON file.'
-        : ((typeof currentLang !== 'undefined' && currentLang === 'fr')
-          ? 'Aucune configuration de questionnaire trouvée dans la mémoire du navigateur. Ouvrez d\'abord le questionnaire ou sélectionnez un fichier JSON.'
-          : 'Geen actieve vragenlijst in het browsergeheugen gevonden. Open eerst de vragenlijst of kies een opgeslagen JSON-bestand.');
-      alert(msg);
+    const fullSaved = localStorage.getItem('interflon_questionnaire_full_data') || localStorage.getItem('interflon_last_questionnaire_data');
+    if (fullSaved) {
+      try {
+        const fullData = JSON.parse(fullSaved);
+        if (fullData && fullData.surveyRasterConfig && Array.isArray(fullData.surveyRasterConfig.devices) && fullData.surveyRasterConfig.devices.length > 0) {
+          config = fullData.surveyRasterConfig;
+        } else if (fullData && (fullData.bearings || (fullData.raster && fullData.raster.devices))) {
+          config = parseSurveyPackageToConfig(fullData);
+        }
+      } catch (e) {
+        console.warn("Could not parse questionnaire full data", e);
+      }
+    }
+  }
+
+  // If no active config found in app memory, ask user first instead of popping Verkenner automatically
+  if (!config || !config.numDevices || !Array.isArray(config.devices) || config.devices.length === 0) {
+    const lang = (typeof currentLang !== 'undefined' && currentLang) ? currentLang : 'nl';
+    const msg = (lang === 'en')
+      ? 'No active questionnaire configuration found in the app.\n\nPlease open the Questionnaire first (via the top menu) and fill it in or import your questionnaire file under "Configuratiebeheer".\n\nWould you like to select a saved questionnaire JSON file from your computer now?'
+      : ((lang === 'fr')
+        ? 'Aucune configuration de questionnaire active trouvée dans l\'application.\n\nVeuillez d\'abord ouvrir le questionnaire (via le menu supérieur) et le remplir ou importer votre fichier sous "Gestion de configuration".\n\nSouhaitez-vous sélectionner maintenant un fichier questionnaire JSON enregistré sur votre ordinateur ?'
+        : 'Er is momenteel geen actieve vragenlijst ingevuld of geïmporteerd in de app.\n\nOpen eerst de Vragenlijst (via het menu bovenaan) en vul deze in of importeer uw vragenlijstbestand onderaan bij "Configuratiebeheer".\n\nWilt u nu een opgeslagen vragenlijstbestand (.json) van uw computer selecteren om direct te importeren?');
+    if (confirm(msg)) {
+      const fileInput = document.getElementById('surveyConfigFileSelector');
+      if (fileInput) {
+        fileInput.value = '';
+        fileInput.click();
+      }
     }
     return;
   }
@@ -376,14 +394,21 @@ function applySurveyConfig(config) {
     fbEl.style.background = '#ecfdf5';
     fbEl.style.color = '#065f46';
     fbEl.style.border = '1px solid #a7f3d0';
-    fbEl.innerHTML = `✅ <strong>${num} ${num === 1 ? 'toestel' : 'toestellen'}</strong> geïmporteerd${machinePart}<br><span style="font-size: 10.5px; opacity: 0.9;">${summaryParts.join(' | ')}</span>`;
+    fbEl.innerHTML = `✅ <strong>${num} ${num === 1 ? 'toestel' : 'toestellen'}</strong> direct geïmporteerd uit vragenlijst${machinePart}<br><span style="font-size: 10.5px; opacity: 0.9;">${summaryParts.join(' | ')}</span>`;
     setTimeout(() => {
       if (fbEl) fbEl.style.display = 'none';
     }, 7000);
   }
 
+  // Also sync machine metadata if available
+  if (config.machineName) {
+    const techMach = document.getElementById('techMachineInput');
+    if (techMach) techMach.value = config.machineName;
+    localStorage.setItem('tech_machine', config.machineName);
+  }
+
   if (typeof showToastNotification === 'function') {
-    showToastNotification(`✓ Vragenlijst geïmporteerd: ${num} toestellen (${summaryParts.join(', ')})`);
+    showToastNotification(`✓ Vragenlijst direct geïmporteerd: ${num} toestellen (${summaryParts.join(', ')})`);
   }
 }
 
@@ -397,16 +422,28 @@ function handleSurveyConfigFile(event) {
       const data = JSON.parse(e.target.result);
       if (data.surveyRasterConfig) {
         applySurveyConfig(data.surveyRasterConfig);
+        try {
+          localStorage.setItem('interflon_survey_raster_config', JSON.stringify(data.surveyRasterConfig));
+          localStorage.setItem('interflon_questionnaire_full_data', JSON.stringify(data));
+        } catch (errLs) {}
         return;
       }
       if (data.interflon_survey_raster_config) {
         applySurveyConfig(data.interflon_survey_raster_config);
+        try {
+          localStorage.setItem('interflon_survey_raster_config', JSON.stringify(data.interflon_survey_raster_config));
+          localStorage.setItem('interflon_questionnaire_full_data', JSON.stringify(data));
+        } catch (errLs) {}
         return;
       }
       if (data.bearings || (data.raster && data.raster.devices)) {
         const parsed = parseSurveyPackageToConfig(data);
         if (parsed) {
           applySurveyConfig(parsed);
+          try {
+            localStorage.setItem('interflon_survey_raster_config', JSON.stringify(parsed));
+            localStorage.setItem('interflon_questionnaire_full_data', JSON.stringify(data));
+          } catch (errLs) {}
           return;
         }
       }
@@ -435,11 +472,12 @@ function parseSurveyPackageToConfig(data) {
       });
     }
 
-    const surveyDevices = (data.raster && Array.isArray(data.raster.devices)) ? data.raster.devices : [];
-    let activeDevs = surveyDevices.filter(d => d.active);
-    if (activeDevs.length === 0 && surveyDevices.length > 0) {
-      activeDevs = [surveyDevices[0]];
-    }
+    const surveyDevices = (data.raster && Array.isArray(data.raster.devices))
+      ? data.raster.devices
+      : (Array.isArray(data.devices) ? data.devices : []);
+    
+    // All devices defined on the raster are considered
+    let activeDevs = (surveyDevices.length > 0) ? surveyDevices : [];
 
     const numDevices = Math.min(4, Math.max(1, activeDevs.length || 1));
     const deviceConfigs = [];
@@ -463,19 +501,31 @@ function parseSurveyPackageToConfig(data) {
         let bestDist = Infinity;
         for (let i = 0; i < numDevices; i++) {
           const dev = activeDevs[i] || { x: 0, y: 0 };
+          if (dev.type === 'single_point' && dev.targetBearingLetter) {
+            if (dev.targetBearingLetter === b.letter) {
+              bestIdx = i;
+              bestDist = 0;
+              break;
+            }
+          }
           const d = Math.hypot(b.x - (dev.x || 0), b.y - (dev.y || 0));
           if (d < bestDist) {
             bestDist = d;
             bestIdx = i;
           }
         }
-        deviceConfigs[bestIdx].points += (b.qty || 1);
+        const ptsToAdd = (deviceConfigs[bestIdx].type === 'single_point') ? 1 : (b.qty || 1);
+        deviceConfigs[bestIdx].points += ptsToAdd;
         deviceConfigs[bestIdx].bearingLetters.push(b.letter);
       });
     }
 
     deviceConfigs.forEach(dc => {
-      dc.points = Math.min(8, Math.max(1, dc.points));
+      if (dc.type === 'single_point') {
+        dc.points = 1;
+      } else {
+        dc.points = Math.min(8, Math.max(1, dc.points));
+      }
     });
 
     const machineName = (data.general && data.general.machineName) ? data.general.machineName : 'Machine';
@@ -496,6 +546,18 @@ window.importConfigFromSurvey = importConfigFromSurvey;
 window.applySurveyConfig = applySurveyConfig;
 window.handleSurveyConfigFile = handleSurveyConfigFile;
 window.parseSurveyPackageToConfig = parseSurveyPackageToConfig;
+
+// Cross-tab BroadcastChannel listener for questionnaire synchronization
+try {
+  if (typeof BroadcastChannel !== 'undefined') {
+    const surveyChannel = new BroadcastChannel('interflon_questionnaire_sync');
+    surveyChannel.onmessage = function(ev) {
+      if (ev.data && (ev.data.type === 'QUESTIONNAIRE_IMPORTED' || ev.data.type === 'CONFIG_UPDATED')) {
+        console.log("Vragenlijst update ontvangen vanuit Vragenlijst tab.");
+      }
+    };
+  }
+} catch (e) {}
 
 function renderAutomationDeviceCards() { return renderAutoDevicesUI(); }
 window.renderAutomationDeviceCards = renderAutomationDeviceCards;
