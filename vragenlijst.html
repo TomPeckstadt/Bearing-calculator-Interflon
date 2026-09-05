@@ -1307,7 +1307,7 @@
                   <span style="font-size: 22px;">💡</span>
                   <div>
                     <h3 class="device-advice-title">Slim Toestel- & Plaatsingsadvies</h3>
-                    <p class="device-advice-subtitle">Automatische berekening op basis van max. 8 smeerpunten en minimale leidingafstanden</p>
+                    <p class="device-advice-subtitle" id="deviceAdviceModalSubtitle">Automatische berekening op basis van configuratie en minimale leidingafstanden</p>
                   </div>
                 </div>
                 <button type="button" class="device-advice-close-btn" onclick="closeDeviceAdviceModal()" title="Sluiten (Esc)">&times;</button>
@@ -1717,12 +1717,14 @@
       ];
       const p = presets[(nextNum - 1) % presets.length];
       const scaleAdj = machineRangeMeters / 10;
+      const allSinglePoint = devices.length > 0 && devices.every(d => d.type === 'single_point');
+      const defaultType = allSinglePoint ? 'single_point' : ((devices[0] && devices[0].type) || 'pulsarlube_m2');
       
       const newDev = {
         id: 'dev-' + Date.now(),
         name: 'Toestel ' + nextNum,
         short: 'T' + nextNum,
-        type: 'pulsarlube_m2',
+        type: defaultType,
         x: Math.round(p.x * scaleAdj * 10) / 10,
         y: Math.round(p.y * scaleAdj * 10) / 10,
         active: true, // Activated by default upon adding
@@ -1751,6 +1753,7 @@
     // =========================================================================
     let currentAdviceData = null;
     let currentChosenK = null;
+    let currentAdviceSystemMode = 'single_point'; // 'single_point' or 'pulsarlube'
 
     // Geometric minimax center (Fermat-Weber / bounding center refinement)
     function findMinimaxCenter(pts) {
@@ -1942,6 +1945,35 @@
       const N = bearings.length;
       if (N === 0) return { error: 'Geen lagers opgegeven' };
 
+      // 1. Solution for Interflon Single Point Lubricators (1 device per bearing, direct mount, 0m pipe, 1/1 capacity)
+      const singlePointDevices = bearings.map((b, idx) => ({
+        deviceIndex: idx,
+        id: 'dev-' + (idx + 1),
+        name: 'Toestel ' + (idx + 1),
+        short: 'T' + (idx + 1),
+        type: 'single_point',
+        x: b.x,
+        y: b.y,
+        targetBearingLetter: b.letter,
+        bearings: [{
+          ...b,
+          dist: 0.0
+        }],
+        maxDist: 0.0,
+        avgDist: 0.0
+      }));
+
+      const solSinglePoint = {
+        K: N,
+        type: 'single_point',
+        devices: singlePointDevices,
+        maxDist: 0.0,
+        avgDist: 0.0,
+        reasonType: 'single_point_direct',
+        explanation: `Voor alle ${N} lagers adviseren wij ${N} Interflon Single Point Lubricators. Elk toestel wordt rechtstreeks op het smeerpunt van het desbetreffende lager gemonteerd. Er is geen leidingwerk nodig (0,0 m afstand), waardoor er geen sprake is van tegendruk, leidingweerstand of drukverlies.`
+      };
+
+      // 2. Solution for Pulsarlube Multi-Point
       const K_cap = Math.max(1, Math.ceil(N / 8));
       const solCap = solveForK(bearings, K_cap, 8);
 
@@ -1984,6 +2016,16 @@
 
       return {
         N,
+        solSinglePoint,
+        pulsarlube: {
+          K_cap,
+          solCap,
+          solExtra,
+          recommended,
+          reasonType,
+          explanation
+        },
+        // Top-level fallbacks for backwards compatibility
         K_cap,
         solCap,
         solExtra,
@@ -2012,9 +2054,22 @@
         return;
       }
 
+      // Auto-detect mode from currently configured devices in raster
+      const hasActiveSinglePoint = devices.some(d => d.active && d.type === 'single_point');
+      const allSinglePoint = devices.length > 0 && devices.every(d => d.type === 'single_point');
+      const firstIsSinglePoint = devices[0] && devices[0].type === 'single_point';
+
+      if (hasActiveSinglePoint || allSinglePoint || firstIsSinglePoint) {
+        currentAdviceSystemMode = 'single_point';
+      } else {
+        currentAdviceSystemMode = 'pulsarlube';
+      }
+
       const advice = getSmartDeviceAdvice(bearings);
       currentAdviceData = advice;
-      currentChosenK = advice.recommended ? advice.recommended.K : advice.K_cap;
+      currentChosenK = (currentAdviceSystemMode === 'single_point') 
+        ? advice.N 
+        : (advice.pulsarlube.recommended ? advice.pulsarlube.recommended.K : advice.K_cap);
 
       renderDeviceAdviceContent(advice, currentChosenK);
 
@@ -2027,6 +2082,20 @@
       if (modal) modal.style.display = 'none';
     }
 
+    function setAdviceSystemMode(mode) {
+      currentAdviceSystemMode = mode;
+      if (currentAdviceData) {
+        if (mode === 'single_point') {
+          currentChosenK = currentAdviceData.N;
+        } else {
+          currentChosenK = (currentAdviceData.pulsarlube && currentAdviceData.pulsarlube.recommended)
+            ? currentAdviceData.pulsarlube.recommended.K
+            : currentAdviceData.K_cap;
+        }
+        renderDeviceAdviceContent(currentAdviceData, currentChosenK);
+      }
+    }
+
     function selectAdviceOption(k) {
       currentChosenK = k;
       if (currentAdviceData) {
@@ -2037,9 +2106,10 @@
     function renderDeviceAdviceContent(advice, chosenK) {
       const container = document.getElementById('deviceAdviceContent');
       const applyBtn = document.getElementById('btnApplyDeviceAdvice');
+      const subTitleEl = document.getElementById('deviceAdviceModalSubtitle');
       if (!container) return;
 
-      if (!advice || advice.error || !advice.recommended) {
+      if (!advice || advice.error || (!advice.recommended && !advice.solSinglePoint)) {
         container.innerHTML = `
           <div style="padding: 28px 16px; text-align: center; color: #64748b; background: #ffffff; border-radius: 10px; border: 1.5px dashed #cbd5e1;">
             <div style="font-size: 32px; margin-bottom: 8px;">⚙️</div>
@@ -2051,19 +2121,139 @@
         return;
       }
 
-      const sol = (advice.solCap && advice.solCap.K === chosenK) ? advice.solCap :
-                  (advice.solExtra && advice.solExtra.K === chosenK) ? advice.solExtra :
-                  advice.recommended;
+      // Update modal subtitle dynamically based on system mode
+      if (subTitleEl) {
+        if (currentAdviceSystemMode === 'single_point') {
+          subTitleEl.textContent = 'Interflon Single Point: 1 toestel per lager met directe montage (0m leiding • geen leidingweerstand)';
+        } else {
+          subTitleEl.textContent = 'Pulsarlube Multi-Point: centrale unit(s) met max. 8 smeerpunten en geoptimaliseerde leidingafstanden';
+        }
+      }
 
-      // 1. Banner style & title
+      // System Switcher Tabs at top of modal
+      const isSinglePointMode = (currentAdviceSystemMode === 'single_point');
+      const systemTabsHtml = `
+        <div style="display: flex; gap: 8px; margin-bottom: 12px; background: #f1f5f9; padding: 4px; border-radius: 9px;">
+          <button type="button" onclick="setAdviceSystemMode('single_point')" style="flex: 1; padding: 8px 12px; border-radius: 7px; border: none; font-family: 'Outfit', sans-serif; cursor: pointer; transition: all 0.2s; ${isSinglePointMode ? 'background: #ffffff; color: #166534; box-shadow: 0 1px 4px rgba(0,0,0,0.1); border: 1.5px solid #86efac;' : 'background: transparent; color: #64748b; border: 1.5px solid transparent;'}">
+            <div style="display: flex; align-items: center; justify-content: center; gap: 6px; flex-wrap: wrap;">
+              <span>🟢</span>
+              <span style="font-weight: 800; font-size: 12.5px;">Interflon Single Point</span>
+              <span style="font-size: 10.5px; font-weight: 700; background: ${isSinglePointMode ? '#dcfce7' : '#e2e8f0'}; color: ${isSinglePointMode ? '#15803d' : '#475569'}; padding: 1px 6px; border-radius: 4px;">Direct op lager • 0m leiding</span>
+            </div>
+          </button>
+          <button type="button" onclick="setAdviceSystemMode('pulsarlube')" style="flex: 1; padding: 8px 12px; border-radius: 7px; border: none; font-family: 'Outfit', sans-serif; cursor: pointer; transition: all 0.2s; ${!isSinglePointMode ? 'background: #ffffff; color: #1e40af; box-shadow: 0 1px 4px rgba(0,0,0,0.1); border: 1.5px solid #93c5fd;' : 'background: transparent; color: #64748b; border: 1.5px solid transparent;'}">
+            <div style="display: flex; align-items: center; justify-content: center; gap: 6px; flex-wrap: wrap;">
+              <span>🔵</span>
+              <span style="font-weight: 800; font-size: 12.5px;">Pulsarlube Multi-Point</span>
+              <span style="font-size: 10.5px; font-weight: 700; background: ${!isSinglePointMode ? '#dbeafe' : '#e2e8f0'}; color: ${!isSinglePointMode ? '#1d4ed8' : '#475569'}; padding: 1px 6px; border-radius: 4px;">Centraal • Max. 8 ptn</span>
+            </div>
+          </button>
+        </div>
+      `;
+
+      // ==========================================
+      // A. RENDER SINGLE POINT LUBRICATORS ADVICE
+      // ==========================================
+      if (isSinglePointMode) {
+        const sol = advice.solSinglePoint;
+        const bannerHtml = `
+          <div style="background: #f0fdf4; border: 1.5px solid #86efac; border-radius: 10px; padding: 12px 14px;">
+            <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap;">
+              <div style="display: flex; align-items: center; gap: 8px; font-weight: 800; font-size: 13.5px; color: #14532d;">
+                <span>🟢</span>
+                <span>Interflon Single Point Smeerplan (${advice.N} Toestellen)</span>
+              </div>
+              <span style="background: #dcfce7; color: #166534; font-size: 11px; font-weight: 800; padding: 2px 8px; border-radius: 5px; border: 1px solid #bbf7d0;">
+                ✓ Directe montage op lagers
+              </span>
+            </div>
+            <p style="margin: 6px 0 0 0; font-size: 12px; color: #14532d; opacity: 0.95; line-height: 1.45;">
+              ${sol.explanation}
+            </p>
+          </div>
+        `;
+
+        const kpiHtml = `
+          <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;">
+            <div style="background: #ffffff; padding: 10px 12px; border-radius: 8px; border: 1px solid #e2e8f0; text-align: center;">
+              <span style="font-size: 10.5px; color: #64748b; font-weight: 700; text-transform: uppercase;">Lagers</span>
+              <div style="font-size: 17px; font-weight: 800; color: #0f172a; margin-top: 2px;">${advice.N}</div>
+            </div>
+            <div style="background: #ffffff; padding: 10px 12px; border-radius: 8px; border: 1px solid #e2e8f0; text-align: center;">
+              <span style="font-size: 10.5px; color: #64748b; font-weight: 700; text-transform: uppercase;">Single Point Units</span>
+              <div style="font-size: 17px; font-weight: 800; color: #16a34a; margin-top: 2px;">${sol.K}</div>
+            </div>
+            <div style="background: #ffffff; padding: 10px 12px; border-radius: 8px; border: 1px solid #e2e8f0; text-align: center;">
+              <span style="font-size: 10.5px; color: #64748b; font-weight: 700; text-transform: uppercase;">Leidinglengte</span>
+              <div style="font-size: 17px; font-weight: 800; color: #166534; margin-top: 2px;">0,0 m</div>
+            </div>
+            <div style="background: #ffffff; padding: 10px 12px; border-radius: 8px; border: 1px solid #e2e8f0; text-align: center;">
+              <span style="font-size: 10.5px; color: #64748b; font-weight: 700; text-transform: uppercase;">Capaciteit</span>
+              <div style="font-size: 17px; font-weight: 800; color: #0f172a; margin-top: 2px;">1 / 1 pnt</div>
+            </div>
+          </div>
+        `;
+
+        let devCardsHtml = '<div style="display: flex; flex-direction: column; gap: 10px;">';
+        sol.devices.forEach((dev, idx) => {
+          const pal = DEVICE_PALETTES[idx % DEVICE_PALETTES.length];
+          devCardsHtml += `
+            <div style="background: #ffffff; border: 1.5px solid #e2e8f0; border-left: 4px solid ${pal.color}; border-radius: 8px; padding: 12px 14px; box-shadow: 0 1px 3px rgba(0,0,0,0.03);">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap; gap: 6px;">
+                <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                  <span style="background: ${pal.badgeBg}; color: ${pal.badgeText}; font-weight: 800; font-size: 12px; padding: 2px 8px; border-radius: 5px;">Toestel ${idx + 1} (T${idx + 1})</span>
+                  <span style="background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; font-weight: 700; font-size: 11px; padding: 2px 7px; border-radius: 4px;">Interflon Single Point Lubricator</span>
+                  <span style="font-size: 11.5px; color: #64748b; font-family: monospace;">Positie: X: ${dev.x >= 0 ? '+' : ''}${dev.x}m, Y: ${dev.y >= 0 ? '+' : ''}${dev.y}m</span>
+                </div>
+                <span style="font-size: 11.5px; font-weight: 800; color: #166534; background: #dcfce7; padding: 2px 8px; border-radius: 4px;">
+                  Capaciteit: 1 / 1 smeerpunt
+                </span>
+              </div>
+              <div style="display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-bottom: 8px;">
+                <span style="font-size: 11.5px; color: #64748b; font-weight: 600;">Gemonteerd op:</span>
+                <span style="background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; padding: 2px 8px; border-radius: 5px; font-size: 11.5px; font-weight: 800; display: inline-flex; align-items: center; gap: 5px;">
+                  <strong>Lager ${dev.targetBearingLetter}</strong> (0,0 m • Rechtstreekse schroefdraad montage)
+                </span>
+              </div>
+              <div style="display: flex; justify-content: space-between; font-size: 11px; color: #64748b; border-top: 1px solid #f1f5f9; padding-top: 6px;">
+                <span>Leidingafstand: <strong style="color: #166534;">0,0 m (Geen leiding nodig)</strong></span>
+                <span style="color: #10b981; font-weight: 700;">✓ Geen drukverlies / Geen tegendruk</span>
+              </div>
+            </div>
+          `;
+        });
+        devCardsHtml += '</div>';
+
+        container.innerHTML = `
+          ${systemTabsHtml}
+          ${bannerHtml}
+          ${kpiHtml}
+          ${devCardsHtml}
+        `;
+
+        if (applyBtn) {
+          applyBtn.disabled = false;
+          applyBtn.innerHTML = `🚀 Single Point Advies Toepassen (${sol.K} Toestellen)`;
+        }
+        return;
+      }
+
+      // ==========================================
+      // B. RENDER PULSARLUBE MULTI-POINT ADVICE
+      // ==========================================
+      const pl = advice.pulsarlube || advice;
+      const sol = (pl.solCap && pl.solCap.K === chosenK) ? pl.solCap :
+                  (pl.solExtra && pl.solExtra.K === chosenK) ? pl.solExtra :
+                  pl.recommended;
+
       let bannerIcon = '🟢';
-      let bannerTitle = 'Aanbevolen Smeerplan';
+      let bannerTitle = 'Aanbevolen Pulsarlube Smeerplan';
       let bannerBg = '#ecfdf5';
       let bannerBorder = '#a7f3d0';
       let bannerText = '#065f46';
 
-      if (advice.reasonType === 'split_distance_warning') {
-        if (chosenK === advice.solExtra?.K) {
+      if (pl.reasonType === 'split_distance_warning') {
+        if (chosenK === pl.solExtra?.K) {
           bannerIcon = '✨';
           bannerTitle = `Advies: ${chosenK} Toestellen (Voorkomt te lange leidingen)`;
           bannerBg = '#f0fdf4';
@@ -2076,7 +2266,7 @@
           bannerBorder = '#fde68a';
           bannerText = '#78350f';
         }
-      } else if (advice.reasonType.includes('capacity')) {
+      } else if (pl.reasonType && pl.reasonType.includes('capacity')) {
         bannerIcon = '🔵';
         bannerTitle = `${chosenK} Toestellen vereist (Capaciteit: max. 8 ptn/unit)`;
         bannerBg = '#eff6ff';
@@ -2090,44 +2280,42 @@
         bannerText = '#065f46';
       }
 
-      // 2. Tabs to toggle between Minimum and Recommended options (if available)
       let tabsHtml = '';
-      if (advice.solCap && advice.solExtra) {
-        const isCapActive = (chosenK === advice.solCap.K);
-        const isExtraActive = (chosenK === advice.solExtra.K);
+      if (pl.solCap && pl.solExtra) {
+        const isCapActive = (chosenK === pl.solCap.K);
+        const isExtraActive = (chosenK === pl.solExtra.K);
         tabsHtml = `
           <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-            <button type="button" onclick="selectAdviceOption(${advice.solCap.K})" style="flex: 1; min-width: 220px; padding: 10px 14px; border-radius: 8px; font-family: 'Outfit', sans-serif; cursor: pointer; text-align: left; transition: all 0.2s; ${isCapActive ? 'background: #eff6ff; border: 2px solid #2563EB; box-shadow: 0 2px 8px rgba(37,99,235,0.2);' : 'background: #ffffff; border: 1.5px solid #cbd5e1;'}">
+            <button type="button" onclick="selectAdviceOption(${pl.solCap.K})" style="flex: 1; min-width: 220px; padding: 10px 14px; border-radius: 8px; font-family: 'Outfit', sans-serif; cursor: pointer; text-align: left; transition: all 0.2s; ${isCapActive ? 'background: #eff6ff; border: 2px solid #2563EB; box-shadow: 0 2px 8px rgba(37,99,235,0.2);' : 'background: #ffffff; border: 1.5px solid #cbd5e1;'}">
               <div style="display: flex; align-items: center; justify-content: space-between;">
                 <span style="font-weight: 800; font-size: 13px; color: ${isCapActive ? '#1d4ed8' : '#334155'};">
-                  ${advice.solCap.K} Toestel${advice.solCap.K > 1 ? 'len' : ''}
+                  ${pl.solCap.K} Toestel${pl.solCap.K > 1 ? 'len' : ''}
                 </span>
-                <span style="font-size: 10.5px; font-weight: 700; padding: 2px 6px; border-radius: 4px; ${advice.recommended.K === advice.solCap.K ? 'background: #dcfce7; color: #166534;' : 'background: #f1f5f9; color: #475569;'}">
-                  ${advice.recommended.K === advice.solCap.K ? '✨ Aanbevolen' : 'Minimaal'}
+                <span style="font-size: 10.5px; font-weight: 700; padding: 2px 6px; border-radius: 4px; ${pl.recommended.K === pl.solCap.K ? 'background: #dcfce7; color: #166534;' : 'background: #f1f5f9; color: #475569;'}">
+                  ${pl.recommended.K === pl.solCap.K ? '✨ Aanbevolen' : 'Minimaal'}
                 </span>
               </div>
               <div style="font-size: 11.5px; color: #64748b; margin-top: 3px;">
-                Max. leidingafstand: <strong style="color: ${advice.solCap.maxDist <= 3 ? '#166534' : advice.solCap.maxDist <= 4 ? '#b45309' : '#991b1b'};">${advice.solCap.maxDist.toFixed(1).replace('.', ',')} m</strong>
+                Max. leidingafstand: <strong style="color: ${pl.solCap.maxDist <= 3 ? '#166534' : pl.solCap.maxDist <= 4 ? '#b45309' : '#991b1b'};">${pl.solCap.maxDist.toFixed(1).replace('.', ',')} m</strong>
               </div>
             </button>
-            <button type="button" onclick="selectAdviceOption(${advice.solExtra.K})" style="flex: 1; min-width: 220px; padding: 10px 14px; border-radius: 8px; font-family: 'Outfit', sans-serif; cursor: pointer; text-align: left; transition: all 0.2s; ${isExtraActive ? 'background: #eff6ff; border: 2px solid #2563EB; box-shadow: 0 2px 8px rgba(37,99,235,0.2);' : 'background: #ffffff; border: 1.5px solid #cbd5e1;'}">
+            <button type="button" onclick="selectAdviceOption(${pl.solExtra.K})" style="flex: 1; min-width: 220px; padding: 10px 14px; border-radius: 8px; font-family: 'Outfit', sans-serif; cursor: pointer; text-align: left; transition: all 0.2s; ${isExtraActive ? 'background: #eff6ff; border: 2px solid #2563EB; box-shadow: 0 2px 8px rgba(37,99,235,0.2);' : 'background: #ffffff; border: 1.5px solid #cbd5e1;'}">
               <div style="display: flex; align-items: center; justify-content: space-between;">
                 <span style="font-weight: 800; font-size: 13px; color: ${isExtraActive ? '#1d4ed8' : '#334155'};">
-                  ${advice.solExtra.K} Toestellen
+                  ${pl.solExtra.K} Toestellen
                 </span>
-                <span style="font-size: 10.5px; font-weight: 700; padding: 2px 6px; border-radius: 4px; ${advice.recommended.K === advice.solExtra.K ? 'background: #dcfce7; color: #166534;' : 'background: #f1f5f9; color: #475569;'}">
-                  ${advice.recommended.K === advice.solExtra.K ? '✨ Aanbevolen' : 'Extra unit'}
+                <span style="font-size: 10.5px; font-weight: 700; padding: 2px 6px; border-radius: 4px; ${pl.recommended.K === pl.solExtra.K ? 'background: #dcfce7; color: #166534;' : 'background: #f1f5f9; color: #475569;'}">
+                  ${pl.recommended.K === pl.solExtra.K ? '✨ Aanbevolen' : 'Extra unit'}
                 </span>
               </div>
               <div style="font-size: 11.5px; color: #64748b; margin-top: 3px;">
-                Max. leidingafstand: <strong style="color: ${advice.solExtra.maxDist <= 3 ? '#166534' : advice.solExtra.maxDist <= 4 ? '#b45309' : '#991b1b'};">${advice.solExtra.maxDist.toFixed(1).replace('.', ',')} m</strong>
+                Max. leidingafstand: <strong style="color: ${pl.solExtra.maxDist <= 3 ? '#166534' : pl.solExtra.maxDist <= 4 ? '#b45309' : '#991b1b'};">${pl.solExtra.maxDist.toFixed(1).replace('.', ',')} m</strong>
               </div>
             </button>
           </div>
         `;
       }
 
-      // 3. KPI Grid
       const kpiHtml = `
         <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;">
           <div style="background: #ffffff; padding: 10px 12px; border-radius: 8px; border: 1px solid #e2e8f0; text-align: center;">
@@ -2153,7 +2341,10 @@
         </div>
       `;
 
-      // 4. Device cards breakdown
+      // Determine model title for Pulsarlube
+      const foundPl = devices.find(d => d.type && d.type.startsWith('pulsarlube'));
+      const plTypeName = foundPl ? getDeviceTypeName(foundPl.type) : 'Pulsarlube M2 (Multi-Point)';
+
       let devCardsHtml = '<div style="display: flex; flex-direction: column; gap: 10px;">';
       sol.devices.forEach((dev, idx) => {
         const pal = DEVICE_PALETTES[idx % DEVICE_PALETTES.length];
@@ -2168,9 +2359,9 @@
         devCardsHtml += `
           <div style="background: #ffffff; border: 1.5px solid #e2e8f0; border-left: 4px solid ${pal.color}; border-radius: 8px; padding: 12px 14px; box-shadow: 0 1px 3px rgba(0,0,0,0.03);">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap; gap: 6px;">
-              <div style="display: flex; align-items: center; gap: 8px;">
+              <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
                 <span style="background: ${pal.badgeBg}; color: ${pal.badgeText}; font-weight: 800; font-size: 12px; padding: 2px 8px; border-radius: 5px;">Toestel ${dev.deviceIndex + 1} (T${dev.deviceIndex + 1})</span>
-                <span style="background: #f1f5f9; color: #475569; font-weight: 600; font-size: 11px; padding: 2px 7px; border-radius: 4px;">Pulsarlube M2 (Multi-Point)</span>
+                <span style="background: #f1f5f9; color: #475569; font-weight: 600; font-size: 11px; padding: 2px 7px; border-radius: 4px;">${plTypeName}</span>
                 <span style="font-size: 11.5px; color: #64748b; font-family: monospace;">Positie: X: ${dev.x >= 0 ? '+' : ''}${dev.x}m, Y: ${dev.y >= 0 ? '+' : ''}${dev.y}m</span>
               </div>
               <span style="font-size: 11.5px; font-weight: 700; color: #475569;">
@@ -2191,13 +2382,14 @@
       devCardsHtml += '</div>';
 
       container.innerHTML = `
+        ${systemTabsHtml}
         <div style="background: ${bannerBg}; border: 1.5px solid ${bannerBorder}; border-radius: 10px; padding: 12px 14px;">
           <div style="display: flex; align-items: center; gap: 8px; font-weight: 800; font-size: 13.5px; color: ${bannerText};">
             <span>${bannerIcon}</span>
             <span>${bannerTitle}</span>
           </div>
           <p style="margin: 6px 0 0 0; font-size: 12px; color: ${bannerText}; opacity: 0.9; line-height: 1.45;">
-            ${advice.explanation}
+            ${pl.explanation}
           </p>
         </div>
         ${tabsHtml}
@@ -2207,28 +2399,72 @@
 
       if (applyBtn) {
         applyBtn.disabled = false;
-        applyBtn.innerHTML = `🚀 Advies Toepassen (${chosenK} Toestel${chosenK > 1 ? 'len' : ''})`;
+        applyBtn.innerHTML = `🚀 Pulsarlube Advies Toepassen (${chosenK} Toestel${chosenK > 1 ? 'len' : ''})`;
       }
     }
 
     function applyCurrentDeviceAdvice() {
-      if (!currentAdviceData || !currentChosenK) return;
-      const sol = (currentAdviceData.solCap && currentAdviceData.solCap.K === currentChosenK) ? currentAdviceData.solCap :
-                  (currentAdviceData.solExtra && currentAdviceData.solExtra.K === currentChosenK) ? currentAdviceData.solExtra :
-                  currentAdviceData.recommended;
+      if (!currentAdviceData) return;
+
+      if (currentAdviceSystemMode === 'single_point') {
+        const sol = currentAdviceData.solSinglePoint;
+        if (!sol || !sol.devices) return;
+
+        const newDevices = sol.devices.map((dev, idx) => {
+          const palIdx = idx % DEVICE_PALETTES.length;
+          return {
+            id: 'dev-' + (idx + 1),
+            name: 'Toestel ' + (idx + 1),
+            short: 'T' + (idx + 1),
+            type: 'single_point', // Strictly preserve single_point!
+            x: dev.x,
+            y: dev.y,
+            targetBearingLetter: dev.targetBearingLetter,
+            active: true,
+            paletteIndex: palIdx
+          };
+        });
+
+        devices = newDevices;
+        showCentralPoint = false; // Focus directly on the placed automatic lubrication devices
+
+        renderDeviceFilterPills();
+        drawBearingLayout();
+        renderDistancesOverview();
+        closeDeviceAdviceModal();
+        saveRasterConfigToLocalStorage();
+
+        const infoEl = document.getElementById('canvasZoomInfo');
+        if (infoEl) {
+          const origText = infoEl.textContent;
+          infoEl.innerHTML = `<span style="color: #10b981; font-weight: 800;">✅ ${devices.length} Single Point Lubricators direct op de lagers geplaatst!</span>`;
+          setTimeout(() => {
+            infoEl.textContent = origText;
+          }, 4500);
+        }
+        return;
+      }
+
+      // Pulsarlube Multi-Point
+      const pl = currentAdviceData.pulsarlube || currentAdviceData;
+      const sol = (pl.solCap && pl.solCap.K === currentChosenK) ? pl.solCap :
+                  (pl.solExtra && pl.solExtra.K === currentChosenK) ? pl.solExtra :
+                  pl.recommended;
       if (!sol || !sol.devices) return;
 
-      // Update devices array to match the recommended solution
+      // Preserve user's selected Pulsarlube model if set (e.g. MSP, PLC), otherwise fallback to M2
+      let plType = 'pulsarlube_m2';
+      const userPl = devices.find(d => d.type && d.type.startsWith('pulsarlube'));
+      if (userPl) plType = userPl.type;
+
       const newDevices = [];
       sol.devices.forEach((dev, idx) => {
         const palIdx = idx % DEVICE_PALETTES.length;
-        const existingDev = devices[idx];
-        const assignedType = (existingDev && existingDev.type) ? existingDev.type : (sol.K === 1 && dev.bearings.length === 1 ? 'single_point' : 'pulsarlube_m2');
         newDevices.push({
           id: 'dev-' + (idx + 1),
           name: 'Toestel ' + (idx + 1),
           short: 'T' + (idx + 1),
-          type: assignedType,
+          type: plType,
           x: dev.x,
           y: dev.y,
           active: true,
@@ -2237,7 +2473,7 @@
       });
 
       devices = newDevices;
-      showCentralPoint = false; // Focus directly on the placed automatic lubrication devices
+      showCentralPoint = false;
 
       renderDeviceFilterPills();
       drawBearingLayout();
@@ -2245,11 +2481,10 @@
       closeDeviceAdviceModal();
       saveRasterConfigToLocalStorage();
 
-      // Show temporary notification in canvas zoom label
       const infoEl = document.getElementById('canvasZoomInfo');
       if (infoEl) {
         const origText = infoEl.textContent;
-        infoEl.innerHTML = `<span style="color: #10b981; font-weight: 800;">✅ ${devices.length} Toestel${devices.length > 1 ? 'len' : ''} succesvol geplaatst!</span>`;
+        infoEl.innerHTML = `<span style="color: #10b981; font-weight: 800;">✅ ${devices.length} Pulsarlube toestel${devices.length > 1 ? 'len' : ''} succesvol geplaatst!</span>`;
         setTimeout(() => {
           infoEl.textContent = origText;
         }, 4500);
@@ -2612,6 +2847,8 @@
             id: dev.id,
             name: dev.name,
             short: dev.short,
+            type: dev.type,
+            targetBearingLetter: dev.targetBearingLetter,
             x: dev.x,
             y: dev.y,
             lineColor: pal.line,
@@ -2627,13 +2864,42 @@
       const rows = document.querySelectorAll('.bearing-row');
 
       activeOrigins.forEach((origin, origIdx) => {
-        const origScreen = worldToScreen(origin.x, origin.y, canvas);
+        const isSinglePoint = (origin.type === 'single_point');
 
         rows.forEach((r, idx) => {
           const letter = r.getAttribute('data-letter') || (LETTERS[idx] || ('L' + (idx+1)));
           const pos = bearingPositions[letter] || { x: 0, y: 0 };
-          const bScreen = worldToScreen(pos.x, pos.y, canvas);
           const distM = Math.hypot(pos.x - origin.x, pos.y - origin.y);
+
+          // If Single Point: ONLY connect to its single assigned bearing!
+          if (isSinglePoint) {
+            let isTarget = false;
+            if (origin.targetBearingLetter) {
+              isTarget = (origin.targetBearingLetter === letter);
+            } else {
+              const originDevIdx = devices.findIndex(d => d.id === origin.id);
+              if (originDevIdx === idx) {
+                isTarget = true;
+              } else if (originDevIdx === -1) {
+                let nearestLetter = null;
+                let nearestD = Infinity;
+                rows.forEach((r2, idx2) => {
+                  const l2 = r2.getAttribute('data-letter') || (LETTERS[idx2] || ('L' + (idx2+1)));
+                  const p2 = bearingPositions[l2] || { x: 0, y: 0 };
+                  const d2 = Math.hypot(p2.x - origin.x, p2.y - origin.y);
+                  if (d2 < nearestD) { nearestD = d2; nearestLetter = l2; }
+                });
+                isTarget = (nearestLetter === letter);
+              }
+            }
+            if (!isTarget) return; // Do not draw lines to other bearings for Single Point!
+
+            // Direct-mounted on bearing: no piping line needed (0,0 m)
+            if (distM < 0.15) return;
+          }
+
+          const origScreen = worldToScreen(origin.x, origin.y, canvas);
+          const bScreen = worldToScreen(pos.x, pos.y, canvas);
 
           // Draw line
           ctx.beginPath();
@@ -2708,11 +2974,44 @@
 
       // --- 5. DRAW EXTRA DEVICES (TOESTELLEN) ---
       devices.forEach(dev => {
-        const dScreen = worldToScreen(dev.x, dev.y, canvas);
+        let dScreen = worldToScreen(dev.x, dev.y, canvas);
         const pal = DEVICE_PALETTES[dev.paletteIndex % DEVICE_PALETTES.length];
         const isHovered = (hoveredDeviceId === dev.id);
         const isDragged = (draggedDeviceId === dev.id);
         const dSize = (isHovered || isDragged ? 30 : 26) * dpr;
+
+        // Check if Single Point is directly mounted on a bearing
+        const isSinglePoint = (dev.type === 'single_point');
+        let directBearing = null;
+        if (isSinglePoint && !isDragged) {
+          const targetL = dev.targetBearingLetter || Object.keys(bearingPositions).find(l => Math.hypot(bearingPositions[l].x - dev.x, bearingPositions[l].y - dev.y) < 0.2);
+          if (targetL && bearingPositions[targetL] && Math.hypot(bearingPositions[targetL].x - dev.x, bearingPositions[targetL].y - dev.y) < 0.2) {
+            directBearing = targetL;
+          }
+        }
+
+        if (directBearing) {
+          // Draw neat mounting bracket down to bearing center
+          const bScr = worldToScreen(bearingPositions[directBearing].x, bearingPositions[directBearing].y, canvas);
+          ctx.beginPath();
+          ctx.moveTo(bScr.u, bScr.v);
+          ctx.lineTo(bScr.u, bScr.v - 20 * dpr);
+          ctx.strokeStyle = pal.color;
+          ctx.lineWidth = 3.5 * dpr;
+          ctx.stroke();
+
+          // Mounting collar ring
+          ctx.beginPath();
+          ctx.arc(bScr.u, bScr.v - 10 * dpr, 3 * dpr, 0, Math.PI * 2);
+          ctx.fillStyle = '#ffffff';
+          ctx.fill();
+          ctx.strokeStyle = pal.color;
+          ctx.lineWidth = 1.5 * dpr;
+          ctx.stroke();
+
+          // Perch device cleanly above bearing
+          dScreen.v -= 24 * dpr;
+        }
 
         // Ground shadow
         ctx.beginPath();
@@ -2756,10 +3055,16 @@
 
         // Device name tag underneath (showing assigned hardware type)
         const typeShort = getDeviceTypeShort(dev.type);
-        const tagText = isHovered 
-          ? (dev.name + ': ' + getDeviceTypeName(dev.type) + (dev.active ? '' : ' (Uit)'))
-          : (dev.name + ' • ' + typeShort + (dev.active ? '' : ' (Uit)'));
-        ctx.font = 'bold ' + Math.round(10 * dpr) + 'px sans-serif';
+        let tagText = '';
+        if (directBearing) {
+          tagText = dev.short + ' • Direct op Lager ' + directBearing;
+        } else if (isHovered) {
+          tagText = dev.name + ': ' + getDeviceTypeName(dev.type) + (dev.active ? '' : ' (Uit)');
+        } else {
+          tagText = dev.name + ' • ' + typeShort + (dev.active ? '' : ' (Uit)');
+        }
+
+        ctx.font = 'bold ' + Math.round(9.5 * dpr) + 'px sans-serif';
         const tagW = ctx.measureText(tagText).width;
         const padX = 5 * dpr;
         const padY = 2 * dpr;
@@ -2878,10 +3183,16 @@
         const mouseV = (clientY - rect.top) * dpr;
         const hitRadius = 22 * dpr;
 
-        // Check devices first
+        // Check devices first (accounting for perched offset if direct mounted on a bearing)
         for (let i = devices.length - 1; i >= 0; i--) {
           const dev = devices[i];
-          const dScreen = worldToScreen(dev.x, dev.y, canvas);
+          let dScreen = worldToScreen(dev.x, dev.y, canvas);
+          if (dev.type === 'single_point' && dev.active) {
+            const targetL = dev.targetBearingLetter || Object.keys(bearingPositions).find(l => Math.hypot(bearingPositions[l].x - dev.x, bearingPositions[l].y - dev.y) < 0.2);
+            if (targetL && bearingPositions[targetL] && Math.hypot(bearingPositions[targetL].x - dev.x, bearingPositions[targetL].y - dev.y) < 0.2) {
+              dScreen.v -= 24 * dpr;
+            }
+          }
           const dx = mouseU - dScreen.u;
           const dy = mouseV - dScreen.v;
           if (dx * dx + dy * dy <= hitRadius * hitRadius) {
@@ -2950,26 +3261,49 @@
         if (draggedBearingLetter) {
           const world = screenToWorld(mouseU, mouseV, canvas);
           const maxR = machineRangeMeters;
-          const clampedX = Math.max(-maxR, Math.min(maxR, world.x));
-          const clampedY = Math.max(-maxR, Math.min(maxR, world.y));
+          const clampedX = Math.round(Math.max(-maxR, Math.min(maxR, world.x)) * 10) / 10;
+          const clampedY = Math.round(Math.max(-maxR, Math.min(maxR, world.y)) * 10) / 10;
 
           bearingPositions[draggedBearingLetter] = {
-            x: Math.round(clampedX * 10) / 10,
-            y: Math.round(clampedY * 10) / 10
+            x: clampedX,
+            y: clampedY
           };
+
+          // Also move any directly attached Single Point lubricator along with its bearing!
+          devices.forEach(dev => {
+            if (dev.type === 'single_point' && (dev.targetBearingLetter === draggedBearingLetter || Math.hypot(dev.x - clampedX, dev.y - clampedY) < 0.25)) {
+              dev.x = clampedX;
+              dev.y = clampedY;
+              dev.targetBearingLetter = draggedBearingLetter;
+            }
+          });
 
           drawBearingLayout();
           renderDistancesOverview();
         } else if (draggedDeviceId) {
           const world = screenToWorld(mouseU, mouseV, canvas);
           const maxR = machineRangeMeters;
-          const clampedX = Math.max(-maxR, Math.min(maxR, world.x));
-          const clampedY = Math.max(-maxR, Math.min(maxR, world.y));
+          let clampedX = Math.round(Math.max(-maxR, Math.min(maxR, world.x)) * 10) / 10;
+          let clampedY = Math.round(Math.max(-maxR, Math.min(maxR, world.y)) * 10) / 10;
 
           const dev = devices.find(d => d.id === draggedDeviceId);
           if (dev) {
-            dev.x = Math.round(clampedX * 10) / 10;
-            dev.y = Math.round(clampedY * 10) / 10;
+            // If single_point, snap to nearest bearing if within 0.45m
+            if (dev.type === 'single_point') {
+              let snapLetter = null;
+              Object.keys(bearingPositions).forEach(l => {
+                const bp = bearingPositions[l];
+                if (Math.hypot(bp.x - clampedX, bp.y - clampedY) < 0.45) {
+                  clampedX = bp.x;
+                  clampedY = bp.y;
+                  snapLetter = l;
+                }
+              });
+              if (snapLetter) dev.targetBearingLetter = snapLetter;
+            }
+
+            dev.x = clampedX;
+            dev.y = clampedY;
           }
 
           drawBearingLayout();
@@ -3045,14 +3379,33 @@
 
           const world = screenToWorld(mouseU, mouseV, canvas);
           const maxR = machineRangeMeters;
-          const clampedX = Math.round(Math.max(-maxR, Math.min(maxR, world.x)) * 10) / 10;
-          const clampedY = Math.round(Math.max(-maxR, Math.min(maxR, world.y)) * 10) / 10;
+          let clampedX = Math.round(Math.max(-maxR, Math.min(maxR, world.x)) * 10) / 10;
+          let clampedY = Math.round(Math.max(-maxR, Math.min(maxR, world.y)) * 10) / 10;
 
           if (draggedBearingLetter) {
             bearingPositions[draggedBearingLetter] = { x: clampedX, y: clampedY };
+            devices.forEach(dev => {
+              if (dev.type === 'single_point' && (dev.targetBearingLetter === draggedBearingLetter || Math.hypot(dev.x - clampedX, dev.y - clampedY) < 0.25)) {
+                dev.x = clampedX;
+                dev.y = clampedY;
+                dev.targetBearingLetter = draggedBearingLetter;
+              }
+            });
           } else if (draggedDeviceId) {
             const dev = devices.find(d => d.id === draggedDeviceId);
             if (dev) {
+              if (dev.type === 'single_point') {
+                let snapLetter = null;
+                Object.keys(bearingPositions).forEach(l => {
+                  const bp = bearingPositions[l];
+                  if (Math.hypot(bp.x - clampedX, bp.y - clampedY) < 0.45) {
+                    clampedX = bp.x;
+                    clampedY = bp.y;
+                    snapLetter = l;
+                  }
+                });
+                if (snapLetter) dev.targetBearingLetter = snapLetter;
+              }
               dev.x = clampedX;
               dev.y = clampedY;
             }
@@ -3091,6 +3444,7 @@
           id: 'cp',
           name: 'Centraal Punt (0,0)',
           short: 'Centraal',
+          type: 'cp',
           color: '#E30613',
           badgeBg: '#fee2e2',
           badgeText: '#991b1b',
@@ -3108,6 +3462,7 @@
             type: dev.type,
             typeShort: typeShort,
             typeName: getDeviceTypeName(dev.type),
+            targetBearingLetter: dev.targetBearingLetter,
             color: pal.color,
             badgeBg: pal.badgeBg,
             badgeText: pal.badgeText,
@@ -3141,12 +3496,36 @@
         const descIn = r.querySelector('.bearing-desc-input');
         const descVal = descIn && descIn.value ? descIn.value.trim() : '';
 
-        // Calculate distance to each active origin
-        const originDists = activeOrigins.map(origin => {
+        // Calculate distance to each active origin (Single Point only connects to its dedicated bearing)
+        const originDists = [];
+        activeOrigins.forEach(origin => {
+          if (origin.type === 'single_point') {
+            let isAssigned = false;
+            if (origin.targetBearingLetter) {
+              isAssigned = (origin.targetBearingLetter === letter);
+            } else {
+              const devIdx = devices.findIndex(d => d.id === origin.id);
+              if (devIdx === idx) {
+                isAssigned = true;
+              } else if (devIdx === -1) {
+                let nearestLetter = null;
+                let nearestD = Infinity;
+                rows.forEach((r2, idx2) => {
+                  const l2 = r2.getAttribute('data-letter') || (LETTERS[idx2] || ('L' + (idx2+1)));
+                  const p2 = bearingPositions[l2] || { x: 0, y: 0 };
+                  const d2 = Math.hypot(p2.x - origin.x, p2.y - origin.y);
+                  if (d2 < nearestD) { nearestD = d2; nearestLetter = l2; }
+                });
+                isAssigned = (nearestLetter === letter);
+              }
+            }
+            if (!isAssigned) return; // Skip Single Point units from other bearings!
+          }
+
           const d = origin.getDist(pos.x, pos.y);
           totalDistSum += d;
           distCount++;
-          return { origin, d };
+          originDists.push({ origin, d });
         });
 
         // Find closest origin (actual assigned connection)
@@ -3198,29 +3577,43 @@
         // Distances row
         let distRowsHtml = '<div style="display: flex; flex-wrap: wrap; gap: 6px; align-items: center;">';
 
-        originDists.forEach(od => {
-          const isClosest = (originDists.length > 1 && od.origin.id === closestOriginId);
-          
-          let statusBg = '#dcfce7';
-          let statusCol = '#166534';
-          let statusBorder = '#86efac';
-          if (od.d > 4.0) {
-            statusBg = '#fee2e2';
-            statusCol = '#991b1b';
-            statusBorder = '#fca5a5';
-          } else if (od.d > 3.0) {
-            statusBg = '#fef3c7';
-            statusCol = '#92400e';
-            statusBorder = '#fde68a';
-          }
+        if (originDists.length === 0) {
+          distRowsHtml += '<span style="font-size: 11px; color: #94a3b8; font-style: italic;">Geen actief smeertoestel direct voor dit lager</span>';
+        } else {
+          originDists.forEach(od => {
+            const isClosest = (originDists.length > 1 && od.origin.id === closestOriginId);
+            
+            if (od.origin.type === 'single_point') {
+              const isDirect = (od.d < 0.15);
+              distRowsHtml += 
+                '<div style="display: inline-flex; align-items: center; gap: 5px; background: ' + (isDirect ? '#dcfce7' : '#fef3c7') + '; border: 1.5px solid ' + (isDirect ? '#86efac' : '#fde68a') + '; border-radius: 5px; padding: 3px 8px; font-size: 11px;">' +
+                  '<span style="font-weight: 800; color: ' + od.origin.color + ';" title="' + od.origin.name + '">' + od.origin.short + ' <small style="font-weight: 700; opacity: 0.9;">Single Point</small>:</span>' +
+                  '<span style="font-weight: 800; color: ' + (isDirect ? '#166534' : '#92400e') + ';">' + (isDirect ? '0,0 m' : (od.d.toFixed(1).replace('.', ',') + ' m')) + '</span>' +
+                  (isDirect ? '<span style="font-size: 9.5px; font-weight: 800; color: #15803d; background: #bbf7d0; padding: 1px 5px; border-radius: 3px;" title="Direct op lager gemonteerd zonder leiding">⭐ Direct op lager</span>' : '<span style="font-size: 9px; font-weight: 800; color: #92400e; background: #fde68a; padding: 1px 4px; border-radius: 3px;">⚠️ Niet direct op lager</span>') +
+                '</div>';
+            } else {
+              let statusBg = '#dcfce7';
+              let statusCol = '#166534';
+              let statusBorder = '#86efac';
+              if (od.d > 4.0) {
+                statusBg = '#fee2e2';
+                statusCol = '#991b1b';
+                statusBorder = '#fca5a5';
+              } else if (od.d > 3.0) {
+                statusBg = '#fef3c7';
+                statusCol = '#92400e';
+                statusBorder = '#fde68a';
+              }
 
-          distRowsHtml += 
-            '<div style="display: inline-flex; align-items: center; gap: 5px; background: ' + statusBg + '; border: 1px solid ' + statusBorder + '; border-radius: 5px; padding: 2px 7px; font-size: 11px;">' +
-              '<span style="font-weight: 700; color: ' + od.origin.color + ';" title="' + od.origin.name + (od.origin.typeName ? (' (' + od.origin.typeName + ')') : '') + '">' + od.origin.short + (od.origin.typeShort ? (' <small style="font-weight: 700; opacity: 0.85;">' + od.origin.typeShort + '</small>') : '') + ':</span>' +
-              '<span style="font-weight: 800; color: ' + statusCol + ';">' + od.d.toFixed(1).replace('.', ',') + ' m</span>' +
-              (isClosest ? '<span style="font-size: 9px; font-weight: 800; color: #15803d; background: #bbf7d0; padding: 1px 4px; border-radius: 3px;" title="Kortste afstand">⭐ Dichtstbij</span>' : '') +
-            '</div>';
-        });
+              distRowsHtml += 
+                '<div style="display: inline-flex; align-items: center; gap: 5px; background: ' + statusBg + '; border: 1px solid ' + statusBorder + '; border-radius: 5px; padding: 2px 7px; font-size: 11px;">' +
+                  '<span style="font-weight: 700; color: ' + od.origin.color + ';" title="' + od.origin.name + (od.origin.typeName ? (' (' + od.origin.typeName + ')') : '') + '">' + od.origin.short + (od.origin.typeShort ? (' <small style="font-weight: 700; opacity: 0.85;">' + od.origin.typeShort + '</small>') : '') + ':</span>' +
+                  '<span style="font-weight: 800; color: ' + statusCol + ';">' + od.d.toFixed(1).replace('.', ',') + ' m</span>' +
+                  (isClosest ? '<span style="font-size: 9px; font-weight: 800; color: #15803d; background: #bbf7d0; padding: 1px 4px; border-radius: 3px;" title="Kortste afstand">⭐ Dichtstbij</span>' : '') +
+                '</div>';
+            }
+          });
+        }
 
         distRowsHtml += '</div>';
 
@@ -3284,20 +3677,35 @@
             });
           }
 
-          // Allocate each bearing to closest active device
+          // Allocate each bearing to closest active device (or assigned device for Single Point)
           bearings.forEach(b => {
             let bestIdx = 0;
             let bestDist = Infinity;
             for (let i = 0; i < numDevices; i++) {
               const dev = activeDevs[i];
+              if (dev.type === 'single_point' && dev.targetBearingLetter) {
+                if (dev.targetBearingLetter === b.letter) {
+                  bestIdx = i;
+                  bestDist = 0;
+                  break;
+                }
+              }
               const d = Math.hypot(b.x - dev.x, b.y - dev.y);
               if (d < bestDist) {
                 bestDist = d;
                 bestIdx = i;
               }
             }
-            deviceConfigs[bestIdx].points += (b.qty || 1);
+            const ptsToAdd = (deviceConfigs[bestIdx].type === 'single_point') ? 1 : (b.qty || 1);
+            deviceConfigs[bestIdx].points += ptsToAdd;
             deviceConfigs[bestIdx].bearingLetters.push(b.letter);
+          });
+
+          // Single Point units strictly have 1 point per device
+          deviceConfigs.forEach(dc => {
+            if (dc.type === 'single_point') {
+              dc.points = Math.min(1, Math.max(1, dc.points));
+            }
           });
         } else if (typeof currentAdviceData !== 'undefined' && currentAdviceData && currentAdviceData.recommended && currentAdviceData.recommended.devices) {
           // If advice was calculated
