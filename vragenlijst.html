@@ -600,6 +600,157 @@
       flex-shrink: 0 !important;
     }
 
+    /* =========================================================================
+       SMART DEVICE ADVICE & AUTO-PLACEMENT STYLES
+       ========================================================================= */
+    .raster-btn-advice {
+      background: linear-gradient(135deg, #059669 0%, #047857 100%);
+      border: 1.5px solid #059669;
+      color: #ffffff !important;
+      font-weight: 800;
+      box-shadow: 0 2px 6px rgba(5, 150, 105, 0.35);
+      padding: 0 12px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
+    .raster-btn-advice:hover {
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      box-shadow: 0 3px 12px rgba(16, 185, 129, 0.5);
+      transform: translateY(-1px);
+    }
+    #rasterInteractiveWrapper.raster-modal-fullscreen .raster-btn-advice {
+      background: linear-gradient(135deg, #059669 0%, #047857 100%) !important;
+      border: 1.5px solid #10b981 !important;
+      color: #ffffff !important;
+      box-shadow: 0 0 12px rgba(16, 185, 129, 0.45) !important;
+    }
+    #rasterInteractiveWrapper.raster-modal-fullscreen .raster-btn-advice:hover {
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+      box-shadow: 0 0 18px rgba(16, 185, 129, 0.65) !important;
+      transform: translateY(-1px) !important;
+    }
+
+    /* Device Advice Modal Styles */
+    .device-advice-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 1000005;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      box-sizing: border-box;
+    }
+    .device-advice-backdrop {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(15, 23, 42, 0.8);
+      backdrop-filter: blur(5px);
+    }
+    .device-advice-card {
+      position: relative;
+      background: #ffffff;
+      width: 100%;
+      max-width: 660px;
+      max-height: 90vh;
+      border-radius: 14px;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4);
+      border: 1.5px solid #cbd5e1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      z-index: 2;
+      animation: advicePopIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    @keyframes advicePopIn {
+      from { opacity: 0; transform: scale(0.95) translateY(8px); }
+      to { opacity: 1; transform: scale(1) translateY(0); }
+    }
+    .device-advice-header {
+      background: #0f172a;
+      color: #ffffff;
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 3px solid #10b981;
+    }
+    .device-advice-title {
+      margin: 0;
+      font-size: 17px;
+      font-weight: 800;
+      letter-spacing: 0.3px;
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .device-advice-subtitle {
+      margin: 3px 0 0 0;
+      font-size: 11.5px;
+      color: #94a3b8;
+    }
+    .device-advice-close-btn {
+      background: transparent;
+      border: none;
+      color: #94a3b8;
+      font-size: 26px;
+      line-height: 1;
+      cursor: pointer;
+      padding: 2px 8px;
+      border-radius: 6px;
+      transition: all 0.15s;
+    }
+    .device-advice-close-btn:hover {
+      color: #ffffff;
+      background: rgba(255, 255, 255, 0.15);
+    }
+    .device-advice-body {
+      padding: 18px 20px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      background: #f8fafc;
+    }
+    .device-advice-footer {
+      background: #ffffff;
+      padding: 14px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-top: 1px solid #e2e8f0;
+      gap: 12px;
+    }
+    .raster-btn-advice-apply {
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      border: 1.5px solid #047857;
+      color: #ffffff;
+      font-size: 13.5px;
+      font-weight: 800;
+      padding: 9px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 4px 14px rgba(16, 185, 129, 0.4);
+      transition: all 0.2s;
+    }
+    .raster-btn-advice-apply:hover {
+      background: linear-gradient(135deg, #059669 0%, #047857 100%);
+      box-shadow: 0 6px 18px rgba(16, 185, 129, 0.55);
+      transform: translateY(-1px);
+    }
   </style>
 </head>
 <body>
@@ -848,6 +999,9 @@
               <button type="button" onclick="addNewDevice()" class="raster-btn raster-btn-add" title="Voeg een extra meetpunt of smeertoestel toe">
                 ➕ Toestel
               </button>
+              <button type="button" onclick="openDeviceAdviceModal()" class="raster-btn raster-btn-advice" title="Automatisch advies voor het optimale aantal en de beste posities van smeertoestellen">
+                💡 Advies & Auto-Plaatsing
+              </button>
             </div>
           </div>
         </div>
@@ -937,7 +1091,38 @@
 
           </div>
 
-        </div>
+          <!-- =========================================================================
+               SMART DEVICE & PLACEMENT ADVICE MODAL
+               ========================================================================= -->
+          <div id="deviceAdviceModal" class="device-advice-overlay" style="display: none;">
+            <div class="device-advice-backdrop" onclick="closeDeviceAdviceModal()"></div>
+            <div class="device-advice-card">
+              <div class="device-advice-header">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                  <span style="font-size: 22px;">💡</span>
+                  <div>
+                    <h3 class="device-advice-title">Slim Toestel- & Plaatsingsadvies</h3>
+                    <p class="device-advice-subtitle">Automatische berekening op basis van max. 8 smeerpunten en minimale leidingafstanden</p>
+                  </div>
+                </div>
+                <button type="button" class="device-advice-close-btn" onclick="closeDeviceAdviceModal()" title="Sluiten (Esc)">&times;</button>
+              </div>
+
+              <div class="device-advice-body" id="deviceAdviceContent">
+                <!-- Dynamically rendered -->
+              </div>
+
+              <div class="device-advice-footer">
+                <button type="button" class="raster-btn raster-btn-secondary" onclick="closeDeviceAdviceModal()" style="height: 38px; padding: 0 16px; font-size: 13px;">
+                  ✕ Sluiten
+                </button>
+                <button type="button" id="btnApplyDeviceAdvice" onclick="applyCurrentDeviceAdvice()" class="raster-btn-advice-apply">
+                  🚀 Advies Toepassen (Auto-Plaatsing)
+                </button>
+              </div>
+            </div>
+          </div>
+
         </div><!-- end #rasterInteractiveWrapper -->
       </div>
 
@@ -1298,6 +1483,511 @@
       renderDeviceFilterPills();
       drawBearingLayout();
       renderDistancesOverview();
+    }
+
+    // =========================================================================
+    // SECTION 3: SMART DEVICE ADVICE & AUTO-PLACEMENT ALGORITHMIC ENGINE
+    // =========================================================================
+    let currentAdviceData = null;
+    let currentChosenK = null;
+
+    // Geometric minimax center (Fermat-Weber / bounding center refinement)
+    function findMinimaxCenter(pts) {
+      if (!pts || pts.length === 0) return { x: 0, y: 0, maxDist: 0 };
+      if (pts.length === 1) return { x: pts[0].x, y: pts[0].y, maxDist: 0 };
+
+      let cx = pts.reduce((s, p) => s + p.x, 0) / pts.length;
+      let cy = pts.reduce((s, p) => s + p.y, 0) / pts.length;
+
+      let bestX = cx, bestY = cy;
+      let bestMax = Math.max(...pts.map(p => Math.hypot(p.x - cx, p.y - cy)));
+
+      let step = 0.5;
+      for (let iter = 0; iter < 35; iter++) {
+        let improved = false;
+        const dirs = [
+          [step, 0], [-step, 0], [0, step], [0, -step],
+          [step * 0.7, step * 0.7], [-step * 0.7, step * 0.7],
+          [step * 0.7, -step * 0.7], [-step * 0.7, -step * 0.7]
+        ];
+        for (const [dx, dy] of dirs) {
+          const nx = bestX + dx;
+          const ny = bestY + dy;
+          const m = Math.max(...pts.map(p => Math.hypot(p.x - nx, p.y - ny)));
+          if (m < bestMax) {
+            bestMax = m;
+            bestX = nx;
+            bestY = ny;
+            improved = true;
+          }
+        }
+        if (!improved) step *= 0.5;
+        if (step < 0.01) break;
+      }
+
+      return {
+        x: Math.round(bestX * 10) / 10,
+        y: Math.round(bestY * 10) / 10,
+        maxDist: Math.round(bestMax * 10) / 10
+      };
+    }
+
+    // Constrained clustering for K devices with max capacity = 8 points per device
+    function solveForK(bearings, K, maxCapacity = 8) {
+      const N = bearings.length;
+      if (N === 0) return null;
+      if (K === 1) {
+        if (N > maxCapacity) return null; // Exceeds capacity
+        const center = findMinimaxCenter(bearings);
+        return {
+          K: 1,
+          devices: [{
+            deviceIndex: 0,
+            x: center.x,
+            y: center.y,
+            bearings: bearings.map(b => ({ ...b, dist: Math.round(Math.hypot(b.x - center.x, b.y - center.y) * 10) / 10 })),
+            maxDist: center.maxDist
+          }],
+          maxDist: center.maxDist,
+          avgDist: Math.round((bearings.reduce((s, b) => s + Math.hypot(b.x - center.x, b.y - center.y), 0) / N) * 10) / 10
+        };
+      }
+
+      let bestSolution = null;
+
+      for (let restart = 0; restart < 25; restart++) {
+        let centers = [];
+        if (restart === 0) {
+          const sorted = [...bearings].sort((a, b) => a.x - b.x);
+          for (let k = 0; k < K; k++) {
+            const idx = Math.min(N - 1, Math.floor((k + 0.5) * (N / K)));
+            centers.push({ x: sorted[idx].x, y: sorted[idx].y });
+          }
+        } else if (restart === 1) {
+          const sorted = [...bearings].sort((a, b) => a.y - b.y);
+          for (let k = 0; k < K; k++) {
+            const idx = Math.min(N - 1, Math.floor((k + 0.5) * (N / K)));
+            centers.push({ x: sorted[idx].x, y: sorted[idx].y });
+          }
+        } else {
+          const shuffled = [...bearings].sort(() => Math.random() - 0.5);
+          centers = shuffled.slice(0, K).map(p => ({ x: p.x, y: p.y }));
+        }
+
+        let clusters = Array.from({ length: K }, () => []);
+
+        for (let iter = 0; iter < 20; iter++) {
+          clusters = Array.from({ length: K }, () => []);
+
+          bearings.forEach(b => {
+            let bestK = 0;
+            let minDist = Infinity;
+            centers.forEach((c, idx) => {
+              const d = Math.hypot(b.x - c.x, b.y - c.y);
+              if (d < minDist) {
+                minDist = d;
+                bestK = idx;
+              }
+            });
+            clusters[bestK].push(b);
+          });
+
+          // Capacity constraint repair: if any cluster > maxCapacity
+          let overflow = true;
+          let repairAttempts = 0;
+          while (overflow && repairAttempts < 15) {
+            overflow = false;
+            repairAttempts++;
+            for (let i = 0; i < K; i++) {
+              if (clusters[i].length > maxCapacity) {
+                overflow = true;
+                let bestTransfer = null;
+                let bestCostIncrease = Infinity;
+
+                clusters[i].forEach((pt, ptIdx) => {
+                  const currentDist = Math.hypot(pt.x - centers[i].x, pt.y - centers[i].y);
+                  for (let j = 0; j < K; j++) {
+                    if (i !== j && clusters[j].length < maxCapacity) {
+                      const newDist = Math.hypot(pt.x - centers[j].x, pt.y - centers[j].y);
+                      const cost = newDist - currentDist;
+                      if (cost < bestCostIncrease) {
+                        bestCostIncrease = cost;
+                        bestTransfer = { ptIdx, from: i, to: j };
+                      }
+                    }
+                  }
+                });
+
+                if (bestTransfer) {
+                  const [moved] = clusters[bestTransfer.from].splice(bestTransfer.ptIdx, 1);
+                  clusters[bestTransfer.to].push(moved);
+                }
+              }
+            }
+          }
+
+          clusters.forEach((cl) => {
+            if (cl.length === 0) {
+              let maxLenIdx = 0;
+              clusters.forEach((c2, i2) => { if (c2.length > clusters[maxLenIdx].length) maxLenIdx = i2; });
+              if (clusters[maxLenIdx].length > 1) {
+                cl.push(clusters[maxLenIdx].pop());
+              }
+            }
+          });
+
+          centers = clusters.map(cl => {
+            const mc = findMinimaxCenter(cl);
+            return { x: mc.x, y: mc.y };
+          });
+        }
+
+        const deviceResults = clusters.map((cl, idx) => {
+          const mc = findMinimaxCenter(cl);
+          const bDetails = cl.map(b => ({
+            ...b,
+            dist: Math.round(Math.hypot(b.x - mc.x, b.y - mc.y) * 10) / 10
+          }));
+          return {
+            deviceIndex: idx,
+            x: mc.x,
+            y: mc.y,
+            bearings: bDetails,
+            maxDist: mc.maxDist
+          };
+        });
+
+        const maxDist = Math.max(...deviceResults.map(d => d.maxDist));
+        const allDists = deviceResults.flatMap(d => d.bearings.map(b => b.dist));
+        const avgDist = Math.round((allDists.reduce((s, v) => s + v, 0) / N) * 10) / 10;
+
+        const solution = {
+          K,
+          devices: deviceResults,
+          maxDist,
+          avgDist
+        };
+
+        if (!bestSolution || solution.maxDist < bestSolution.maxDist || (solution.maxDist === bestSolution.maxDist && solution.avgDist < bestSolution.avgDist)) {
+          bestSolution = solution;
+        }
+      }
+
+      return bestSolution;
+    }
+
+    // High-level smart advice engine
+    function getSmartDeviceAdvice(bearings) {
+      const N = bearings.length;
+      if (N === 0) return { error: 'Geen lagers opgegeven' };
+
+      const K_cap = Math.max(1, Math.ceil(N / 8));
+      const solCap = solveForK(bearings, K_cap, 8);
+
+      let solExtra = null;
+      if (K_cap < 5) {
+        solExtra = solveForK(bearings, K_cap + 1, 8);
+      }
+
+      let recommended = solCap;
+      let reasonType = 'capacity_ok';
+      let explanation = '';
+
+      if (K_cap === 1) {
+        if (solCap.maxDist <= 3.0) {
+          reasonType = 'ideal_single';
+          explanation = `Met 1 toestel blijven alle ${N} smeerpunten binnen de ideale leidingafstand (max. ${solCap.maxDist.toFixed(1).replace('.', ',')} m ≤ 3 m). Dit is de meest efficiënte en voordelige opstelling.`;
+        } else {
+          if (solExtra && (solCap.maxDist > 3.5 || (solCap.maxDist > 3.0 && solExtra.maxDist <= 3.0))) {
+            recommended = solExtra;
+            reasonType = 'split_distance_warning';
+            explanation = `Hoewel 1 toestel qua capaciteit volstaat (≤ 8 punten), loopt de maximale leidingafstand bij 1 centraal punt op tot ${solCap.maxDist.toFixed(1).replace('.', ',')} m. We adviseren daarom 2 toestellen, waardoor alle leidingen maximaal ${solExtra.maxDist.toFixed(1).replace('.', ',')} m worden (ruim binnen de veilige zone van 3 m, minimale tegendruk).`;
+          } else {
+            reasonType = 'acceptable_single';
+            explanation = `1 toestel volstaat voor deze machine. De maximale leidingafstand bedraagt ${solCap.maxDist.toFixed(1).replace('.', ',')} m (binnen aanvaardbare grens van 4 m).`;
+          }
+        }
+      } else {
+        if (solCap.maxDist <= 3.0) {
+          reasonType = 'capacity_multi_ideal';
+          explanation = `Gezien het aantal lagers (${N} smeerpunten) zijn minimaal ${K_cap} toestellen vereist (max. 8 punten per unit). Alle leidingafstanden blijven binnen de ideale ${solCap.maxDist.toFixed(1).replace('.', ',')} m.`;
+        } else if (solExtra && solCap.maxDist > 3.5) {
+          recommended = solExtra;
+          reasonType = 'capacity_multi_split';
+          explanation = `Bij ${K_cap} toestellen loopt de leidingafstand op tot ${solCap.maxDist.toFixed(1).replace('.', ',')} m. Met ${K_cap + 1} toestellen daalt deze naar ${solExtra.maxDist.toFixed(1).replace('.', ',')} m voor optimale smeerzekerheid.`;
+        } else {
+          reasonType = 'capacity_multi_ok';
+          explanation = `Minimaal ${K_cap} toestellen vereist voor ${N} smeerpunten (max. 8 ptn/unit). Maximale leidingafstand is ${solCap.maxDist.toFixed(1).replace('.', ',')} m.`;
+        }
+      }
+
+      return {
+        N,
+        K_cap,
+        solCap,
+        solExtra,
+        recommended,
+        reasonType,
+        explanation
+      };
+    }
+
+    function openDeviceAdviceModal() {
+      const rows = document.querySelectorAll('.bearing-row');
+      const bearings = [];
+
+      rows.forEach((r, idx) => {
+        const letter = r.getAttribute('data-letter') || (LETTERS[idx] || ('L' + (idx+1)));
+        const pos = bearingPositions[letter] || { x: 0, y: 0 };
+        const nrIn = r.querySelector('.bearing-nr-input');
+        const nr = nrIn && nrIn.value ? nrIn.value.trim() : ('Lager ' + letter);
+        const descIn = r.querySelector('.bearing-desc-input');
+        const desc = descIn && descIn.value ? descIn.value.trim() : '';
+        bearings.push({ letter, nr, desc, x: pos.x, y: pos.y });
+      });
+
+      if (bearings.length === 0) {
+        alert('Er zijn nog geen lagers ingevoerd. Voeg eerst minimaal 1 lager toe onder stap 2.');
+        return;
+      }
+
+      const advice = getSmartDeviceAdvice(bearings);
+      currentAdviceData = advice;
+      currentChosenK = advice.recommended ? advice.recommended.K : advice.K_cap;
+
+      renderDeviceAdviceContent(advice, currentChosenK);
+
+      const modal = document.getElementById('deviceAdviceModal');
+      if (modal) modal.style.display = 'flex';
+    }
+
+    function closeDeviceAdviceModal() {
+      const modal = document.getElementById('deviceAdviceModal');
+      if (modal) modal.style.display = 'none';
+    }
+
+    function selectAdviceOption(k) {
+      currentChosenK = k;
+      if (currentAdviceData) {
+        renderDeviceAdviceContent(currentAdviceData, currentChosenK);
+      }
+    }
+
+    function renderDeviceAdviceContent(advice, chosenK) {
+      const container = document.getElementById('deviceAdviceContent');
+      const applyBtn = document.getElementById('btnApplyDeviceAdvice');
+      if (!container) return;
+
+      if (!advice || advice.error || !advice.recommended) {
+        container.innerHTML = `
+          <div style="padding: 28px 16px; text-align: center; color: #64748b; background: #ffffff; border-radius: 10px; border: 1.5px dashed #cbd5e1;">
+            <div style="font-size: 32px; margin-bottom: 8px;">⚙️</div>
+            <h4 style="margin: 0 0 6px 0; color: #0f172a; font-size: 15px; font-weight: 700;">Geen lagers gevonden</h4>
+            <p style="margin: 0; font-size: 12.5px; line-height: 1.5;">Voeg eerst minimaal 1 lager toe aan de machine om een advies te berekenen.</p>
+          </div>
+        `;
+        if (applyBtn) applyBtn.disabled = true;
+        return;
+      }
+
+      const sol = (advice.solCap && advice.solCap.K === chosenK) ? advice.solCap :
+                  (advice.solExtra && advice.solExtra.K === chosenK) ? advice.solExtra :
+                  advice.recommended;
+
+      // 1. Banner style & title
+      let bannerIcon = '🟢';
+      let bannerTitle = 'Aanbevolen Smeerplan';
+      let bannerBg = '#ecfdf5';
+      let bannerBorder = '#a7f3d0';
+      let bannerText = '#065f46';
+
+      if (advice.reasonType === 'split_distance_warning') {
+        if (chosenK === advice.solExtra?.K) {
+          bannerIcon = '✨';
+          bannerTitle = `Advies: ${chosenK} Toestellen (Voorkomt te lange leidingen)`;
+          bannerBg = '#f0fdf4';
+          bannerBorder = '#86efac';
+          bannerText = '#14532d';
+        } else {
+          bannerIcon = '⚠️';
+          bannerTitle = `Minimaal: ${chosenK} Toestel (Let op: langere afstanden)`;
+          bannerBg = '#fffbeb';
+          bannerBorder = '#fde68a';
+          bannerText = '#78350f';
+        }
+      } else if (advice.reasonType.includes('capacity')) {
+        bannerIcon = '🔵';
+        bannerTitle = `${chosenK} Toestellen vereist (Capaciteit: max. 8 ptn/unit)`;
+        bannerBg = '#eff6ff';
+        bannerBorder = '#bfdbfe';
+        bannerText = '#1e3a8a';
+      } else {
+        bannerIcon = '🟢';
+        bannerTitle = `Ideale opstelling met ${chosenK} Toestel (Alle leidingen ≤ 3m)`;
+        bannerBg = '#ecfdf5';
+        bannerBorder = '#a7f3d0';
+        bannerText = '#065f46';
+      }
+
+      // 2. Tabs to toggle between Minimum and Recommended options (if available)
+      let tabsHtml = '';
+      if (advice.solCap && advice.solExtra) {
+        const isCapActive = (chosenK === advice.solCap.K);
+        const isExtraActive = (chosenK === advice.solExtra.K);
+        tabsHtml = `
+          <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+            <button type="button" onclick="selectAdviceOption(${advice.solCap.K})" style="flex: 1; min-width: 220px; padding: 10px 14px; border-radius: 8px; font-family: 'Outfit', sans-serif; cursor: pointer; text-align: left; transition: all 0.2s; ${isCapActive ? 'background: #eff6ff; border: 2px solid #2563EB; box-shadow: 0 2px 8px rgba(37,99,235,0.2);' : 'background: #ffffff; border: 1.5px solid #cbd5e1;'}">
+              <div style="display: flex; align-items: center; justify-content: space-between;">
+                <span style="font-weight: 800; font-size: 13px; color: ${isCapActive ? '#1d4ed8' : '#334155'};">
+                  ${advice.solCap.K} Toestel${advice.solCap.K > 1 ? 'len' : ''}
+                </span>
+                <span style="font-size: 10.5px; font-weight: 700; padding: 2px 6px; border-radius: 4px; ${advice.recommended.K === advice.solCap.K ? 'background: #dcfce7; color: #166534;' : 'background: #f1f5f9; color: #475569;'}">
+                  ${advice.recommended.K === advice.solCap.K ? '✨ Aanbevolen' : 'Minimaal'}
+                </span>
+              </div>
+              <div style="font-size: 11.5px; color: #64748b; margin-top: 3px;">
+                Max. leidingafstand: <strong style="color: ${advice.solCap.maxDist <= 3 ? '#166534' : advice.solCap.maxDist <= 4 ? '#b45309' : '#991b1b'};">${advice.solCap.maxDist.toFixed(1).replace('.', ',')} m</strong>
+              </div>
+            </button>
+            <button type="button" onclick="selectAdviceOption(${advice.solExtra.K})" style="flex: 1; min-width: 220px; padding: 10px 14px; border-radius: 8px; font-family: 'Outfit', sans-serif; cursor: pointer; text-align: left; transition: all 0.2s; ${isExtraActive ? 'background: #eff6ff; border: 2px solid #2563EB; box-shadow: 0 2px 8px rgba(37,99,235,0.2);' : 'background: #ffffff; border: 1.5px solid #cbd5e1;'}">
+              <div style="display: flex; align-items: center; justify-content: space-between;">
+                <span style="font-weight: 800; font-size: 13px; color: ${isExtraActive ? '#1d4ed8' : '#334155'};">
+                  ${advice.solExtra.K} Toestellen
+                </span>
+                <span style="font-size: 10.5px; font-weight: 700; padding: 2px 6px; border-radius: 4px; ${advice.recommended.K === advice.solExtra.K ? 'background: #dcfce7; color: #166534;' : 'background: #f1f5f9; color: #475569;'}">
+                  ${advice.recommended.K === advice.solExtra.K ? '✨ Aanbevolen' : 'Extra unit'}
+                </span>
+              </div>
+              <div style="font-size: 11.5px; color: #64748b; margin-top: 3px;">
+                Max. leidingafstand: <strong style="color: ${advice.solExtra.maxDist <= 3 ? '#166534' : advice.solExtra.maxDist <= 4 ? '#b45309' : '#991b1b'};">${advice.solExtra.maxDist.toFixed(1).replace('.', ',')} m</strong>
+              </div>
+            </button>
+          </div>
+        `;
+      }
+
+      // 3. KPI Grid
+      const kpiHtml = `
+        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;">
+          <div style="background: #ffffff; padding: 10px 12px; border-radius: 8px; border: 1px solid #e2e8f0; text-align: center;">
+            <span style="font-size: 10.5px; color: #64748b; font-weight: 700; text-transform: uppercase;">Lagers</span>
+            <div style="font-size: 17px; font-weight: 800; color: #0f172a; margin-top: 2px;">${advice.N}</div>
+          </div>
+          <div style="background: #ffffff; padding: 10px 12px; border-radius: 8px; border: 1px solid #e2e8f0; text-align: center;">
+            <span style="font-size: 10.5px; color: #64748b; font-weight: 700; text-transform: uppercase;">Toestellen</span>
+            <div style="font-size: 17px; font-weight: 800; color: #2563eb; margin-top: 2px;">${chosenK}</div>
+          </div>
+          <div style="background: #ffffff; padding: 10px 12px; border-radius: 8px; border: 1px solid #e2e8f0; text-align: center;">
+            <span style="font-size: 10.5px; color: #64748b; font-weight: 700; text-transform: uppercase;">Max. Afstand</span>
+            <div style="font-size: 17px; font-weight: 800; color: ${sol.maxDist <= 3.0 ? '#166534' : sol.maxDist <= 4.0 ? '#b45309' : '#dc2626'}; margin-top: 2px;">
+              ${sol.maxDist.toFixed(1).replace('.', ',')} m
+            </div>
+          </div>
+          <div style="background: #ffffff; padding: 10px 12px; border-radius: 8px; border: 1px solid #e2e8f0; text-align: center;">
+            <span style="font-size: 10.5px; color: #64748b; font-weight: 700; text-transform: uppercase;">Gem. Afstand</span>
+            <div style="font-size: 17px; font-weight: 800; color: #0f172a; margin-top: 2px;">
+              ${sol.avgDist.toFixed(1).replace('.', ',')} m
+            </div>
+          </div>
+        </div>
+      `;
+
+      // 4. Device cards breakdown
+      let devCardsHtml = '<div style="display: flex; flex-direction: column; gap: 10px;">';
+      sol.devices.forEach((dev, idx) => {
+        const pal = DEVICE_PALETTES[idx % DEVICE_PALETTES.length];
+        const bChips = dev.bearings.map(b => {
+          const color = b.dist <= 3.0 ? '#166534' : b.dist <= 4.0 ? '#92400e' : '#991b1b';
+          const bg = b.dist <= 3.0 ? '#dcfce7' : b.dist <= 4.0 ? '#fef3c7' : '#fee2e2';
+          return `<span style="background: ${bg}; color: ${color}; padding: 2px 7px; border-radius: 5px; font-size: 11px; font-weight: 700; display: inline-flex; align-items: center; gap: 4px;">
+            <strong>${b.letter}</strong>: ${b.dist.toFixed(1).replace('.', ',')} m
+          </span>`;
+        }).join('');
+
+        devCardsHtml += `
+          <div style="background: #ffffff; border: 1.5px solid #e2e8f0; border-left: 4px solid ${pal.color}; border-radius: 8px; padding: 12px 14px; box-shadow: 0 1px 3px rgba(0,0,0,0.03);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap; gap: 6px;">
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="background: ${pal.badgeBg}; color: ${pal.badgeText}; font-weight: 800; font-size: 12px; padding: 2px 8px; border-radius: 5px;">Toestel ${dev.deviceIndex + 1} (T${dev.deviceIndex + 1})</span>
+                <span style="font-size: 11.5px; color: #64748b; font-family: monospace;">Positie: X: ${dev.x >= 0 ? '+' : ''}${dev.x}m, Y: ${dev.y >= 0 ? '+' : ''}${dev.y}m</span>
+              </div>
+              <span style="font-size: 11.5px; font-weight: 700; color: #475569;">
+                Capaciteit: <strong>${dev.bearings.length} / 8</strong> smeerpunten
+              </span>
+            </div>
+            <div style="display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-bottom: 8px;">
+              <span style="font-size: 11.5px; color: #64748b; font-weight: 600;">Verbonden:</span>
+              ${bChips}
+            </div>
+            <div style="display: flex; justify-content: space-between; font-size: 11px; color: #64748b; border-top: 1px solid #f1f5f9; padding-top: 6px;">
+              <span>Langste leiding: <strong style="color: ${dev.maxDist <= 3 ? '#166534' : dev.maxDist <= 4 ? '#92400e' : '#991b1b'};">${dev.maxDist.toFixed(1).replace('.', ',')} m</strong></span>
+              <span style="color: #10b981; font-weight: 700;">✓ Berekend zwaartepunt</span>
+            </div>
+          </div>
+        `;
+      });
+      devCardsHtml += '</div>';
+
+      container.innerHTML = `
+        <div style="background: ${bannerBg}; border: 1.5px solid ${bannerBorder}; border-radius: 10px; padding: 12px 14px;">
+          <div style="display: flex; align-items: center; gap: 8px; font-weight: 800; font-size: 13.5px; color: ${bannerText};">
+            <span>${bannerIcon}</span>
+            <span>${bannerTitle}</span>
+          </div>
+          <p style="margin: 6px 0 0 0; font-size: 12px; color: ${bannerText}; opacity: 0.9; line-height: 1.45;">
+            ${advice.explanation}
+          </p>
+        </div>
+        ${tabsHtml}
+        ${kpiHtml}
+        ${devCardsHtml}
+      `;
+
+      if (applyBtn) {
+        applyBtn.disabled = false;
+        applyBtn.innerHTML = `🚀 Advies Toepassen (${chosenK} Toestel${chosenK > 1 ? 'len' : ''})`;
+      }
+    }
+
+    function applyCurrentDeviceAdvice() {
+      if (!currentAdviceData || !currentChosenK) return;
+      const sol = (currentAdviceData.solCap && currentAdviceData.solCap.K === currentChosenK) ? currentAdviceData.solCap :
+                  (currentAdviceData.solExtra && currentAdviceData.solExtra.K === currentChosenK) ? currentAdviceData.solExtra :
+                  currentAdviceData.recommended;
+      if (!sol || !sol.devices) return;
+
+      // Update devices array to match the recommended solution
+      const newDevices = [];
+      sol.devices.forEach((dev, idx) => {
+        const palIdx = idx % DEVICE_PALETTES.length;
+        newDevices.push({
+          id: 'dev-' + (idx + 1),
+          name: 'Toestel ' + (idx + 1),
+          short: 'T' + (idx + 1),
+          x: dev.x,
+          y: dev.y,
+          active: true,
+          paletteIndex: palIdx
+        });
+      });
+
+      devices = newDevices;
+      showCentralPoint = false; // Focus directly on the placed automatic lubrication devices
+
+      renderDeviceFilterPills();
+      drawBearingLayout();
+      renderDistancesOverview();
+      closeDeviceAdviceModal();
+
+      // Show temporary notification in canvas zoom label
+      const infoEl = document.getElementById('canvasZoomInfo');
+      if (infoEl) {
+        const origText = infoEl.textContent;
+        infoEl.innerHTML = `<span style="color: #10b981; font-weight: 800;">✅ ${devices.length} Toestel${devices.length > 1 ? 'len' : ''} succesvol geplaatst!</span>`;
+        setTimeout(() => {
+          infoEl.textContent = origText;
+        }, 4500);
+      }
     }
 
     const LETTERS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'];
@@ -2183,11 +2873,10 @@
           const d = origin.getDist(pos.x, pos.y);
           totalDistSum += d;
           distCount++;
-          if (d > overallMaxDist) overallMaxDist = d;
           return { origin, d };
         });
 
-        // Find closest origin
+        // Find closest origin (actual assigned connection)
         let minD = Infinity;
         let closestOriginId = null;
         originDists.forEach(od => {
@@ -2196,6 +2885,10 @@
             closestOriginId = od.origin.id;
           }
         });
+
+        if (minD < Infinity && minD > overallMaxDist) {
+          overallMaxDist = minD;
+        }
 
         const card = document.createElement('div');
         card.style.cssText = 'background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 8px; padding: 10px 12px; display: flex; flex-direction: column; gap: 8px; transition: all 0.2s; cursor: pointer;';
@@ -2266,7 +2959,15 @@
       if (badgeEl) badgeEl.textContent = rows.length + (rows.length === 1 ? ' Lager' : ' Lagers');
 
       const maxEl = document.getElementById('statMaxDistance');
-      if (maxEl) maxEl.textContent = distCount > 0 ? (overallMaxDist.toFixed(1).replace('.', ',') + ' m') : '-';
+      if (maxEl) {
+        if (distCount > 0) {
+          maxEl.textContent = overallMaxDist.toFixed(1).replace('.', ',') + ' m';
+          maxEl.style.color = overallMaxDist <= 3.0 ? '#166534' : overallMaxDist <= 4.0 ? '#92400e' : '#991b1b';
+        } else {
+          maxEl.textContent = '-';
+          maxEl.style.color = '#0f172a';
+        }
+      }
     }
 
     let activeBearingSec2 = 'A';
@@ -2979,8 +3680,16 @@
 
     // Close on Escape key
     window.addEventListener('keydown', function(e) {
-      if (e.key === 'Escape' && isRasterFullscreen) {
-        toggleRasterFullscreen(false);
+      if (e.key === 'Escape') {
+        const advModal = document.getElementById('deviceAdviceModal');
+        if (advModal && advModal.style.display !== 'none') {
+          closeDeviceAdviceModal();
+          e.stopPropagation();
+          return;
+        }
+        if (isRasterFullscreen) {
+          toggleRasterFullscreen(false);
+        }
       }
     });
 
