@@ -2243,6 +2243,7 @@
       drawBearingLayout();
       renderDistancesOverview();
       closeDeviceAdviceModal();
+      saveRasterConfigToLocalStorage();
 
       // Show temporary notification in canvas zoom label
       const infoEl = document.getElementById('canvasZoomInfo');
@@ -3240,7 +3241,133 @@
           maxEl.style.color = '#0f172a';
         }
       }
+
+      // Automatically sync latest raster device configuration to localStorage
+      saveRasterConfigToLocalStorage();
     }
+
+    // --- SAVE RASTER CONFIGURATION FOR AUTOMATION IMPORT ---
+    function saveRasterConfigToLocalStorage() {
+      try {
+        const rows = document.querySelectorAll('.bearing-row');
+        const bearings = [];
+        rows.forEach((r, idx) => {
+          const letter = r.getAttribute('data-letter') || (LETTERS[idx] || ('L' + (idx + 1)));
+          const pos = (typeof bearingPositions !== 'undefined' && bearingPositions[letter]) ? bearingPositions[letter] : { x: 0, y: 0 };
+          const qtyIn = r.querySelector('.bearing-qty-input');
+          const qty = qtyIn ? (parseInt(qtyIn.value, 10) || 1) : 1;
+          const nrIn = r.querySelector('.bearing-nr-input');
+          const nr = nrIn && nrIn.value ? nrIn.value.trim() : ('Lager ' + letter);
+          bearings.push({ letter, nr, x: pos.x, y: pos.y, qty });
+        });
+
+        if (bearings.length === 0) return null;
+
+        // Check active devices
+        let activeDevs = (typeof devices !== 'undefined' && Array.isArray(devices)) ? devices.filter(d => d.active) : [];
+
+        let numDevices = 1;
+        let deviceConfigs = [];
+
+        if (activeDevs.length > 0) {
+          numDevices = Math.min(4, Math.max(1, activeDevs.length));
+          for (let i = 0; i < numDevices; i++) {
+            const dev = activeDevs[i];
+            deviceConfigs.push({
+              index: i,
+              id: String.fromCharCode(65 + i), // A, B, C, D
+              surveyId: dev.id,
+              name: dev.name,
+              type: dev.type || 'pulsarlube_m2',
+              points: 0,
+              bearingLetters: []
+            });
+          }
+
+          // Allocate each bearing to closest active device
+          bearings.forEach(b => {
+            let bestIdx = 0;
+            let bestDist = Infinity;
+            for (let i = 0; i < numDevices; i++) {
+              const dev = activeDevs[i];
+              const d = Math.hypot(b.x - dev.x, b.y - dev.y);
+              if (d < bestDist) {
+                bestDist = d;
+                bestIdx = i;
+              }
+            }
+            deviceConfigs[bestIdx].points += (b.qty || 1);
+            deviceConfigs[bestIdx].bearingLetters.push(b.letter);
+          });
+        } else if (typeof currentAdviceData !== 'undefined' && currentAdviceData && currentAdviceData.recommended && currentAdviceData.recommended.devices) {
+          // If advice was calculated
+          const sol = (currentAdviceData.solCap && currentAdviceData.solCap.K === currentChosenK) ? currentAdviceData.solCap :
+                      (currentAdviceData.solExtra && currentAdviceData.solExtra.K === currentChosenK) ? currentAdviceData.solExtra :
+                      currentAdviceData.recommended;
+          numDevices = Math.min(4, Math.max(1, sol.devices.length));
+          for (let i = 0; i < numDevices; i++) {
+            const dev = sol.devices[i];
+            const bLetters = dev.bearings ? dev.bearings.map(b => b.letter) : [];
+            const pts = bLetters.length > 0 ? bLetters.length : 1;
+            deviceConfigs.push({
+              index: i,
+              id: String.fromCharCode(65 + i),
+              surveyId: 'dev-' + (i + 1),
+              name: 'Toestel ' + (i + 1),
+              type: (devices && devices[i] && devices[i].type) || 'pulsarlube_m2',
+              points: pts,
+              bearingLetters: bLetters
+            });
+          }
+        } else {
+          // Fallback: no devices active yet and no advice generated yet
+          const totalPoints = bearings.reduce((acc, b) => acc + (b.qty || 1), 0);
+          numDevices = Math.min(4, Math.max(1, Math.ceil(totalPoints / 8)));
+          
+          for (let i = 0; i < numDevices; i++) {
+            deviceConfigs.push({
+              index: i,
+              id: String.fromCharCode(65 + i),
+              surveyId: 'dev-' + (i + 1),
+              name: 'Toestel ' + (i + 1),
+              type: (devices && devices[i] && devices[i].type) || 'pulsarlube_m2',
+              points: 0,
+              bearingLetters: []
+            });
+          }
+          
+          bearings.forEach((b, bIdx) => {
+            const targetDevIdx = bIdx % numDevices;
+            deviceConfigs[targetDevIdx].points += (b.qty || 1);
+            deviceConfigs[targetDevIdx].bearingLetters.push(b.letter);
+          });
+        }
+
+        // Clamp points between 1 and 8 for each device
+        deviceConfigs.forEach(dc => {
+          dc.points = Math.min(8, Math.max(1, dc.points));
+        });
+
+        const machineNameInput = document.getElementById('q1');
+        const machineName = machineNameInput && machineNameInput.value ? machineNameInput.value.trim() : 'Machine';
+
+        const configToSave = {
+          timestamp: Date.now(),
+          machineName: machineName,
+          numDevices: numDevices,
+          devices: deviceConfigs,
+          totalBearings: bearings.length
+        };
+
+        localStorage.setItem('interflon_survey_raster_config', JSON.stringify(configToSave));
+        window.currentSurveyRasterConfig = configToSave;
+        return configToSave;
+      } catch (e) {
+        console.warn('Could not save survey raster config to localStorage', e);
+        return null;
+      }
+    }
+    window.saveRasterConfigToLocalStorage = saveRasterConfigToLocalStorage;
 
     let activeBearingSec2 = 'A';
     let activeBearingSec3 = 'A';
@@ -4063,7 +4190,8 @@
           sec3: activeBearingSec3,
           sec4: activeBearingSec4
         },
-        raster: rasterData
+        raster: rasterData,
+        surveyRasterConfig: (typeof saveRasterConfigToLocalStorage === 'function' ? saveRasterConfigToLocalStorage() : null)
       };
 
       const jsonStr = JSON.stringify(exportPackage, null, 2);
@@ -4417,6 +4545,7 @@
       saveCurrentSection3Data();
       saveCurrentSection4Data();
       updateBearingLettersAndDropdown();
+      if (typeof saveRasterConfigToLocalStorage === 'function') saveRasterConfigToLocalStorage();
     }
 
     // --- SECTION 2 HANDLERS ---
