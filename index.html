@@ -8,7 +8,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <link rel="stylesheet" href="style.css?v=20260905_1158">
+  <link rel="stylesheet" href="style.css?v=20260905_1737">
 </head>
 <body>
 
@@ -487,7 +487,7 @@
         </button>
       </div>
       
-      <nav style="flex: 1;">
+      <nav class="sidebar-nav">
         <ul class="sidebar-menu">
           <li>
             <button type="button" id="menuSearch" class="menu-item-btn active" onclick="switchPage('search')">
@@ -538,42 +538,42 @@
               <span data-i18n="menuInfo">Informatie</span>
             </button>
           </li>
-          <li style="padding: 2px 16px 6px 16px; display: flex; gap: 6px;">
-            <a href="vragenlijst.html" onclick="openSurveyLink(event)" target="_blank" class="menu-item-btn" style="flex: 1; text-decoration: none; display: flex; align-items: center; gap: 10px; color: #0f172a; background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 10px; padding: 10px 12px;">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width: 18px; height: 18px; color: #E30613;">
+          <li style="padding: 2px 12px 4px 12px; display: flex; gap: 6px;">
+            <a href="vragenlijst.html" onclick="openSurveyLink(event)" target="_blank" class="menu-item-btn" style="flex: 1; text-decoration: none; display: flex; align-items: center; gap: 8px; color: #0f172a; background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 8px; padding: 8px 10px;">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width: 17px; height: 17px; color: #E30613; flex-shrink: 0;">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5.586a1 1 0 0 1 .707.293l5.414 5.414a1 1 0 0 1 .293.707V19a2 2 0 0 1-2 2Z" />
               </svg>
-              <span style="font-weight: 700; font-size: 12.5px;" data-i18n="menuVragenlijst">Vragenlijst</span>
+              <span style="font-weight: 700; font-size: 12px;" data-i18n="menuVragenlijst">Vragenlijst</span>
             </a>
-            <button type="button" onclick="copySurveyLink()" title="Kopieer unieke link voor uw klant" style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 10px; padding: 0 10px; cursor: pointer; display: flex; align-items: center; justify-content: center;">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width: 18px; height: 18px; color: #E30613;">
+            <button type="button" onclick="copySurveyLink()" title="Kopieer unieke link voor uw klant" style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 8px; padding: 0 8px; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width: 17px; height: 17px; color: #E30613;">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M15.666 3.888A2.25 2.25 0 0 0 13.5 2.25h-3c-1.03 0-1.9.693-2.166 1.638m7.332 0c.055.194.084.4.084.612v0a.75.75 0 0 1-.75.75H9a.75.75 0 0 1-.75-.75v0c0-.212.03-.418.084-.612m7.332 0c.646.049 1.288.11 1.927.184 1.1.128 1.907 1.077 1.907 2.185V19.5a2.25 2.25 0 0 1-2.25 2.25H6.75A2.25 2.25 0 0 1 4.5 19.5V6.257c0-1.108.806-2.057 1.907-2.185a48.208 48.208 0 0 1 1.927-.184" />
               </svg>
             </button>
-            <button type="button" onclick="printSurveyPage()" title="Vragenlijst afdrukken" style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 10px; padding: 0 10px; cursor: pointer; display: flex; align-items: center; justify-content: center;">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width: 18px; height: 18px; color: #E30613;">
+            <button type="button" onclick="printSurveyPage()" title="Vragenlijst afdrukken" style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 8px; padding: 0 8px; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width: 17px; height: 17px; color: #E30613;">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0 1 10.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0 .229 2.523a1.125 1.125 0 0 1-1.12 1.227H7.231c-.596 0-1.085-.466-1.12-1.063L5.88 18m11.78 0H5.88m11.78 0a1.125 1.125 0 0 0 1.12-1.063l.733-7.333a1.125 1.125 0 0 0-1.12-1.234H5.607a1.125 1.125 0 0 0-1.12 1.234l.733 7.333c.035.597.524 1.063 1.12 1.063M6 6.75h12M6 6.75A2.25 2.25 0 0 1 8.25 4.5h7.5A2.25 2.25 0 0 1 18 6.75M6 6.75v3.75h12V6.75" />
               </svg>
             </button>
           </li>
-          <li style="padding: 6px 16px 8px 16px;">
-            <button type="button" id="btnExportPdf" onclick="showPdfModal()" class="btn-export-sidebar" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 10px 16px; background-color: var(--primary-blue); color: white; border: none; border-radius: var(--border-radius-md); font-family: inherit; font-size: 13px; font-weight: 700; cursor: pointer; box-shadow: 0 4px 6px -1px rgba(227, 6, 19, 0.2); transition: all 0.2s ease;">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" style="width: 16px; height: 16px; color: white;">
+          <li style="padding: 4px 12px 4px 12px;">
+            <button type="button" id="btnExportPdf" onclick="showPdfModal()" class="btn-export-sidebar" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 8px 14px; background-color: var(--primary-blue); color: white; border: none; border-radius: var(--border-radius-md); font-family: inherit; font-size: 12.5px; font-weight: 700; cursor: pointer; box-shadow: 0 3px 5px -1px rgba(227, 6, 19, 0.2); transition: all 0.2s ease;">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" style="width: 15px; height: 15px; color: white;">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
               </svg>
               <span data-i18n="btnPdfReport" style="color: white;">Rapport PDF</span>
             </button>
           </li>
-          <li style="padding: 4px 16px 2px 16px; display: flex; flex-direction: column; gap: 8px;">
-            <button type="button" id="btnSaveCalc" onclick="exportCalculationData()" class="btn-sidebar-action" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 10px 14px; background: #0f172a; color: white; border: none; border-radius: var(--border-radius-md); font-family: inherit; font-size: 12.5px; font-weight: 700; cursor: pointer; box-shadow: 0 4px 6px -1px rgba(15, 23, 42, 0.2); transition: all 0.2s ease;">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width: 16px; height: 16px; color: #38bdf8;">
+          <li style="padding: 2px 12px 4px 12px; display: flex; flex-direction: column; gap: 5px;">
+            <button type="button" id="btnSaveCalc" onclick="exportCalculationData()" class="btn-sidebar-action" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 6px; padding: 8px 12px; background: #0f172a; color: white; border: none; border-radius: var(--border-radius-md); font-family: inherit; font-size: 12px; font-weight: 700; cursor: pointer; box-shadow: 0 2px 4px rgba(15, 23, 42, 0.15); transition: all 0.2s ease;">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width: 15px; height: 15px; color: #38bdf8;">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
               </svg>
               <span data-i18n="btnSaveCalc" style="color: white;">Opbrengstmodel opslaan</span>
             </button>
 
-            <button type="button" id="btnImportCalc" onclick="triggerImportCalculation()" class="btn-sidebar-action" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 10px 14px; background: #ffffff; color: #0f172a; border: 1px solid #cbd5e1; border-radius: var(--border-radius-md); font-family: inherit; font-size: 12.5px; font-weight: 700; cursor: pointer; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05); transition: all 0.2s ease;">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width: 16px; height: 16px; color: #0284c7;">
+            <button type="button" id="btnImportCalc" onclick="triggerImportCalculation()" class="btn-sidebar-action" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 6px; padding: 8px 12px; background: #ffffff; color: #0f172a; border: 1px solid #cbd5e1; border-radius: var(--border-radius-md); font-family: inherit; font-size: 12px; font-weight: 700; cursor: pointer; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05); transition: all 0.2s ease;">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width: 15px; height: 15px; color: #0284c7;">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
               </svg>
               <span data-i18n="btnImportCalc">Opbrengstmodel importeren</span>
