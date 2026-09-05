@@ -3774,53 +3774,73 @@
         let numDevices = 1;
         let deviceConfigs = [];
 
-        if (activeDevs.length > 0) {
-          numDevices = Math.min(4, Math.max(1, activeDevs.length));
-          for (let i = 0; i < numDevices; i++) {
-            const dev = activeDevs[i];
-            deviceConfigs.push({
-              index: i,
-              id: String.fromCharCode(65 + i), // A, B, C, D
-              surveyId: dev.id,
-              name: dev.name,
-              type: dev.type || 'pulsarlube_m2',
-              points: 0,
-              bearingLetters: []
-            });
-          }
+        const isSinglePointSetup = activeDevs.length > 0 && activeDevs.every(d => d.type === 'single_point');
 
-          // Allocate each bearing to closest active device (or assigned device for Single Point)
-          bearings.forEach(b => {
-            let bestIdx = 0;
-            let bestDist = Infinity;
+        if (activeDevs.length > 0) {
+          if (isSinglePointSetup) {
+            numDevices = activeDevs.length;
             for (let i = 0; i < numDevices; i++) {
               const dev = activeDevs[i];
-              if (dev.type === 'single_point' && dev.targetBearingLetter) {
-                if (dev.targetBearingLetter === b.letter) {
+              const targetL = dev.targetBearingLetter || (bearings[i] ? bearings[i].letter : ('L' + (i + 1)));
+              deviceConfigs.push({
+                index: i,
+                id: 'T' + (i + 1),
+                surveyId: dev.id,
+                name: dev.name || ('Toestel ' + (i + 1)),
+                type: 'single_point',
+                points: 1,
+                targetBearingLetter: targetL,
+                bearingLetters: [targetL]
+              });
+            }
+          } else {
+            numDevices = Math.min(4, Math.max(1, activeDevs.length));
+            for (let i = 0; i < numDevices; i++) {
+              const dev = activeDevs[i];
+              deviceConfigs.push({
+                index: i,
+                id: String.fromCharCode(65 + i), // A, B, C, D
+                surveyId: dev.id,
+                name: dev.name,
+                type: dev.type || 'pulsarlube_m2',
+                points: 0,
+                bearingLetters: []
+              });
+            }
+
+            // Allocate each bearing to closest active device (or assigned device for Single Point)
+            bearings.forEach(b => {
+              let bestIdx = 0;
+              let bestDist = Infinity;
+              for (let i = 0; i < numDevices; i++) {
+                const dev = activeDevs[i];
+                if (dev.type === 'single_point' && dev.targetBearingLetter) {
+                  if (dev.targetBearingLetter === b.letter) {
+                    bestIdx = i;
+                    bestDist = 0;
+                    break;
+                  }
+                }
+                const d = Math.hypot(b.x - dev.x, b.y - dev.y);
+                if (d < bestDist) {
+                  bestDist = d;
                   bestIdx = i;
-                  bestDist = 0;
-                  break;
                 }
               }
-              const d = Math.hypot(b.x - dev.x, b.y - dev.y);
-              if (d < bestDist) {
-                bestDist = d;
-                bestIdx = i;
-              }
-            }
-            const ptsToAdd = (deviceConfigs[bestIdx].type === 'single_point') ? 1 : (b.qty || 1);
-            deviceConfigs[bestIdx].points += ptsToAdd;
-            deviceConfigs[bestIdx].bearingLetters.push(b.letter);
-          });
+              const ptsToAdd = (deviceConfigs[bestIdx].type === 'single_point') ? 1 : (b.qty || 1);
+              deviceConfigs[bestIdx].points += ptsToAdd;
+              deviceConfigs[bestIdx].bearingLetters.push(b.letter);
+            });
 
-          // Single Point units strictly have 1 point per device
-          deviceConfigs.forEach(dc => {
-            if (dc.type === 'single_point') {
-              dc.points = 1;
-            } else {
-              dc.points = Math.min(8, Math.max(1, dc.points));
-            }
-          });
+            // Single Point units strictly have 1 point per device
+            deviceConfigs.forEach(dc => {
+              if (dc.type === 'single_point') {
+                dc.points = 1;
+              } else {
+                dc.points = Math.min(8, Math.max(1, dc.points));
+              }
+            });
+          }
         } else if (typeof currentAdviceData !== 'undefined' && currentAdviceData && currentAdviceData.recommended && currentAdviceData.recommended.devices) {
           // If advice was calculated
           const sol = (currentAdviceData.solCap && currentAdviceData.solCap.K === currentChosenK) ? currentAdviceData.solCap :
@@ -3880,6 +3900,9 @@
         const configToSave = {
           timestamp: Date.now(),
           machineName: machineName,
+          isSinglePoint: isSinglePointSetup,
+          deviceType: isSinglePointSetup ? 'single_point' : ((activeDevs[0] && activeDevs[0].type) || 'pulsarlube_m2'),
+          totalSinglePoints: isSinglePointSetup ? activeDevs.length : 0,
           numDevices: numDevices,
           devices: deviceConfigs,
           totalBearings: bearings.length
