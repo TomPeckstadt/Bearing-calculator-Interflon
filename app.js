@@ -493,7 +493,29 @@ function handleSurveyConfigFile(event) {
   const reader = new FileReader();
   reader.onload = function(e) {
     try {
-      const data = JSON.parse(e.target.result);
+      let data = JSON.parse(e.target.result);
+      if (data && data.localStorage) {
+        if (data.localStorage.interflon_survey_raster_config) {
+          try {
+            const parsedCfg = (typeof data.localStorage.interflon_survey_raster_config === 'string')
+              ? JSON.parse(data.localStorage.interflon_survey_raster_config)
+              : data.localStorage.interflon_survey_raster_config;
+            if (parsedCfg) data.interflon_survey_raster_config = parsedCfg;
+          } catch(e) {}
+        }
+        if (data.localStorage.interflon_questionnaire_full_data) {
+          try {
+            const parsedQ = (typeof data.localStorage.interflon_questionnaire_full_data === 'string')
+              ? JSON.parse(data.localStorage.interflon_questionnaire_full_data)
+              : data.localStorage.interflon_questionnaire_full_data;
+            if (parsedQ) {
+              if (!data.bearings && parsedQ.bearings) data.bearings = parsedQ.bearings;
+              if (!data.raster && parsedQ.raster) data.raster = parsedQ.raster;
+              if (!data.surveyRasterConfig && parsedQ.surveyRasterConfig) data.surveyRasterConfig = parsedQ.surveyRasterConfig;
+            }
+          } catch(e) {}
+        }
+      }
       if (data.surveyRasterConfig) {
         if ((!data.surveyRasterConfig.bearings || data.surveyRasterConfig.bearings.length === 0) && data.bearings) {
           data.surveyRasterConfig.bearings = data.bearings;
@@ -957,7 +979,24 @@ function handleSurveyBearingFileImport(event) {
   const reader = new FileReader();
   reader.onload = function(e) {
     try {
-      const data = JSON.parse(e.target.result);
+      let data = JSON.parse(e.target.result);
+      if (data && data.localStorage) {
+        if (data.localStorage.interflon_questionnaire_full_data) {
+          try {
+            const parsedQ = (typeof data.localStorage.interflon_questionnaire_full_data === 'string')
+              ? JSON.parse(data.localStorage.interflon_questionnaire_full_data)
+              : data.localStorage.interflon_questionnaire_full_data;
+            if (parsedQ) data = parsedQ;
+          } catch(e) {}
+        } else if (data.localStorage.interflon_last_questionnaire_data) {
+          try {
+            const parsedQ = (typeof data.localStorage.interflon_last_questionnaire_data === 'string')
+              ? JSON.parse(data.localStorage.interflon_last_questionnaire_data)
+              : data.localStorage.interflon_last_questionnaire_data;
+            if (parsedQ) data = parsedQ;
+          } catch(e) {}
+        }
+      }
       try {
         localStorage.setItem('interflon_questionnaire_full_data', JSON.stringify(data));
         localStorage.setItem('interflon_last_questionnaire_data', JSON.stringify(data));
@@ -11675,7 +11714,47 @@ function handleImportFileSelected(event) {
   reader.onload = function(e) {
     try {
       const data = JSON.parse(e.target.result);
-      if (!data || (!data.inputs && !data.localStorage)) {
+      if (!data) {
+        showToastNotification("Ongeldig bestand.", true);
+        return;
+      }
+
+      // If user selected a questionnaire export file instead of a dossier export file
+      if ((data.fileType === 'Interflon_Smeeranalyse_Vragenlijst' || (data.bearings && data.general)) && !data.inputs && !data.localStorage) {
+        try {
+          localStorage.setItem('interflon_questionnaire_full_data', JSON.stringify(data));
+          localStorage.setItem('interflon_last_questionnaire_data', JSON.stringify(data));
+          if (data.surveyRasterConfig) {
+            localStorage.setItem('interflon_survey_raster_config', JSON.stringify(data.surveyRasterConfig));
+          }
+          if (data.general && data.general.machineName) {
+            localStorage.setItem('app_field_techMachineInput', data.general.machineName);
+            localStorage.setItem('app_field_omTechMachine', data.general.machineName);
+          }
+          if (data.contact) {
+            if (data.contact.clientCompany) {
+              localStorage.setItem('app_field_clientCompanyInput', data.contact.clientCompany);
+              localStorage.setItem('app_field_omClientCompany', data.contact.clientCompany);
+            }
+            if (data.contact.clientContact) {
+              localStorage.setItem('app_field_clientContactInput', data.contact.clientContact);
+              localStorage.setItem('app_field_omClientContact', data.contact.clientContact);
+            }
+            if (data.contact.clientEmail) {
+              localStorage.setItem('app_field_clientEmailInput', data.contact.clientEmail);
+              localStorage.setItem('app_field_omClientEmail', data.contact.clientEmail);
+            }
+          }
+          if (typeof refreshSurveyBearingsList === 'function') refreshSurveyBearingsList(false);
+          if (typeof restoreFormState === 'function') restoreFormState();
+          showToastNotification("Vragenlijst succesvol geladen in de calculator!");
+          return;
+        } catch (e) {
+          console.warn("Fout bij laden van vragenlijst:", e);
+        }
+      }
+
+      if (!data.inputs && !data.localStorage) {
         showToastNotification("Ongeldig opbrengstmodelbestand.", true);
         return;
       }
