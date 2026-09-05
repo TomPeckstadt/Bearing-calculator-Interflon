@@ -495,19 +495,29 @@ function handleSurveyConfigFile(event) {
     try {
       const data = JSON.parse(e.target.result);
       if (data.surveyRasterConfig) {
+        if ((!data.surveyRasterConfig.bearings || data.surveyRasterConfig.bearings.length === 0) && data.bearings) {
+          data.surveyRasterConfig.bearings = data.bearings;
+        }
         applySurveyConfig(data.surveyRasterConfig);
         try {
           localStorage.setItem('interflon_survey_raster_config', JSON.stringify(data.surveyRasterConfig));
           localStorage.setItem('interflon_questionnaire_full_data', JSON.stringify(data));
+          localStorage.setItem('interflon_last_questionnaire_data', JSON.stringify(data));
         } catch (errLs) {}
+        if (typeof refreshSurveyBearingsList === 'function') refreshSurveyBearingsList(false);
         return;
       }
       if (data.interflon_survey_raster_config) {
+        if ((!data.interflon_survey_raster_config.bearings || data.interflon_survey_raster_config.bearings.length === 0) && data.bearings) {
+          data.interflon_survey_raster_config.bearings = data.bearings;
+        }
         applySurveyConfig(data.interflon_survey_raster_config);
         try {
           localStorage.setItem('interflon_survey_raster_config', JSON.stringify(data.interflon_survey_raster_config));
           localStorage.setItem('interflon_questionnaire_full_data', JSON.stringify(data));
+          localStorage.setItem('interflon_last_questionnaire_data', JSON.stringify(data));
         } catch (errLs) {}
+        if (typeof refreshSurveyBearingsList === 'function') refreshSurveyBearingsList(false);
         return;
       }
       if (data.bearings || (data.raster && data.raster.devices)) {
@@ -517,7 +527,9 @@ function handleSurveyConfigFile(event) {
           try {
             localStorage.setItem('interflon_survey_raster_config', JSON.stringify(parsed));
             localStorage.setItem('interflon_questionnaire_full_data', JSON.stringify(data));
+            localStorage.setItem('interflon_last_questionnaire_data', JSON.stringify(data));
           } catch (errLs) {}
+          if (typeof refreshSurveyBearingsList === 'function') refreshSurveyBearingsList(false);
           return;
         }
       }
@@ -542,7 +554,11 @@ function parseSurveyPackageToConfig(data) {
         const pos = (data.raster && data.raster.bearingPositions && data.raster.bearingPositions[letter])
           ? data.raster.bearingPositions[letter]
           : { x: 0, y: 0 };
-        bearings.push({ letter, qty, x: pos.x, y: pos.y });
+        const nr = (b.nr || b.lagernummer || b.bearingNr || '').trim();
+        const desc = (b.desc || b.description || b.omschrijving || b.positie || '').trim();
+        const rpm = (b.rpm || b.toerental || '').toString().trim();
+        const asPos = (b.pos || b.asPositie || 'Horizontaal').trim();
+        bearings.push({ letter, nr, desc, rpm, pos: asPos, qty, x: pos.x, y: pos.y });
       });
     }
 
@@ -627,6 +643,7 @@ function parseSurveyPackageToConfig(data) {
       totalSinglePoints: isSinglePoint ? numDevices : 0,
       numDevices: numDevices,
       devices: deviceConfigs,
+      bearings: bearings,
       totalBearings: bearings.length
     };
   } catch (err) {
@@ -660,9 +677,11 @@ function getQuestionnaireBearings() {
       try { rasterConfig = JSON.parse(rasterSaved); } catch (e) {}
     }
 
-    // Determine list of bearings from fullData or rasterConfig
+    // Determine list of bearings from all potential sources (prioritize latestSurveyBearings if live)
     let rawBearings = [];
-    if (fullData && Array.isArray(fullData.bearings) && fullData.bearings.length > 0) {
+    if (window.latestSurveyBearings && Array.isArray(window.latestSurveyBearings) && window.latestSurveyBearings.length > 0) {
+      rawBearings = window.latestSurveyBearings;
+    } else if (fullData && Array.isArray(fullData.bearings) && fullData.bearings.length > 0) {
       rawBearings = fullData.bearings;
     } else if (rasterConfig && Array.isArray(rasterConfig.bearings) && rasterConfig.bearings.length > 0) {
       rawBearings = rasterConfig.bearings;
@@ -689,6 +708,9 @@ function getQuestionnaireBearings() {
       });
     };
 
+    if (window.latestSurveyBearings) {
+      populateMapsFrom(window.latestSurveyBearings);
+    }
     if (fullData) {
       populateMapsFrom(fullData.bearings);
       populateMapsFrom(fullData.bearingRowsData);
@@ -751,7 +773,7 @@ function populateSurveyBearingsDropdown(bearings) {
   if (bearings && bearings.length > 0) {
     bearings.forEach(b => {
       const opt = document.createElement("option");
-      opt.value = b.nr;
+      opt.value = (b.letter ? (b.letter + '___') : '') + b.nr;
       opt.textContent = formatSurveyBearingOptionText(b);
       opt.dataset.letter = b.letter || "";
       opt.dataset.nr = b.nr;
@@ -768,10 +790,11 @@ function populateSurveyBearingsDropdown(bearings) {
 }
 
 function handleImportBearingFromSurveyClick() {
-  // Request latest config from active questionnaire if tab is open
+  // Request latest config and raw bearings from active questionnaire if tab is open
   try {
     if (typeof BroadcastChannel !== 'undefined') {
       const surveyChannel = new BroadcastChannel('interflon_questionnaire_sync');
+      surveyChannel.postMessage({ type: 'REQUEST_SURVEY_BEARINGS' });
       surveyChannel.postMessage({ type: 'REQUEST_LATEST_CONFIG' });
     }
   } catch (e) {}
@@ -809,20 +832,44 @@ function handleImportBearingFromSurveyClick() {
   if (selectEl) {
     selectEl.focus();
   }
+
+  // Re-check after short delays to capture incoming BroadcastChannel response from open questionnaire tab
+  setTimeout(() => {
+    const updated = getQuestionnaireBearings();
+    if (updated && updated.length > 0) {
+      populateSurveyBearingsDropdown(updated);
+    }
+  }, 60);
+
+  setTimeout(() => {
+    const updated = getQuestionnaireBearings();
+    if (updated && updated.length > 0) {
+      populateSurveyBearingsDropdown(updated);
+    }
+  }, 250);
 }
 
 function onSurveyBearingSelected(selectEl) {
   if (!selectEl) return;
-  const selectedNr = selectEl.value;
-  if (!selectedNr) return;
+  const rawVal = selectEl.value;
+  if (!rawVal) {
+    const badge = document.getElementById("surveyBearingSelectedBadge");
+    if (badge) badge.style.display = "none";
+    return;
+  }
+
+  const opt = selectEl.options[selectEl.selectedIndex];
+  const selectedNr = (opt && opt.dataset && opt.dataset.nr) ? opt.dataset.nr : (rawVal.includes('___') ? rawVal.split('___')[1] : rawVal);
+  const letter = (opt && opt.dataset) ? opt.dataset.letter : "";
+  const desc = (opt && opt.dataset) ? opt.dataset.desc : "";
+  const rpm = (opt && opt.dataset) ? opt.dataset.rpm : "";
+  const pos = (opt && opt.dataset) ? opt.dataset.pos : "";
 
   const searchInput = document.getElementById("bearingSearchInput");
   if (searchInput) {
     searchInput.value = selectedNr;
   }
 
-  const opt = selectEl.options[selectEl.selectedIndex];
-  const rpm = opt && opt.dataset ? opt.dataset.rpm : "";
   if (rpm) {
     const rpmVal = parseFloat(rpm);
     const rpmInput = document.getElementById("rpmInput");
@@ -830,6 +877,32 @@ function onSurveyBearingSelected(selectEl) {
       rpmInput.value = rpmVal;
       if (typeof calculateGrease === "function") calculateGrease();
     }
+  }
+
+  // Update selected bearing info badge directly under dropdown
+  const badge = document.getElementById("surveyBearingSelectedBadge");
+  if (badge) {
+    const lEl = document.getElementById("surveyBearingBadgeLetter");
+    const nEl = document.getElementById("surveyBearingBadgeNr");
+    const dEl = document.getElementById("surveyBearingBadgeDesc");
+    const rEl = document.getElementById("surveyBearingBadgeRpm");
+    const pEl = document.getElementById("surveyBearingBadgePos");
+
+    if (lEl) lEl.textContent = letter ? ('LAGER ' + letter) : 'LAGER';
+    if (nEl) nEl.textContent = selectedNr;
+    if (dEl) {
+      dEl.textContent = desc ? ('- ' + desc) : '';
+      dEl.style.display = desc ? 'inline' : 'none';
+    }
+    if (rEl) {
+      rEl.textContent = rpm ? `(${rpm} RPM)` : '';
+      rEl.style.display = rpm ? 'inline' : 'none';
+    }
+    if (pEl) {
+      pEl.textContent = pos ? `• ${pos}` : '';
+      pEl.style.display = pos ? 'inline' : 'none';
+    }
+    badge.style.display = "flex";
   }
 
   // Load details in UI
@@ -841,17 +914,25 @@ function onSurveyBearingSelected(selectEl) {
   const suggBox = document.getElementById("suggestionsBox");
   if (suggBox) suggBox.style.display = "none";
 
-  const letter = opt && opt.dataset ? opt.dataset.letter : "";
   const lang = (typeof currentLang !== 'undefined' && currentLang) ? currentLang : 'nl';
+  const descPart = desc ? ` (${desc})` : '';
   const msg = (lang === 'en')
-    ? `Bearing ${letter ? letter + ' ' : ''}(${selectedNr}) selected from questionnaire`
+    ? `Bearing ${letter ? letter + ' ' : ''}${selectedNr}${descPart} selected from questionnaire`
     : ((lang === 'fr')
-      ? `Roulement ${letter ? letter + ' ' : ''}(${selectedNr}) sélectionné du questionnaire`
-      : `Lager ${letter ? letter + ' ' : ''}(${selectedNr}) geselecteerd uit vragenlijst`);
+      ? `Roulement ${letter ? letter + ' ' : ''}${selectedNr}${descPart} sélectionné du questionnaire`
+      : `Lager ${letter ? letter + ' ' : ''}${selectedNr}${descPart} geselecteerd uit vragenlijst`);
   if (typeof showToastNotification === "function") {
     showToastNotification(msg);
   }
 }
+
+function clearSurveyBearingSelection() {
+  const selectEl = document.getElementById("surveyBearingSelect");
+  if (selectEl) selectEl.value = "";
+  const badge = document.getElementById("surveyBearingSelectedBadge");
+  if (badge) badge.style.display = "none";
+}
+window.clearSurveyBearingSelection = clearSurveyBearingSelection;
 
 function refreshSurveyBearingsList(showToast) {
   const bearings = getQuestionnaireBearings();
@@ -881,6 +962,9 @@ function handleSurveyBearingFileImport(event) {
         localStorage.setItem('interflon_questionnaire_full_data', JSON.stringify(data));
         localStorage.setItem('interflon_last_questionnaire_data', JSON.stringify(data));
         if (data.surveyRasterConfig) {
+          if ((!data.surveyRasterConfig.bearings || data.surveyRasterConfig.bearings.length === 0) && data.bearings) {
+            data.surveyRasterConfig.bearings = data.bearings;
+          }
           localStorage.setItem('interflon_survey_raster_config', JSON.stringify(data.surveyRasterConfig));
         }
       } catch (errLs) {}
@@ -922,9 +1006,26 @@ try {
   if (typeof BroadcastChannel !== 'undefined') {
     const surveyChannel = new BroadcastChannel('interflon_questionnaire_sync');
     surveyChannel.onmessage = function(ev) {
-      if (ev.data && (ev.data.type === 'QUESTIONNAIRE_IMPORTED' || ev.data.type === 'CONFIG_UPDATED')) {
-        console.log("Vragenlijst update ontvangen vanuit Vragenlijst tab.");
-        if (typeof refreshSurveyBearingsList === 'function') {
+      if (!ev.data) return;
+      if (ev.data.type === 'SURVEY_BEARINGS_RESPONSE' || ev.data.type === 'QUESTIONNAIRE_IMPORTED' || ev.data.type === 'CONFIG_UPDATED') {
+        console.log("Vragenlijst update ontvangen:", ev.data.type);
+        if (Array.isArray(ev.data.bearings) && ev.data.bearings.length > 0) {
+          window.latestSurveyBearings = ev.data.bearings;
+          try {
+            let fullData = {};
+            try { fullData = JSON.parse(localStorage.getItem('interflon_questionnaire_full_data') || '{}'); } catch(e){}
+            fullData.bearings = ev.data.bearings;
+            localStorage.setItem('interflon_questionnaire_full_data', JSON.stringify(fullData));
+            localStorage.setItem('interflon_last_questionnaire_data', JSON.stringify(fullData));
+
+            let rasterCfg = {};
+            try { rasterCfg = JSON.parse(localStorage.getItem('interflon_survey_raster_config') || '{}'); } catch(e){}
+            rasterCfg.bearings = ev.data.bearings;
+            localStorage.setItem('interflon_survey_raster_config', JSON.stringify(rasterCfg));
+          } catch(e) {}
+
+          populateSurveyBearingsDropdown(ev.data.bearings);
+        } else if (typeof refreshSurveyBearingsList === 'function') {
           refreshSurveyBearingsList(false);
         }
       }
