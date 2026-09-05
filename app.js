@@ -1536,6 +1536,8 @@ const TRANSLATIONS = {
     "menuInfo": "Informatie",
     "menuVragenlijst": "Vragenlijst",
     "btnPdfReport": "Rapport PDF",
+    "btnSaveCalc": "Opbrengstmodel opslaan",
+    "btnImportCalc": "Opbrengstmodel importeren",
     "btnLogout": "Afmelden",
     "welcomeModalTitle": "Welkom bij de Interflon Berekeningsmodule",
     "welcomeModalSubtitle": "Maak uw keuze om de gewenste toepassing te openen:",
@@ -2046,6 +2048,8 @@ const TRANSLATIONS = {
     "menuInfo": "Information & Failures",
     "menuVragenlijst": "Questionnaire",
     "btnPdfReport": "PDF Report",
+    "btnSaveCalc": "Save Yield Model",
+    "btnImportCalc": "Import Yield Model",
     "btnLogout": "Log Out",
     "welcomeModalTitle": "Welcome to Interflon Calculation Module",
     "welcomeModalSubtitle": "Make your choice to open the desired application:",
@@ -2550,6 +2554,8 @@ const TRANSLATIONS = {
     "menuInfo": "Informations & Défaillances",
     "menuVragenlijst": "Questionnaire",
     "btnPdfReport": "Rapport PDF",
+    "btnSaveCalc": "Enregistrer modèle de rentabilité",
+    "btnImportCalc": "Importer modèle de rentabilité",
     "btnLogout": "Déconnexion",
     "welcomeModalTitle": "Bienvenue dans le Module de Calcul Interflon",
     "welcomeModalSubtitle": "Faites votre choix pour ouvrir l'application souhaitée:",
@@ -11196,7 +11202,7 @@ async function exportCalculationData() {
     } else if (cleanContact) {
       filename = `${cleanContact}_${dateStr}.json`;
     } else {
-      filename = isEnglish ? `Interflon_Calculation_${dateStr}.json` : `Calculatie_Interflon_${dateStr}.json`;
+      filename = isEnglish ? `Interflon_Calculation_${dateStr}.json` : `Opbrengstmodel_Interflon_${dateStr}.json`;
     }
 
     // 4. Construct complete export object
@@ -11222,14 +11228,14 @@ async function exportCalculationData() {
         const handle = await window.showSaveFilePicker({
           suggestedName: filename,
           types: [{
-            description: isEnglish ? 'Interflon Calculation File (*.json)' : 'Interflon Calculatie Bestand (*.json)',
+            description: isEnglish ? 'Interflon Calculation File (*.json)' : 'Interflon Opbrengstmodel Bestand (*.json)',
             accept: { 'application/json': ['.json'] }
           }]
         });
         const writable = await handle.createWritable();
         await writable.write(jsonString);
         await writable.close();
-        showToastNotification(isEnglish ? "Calculation successfully saved!" : "Calculatie succesvol opgeslagen!");
+        showToastNotification(isEnglish ? "Calculation successfully saved!" : "Opbrengstmodel succesvol opgeslagen!");
         return;
       } catch (err) {
         if (err.name === "AbortError") return; // User cancelled
@@ -11247,10 +11253,10 @@ async function exportCalculationData() {
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
 
-    showToastNotification(isEnglish ? `Calculation saved: ${filename}` : `Calculatie opgeslagen: ${filename}`);
+    showToastNotification(isEnglish ? `Calculation saved: ${filename}` : `Opbrengstmodel opgeslagen: ${filename}`);
   } catch (e) {
     console.error("Error exporting calculation data:", e);
-    showToastNotification("Fout bij opslaan van calculatie.", true);
+    showToastNotification("Fout bij opslaan van opbrengstmodel.", true);
   }
 }
 
@@ -11271,7 +11277,7 @@ function handleImportFileSelected(event) {
     try {
       const data = JSON.parse(e.target.result);
       if (!data || (!data.inputs && !data.localStorage)) {
-        showToastNotification("Ongeldig calculatiebestand.", true);
+        showToastNotification("Ongeldig opbrengstmodelbestand.", true);
         return;
       }
 
@@ -11294,6 +11300,10 @@ function handleImportFileSelected(event) {
       }
 
       // STEP 3: Restore global states
+      if (data.activeCalculationMode) {
+        window.activeCalculationMode = data.activeCalculationMode;
+        if (typeof selectAppMode === "function") selectAppMode(data.activeCalculationMode);
+      }
       if (data.autoDevicesState && Array.isArray(data.autoDevicesState)) {
         window.autoDevicesState = data.autoDevicesState;
         try { localStorage.setItem("autoDevicesState", JSON.stringify(data.autoDevicesState)); } catch(err){}
@@ -11348,8 +11358,8 @@ function handleImportFileSelected(event) {
 
       const compName = data.clientCompany || (data.inputs && data.inputs.clientCompanyInput) || "";
       const msg = isEnglish
-        ? (compName ? `Calculation for ${compName} successfully imported!` : "Calculation successfully imported!")
-        : (compName ? `Calculatie van ${compName} succesvol geïmporteerd!` : "Calculatie succesvol geïmporteerd!");
+        ? (compName ? `Yield model for ${compName} successfully imported!` : "Yield model successfully imported!")
+        : (compName ? `Opbrengstmodel van ${compName} succesvol geïmporteerd!` : "Opbrengstmodel succesvol geïmporteerd!");
 
       showToastNotification(msg);
     } catch (err) {
