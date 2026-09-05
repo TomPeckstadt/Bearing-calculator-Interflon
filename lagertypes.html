@@ -3,6 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
   <title>Interflon Lagertypes Wijzer</title>
   
   <!-- Typography & Icons -->
@@ -1130,18 +1133,19 @@
         }
         
         let imgHtml = "";
+        const cacheBust = Date.now();
         if (hasSubtypes) {
           imgHtml = `
-            <div style="position: relative; display: flex; align-items: center; justify-content: center; width: 100%; height: 100%;">
-              <img src="${item.img}?v=20260905_1" alt="${item.names[currentLang]}" onerror="this.src='bearing-dimensions.jpg'" style="max-height: 100%; max-width: 100%; object-fit: contain;">
-              <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex;">
+            <div style="position: relative; display: inline-flex; align-items: center; justify-content: center; height: 100%; max-width: 100%;">
+              <img src="${item.img}?v=${cacheBust}" alt="${item.names[currentLang]}" onerror="this.src='bearing-dimensions.jpg'" style="height: 100%; width: auto; max-width: 100%; object-fit: contain; display: block; border-radius: 4px;">
+              <div style="position: absolute; top: 0; bottom: 0; left: 0; right: 0; display: flex;">
                 ${overlaysHtml}
               </div>
             </div>
           `;
         } else {
           imgHtml = `
-            <img src="${item.img}?v=20260905_1" alt="${item.names[currentLang]}" onerror="this.src='bearing-dimensions.jpg'">
+            <img src="${item.img}?v=${cacheBust}" alt="${item.names[currentLang]}" onerror="this.src='bearing-dimensions.jpg'" style="max-height: 100%; max-width: 100%; object-fit: contain; display: block;">
           `;
         }
 
