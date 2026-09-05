@@ -284,6 +284,218 @@ function loadAutomationStateFromLocalStorage() {
   }
 }
 
+// ==========================================
+// IMPORT CONFIGURATION FROM QUESTIONNAIRE
+// ==========================================
+function importConfigFromSurvey(customData) {
+  let config = customData;
+  if (!config) {
+    const saved = localStorage.getItem('interflon_survey_raster_config');
+    if (saved) {
+      try {
+        config = JSON.parse(saved);
+      } catch (e) {
+        console.warn("Could not parse interflon_survey_raster_config", e);
+      }
+    }
+  }
+
+  // If no valid config in localStorage, prompt user to select a JSON file
+  if (!config || !config.numDevices || !Array.isArray(config.devices) || config.devices.length === 0) {
+    const fileInput = document.getElementById('surveyConfigFileSelector');
+    if (fileInput) {
+      fileInput.value = '';
+      fileInput.click();
+    } else {
+      const msg = (typeof currentLang !== 'undefined' && currentLang === 'en')
+        ? 'No active questionnaire configuration found in browser memory. Please open the questionnaire first or upload a questionnaire JSON file.'
+        : ((typeof currentLang !== 'undefined' && currentLang === 'fr')
+          ? 'Aucune configuration de questionnaire trouvée dans la mémoire du navigateur. Ouvrez d\'abord le questionnaire ou sélectionnez un fichier JSON.'
+          : 'Geen actieve vragenlijst in het browsergeheugen gevonden. Open eerst de vragenlijst of kies een opgeslagen JSON-bestand.');
+      alert(msg);
+    }
+    return;
+  }
+
+  applySurveyConfig(config);
+}
+
+function applySurveyConfig(config) {
+  if (!config || !config.devices || !Array.isArray(config.devices)) return;
+
+  const num = Math.min(4, Math.max(1, config.numDevices || 1));
+
+  // 1. Switch device type to Pulsarlube if currently single_point
+  const devSelect = document.getElementById('automationDeviceSelect') || document.getElementById('autoDeviceSelect');
+  const targetType = (config.devices[0] && config.devices[0].type && config.devices[0].type !== 'single_point')
+    ? config.devices[0].type
+    : 'pulsarlube_m2';
+
+  if (devSelect) {
+    if (devSelect.value === 'single_point' || !devSelect.value.startsWith('pulsarlube')) {
+      devSelect.value = targetType;
+      if (typeof updateAutomationPage === 'function') {
+        updateAutomationPage();
+      }
+    }
+  }
+
+  // 2. Set number of devices in #autoNumDevicesSelect
+  const numSelect = document.getElementById('autoNumDevicesSelect');
+  if (numSelect) {
+    numSelect.value = String(num);
+  }
+
+  // 3. Assign points per device (Pulsarlube A = Toestel 1, Pulsarlube B = Toestel 2, Pulsarlube C = Toestel 3, Pulsarlube D = Toestel 4)
+  const summaryParts = [];
+  for (let i = 0; i < num; i++) {
+    const devCfg = config.devices[i];
+    const pts = devCfg ? (parseInt(devCfg.points, 10) || 1) : 1;
+    const clampedPts = Math.min(8, Math.max(1, pts));
+
+    if (autoDevicesState[i]) {
+      autoDevicesState[i].points = clampedPts;
+      autoDevicesState[i].userEditedPeriod = false;
+    }
+    summaryParts.push(`Pulsarlube ${String.fromCharCode(65 + i)}: ${clampedPts} ${clampedPts === 1 ? 'smeerpunt' : 'smeerpunten'}`);
+  }
+
+  // 4. Trigger UI render, recalculations, and state persistence
+  renderAutoDevicesUI();
+  calculateAutomationLubrication();
+  saveAutomationStateToLocalStorage();
+  if (typeof updateRoiAutomationPage === 'function') {
+    updateRoiAutomationPage();
+  }
+
+  // 5. Visual confirmation badge
+  const fbEl = document.getElementById('surveyImportFeedback');
+  if (fbEl) {
+    const machinePart = config.machineName ? ` voor "${config.machineName}"` : '';
+    fbEl.style.display = 'block';
+    fbEl.style.background = '#ecfdf5';
+    fbEl.style.color = '#065f46';
+    fbEl.style.border = '1px solid #a7f3d0';
+    fbEl.innerHTML = `✅ <strong>${num} ${num === 1 ? 'toestel' : 'toestellen'}</strong> geïmporteerd${machinePart}<br><span style="font-size: 10.5px; opacity: 0.9;">${summaryParts.join(' | ')}</span>`;
+    setTimeout(() => {
+      if (fbEl) fbEl.style.display = 'none';
+    }, 7000);
+  }
+
+  if (typeof showToastNotification === 'function') {
+    showToastNotification(`✓ Vragenlijst geïmporteerd: ${num} toestellen (${summaryParts.join(', ')})`);
+  }
+}
+
+function handleSurveyConfigFile(event) {
+  const file = event.target.files && event.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const data = JSON.parse(e.target.result);
+      if (data.surveyRasterConfig) {
+        applySurveyConfig(data.surveyRasterConfig);
+        return;
+      }
+      if (data.interflon_survey_raster_config) {
+        applySurveyConfig(data.interflon_survey_raster_config);
+        return;
+      }
+      if (data.bearings || (data.raster && data.raster.devices)) {
+        const parsed = parseSurveyPackageToConfig(data);
+        if (parsed) {
+          applySurveyConfig(parsed);
+          return;
+        }
+      }
+      alert('Het geselecteerde bestand bevat geen machineraster- of toestelconfiguratie.');
+    } catch (err) {
+      console.error('Fout bij importeren vragenlijstbestand:', err);
+      alert('Kon het bestand niet verwerken. Zorg dat het een geldig Interflon vragenlijstbestand (.json) is.');
+    } finally {
+      event.target.value = '';
+    }
+  };
+  reader.readAsText(file);
+}
+
+function parseSurveyPackageToConfig(data) {
+  try {
+    const bearings = [];
+    if (Array.isArray(data.bearings)) {
+      data.bearings.forEach(b => {
+        const letter = b.letter || 'A';
+        const qty = parseInt(b.qty, 10) || 1;
+        const pos = (data.raster && data.raster.bearingPositions && data.raster.bearingPositions[letter])
+          ? data.raster.bearingPositions[letter]
+          : { x: 0, y: 0 };
+        bearings.push({ letter, qty, x: pos.x, y: pos.y });
+      });
+    }
+
+    const surveyDevices = (data.raster && Array.isArray(data.raster.devices)) ? data.raster.devices : [];
+    let activeDevs = surveyDevices.filter(d => d.active);
+    if (activeDevs.length === 0 && surveyDevices.length > 0) {
+      activeDevs = [surveyDevices[0]];
+    }
+
+    const numDevices = Math.min(4, Math.max(1, activeDevs.length || 1));
+    const deviceConfigs = [];
+
+    for (let i = 0; i < numDevices; i++) {
+      const dev = activeDevs[i] || { id: 'dev-' + (i + 1), name: 'Toestel ' + (i + 1), type: 'pulsarlube_m2', x: 0, y: 0 };
+      deviceConfigs.push({
+        index: i,
+        id: String.fromCharCode(65 + i),
+        surveyId: dev.id,
+        name: dev.name || ('Toestel ' + (i + 1)),
+        type: dev.type || 'pulsarlube_m2',
+        points: 0,
+        bearingLetters: []
+      });
+    }
+
+    if (bearings.length > 0) {
+      bearings.forEach(b => {
+        let bestIdx = 0;
+        let bestDist = Infinity;
+        for (let i = 0; i < numDevices; i++) {
+          const dev = activeDevs[i] || { x: 0, y: 0 };
+          const d = Math.hypot(b.x - (dev.x || 0), b.y - (dev.y || 0));
+          if (d < bestDist) {
+            bestDist = d;
+            bestIdx = i;
+          }
+        }
+        deviceConfigs[bestIdx].points += (b.qty || 1);
+        deviceConfigs[bestIdx].bearingLetters.push(b.letter);
+      });
+    }
+
+    deviceConfigs.forEach(dc => {
+      dc.points = Math.min(8, Math.max(1, dc.points));
+    });
+
+    const machineName = (data.general && data.general.machineName) ? data.general.machineName : 'Machine';
+    return {
+      timestamp: Date.now(),
+      machineName: machineName,
+      numDevices: numDevices,
+      devices: deviceConfigs,
+      totalBearings: bearings.length
+    };
+  } catch (err) {
+    console.warn('parseSurveyPackageToConfig error:', err);
+    return null;
+  }
+}
+
+window.importConfigFromSurvey = importConfigFromSurvey;
+window.applySurveyConfig = applySurveyConfig;
+window.handleSurveyConfigFile = handleSurveyConfigFile;
+window.parseSurveyPackageToConfig = parseSurveyPackageToConfig;
 
 function renderAutomationDeviceCards() { return renderAutoDevicesUI(); }
 window.renderAutomationDeviceCards = renderAutomationDeviceCards;
@@ -1098,6 +1310,7 @@ const TRANSLATIONS = {
 
     autoNumDevicesLabel: "Aantal Pulsarlube toestellen dat u wil plaatsen:",
     autoNumDevicesHint: "Verdeel de te smeren lagers over 1 of meerdere toestellen (bijvoorbeeld 1 toestel met 4 lagers en 1 toestel met 2 lagers).",
+    btnImportSurveyConfig: "Importeer configuratie uit vragenlijst",
     autoRecHeader: "GEADVISEERDE INSTELLING OP TOESTEL",
     btnApplyRec: "Neem advies over",
     autoCalcHeaderTitle: "Smeerinterval & Dosering voor 1 lager",
@@ -1697,6 +1910,8 @@ const TRANSLATIONS = {
 
     btnViewDimensions: "View dimensions",
 
+    btnImportSurveyConfig: "Import configuration from questionnaire",
+
     btnApplyRecommendation: "Apply recommendation",
 
     devicePulsarlubeQuad: "4 units (Pulsarlube A, B, C & D)",
@@ -2198,6 +2413,8 @@ const TRANSLATIONS = {
     dialKnobSettingLabel: "Réglage du bouton rotatif:",
 
     btnViewDimensions: "Voir les dimensions",
+
+    btnImportSurveyConfig: "Importer la configuration du questionnaire",
 
     btnApplyRecommendation: "Appliquer le conseil",
 
