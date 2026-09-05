@@ -1603,18 +1603,20 @@
 
               <!-- Multi-Device Selection Dropdown -->
               <div id="autoMultiDeviceSelectorContainer" style="margin-top: 16px; padding-top: 14px; border-top: 1px solid #e2e8f0; text-align: left;">
-                <label for="autoNumDevicesSelect" style="display: block; font-size: 12.5px; font-weight: 700; color: var(--text-dark); margin-bottom: 6px;" data-i18n="autoNumDevicesLabel">
-                  Aantal Pulsarlube toestellen dat u wil plaatsen:
-                </label>
-                <select id="autoNumDevicesSelect" class="form-select" style="width: 100%; padding: 8px 12px; font-weight: 600; border-radius: var(--border-radius-sm); border: 1px solid #cbd5e1;" onchange="onAutoNumDevicesChange()">
-                  <option value="1" selected data-i18n="autoNumDevOpt1">1 toestel (Pulsarlube A)</option>
-                  <option value="2" data-i18n="autoNumDevOpt2">2 toestellen (Pulsarlube A & Pulsarlube B)</option>
-                  <option value="3" data-i18n="autoNumDevOpt3">3 toestellen (Pulsarlube A, B & C)</option>
-                  <option value="4" data-i18n="autoNumDevOpt4">4 toestellen (Pulsarlube A, B, C & D)</option>
-                </select>
-                <span style="display: block; font-size: 11px; color: var(--text-medium); margin-top: 5px; line-height: 1.35;" data-i18n="autoNumDevicesHint">
-                  Verdeel de te smeren lagers over 1 of meerdere toestellen (bijvoorbeeld 1 toestel met 4 lagers en 1 toestel met 2 lagers).
-                </span>
+                <div id="autoNumDevicesWrapper">
+                  <label for="autoNumDevicesSelect" style="display: block; font-size: 12.5px; font-weight: 700; color: var(--text-dark); margin-bottom: 6px;" data-i18n="autoNumDevicesLabel">
+                    Aantal Pulsarlube toestellen dat u wil plaatsen:
+                  </label>
+                  <select id="autoNumDevicesSelect" class="form-select" style="width: 100%; padding: 8px 12px; font-weight: 600; border-radius: var(--border-radius-sm); border: 1px solid #cbd5e1;" onchange="onAutoNumDevicesChange()">
+                    <option value="1" selected data-i18n="autoNumDevOpt1">1 toestel (Pulsarlube A)</option>
+                    <option value="2" data-i18n="autoNumDevOpt2">2 toestellen (Pulsarlube A & Pulsarlube B)</option>
+                    <option value="3" data-i18n="autoNumDevOpt3">3 toestellen (Pulsarlube A, B & C)</option>
+                    <option value="4" data-i18n="autoNumDevOpt4">4 toestellen (Pulsarlube A, B, C & D)</option>
+                  </select>
+                  <span style="display: block; font-size: 11px; color: var(--text-medium); margin-top: 5px; line-height: 1.35;" data-i18n="autoNumDevicesHint">
+                    Verdeel de te smeren lagers over 1 of meerdere toestellen (bijvoorbeeld 1 toestel met 4 lagers en 1 toestel met 2 lagers).
+                  </span>
+                </div>
                 <div style="margin-top: 10px;">
                   <button type="button" id="btnImportSurveyConfig" onclick="importConfigFromSurvey()" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 7px; padding: 8px 12px; background: #f0fdf4; color: #166534; border: 1.5px solid #86efac; border-radius: var(--border-radius-sm); font-family: 'Outfit', sans-serif; font-size: 12px; font-weight: 700; cursor: pointer; transition: all 0.2s ease; box-shadow: 0 1px 2px rgba(0,0,0,0.03);" onmouseenter="this.style.background='#dcfce7'; this.style.borderColor='#4ade80';" onmouseleave="this.style.background='#f0fdf4'; this.style.borderColor='#86efac';" title="Importeer het aantal toestellen en smeerpunten uit het machineraster van de vragenlijst">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width: 15px; height: 15px; flex-shrink: 0;">
@@ -3127,7 +3129,7 @@
   <script src="interflon-data.js?v=20260904_1726"></script>
   <script src="bearings-db.js?v=20260904_1726"></script>
   <script src="chains-db.js?v=20260904_1726"></script>
-  <script src="app_v6.js?v=20260904_1726"></script>
+  <script src="app_v6.js?v=20260905_1525"></script>
 
   <!-- Interflon Oil Dispenser Information Modal (PowerPoint Viewer) -->
   <div id="oilDispenserInfoModal" class="modal-overlay hidden" style="z-index: 99999;">
