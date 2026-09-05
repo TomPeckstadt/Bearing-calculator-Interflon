@@ -1577,12 +1577,15 @@
             </div>
             <div style="font-size: 0.78rem; color: #64748b;">Sla alle ingevulde data en het machineraster op of importeer een bestand.</div>
           </div>
-          <div class="grid-2">
+          <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px;">
             <button type="button" onclick="exportQuestionnaireFile()" class="btn-secondary" style="background: #ffffff; border-color: #0284c7; color: #0369a1; font-weight: 700; padding: 10px 14px;">
               💾 Vragenlijst opslaan
             </button>
             <button type="button" onclick="document.getElementById('importQuestionnaireFileInput').click()" class="btn-secondary" style="background: #ffffff; border-color: #059669; color: #047857; font-weight: 700; padding: 10px 14px;">
               📂 Vragenlijst importeren
+            </button>
+            <button type="button" onclick="clearQuestionnaireData()" class="btn-secondary" style="background: #ffffff; border-color: #cbd5e1; color: #64748b; font-weight: 700; padding: 10px 14px;" title="Wis alle ingevulde gegevens en begin opnieuw met een lege vragenlijst">
+              🗑️ Formulier wissen
             </button>
             <input type="file" id="importQuestionnaireFileInput" accept=".json,application/json" style="display: none;" onchange="importQuestionnaireFile(event)">
           </div>
@@ -3754,6 +3757,9 @@
     // --- SAVE RASTER CONFIGURATION FOR AUTOMATION IMPORT ---
     function saveRasterConfigToLocalStorage() {
       try {
+        if (window.__questionnaireRestoring) {
+          return null;
+        }
         const rows = document.querySelectorAll('.bearing-row');
         const bearings = [];
         rows.forEach((r, idx) => {
@@ -3920,6 +3926,22 @@
 
         // Also save snapshot of full questionnaire for seamless sync with Automatisering
         try {
+          const q1El = document.getElementById('q1');
+          const clientCompEl = document.getElementById('clientCompany');
+          const hasUserInput = (q1El && q1El.value.trim() !== '') ||
+                               (clientCompEl && clientCompEl.value.trim() !== '') ||
+                               bearings.some(b => (b.nr && !b.nr.startsWith('Lager ')) || b.desc || b.rpm) ||
+                               bearings.length > 1;
+
+          // If current DOM is empty and we already have saved data in localStorage, do NOT overwrite with blank!
+          if (!hasUserInput && localStorage.getItem('interflon_questionnaire_full_data')) {
+            return configToSave;
+          }
+
+          if (typeof saveCurrentSection2Data === 'function') saveCurrentSection2Data();
+          if (typeof saveCurrentSection3Data === 'function') saveCurrentSection3Data();
+          if (typeof saveCurrentSection4Data === 'function') saveCurrentSection4Data();
+
           const generalData = {
             machineName: machineName,
             machineBrand: document.getElementById('q2') ? document.getElementById('q2').value : '',
@@ -3939,6 +3961,14 @@
             general: generalData,
             contact: contactData,
             bearings: bearings,
+            bearingDataMapSec2: (typeof bearingDataMapSec2 !== 'undefined') ? JSON.parse(JSON.stringify(bearingDataMapSec2)) : {},
+            bearingDataMapSec3: (typeof bearingDataMapSec3 !== 'undefined') ? JSON.parse(JSON.stringify(bearingDataMapSec3)) : {},
+            bearingDataMapSec4: (typeof bearingDataMapSec4 !== 'undefined') ? JSON.parse(JSON.stringify(bearingDataMapSec4)) : {},
+            activeBearings: {
+              sec2: (typeof activeBearingSec2 !== 'undefined') ? activeBearingSec2 : 'A',
+              sec3: (typeof activeBearingSec3 !== 'undefined') ? activeBearingSec3 : 'A',
+              sec4: (typeof activeBearingSec4 !== 'undefined') ? activeBearingSec4 : 'A'
+            },
             raster: {
               machineRangeMeters: (typeof machineRangeMeters !== 'undefined') ? machineRangeMeters : 10,
               layoutViewMode: (typeof layoutViewMode !== 'undefined') ? layoutViewMode : '3d',
@@ -5123,6 +5153,19 @@
     window.importQuestionnaireFile = importQuestionnaireFile;
     window.exportQuestionnaireFile = exportQuestionnaireFile;
 
+    function clearQuestionnaireData() {
+      if (!confirm("Weet u zeker dat u alle ingevulde gegevens wilt wissen en met een lege vragenlijst wilt beginnen?")) {
+        return;
+      }
+      try {
+        localStorage.removeItem('interflon_questionnaire_full_data');
+        localStorage.removeItem('interflon_last_questionnaire_data');
+        localStorage.removeItem('interflon_survey_raster_config');
+      } catch (e) {}
+      window.location.href = window.location.pathname;
+    }
+    window.clearQuestionnaireData = clearQuestionnaireData;
+
     function updateBearingLettersAndDropdown() {
       if (typeof syncBearingsToLayout === "function") syncBearingsToLayout();
       const rows = document.querySelectorAll('.bearing-row');
@@ -5610,43 +5653,64 @@
         window.scrollTo({ top: 0, behavior: 'smooth' });
       }
 
-      
       if (urlParams.get('autoprint') === 'true' || urlParams.get('autoPrint') === 'true') {
         setTimeout(() => {
           window.print();
         }, 600);
       }
 
-      // Initialize bearing letters and dropdowns across Sections 2, 3, and 4
-      updateBearingLettersAndDropdown();
-    });
-  
-    window.addEventListener('DOMContentLoaded', function() {
+      // Check for saved data in localStorage FIRST before initializing or overwriting anything!
+      let restoredFromStorage = false;
+      try {
+        const savedDataStr = localStorage.getItem('interflon_questionnaire_full_data') || localStorage.getItem('interflon_last_questionnaire_data');
+        if (savedDataStr) {
+          const savedData = JSON.parse(savedDataStr);
+          const hasBearings = Array.isArray(savedData.bearings) && savedData.bearings.length > 0 &&
+                              savedData.bearings.some(b => (b.nr && !b.nr.startsWith('Lager ')) || b.desc || b.rpm || (b.letter && b.letter !== 'A'));
+          const hasGeneral = savedData.general && (savedData.general.machineName || savedData.general.machineBrand || savedData.general.application);
+          const hasContact = savedData.contact && (savedData.contact.clientCompany || savedData.contact.clientContact || savedData.contact.clientEmail);
+          const hasMultipleBearings = Array.isArray(savedData.bearings) && savedData.bearings.length > 1;
+
+          if (hasBearings || hasGeneral || hasContact || hasMultipleBearings) {
+            console.log("Restoring saved questionnaire from localStorage on page load...");
+            window.__questionnaireRestoring = true;
+            restoreQuestionnaireDOM(savedData, false);
+            window.__questionnaireRestoring = false;
+            restoredFromStorage = true;
+          }
+        }
+      } catch (e) {
+        console.warn('Auto-restore questionnaire error:', e);
+        window.__questionnaireRestoring = false;
+      }
+
+      // If no saved data was restored, initialize bearing letters and dropdowns
+      if (!restoredFromStorage) {
+        updateBearingLettersAndDropdown();
+      }
+
+      // Initialize canvas and raster interactions
       if (typeof renderDeviceFilterPills === "function") renderDeviceFilterPills();
       if (typeof initCanvasInteractions === "function") initCanvasInteractions();
       if (typeof syncBearingsToLayout === "function") setTimeout(syncBearingsToLayout, 100);
-      setTimeout(function() {
-        try {
-          const row1Nr = document.querySelector('#bearingRow_1 .bearing-nr-input');
-          const rowsCount = document.querySelectorAll('.bearing-row').length;
-          if (rowsCount <= 1 && (!row1Nr || !row1Nr.value)) {
-            const savedDataStr = localStorage.getItem('interflon_questionnaire_full_data') || localStorage.getItem('interflon_last_questionnaire_data');
-            if (savedDataStr) {
-              const savedData = JSON.parse(savedDataStr);
-              if (savedData && Array.isArray(savedData.bearings) && savedData.bearings.length > 0) {
-                const hasAnyData = savedData.bearings.some(b => (b.nr && b.nr.trim() !== '') || (b.desc && b.desc.trim() !== ''));
-                if (hasAnyData && typeof restoreQuestionnaireDOM === 'function') {
-                  console.log("Auto-restoring questionnaire bearings from localStorage:", savedData.bearings.length);
-                  restoreQuestionnaireDOM(savedData, false);
-                }
-              }
+      if (typeof drawBearingLayout === "function") setTimeout(drawBearingLayout, 150);
+
+      // Realtime auto-save: saves immediately when user types or changes any input in the questionnaire
+      const surveyForm = document.getElementById('publicSurveyForm');
+      if (surveyForm) {
+        let autoSaveTimer = null;
+        const debouncedSave = () => {
+          if (window.__questionnaireRestoring) return;
+          clearTimeout(autoSaveTimer);
+          autoSaveTimer = setTimeout(() => {
+            if (typeof saveRasterConfigToLocalStorage === 'function') {
+              saveRasterConfigToLocalStorage();
             }
-          }
-        } catch (e) {
-          console.warn('Auto-restore questionnaire error:', e);
-        }
-        if (typeof saveRasterConfigToLocalStorage === "function") saveRasterConfigToLocalStorage();
-      }, 250);
+          }, 300);
+        };
+        surveyForm.addEventListener('input', debouncedSave);
+        surveyForm.addEventListener('change', debouncedSave);
+      }
     });
 
     // Auto-save whenever user switches tabs or navigates away
