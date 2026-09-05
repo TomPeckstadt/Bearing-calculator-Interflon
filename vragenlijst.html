@@ -1734,6 +1734,7 @@
       renderDeviceFilterPills();
       drawBearingLayout();
       renderDistancesOverview();
+      if (typeof saveRasterConfigToLocalStorage === 'function') saveRasterConfigToLocalStorage();
     }
 
     function deleteDevice(devId) {
@@ -1746,6 +1747,7 @@
       renderDeviceFilterPills();
       drawBearingLayout();
       renderDistancesOverview();
+      if (typeof saveRasterConfigToLocalStorage === 'function') saveRasterConfigToLocalStorage();
     }
 
     // =========================================================================
@@ -3339,6 +3341,7 @@
           draggedDeviceId = null;
           canvas.style.cursor = (hoveredBearingLetter || hoveredDeviceId) ? 'grab' : 'default';
           drawBearingLayout();
+          if (typeof saveRasterConfigToLocalStorage === 'function') saveRasterConfigToLocalStorage();
         }
       });
 
@@ -3421,6 +3424,7 @@
           draggedBearingLetter = null;
           draggedDeviceId = null;
           drawBearingLayout();
+          if (typeof saveRasterConfigToLocalStorage === 'function') saveRasterConfigToLocalStorage();
         }
       });
 
@@ -3656,8 +3660,8 @@
 
         if (bearings.length === 0) return null;
 
-        // Check active devices
-        let activeDevs = (typeof devices !== 'undefined' && Array.isArray(devices)) ? devices.filter(d => d.active) : [];
+        // Check devices placed on raster (all devices in array are real placed devices)
+        let activeDevs = (typeof devices !== 'undefined' && Array.isArray(devices) && devices.length > 0) ? devices : [];
 
         let numDevices = 1;
         let deviceConfigs = [];
@@ -3704,7 +3708,9 @@
           // Single Point units strictly have 1 point per device
           deviceConfigs.forEach(dc => {
             if (dc.type === 'single_point') {
-              dc.points = Math.min(1, Math.max(1, dc.points));
+              dc.points = 1;
+            } else {
+              dc.points = Math.min(8, Math.max(1, dc.points));
             }
           });
         } else if (typeof currentAdviceData !== 'undefined' && currentAdviceData && currentAdviceData.recommended && currentAdviceData.recommended.devices) {
@@ -3753,7 +3759,11 @@
 
         // Clamp points between 1 and 8 for each device
         deviceConfigs.forEach(dc => {
-          dc.points = Math.min(8, Math.max(1, dc.points));
+          if (dc.type === 'single_point') {
+            dc.points = 1;
+          } else {
+            dc.points = Math.min(8, Math.max(1, dc.points));
+          }
         });
 
         const machineNameInput = document.getElementById('q1');
@@ -3769,6 +3779,47 @@
 
         localStorage.setItem('interflon_survey_raster_config', JSON.stringify(configToSave));
         window.currentSurveyRasterConfig = configToSave;
+
+        // Also save snapshot of full questionnaire for seamless sync with Automatisering
+        try {
+          const generalData = {
+            machineName: machineName,
+            machineBrand: document.getElementById('q2') ? document.getElementById('q2').value : '',
+            application: document.getElementById('q3') ? document.getElementById('q3').value : '',
+            machineCount: document.getElementById('q10') ? document.getElementById('q10').value : '1'
+          };
+          const contactData = {
+            clientCompany: document.getElementById('clientCompany') ? document.getElementById('clientCompany').value : '',
+            clientContact: document.getElementById('clientContact') ? document.getElementById('clientContact').value : '',
+            clientEmail: document.getElementById('clientEmail') ? document.getElementById('clientEmail').value : '',
+            interflonContactEmail: document.getElementById('interflonContactEmail') ? document.getElementById('interflonContactEmail').value : ''
+          };
+          const fullData = {
+            fileType: 'Interflon_Smeeranalyse_Vragenlijst',
+            version: '1.0',
+            exportDate: new Date().toISOString(),
+            general: generalData,
+            contact: contactData,
+            bearings: bearings,
+            raster: {
+              machineRangeMeters: (typeof machineRangeMeters !== 'undefined') ? machineRangeMeters : 10,
+              layoutViewMode: (typeof layoutViewMode !== 'undefined') ? layoutViewMode : '3d',
+              showCentralPoint: (typeof showCentralPoint !== 'undefined') ? showCentralPoint : false,
+              bearingPositions: (typeof bearingPositions !== 'undefined') ? JSON.parse(JSON.stringify(bearingPositions)) : {},
+              devices: (typeof devices !== 'undefined') ? JSON.parse(JSON.stringify(devices)) : []
+            },
+            surveyRasterConfig: configToSave
+          };
+          localStorage.setItem('interflon_questionnaire_full_data', JSON.stringify(fullData));
+        } catch (errFull) {}
+
+        try {
+          if (typeof BroadcastChannel !== 'undefined') {
+            const channel = new BroadcastChannel('interflon_questionnaire_sync');
+            channel.postMessage({ type: 'CONFIG_UPDATED', config: configToSave });
+          }
+        } catch (e) {}
+
         return configToSave;
       } catch (e) {
         console.warn('Could not save survey raster config to localStorage', e);
@@ -4785,6 +4836,29 @@
           renderDistancesOverview();
           updateFormSubmitAttachment();
 
+          // 9. Persist configuration immediately to localStorage so Automatisering has it instantly
+          if (typeof saveRasterConfigToLocalStorage === 'function') {
+            saveRasterConfigToLocalStorage();
+          }
+          try {
+            localStorage.setItem('interflon_questionnaire_full_data', JSON.stringify(data));
+            localStorage.setItem('interflon_last_questionnaire_data', JSON.stringify(data));
+            if (data.contact) {
+              if (data.contact.clientCompany) localStorage.setItem('client_company', data.contact.clientCompany);
+              if (data.contact.clientContact) localStorage.setItem('client_contact', data.contact.clientContact);
+              if (data.contact.clientEmail) localStorage.setItem('client_email', data.contact.clientEmail);
+            }
+            if (data.general && data.general.machineName) {
+              localStorage.setItem('tech_machine', data.general.machineName);
+            }
+            if (typeof BroadcastChannel !== 'undefined') {
+              const channel = new BroadcastChannel('interflon_questionnaire_sync');
+              channel.postMessage({ type: 'QUESTIONNAIRE_IMPORTED', data: data });
+            }
+          } catch (e) {
+            console.warn('Could not persist questionnaire to localStorage', e);
+          }
+
           alert('✅ Vragenlijst succesvol geïmporteerd!\nAlle machinegegevens, lagers en het machineraster zijn hersteld.');
           window.dispatchEvent(new CustomEvent('questionnaireImported', { detail: data }));
         } catch (err) {
@@ -4796,6 +4870,8 @@
       };
       reader.readAsText(file);
     }
+    window.importQuestionnaireFile = importQuestionnaireFile;
+    window.exportQuestionnaireFile = exportQuestionnaireFile;
 
     function updateBearingLettersAndDropdown() {
       if (typeof syncBearingsToLayout === "function") syncBearingsToLayout();
@@ -4880,6 +4956,7 @@
       setValidSelection(selector2, prevSelected2, v => activeBearingSec2 = v, loadSection2DataForBearing);
       setValidSelection(selector3, prevSelected3, v => activeBearingSec3 = v, loadSection3DataForBearing);
       setValidSelection(selector4, prevSelected4, v => activeBearingSec4 = v, loadSection4DataForBearing);
+      if (typeof saveRasterConfigToLocalStorage === 'function') saveRasterConfigToLocalStorage();
     }
 
     function addBearingRow() {
@@ -5298,7 +5375,37 @@
       if (typeof renderDeviceFilterPills === "function") renderDeviceFilterPills();
       if (typeof initCanvasInteractions === "function") initCanvasInteractions();
       if (typeof syncBearingsToLayout === "function") setTimeout(syncBearingsToLayout, 100);
+      setTimeout(function() {
+        if (typeof saveRasterConfigToLocalStorage === "function") saveRasterConfigToLocalStorage();
+      }, 250);
     });
+
+    // Auto-save whenever user switches tabs or navigates away
+    document.addEventListener('visibilitychange', function() {
+      if (document.visibilityState === 'hidden' && typeof saveRasterConfigToLocalStorage === 'function') {
+        saveRasterConfigToLocalStorage();
+      }
+    });
+    window.addEventListener('beforeunload', function() {
+      if (typeof saveRasterConfigToLocalStorage === 'function') {
+        saveRasterConfigToLocalStorage();
+      }
+    });
+
+    // Cross-tab BroadcastChannel listener
+    try {
+      if (typeof BroadcastChannel !== 'undefined') {
+        const surveyChannel = new BroadcastChannel('interflon_questionnaire_sync');
+        surveyChannel.onmessage = function(ev) {
+          if (ev.data && ev.data.type === 'REQUEST_LATEST_CONFIG') {
+            const cfg = (typeof saveRasterConfigToLocalStorage === 'function') ? saveRasterConfigToLocalStorage() : null;
+            if (cfg) {
+              surveyChannel.postMessage({ type: 'CONFIG_UPDATED', config: cfg });
+            }
+          }
+        };
+      }
+    } catch (e) {}
 
 </script>
 </body>
