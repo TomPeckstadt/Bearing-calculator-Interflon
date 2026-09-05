@@ -136,7 +136,7 @@ function getOptimalSmartAdvice(totalDailyNeedCm3, deviceKey, greaseName) {
 
   const devKey = deviceKey || "single_point";
   const grName = greaseName || "Interflon Grease LS2";
-  const availableCaps = (devKey === "single_point") ? [60, 120, 250] : [60, 125, 250, 500];
+  const availableCaps = (devKey === "single_point") ? [15, 60, 120, 250] : [60, 125, 250, 500];
   let candidates = [];
 
   for (let cap of availableCaps) {
@@ -366,7 +366,7 @@ function applySurveyConfig(config) {
     window.spNumBearingsValue = totalUnits;
     if (typeof autoDevicesState !== 'undefined' && autoDevicesState[0]) {
       autoDevicesState[0].points = 1;
-      if (![60, 120, 250].includes(autoDevicesState[0].cap)) {
+      if (![15, 60, 120, 250].includes(autoDevicesState[0].cap)) {
         autoDevicesState[0].cap = 250;
       }
     }
@@ -1154,7 +1154,7 @@ function renderAutoDevicesUI() {
     }
 
     let capOptionsHtml = "";
-    const capsList = isSinglePoint ? [60, 120, 250] : [60, 125, 250, 500];
+    const capsList = isSinglePoint ? [15, 60, 120, 250] : [60, 125, 250, 500];
     if (isSinglePoint && !capsList.includes(dev.cap)) {
       dev.cap = 250;
       if (autoDevicesState[i]) autoDevicesState[i].cap = 250;
@@ -7385,7 +7385,6 @@ let isShowingDimensionsSheet = false;
 const DEVICE_CAPACITIES = {
   single_point: [
     { value: "15", label: "15 ml" },
-    { value: "30", label: "30 ml" },
     { value: "60", label: "60 ml" },
     { value: "120", label: "120 ml" },
     { value: "250", label: "250 ml" }
@@ -7613,7 +7612,7 @@ function calculateAutomationLubrication() {
     }
     const devId = dev.id;
     const points = isSinglePoint ? 1 : (dev.points || 1);
-    const validCaps = isSinglePoint ? [60, 120, 250] : [60, 125, 250, 500];
+    const validCaps = isSinglePoint ? [15, 60, 120, 250] : [60, 125, 250, 500];
     if (isSinglePoint && !validCaps.includes(dev.cap)) {
       dev.cap = 250;
       if (autoDevicesState[i]) autoDevicesState[i].cap = 250;
