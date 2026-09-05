@@ -440,12 +440,48 @@
       color: #ffffff;
     }
 
-    /* Device Pill Type Select Dropdown */
+    /* Device Pill Filter Item & Buttons */
+    .device-filter-pill {
+      display: inline-flex;
+      align-items: center;
+      border-radius: 8px;
+      overflow: hidden;
+      height: 32px;
+      box-sizing: border-box;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .device-pill-toggle-btn {
+      border: none;
+      background: transparent;
+      font-family: "Outfit", sans-serif;
+      font-weight: 700;
+      font-size: 12px;
+      padding: 0 9px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      height: 100%;
+      white-space: nowrap;
+      transition: background 0.15s ease, opacity 0.15s ease;
+    }
+    .device-pill-toggle-btn:hover {
+      background: rgba(0, 0, 0, 0.06);
+    }
+    #rasterInteractiveWrapper.raster-modal-fullscreen .device-pill-toggle-btn:hover {
+      background: rgba(255, 255, 255, 0.12);
+    }
+    .device-pill-type-wrapper {
+      display: inline-flex;
+      align-items: center;
+      height: 100%;
+      padding: 0 4px 0 6px;
+    }
     .device-pill-type-select {
       border: none;
       background: transparent;
       font-family: "Outfit", sans-serif;
-      font-size: 11px;
+      font-size: 11.5px;
       font-weight: 700;
       height: 100%;
       cursor: pointer;
@@ -453,11 +489,11 @@
       -webkit-appearance: none;
       -moz-appearance: none;
       appearance: none;
-      padding: 0 18px 0 7px;
-      max-width: 175px;
+      padding: 0 16px 0 2px;
+      max-width: 150px;
       text-overflow: ellipsis;
       white-space: nowrap;
-      transition: color 0.15s ease, border-color 0.15s ease;
+      transition: color 0.15s ease;
     }
     .device-pill-type-select option {
       background: #ffffff;
@@ -470,6 +506,28 @@
     #rasterInteractiveWrapper.raster-modal-fullscreen .device-pill-type-select option {
       background: #0f172a;
       color: #f1f5f9;
+    }
+    .device-pill-del-btn {
+      border: none;
+      background: transparent;
+      color: #94a3b8;
+      font-size: 14px;
+      font-weight: 700;
+      padding: 0 8px;
+      cursor: pointer;
+      height: 100%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s ease;
+    }
+    .device-pill-del-btn:hover {
+      color: #ef4444;
+      background: #fee2e2;
+    }
+    #rasterInteractiveWrapper.raster-modal-fullscreen .device-pill-del-btn:hover {
+      color: #f87171;
+      background: rgba(239, 68, 68, 0.25);
     }
 
     /* =========================================================================
@@ -1568,8 +1626,8 @@
 
     let showCentralPoint = true; // Centraal Punt (0,0) filter toggle
     let devices = [
-      { id: 'dev-1', name: 'Toestel 1', short: 'T1', type: 'pulsarlube_m2', x: -3.0, y: -2.5, active: false, paletteIndex: 0 },
-      { id: 'dev-2', name: 'Toestel 2', short: 'T2', type: 'pulsarlube_m2', x: 3.0, y: 2.5, active: false, paletteIndex: 1 }
+      { id: 'dev-1', name: 'Toestel 1', short: 'T1', type: 'pulsarlube_m2', x: -3.0, y: -2.5, active: true, paletteIndex: 0 },
+      { id: 'dev-2', name: 'Toestel 2', short: 'T2', type: 'pulsarlube_m2', x: 3.0, y: 2.5, active: true, paletteIndex: 1 }
     ];
 
     let draggedDeviceId = null;
@@ -1581,79 +1639,113 @@
       container.innerHTML = '';
       const isDark = isRasterFullscreen;
 
-      // 1. Centraal Punt Pill (32px height, perfect contrast)
+      // 1. Centraal Punt Pill (32px height, dedicated toggle button)
       const cpBtn = document.createElement('button');
       cpBtn.type = 'button';
+      cpBtn.className = 'device-pill-toggle-btn';
       cpBtn.onclick = function() {
         showCentralPoint = !showCentralPoint;
         renderDeviceFilterPills();
         drawBearingLayout();
         renderDistancesOverview();
+        if (typeof saveRasterConfigToLocalStorage === 'function') saveRasterConfigToLocalStorage();
       };
 
       if (isDark) {
         cpBtn.style.cssText = 'border: 1.5px solid ' + (showCentralPoint ? '#f43f5e' : 'rgba(255,255,255,0.18)') + '; ' +
           'background: ' + (showCentralPoint ? 'rgba(244, 63, 94, 0.22)' : 'rgba(15, 23, 42, 0.7)') + '; ' +
           'color: ' + (showCentralPoint ? '#ffffff' : '#94a3b8') + '; ' +
-          'font-family: "Outfit", sans-serif; font-weight: 700; font-size: 12px; padding: 0 10px; border-radius: 7px; cursor: pointer; ' +
+          'font-family: "Outfit", sans-serif; font-weight: 700; font-size: 12px; padding: 0 10px; border-radius: 8px; cursor: pointer; ' +
           'display: inline-flex; align-items: center; gap: 6px; transition: all 0.15s; height: 32px; box-sizing: border-box; ' +
           (showCentralPoint ? 'box-shadow: 0 0 10px rgba(244,63,94,0.35);' : '');
       } else {
         cpBtn.style.cssText = 'border: 1.5px solid ' + (showCentralPoint ? '#dc2626' : '#cbd5e1') + '; ' +
           'background: ' + (showCentralPoint ? '#fef2f2' : '#ffffff') + '; ' +
           'color: ' + (showCentralPoint ? '#991b1b' : '#64748b') + '; ' +
-          'font-family: "Outfit", sans-serif; font-weight: 700; font-size: 12px; padding: 0 10px; border-radius: 7px; cursor: pointer; ' +
+          'font-family: "Outfit", sans-serif; font-weight: 700; font-size: 12px; padding: 0 10px; border-radius: 8px; cursor: pointer; ' +
           'display: inline-flex; align-items: center; gap: 6px; transition: all 0.15s; height: 32px; box-sizing: border-box; box-shadow: 0 1px 2px rgba(0,0,0,0.04);';
       }
 
-      cpBtn.innerHTML = '<span style="width: 8px; height: 8px; border-radius: 50%; background: ' + (showCentralPoint ? '#dc2626' : '#94a3b8') + '; box-shadow: ' + (showCentralPoint ? '0 0 6px #dc2626' : 'none') + '; flex-shrink: 0;"></span>' +
-        '<span>Centraal Punt</span>';
-      cpBtn.title = showCentralPoint ? 'Centraal Punt afstanden zijn AAN (klik om te verbergen)' : 'Centraal Punt afstanden zijn UIT (klik om te tonen)';
+      const cpBadgeStyle = showCentralPoint
+        ? (isDark ? 'background: rgba(244,63,94,0.3); color: #fecdd3;' : 'background: #fee2e2; color: #991b1b;')
+        : (isDark ? 'background: rgba(255,255,255,0.08); color: #94a3b8;' : 'background: #e2e8f0; color: #64748b;');
+
+      cpBtn.innerHTML = '<span style="font-size: 12px; line-height: 1;">' + (showCentralPoint ? '👁️' : '👁️‍🗨️') + '</span>' +
+        '<span style="width: 8px; height: 8px; border-radius: 50%; background: ' + (showCentralPoint ? '#dc2626' : '#94a3b8') + '; box-shadow: ' + (showCentralPoint ? '0 0 6px #dc2626' : 'none') + '; flex-shrink: 0;"></span>' +
+        '<span>Centraal Punt</span>' +
+        '<span style="font-size: 9.5px; font-weight: 700; padding: 1px 5px; border-radius: 4px; ' + cpBadgeStyle + '">' + (showCentralPoint ? 'AAN' : 'UIT') + '</span>';
+      cpBtn.title = showCentralPoint ? 'Centraal Punt weergave in de schets is AAN (klik om UIT te zetten)' : 'Centraal Punt weergave in de schets is UIT (klik om AAN te zetten)';
       container.appendChild(cpBtn);
 
-      // 2. Each Device Pill with Integrated Type Selector (32px height, vivid borders, clear text)
+      // 2. Each Device Pill with Dedicated Toggle Button & Distinct Type Selector
       devices.forEach((dev, idx) => {
         if (!dev.type) dev.type = 'pulsarlube_m2';
         const pal = DEVICE_PALETTES[dev.paletteIndex % DEVICE_PALETTES.length];
         const devPill = document.createElement('div');
+        devPill.className = 'device-filter-pill';
 
         if (isDark) {
-          devPill.style.cssText = 'display: inline-flex; align-items: center; border-radius: 7px; overflow: hidden; height: 32px; box-sizing: border-box; ' +
-            'border: 1.5px solid ' + (dev.active ? pal.color : 'rgba(255,255,255,0.18)') + '; ' +
-            'background: ' + (dev.active ? 'rgba(15, 23, 42, 0.95)' : 'rgba(15, 23, 42, 0.7)') + '; ' +
+          devPill.style.cssText = 'display: inline-flex; align-items: center; border-radius: 8px; overflow: hidden; height: 32px; box-sizing: border-box; ' +
+            'border: 1.5px solid ' + (dev.active ? pal.color : 'rgba(255,255,255,0.2)') + '; ' +
+            'background: ' + (dev.active ? 'rgba(15, 23, 42, 0.95)' : 'rgba(15, 23, 42, 0.65)') + '; ' +
             (dev.active ? 'box-shadow: 0 0 10px ' + pal.color + '45;' : '');
         } else {
-          devPill.style.cssText = 'display: inline-flex; align-items: center; border-radius: 7px; overflow: hidden; height: 32px; box-sizing: border-box; ' +
+          devPill.style.cssText = 'display: inline-flex; align-items: center; border-radius: 8px; overflow: hidden; height: 32px; box-sizing: border-box; ' +
             'border: 1.5px solid ' + (dev.active ? pal.color : '#cbd5e1') + '; ' +
-            'background: ' + (dev.active ? pal.lightBg : '#ffffff') + '; box-shadow: 0 1px 2px rgba(0,0,0,0.04);';
+            'background: ' + (dev.active ? pal.lightBg : '#f8fafc') + '; box-shadow: 0 1px 2px rgba(0,0,0,0.04);';
         }
 
-        // Toggle active button
-        const btn = document.createElement('button');
-        btn.type = 'button';
-        btn.onclick = function() {
+        // Toggle visibility button (Dedicated 1-click show/hide button)
+        const toggleBtn = document.createElement('button');
+        toggleBtn.type = 'button';
+        toggleBtn.className = 'device-pill-toggle-btn';
+        toggleBtn.title = dev.active
+          ? (dev.name + ' weergave in de schets is AAN (klik om UIT te zetten)')
+          : (dev.name + ' weergave in de schets is UIT (klik om AAN te zetten)');
+
+        const textColor = isDark ? (dev.active ? '#ffffff' : '#94a3b8') : (dev.active ? pal.color : '#64748b');
+        toggleBtn.style.color = textColor;
+
+        const stateBadgeStyle = dev.active
+          ? (isDark ? 'background: ' + pal.color + '33; color: #ffffff;' : 'background: ' + pal.color + '22; color: ' + pal.color + ';')
+          : (isDark ? 'background: rgba(255,255,255,0.08); color: #94a3b8;' : 'background: #e2e8f0; color: #64748b;');
+
+        toggleBtn.innerHTML =
+          '<span style="font-size: 12px; line-height: 1;">' + (dev.active ? '👁️' : '👁️‍🗨️') + '</span>' +
+          '<span style="width: 8px; height: 8px; border-radius: 2px; background: ' + (dev.active ? pal.color : '#94a3b8') + '; box-shadow: ' + (dev.active ? '0 0 6px ' + pal.color : 'none') + '; flex-shrink: 0;"></span>' +
+          '<span>' + dev.name + '</span>' +
+          '<span style="font-size: 9.5px; font-weight: 700; padding: 1px 5px; border-radius: 4px; ' + stateBadgeStyle + '">' + (dev.active ? 'AAN' : 'UIT') + '</span>';
+
+        toggleBtn.onclick = function(e) {
+          e.stopPropagation();
           dev.active = !dev.active;
           renderDeviceFilterPills();
           drawBearingLayout();
           renderDistancesOverview();
+          if (typeof saveRasterConfigToLocalStorage === 'function') saveRasterConfigToLocalStorage();
         };
 
-        const textColor = isDark ? (dev.active ? '#ffffff' : '#94a3b8') : (dev.active ? pal.color : '#64748b');
-        btn.style.cssText = 'border: none; background: transparent; ' +
-          'color: ' + textColor + '; ' +
-          'font-family: "Outfit", sans-serif; font-weight: 700; font-size: 12px; padding: 0 6px 0 9px; cursor: pointer; ' +
-          'display: inline-flex; align-items: center; gap: 6px; height: 100%; white-space: nowrap;';
-        
-        btn.innerHTML = '<span style="width: 8px; height: 8px; border-radius: 2px; background: ' + (dev.active ? pal.color : '#94a3b8') + '; box-shadow: ' + (dev.active ? '0 0 6px ' + pal.color : 'none') + '; flex-shrink: 0;"></span>' +
-          '<span>' + dev.name + '</span>';
-        btn.title = dev.active ? dev.name + ' afstanden zijn AAN (klik om te verbergen)' : dev.name + ' afstanden zijn UIT (klik om te tonen)';
-        devPill.appendChild(btn);
+        devPill.appendChild(toggleBtn);
 
-        // Integrated Type Dropdown Select (Exact same options as Automatisering)
+        // Divider 1
+        const sep1 = document.createElement('span');
+        const sepColor = isDark ? 'rgba(255,255,255,0.18)' : (dev.active ? pal.border : '#cbd5e1');
+        sep1.style.cssText = 'width: 1px; height: 18px; background: ' + sepColor + '; flex-shrink: 0;';
+        devPill.appendChild(sep1);
+
+        // Type Selector Container
+        const typeWrapper = document.createElement('div');
+        typeWrapper.className = 'device-pill-type-wrapper';
+
+        const typeLabel = document.createElement('span');
+        typeLabel.textContent = 'Type:';
+        typeLabel.style.cssText = 'font-size: 10.5px; font-weight: 600; color: ' + (isDark ? '#94a3b8' : '#64748b') + '; margin-right: 4px; white-space: nowrap;';
+        typeWrapper.appendChild(typeLabel);
+
         const typeSelect = document.createElement('select');
         typeSelect.className = 'device-pill-type-select';
         typeSelect.title = 'Kies type smeertoestel voor ' + dev.name;
-        
+
         DEVICE_TYPES.forEach(t => {
           const opt = document.createElement('option');
           opt.value = t.id;
@@ -1662,13 +1754,12 @@
           typeSelect.appendChild(opt);
         });
 
-        const selectBorder = isDark ? 'rgba(255,255,255,0.15)' : (dev.active ? pal.border : '#e2e8f0');
         const selectColor = isDark ? (dev.active ? '#f8fafc' : '#cbd5e1') : (dev.active ? pal.badgeText : '#334155');
-        typeSelect.style.cssText = 'border: none; border-left: 1px solid ' + selectBorder + '; background: transparent; ' +
-          'color: ' + selectColor + '; font-family: "Outfit", sans-serif; font-size: 11.5px; font-weight: 700; ' +
-          'padding: 0 18px 0 7px; height: 100%; cursor: pointer; outline: none; -webkit-appearance: none; -moz-appearance: none; appearance: none; ' +
-          'background-image: url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' fill=\'none\' viewBox=\'0 0 24 24\' stroke=\'' + (isDark ? '%2394a3b8' : '%2364748b') + '\' stroke-width=\'2.5\'%3E%3Cpath stroke-linecap=\'round\' stroke-linejoin=\'round\' d=\'m19.5 8.25-7.5 7.5-7.5-7.5\'/%3E%3C/svg%3E"); ' +
-          'background-repeat: no-repeat; background-position: right 5px center; background-size: 9px; max-width: 175px; text-overflow: ellipsis; white-space: nowrap;';
+        typeSelect.style.color = selectColor;
+        typeSelect.style.backgroundImage = 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' fill=\'none\' viewBox=\'0 0 24 24\' stroke=\'' + (isDark ? '%2394a3b8' : '%2364748b') + '\' stroke-width=\'2.5\'%3E%3Cpath stroke-linecap=\'round\' stroke-linejoin=\'round\' d=\'m19.5 8.25-7.5 7.5-7.5-7.5\'/%3E%3C/svg%3E")';
+        typeSelect.style.backgroundRepeat = 'no-repeat';
+        typeSelect.style.backgroundPosition = 'right 2px center';
+        typeSelect.style.backgroundSize = '9px';
 
         typeSelect.onchange = function(e) {
           e.stopPropagation();
@@ -1676,29 +1767,41 @@
           renderDeviceFilterPills();
           drawBearingLayout();
           renderDistancesOverview();
+          if (typeof saveRasterConfigToLocalStorage === 'function') saveRasterConfigToLocalStorage();
         };
 
         typeSelect.onclick = function(e) {
           e.stopPropagation();
         };
 
-        devPill.appendChild(typeSelect);
+        typeWrapper.appendChild(typeSelect);
+        devPill.appendChild(typeWrapper);
+
+        // Divider 2
+        const sep2 = document.createElement('span');
+        sep2.style.cssText = 'width: 1px; height: 18px; background: ' + sepColor + '; flex-shrink: 0;';
+        devPill.appendChild(sep2);
 
         // Delete button
         const delBtn = document.createElement('button');
         delBtn.type = 'button';
+        delBtn.className = 'device-pill-del-btn';
         delBtn.title = 'Verwijder ' + dev.name;
-        const delBorder = isDark ? 'rgba(255,255,255,0.15)' : (dev.active ? pal.border : '#e2e8f0');
-        delBtn.style.cssText = 'border: none; border-left: 1px solid ' + delBorder + '; background: transparent; ' +
-          'color: #94a3b8; font-size: 13px; font-weight: 700; padding: 0 7px; cursor: pointer; height: 100%; display: flex; align-items: center; justify-content: center; transition: all 0.15s;';
         delBtn.innerHTML = '&times;';
-        delBtn.onmouseenter = function() { delBtn.style.color = '#ef4444'; delBtn.style.background = isDark ? 'rgba(239,68,68,0.25)' : '#fee2e2'; };
-        delBtn.onmouseleave = function() { delBtn.style.color = '#94a3b8'; delBtn.style.background = 'transparent'; };
         delBtn.onclick = function(e) {
           e.stopPropagation();
           deleteDevice(dev.id);
         };
         devPill.appendChild(delBtn);
+
+        // Outer pill click fallback
+        devPill.onclick = function(e) {
+          dev.active = !dev.active;
+          renderDeviceFilterPills();
+          drawBearingLayout();
+          renderDistancesOverview();
+          if (typeof saveRasterConfigToLocalStorage === 'function') saveRasterConfigToLocalStorage();
+        };
 
         container.appendChild(devPill);
       });
@@ -2976,6 +3079,11 @@
 
       // --- 5. DRAW EXTRA DEVICES (TOESTELLEN) ---
       devices.forEach(dev => {
+        ctx.save();
+        if (!dev.active) {
+          ctx.globalAlpha = 0.38; // Clearly dimmed when inactive/uit
+        }
+
         let dScreen = worldToScreen(dev.x, dev.y, canvas);
         const pal = DEVICE_PALETTES[dev.paletteIndex % DEVICE_PALETTES.length];
         const isHovered = (hoveredDeviceId === dev.id);
@@ -3022,7 +3130,6 @@
         ctx.fill();
 
         // Rounded Hexagon / Squircle Body
-        ctx.save();
         ctx.beginPath();
         if (ctx.roundRect) {
           ctx.roundRect(dScreen.u - dSize/2, dScreen.v - dSize/2, dSize, dSize, 6 * dpr);
@@ -3053,7 +3160,6 @@
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.fillText(dev.short, dScreen.u, dScreen.v);
-        ctx.restore();
 
         // Device name tag underneath (showing assigned hardware type)
         const typeShort = getDeviceTypeShort(dev.type);
@@ -3087,6 +3193,8 @@
         ctx.textAlign = 'center';
         ctx.textBaseline = 'top';
         ctx.fillText(tagText, dScreen.u, dScreen.v + dSize/2 + 4.5 * dpr);
+
+        ctx.restore();
       });
 
       // --- 6. DRAW BEARING NODES (A, B, C...) ---
@@ -3189,7 +3297,7 @@
         for (let i = devices.length - 1; i >= 0; i--) {
           const dev = devices[i];
           let dScreen = worldToScreen(dev.x, dev.y, canvas);
-          if (dev.type === 'single_point' && dev.active) {
+          if (dev.type === 'single_point') {
             const targetL = dev.targetBearingLetter || Object.keys(bearingPositions).find(l => Math.hypot(bearingPositions[l].x - dev.x, bearingPositions[l].y - dev.y) < 0.2);
             if (targetL && bearingPositions[targetL] && Math.hypot(bearingPositions[targetL].x - dev.x, bearingPositions[targetL].y - dev.y) < 0.2) {
               dScreen.v -= 24 * dpr;
