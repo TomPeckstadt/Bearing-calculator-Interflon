@@ -94,6 +94,7 @@ h1, h2, h3, h4, .brand-text {
   width: 100%;
   max-width: 440px;
   padding: 40px;
+  box-sizing: border-box;
   border-radius: var(--border-radius-lg);
   box-shadow: var(--shadow-lg), 0 20px 25px -5px rgba(0, 0, 0, 0.05);
   border: 1px solid rgba(210, 201, 191, 0.3); /* Accent Taupe tint */
@@ -148,7 +149,8 @@ h1, h2, h3, h4, .brand-text {
   padding: 10px 0 0 0;
 }
 
-.login-logo-banner-img {
+.login-logo-banner-img,
+.login-logo-header-img {
   width: 100%;
   max-width: 260px;
   height: auto;
