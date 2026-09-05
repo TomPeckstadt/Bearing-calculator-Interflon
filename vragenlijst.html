@@ -3707,14 +3707,15 @@
                   (isDirect ? '<span style="font-size: 9.5px; font-weight: 800; color: #15803d; background: #bbf7d0; padding: 1px 5px; border-radius: 3px;" title="Direct op lager gemonteerd zonder leiding">⭐ Direct op lager</span>' : '<span style="font-size: 9px; font-weight: 800; color: #92400e; background: #fde68a; padding: 1px 4px; border-radius: 3px;">⚠️ Niet direct op lager</span>') +
                 '</div>';
             } else {
+              const roundedD = Math.round(od.d * 10) / 10;
               let statusBg = '#dcfce7';
               let statusCol = '#166534';
               let statusBorder = '#86efac';
-              if (od.d > 4.0) {
+              if (roundedD > 4.0) {
                 statusBg = '#fee2e2';
                 statusCol = '#991b1b';
                 statusBorder = '#fca5a5';
-              } else if (od.d > 3.0) {
+              } else if (roundedD > 3.0) {
                 statusBg = '#fef3c7';
                 statusCol = '#92400e';
                 statusBorder = '#fde68a';
@@ -3723,7 +3724,7 @@
               distRowsHtml += 
                 '<div style="display: inline-flex; align-items: center; gap: 5px; background: ' + statusBg + '; border: 1px solid ' + statusBorder + '; border-radius: 5px; padding: 2px 7px; font-size: 11px;">' +
                   '<span style="font-weight: 700; color: ' + od.origin.color + ';" title="' + od.origin.name + (od.origin.typeName ? (' (' + od.origin.typeName + ')') : '') + '">' + od.origin.short + (od.origin.typeShort ? (' <small style="font-weight: 700; opacity: 0.85;">' + od.origin.typeShort + '</small>') : '') + ':</span>' +
-                  '<span style="font-weight: 800; color: ' + statusCol + ';">' + od.d.toFixed(1).replace('.', ',') + ' m</span>' +
+                  '<span style="font-weight: 800; color: ' + statusCol + ';">' + roundedD.toFixed(1).replace('.', ',') + ' m</span>' +
                   (isClosest ? '<span style="font-size: 9px; font-weight: 800; color: #15803d; background: #bbf7d0; padding: 1px 4px; border-radius: 3px;" title="Kortste afstand">⭐ Dichtstbij</span>' : '') +
                 '</div>';
             }
@@ -3742,8 +3743,9 @@
       const maxEl = document.getElementById('statMaxDistance');
       if (maxEl) {
         if (distCount > 0) {
-          maxEl.textContent = overallMaxDist.toFixed(1).replace('.', ',') + ' m';
-          maxEl.style.color = overallMaxDist <= 3.0 ? '#166534' : overallMaxDist <= 4.0 ? '#92400e' : '#991b1b';
+          const roundedMax = Math.round(overallMaxDist * 10) / 10;
+          maxEl.textContent = roundedMax.toFixed(1).replace('.', ',') + ' m';
+          maxEl.style.color = roundedMax <= 3.0 ? '#166534' : roundedMax <= 4.0 ? '#92400e' : '#991b1b';
         } else {
           maxEl.textContent = '-';
           maxEl.style.color = '#0f172a';
@@ -4255,14 +4257,15 @@
           ctx.textBaseline = 'top';
           ctx.fillText(od.d.toFixed(1).replace('.', ',') + ' m', rightX + rightW - 32, itemY + 11);
 
+          const roundedD = Math.round(od.d * 10) / 10;
           let statusBg = '#dcfce7';
           let statusCol = '#166534';
           let statusTxt = 'Ideaal (≤ 3m)';
-          if (od.d > 4.0) {
+          if (roundedD > 4.0) {
             statusBg = '#fee2e2';
             statusCol = '#991b1b';
             statusTxt = 'Lange leiding (> 4m)';
-          } else if (od.d > 3.0) {
+          } else if (roundedD > 3.0) {
             statusBg = '#fef3c7';
             statusCol = '#92400e';
             statusTxt = 'Goed (3-4m)';
@@ -4284,13 +4287,14 @@
           let badgeX = rightX + rightW - 32;
           originDists.forEach(od => {
             const isClosest = (od.origin.id === closestOriginId);
-            const badgeStr = od.origin.short + ': ' + od.d.toFixed(1).replace('.', ',') + 'm';
+            const roundedD = Math.round(od.d * 10) / 10;
+            const badgeStr = od.origin.short + ': ' + roundedD.toFixed(1).replace('.', ',') + 'm';
             ctx.font = 'bold 10.5px "Outfit", sans-serif';
             const bWidth = ctx.measureText(badgeStr).width + 12;
             badgeX -= bWidth;
 
-            let bBg = od.d <= 3.0 ? '#dcfce7' : (od.d <= 4.0 ? '#fef3c7' : '#fee2e2');
-            let bCol = od.d <= 3.0 ? '#166534' : (od.d <= 4.0 ? '#92400e' : '#991b1b');
+            let bBg = roundedD <= 3.0 ? '#dcfce7' : (roundedD <= 4.0 ? '#fef3c7' : '#fee2e2');
+            let bCol = roundedD <= 3.0 ? '#166534' : (roundedD <= 4.0 ? '#92400e' : '#991b1b');
             
             ctx.fillStyle = bBg;
             ctx.beginPath();
