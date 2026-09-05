@@ -3763,7 +3763,13 @@
           const qty = qtyIn ? (parseInt(qtyIn.value, 10) || 1) : 1;
           const nrIn = r.querySelector('.bearing-nr-input');
           const nr = nrIn && nrIn.value ? nrIn.value.trim() : ('Lager ' + letter);
-          bearings.push({ letter, nr, x: pos.x, y: pos.y, qty });
+          const descIn = r.querySelector('.bearing-desc-input');
+          const desc = descIn && descIn.value ? descIn.value.trim() : '';
+          const rpmIn = r.querySelector('.bearing-rpm-input');
+          const rpm = rpmIn && rpmIn.value ? rpmIn.value.trim() : '';
+          const posIn = r.querySelector('.bearing-pos-input');
+          const asPos = posIn && posIn.value ? posIn.value.trim() : 'Horizontaal';
+          bearings.push({ letter, nr, desc, rpm, pos: asPos, x: pos.x, y: pos.y, qty });
         });
 
         if (bearings.length === 0) return null;
