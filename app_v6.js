@@ -232,6 +232,10 @@ function saveAutomationStateToLocalStorage() {
     const numDevicesSelect = document.getElementById("autoNumDevicesSelect");
     if (numDevicesSelect) localStorage.setItem("auto_num_devices", numDevicesSelect.value);
 
+    if (window.spNumBearingsValue) {
+      localStorage.setItem("single_point_num_bearings", String(window.spNumBearingsValue));
+    }
+
     if (Array.isArray(autoDevicesState)) {
       localStorage.setItem("auto_devices_state", JSON.stringify(autoDevicesState));
     }
@@ -256,6 +260,11 @@ function loadAutomationStateFromLocalStorage() {
     if (savedNumDevices) {
       const numDevicesSelect = document.getElementById("autoNumDevicesSelect");
       if (numDevicesSelect) numDevicesSelect.value = savedNumDevices;
+    }
+
+    const savedSpBearings = localStorage.getItem("single_point_num_bearings");
+    if (savedSpBearings) {
+      window.spNumBearingsValue = parseInt(savedSpBearings, 10) || 1;
     }
 
     const savedStateJson = localStorage.getItem("auto_devices_state");
@@ -341,20 +350,85 @@ function importConfigFromSurvey(customData) {
 function applySurveyConfig(config) {
   if (!config || !config.devices || !Array.isArray(config.devices)) return;
 
-  const num = Math.min(4, Math.max(1, config.numDevices || 1));
-
-  // 1. Switch device type to Pulsarlube if currently single_point
   const devSelect = document.getElementById('automationDeviceSelect') || document.getElementById('autoDeviceSelect');
-  const targetType = (config.devices[0] && config.devices[0].type && config.devices[0].type !== 'single_point')
+
+  // Check if configuration is for Single Point Lubricators
+  const isSinglePoint = (config.isSinglePoint === true) ||
+                        (config.deviceType === 'single_point') ||
+                        (config.devices.length > 0 && config.devices.every(d => d.type === 'single_point')) ||
+                        (config.devices.length > 0 && config.devices[0].type === 'single_point');
+
+  if (isSinglePoint) {
+    // --- CASE A: SINGLE POINT LUBRICATORS ---
+    const totalUnits = config.totalSinglePoints || config.devices.length || (config.bearings && config.bearings.length) || config.numDevices || 1;
+
+    // 1. Set number of bearings / single point units in memory
+    window.spNumBearingsValue = totalUnits;
+    if (typeof autoDevicesState !== 'undefined' && autoDevicesState[0]) {
+      autoDevicesState[0].points = 1;
+      if (![60, 120, 250].includes(autoDevicesState[0].cap)) {
+        autoDevicesState[0].cap = 250;
+      }
+    }
+
+    // 2. Switch device type dropdown to single_point
+    if (devSelect) {
+      devSelect.value = 'single_point';
+      if (typeof updateAutomationPage === 'function') {
+        updateAutomationPage();
+      }
+    }
+
+    // 3. Update DOM input element if rendered
+    const spInput = document.getElementById('singlePointNumBearingsInput');
+    if (spInput) {
+      spInput.value = totalUnits;
+    }
+
+    // 3. Render and recalculate
+    renderAutoDevicesUI();
+    calculateAutomationLubrication();
+    saveAutomationStateToLocalStorage();
+    if (typeof updateRoiAutomationPage === 'function') {
+      updateRoiAutomationPage();
+    }
+
+    // 4. Visual confirmation badge
+    const fbEl = document.getElementById('surveyImportFeedback');
+    if (fbEl) {
+      const machinePart = config.machineName ? ` voor "${config.machineName}"` : '';
+      fbEl.style.display = 'block';
+      fbEl.style.background = '#ecfdf5';
+      fbEl.style.color = '#065f46';
+      fbEl.style.border = '1px solid #a7f3d0';
+      fbEl.innerHTML = `✅ <strong>${totalUnits} Interflon Single Point Lubricators</strong> direct geïmporteerd uit vragenlijst${machinePart}<br><span style="font-size: 10.5px; opacity: 0.9;">Automatisch omgeschakeld naar Single Point Lubricators (1 per lager)</span>`;
+      setTimeout(() => {
+        if (fbEl) fbEl.style.display = 'none';
+      }, 7000);
+    }
+
+    if (config.machineName) {
+      const techMach = document.getElementById('techMachineInput');
+      if (techMach) techMach.value = config.machineName;
+      localStorage.setItem('tech_machine', config.machineName);
+    }
+
+    if (typeof showToastNotification === 'function') {
+      showToastNotification(`✓ Vragenlijst geïmporteerd: ${totalUnits} Single Point Lubricators`);
+    }
+    return;
+  }
+
+  // --- CASE B: PULSARLUBE MULTI-POINT ---
+  const num = Math.min(4, Math.max(1, config.numDevices || 1));
+  const targetType = (config.devices[0] && config.devices[0].type && config.devices[0].type.startsWith('pulsarlube'))
     ? config.devices[0].type
     : 'pulsarlube_m2';
 
   if (devSelect) {
-    if (devSelect.value === 'single_point' || !devSelect.value.startsWith('pulsarlube')) {
-      devSelect.value = targetType;
-      if (typeof updateAutomationPage === 'function') {
-        updateAutomationPage();
-      }
+    devSelect.value = targetType;
+    if (typeof updateAutomationPage === 'function') {
+      updateAutomationPage();
     }
   }
 
@@ -479,59 +553,78 @@ function parseSurveyPackageToConfig(data) {
     // All devices defined on the raster are considered
     let activeDevs = (surveyDevices.length > 0) ? surveyDevices : [];
 
-    const numDevices = Math.min(4, Math.max(1, activeDevs.length || 1));
+    const isSinglePoint = (data.isSinglePoint === true) ||
+                          (data.deviceType === 'single_point') ||
+                          (data.raster && data.raster.isSinglePoint === true) ||
+                          (activeDevs.length > 0 && activeDevs.every(d => d.type === 'single_point')) ||
+                          (activeDevs.length > 0 && activeDevs[0].type === 'single_point');
+
+    const numDevices = isSinglePoint ? (activeDevs.length || bearings.length || 1) : Math.min(4, Math.max(1, activeDevs.length || 1));
     const deviceConfigs = [];
 
-    for (let i = 0; i < numDevices; i++) {
-      const dev = activeDevs[i] || { id: 'dev-' + (i + 1), name: 'Toestel ' + (i + 1), type: 'pulsarlube_m2', x: 0, y: 0 };
-      deviceConfigs.push({
-        index: i,
-        id: String.fromCharCode(65 + i),
-        surveyId: dev.id,
-        name: dev.name || ('Toestel ' + (i + 1)),
-        type: dev.type || 'pulsarlube_m2',
-        points: 0,
-        bearingLetters: []
-      });
-    }
+    if (isSinglePoint) {
+      for (let i = 0; i < numDevices; i++) {
+        const dev = activeDevs[i] || { id: 'dev-' + (i + 1), name: 'Toestel ' + (i + 1), type: 'single_point', x: 0, y: 0 };
+        const targetL = dev.targetBearingLetter || (bearings[i] ? bearings[i].letter : ('L' + (i + 1)));
+        deviceConfigs.push({
+          index: i,
+          id: 'T' + (i + 1),
+          surveyId: dev.id,
+          name: dev.name || ('Toestel ' + (i + 1)),
+          type: 'single_point',
+          points: 1,
+          targetBearingLetter: targetL,
+          bearingLetters: [targetL]
+        });
+      }
+    } else {
+      for (let i = 0; i < numDevices; i++) {
+        const dev = activeDevs[i] || { id: 'dev-' + (i + 1), name: 'Toestel ' + (i + 1), type: 'pulsarlube_m2', x: 0, y: 0 };
+        deviceConfigs.push({
+          index: i,
+          id: String.fromCharCode(65 + i),
+          surveyId: dev.id,
+          name: dev.name || ('Toestel ' + (i + 1)),
+          type: dev.type || 'pulsarlube_m2',
+          points: 0,
+          bearingLetters: []
+        });
+      }
 
-    if (bearings.length > 0) {
-      bearings.forEach(b => {
-        let bestIdx = 0;
-        let bestDist = Infinity;
-        for (let i = 0; i < numDevices; i++) {
-          const dev = activeDevs[i] || { x: 0, y: 0 };
-          if (dev.type === 'single_point' && dev.targetBearingLetter) {
-            if (dev.targetBearingLetter === b.letter) {
+      if (bearings.length > 0) {
+        bearings.forEach(b => {
+          let bestIdx = 0;
+          let bestDist = Infinity;
+          for (let i = 0; i < numDevices; i++) {
+            const dev = activeDevs[i] || { x: 0, y: 0 };
+            const d = Math.hypot(b.x - (dev.x || 0), b.y - (dev.y || 0));
+            if (d < bestDist) {
+              bestDist = d;
               bestIdx = i;
-              bestDist = 0;
-              break;
             }
           }
-          const d = Math.hypot(b.x - (dev.x || 0), b.y - (dev.y || 0));
-          if (d < bestDist) {
-            bestDist = d;
-            bestIdx = i;
-          }
+          const ptsToAdd = (deviceConfigs[bestIdx].type === 'single_point') ? 1 : (b.qty || 1);
+          deviceConfigs[bestIdx].points += ptsToAdd;
+          deviceConfigs[bestIdx].bearingLetters.push(b.letter);
+        });
+      }
+
+      deviceConfigs.forEach(dc => {
+        if (dc.type === 'single_point') {
+          dc.points = 1;
+        } else {
+          dc.points = Math.min(8, Math.max(1, dc.points));
         }
-        const ptsToAdd = (deviceConfigs[bestIdx].type === 'single_point') ? 1 : (b.qty || 1);
-        deviceConfigs[bestIdx].points += ptsToAdd;
-        deviceConfigs[bestIdx].bearingLetters.push(b.letter);
       });
     }
 
-    deviceConfigs.forEach(dc => {
-      if (dc.type === 'single_point') {
-        dc.points = 1;
-      } else {
-        dc.points = Math.min(8, Math.max(1, dc.points));
-      }
-    });
-
-    const machineName = (data.general && data.general.machineName) ? data.general.machineName : 'Machine';
+    const machineName = (data.general && data.general.machineName) ? data.general.machineName : (data.machineName || 'Machine');
     return {
       timestamp: Date.now(),
       machineName: machineName,
+      isSinglePoint: isSinglePoint,
+      deviceType: isSinglePoint ? 'single_point' : ((deviceConfigs[0] && deviceConfigs[0].type) || 'pulsarlube_m2'),
+      totalSinglePoints: isSinglePoint ? numDevices : 0,
       numDevices: numDevices,
       devices: deviceConfigs,
       totalBearings: bearings.length
@@ -575,7 +668,11 @@ function renderAutoDevicesUI() {
 
   const multiDevContainer = document.getElementById("autoMultiDeviceSelectorContainer");
   if (multiDevContainer) {
-    multiDevContainer.style.display = isSinglePoint ? "none" : "block";
+    multiDevContainer.style.display = "block";
+  }
+  const numDevWrapper = document.getElementById("autoNumDevicesWrapper");
+  if (numDevWrapper) {
+    numDevWrapper.style.display = isSinglePoint ? "none" : "block";
   }
 
   const numDevices = isSinglePoint ? 1 : getActiveNumDevices();
@@ -6938,6 +7035,7 @@ function updateAutomationPage() {
     }
   }
 
+  renderAutoDevicesUI();
   calculateAutomationLubrication();
 }
 
@@ -7001,15 +7099,15 @@ function calculateAutomationLubrication() {
   saveAutomationStateToLocalStorage();
   setTimeout(() => { if (typeof updateRoiAutomationPage === "function") updateRoiAutomationPage(); }, 0);
   
-  const numDevices = getActiveNumDevices();
-  const container = document.getElementById("autoDevicesCardsContainer");
-  if (container && container.children.length !== numDevices) {
-    renderAutoDevicesUI();
-  }
-
   const deviceSelect = document.getElementById("automationDeviceSelect") || document.getElementById("autoDeviceSelect");
   const deviceKey = deviceSelect ? deviceSelect.value : "single_point";
   const isSinglePoint = (deviceKey === "single_point");
+  const numCards = isSinglePoint ? 1 : getActiveNumDevices();
+  const container = document.getElementById("autoDevicesCardsContainer");
+  if (container && container.children.length !== numCards) {
+    renderAutoDevicesUI();
+  }
+
   const greaseSelect = document.getElementById("selectedGrease") || document.getElementById("greaseSelect") || document.getElementById("inputGrease");
   const greaseName = greaseSelect ? greaseSelect.value : "Interflon Grease LS2";
 
@@ -7053,7 +7151,7 @@ function calculateAutomationLubrication() {
   }
 
   // Iterate over each active device card (A, B, C, D)
-  for (let i = 0; i < numDevices; i++) {
+  for (let i = 0; i < numCards; i++) {
     const dev = (typeof autoDevicesState !== "undefined" && autoDevicesState[i]) ? autoDevicesState[i] : { id: String.fromCharCode(65 + i), points: 1, cap: 120, period: 6, unit: "months" };
     if (deviceKey === "single_point") {
       dev.points = 1;
@@ -7067,7 +7165,7 @@ function calculateAutomationLubrication() {
       if (autoDevicesState[i]) autoDevicesState[i].cap = 250;
     }
     const capMl = dev.cap || (isSinglePoint ? 250 : 120);
-    const devName = numDevices === 1 ? "Pulsarlube Smeertoestel" : `Pulsarlube ${devId}`;
+    const devName = isSinglePoint ? "Interflon Single Point Lubricator" : (numCards === 1 ? "Pulsarlube Smeertoestel" : `Pulsarlube ${devId}`);
 
     // 1. Update Verdeelblok Card Info for this device
     const divTitleEl = document.getElementById("dividerBlockTitle_" + devId);
