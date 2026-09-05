@@ -1615,6 +1615,16 @@
                 <span style="display: block; font-size: 11px; color: var(--text-medium); margin-top: 5px; line-height: 1.35;" data-i18n="autoNumDevicesHint">
                   Verdeel de te smeren lagers over 1 of meerdere toestellen (bijvoorbeeld 1 toestel met 4 lagers en 1 toestel met 2 lagers).
                 </span>
+                <div style="margin-top: 10px;">
+                  <button type="button" id="btnImportSurveyConfig" onclick="importConfigFromSurvey()" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 7px; padding: 8px 12px; background: #f0fdf4; color: #166534; border: 1.5px solid #86efac; border-radius: var(--border-radius-sm); font-family: 'Outfit', sans-serif; font-size: 12px; font-weight: 700; cursor: pointer; transition: all 0.2s ease; box-shadow: 0 1px 2px rgba(0,0,0,0.03);" onmouseenter="this.style.background='#dcfce7'; this.style.borderColor='#4ade80';" onmouseleave="this.style.background='#f0fdf4'; this.style.borderColor='#86efac';" title="Importeer het aantal toestellen en smeerpunten uit het machineraster van de vragenlijst">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width: 15px; height: 15px; flex-shrink: 0;">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5" />
+                    </svg>
+                    <span data-i18n="btnImportSurveyConfig">Importeer configuratie uit vragenlijst</span>
+                  </button>
+                  <input type="file" id="surveyConfigFileSelector" accept=".json,application/json" style="display: none;" onchange="handleSurveyConfigFile(event)">
+                  <div id="surveyImportFeedback" style="display: none; margin-top: 6px; padding: 6px 10px; border-radius: 6px; font-size: 11.5px; font-weight: 600; text-align: center; transition: all 0.3s ease;"></div>
+                </div>
               </div>
             </div>
 
