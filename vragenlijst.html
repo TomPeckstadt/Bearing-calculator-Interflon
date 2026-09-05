@@ -3911,6 +3911,7 @@
           totalSinglePoints: isSinglePointSetup ? activeDevs.length : 0,
           numDevices: numDevices,
           devices: deviceConfigs,
+          bearings: bearings,
           totalBearings: bearings.length
         };
 
@@ -3948,12 +3949,13 @@
             surveyRasterConfig: configToSave
           };
           localStorage.setItem('interflon_questionnaire_full_data', JSON.stringify(fullData));
+          localStorage.setItem('interflon_last_questionnaire_data', JSON.stringify(fullData));
         } catch (errFull) {}
 
         try {
           if (typeof BroadcastChannel !== 'undefined') {
             const channel = new BroadcastChannel('interflon_questionnaire_sync');
-            channel.postMessage({ type: 'CONFIG_UPDATED', config: configToSave });
+            channel.postMessage({ type: 'CONFIG_UPDATED', config: configToSave, bearings: bearings });
           }
         } catch (e) {}
 
@@ -4828,6 +4830,171 @@
       URL.revokeObjectURL(url);
     }
 
+    function restoreQuestionnaireDOM(data, isUserImport) {
+      if (!data) return;
+
+      // 1. General machine info
+      if (data.general) {
+        if (document.getElementById('q1')) document.getElementById('q1').value = data.general.machineName || '';
+        if (document.getElementById('q2')) document.getElementById('q2').value = data.general.machineBrand || '';
+        if (document.getElementById('q3')) document.getElementById('q3').value = data.general.application || '';
+        if (document.getElementById('q10')) document.getElementById('q10').value = data.general.machineCount || '1';
+      }
+
+      // 2. Contact info
+      if (data.contact) {
+        if (document.getElementById('clientCompany')) document.getElementById('clientCompany').value = data.contact.clientCompany || '';
+        if (document.getElementById('clientContact')) document.getElementById('clientContact').value = data.contact.clientContact || '';
+        if (document.getElementById('clientEmail')) {
+          document.getElementById('clientEmail').value = data.contact.clientEmail || '';
+          if (typeof syncReplyTo === 'function') syncReplyTo(data.contact.clientEmail || '');
+        }
+        if (document.getElementById('interflonContactEmail')) {
+          const email = data.contact.interflonContactEmail || 'tom.peckstadt@interflon.com';
+          document.getElementById('interflonContactEmail').value = email;
+          if (typeof updateFormSubmitAction === 'function') updateFormSubmitAction(email);
+        }
+      }
+
+      // 3. Dynamic bearing rows
+      if (Array.isArray(data.bearings) && data.bearings.length > 0) {
+        const container = document.getElementById('bearingRowsContainer');
+        if (container) {
+          container.innerHTML = '';
+          data.bearings.forEach((b, idx) => {
+            const letter = b.letter || LETTERS[idx] || ('L' + (idx + 1));
+            const isFirst = (idx === 0);
+            const row = document.createElement('div');
+            row.className = 'bearing-row';
+            row.id = 'bearingRow_' + (idx + 1);
+            row.setAttribute('data-letter', letter);
+            row.style.cssText = 'display: grid; grid-template-columns: 75px 65px 1fr 1fr 100px 120px 36px; gap: 8px; margin-bottom: ' + (isFirst ? '12px' : '10px') + '; align-items: ' + (isFirst ? 'end' : 'center') + ';';
+
+            row.innerHTML = `
+              <div>
+                ${isFirst ? '<label style="font-size: 11.5px; font-weight: 700; color: #334155; display: block; margin-bottom: 4px;">Lager</label>' : ''}
+                <span class="bearing-badge">Lager ${letter}</span>
+              </div>
+              <div>
+                ${isFirst ? '<label style="font-size: 11.5px; font-weight: 700; color: #334155; display: block; margin-bottom: 4px;">Aantal *</label>' : ''}
+                <input type="number" name="Lager ${letter} - Aantal" class="form-control bearing-qty-input" min="1" required onchange="onBearingRowChanged()">
+              </div>
+              <div>
+                ${isFirst ? '<label style="font-size: 11.5px; font-weight: 700; color: #334155; display: block; margin-bottom: 4px;">Lagernummer *</label>' : ''}
+                <input type="text" name="Lager ${letter} - Lagernummer" ${isFirst ? 'id="q5"' : ''} class="form-control bearing-nr-input" placeholder="bijv. 6208 2RS of 22215" required oninput="onBearingRowChanged()">
+              </div>
+              <div>
+                ${isFirst ? '<label style="font-size: 11.5px; font-weight: 700; color: #334155; display: block; margin-bottom: 4px;">Omschrijving / Positie</label>' : ''}
+                <input type="text" name="Lager ${letter} - Omschrijving" class="form-control bearing-desc-input" placeholder="bijv. Keerzijde transportband" oninput="onBearingRowChanged()">
+              </div>
+              <div>
+                ${isFirst ? '<label style="font-size: 11.5px; font-weight: 700; color: #334155; display: block; margin-bottom: 4px;">Toerental (RPM)</label>' : ''}
+                <input type="number" name="Lager ${letter} - Toerental RPM" ${isFirst ? 'id="q8"' : ''} class="form-control bearing-rpm-input" placeholder="bijv. 1450" oninput="onBearingRowChanged()">
+              </div>
+              <div>
+                ${isFirst ? '<label style="font-size: 11.5px; font-weight: 700; color: #334155; display: block; margin-bottom: 4px;">As Positie</label>' : ''}
+                <select name="Lager ${letter} - As Positie" class="form-control bearing-pos-input" onchange="onBearingRowChanged()">
+                  <option value="Horizontaal">Horizontaal</option>
+                  <option value="Verticaal">Verticaal</option>
+                </select>
+              </div>
+              <div>
+                ${!isFirst ? `<button type="button" onclick="removeBearingRow(this)" title="Sluiten" style="background: #fee2e2; border: 1px solid #fca5a5; color: #dc2626; border-radius: 6px; width: 36px; height: 36px; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 16px;">✕</button>` : ''}
+              </div>
+            `;
+            container.appendChild(row);
+
+            // Populate input values safely via DOM properties
+            const qtyIn = row.querySelector('.bearing-qty-input');
+            if (qtyIn) qtyIn.value = b.qty || '1';
+            const nrIn = row.querySelector('.bearing-nr-input');
+            if (nrIn) nrIn.value = b.nr || '';
+            const descIn = row.querySelector('.bearing-desc-input');
+            if (descIn) descIn.value = b.desc || '';
+            const rpmIn = row.querySelector('.bearing-rpm-input');
+            if (rpmIn) rpmIn.value = b.rpm || '';
+            const posIn = row.querySelector('.bearing-pos-input');
+            if (posIn) posIn.value = b.pos || 'Horizontaal';
+          });
+        }
+      }
+
+      // 4. Bearing data maps
+      if (data.bearingDataMapSec2) bearingDataMapSec2 = JSON.parse(JSON.stringify(data.bearingDataMapSec2));
+      if (data.bearingDataMapSec3) bearingDataMapSec3 = JSON.parse(JSON.stringify(data.bearingDataMapSec3));
+      if (data.bearingDataMapSec4) bearingDataMapSec4 = JSON.parse(JSON.stringify(data.bearingDataMapSec4));
+
+      // 5. Active bearing keys
+      const firstLetter = (data.bearings && data.bearings[0] && data.bearings[0].letter) || 'A';
+      activeBearingSec2 = (data.activeBearings && data.activeBearings.sec2) || firstLetter;
+      activeBearingSec3 = (data.activeBearings && data.activeBearings.sec3) || firstLetter;
+      activeBearingSec4 = (data.activeBearings && data.activeBearings.sec4) || firstLetter;
+
+      // 6. Raster State (restore bearingPositions BEFORE updating letters & dropdown)
+      if (data.raster) {
+        if (data.raster.bearingPositions) {
+          bearingPositions = JSON.parse(JSON.stringify(data.raster.bearingPositions));
+        }
+        if (Array.isArray(data.raster.devices)) {
+          devices = JSON.parse(JSON.stringify(data.raster.devices)).map(d => ({
+            ...d,
+            type: d.type || 'pulsarlube_m2'
+          }));
+        }
+        if (typeof data.raster.showCentralPoint === 'boolean') {
+          showCentralPoint = data.raster.showCentralPoint;
+        }
+        if (data.raster.machineRangeMeters) {
+          machineRangeMeters = Number(data.raster.machineRangeMeters);
+          const scaleSelect = document.getElementById('layoutScaleSelect');
+          if (scaleSelect) scaleSelect.value = machineRangeMeters;
+          const infoEl = document.getElementById('canvasZoomInfo');
+          if (infoEl) infoEl.textContent = 'Bereik: ' + machineRangeMeters + ' m';
+        }
+        if (data.raster.layoutViewMode) {
+          setLayoutViewMode(data.raster.layoutViewMode);
+        }
+      }
+
+      // 7. Update dropdowns, load active bearing values, and sync layout
+      updateBearingLettersAndDropdown();
+
+      // 8. Redraw layout, device pills, distances, and formsubmit attachment
+      renderDeviceFilterPills();
+      drawBearingLayout();
+      renderDistancesOverview();
+      updateFormSubmitAttachment();
+
+      // 9. Persist configuration immediately to localStorage so Automatisering has it instantly
+      if (typeof saveRasterConfigToLocalStorage === 'function') {
+        saveRasterConfigToLocalStorage();
+      }
+      try {
+        localStorage.setItem('interflon_questionnaire_full_data', JSON.stringify(data));
+        localStorage.setItem('interflon_last_questionnaire_data', JSON.stringify(data));
+        if (data.contact) {
+          if (data.contact.clientCompany) localStorage.setItem('client_company', data.contact.clientCompany);
+          if (data.contact.clientContact) localStorage.setItem('client_contact', data.contact.clientContact);
+          if (data.contact.clientEmail) localStorage.setItem('client_email', data.contact.clientEmail);
+        }
+        if (data.general && data.general.machineName) {
+          localStorage.setItem('tech_machine', data.general.machineName);
+        }
+        if (typeof BroadcastChannel !== 'undefined') {
+          const channel = new BroadcastChannel('interflon_questionnaire_sync');
+          channel.postMessage({ type: 'QUESTIONNAIRE_IMPORTED', data: data });
+        }
+      } catch (e) {
+        console.warn('Could not persist questionnaire to localStorage', e);
+      }
+
+      if (isUserImport) {
+        alert('✅ Vragenlijst succesvol geïmporteerd!\nAlle machinegegevens, lagers en het machineraster zijn hersteld.');
+        window.dispatchEvent(new CustomEvent('questionnaireImported', { detail: data }));
+      }
+    }
+    window.restoreQuestionnaireDOM = restoreQuestionnaireDOM;
+
     function importQuestionnaireFile(event) {
       const file = event.target.files && event.target.files[0];
       if (!file) return;
@@ -4840,164 +5007,7 @@
             alert('Ongeldig bestand. Controleer of dit een geldig Interflon vragenlijstbestand (.json) is.');
             return;
           }
-
-          // 1. General machine info
-          if (data.general) {
-            if (document.getElementById('q1')) document.getElementById('q1').value = data.general.machineName || '';
-            if (document.getElementById('q2')) document.getElementById('q2').value = data.general.machineBrand || '';
-            if (document.getElementById('q3')) document.getElementById('q3').value = data.general.application || '';
-            if (document.getElementById('q10')) document.getElementById('q10').value = data.general.machineCount || '1';
-          }
-
-          // 2. Contact info
-          if (data.contact) {
-            if (document.getElementById('clientCompany')) document.getElementById('clientCompany').value = data.contact.clientCompany || '';
-            if (document.getElementById('clientContact')) document.getElementById('clientContact').value = data.contact.clientContact || '';
-            if (document.getElementById('clientEmail')) {
-              document.getElementById('clientEmail').value = data.contact.clientEmail || '';
-              if (typeof syncReplyTo === 'function') syncReplyTo(data.contact.clientEmail || '');
-            }
-            if (document.getElementById('interflonContactEmail')) {
-              const email = data.contact.interflonContactEmail || 'tom.peckstadt@interflon.com';
-              document.getElementById('interflonContactEmail').value = email;
-              if (typeof updateFormSubmitAction === 'function') updateFormSubmitAction(email);
-            }
-          }
-
-          // 3. Dynamic bearing rows
-          if (Array.isArray(data.bearings) && data.bearings.length > 0) {
-            const container = document.getElementById('bearingRowsContainer');
-            if (container) {
-              container.innerHTML = '';
-              data.bearings.forEach((b, idx) => {
-                const letter = b.letter || LETTERS[idx] || ('L' + (idx + 1));
-                const isFirst = (idx === 0);
-                const row = document.createElement('div');
-                row.className = 'bearing-row';
-                row.id = 'bearingRow_' + (idx + 1);
-                row.setAttribute('data-letter', letter);
-                row.style.cssText = 'display: grid; grid-template-columns: 75px 65px 1fr 1fr 100px 120px 36px; gap: 8px; margin-bottom: ' + (isFirst ? '12px' : '10px') + '; align-items: ' + (isFirst ? 'end' : 'center') + ';';
-
-                row.innerHTML = `
-                  <div>
-                    ${isFirst ? '<label style="font-size: 11.5px; font-weight: 700; color: #334155; display: block; margin-bottom: 4px;">Lager</label>' : ''}
-                    <span class="bearing-badge">Lager ${letter}</span>
-                  </div>
-                  <div>
-                    ${isFirst ? '<label style="font-size: 11.5px; font-weight: 700; color: #334155; display: block; margin-bottom: 4px;">Aantal *</label>' : ''}
-                    <input type="number" name="Lager ${letter} - Aantal" class="form-control bearing-qty-input" min="1" required onchange="onBearingRowChanged()">
-                  </div>
-                  <div>
-                    ${isFirst ? '<label style="font-size: 11.5px; font-weight: 700; color: #334155; display: block; margin-bottom: 4px;">Lagernummer *</label>' : ''}
-                    <input type="text" name="Lager ${letter} - Lagernummer" ${isFirst ? 'id="q5"' : ''} class="form-control bearing-nr-input" placeholder="bijv. 6208 2RS of 22215" required oninput="onBearingRowChanged()">
-                  </div>
-                  <div>
-                    ${isFirst ? '<label style="font-size: 11.5px; font-weight: 700; color: #334155; display: block; margin-bottom: 4px;">Omschrijving / Positie</label>' : ''}
-                    <input type="text" name="Lager ${letter} - Omschrijving" class="form-control bearing-desc-input" placeholder="bijv. Keerzijde transportband" oninput="onBearingRowChanged()">
-                  </div>
-                  <div>
-                    ${isFirst ? '<label style="font-size: 11.5px; font-weight: 700; color: #334155; display: block; margin-bottom: 4px;">Toerental (RPM)</label>' : ''}
-                    <input type="number" name="Lager ${letter} - Toerental RPM" ${isFirst ? 'id="q8"' : ''} class="form-control bearing-rpm-input" placeholder="bijv. 1450" oninput="onBearingRowChanged()">
-                  </div>
-                  <div>
-                    ${isFirst ? '<label style="font-size: 11.5px; font-weight: 700; color: #334155; display: block; margin-bottom: 4px;">As Positie</label>' : ''}
-                    <select name="Lager ${letter} - As Positie" class="form-control bearing-pos-input" onchange="onBearingRowChanged()">
-                      <option value="Horizontaal">Horizontaal</option>
-                      <option value="Verticaal">Verticaal</option>
-                    </select>
-                  </div>
-                  <div>
-                    ${!isFirst ? `<button type="button" onclick="removeBearingRow(this)" title="Sluiten" style="background: #fee2e2; border: 1px solid #fca5a5; color: #dc2626; border-radius: 6px; width: 36px; height: 36px; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 16px;">✕</button>` : ''}
-                  </div>
-                `;
-                container.appendChild(row);
-
-                // Populate input values safely via DOM properties
-                const qtyIn = row.querySelector('.bearing-qty-input');
-                if (qtyIn) qtyIn.value = b.qty || '1';
-                const nrIn = row.querySelector('.bearing-nr-input');
-                if (nrIn) nrIn.value = b.nr || '';
-                const descIn = row.querySelector('.bearing-desc-input');
-                if (descIn) descIn.value = b.desc || '';
-                const rpmIn = row.querySelector('.bearing-rpm-input');
-                if (rpmIn) rpmIn.value = b.rpm || '';
-                const posIn = row.querySelector('.bearing-pos-input');
-                if (posIn) posIn.value = b.pos || 'Horizontaal';
-              });
-            }
-          }
-
-          // 4. Bearing data maps
-          if (data.bearingDataMapSec2) bearingDataMapSec2 = JSON.parse(JSON.stringify(data.bearingDataMapSec2));
-          if (data.bearingDataMapSec3) bearingDataMapSec3 = JSON.parse(JSON.stringify(data.bearingDataMapSec3));
-          if (data.bearingDataMapSec4) bearingDataMapSec4 = JSON.parse(JSON.stringify(data.bearingDataMapSec4));
-
-          // 5. Active bearing keys
-          const firstLetter = (data.bearings && data.bearings[0] && data.bearings[0].letter) || 'A';
-          activeBearingSec2 = (data.activeBearings && data.activeBearings.sec2) || firstLetter;
-          activeBearingSec3 = (data.activeBearings && data.activeBearings.sec3) || firstLetter;
-          activeBearingSec4 = (data.activeBearings && data.activeBearings.sec4) || firstLetter;
-
-          // 6. Raster State (restore bearingPositions BEFORE updating letters & dropdown)
-          if (data.raster) {
-            if (data.raster.bearingPositions) {
-              bearingPositions = JSON.parse(JSON.stringify(data.raster.bearingPositions));
-            }
-            if (Array.isArray(data.raster.devices)) {
-              devices = JSON.parse(JSON.stringify(data.raster.devices)).map(d => ({
-                ...d,
-                type: d.type || 'pulsarlube_m2'
-              }));
-            }
-            if (typeof data.raster.showCentralPoint === 'boolean') {
-              showCentralPoint = data.raster.showCentralPoint;
-            }
-            if (data.raster.machineRangeMeters) {
-              machineRangeMeters = Number(data.raster.machineRangeMeters);
-              const scaleSelect = document.getElementById('layoutScaleSelect');
-              if (scaleSelect) scaleSelect.value = machineRangeMeters;
-              const infoEl = document.getElementById('canvasZoomInfo');
-              if (infoEl) infoEl.textContent = 'Bereik: ' + machineRangeMeters + ' m';
-            }
-            if (data.raster.layoutViewMode) {
-              setLayoutViewMode(data.raster.layoutViewMode);
-            }
-          }
-
-          // 7. Update dropdowns, load active bearing values, and sync layout
-          updateBearingLettersAndDropdown();
-
-          // 8. Redraw layout, device pills, distances, and formsubmit attachment
-          renderDeviceFilterPills();
-          drawBearingLayout();
-          renderDistancesOverview();
-          updateFormSubmitAttachment();
-
-          // 9. Persist configuration immediately to localStorage so Automatisering has it instantly
-          if (typeof saveRasterConfigToLocalStorage === 'function') {
-            saveRasterConfigToLocalStorage();
-          }
-          try {
-            localStorage.setItem('interflon_questionnaire_full_data', JSON.stringify(data));
-            localStorage.setItem('interflon_last_questionnaire_data', JSON.stringify(data));
-            if (data.contact) {
-              if (data.contact.clientCompany) localStorage.setItem('client_company', data.contact.clientCompany);
-              if (data.contact.clientContact) localStorage.setItem('client_contact', data.contact.clientContact);
-              if (data.contact.clientEmail) localStorage.setItem('client_email', data.contact.clientEmail);
-            }
-            if (data.general && data.general.machineName) {
-              localStorage.setItem('tech_machine', data.general.machineName);
-            }
-            if (typeof BroadcastChannel !== 'undefined') {
-              const channel = new BroadcastChannel('interflon_questionnaire_sync');
-              channel.postMessage({ type: 'QUESTIONNAIRE_IMPORTED', data: data });
-            }
-          } catch (e) {
-            console.warn('Could not persist questionnaire to localStorage', e);
-          }
-
-          alert('✅ Vragenlijst succesvol geïmporteerd!\nAlle machinegegevens, lagers en het machineraster zijn hersteld.');
-          window.dispatchEvent(new CustomEvent('questionnaireImported', { detail: data }));
+          restoreQuestionnaireDOM(data, true);
         } catch (err) {
           console.error("Fout bij importeren van vragenlijst:", err);
           alert('Er is een fout opgetreden bij het inlezen van het bestand: ' + err.message);
@@ -5513,6 +5523,25 @@
       if (typeof initCanvasInteractions === "function") initCanvasInteractions();
       if (typeof syncBearingsToLayout === "function") setTimeout(syncBearingsToLayout, 100);
       setTimeout(function() {
+        try {
+          const row1Nr = document.querySelector('#bearingRow_1 .bearing-nr-input');
+          const rowsCount = document.querySelectorAll('.bearing-row').length;
+          if (rowsCount <= 1 && (!row1Nr || !row1Nr.value)) {
+            const savedDataStr = localStorage.getItem('interflon_questionnaire_full_data') || localStorage.getItem('interflon_last_questionnaire_data');
+            if (savedDataStr) {
+              const savedData = JSON.parse(savedDataStr);
+              if (savedData && Array.isArray(savedData.bearings) && savedData.bearings.length > 0) {
+                const hasAnyData = savedData.bearings.some(b => (b.nr && b.nr.trim() !== '') || (b.desc && b.desc.trim() !== ''));
+                if (hasAnyData && typeof restoreQuestionnaireDOM === 'function') {
+                  console.log("Auto-restoring questionnaire bearings from localStorage:", savedData.bearings.length);
+                  restoreQuestionnaireDOM(savedData, false);
+                }
+              }
+            }
+          }
+        } catch (e) {
+          console.warn('Auto-restore questionnaire error:', e);
+        }
         if (typeof saveRasterConfigToLocalStorage === "function") saveRasterConfigToLocalStorage();
       }, 250);
     });
@@ -5534,11 +5563,38 @@
       if (typeof BroadcastChannel !== 'undefined') {
         const surveyChannel = new BroadcastChannel('interflon_questionnaire_sync');
         surveyChannel.onmessage = function(ev) {
-          if (ev.data && ev.data.type === 'REQUEST_LATEST_CONFIG') {
+          if (ev.data && (ev.data.type === 'REQUEST_LATEST_CONFIG' || ev.data.type === 'REQUEST_SURVEY_BEARINGS')) {
             const cfg = (typeof saveRasterConfigToLocalStorage === 'function') ? saveRasterConfigToLocalStorage() : null;
-            if (cfg) {
-              surveyChannel.postMessage({ type: 'CONFIG_UPDATED', config: cfg });
-            }
+            const rows = document.querySelectorAll('.bearing-row');
+            const bearings = [];
+            rows.forEach((r, idx) => {
+              const letter = r.getAttribute('data-letter') || (LETTERS[idx] || ('L' + (idx + 1)));
+              const pos = (typeof bearingPositions !== 'undefined' && bearingPositions[letter]) ? bearingPositions[letter] : { x: 0, y: 0 };
+              const qtyIn = r.querySelector('.bearing-qty-input');
+              const qty = qtyIn ? (parseInt(qtyIn.value, 10) || 1) : 1;
+              const nrIn = r.querySelector('.bearing-nr-input');
+              const nr = nrIn && nrIn.value ? nrIn.value.trim() : ('Lager ' + letter);
+              const descIn = r.querySelector('.bearing-desc-input');
+              const desc = descIn && descIn.value ? descIn.value.trim() : '';
+              const rpmIn = r.querySelector('.bearing-rpm-input');
+              const rpm = rpmIn && rpmIn.value ? rpmIn.value.trim() : '';
+              const posIn = r.querySelector('.bearing-pos-input');
+              const asPos = posIn && posIn.value ? posIn.value.trim() : 'Horizontaal';
+              bearings.push({ letter, nr, desc, rpm, pos: asPos, x: pos.x, y: pos.y, qty });
+            });
+
+            let fullData = null;
+            try {
+              const saved = localStorage.getItem('interflon_questionnaire_full_data');
+              if (saved) fullData = JSON.parse(saved);
+            } catch (e) {}
+
+            surveyChannel.postMessage({
+              type: 'SURVEY_BEARINGS_RESPONSE',
+              config: cfg,
+              bearings: bearings,
+              fullData: fullData
+            });
           }
         };
       }
