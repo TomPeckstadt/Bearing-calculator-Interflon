@@ -268,6 +268,178 @@
       flex-shrink: 0 !important;
     }
 
+    /* Soft, elegant Close & Save button for fullscreen modal */
+    .raster-btn-close-soft {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.22);
+      color: #f1f5f9;
+      border-radius: 8px;
+      padding: 6px 14px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      transition: all 0.2s ease;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+    }
+    .raster-btn-close-soft .close-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: rgba(239, 68, 68, 0.2);
+      color: #fca5a5;
+      font-size: 11px;
+      font-weight: 800;
+      transition: all 0.2s ease;
+    }
+    .raster-btn-close-soft .close-kbd {
+      background: rgba(0, 0, 0, 0.35);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 4px;
+      padding: 1px 5px;
+      font-size: 10px;
+      color: #94a3b8;
+      font-family: inherit;
+      margin-left: 2px;
+    }
+    .raster-btn-close-soft:hover {
+      background: rgba(239, 68, 68, 0.18);
+      border-color: rgba(239, 68, 68, 0.45);
+      color: #ffffff;
+      box-shadow: 0 4px 14px rgba(239, 68, 68, 0.25);
+      transform: translateY(-1px);
+    }
+    .raster-btn-close-soft:hover .close-icon {
+      background: #ef4444;
+      color: #ffffff;
+    }
+    .raster-btn-close-soft:hover .close-kbd {
+      border-color: rgba(255, 255, 255, 0.3);
+      color: #cbd5e1;
+    }
+    .raster-btn-close-soft:active {
+      transform: translateY(0);
+    }
+
+    /* Canvas Card Header Bar (Single clean row, zero awkward wrapping) */
+    .canvas-header-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 8px;
+      min-height: 28px;
+    }
+    .canvas-header-left {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+    .canvas-header-dot {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #10b981;
+      box-shadow: 0 0 6px #10b981;
+      flex-shrink: 0;
+    }
+    .canvas-header-title {
+      font-size: 12px;
+      font-weight: 700;
+      color: #f1f5f9;
+      letter-spacing: 0.2px;
+      white-space: nowrap;
+    }
+    .canvas-header-badge {
+      background: rgba(30, 41, 59, 0.9);
+      border: 1px solid rgba(148, 163, 184, 0.25);
+      color: #94a3b8;
+      font-family: 'JetBrains Mono', ui-monospace, monospace;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 1px 7px;
+      border-radius: 5px;
+      white-space: nowrap;
+    }
+    .canvas-header-right {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+    .canvas-zoom-pill {
+      display: inline-flex;
+      align-items: center;
+      background: rgba(30, 41, 59, 0.85);
+      border: 1px solid #334155;
+      border-radius: 6px;
+      padding: 2px 4px;
+      gap: 3px;
+    }
+    .canvas-zoom-pill button {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: #fff;
+      border-radius: 4px;
+      padding: 1px 6px;
+      font-size: 11px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+      height: 22px;
+      transition: all 0.15s ease;
+    }
+    .canvas-zoom-pill button:hover {
+      background: rgba(255, 255, 255, 0.18);
+      border-color: rgba(255, 255, 255, 0.35);
+    }
+    .canvas-zoom-pill button.canvas-zoom-reset {
+      font-size: 10px;
+      color: #cbd5e1;
+      padding: 1px 5px;
+    }
+    .canvas-zoom-label {
+      color: #38bdf8;
+      font-family: 'JetBrains Mono', ui-monospace, monospace;
+      font-size: 11px;
+      font-weight: 700;
+      min-width: 36px;
+      text-align: center;
+      user-select: none;
+    }
+    .canvas-header-expand-btn {
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.22);
+      color: #ffffff;
+      padding: 2px 8px;
+      font-size: 11px;
+      font-weight: 600;
+      border-radius: 5px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      height: 24px;
+      transition: all 0.15s ease;
+      white-space: nowrap;
+    }
+    .canvas-header-expand-btn:hover {
+      background: rgba(255, 255, 255, 0.18);
+      border-color: rgba(255, 255, 255, 0.35);
+      color: #ffffff;
+    }
+
     /* =========================================================================
        UNIFIED RASTER TOOLBAR DESIGN SYSTEM
        ========================================================================= */
@@ -939,8 +1111,10 @@
               <span style="background: #E30613; width: 10px; height: 10px; border-radius: 50%; display: inline-block; box-shadow: 0 0 8px #E30613;"></span>
               <span style="font-size: 16px; font-weight: 800; color: #ffffff; letter-spacing: 0.5px;">INTERFLON 3D MACHINERASTER • VERGROTE WEERGAVE</span>
             </div>
-            <button type="button" onclick="toggleRasterFullscreen(false)" class="btn-primary" style="background: #E30613; border-color: #E30613; padding: 6px 14px; font-size: 12px; height: 32px; gap: 6px; box-shadow: 0 2px 10px rgba(227,6,19,0.35);" title="Keer terug naar het formulier (of druk op Esc)">
-              ✕ Sluiten & Bewaren (Esc)
+            <button type="button" onclick="toggleRasterFullscreen(false)" class="raster-btn-close-soft" title="Keer terug naar het formulier (of druk op Esc)">
+              <span class="close-icon">✕</span>
+              <span>Sluiten & Bewaren</span>
+              <kbd class="close-kbd">Esc</kbd>
             </button>
           </div>
 
@@ -1011,22 +1185,21 @@
           <!-- LEFT PANEL: 3D / Isometric Canvas Field -->
           <div id="leftCanvasCard" style="background: #0f172a; border-radius: 12px; padding: 14px; box-shadow: 0 4px 16px rgba(15,23,42,0.12); border: 1px solid #1e293b; display: flex; flex-direction: column;">
             
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; color: #94a3b8; font-size: 11.5px; font-weight: 600;">
-              <span style="display: inline-flex; align-items: center; gap: 6px;">
-                <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #10b981; box-shadow: 0 0 6px #10b981;"></span>
-                <span style="white-space: nowrap;">Interactief Machineraster</span>
-              </span>
-              <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-                <span id="canvasZoomInfo" style="color: #cbd5e1; font-family: monospace; font-size: 11px; white-space: nowrap;">Bereik: tot 10 m (Centrum: 0,0)</span>
-                <!-- Interactive Zoom Controls -->
-                <div style="display: inline-flex; align-items: center; gap: 3px; background: rgba(30, 41, 59, 0.85); padding: 2px 6px; border-radius: 6px; border: 1px solid #334155;">
-                  <span style="color: #94a3b8; font-size: 10.5px; font-weight: 700; margin-right: 2px;">Zoom:</span>
-                  <button type="button" onclick="adjustRasterZoom(-0.2)" style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.2); color: #fff; border-radius: 4px; padding: 1px 6px; font-size: 11px; cursor: pointer;" title="Uitzoomen">➖</button>
-                  <span id="rasterZoomLabel" style="color: #38bdf8; font-family: monospace; font-size: 11px; font-weight: 700; min-width: 38px; text-align: center;">100%</span>
-                  <button type="button" onclick="adjustRasterZoom(0.2)" style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.2); color: #fff; border-radius: 4px; padding: 1px 6px; font-size: 11px; cursor: pointer;" title="Inzoomen">➕</button>
-                  <button type="button" onclick="resetRasterZoom()" style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.2); color: #cbd5e1; border-radius: 4px; padding: 1px 5px; font-size: 10px; cursor: pointer;" title="Herstel zoom naar passend en centreer">100%</button>
+            <div class="canvas-header-bar">
+              <div class="canvas-header-left">
+                <span class="canvas-header-dot"></span>
+                <span class="canvas-header-title">Interactief Machineraster</span>
+                <span id="canvasZoomInfo" class="canvas-header-badge" title="Coördinatencentrum (0,0)">Bereik: 10 m</span>
+              </div>
+              <div class="canvas-header-right">
+                <!-- Compact Zoom Controls Pill -->
+                <div class="canvas-zoom-pill">
+                  <button type="button" onclick="adjustRasterZoom(-0.2)" title="Uitzoomen">−</button>
+                  <span id="rasterZoomLabel" class="canvas-zoom-label">100%</span>
+                  <button type="button" onclick="adjustRasterZoom(0.2)" title="Inzoomen">+</button>
+                  <button type="button" onclick="resetRasterZoom()" class="canvas-zoom-reset" title="Herstel zoom naar passend en centreer">↺ Reset</button>
                 </div>
-                <button type="button" id="btnHeaderVergroot" onclick="toggleRasterFullscreen()" style="background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.25); color: #ffffff; padding: 2px 7px; font-size: 11px; border-radius: 4px; cursor: pointer; display: flex; align-items: center; gap: 4px;" title="Vergroot naar volledig scherm">
+                <button type="button" id="btnHeaderVergroot" onclick="toggleRasterFullscreen()" class="canvas-header-expand-btn" title="Vergroot naar volledig scherm">
                   ⛶ Vergroot
                 </button>
               </div>
@@ -1336,11 +1509,12 @@
     // SECTION 3: MULTI-DEVICE & EXTRA MEASUREMENT POINTS ENGINE
     // =========================================================================
     const DEVICE_PALETTES = [
-      { color: '#2563EB', line: '#60a5fa', tagBg: 'rgba(30, 58, 138, 0.92)', badgeBg: '#dbeafe', badgeText: '#1e40af', lightBg: '#eff6ff', border: '#93c5fd' }, // Blue
-      { color: '#059669', line: '#34d399', tagBg: 'rgba(6, 78, 59, 0.92)', badgeBg: '#d1fae5', badgeText: '#065f46', lightBg: '#f0fdf4', border: '#86efac' }, // Green
-      { color: '#d97706', line: '#fbbf24', tagBg: 'rgba(120, 53, 15, 0.92)', badgeBg: '#fef3c7', badgeText: '#92400e', lightBg: '#fffbeb', border: '#fde68a' }, // Amber
-      { color: '#7c3aed', line: '#c084fc', tagBg: 'rgba(91, 33, 182, 0.92)', badgeBg: '#ede9fe', badgeText: '#5b21b6', lightBg: '#f5f3ff', border: '#ddd6fe' }, // Purple
-      { color: '#0891b2', line: '#22d3ee', tagBg: 'rgba(21, 94, 117, 0.92)', badgeBg: '#cffafe', badgeText: '#155e75', lightBg: '#ecfeff', border: '#a5f3fc' }  // Cyan
+      { color: '#ea580c', line: '#fb923c', tagBg: 'rgba(154, 52, 18, 0.92)', badgeBg: '#ffedd5', badgeText: '#9a3412', lightBg: '#fff7ed', border: '#fdba74' }, // 1: Warm Oranje / Amber (Nooit blauw)
+      { color: '#059669', line: '#34d399', tagBg: 'rgba(6, 78, 59, 0.92)', badgeBg: '#d1fae5', badgeText: '#065f46', lightBg: '#f0fdf4', border: '#86efac' }, // 2: Smaragd Groen
+      { color: '#7c3aed', line: '#c084fc', tagBg: 'rgba(91, 33, 182, 0.92)', badgeBg: '#ede9fe', badgeText: '#5b21b6', lightBg: '#f5f3ff', border: '#ddd6fe' }, // 3: Paars / Violet
+      { color: '#0d9488', line: '#2dd4bf', tagBg: 'rgba(19, 78, 74, 0.92)', badgeBg: '#ccfbf1', badgeText: '#115e59', lightBg: '#f0fdfa', border: '#99f6e4' }, // 4: Diep Teal / Petrol
+      { color: '#e11d48', line: '#fb7185', tagBg: 'rgba(159, 18, 57, 0.92)', badgeBg: '#ffe4e6', badgeText: '#9f1239', lightBg: '#fff1f2', border: '#fda4af' }, // 5: Robijnroze / Magenta
+      { color: '#d97706', line: '#fbbf24', tagBg: 'rgba(120, 53, 15, 0.92)', badgeBg: '#fef3c7', badgeText: '#92400e', lightBg: '#fffbeb', border: '#fde68a' }  // 6: Goudoker / Warm Brons
     ];
 
     let showCentralPoint = true; // Centraal Punt (0,0) filter toggle
@@ -2129,7 +2303,7 @@
       machineRangeMeters = parseFloat(val) || 10;
       const infoEl = document.getElementById('canvasZoomInfo');
       if (infoEl) {
-        infoEl.textContent = 'Bereik: tot ' + machineRangeMeters + ' m (Centrum: 0,0)';
+        infoEl.textContent = 'Bereik: ' + machineRangeMeters + ' m';
       }
       drawBearingLayout();
       renderDistancesOverview();
@@ -3958,7 +4132,7 @@
               const scaleSelect = document.getElementById('layoutScaleSelect');
               if (scaleSelect) scaleSelect.value = machineRangeMeters;
               const infoEl = document.getElementById('canvasZoomInfo');
-              if (infoEl) infoEl.textContent = 'Bereik: tot ' + machineRangeMeters + ' m (Centrum: 0,0)';
+              if (infoEl) infoEl.textContent = 'Bereik: ' + machineRangeMeters + ' m';
             }
             if (data.raster.layoutViewMode) {
               setLayoutViewMode(data.raster.layoutViewMode);
