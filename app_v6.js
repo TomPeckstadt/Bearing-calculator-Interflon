@@ -660,25 +660,56 @@ function getQuestionnaireBearings() {
       try { rasterConfig = JSON.parse(rasterSaved); } catch (e) {}
     }
 
+    // Determine list of bearings from fullData or rasterConfig
+    let rawBearings = [];
     if (fullData && Array.isArray(fullData.bearings) && fullData.bearings.length > 0) {
-      fullData.bearings.forEach((b, idx) => {
-        const nr = (b.nr || b.lagernummer || b.bearingNr || '').trim();
-        const letter = b.letter || String.fromCharCode(65 + idx);
-        const desc = (b.desc || b.description || b.omschrijving || '').trim();
-        const rpm = b.rpm || b.toerental || '';
-        const pos = b.pos || b.asPositie || '';
-        const qty = b.qty || 1;
-        if (nr) {
-          bearingsList.push({ letter, nr, desc, rpm, pos, qty });
-        }
-      });
+      rawBearings = fullData.bearings;
     } else if (rasterConfig && Array.isArray(rasterConfig.bearings) && rasterConfig.bearings.length > 0) {
-      rasterConfig.bearings.forEach((b, idx) => {
+      rawBearings = rasterConfig.bearings;
+    } else if (fullData && Array.isArray(fullData.bearingRowsData) && fullData.bearingRowsData.length > 0) {
+      rawBearings = fullData.bearingRowsData;
+    }
+
+    // Helper maps to find description/RPM from any other sources if missing in primary array
+    const descMap = {};
+    const rpmMap = {};
+    const posMap = {};
+
+    const populateMapsFrom = (arr) => {
+      if (!Array.isArray(arr)) return;
+      arr.forEach(item => {
+        if (!item) return;
+        const letter = item.letter || '';
+        const desc = (item.desc || item.description || item.omschrijving || item.positie || '').trim();
+        const rpm = (item.rpm || item.toerental || '').toString().trim();
+        const pos = (item.pos || item.asPositie || '').trim();
+        if (letter && desc && !descMap[letter]) descMap[letter] = desc;
+        if (letter && rpm && !rpmMap[letter]) rpmMap[letter] = rpm;
+        if (letter && pos && !posMap[letter]) posMap[letter] = pos;
+      });
+    };
+
+    if (fullData) {
+      populateMapsFrom(fullData.bearings);
+      populateMapsFrom(fullData.bearingRowsData);
+      if (fullData.surveyRasterConfig) populateMapsFrom(fullData.surveyRasterConfig.bearings);
+    }
+    if (rasterConfig) {
+      populateMapsFrom(rasterConfig.bearings);
+    }
+
+    if (rawBearings && rawBearings.length > 0) {
+      rawBearings.forEach((b, idx) => {
         const nr = (b.nr || b.lagernummer || b.bearingNr || '').trim();
         const letter = b.letter || String.fromCharCode(65 + idx);
-        const desc = (b.desc || '').trim();
-        const rpm = b.rpm || '';
-        const pos = b.pos || '';
+        let desc = (b.desc || b.description || b.omschrijving || b.positie || '').trim();
+        let rpm = (b.rpm || b.toerental || '').toString().trim();
+        let pos = (b.pos || b.asPositie || '').trim();
+
+        if (!desc && descMap[letter]) desc = descMap[letter];
+        if (!rpm && rpmMap[letter]) rpm = rpmMap[letter];
+        if (!pos && posMap[letter]) pos = posMap[letter];
+
         const qty = b.qty || 1;
         if (nr) {
           bearingsList.push({ letter, nr, desc, rpm, pos, qty });
@@ -693,11 +724,11 @@ function getQuestionnaireBearings() {
 
 function formatSurveyBearingOptionText(b) {
   let text = `Lager ${b.letter}: ${b.nr}`;
-  const details = [];
-  if (b.desc) details.push(b.desc);
-  if (b.rpm) details.push(`${b.rpm} RPM`);
-  if (details.length > 0) {
-    text += ` (${details.join(' - ')})`;
+  if (b.desc) {
+    text += ` - ${b.desc}`;
+  }
+  if (b.rpm) {
+    text += ` (${b.rpm} RPM)`;
   }
   return text;
 }
@@ -737,6 +768,14 @@ function populateSurveyBearingsDropdown(bearings) {
 }
 
 function handleImportBearingFromSurveyClick() {
+  // Request latest config from active questionnaire if tab is open
+  try {
+    if (typeof BroadcastChannel !== 'undefined') {
+      const surveyChannel = new BroadcastChannel('interflon_questionnaire_sync');
+      surveyChannel.postMessage({ type: 'REQUEST_LATEST_CONFIG' });
+    }
+  } catch (e) {}
+
   const bearings = getQuestionnaireBearings();
   const wrapper = document.getElementById("surveyBearingSelectWrapper");
   const selectEl = document.getElementById("surveyBearingSelect");
