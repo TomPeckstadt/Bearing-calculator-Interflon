@@ -11300,28 +11300,25 @@ function updateRoiAutomationPage() {
         autoDevicePriceDetailsEl.style.display = "none";
         autoDevicePriceDetailsEl.innerHTML = "";
       }
+    } else if (numDevices > 1) {
+      const eenmaligTxt = lang === "fr" ? "Unique" : (lang === "en" ? "One-off" : "Eenmalig");
+      autoDevicePriceEl.textContent = `€ ${totalUnitsPrice.toLocaleString(locCode, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} (${eenmaligTxt})`;
+      let devDetailsHtml = "";
+      deviceBreakdownList.forEach(d => {
+        const devName = lang === "fr" ? `Appareil ${d.id}` : (lang === "en" ? `Device ${d.id}` : `Toestel ${d.id}`);
+        const priceFormatted = `€ ${d.unitPrice.toLocaleString(locCode, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+        devDetailsHtml += `<div>&bull; <strong>${devName}:</strong> ${priceFormatted} <em>(Art. ${d.artNrUnit} &bull; ${d.cap} ml)</em></div>`;
+      });
+      if (autoDevicePriceDetailsEl) {
+        autoDevicePriceDetailsEl.style.display = "block";
+        autoDevicePriceDetailsEl.innerHTML = devDetailsHtml;
+      }
     } else {
-      const allSameUnitArt = deviceBreakdownList.length > 0 && deviceBreakdownList.every(d => d.artNrUnit === deviceBreakdownList[0].artNrUnit);
-      if (numDevices === 1 || allSameUnitArt) {
-        const devPrefix = numDevices === 1 ? "1x" : `${numDevices}x`;
-        const artUnit = deviceBreakdownList[0] ? deviceBreakdownList[0].artNrUnit : artNrUnitStr;
-        autoDevicePriceEl.textContent = `€ ${totalUnitsPrice.toLocaleString(locCode, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} (${devPrefix} Art. ${artUnit})`;
-        if (autoDevicePriceDetailsEl) {
-          autoDevicePriceDetailsEl.style.display = "none";
-          autoDevicePriceDetailsEl.innerHTML = "";
-        }
-      } else {
-        autoDevicePriceEl.textContent = `€ ${totalUnitsPrice.toLocaleString(locCode, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-        let devDetailsHtml = "";
-        deviceBreakdownList.forEach(d => {
-          const devName = lang === "fr" ? `Appareil ${d.id}` : (lang === "en" ? `Device ${d.id}` : `Toestel ${d.id}`);
-          const priceFormatted = `€ ${d.unitPrice.toLocaleString(locCode, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-          devDetailsHtml += `<div>&bull; <strong>${devName}:</strong> Art. ${d.artNrUnit} <em>(${priceFormatted})</em></div>`;
-        });
-        if (autoDevicePriceDetailsEl) {
-          autoDevicePriceDetailsEl.style.display = "block";
-          autoDevicePriceDetailsEl.innerHTML = devDetailsHtml;
-        }
+      const artUnit = deviceBreakdownList[0] ? deviceBreakdownList[0].artNrUnit : artNrUnitStr;
+      autoDevicePriceEl.textContent = `€ ${totalUnitsPrice.toLocaleString(locCode, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} (Art. ${artUnit})`;
+      if (autoDevicePriceDetailsEl) {
+        autoDevicePriceDetailsEl.style.display = "none";
+        autoDevicePriceDetailsEl.innerHTML = "";
       }
     }
   }
@@ -11331,23 +11328,11 @@ function updateRoiAutomationPage() {
   const autoPackPriceDetailsEl = document.getElementById("roiAutoPackPriceDetails");
 
   if (autoPackPriceEl) {
-    const allSamePack = deviceBreakdownList.length > 0 && deviceBreakdownList.every(d =>
-      Math.abs(d.packPrice - deviceBreakdownList[0].packPrice) < 0.01 &&
-      d.artNrPack === deviceBreakdownList[0].artNrPack &&
-      d.cap === deviceBreakdownList[0].cap
-    );
-
-    if (numDevices === 1 || allSamePack) {
-      const singlePrice = deviceBreakdownList[0] ? deviceBreakdownList[0].packPrice : servicepackUnitPrice;
-      const singleArt = deviceBreakdownList[0] ? deviceBreakdownList[0].artNrPack : artNrServicepackStr;
-      autoPackPriceEl.textContent = `€ ${singlePrice.toLocaleString(locCode, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / ${pieceTxt} (Art. ${singleArt})`;
-      if (autoPackPriceDetailsEl) {
-        autoPackPriceDetailsEl.style.display = "none";
-        autoPackPriceDetailsEl.innerHTML = "";
-      }
-    } else {
+    if (numDevices > 1) {
       const uniquePrices = [...new Set(deviceBreakdownList.map(d => d.packPrice))];
-      if (uniquePrices.length === 2) {
+      if (uniquePrices.length === 1) {
+        autoPackPriceEl.textContent = `€ ${uniquePrices[0].toLocaleString(locCode, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / ${pieceTxt}`;
+      } else if (uniquePrices.length === 2) {
         autoPackPriceEl.textContent = uniquePrices.map(p => `€ ${p.toLocaleString(locCode, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`).join(" / ") + ` / ${pieceTxt}`;
       } else {
         const minPrice = Math.min(...uniquePrices);
@@ -11368,6 +11353,14 @@ function updateRoiAutomationPage() {
       if (autoPackPriceDetailsEl) {
         autoPackPriceDetailsEl.style.display = "block";
         autoPackPriceDetailsEl.innerHTML = packDetailsHtml;
+      }
+    } else {
+      const singlePrice = deviceBreakdownList[0] ? deviceBreakdownList[0].packPrice : servicepackUnitPrice;
+      const singleArt = deviceBreakdownList[0] ? deviceBreakdownList[0].artNrPack : artNrServicepackStr;
+      autoPackPriceEl.textContent = `€ ${singlePrice.toLocaleString(locCode, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / ${pieceTxt} (Art. ${singleArt})`;
+      if (autoPackPriceDetailsEl) {
+        autoPackPriceDetailsEl.style.display = "none";
+        autoPackPriceDetailsEl.innerHTML = "";
       }
     }
   }
