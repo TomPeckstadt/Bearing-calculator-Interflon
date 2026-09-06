@@ -7355,9 +7355,12 @@ function calculateTcoForPrefix(prefix) {
 }
 
 function calculateTco() {
-  setTimeout(() => { if (typeof updateRoiAutomationPage === "function") updateRoiAutomationPage(); }, 0);
   calculateTcoForPrefix("om");
   calculateTcoForPrefix("chainOm");
+  if (typeof updateRoiAutomationPage === "function") {
+    updateRoiAutomationPage();
+  }
+  setTimeout(() => { if (typeof updateRoiAutomationPage === "function") updateRoiAutomationPage(); }, 0);
 }
 
 // ==========================================================================
@@ -10910,10 +10913,23 @@ function updateRoiAutomationPage() {
   const manTotalCostEl = document.getElementById("roiManTotalCost");
 
   const manualBeurtenPerYearInterflon = pVal("ProdFreq2") || 13.1;
-  const timeInput = document.getElementById("tcoTimeInput");
-  const workTimeMinutes = timeInput ? (parseFloat(timeInput.value) || 10) : 10;
+  const workTimeInput = document.getElementById("omSharedWorktime") || document.getElementById("chainOmSharedWorktime");
+  let workTimeMinutes = 3;
+  if (workTimeInput && !isNaN(parseFloat(workTimeInput.value)) && parseFloat(workTimeInput.value) >= 0) {
+    workTimeMinutes = parseFloat(workTimeInput.value);
+  } else {
+    const pv = pVal("Worktime") || pVal("SharedWorktime");
+    if (!isNaN(pv) && pv > 0) workTimeMinutes = pv;
+  }
+
   const hourlyRateInput = document.getElementById("omSharedLaborRate") || document.getElementById("chainOmSharedLaborRate") || document.getElementById("tcoHourlyRateInput");
-  const hourlyRate = hourlyRateInput ? (parseFloat(hourlyRateInput.value) || 50.00) : 50.00;
+  let hourlyRate = 50.00;
+  if (hourlyRateInput && !isNaN(parseFloat(hourlyRateInput.value)) && parseFloat(hourlyRateInput.value) >= 0) {
+    hourlyRate = parseFloat(hourlyRateInput.value);
+  } else {
+    const pv = pVal("LaborRate") || pVal("SharedLaborRate");
+    if (!isNaN(pv) && pv > 0) hourlyRate = pv;
+  }
 
   let manualGreasePricePerLiter = greasePricePerLiter;
   let manualBeurtenPerYear = manualBeurtenPerYearInterflon;
@@ -11041,14 +11057,27 @@ function updateRoiAutomationPage() {
 
     // 3. Read Huidige Situatie values
     const currentPriceInput = document.getElementById("omProdPrice1") || document.getElementById("chainOmProdPrice1") || document.getElementById("tcoPriceCurrentInput");
-    manualGreasePricePerLiter = currentPriceInput ? (parseFloat(currentPriceInput.value) || 20.00) : 20.00;
+    if (currentPriceInput && !isNaN(parseFloat(currentPriceInput.value)) && parseFloat(currentPriceInput.value) >= 0) {
+      manualGreasePricePerLiter = parseFloat(currentPriceInput.value);
+    } else {
+      const pv = pVal("ProdPrice1");
+      if (!isNaN(pv) && pv >= 0) manualGreasePricePerLiter = pv;
+      else manualGreasePricePerLiter = 20.00;
+    }
 
     const freqElId = (manualMode === "huidig") ? "omProdFreq1" : "omProdFreq2";
-    const currentFreqInput = document.getElementById(freqElId) || document.getElementById("chain" + freqElId.charAt(0).toUpperCase() + freqElId.slice(1)) || document.getElementById("tcoFreqCurrentInput");
-    manualBeurtenPerYear = currentFreqInput ? (parseFloat(currentFreqInput.value) || (manualMode === "huidig" ? 26.0 : 13.1)) : (manualMode === "huidig" ? 26.0 : 13.1);
+    const chainFreqElId = (manualMode === "huidig") ? "chainOmProdFreq1" : "chainOmProdFreq2";
+    const currentFreqInput = document.getElementById(freqElId) || document.getElementById(chainFreqElId) || document.getElementById("tcoFreqCurrentInput");
+    if (currentFreqInput && !isNaN(parseFloat(currentFreqInput.value)) && parseFloat(currentFreqInput.value) > 0) {
+      manualBeurtenPerYear = parseFloat(currentFreqInput.value);
+    } else {
+      const pv = (manualMode === "huidig") ? pVal("ProdFreq1") : pVal("ProdFreq2");
+      if (!isNaN(pv) && pv > 0) manualBeurtenPerYear = pv;
+      else manualBeurtenPerYear = (manualMode === "huidig" ? 26.0 : 13.1);
+    }
 
     const currentConsInput = document.getElementById("omProdCons1") || document.getElementById("chainOmProdCons1") || document.getElementById("tcoQtyCurrentInput");
-    const manualConsPerBeurtGrams = currentConsInput ? parseFloat(currentConsInput.value) || 0 : 0;
+    const manualConsPerBeurtGrams = (currentConsInput && !isNaN(parseFloat(currentConsInput.value)) && parseFloat(currentConsInput.value) > 0) ? parseFloat(currentConsInput.value) : (pVal("ProdCons1") || 0);
 
     if (manualConsPerBeurtGrams > 0) {
       manualYearlyMl = (manualConsPerBeurtGrams * manualBeurtenPerYear * numBearingsForTco) / 0.92;
@@ -11098,7 +11127,24 @@ function updateRoiAutomationPage() {
     if (manMatCostEl) manMatCostEl.textContent = `€ ${manualMatCost.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / jaar`;
     if (manDowntimeCostEl) manDowntimeCostEl.textContent = `€ ${manualDowntimeCost.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / jaar`;
 
-    manualGreaseCost = (yearlyMlTotal / 1000) * greasePricePerLiter;
+    const interflonPriceInput = document.getElementById("omProdPrice2") || document.getElementById("chainOmProdPrice2") || document.getElementById("tcoPriceInterflonInput");
+    if (interflonPriceInput && !isNaN(parseFloat(interflonPriceInput.value)) && parseFloat(interflonPriceInput.value) >= 0) {
+      manualGreasePricePerLiter = parseFloat(interflonPriceInput.value);
+    } else {
+      const pv = pVal("ProdPrice2");
+      if (!isNaN(pv) && pv >= 0) manualGreasePricePerLiter = pv;
+      else manualGreasePricePerLiter = greasePricePerLiter;
+    }
+
+    const interflonConsInput = document.getElementById("omProdCons2") || document.getElementById("chainOmProdCons2");
+    const interflonConsPerBeurtGrams = (interflonConsInput && !isNaN(parseFloat(interflonConsInput.value)) && parseFloat(interflonConsInput.value) > 0) ? parseFloat(interflonConsInput.value) : (pVal("ProdCons2") || 0);
+    if (interflonConsPerBeurtGrams > 0) {
+      manualYearlyMl = (interflonConsPerBeurtGrams * manualBeurtenPerYear * numBearingsForTco) / 0.92;
+    } else {
+      manualYearlyMl = dailyNeedCm3 * numBearingsForTco * 365.25;
+    }
+
+    manualGreaseCost = (manualYearlyMl / 1000) * manualGreasePricePerLiter;
     manualLaborHours = numBearingsForTco * manualBeurtenPerYear * (workTimeMinutes / 60);
     manualLaborCost = manualLaborHours * hourlyRate;
     manualTotalCost = manualGreaseCost + manualLaborCost + manualRepairCost + manualMatCost + manualDowntimeCost;
@@ -11107,7 +11153,7 @@ function updateRoiAutomationPage() {
   if (manYearlyMlEl) manYearlyMlEl.textContent = `${manualYearlyMl.toLocaleString("nl-BE", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} ml`;
   if (manGreasePriceEl) manGreasePriceEl.textContent = `€ ${manualGreasePricePerLiter.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / L`;
   if (manGreaseCostEl) manGreaseCostEl.textContent = `€ ${manualGreaseCost.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / jaar`;
-  const effectiveManBearings = (manualMode === "huidig") ? numBearingsForTco : totalPointsAllDevices;
+  const effectiveManBearings = numBearingsForTco;
   if (manBeurtenEl) {
     if (effectiveManBearings > 1) {
       manBeurtenEl.textContent = `${(manualBeurtenPerYear * effectiveManBearings).toLocaleString("nl-BE", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} (${manualBeurtenPerYear.toLocaleString("nl-BE", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} beurten x ${effectiveManBearings} lagers)`;
@@ -11578,10 +11624,23 @@ function addRoiPdfPage(doc, dateString, watermarkDataUrl, aspectRatio, autoDataU
 
   const techBeurtenInput = document.getElementById("tcoFreqInterflonInput");
   const manualBeurtenPerYearInterflon = pVal("ProdFreq2") || 13.1;
-  const timeInput = document.getElementById("tcoTimeInput");
-  const workTimeMinutes = timeInput ? (parseFloat(timeInput.value) || 10) : 10;
+  const workTimeInput = document.getElementById("omSharedWorktime") || document.getElementById("chainOmSharedWorktime");
+  let workTimeMinutes = 3;
+  if (workTimeInput && !isNaN(parseFloat(workTimeInput.value)) && parseFloat(workTimeInput.value) >= 0) {
+    workTimeMinutes = parseFloat(workTimeInput.value);
+  } else {
+    const pv = pVal("Worktime") || pVal("SharedWorktime");
+    if (!isNaN(pv) && pv > 0) workTimeMinutes = pv;
+  }
+
   const hourlyRateInput = document.getElementById("omSharedLaborRate") || document.getElementById("chainOmSharedLaborRate") || document.getElementById("tcoHourlyRateInput");
-  const hourlyRate = hourlyRateInput ? (parseFloat(hourlyRateInput.value) || 50.00) : 50.00;
+  let hourlyRate = 50.00;
+  if (hourlyRateInput && !isNaN(parseFloat(hourlyRateInput.value)) && parseFloat(hourlyRateInput.value) >= 0) {
+    hourlyRate = parseFloat(hourlyRateInput.value);
+  } else {
+    const pv = pVal("LaborRate") || pVal("SharedLaborRate");
+    if (!isNaN(pv) && pv > 0) hourlyRate = pv;
+  }
 
   let manualGreasePricePerLiter = greasePricePerLiter;
   let manualBeurtenPerYear = manualBeurtenPerYearInterflon;
@@ -11651,7 +11710,24 @@ function addRoiPdfPage(doc, dateString, watermarkDataUrl, aspectRatio, autoDataU
     manualTotalCost = manualGreaseCost + manualLaborCost + manualRepairCost + manualMatCost + manualDowntimeCost;
   } else {
     manualBeurtenPerYear = pVal("ProdFreq2") || 13.1;
-    manualGreaseCost = (yearlyMlTotal / 1000) * greasePricePerLiter;
+    const interflonPriceInput = document.getElementById("omProdPrice2") || document.getElementById("chainOmProdPrice2") || document.getElementById("tcoPriceInterflonInput");
+    if (interflonPriceInput && !isNaN(parseFloat(interflonPriceInput.value)) && parseFloat(interflonPriceInput.value) >= 0) {
+      manualGreasePricePerLiter = parseFloat(interflonPriceInput.value);
+    } else {
+      const pv = pVal("ProdPrice2");
+      if (!isNaN(pv) && pv >= 0) manualGreasePricePerLiter = pv;
+      else manualGreasePricePerLiter = greasePricePerLiter;
+    }
+
+    const interflonConsInput = document.getElementById("omProdCons2") || document.getElementById("chainOmProdCons2");
+    const interflonConsPerBeurtGrams = (interflonConsInput && !isNaN(parseFloat(interflonConsInput.value)) && parseFloat(interflonConsInput.value) > 0) ? parseFloat(interflonConsInput.value) : (pVal("ProdCons2") || 0);
+    if (interflonConsPerBeurtGrams > 0) {
+      manualYearlyMl = (interflonConsPerBeurtGrams * manualBeurtenPerYear * numBearingsForTco) / 0.92;
+    } else {
+      manualYearlyMl = dailyNeedCm3 * numBearingsForTco * 365.25;
+    }
+
+    manualGreaseCost = (manualYearlyMl / 1000) * manualGreasePricePerLiter;
     manualLaborHours = numBearingsForTco * manualBeurtenPerYear * (workTimeMinutes / 60);
     manualLaborCost = manualLaborHours * hourlyRate;
     manualTotalCost = manualGreaseCost + manualLaborCost + manualRepairCost + manualMatCost + manualDowntimeCost;
