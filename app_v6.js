@@ -11418,28 +11418,36 @@ function updateRoiAutomationPage() {
   const year1NetResultEl = document.getElementById("roiYear1NetResult");
   const paybackPeriodEl = document.getElementById("roiPaybackPeriod");
 
+  var lang = currentLang || "nl";
+  const yr1Suffix = lang === "fr" ? "(An 1)" : (lang === "en" ? "(Year 1)" : "(Jaar 1)");
+  const mSuffix = lang === "fr" ? "mois" : (lang === "en" ? "months" : "maanden");
+  const ySuffix = lang === "fr" ? "an" : (lang === "en" ? "year" : "jaar");
+  const perYrSuffix = lang === "fr" ? "/ an" : (lang === "en" ? "/ year" : "/ jaar");
+
   if (netYearlySavingEl) {
     const sign = netYearlySaving >= 0 ? "+" : "-";
-    netYearlySavingEl.textContent = `${sign} € ${Math.abs(netYearlySaving).toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / jaar`;
+    netYearlySavingEl.innerHTML = `${sign} € ${Math.abs(netYearlySaving).toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} <span style="font-size: 0.82em; font-weight: 700;">${perYrSuffix}</span>`;
     netYearlySavingEl.style.color = netYearlySaving >= 0 ? "#16a34a" : "#dc2626";
   }
 
   if (year1NetResultEl) {
     const sign = year1NetResult >= 0 ? "+" : "-";
-    year1NetResultEl.textContent = `${sign} € ${Math.abs(year1NetResult).toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} (Jaar 1)`;
+    year1NetResultEl.innerHTML = `${sign} € ${Math.abs(year1NetResult).toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} <span style="font-size: 0.82em; font-weight: 700;">${yr1Suffix}</span>`;
     year1NetResultEl.style.color = year1NetResult >= 0 ? "#16a34a" : "#dc2626";
   }
 
   if (paybackPeriodEl) {
     const initialInvestment = autoYear1Total - autoRecurringTotal;
     if (initialInvestment <= 0) {
-      paybackPeriodEl.textContent = " Directe Terugverdientijd (0 maanden)";
+      const dirTxt = lang === "fr" ? "Directement Rentable" : (lang === "en" ? "Immediately Profitable" : "Direct Rendabel");
+      const zeroTxt = lang === "fr" ? "(0 mois)" : (lang === "en" ? "(0 months)" : "(0 maanden)");
+      paybackPeriodEl.innerHTML = `${dirTxt} <span style="font-size: 0.82em; font-weight: 700;">${zeroTxt}</span>`;
     } else if (netYearlySaving <= 0) {
-      paybackPeriodEl.textContent = " Geen terugverdientijd mogelijk";
+      paybackPeriodEl.textContent = lang === "fr" ? "Pas d'amortissement possible" : (lang === "en" ? "No payback possible" : "Geen terugverdientijd mogelijk");
     } else {
       const paybackYears = initialInvestment / netYearlySaving;
       const paybackMonths = paybackYears * 12;
-      paybackPeriodEl.textContent = ` ${paybackMonths.toFixed(1).replace('.', ',')} maanden (${paybackYears.toFixed(2).replace('.', ',')} jaar)`;
+      paybackPeriodEl.innerHTML = `${paybackMonths.toFixed(1).replace('.', ',')} ${mSuffix} <span style="font-size: 0.82em; font-weight: 700;">(${paybackYears.toFixed(2).replace('.', ',')} ${ySuffix})</span>`;
     }
   }
 
