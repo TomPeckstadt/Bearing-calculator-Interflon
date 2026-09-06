@@ -11131,6 +11131,7 @@ function updateRoiAutomationPage() {
   let artNrServicepackStr = "";
   let artNrUnitStr = "";
   let divBlockDetailParts = [];
+  let deviceBreakdownList = [];
 
   const spCapEl = document.getElementById("autoCartridgeCap_A") || document.getElementById("autoCartridgeCap");
   const spCapVal = (spCapEl ? parseInt(spCapEl.value, 10) : 0) || (typeof autoDevicesState !== "undefined" && autoDevicesState[0] ? autoDevicesState[0].cap : 0) || 125;
@@ -11177,6 +11178,18 @@ function updateRoiAutomationPage() {
     }
     totalCartridgesPerYear += cartsDev;
     totalCartridgesCostYear += (cartsDev * pInfo.servicepackPrice);
+
+    deviceBreakdownList.push({
+      id: d.id,
+      cap: cap,
+      packPrice: pInfo.servicepackPrice,
+      artNrPack: pInfo.artNrServicepack,
+      unitPrice: pInfo.unitPrice,
+      artNrUnit: pInfo.artNrUnit,
+      cartsDev: cartsDev,
+      annualCartCost: cartsDev * pInfo.servicepackPrice,
+      points: pts
+    });
 
     if (pInfo.dividerBlockPrice > 0) {
       const labelName = numDevices === 1 ? "Verdeelblok" : `Toestel ${d.id}`;
@@ -11226,13 +11239,65 @@ function updateRoiAutomationPage() {
       const filledTxt = lang === "fr" ? "(Appareil rempli)" : (lang === "en" ? "(Filled device)" : "(Gevuld toestel)");
       autoDevicePriceEl.textContent = `€ 0,00 ${filledTxt}`;
     } else {
-      const devPrefix = numDevices === 1 ? "1x" : `${numDevices}x`;
-      autoDevicePriceEl.textContent = `€ ${totalUnitsPrice.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} (${devPrefix} Art. ${artNrUnitStr})`;
+      const allSameUnitArt = deviceBreakdownList.length > 0 && deviceBreakdownList.every(d => d.artNrUnit === deviceBreakdownList[0].artNrUnit);
+      if (numDevices === 1 || allSameUnitArt) {
+        const devPrefix = numDevices === 1 ? "1x" : `${numDevices}x`;
+        const artUnit = deviceBreakdownList[0] ? deviceBreakdownList[0].artNrUnit : artNrUnitStr;
+        autoDevicePriceEl.textContent = `€ ${totalUnitsPrice.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} (${devPrefix} Art. ${artUnit})`;
+      } else {
+        const devNamePrefix = lang === "fr" ? "Appareil" : (lang === "en" ? "Device" : "Toestel");
+        const artListStr = deviceBreakdownList.map(d => `${devNamePrefix} ${d.id}: Art. ${d.artNrUnit}`).join(" • ");
+        autoDevicePriceEl.textContent = `€ ${totalUnitsPrice.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} (${artListStr})`;
+      }
     }
   }
   var lang = currentLang || "nl";
+  const locCode = lang === "fr" ? "fr-FR" : (lang === "en" ? "en-US" : "nl-BE");
   const pieceTxt = lang === "fr" ? "pièce" : (lang === "en" ? "piece" : "stuk");
-  if (autoPackPriceEl) autoPackPriceEl.textContent = `€ ${servicepackUnitPrice.toLocaleString(lang === "fr" ? "fr-FR" : (lang === "en" ? "en-US" : "nl-BE"), { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / ${pieceTxt} (Art. ${artNrServicepackStr})`;
+  const perYearTxt = lang === "fr" ? "cartouches/an" : (lang === "en" ? "cartridges/year" : "patronen/jaar");
+  const autoPackPriceDetailsEl = document.getElementById("roiAutoPackPriceDetails");
+
+  if (autoPackPriceEl) {
+    const allSamePack = deviceBreakdownList.length > 0 && deviceBreakdownList.every(d =>
+      Math.abs(d.packPrice - deviceBreakdownList[0].packPrice) < 0.01 &&
+      d.artNrPack === deviceBreakdownList[0].artNrPack &&
+      d.cap === deviceBreakdownList[0].cap
+    );
+
+    if (numDevices === 1 || allSamePack) {
+      const singlePrice = deviceBreakdownList[0] ? deviceBreakdownList[0].packPrice : servicepackUnitPrice;
+      const singleArt = deviceBreakdownList[0] ? deviceBreakdownList[0].artNrPack : artNrServicepackStr;
+      autoPackPriceEl.textContent = `€ ${singlePrice.toLocaleString(locCode, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / ${pieceTxt} (Art. ${singleArt})`;
+      if (autoPackPriceDetailsEl) {
+        autoPackPriceDetailsEl.style.display = "none";
+        autoPackPriceDetailsEl.innerHTML = "";
+      }
+    } else {
+      const uniquePrices = [...new Set(deviceBreakdownList.map(d => d.packPrice))];
+      if (uniquePrices.length === 2) {
+        autoPackPriceEl.textContent = uniquePrices.map(p => `€ ${p.toLocaleString(locCode, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`).join(" / ") + ` / ${pieceTxt}`;
+      } else {
+        const minPrice = Math.min(...uniquePrices);
+        const maxPrice = Math.max(...uniquePrices);
+        autoPackPriceEl.textContent = `€ ${minPrice.toLocaleString(locCode, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} – € ${maxPrice.toLocaleString(locCode, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / ${pieceTxt}`;
+      }
+
+      let packDetailsHtml = "";
+      deviceBreakdownList.forEach(d => {
+        const devName = lang === "fr" ? `Appareil ${d.id}` : (lang === "en" ? `Device ${d.id}` : `Toestel ${d.id}`);
+        const artPart = d.artNrPack ? `Art. ${d.artNrPack}` : "";
+        const cartsStr = `${d.cartsDev.toLocaleString(locCode, { minimumFractionDigits: 1, maximumFractionDigits: 1 })} ${perYearTxt}`;
+        const detailExtra = artPart ? `(${artPart} &bull; ${cartsStr})` : `(${cartsStr})`;
+        const priceFormatted = `€ ${d.packPrice.toLocaleString(locCode, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / ${pieceTxt}`;
+        packDetailsHtml += `<div>&bull; <strong>${devName} (${d.cap} ml):</strong> ${priceFormatted} <em>${detailExtra}</em></div>`;
+      });
+
+      if (autoPackPriceDetailsEl) {
+        autoPackPriceDetailsEl.style.display = "block";
+        autoPackPriceDetailsEl.innerHTML = packDetailsHtml;
+      }
+    }
+  }
   var lang = currentLang || "nl";
   const yearSuffix = lang === "fr" ? "an" : (lang === "en" ? "year" : "jaar");
   if (autoPacksTotalEl) autoPacksTotalEl.textContent = `€ ${totalCartridgesCostYear.toLocaleString(lang === "fr" ? "fr-FR" : (lang === "en" ? "en-US" : "nl-BE"), { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / ${yearSuffix}`;
