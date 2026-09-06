@@ -11231,28 +11231,55 @@ function updateRoiAutomationPage() {
 
   if (autoDeviceNameEl) autoDeviceNameEl.textContent = fullDeviceTitle;
   var lang = currentLang || "nl";
+  const locCode = lang === "fr" ? "fr-FR" : (lang === "en" ? "en-US" : "nl-BE");
   const cartYearSuffix = lang === "fr" ? "cartouches/an" : (lang === "en" ? "cartridges/year" : "patronen/jaar");
-  if (autoPatronenEl) autoPatronenEl.textContent = `${totalCartridgesPerYear.toLocaleString(lang === "fr" ? "fr-FR" : (lang === "en" ? "en-US" : "nl-BE"), { minimumFractionDigits: 1, maximumFractionDigits: 1 })} ${cartYearSuffix}`;
+  if (autoPatronenEl) autoPatronenEl.textContent = `${totalCartridgesPerYear.toLocaleString(locCode, { minimumFractionDigits: 1, maximumFractionDigits: 1 })} ${cartYearSuffix}`;
+
+  const autoDevicePriceLabelEl = document.getElementById("roiAutoDevicePriceLabel");
+  const autoDevicePriceDetailsEl = document.getElementById("roiAutoDevicePriceDetails");
+
+  if (autoDevicePriceLabelEl) {
+    if (numDevices > 1) {
+      autoDevicePriceLabelEl.textContent = lang === "fr" ? "Prix appareils vides :" : (lang === "en" ? "Price empty devices:" : "Prijs lege toestellen:");
+    } else {
+      autoDevicePriceLabelEl.textContent = lang === "fr" ? "Prix appareil vide :" : (lang === "en" ? "Price empty device:" : "Prijs leeg toestel:");
+    }
+  }
+
   if (autoDevicePriceEl) {
     if (deviceKey === "single_point") {
-      var lang = currentLang || "nl";
       const filledTxt = lang === "fr" ? "(Appareil rempli)" : (lang === "en" ? "(Filled device)" : "(Gevuld toestel)");
       autoDevicePriceEl.textContent = `€ 0,00 ${filledTxt}`;
+      if (autoDevicePriceDetailsEl) {
+        autoDevicePriceDetailsEl.style.display = "none";
+        autoDevicePriceDetailsEl.innerHTML = "";
+      }
     } else {
       const allSameUnitArt = deviceBreakdownList.length > 0 && deviceBreakdownList.every(d => d.artNrUnit === deviceBreakdownList[0].artNrUnit);
       if (numDevices === 1 || allSameUnitArt) {
         const devPrefix = numDevices === 1 ? "1x" : `${numDevices}x`;
         const artUnit = deviceBreakdownList[0] ? deviceBreakdownList[0].artNrUnit : artNrUnitStr;
-        autoDevicePriceEl.textContent = `€ ${totalUnitsPrice.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} (${devPrefix} Art. ${artUnit})`;
+        autoDevicePriceEl.textContent = `€ ${totalUnitsPrice.toLocaleString(locCode, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} (${devPrefix} Art. ${artUnit})`;
+        if (autoDevicePriceDetailsEl) {
+          autoDevicePriceDetailsEl.style.display = "none";
+          autoDevicePriceDetailsEl.innerHTML = "";
+        }
       } else {
-        const devNamePrefix = lang === "fr" ? "Appareil" : (lang === "en" ? "Device" : "Toestel");
-        const artListStr = deviceBreakdownList.map(d => `${devNamePrefix} ${d.id}: Art. ${d.artNrUnit}`).join(" • ");
-        autoDevicePriceEl.textContent = `€ ${totalUnitsPrice.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} (${artListStr})`;
+        autoDevicePriceEl.textContent = `€ ${totalUnitsPrice.toLocaleString(locCode, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+        let devDetailsHtml = "";
+        deviceBreakdownList.forEach(d => {
+          const devName = lang === "fr" ? `Appareil ${d.id}` : (lang === "en" ? `Device ${d.id}` : `Toestel ${d.id}`);
+          const priceFormatted = `€ ${d.unitPrice.toLocaleString(locCode, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+          devDetailsHtml += `<div>&bull; <strong>${devName}:</strong> Art. ${d.artNrUnit} <em>(${priceFormatted})</em></div>`;
+        });
+        if (autoDevicePriceDetailsEl) {
+          autoDevicePriceDetailsEl.style.display = "block";
+          autoDevicePriceDetailsEl.innerHTML = devDetailsHtml;
+        }
       }
     }
   }
-  var lang = currentLang || "nl";
-  const locCode = lang === "fr" ? "fr-FR" : (lang === "en" ? "en-US" : "nl-BE");
+
   const pieceTxt = lang === "fr" ? "pièce" : (lang === "en" ? "piece" : "stuk");
   const perYearTxt = lang === "fr" ? "cartouches/an" : (lang === "en" ? "cartridges/year" : "patronen/jaar");
   const autoPackPriceDetailsEl = document.getElementById("roiAutoPackPriceDetails");
