@@ -1743,7 +1743,7 @@
                       Automatische Looptijd / Leeglooptijd
                     </label>
                     <div style="display: flex; gap: 8px;">
-                      <input type="number" id="autoDispensePeriod" class="form-input" value="6" min="1" max="24" step="1" oninput="onAutoPeriodInput()" style="flex: 1; padding: 8px 12px; border-radius: var(--border-radius-sm); border: 1px solid #cbd5e1;">
+                      <input type="number" id="autoDispensePeriod" class="form-input" value="6" min="1" max="12" step="1" oninput="onAutoPeriodInput()" style="flex: 1; padding: 8px 12px; border-radius: var(--border-radius-sm); border: 1px solid #cbd5e1;">
                       <select id="autoDispenseUnit" class="form-select" onchange="onAutoCartridgeCapChange()" style="width: 120px; padding: 8px 12px; border-radius: var(--border-radius-sm); border: 1px solid #cbd5e1;">
                         <option value="months" selected data-i18n="unitMonths">maanden</option>
                         <option value="weeks" data-i18n="unitWeeks">weken</option>
@@ -3075,7 +3075,7 @@
                       Automatische Looptijd / Leeglooptijd
                     </label>
                     <div style="display: flex; gap: 8px;">
-                      <input type="number" id="chainAutoDispensePeriod" class="form-input" value="6" min="1" max="24" step="1" oninput="onChainAutoPeriodInput()" onchange="onChainAutoPeriodInput()" style="flex: 1; padding: 8px 12px; border-radius: var(--border-radius-sm); border: 1px solid #cbd5e1;">
+                      <input type="number" id="chainAutoDispensePeriod" class="form-input" value="6" min="1" max="12" step="1" oninput="onChainAutoPeriodInput()" onchange="onChainAutoPeriodInput()" style="flex: 1; padding: 8px 12px; border-radius: var(--border-radius-sm); border: 1px solid #cbd5e1;">
                       <select id="chainAutoDispenseUnit" class="form-select" onchange="onChainAutoPeriodInput()" style="width: 120px; padding: 8px 12px; border-radius: var(--border-radius-sm); border: 1px solid #cbd5e1;">
                         <option value="months" selected>maanden</option>
                         <option value="weeks">weken</option>
