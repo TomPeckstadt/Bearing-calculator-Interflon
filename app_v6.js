@@ -40,10 +40,10 @@ function getVerdeelblokImage(callback) {
 // ==========================================
 
 let autoDevicesState = [
-  { id: 'A', name: 'Pulsarlube A', points: 1, cap: 120, period: 6, unit: 'months', userEditedPeriod: false, customPackPrice: 0 },
-  { id: 'B', name: 'Pulsarlube B', points: 1, cap: 120, period: 6, unit: 'months', userEditedPeriod: false, customPackPrice: 0 },
-  { id: 'C', name: 'Pulsarlube C', points: 1, cap: 120, period: 6, unit: 'months', userEditedPeriod: false, customPackPrice: 0 },
-  { id: 'D', name: 'Pulsarlube D', points: 1, cap: 120, period: 6, unit: 'months', userEditedPeriod: false, customPackPrice: 0 }
+  { id: 'A', name: 'Pulsarlube A', points: 1, cap: 125, period: 7, unit: 'months', userEditedPeriod: false, customPackPrice: 0 },
+  { id: 'B', name: 'Pulsarlube B', points: 1, cap: 125, period: 7, unit: 'months', userEditedPeriod: false, customPackPrice: 0 },
+  { id: 'C', name: 'Pulsarlube C', points: 1, cap: 125, period: 7, unit: 'months', userEditedPeriod: false, customPackPrice: 0 },
+  { id: 'D', name: 'Pulsarlube D', points: 1, cap: 125, period: 7, unit: 'months', userEditedPeriod: false, customPackPrice: 0 }
 ];
 
 function getActiveNumDevices() {
@@ -138,6 +138,10 @@ function getOptimalSmartAdvice(totalDailyNeedCm3, deviceKey, greaseName) {
   const devKey = deviceKey || "single_point";
   const grName = greaseName || "Interflon Grease LS2";
   const availableCaps = (devKey === "single_point") ? [15, 60, 120, 250] : [60, 125, 250, 500];
+  const maxCap = availableCaps[availableCaps.length - 1];
+  const minCap = availableCaps[0];
+  const monthlyNeed = totalDailyNeedCm3 * 30.4375;
+
   let candidates = [];
 
   for (let cap of availableCaps) {
@@ -145,49 +149,112 @@ function getOptimalSmartAdvice(totalDailyNeedCm3, deviceKey, greaseName) {
     const theoMonths = theoDays / 30.4375;
 
     // Hardware instelmogelijkheden voor alle Pulsartoestellen en Single Point zijn 1..12 maanden
-    if (theoMonths >= 0.70) {
-      const settingMonths = Math.min(12, Math.max(1, Math.round(theoMonths)));
-      const monthlyNeed = totalDailyNeedCm3 * 30.4375;
-      const monthlyDischarge = cap / settingMonths;
-      const overLubeRatio = monthlyDischarge / monthlyNeed;
+    const settingMonths = Math.min(12, Math.max(1, Math.round(theoMonths)));
+    const monthlyDischarge = cap / settingMonths;
+    const ratio = monthlyDischarge / monthlyNeed;
+    const dosingError = Math.abs(ratio - 1.0);
 
-      // Voorkom dat een veel te groot patroon (zoals 500ml) op 12m wordt gekozen als een kleiner patroon volstaat
-      if (overLubeRatio > 1.8 && cap > availableCaps[0]) {
-        continue;
-      }
-
-      const cartridgesPerYear = 12 / settingMonths;
-      const pInfo = getAutomationPriceInfo(devKey, cap, grName, 1);
-      const unitPackPrice = pInfo ? (pInfo.packPrice || 54.60) : 54.60;
-      const annualCartridgeCost = cartridgesPerYear * unitPackPrice;
-
-      candidates.push({
-        cap: cap,
-        months: settingMonths,
-        theoMonths: theoMonths,
-        cartridgesPerYear: cartridgesPerYear,
-        unitPackPrice: unitPackPrice,
-        annualCost: annualCartridgeCost,
-        isGracoRecommended: false
-      });
+    // Filter patronen die veel te snel leeg zijn (< 0.70 maand = < 3 weken) tenzij het reeds het grootste patroon is
+    if (theoMonths < 0.70 && cap < maxCap) {
+      continue;
     }
+
+    // Filter buitensporige oversmering (> 1.80 ratio) wanneer er een kleiner patroon bestaat
+    if (ratio > 1.80 && cap > minCap) {
+      continue;
+    }
+
+    const pInfo = getAutomationPriceInfo(devKey, cap, grName, 1);
+    const unitPackPrice = pInfo ? (pInfo.servicepackPrice || pInfo.unitPrice || pInfo.packPrice || 54.60) : 54.60;
+    const cartridgesPerYear = 12 / settingMonths;
+    const annualCartridgeCost = cartridgesPerYear * unitPackPrice;
+
+    // Is het patroon een natuurlijke fit binnen de 1..12 maanden hardware instelruimte?
+    const isNatural = (theoMonths >= 0.75 && theoMonths <= 12.5);
+    // Valt de dosering binnen de 'groene zone' van de app (0.85 .. 1.15, max 15% afwijking)?
+    const isGreen = (ratio >= 0.85 && ratio <= 1.15);
+    const isAcceptable = (ratio >= 0.75 && ratio <= 1.30);
+
+    candidates.push({
+      cap: cap,
+      months: settingMonths,
+      theoMonths: theoMonths,
+      monthlyDischarge: monthlyDischarge,
+      ratio: ratio,
+      dosingError: dosingError,
+      cartridgesPerYear: cartridgesPerYear,
+      unitPackPrice: unitPackPrice,
+      annualCost: annualCartridgeCost,
+      isNatural: isNatural,
+      isGreen: isGreen,
+      isAcceptable: isAcceptable,
+      isGracoRecommended: false
+    });
   }
 
-  const maxCap = (devKey === "single_point") ? 250 : 500;
   if (candidates.length === 0) {
     // High grease demand fallback: pick maxCap and recommend Graco
     const pInfo = getAutomationPriceInfo(devKey, maxCap, grName, 1);
-    const unitPrice = pInfo ? (pInfo.packPrice || (maxCap === 250 ? 61.10 : 104)) : (maxCap === 250 ? 61.10 : 104);
+    const unitPrice = pInfo ? (pInfo.servicepackPrice || pInfo.unitPrice || (maxCap === 250 ? 61.10 : 96.80)) : (maxCap === 250 ? 61.10 : 96.80);
     return { cap: maxCap, months: 1, annualCost: 12 * unitPrice, cartridgesPerYear: 12, unitPackPrice: unitPrice, theoMonths: 1, isGracoRecommended: true, label: "Bekijk de optie Graco" };
   }
 
-  // Sort candidates by annualCost ascending
+  // DIEPERE REDENERING / MULTI-CRITERIA SELECTIE:
+  // Prioriteit 1: Smeertechnische precisie (doseringsmatch binnen de groene zone, geen kunstmatige 12m-klem die oversmering veroorzaakt).
+  // Prioriteit 2: Praktisch onderhoudsinterval (voorkeur voor langere intervallen, bijv. >= 4 maanden, minder wissels per jaar).
+  // Prioriteit 3: Jaarlijkse patroonkosten (alleen bij gelijkwaardige technische match de voordeligste kiezen).
   candidates.sort((a, b) => {
-    const diff = a.annualCost - b.annualCost;
-    if (Math.abs(diff) > 2.0) {
-      return diff;
+    // Rangschikking in kwaliteitsklassen (tiers):
+    const getTier = (c) => {
+      if (c.isNatural && c.isGreen) return 1;       // Perfecte dosering binnen 1..12m
+      if (c.isNatural && c.isAcceptable) return 2;  // Goede dosering binnen 1..12m
+      if (c.isNatural) return 3;                    // Binnen 1..12m
+      if (c.theoMonths > 12.5) return 4;            // Buiten bereik (>12m): geklemd op 12m
+      return 5;
+    };
+
+    const tierA = getTier(a);
+    const tierB = getTier(b);
+
+    if (tierA !== tierB) {
+      return tierA - tierB;
     }
-    return b.months - a.months;
+
+    // Binnen Tier 1 (beide natuurlijk én in de groene zone):
+    if (tierA === 1) {
+      // Voorkeur voor comfortabel onderhoudsinterval (>= 4 maanden boven 1 of 2 maanden)
+      const practicalA = a.months >= 4 ? 1 : 0;
+      const practicalB = b.months >= 4 ? 1 : 0;
+      if (practicalA !== practicalB) {
+        return practicalB - practicalA;
+      }
+
+      // Bij wezenlijk kostenverschil (> €15/jaar) telt de jaarlijkse kostprijs mee
+      const costDiff = a.annualCost - b.annualCost;
+      if (Math.abs(costDiff) > 15.0) {
+        return costDiff;
+      }
+
+      // Bij vergelijkbare kosten kiezen we de meest nauwkeurige dosering
+      const errDiff = a.dosingError - b.dosingError;
+      if (Math.abs(errDiff) > 0.03) {
+        return errDiff;
+      }
+      return costDiff;
+    }
+
+    // Binnen Tier 4 (alle patronen gaan > 12,5 maanden mee door zeer lage vetbehoefte):
+    // Kies het KLEINSTE patroon om overtollig vet en vetverspilling in het lager te minimaliseren!
+    if (tierA === 4) {
+      return a.cap - b.cap;
+    }
+
+    // Algemene fallback: kleinste doseerfout, daarna laagste jaarkost
+    const errDiff = a.dosingError - b.dosingError;
+    if (Math.abs(errDiff) > 0.05) {
+      return errDiff;
+    }
+    return a.annualCost - b.annualCost;
   });
 
   const winner = candidates[0];
@@ -8037,11 +8104,11 @@ function calculateAutomationLubrication() {
     const devId = dev.id;
     const points = isSinglePoint ? 1 : (dev.points || 1);
     const validCaps = isSinglePoint ? [15, 60, 120, 250] : [60, 125, 250, 500];
-    if (isSinglePoint && !validCaps.includes(dev.cap)) {
-      dev.cap = 250;
-      if (autoDevicesState[i]) autoDevicesState[i].cap = 250;
+    if (!validCaps.includes(dev.cap)) {
+      dev.cap = isSinglePoint ? 120 : 125;
+      if (autoDevicesState[i]) autoDevicesState[i].cap = dev.cap;
     }
-    const capMl = dev.cap || (isSinglePoint ? 250 : 120);
+    const capMl = dev.cap || (isSinglePoint ? 120 : 125);
     const devName = isSinglePoint ? "Interflon Single Point Lubricator" : (numCards === 1 ? "Pulsarlube Smeertoestel" : `Pulsarlube ${devId}`);
 
     // 1. Update Verdeelblok Card Info for this device
@@ -8091,21 +8158,41 @@ function calculateAutomationLubrication() {
 
     const smartAdv = getOptimalSmartAdvice(totalDailyNeedForDev, deviceKey, greaseName);
     const isSmartMatch = (capMl === smartAdv.cap && recSetting.months === smartAdv.months);
+    const smartDialLabel = `${smartAdv.months} ${smartAdv.months === 1 ? 'maand' : 'maanden'}`;
 
     if (recTitleEl) {
       if (smartAdv.isGracoRecommended) {
-        recTitleEl.textContent = `Advies voor ${pointsText}: Bekijk de optie Graco (Hoge vetbehoefte)`;
+        recTitleEl.textContent = (lang === "fr")
+          ? `Conseil pour ${pointsText} : Examiner l'option Graco (Besoin élevé)`
+          : ((lang === "en")
+            ? `Advice for ${pointsText}: Consider Graco option (High grease demand)`
+            : `Advies voor ${pointsText}: Bekijk de optie Graco (Hoge vetbehoefte)`);
       } else {
-        recTitleEl.textContent = `${dialLabel} (${settingTerm}) op ${capMl} ml | ${pointsText}`;
+        const smartTermLabel = isDialDevice
+          ? (lang === "fr" ? "position du sélecteur" : (lang === "en" ? "dial setting" : "draaiknopstand"))
+          : (lang === "fr" ? "réglage écran" : (lang === "en" ? "display setting" : "display instelling"));
+        recTitleEl.textContent = `${smartDialLabel} (${smartTermLabel}) op ${smartAdv.cap} ml | ${pointsText}`;
       }
     }
     if (recSubtextEl) {
       if (smartAdv.isGracoRecommended) {
-        recSubtextEl.innerHTML = `&#9888; <strong>Hoge vetbehoefte voor ${pointsText} (${totalDailyNeedForDev.toFixed(2).replace('.', ',')} ml/dag):</strong> Een 500 ml patroon gaat slechts ${((500 / totalDailyNeedForDev)/30.4375).toFixed(1).replace('.', ',')} maanden mee.<br>👉 <strong>Advies: Bekijk de optie Graco</strong> (centraal smeersysteem / vatpomp voor grote vetvolumes).`;
+        recSubtextEl.innerHTML = (lang === "fr")
+          ? `&#9888; <strong>Besoin élevé en graisse pour ${pointsText} (${totalDailyNeedForDev.toFixed(2).replace('.', ',')} ml/jour) :</strong> Une cartouche de 500 ml ne dure que ${((500 / totalDailyNeedForDev)/30.4375).toFixed(1).replace('.', ',')} mois.<br>👉 <strong>Conseil : Examiner l'option Graco</strong> (système de graissage centralisé / pompe de fût pour grands volumes).`
+          : ((lang === "en")
+            ? `&#9888; <strong>High grease demand for ${pointsText} (${totalDailyNeedForDev.toFixed(2).replace('.', ',')} ml/day):</strong> A 500 ml cartridge lasts only ${((500 / totalDailyNeedForDev)/30.4375).toFixed(1).replace('.', ',')} months.<br>👉 <strong>Advice: Consider Graco option</strong> (central lubrication system / drum pump for continuous lubrication of large volumes).`
+            : `&#9888; <strong>Hoge vetbehoefte voor ${pointsText} (${totalDailyNeedForDev.toFixed(2).replace('.', ',')} ml/dag):</strong> Een 500 ml patroon gaat slechts ${((500 / totalDailyNeedForDev)/30.4375).toFixed(1).replace('.', ',')} maanden mee.<br>👉 <strong>Advies: Bekijk de optie Graco</strong> (centraal smeersysteem / vatpomp voor continue smering van grote vetvolumes).`);
       } else if (isSmartMatch) {
-        recSubtextEl.innerHTML = `&check; <strong>Optimaal advies voor ${pointsText}: ${smartAdv.cap} ml patroon ingesteld op ${smartAdv.months} ${smartAdv.months === 1 ? 'maand' : 'maanden'}.</strong><br>&bull; Dit is de <strong>meest voordelige combinatie</strong> (slechts ${smartAdv.cartridgesPerYear.toFixed(1).replace('.', ',')} patronen/jaar &bull; € ${smartAdv.annualCost.toFixed(2).replace('.', ',')}/jaar patronen) en bespaart aanzienlijk op vervangen en onderhoud.`;
+        recSubtextEl.innerHTML = (lang === "fr")
+          ? `&check; <strong>Conseil optimal pour ${pointsText} : cartouche de ${smartAdv.cap} ml réglée sur ${smartAdv.months} ${smartAdv.months === 1 ? 'mois' : 'mois'}.</strong><br>&bull; Offre une <strong>précision de dosage maximale</strong> (parfaitement adaptée au besoin calculé de ${(totalDailyNeedForDev/points).toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ml/jour par roulement) et évite le sur-graissage.<br>&bull; Maintenance : seulement ${smartAdv.cartridgesPerYear.toFixed(1).replace('.', ',')} cartouches/an (&euro; ${smartAdv.annualCost.toFixed(2).replace('.', ',')}/an).`
+          : ((lang === "en")
+            ? `&check; <strong>Optimal advice for ${pointsText}: ${smartAdv.cap} ml cartridge set to ${smartAdv.months} ${smartAdv.months === 1 ? 'month' : 'months'}.</strong><br>&bull; Delivers <strong>maximum dosing precision</strong> (perfectly matched to the calculated demand of ${(totalDailyNeedForDev/points).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ml/day per bearing) and prevents excessive grease build-up.<br>&bull; Maintenance: only ${smartAdv.cartridgesPerYear.toFixed(1).replace('.', ',')} cartridges/year (&euro; ${smartAdv.annualCost.toFixed(2).replace('.', ',')}/year).`
+            : `&check; <strong>Optimaal advies voor ${pointsText}: ${smartAdv.cap} ml patroon ingesteld op ${smartAdv.months} ${smartAdv.months === 1 ? 'maand' : 'maanden'}.</strong><br>&bull; Dit biedt de <strong>hoogste doseernauwkeurigheid</strong> (perfect afgestemd op de berekende vetbehoefte van ${(totalDailyNeedForDev/points).toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ml/dag per lager) en voorkomt overmatige vetsmering.<br>&bull; Onderhoud: slechts ${smartAdv.cartridgesPerYear.toFixed(1).replace('.', ',')} patronen/jaar (&euro; ${smartAdv.annualCost.toFixed(2).replace('.', ',')}/jaar).`);
       } else {
-        recSubtextEl.innerHTML = `&bull; Huidige selectie: <strong>${capMl} ml patroon op ${dialLabel}</strong> (${roundReason}).<br>&bull; <strong>Slim advies-tip:</strong> Klik op <em>'Neem advies over'</em> om automatisch te kiezen voor <strong>${smartAdv.cap} ml op ${smartAdv.months} ${smartAdv.months === 1 ? 'maand' : 'maanden'}</strong> (slechts € ${smartAdv.annualCost.toFixed(2).replace('.', ',')}/jaar patronen).`;
+        recSubtextEl.innerHTML = (lang === "fr")
+          ? `&bull; <strong>Combinaison conseillée :</strong> <strong>cartouche de ${smartAdv.cap} ml sur ${smartDialLabel}</strong> (dosage optimal &bull; &euro; ${smartAdv.annualCost.toFixed(2).replace('.', ',')}/an).<br>&bull; Sélection actuelle : <strong>${capMl} ml sur ${dialLabel}</strong> (${roundReason}).<br>👉 Cliquez sur <em>'Reprendre le conseil'</em> pour appliquer automatiquement <strong>${smartAdv.cap} ml sur ${smartDialLabel}</strong>.`
+          : ((lang === "en")
+            ? `&bull; <strong>Recommended combination:</strong> <strong>${smartAdv.cap} ml cartridge on ${smartDialLabel}</strong> (optimal dosing &bull; minimal grease waste &bull; &euro; ${smartAdv.annualCost.toFixed(2).replace('.', ',')}/year).<br>&bull; Current selection on device: <strong>${capMl} ml cartridge on ${dialLabel}</strong> (${roundReason}).<br>👉 Click <em>'Apply advice'</em> to automatically adopt <strong>${smartAdv.cap} ml on ${smartDialLabel}</strong>.`
+            : `&bull; <strong>Geadviseerde combinatie:</strong> <strong>${smartAdv.cap} ml patroon op ${smartDialLabel}</strong> (optimale dosering &bull; minimale vetverspilling &bull; &euro; ${smartAdv.annualCost.toFixed(2).replace('.', ',')}/jaar).<br>&bull; Huidige selectie op toestel: <strong>${capMl} ml patroon op ${dialLabel}</strong> (${roundReason}).<br>👉 Klik op <em>'Neem advies over'</em> om automatisch te kiezen voor <strong>${smartAdv.cap} ml op ${smartDialLabel}</strong>.`);
       }
     }
 
@@ -9844,7 +9931,11 @@ function applyAutoRecommendation() {
   if (unitSelect) {
     unitSelect.value = "months";
   }
-  calculateAutomationLubrication();
+  if (typeof applyAutoRecommendationForDevice === "function") {
+    applyAutoRecommendationForDevice('A');
+  } else {
+    calculateAutomationLubrication();
+  }
 }
 
 function calculateChainAutomation() {
