@@ -120,8 +120,9 @@ function onDevicePeriodInput(devId) {
     dev.userEditedPeriod = true;
     if (unitSel && unitSel.value === "months") {
       let val = parseFloat(input.value);
-      if (!isNaN(val) && val !== Math.round(val)) {
-        input.value = Math.round(val);
+      if (!isNaN(val)) {
+        val = Math.min(12, Math.max(1, Math.round(val)));
+        input.value = val;
       }
     }
     dev.period = parseFloat(input.value) || 1;
@@ -143,8 +144,18 @@ function getOptimalSmartAdvice(totalDailyNeedCm3, deviceKey, greaseName) {
     const theoDays = cap / totalDailyNeedCm3;
     const theoMonths = theoDays / 30.4375;
 
-    if (theoMonths >= 0.70 && theoMonths <= 24.5) {
-      const settingMonths = Math.min(24, Math.max(1, Math.round(theoMonths)));
+    // Hardware instelmogelijkheden voor alle Pulsartoestellen en Single Point zijn 1..12 maanden
+    if (theoMonths >= 0.70) {
+      const settingMonths = Math.min(12, Math.max(1, Math.round(theoMonths)));
+      const monthlyNeed = totalDailyNeedCm3 * 30.4375;
+      const monthlyDischarge = cap / settingMonths;
+      const overLubeRatio = monthlyDischarge / monthlyNeed;
+
+      // Voorkom dat een veel te groot patroon (zoals 500ml) op 12m wordt gekozen als een kleiner patroon volstaat
+      if (overLubeRatio > 1.8 && cap > availableCaps[0]) {
+        continue;
+      }
+
       const cartridgesPerYear = 12 / settingMonths;
       const pInfo = getAutomationPriceInfo(devKey, cap, grName, 1);
       const unitPackPrice = pInfo ? (pInfo.packPrice || 54.60) : 54.60;
@@ -1663,7 +1674,7 @@ function renderAutoDevicesUI() {
           <div>
             <label for="autoDispensePeriod_${devId}" style="display: block; font-size: 12px; font-weight: 600; color: var(--text-dark); margin-bottom: 4px;">Gewenste Looptijd / Leeglooptijd</label>
             <div style="display: flex; gap: 8px;">
-              <input type="number" id="autoDispensePeriod_${devId}" class="form-input" value="${dev.period}" min="1" max="24" step="1" oninput="onDevicePeriodInput('${devId}')" style="flex: 1; padding: 8px 12px; border-radius: var(--border-radius-sm); border: 1px solid #cbd5e1;">
+              <input type="number" id="autoDispensePeriod_${devId}" class="form-input" value="${dev.period}" min="1" max="12" step="1" oninput="onDevicePeriodInput('${devId}')" style="flex: 1; padding: 8px 12px; border-radius: var(--border-radius-sm); border: 1px solid #cbd5e1;">
               <select id="autoDispenseUnit_${devId}" class="form-select" onchange="onDeviceCapChange('${devId}')" style="width: 120px; padding: 8px 12px; border-radius: var(--border-radius-sm); border: 1px solid #cbd5e1;">
                 <option value="months"${dev.unit === 'months' ? ' selected' : ''}>maanden</option>
                 <option value="weeks"${dev.unit === 'weeks' ? ' selected' : ''}>weken</option>
@@ -2257,11 +2268,12 @@ function getRecommendedSettingMonths(recMonths) {
   const frac = Math.round((rounded1Dec - whole) * 10) / 10;
 
   // Vanaf 0.5 (frac >= 0.5) round UP to whole + 1, otherwise round DOWN to whole
+  // Hardware instelmogelijkheden voor alle Pulsartoestellen & Single Point zijn 1..12 maanden
   if (frac >= 0.5) {
-    const m = Math.min(24, whole + 1);
+    const m = Math.min(12, whole + 1);
     return { months: m, roundedUp: true };
   } else {
-    const m = Math.min(24, Math.max(1, whole));
+    const m = Math.min(12, Math.max(1, whole));
     return { months: m, roundedUp: false };
   }
 }
