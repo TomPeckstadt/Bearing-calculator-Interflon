@@ -8619,6 +8619,9 @@ function calculateAutomationLubrication() {
         const maxTheoMonthsForDev = (500 / totalDailyNeedForDev) / 30.4375;
         const isGracoNeeded = maxTheoMonthsForDev < 2.0;
 
+        const isAlreadyMatchingSetting = (curUnit === "months" && Math.round(periodVal) === recSetting.months);
+        const isOptimalMatch = isAlreadyMatchingSetting && (ratio >= 0.75 && ratio <= 1.30);
+
         if (isGracoNeeded) {
           noticeEl.innerHTML = lang === "fr" ? `
             <div style="padding: 12px 14px; background-color: #FEF2F2; border: 1.5px solid #EF4444; border-radius: var(--border-radius-sm); color: #991B1B; font-size: 11.5px; font-weight: 600; line-height: 1.4; box-shadow: 0 1px 3px rgba(227,6,19,0.06);">
@@ -8639,18 +8642,19 @@ function calculateAutomationLubrication() {
               👉 <strong>Advies: Bekijk de optie Graco</strong> (centraal smeersysteem / vatpomp voor continue smering van grote vetvolumes).
             </div>
           `);
-        } else if (ratio >= 0.85 && ratio <= 1.15) {
+        } else if ((ratio >= 0.85 && ratio <= 1.15) || isOptimalMatch) {
+          const isExact = (ratio >= 0.85 && ratio <= 1.15);
           noticeEl.innerHTML = lang === "fr" ? `
             <div style="padding: 10px 14px; background-color: #ECFDF5; border: 1px solid #A7F3D0; border-radius: var(--border-radius-sm); color: #065F46; font-size: 11.5px; font-weight: 600; line-height: 1.4; box-shadow: 0 1px 3px rgba(0,0,0,0.03);">
-              ✅ <strong>Correspondance parfaite avec le réglage recommandé !</strong> Avec un réglage de <strong>${periodVal} ${unitLabel}</strong>, cet appareil dose <strong>${actualStr} ml/jour par roulement</strong> pour ${pointsText} (besoin exact : <strong>${targetStr} ml/jour par roulement</strong>).
+              ✅ <strong>${isExact ? 'Correspondance parfaite avec le réglage recommandé !' : 'Correspondance optimale avec le réglage recommandé !'}</strong> Avec un réglage de <strong>${periodVal} ${unitLabel}</strong>, cet appareil dose <strong>${actualStr} ml/jour par roulement</strong> pour ${pointsText} (besoin exact : <strong>${targetStr} ml/jour par roulement</strong>).${!isExact ? " C'est le réglage le plus proche et le plus précis parmi les options disponibles." : ""}
             </div>
           ` : (lang === "en" ? `
             <div style="padding: 10px 14px; background-color: #ECFDF5; border: 1px solid #A7F3D0; border-radius: var(--border-radius-sm); color: #065F46; font-size: 11.5px; font-weight: 600; line-height: 1.4; box-shadow: 0 1px 3px rgba(0,0,0,0.03);">
-              ✅ <strong>Perfect match with recommended setting!</strong> With a setting of <strong>${periodVal} ${unitLabel}</strong>, this device dispenses <strong>${actualStr} ml/day per bearing</strong> for ${pointsText} (exact requirement: <strong>${targetStr} ml/day per bearing</strong>).
+              ✅ <strong>${isExact ? 'Perfect match with recommended setting!' : 'Optimal match with recommended setting!'}</strong> With a setting of <strong>${periodVal} ${unitLabel}</strong>, this device dispenses <strong>${actualStr} ml/day per bearing</strong> for ${pointsText} (exact requirement: <strong>${targetStr} ml/day per bearing</strong>).${!isExact ? ' This is the closest and most accurate setting available.' : ''}
             </div>
           ` : `
             <div style="padding: 10px 14px; background-color: #ECFDF5; border: 1px solid #A7F3D0; border-radius: var(--border-radius-sm); color: #065F46; font-size: 11.5px; font-weight: 600; line-height: 1.4; box-shadow: 0 1px 3px rgba(0,0,0,0.03);">
-              ✅ <strong>Perfecte match met de berekende vetbehoefte!</strong> Met een instelling van <strong>${periodVal} ${unitLabel}</strong> doseert dit toestel <strong>${actualStr} ml/dag per lager</strong> voor ${pointsText} (exacte behoefte: <strong>${targetStr} ml/dag per lager</strong>).
+              ✅ <strong>${isExact ? 'Perfecte match met de berekende vetbehoefte!' : 'Optimale match met het toesteladvies!'}</strong> Met een instelling van <strong>${periodVal} ${unitLabel}</strong> doseert dit toestel <strong>${actualStr} ml/dag per lager</strong> voor ${pointsText} (exacte behoefte: <strong>${targetStr} ml/dag per lager</strong>).${!isExact ? ' Dit is de meest nabije en nauwkeurige stand binnen de beschikbare instellingen.' : ''}
             </div>
           `);
         } else if (ratio < 0.85) {
@@ -8671,7 +8675,6 @@ function calculateAutomationLubrication() {
             </div>
           `);
         } else {
-          const isAlreadyMatchingSetting = (curUnit === "months" && Math.round(periodVal) === recSetting.months);
           const adviceAdviceText = lang === "fr" ? (isAlreadyMatchingSetting ? `C'est le réglage le plus proche disponible (${dialLabel}) sur une cartouche de ${capMl} ml.` : `<strong>Conseil :</strong> Réglez l'appareil sur <strong>${dialLabel}</strong> pour ajuster le dosage.`) : (lang === "en" ? (isAlreadyMatchingSetting ? `This is the closest available setting (${dialLabel}) on a ${capMl} ml cartridge.` : `<strong>Advice:</strong> Set device to <strong>${dialLabel}</strong> to optimize dosing.`) : (isAlreadyMatchingSetting ? `Dit is de meest nabije beschikbare instelling (${dialLabel}) op een ${capMl} ml patroon.` : `<strong>Advies:</strong> Stel het toestel in op <strong>${dialLabel}</strong> om de dosering optimaal af te stemmen.`));
 
           noticeEl.innerHTML = lang === "fr" ? `
