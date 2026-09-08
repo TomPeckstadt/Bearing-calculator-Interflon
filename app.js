@@ -4010,6 +4010,7 @@ function changeLanguage(lang) {
 
   if (typeof renderAutoDevicesUI === "function") renderAutoDevicesUI();
   if (typeof updateRoiAutomationPage === "function") updateRoiAutomationPage();
+  if (typeof updatePhotoBadgeCounter === "function") updatePhotoBadgeCounter();
   if (typeof refreshSurveyBearingsList === "function") {
     const wrapper = document.getElementById("surveyBearingSelectWrapper");
     if (wrapper && wrapper.style.display !== "none") {
@@ -12055,23 +12056,49 @@ function copySurveyLink() {
 // ==========================================================================
 let photoLibrary = [];
 
+function updatePhotoBadgeCounter() {
+  const badgeText = document.getElementById("photoLibraryBadgeText");
+  if (!badgeText) return;
+  const lang = (typeof currentLang !== "undefined" && currentLang) ? currentLang : "nl";
+  let baseText = "Foto bibliotheek";
+  if (lang === "fr") baseText = "Photothèque";
+  if (lang === "en") baseText = "Photo library";
+
+  if (photoLibrary && Array.isArray(photoLibrary) && photoLibrary.length > 0) {
+    badgeText.innerText = `${baseText} (${photoLibrary.length})`;
+  } else {
+    badgeText.innerText = baseText;
+  }
+}
+
 function loadPhotoLibrary() {
   try {
-    const saved = localStorage.getItem("photo_library");
+    const saved = localStorage.getItem("photo_library") || localStorage.getItem("photoLibrary");
     photoLibrary = saved ? JSON.parse(saved) : [];
+    if (!Array.isArray(photoLibrary)) photoLibrary = [];
   } catch (e) {
     photoLibrary = [];
   }
+  if (typeof window !== "undefined") {
+    window.photoLibrary = photoLibrary;
+  }
   renderPhotoGrid();
+  updatePhotoBadgeCounter();
 }
 
 function savePhotoLibraryToStorage() {
   try {
-    localStorage.setItem("photo_library", JSON.stringify(photoLibrary));
+    const jsonStr = JSON.stringify(photoLibrary);
+    localStorage.setItem("photo_library", jsonStr);
+    localStorage.setItem("photoLibrary", jsonStr);
   } catch (e) {
     console.warn("Storage quota exceeded when saving photo library:", e);
   }
+  if (typeof window !== "undefined") {
+    window.photoLibrary = photoLibrary;
+  }
   renderPhotoGrid();
+  updatePhotoBadgeCounter();
 }
 
 function openPhotoLibraryModal() {
@@ -12150,7 +12177,9 @@ function updatePhotoDescription(id, text) {
   if (item) {
     item.description = text;
     try {
-      localStorage.setItem("photo_library", JSON.stringify(photoLibrary));
+      const jsonStr = JSON.stringify(photoLibrary);
+      localStorage.setItem("photo_library", jsonStr);
+      localStorage.setItem("photoLibrary", jsonStr);
     } catch (e) {}
   }
 }
@@ -12163,8 +12192,8 @@ function deletePhoto(id) {
 function renderPhotoGrid() {
   const container = document.getElementById("photoGridContainer");
   const counterText = document.getElementById("photoCounterText");
-  var lang = currentLang || "nl";
-  const t = (TRANSLATIONS && TRANSLATIONS[lang]) ? TRANSLATIONS[lang] : photoTranslations["nl"];
+  var lang = (typeof currentLang !== "undefined" && currentLang) ? currentLang : "nl";
+  const t = (typeof TRANSLATIONS !== "undefined" && TRANSLATIONS[lang]) ? TRANSLATIONS[lang] : (typeof TRANSLATIONS !== "undefined" && TRANSLATIONS["nl"] ? TRANSLATIONS["nl"] : {});
 
   if (counterText) {
     const uploadedSuffix = lang === "fr" ? "photos téléchargées" : (lang === "en" ? "photos uploaded" : "foto's geüpload");
@@ -12254,6 +12283,17 @@ if (typeof window !== "undefined") {
   window.closeModeSelectionModal = closeModeSelectionModal;
   window.selectAppMode = selectAppMode;
   window.handleLogout = handleLogout;
+  window.loadPhotoLibrary = loadPhotoLibrary;
+  window.savePhotoLibraryToStorage = savePhotoLibraryToStorage;
+  window.openPhotoLibraryModal = openPhotoLibraryModal;
+  window.closePhotoLibraryModal = closePhotoLibraryModal;
+  window.handlePhotoUpload = handlePhotoUpload;
+  window.updatePhotoDescription = updatePhotoDescription;
+  window.deletePhoto = deletePhoto;
+  window.openPhotoLightbox = openPhotoLightbox;
+  window.closePhotoLightboxModal = closePhotoLightboxModal;
+  window.renderPhotoGrid = renderPhotoGrid;
+  window.updatePhotoBadgeCounter = updatePhotoBadgeCounter;
 }
 
 
@@ -12296,6 +12336,20 @@ async function exportCalculationData() {
   try {
     const isEnglish = (typeof currentLang !== "undefined" && currentLang === "en");
 
+    // Ensure photoLibrary is synchronized from storage if currently empty in memory
+    if (!photoLibrary || !Array.isArray(photoLibrary) || photoLibrary.length === 0) {
+      try {
+        const rawPhotos = localStorage.getItem("photo_library") || localStorage.getItem("photoLibrary");
+        if (rawPhotos) {
+          const parsed = JSON.parse(rawPhotos);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            photoLibrary = parsed;
+            if (typeof window !== "undefined") window.photoLibrary = parsed;
+          }
+        }
+      } catch (e) {}
+    }
+
     // 1. Gather all inputs across all tabs
     const inputsData = {};
     document.querySelectorAll("input, select, textarea").forEach(el => {
@@ -12312,9 +12366,16 @@ async function exportCalculationData() {
     const localStorageData = {};
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i);
-      if (key && (key.startsWith("bearing_calc_") || key.startsWith("app_field_") || key.includes("operator") || key.includes("client") || key.includes("tech") || key === "autoDevicesState" || key === "photoLibrary" || key.startsWith("interflon_"))) {
+      if (key && (key.startsWith("bearing_calc_") || key.startsWith("app_field_") || key.includes("operator") || key.includes("client") || key.includes("tech") || key === "autoDevicesState" || key === "photoLibrary" || key === "photo_library" || key.startsWith("interflon_"))) {
         localStorageData[key] = localStorage.getItem(key);
       }
+    }
+
+    // Explicitly guarantee both photo storage keys exist in localStorage snapshot
+    if (Array.isArray(photoLibrary) && photoLibrary.length > 0) {
+      const photosJson = JSON.stringify(photoLibrary);
+      localStorageData["photo_library"] = photosJson;
+      localStorageData["photoLibrary"] = photosJson;
     }
 
     // 3. Gather client details for filename
@@ -12348,7 +12409,7 @@ async function exportCalculationData() {
       currentSelectedBearing: (typeof currentSelectedBearing !== "undefined") ? currentSelectedBearing : null,
       currentChainData: (typeof currentChainData !== "undefined") ? currentChainData : null,
       activeCalculationMode: (typeof activeCalculationMode !== "undefined") ? activeCalculationMode : "bearing",
-      photoLibrary: (typeof photoLibrary !== "undefined") ? photoLibrary : null
+      photoLibrary: (Array.isArray(photoLibrary) && photoLibrary.length > 0) ? photoLibrary : ((typeof photoLibrary !== "undefined" && Array.isArray(photoLibrary)) ? photoLibrary : [])
     };
 
     const jsonString = JSON.stringify(exportData, null, 2);
@@ -12485,9 +12546,39 @@ function handleImportFileSelected(event) {
       if (data.currentChainData) {
         window.currentChainData = data.currentChainData;
       }
-      if (data.photoLibrary && Array.isArray(data.photoLibrary)) {
-        window.photoLibrary = data.photoLibrary;
-        try { localStorage.setItem("photoLibrary", JSON.stringify(data.photoLibrary)); } catch(err){}
+      // Restore photoLibrary safely with multi-source fallback
+      let importedPhotos = null;
+      if (data.photoLibrary && Array.isArray(data.photoLibrary) && data.photoLibrary.length > 0) {
+        importedPhotos = data.photoLibrary;
+      } else if (data.photo_library && Array.isArray(data.photo_library) && data.photo_library.length > 0) {
+        importedPhotos = data.photo_library;
+      } else if (data.localStorage) {
+        const rawFromLs = data.localStorage["photo_library"] || data.localStorage["photoLibrary"];
+        if (rawFromLs) {
+          try {
+            const parsed = JSON.parse(rawFromLs);
+            if (Array.isArray(parsed) && parsed.length > 0) importedPhotos = parsed;
+          } catch(e) {}
+        }
+      }
+
+      if (importedPhotos && Array.isArray(importedPhotos)) {
+        photoLibrary = importedPhotos;
+        if (typeof window !== "undefined") window.photoLibrary = importedPhotos;
+        try {
+          const jsonStr = JSON.stringify(importedPhotos);
+          localStorage.setItem("photo_library", jsonStr);
+          localStorage.setItem("photoLibrary", jsonStr);
+        } catch(err) {
+          console.warn("Could not write imported photos to localStorage:", err);
+        }
+      } else if (data.photoLibrary && Array.isArray(data.photoLibrary)) {
+        photoLibrary = [];
+        if (typeof window !== "undefined") window.photoLibrary = [];
+        try {
+          localStorage.setItem("photo_library", JSON.stringify([]));
+          localStorage.setItem("photoLibrary", JSON.stringify([]));
+        } catch(err) {}
       }
 
       // STEP 4: Restore inputs, sync to localStorage, AND dispatch input/change events
@@ -12525,6 +12616,7 @@ function handleImportFileSelected(event) {
       if (typeof updateRoiAutomationPage === "function") updateRoiAutomationPage();
       if (typeof calculateChain === "function") calculateChain();
       if (typeof renderPhotoGrid === "function") renderPhotoGrid();
+      if (typeof updatePhotoBadgeCounter === "function") updatePhotoBadgeCounter();
       if (typeof updateHeaderBadges === "function") updateHeaderBadges();
 
       const compName = data.clientCompany || (data.inputs && data.inputs.clientCompanyInput) || "";
@@ -12549,8 +12641,11 @@ if (typeof window !== "undefined") {
 }
 
 
-// Auto-run chain calculation on init
+// Auto-run chain calculation & initialize photo library on init
 document.addEventListener("DOMContentLoaded", function() {
+  if (typeof loadPhotoLibrary === "function") {
+    loadPhotoLibrary();
+  }
   setTimeout(function() {
     if (typeof CHAINS_DB !== "undefined" && Array.isArray(CHAINS_DB) && CHAINS_DB.length > 0 && !activeChain) {
       activeChain = CHAINS_DB[3] || CHAINS_DB[0];
