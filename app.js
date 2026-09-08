@@ -2682,6 +2682,7 @@ const TRANSLATIONS = {
     labelDispensePeriod: "Gewenste Looptijd / Leeglooptijd",
     autoDailyVolumeLabel: "Berekend Dagelijks Smeervolume:",
     btnShowDimensions: "Bekijk afmetingen",
+    btnConsultBrochure: "Raadpleeg brochure",
     btnShowPhoto: "Bekijk foto toestel",
     selectLanguageLabel: "Selecteer uw taal",
     modeModalTitle: "Welkom bij Interflon Berekeningsmodule",
@@ -3192,6 +3193,7 @@ const TRANSLATIONS = {
     labelDispensePeriod: "Desired Dispensing Period",
     autoDailyVolumeLabel: "Calculated Daily Lubricant Volume:",
     btnShowDimensions: "View dimensions",
+    btnConsultBrochure: "Consult brochure",
     btnShowPhoto: "View device photo",
     selectLanguageLabel: "Select your language",
     modeModalTitle: "Welcome to Interflon Calculation Module",
@@ -3702,6 +3704,7 @@ const TRANSLATIONS = {
     labelDispensePeriod: "Période de Distribution Souhaitée",
     autoDailyVolumeLabel: "Volume Quotidien de Lubrifiant Calculé:",
     btnShowDimensions: "Voir dimensions",
+    btnConsultBrochure: "Consulter la brochure",
     btnShowPhoto: "Voir photo appareil",
     selectLanguageLabel: "Choisissez votre langue",
     modeModalTitle: "Bienvenue sur le Module de Calcul Interflon",
@@ -8000,6 +8003,21 @@ function updateAutomationPage() {
     }
   }
 
+  const brochureWrapper = document.getElementById("automationBrochureToggleWrapper");
+  if (brochureWrapper) {
+    brochureWrapper.style.display = (device === "single_point") ? "block" : "none";
+  }
+  const brochureLabel = document.getElementById("brochureToggleLabel");
+  if (brochureLabel) {
+    const lang = currentLang || "nl";
+    const key = "btnConsultBrochure";
+    if (TRANSLATIONS[lang] && TRANSLATIONS[lang][key]) {
+      brochureLabel.textContent = TRANSLATIONS[lang][key];
+    } else {
+      brochureLabel.textContent = "Raadpleeg brochure";
+    }
+  }
+
   renderAutoDevicesUI();
   calculateAutomationLubrication();
 }
@@ -8031,6 +8049,25 @@ function closeAutomationImageModal() {
     modal.classList.add("hidden");
   }
 }
+
+function openSinglePointBrochureModal() {
+  const modal = document.getElementById("singlePointBrochureModal");
+  const iframe = document.getElementById("singlePointBrochureIframe");
+  if (!modal) return;
+  if (iframe && (!iframe.src || !iframe.src.includes("Brochure_Interflon_Single_Point_Lubricators.pdf"))) {
+    iframe.src = "Brochure_Interflon_Single_Point_Lubricators.pdf#toolbar=1&navpanes=0";
+  }
+  modal.classList.remove("hidden");
+}
+
+function closeSinglePointBrochureModal() {
+  const modal = document.getElementById("singlePointBrochureModal");
+  if (modal) {
+    modal.classList.add("hidden");
+  }
+}
+window.openSinglePointBrochureModal = openSinglePointBrochureModal;
+window.closeSinglePointBrochureModal = closeSinglePointBrochureModal;
 
 let userHasManuallyEditedAutoPeriod = false;
 
@@ -9846,6 +9883,11 @@ function updateChainAutomationPage() {
       btnText.textContent = "Bekijk afmetingen";
       btn.onclick = openChainAutomationImageModal;
     }
+  }
+
+  const chainBrochureWrapper = document.getElementById("chainAutomationBrochureToggleWrapper");
+  if (chainBrochureWrapper) {
+    chainBrochureWrapper.style.display = (deviceKey === "interflon_single_point_oil") ? "block" : "none";
   }
 
   const capSelect = document.getElementById("chainAutoCartridgeCap");
