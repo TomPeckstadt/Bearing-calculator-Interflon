@@ -8331,6 +8331,7 @@ function calculateAutomationLubrication() {
   saveAutomationStateToLocalStorage();
   setTimeout(() => { if (typeof updateRoiAutomationPage === "function") updateRoiAutomationPage(); }, 0);
   
+  const lang = (typeof currentLang !== "undefined" && currentLang) ? currentLang : "nl";
   const deviceSelect = document.getElementById("automationDeviceSelect") || document.getElementById("autoDeviceSelect");
   const deviceKey = deviceSelect ? deviceSelect.value : "single_point";
   const isSinglePoint = (deviceKey === "single_point");
@@ -8444,7 +8445,7 @@ function calculateAutomationLubrication() {
     const roundReason = recSetting.roundedUp ? "afgerond naar boven bij ≥ 0,5" : "afgerond naar beneden bij < 0,5";
     const pointsText = points === 1 ? "1 lager" : `${points} lagers`;
 
-    const smartAdv = getOptimalSmartAdvice(totalDailyNeedCm3 * points, deviceKey, greaseName);
+    const smartAdv = getOptimalSmartAdvice(totalDailyNeedForDev, deviceKey, greaseName);
     const isSmartMatch = (capMl === smartAdv.cap && recSetting.months === smartAdv.months);
     const smartDialLabel = `${smartAdv.months} ${smartAdv.months === 1 ? 'maand' : 'maanden'}`;
 
@@ -8482,6 +8483,13 @@ function calculateAutomationLubrication() {
             ? `&bull; <strong>Recommended combination:</strong> <strong>${smartAdv.cap} ml cartridge on ${smartDialLabel}</strong> (optimal dosing &bull; minimal grease waste &bull; &euro; ${smartAdv.annualCost.toFixed(2).replace('.', ',')}/year).<br>&bull; Current selection on device: <strong>${capMl} ml cartridge on ${dialLabel}</strong> (${roundReason}).<br>👉 Click <em>'Apply advice'</em> to automatically adopt <strong>${smartAdv.cap} ml on ${smartDialLabel}</strong>.`
             : `&bull; <strong>Geadviseerde combinatie:</strong> <strong>${smartAdv.cap} ml patroon op ${smartDialLabel}</strong> (optimale dosering &bull; minimale vetverspilling &bull; &euro; ${smartAdv.annualCost.toFixed(2).replace('.', ',')}/jaar).<br>&bull; Huidige selectie op toestel: <strong>${capMl} ml patroon op ${dialLabel}</strong> (${roundReason}).<br>👉 Klik op <em>'Neem advies over'</em> om automatisch te kiezen voor <strong>${smartAdv.cap} ml op ${smartDialLabel}</strong>.`);
       }
+    }
+
+    if (devId === "A") {
+      const legacyTitleEl = document.getElementById("autoRecTitle");
+      const legacySubtextEl = document.getElementById("autoRecSubtext");
+      if (legacyTitleEl && recTitleEl) legacyTitleEl.textContent = recTitleEl.textContent;
+      if (legacySubtextEl && recSubtextEl) legacySubtextEl.innerHTML = recSubtextEl.innerHTML;
     }
 
     const periodInput = document.getElementById("autoDispensePeriod_" + devId);
