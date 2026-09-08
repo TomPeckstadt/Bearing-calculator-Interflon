@@ -70,10 +70,13 @@
   <!-- ==========================================================================
        LOGIN ANIMATION VIDEO OVERLAY
        ========================================================================== -->
-  <div id="videoOverlay" class="video-overlay">
+  <div id="videoOverlay" class="video-overlay" onclick="if(window.skipOpeningAnimation) window.skipOpeningAnimation();" style="cursor: pointer;">
     <video id="openingVideo" src="Opening doors Interflon.mp4" style="max-width: 100%; max-height: 100%; object-fit: contain;" playsinline preload="auto" muted>
       Your browser does not support the video tag.
     </video>
+    <div id="videoSkipNotice" style="position: absolute; bottom: 24px; right: 24px; color: rgba(255, 255, 255, 0.8); font-size: 13px; font-weight: 500; background: rgba(0, 0, 0, 0.5); border: 1px solid rgba(255, 255, 255, 0.25); padding: 6px 14px; border-radius: 20px; backdrop-filter: blur(4px); pointer-events: auto; user-select: none; transition: opacity 0.2s ease;">
+      ✕ Overslaan
+    </div>
   </div>
 
   <!-- ==========================================================================
@@ -3247,7 +3250,7 @@
   <script src="interflon-data.js?v=20260904_1726"></script>
   <script src="bearings-db.js?v=20260904_1726"></script>
   <script src="chains-db.js?v=20260904_1726"></script>
-  <script src="app_v6.js?v=20260908_1750"></script>
+  <script src="app_v6.js?v=20260908_1845"></script>
 
   <!-- Interflon Oil Dispenser Information Modal (PowerPoint Viewer) -->
   <div id="oilDispenserInfoModal" class="modal-overlay hidden" style="z-index: 99999;">
