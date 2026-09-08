@@ -1494,9 +1494,19 @@
               Vul de kosten & uren (punten 20 t/m 25) in per geselecteerd lager.
             </span>
           </div>
-          <select id="bearingSelectorSection4" class="form-control" style="width: auto; min-width: 240px; font-weight: 700; border-color: #E30613; color: #E30613; background: #fff5f5;" onchange="switchSection4Bearing(this.value)">
-            <option value="A">Lager A</option>
-          </select>
+          <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+            <select id="bearingSelectorSection4" class="form-control" style="width: auto; min-width: 240px; font-weight: 700; border-color: #E30613; color: #E30613; background: #fff5f5;" onchange="switchSection4Bearing(this.value)">
+              <option value="A">Lager A</option>
+            </select>
+            <button type="button" id="btnCopySec4" onclick="copySection4Conditions()" title="Kopieer punten 20 t/m 25 van dit lager" style="display: inline-flex; align-items: center; gap: 6px; padding: 9px 14px; font-size: 13px; font-weight: 700; color: #334155; background: #f8fafc; border: 1.5px solid #cbd5e1; border-radius: 6px; cursor: pointer; transition: all 0.2s; white-space: nowrap;">
+              <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+              <span>Kopieer</span>
+            </button>
+            <button type="button" id="btnPasteSec4" onclick="pasteSection4Conditions()" title="Plak punten 20 t/m 25 op dit lager" style="display: inline-flex; align-items: center; gap: 6px; padding: 9px 14px; font-size: 13px; font-weight: 700; color: #ffffff; background: #E30613; border: 1.5px solid #E30613; border-radius: 6px; cursor: pointer; transition: all 0.2s; white-space: nowrap;">
+              <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/></svg>
+              <span>Plakken</span>
+            </button>
+          </div>
         </div>
 
         <div class="grid-2">
@@ -5579,6 +5589,85 @@
       activeBearingSec4 = newLetter;
       loadSection4DataForBearing(newLetter);
     }
+
+    function getSection4BearingDisplayName(letter) {
+      const sel = document.getElementById('bearingSelectorSection4');
+      if (sel && sel.options) {
+        for (let i = 0; i < sel.options.length; i++) {
+          if (sel.options[i].value === letter) {
+            return sel.options[i].text || ('Lager ' + letter);
+          }
+        }
+      }
+      return 'Lager ' + letter;
+    }
+
+    function copySection4Conditions() {
+      saveCurrentSection4Data();
+      if (!activeBearingSec4 || !bearingDataMapSec4[activeBearingSec4]) {
+        showSurveyToast("⚠️ Geen gegevens gevonden om te kopiëren.");
+        return;
+      }
+
+      window.copiedSection4Costs = JSON.parse(JSON.stringify(bearingDataMapSec4[activeBearingSec4]));
+      window.copiedSection4SourceLetter = activeBearingSec4;
+      window.copiedSection4SourceName = getSection4BearingDisplayName(activeBearingSec4);
+
+      const copyBtn = document.getElementById('btnCopySec4');
+      if (copyBtn) {
+        const origHtml = copyBtn.innerHTML;
+        copyBtn.innerHTML = '<span>✅ Gekopieerd!</span>';
+        copyBtn.style.borderColor = '#16a34a';
+        copyBtn.style.color = '#16a34a';
+        copyBtn.style.backgroundColor = '#f0fdf4';
+        setTimeout(() => {
+          copyBtn.innerHTML = origHtml;
+          copyBtn.style.borderColor = '#cbd5e1';
+          copyBtn.style.color = '#334155';
+          copyBtn.style.backgroundColor = '#f8fafc';
+        }, 1600);
+      }
+
+      const name = window.copiedSection4SourceName || ('Lager ' + activeBearingSec4);
+      showSurveyToast(`📋 Kosten van ${name} gekopieerd! Kies een ander lager en klik op 'Plakken'.`);
+    }
+
+    function pasteSection4Conditions() {
+      if (!window.copiedSection4Costs) {
+        showSurveyToast("⚠️ Klik eerst op 'Kopieer' bij een lager om de kosten op te slaan.");
+        return;
+      }
+
+      if (!activeBearingSec4) return;
+
+      bearingDataMapSec4[activeBearingSec4] = JSON.parse(JSON.stringify(window.copiedSection4Costs));
+      loadSection4DataForBearing(activeBearingSec4);
+      saveCurrentSection4Data();
+
+      if (typeof saveRasterConfigToLocalStorage === 'function') {
+        saveRasterConfigToLocalStorage();
+      }
+
+      const pasteBtn = document.getElementById('btnPasteSec4');
+      if (pasteBtn) {
+        const origHtml = pasteBtn.innerHTML;
+        pasteBtn.innerHTML = '<span>✅ Geplakt!</span>';
+        pasteBtn.style.borderColor = '#16a34a';
+        pasteBtn.style.backgroundColor = '#16a34a';
+        setTimeout(() => {
+          pasteBtn.innerHTML = origHtml;
+          pasteBtn.style.borderColor = '#E30613';
+          pasteBtn.style.backgroundColor = '#E30613';
+        }, 1600);
+      }
+
+      const targetName = getSection4BearingDisplayName(activeBearingSec4);
+      const srcName = window.copiedSection4SourceName ? ` (van ${window.copiedSection4SourceName})` : '';
+      showSurveyToast(`✅ Kosten${srcName} succesvol geplakt op ${targetName}!`);
+    }
+
+    window.copySection4Conditions = copySection4Conditions;
+    window.pasteSection4Conditions = pasteSection4Conditions;
 
     function syncReplyTo(val) {
       document.getElementById('hiddenReplyTo').value = val;
