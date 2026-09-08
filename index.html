@@ -3412,7 +3412,7 @@
       const recMonths = recDays / 30.4375;
       const recWeeks = recDays / 7;
 
-      const recSetting = (typeof getRecommendedSettingMonths === 'function') ? getRecommendedSettingMonths(recMonths) : { months: Math.round(recMonths) || 1, roundedUp: false };
+      const recSetting = (typeof getRecommendedSettingMonths === 'function') ? getRecommendedSettingMonths(recMonths, deviceKey, capMl) : { months: Math.round(recMonths) || 1, roundedUp: false };
       const dialLabel = `${recSetting.months} ${recSetting.months === 1 ? 'maand' : 'maanden'}`;
       const theoMonthsStr = recMonths > 10 ? `${Math.round(recMonths)} maanden` : `${recMonths.toLocaleString("nl-BE", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} maanden`;
 
