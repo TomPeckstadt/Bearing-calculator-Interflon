@@ -210,12 +210,18 @@ function getRecommendedSettingMonths(recMonths, deviceKey, capMl) {
     const high = validMonths[i + 1];
 
     if (roundedVal >= low && roundedVal <= high) {
-      const mid = (low + high) / 2;
-      if (roundedVal >= mid) {
-        return { months: high, roundedUp: true };
-      } else {
-        return { months: low, roundedUp: false };
+      // Smeertechnische veiligheidsregel:
+      // Een leeglooptijd naar boven afronden (langer laten lopen) betekent MINDER vet per dag.
+      // We mogen alleen naar 'high' afronden als de geleverde dosering minstens 85% van de vetbehoefte bedraagt.
+      // Ligt de dosering bij 'high' onder 85% (ondersmering risico), dan móet 'low' gekozen worden (veilige smering).
+      const ratioAtHigh = roundedVal / high;
+      if (ratioAtHigh >= 0.85) {
+        const mid = (low + high) / 2;
+        if (roundedVal >= mid) {
+          return { months: high, roundedUp: true };
+        }
       }
+      return { months: low, roundedUp: false };
     }
   }
 
@@ -271,7 +277,9 @@ function getOptimalSmartAdvice(totalDailyNeedCm3, deviceKey, greaseName) {
     const isNatural = (theoMonths >= 0.75 && theoMonths <= (maxSettingMonths + 0.5));
     // Valt de dosering binnen de 'groene zone' van de app (0.85 .. 1.15, max 15% afwijking)?
     const isGreen = (ratio >= 0.85 && ratio <= 1.15);
-    const isAcceptable = (ratio >= 0.75 && ratio <= 1.30);
+    const isSafeLubrication = (ratio >= 0.85 && ratio <= 1.40);
+    const isAcceptable = (ratio >= 0.85 && ratio <= 1.65);
+    const isUnderLubricated = (ratio < 0.85);
 
     candidates.push({
       cap: cap,
@@ -286,7 +294,9 @@ function getOptimalSmartAdvice(totalDailyNeedCm3, deviceKey, greaseName) {
       annualCost: annualCartridgeCost,
       isNatural: isNatural,
       isGreen: isGreen,
+      isSafeLubrication: isSafeLubrication,
       isAcceptable: isAcceptable,
+      isUnderLubricated: isUnderLubricated,
       isGracoRecommended: false
     });
   }
@@ -299,17 +309,19 @@ function getOptimalSmartAdvice(totalDailyNeedCm3, deviceKey, greaseName) {
   }
 
   // DIEPERE REDENERING / MULTI-CRITERIA SELECTIE:
-  // Prioriteit 1: Smeertechnische precisie (doseringsmatch binnen de groene zone, geen kunstmatige 12m-klem die oversmering veroorzaakt).
+  // Prioriteit 1: Smeertechnische precisie & veiligheid (geen ondersmering < 0.85, voorkeur voor groene zone 0.85 .. 1.15).
   // Prioriteit 2: Praktisch onderhoudsinterval (voorkeur voor langere intervallen, bijv. >= 4 maanden, minder wissels per jaar).
   // Prioriteit 3: Jaarlijkse patroonkosten (alleen bij gelijkwaardige technische match de voordeligste kiezen).
   candidates.sort((a, b) => {
     // Rangschikking in kwaliteitsklassen (tiers):
     const getTier = (c) => {
-      if (c.isNatural && c.isGreen) return 1;       // Perfecte dosering binnen instelbereik
-      if (c.isNatural && c.isAcceptable) return 2;  // Goede dosering binnen instelbereik
-      if (c.isNatural) return 3;                    // Binnen instelbereik
-      if (c.theoMonths > (c.maxSettingMonths + 0.5)) return 4; // Buiten bereik: geklemd op max
-      return 5;
+      if (c.isNatural && c.isGreen) return 1;           // Perfecte dosering binnen instelbereik (0.85 .. 1.15)
+      if (c.isNatural && c.isSafeLubrication) return 2;  // Veilige dosering binnen instelbereik (1.15 .. 1.40)
+      if (c.isNatural && c.isAcceptable) return 3;      // Ruimere veilige dosering (1.40 .. 1.65)
+      if (c.isNatural && !c.isUnderLubricated) return 4;// Binnen bereik zonder ondersmering
+      if (c.isNatural && c.isUnderLubricated) return 5; // Ondersmering (vermijden zolang er veilige opties zijn)
+      if (c.theoMonths > (c.maxSettingMonths + 0.5)) return 6; // Buiten bereik: geklemd op max
+      return 7;
     };
 
     const tierA = getTier(a);
@@ -8487,11 +8499,30 @@ function calculateAutomationLubrication() {
             ? `&#9888; <strong>High grease demand for ${pointsText} (${totalDailyNeedForDev.toFixed(2).replace('.', ',')} ml/day):</strong> A 500 ml cartridge lasts only ${((500 / totalDailyNeedForDev)/30.4375).toFixed(1).replace('.', ',')} months.<br>👉 <strong>Advice: Consider Graco option</strong> (central lubrication system / drum pump for continuous lubrication of large volumes).`
             : `&#9888; <strong>Hoge vetbehoefte voor ${pointsText} (${totalDailyNeedForDev.toFixed(2).replace('.', ',')} ml/dag):</strong> Een 500 ml patroon gaat slechts ${((500 / totalDailyNeedForDev)/30.4375).toFixed(1).replace('.', ',')} maanden mee.<br>👉 <strong>Advies: Bekijk de optie Graco</strong> (centraal smeersysteem / vatpomp voor continue smering van grote vetvolumes).`);
       } else if (isSmartMatch) {
+        const isExactFit = (smartAdv.ratio >= 0.85 && smartAdv.ratio <= 1.15);
+        const fitDescFR = isExactFit
+          ? `Offre une <strong>précision de dosage maximale</strong> (parfaitement adaptée au besoin calculé de ${(totalDailyNeedForDev/points).toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ml/jour par roulement) et évite le sur-graissage.`
+          : (smartAdv.ratio > 1.15
+            ? `Garantit un <strong>graissage sûr</strong> (${((totalDailyNeedForDev/points) * smartAdv.ratio).toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ml/jour par roulement) et élimine tout risque de manque de graisse.`
+            : `C'est le réglage le plus proche disponible (${((totalDailyNeedForDev/points) * smartAdv.ratio).toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ml/jour par roulement).`);
+
+        const fitDescEN = isExactFit
+          ? `Delivers <strong>maximum dosing precision</strong> (perfectly matched to the calculated demand of ${(totalDailyNeedForDev/points).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ml/day per bearing) and prevents excessive grease build-up.`
+          : (smartAdv.ratio > 1.15
+            ? `Provides <strong>safe reliable lubrication</strong> (${((totalDailyNeedForDev/points) * smartAdv.ratio).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ml/day per bearing) and prevents any risk of bearing starvation.`
+            : `This is the closest available setting (${((totalDailyNeedForDev/points) * smartAdv.ratio).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ml/day per bearing).`);
+
+        const fitDescNL = isExactFit
+          ? `Dit biedt de <strong>hoogste doseernauwkeurigheid</strong> (perfect afgestemd op de berekende vetbehoefte van ${(totalDailyNeedForDev/points).toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ml/dag per lager) en voorkomt overmatige vetsmering.`
+          : (smartAdv.ratio > 1.15
+            ? `Dit biedt een <strong>veilige smering</strong> (${((totalDailyNeedForDev/points) * smartAdv.ratio).toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ml/dag per lager) en voorkomt elk risico op ondersmering of lagerschade.`
+            : `Dit is de meest nabije veilige instelling (${((totalDailyNeedForDev/points) * smartAdv.ratio).toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ml/dag per lager) binnen de beschikbare standen.`);
+
         recSubtextEl.innerHTML = (lang === "fr")
-          ? `&check; <strong>Conseil optimal pour ${pointsText} : cartouche de ${smartAdv.cap} ml réglée sur ${smartAdv.months} ${smartAdv.months === 1 ? 'mois' : 'mois'}.</strong><br>&bull; Offre une <strong>précision de dosage maximale</strong> (parfaitement adaptée au besoin calculé de ${(totalDailyNeedForDev/points).toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ml/jour par roulement) et évite le sur-graissage.<br>&bull; Maintenance : seulement ${smartAdv.cartridgesPerYear.toFixed(1).replace('.', ',')} cartouches/an (&euro; ${smartAdv.annualCost.toFixed(2).replace('.', ',')}/an).`
+          ? `&check; <strong>Conseil optimal pour ${pointsText} : cartouche de ${smartAdv.cap} ml réglée sur ${smartAdv.months} mois.</strong><br>&bull; ${fitDescFR}<br>&bull; Maintenance : seulement ${smartAdv.cartridgesPerYear.toFixed(1).replace('.', ',')} cartouches/an (&euro; ${smartAdv.annualCost.toFixed(2).replace('.', ',')}/an).`
           : ((lang === "en")
-            ? `&check; <strong>Optimal advice for ${pointsText}: ${smartAdv.cap} ml cartridge set to ${smartAdv.months} ${smartAdv.months === 1 ? 'month' : 'months'}.</strong><br>&bull; Delivers <strong>maximum dosing precision</strong> (perfectly matched to the calculated demand of ${(totalDailyNeedForDev/points).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ml/day per bearing) and prevents excessive grease build-up.<br>&bull; Maintenance: only ${smartAdv.cartridgesPerYear.toFixed(1).replace('.', ',')} cartridges/year (&euro; ${smartAdv.annualCost.toFixed(2).replace('.', ',')}/year).`
-            : `&check; <strong>Optimaal advies voor ${pointsText}: ${smartAdv.cap} ml patroon ingesteld op ${smartAdv.months} ${smartAdv.months === 1 ? 'maand' : 'maanden'}.</strong><br>&bull; Dit biedt de <strong>hoogste doseernauwkeurigheid</strong> (perfect afgestemd op de berekende vetbehoefte van ${(totalDailyNeedForDev/points).toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ml/dag per lager) en voorkomt overmatige vetsmering.<br>&bull; Onderhoud: slechts ${smartAdv.cartridgesPerYear.toFixed(1).replace('.', ',')} patronen/jaar (&euro; ${smartAdv.annualCost.toFixed(2).replace('.', ',')}/jaar).`);
+            ? `&check; <strong>Optimal advice for ${pointsText}: ${smartAdv.cap} ml cartridge set to ${smartAdv.months} ${smartAdv.months === 1 ? 'month' : 'months'}.</strong><br>&bull; ${fitDescEN}<br>&bull; Maintenance: only ${smartAdv.cartridgesPerYear.toFixed(1).replace('.', ',')} cartridges/year (&euro; ${smartAdv.annualCost.toFixed(2).replace('.', ',')}/year).`
+            : `&check; <strong>Optimaal advies voor ${pointsText}: ${smartAdv.cap} ml patroon ingesteld op ${smartAdv.months} ${smartAdv.months === 1 ? 'maand' : 'maanden'}.</strong><br>&bull; ${fitDescNL}<br>&bull; Onderhoud: slechts ${smartAdv.cartridgesPerYear.toFixed(1).replace('.', ',')} patronen/jaar (&euro; ${smartAdv.annualCost.toFixed(2).replace('.', ',')}/jaar).`);
       } else {
         recSubtextEl.innerHTML = (lang === "fr")
           ? `&bull; <strong>Combinaison conseillée :</strong> <strong>cartouche de ${smartAdv.cap} ml sur ${smartDialLabel}</strong> (dosage optimal &bull; &euro; ${smartAdv.annualCost.toFixed(2).replace('.', ',')}/an).<br>&bull; Sélection actuelle : <strong>${capMl} ml sur ${dialLabel}</strong> (${roundReason}).<br>👉 Cliquez sur <em>'Reprendre le conseil'</em> pour appliquer automatiquement <strong>${smartAdv.cap} ml sur ${smartDialLabel}</strong>.`
@@ -8650,20 +8681,45 @@ function calculateAutomationLubrication() {
             </div>
           `);
         } else if (ratio < 0.85) {
+          const validMonths = getValidDispenseMonths(deviceKey, capMl);
+          const lowerMonths = validMonths.filter(m => m < periodVal);
+          const shorterSetting = lowerMonths.length > 0 ? lowerMonths[lowerMonths.length - 1] : null;
+          const availableCaps = (deviceKey === "single_point") ? [15, 60, 120, 250] : [60, 125, 250, 500];
+          const largerCaps = availableCaps.filter(c => c > capMl);
+          const nextLargerCap = largerCaps.length > 0 ? largerCaps[0] : null;
+
+          let adviceAdviceFR = "";
+          let adviceAdviceEN = "";
+          let adviceAdviceNL = "";
+
+          if (shorterSetting) {
+            adviceAdviceFR = `<strong>Conseil :</strong> Réduisez la durée de fonctionnement (ex. sur <strong>${shorterSetting} mois</strong>)${nextLargerCap ? ` ou choisissez une cartouche plus grande (ex. <strong>${nextLargerCap} ml</strong>)` : ''} pour éviter tout risque de sous-graissage.`;
+            adviceAdviceEN = `<strong>Advice:</strong> Set a shorter dispense period (e.g. <strong>${shorterSetting} ${shorterSetting === 1 ? 'month' : 'months'}</strong>)${nextLargerCap ? ` or choose a larger cartridge (e.g. <strong>${nextLargerCap} ml</strong>)` : ''} to prevent under-lubrication.`;
+            adviceAdviceNL = `<strong>Advies:</strong> Stel de leeglooptijd korter in (bijv. op <strong>${shorterSetting} ${shorterSetting === 1 ? 'maand' : 'maanden'}</strong>)${nextLargerCap ? ` of kies een groter patroon (bijv. <strong>${nextLargerCap} ml</strong>)` : ''} om ondersmering te voorkomen.`;
+          } else if (nextLargerCap) {
+            adviceAdviceFR = `<strong>Conseil :</strong> Choisissez une cartouche plus grande (ex. <strong>${nextLargerCap} ml</strong>) pour assurer un débit de graisse suffisant.`;
+            adviceAdviceEN = `<strong>Advice:</strong> Choose a larger cartridge (e.g. <strong>${nextLargerCap} ml</strong>) to ensure adequate grease delivery.`;
+            adviceAdviceNL = `<strong>Advies:</strong> Kies een groter patroon (bijv. <strong>${nextLargerCap} ml</strong>) om voldoende vetsmering te garanderen.`;
+          } else {
+            adviceAdviceFR = `<strong>Conseil :</strong> Même sur la durée minimale, le besoin dépasse la capacité d'un seul appareil. Envisagez un appareil supplémentaire ou un système centralisé (ex. Graco).`;
+            adviceAdviceEN = `<strong>Advice:</strong> Even at the shortest duration, demand exceeds the capacity of a single unit. Consider an additional lubricator or a centralized lubrication system (e.g. Graco).`;
+            adviceAdviceNL = `<strong>Advies:</strong> Zelfs op de kortste stand is de vetbehoefte hoger dan de maximale capaciteit van dit toestel. Overweeg een extra smeertoestel of een centraal smeersysteem (bijv. Graco).`;
+          }
+
           noticeEl.innerHTML = lang === "fr" ? `
             <div style="padding: 10px 14px; background-color: #FEF3C7; border: 1px solid #FDE68A; border-radius: var(--border-radius-sm); color: #92400E; font-size: 11.5px; font-weight: 600; line-height: 1.4; box-shadow: 0 1px 3px rgba(0,0,0,0.03);">
               ⚠️ <strong>Risque de sous-graissage !</strong> Réglé sur <strong>${periodVal} ${unitLabel}</strong>, ${targetDevName} ne délivre que <strong>${actualStr} ml/jour par roulement</strong> (total : <strong>${actualDevTotalStr} ml/jour</strong>), alors que le besoin calculé pour ${pointsText} est de <strong>${targetStr} ml/jour par roulement</strong>.<br>
-              <strong>Conseil :</strong> Réduisez la durée de fonctionnement (ex. sur <strong>${dialLabel}</strong>) ou choisissez une cartouche plus grande.
+              ${adviceAdviceFR}
             </div>
           ` : (lang === "en" ? `
             <div style="padding: 10px 14px; background-color: #FEF3C7; border: 1px solid #FDE68A; border-radius: var(--border-radius-sm); color: #92400E; font-size: 11.5px; font-weight: 600; line-height: 1.4; box-shadow: 0 1px 3px rgba(0,0,0,0.03);">
               ⚠️ <strong>Under-lubrication risk!</strong> Set to <strong>${periodVal} ${unitLabel}</strong>, ${targetDevName} dispenses only <strong>${actualStr} ml/day per bearing</strong> (total: <strong>${actualDevTotalStr} ml/day</strong>), while the calculated demand for ${pointsText} is <strong>${targetStr} ml/day per bearing</strong>.<br>
-              <strong>Advice:</strong> Set a shorter dispense period (e.g. <strong>${dialLabel}</strong>) or choose a larger cartridge.
+              ${adviceAdviceEN}
             </div>
           ` : `
             <div style="padding: 10px 14px; background-color: #FEF3C7; border: 1px solid #FDE68A; border-radius: var(--border-radius-sm); color: #92400E; font-size: 11.5px; font-weight: 600; line-height: 1.4; box-shadow: 0 1px 3px rgba(0,0,0,0.03);">
               ⚠️ <strong>Ondersmering risico!</strong> Ingesteld op <strong>${periodVal} ${unitLabel}</strong> levert ${targetDevName} slechts <strong>${actualStr} ml/dag per lager</strong> af (totaal: <strong>${actualDevTotalStr} ml/dag</strong>), terwijl de berekende behoefte voor ${pointsText} <strong>${targetStr} ml/dag per lager</strong> bedraagt.<br>
-              <strong>Advies:</strong> Stel de leeglooptijd korter in (bijv. op <strong>${dialLabel}</strong>) of kies een groter patroon.
+              ${adviceAdviceNL}
             </div>
           `);
         } else {
