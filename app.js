@@ -118,10 +118,14 @@ function onDevicePeriodInput(devId) {
   const unitSel = document.getElementById("autoDispenseUnit_" + devId);
   if (dev && input) {
     dev.userEditedPeriod = true;
+    const deviceSelect = document.getElementById("automationDeviceSelect") || document.getElementById("autoDeviceSelect");
+    const deviceKey = deviceSelect ? deviceSelect.value : "single_point";
+    const validMonths = getValidDispenseMonths(deviceKey, dev.cap);
+    const maxM = validMonths[validMonths.length - 1];
     if (unitSel && unitSel.value === "months") {
       let val = parseFloat(input.value);
       if (!isNaN(val)) {
-        val = Math.min(12, Math.max(1, Math.round(val)));
+        val = Math.min(maxM, Math.max(1, Math.round(val)));
         input.value = val;
       }
     }
@@ -130,9 +134,97 @@ function onDevicePeriodInput(devId) {
   calculateAutomationLubrication();
 }
 
+function onDevicePeriodChange(devId) {
+  const dev = autoDevicesState.find(d => d.id === devId);
+  const input = document.getElementById("autoDispensePeriod_" + devId);
+  const unitSel = document.getElementById("autoDispenseUnit_" + devId);
+  if (dev && input) {
+    const deviceSelect = document.getElementById("automationDeviceSelect") || document.getElementById("autoDeviceSelect");
+    const deviceKey = deviceSelect ? deviceSelect.value : "single_point";
+    const validMonths = getValidDispenseMonths(deviceKey, dev.cap);
+    if (unitSel && unitSel.value === "months") {
+      let val = parseFloat(input.value);
+      if (!isNaN(val) && !validMonths.includes(val)) {
+        let nearest = validMonths[0];
+        let minDiff = Math.abs(val - nearest);
+        for (let m of validMonths) {
+          const diff = Math.abs(val - m);
+          if (diff < minDiff) {
+            minDiff = diff;
+            nearest = m;
+          }
+        }
+        input.value = nearest;
+        dev.period = nearest;
+      }
+    }
+  }
+  calculateAutomationLubrication();
+  if (typeof updateRoiAutomationPage === "function") updateRoiAutomationPage();
+}
+window.onDevicePeriodChange = onDevicePeriodChange;
+
+function getValidDispenseMonths(deviceKey, capMl) {
+  const cap = parseInt(capMl, 10) || 0;
+  const dev = deviceKey || "";
+  if (dev === "pulsarlube_msp" || dev === "pulsarlube_msp_oil") {
+    if (cap === 125 || cap === 250) {
+      return [1, 2, 3, 6, 12];
+    }
+    if (cap === 500) {
+      return [1, 2, 4, 5, 6, 12, 18, 24];
+    }
+    // 60ml blijft 1 tot en met 12 maanden
+    return [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+  }
+  return [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+}
+window.getValidDispenseMonths = getValidDispenseMonths;
+
+// Helper to calculate recommended lubricator setting months:
+// Respects physical device display settings (e.g. MSP 125/250ml: 1, 2, 3, 6, 12; MSP 500ml: 1, 2, 4, 5, 6, 12, 18, 24)
+// Decimals < midpoint round DOWN, decimals >= midpoint round UP
+function getRecommendedSettingMonths(recMonths, deviceKey, capMl) {
+  const validMonths = getValidDispenseMonths(deviceKey, capMl);
+  if (!validMonths || validMonths.length === 0) {
+    return { months: 1, roundedUp: false };
+  }
+
+  const minM = validMonths[0];
+  const maxM = validMonths[validMonths.length - 1];
+
+  if (!recMonths || recMonths <= minM) {
+    return { months: minM, roundedUp: false };
+  }
+  if (recMonths >= maxM) {
+    return { months: maxM, roundedUp: false };
+  }
+
+  // Round to 1 decimal place to align with displayed theoretical months
+  const roundedVal = Math.round(recMonths * 10) / 10;
+
+  for (let i = 0; i < validMonths.length - 1; i++) {
+    const low = validMonths[i];
+    const high = validMonths[i + 1];
+
+    if (roundedVal >= low && roundedVal <= high) {
+      const mid = (low + high) / 2;
+      if (roundedVal >= mid) {
+        return { months: high, roundedUp: true };
+      } else {
+        return { months: low, roundedUp: false };
+      }
+    }
+  }
+
+  return { months: maxM, roundedUp: false };
+}
+window.getRecommendedSettingMonths = getRecommendedSettingMonths;
+
 function getOptimalSmartAdvice(totalDailyNeedCm3, deviceKey, greaseName) {
   if (!totalDailyNeedCm3 || totalDailyNeedCm3 <= 0) {
-    return { cap: 120, months: 6, annualCost: 109.2, cartridgesPerYear: 2, unitPackPrice: 54.60, theoMonths: 5.7, label: "Standaard 120 ml op 6 maanden" };
+    const defaultDevMonths = (deviceKey === "pulsarlube_msp") ? 6 : 6;
+    return { cap: 120, months: defaultDevMonths, annualCost: 109.2, cartridgesPerYear: 2, unitPackPrice: 54.60, theoMonths: 5.7, label: "Standaard 120 ml op 6 maanden" };
   }
 
   const devKey = deviceKey || "single_point";
@@ -148,8 +240,12 @@ function getOptimalSmartAdvice(totalDailyNeedCm3, deviceKey, greaseName) {
     const theoDays = cap / totalDailyNeedCm3;
     const theoMonths = theoDays / 30.4375;
 
-    // Hardware instelmogelijkheden voor alle Pulsartoestellen en Single Point zijn 1..12 maanden
-    const settingMonths = Math.min(12, Math.max(1, Math.round(theoMonths)));
+    // Display instelmogelijkheden exact afgestemd op type toestel en capaciteit
+    const validMonths = getValidDispenseMonths(devKey, cap);
+    const maxSettingMonths = validMonths[validMonths.length - 1];
+    const rec = getRecommendedSettingMonths(theoMonths, devKey, cap);
+    const settingMonths = rec.months;
+
     const monthlyDischarge = cap / settingMonths;
     const ratio = monthlyDischarge / monthlyNeed;
     const dosingError = Math.abs(ratio - 1.0);
@@ -169,8 +265,8 @@ function getOptimalSmartAdvice(totalDailyNeedCm3, deviceKey, greaseName) {
     const cartridgesPerYear = 12 / settingMonths;
     const annualCartridgeCost = cartridgesPerYear * unitPackPrice;
 
-    // Is het patroon een natuurlijke fit binnen de 1..12 maanden hardware instelruimte?
-    const isNatural = (theoMonths >= 0.75 && theoMonths <= 12.5);
+    // Is het patroon een natuurlijke fit binnen de fysieke hardware instelruimte?
+    const isNatural = (theoMonths >= 0.75 && theoMonths <= (maxSettingMonths + 0.5));
     // Valt de dosering binnen de 'groene zone' van de app (0.85 .. 1.15, max 15% afwijking)?
     const isGreen = (ratio >= 0.85 && ratio <= 1.15);
     const isAcceptable = (ratio >= 0.75 && ratio <= 1.30);
@@ -179,6 +275,7 @@ function getOptimalSmartAdvice(totalDailyNeedCm3, deviceKey, greaseName) {
       cap: cap,
       months: settingMonths,
       theoMonths: theoMonths,
+      maxSettingMonths: maxSettingMonths,
       monthlyDischarge: monthlyDischarge,
       ratio: ratio,
       dosingError: dosingError,
@@ -206,10 +303,10 @@ function getOptimalSmartAdvice(totalDailyNeedCm3, deviceKey, greaseName) {
   candidates.sort((a, b) => {
     // Rangschikking in kwaliteitsklassen (tiers):
     const getTier = (c) => {
-      if (c.isNatural && c.isGreen) return 1;       // Perfecte dosering binnen 1..12m
-      if (c.isNatural && c.isAcceptable) return 2;  // Goede dosering binnen 1..12m
-      if (c.isNatural) return 3;                    // Binnen 1..12m
-      if (c.theoMonths > 12.5) return 4;            // Buiten bereik (>12m): geklemd op 12m
+      if (c.isNatural && c.isGreen) return 1;       // Perfecte dosering binnen instelbereik
+      if (c.isNatural && c.isAcceptable) return 2;  // Goede dosering binnen instelbereik
+      if (c.isNatural) return 3;                    // Binnen instelbereik
+      if (c.theoMonths > (c.maxSettingMonths + 0.5)) return 4; // Buiten bereik: geklemd op max
       return 5;
     };
 
@@ -1654,6 +1751,10 @@ function renderAutoDevicesUI() {
       capOptionsHtml += `<option value="${c}"${cSel}>${c} ml</option>`;
     });
 
+    const validDispenseMonths = getValidDispenseMonths(deviceKey, dev.cap);
+    const maxMonths = validDispenseMonths[validDispenseMonths.length - 1];
+    const isMspSpecial = (deviceKey === "pulsarlube_msp" && [125, 250, 500].includes(dev.cap));
+
     html += `
     <div class="card" style="background: #ffffff; border: 1px solid #cbd5e1; padding: 20px; border-radius: var(--border-radius-md); box-shadow: 0 2px 8px rgba(0,0,0,0.04); flex: 1;">
       <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--accent-yellow); padding-bottom: 8px; margin-bottom: 16px;">
@@ -1741,13 +1842,22 @@ function renderAutoDevicesUI() {
           <div>
             <label for="autoDispensePeriod_${devId}" style="display: block; font-size: 12px; font-weight: 600; color: var(--text-dark); margin-bottom: 4px;">Gewenste Looptijd / Leeglooptijd</label>
             <div style="display: flex; gap: 8px;">
-              <input type="number" id="autoDispensePeriod_${devId}" class="form-input" value="${dev.period}" min="1" max="12" step="1" oninput="onDevicePeriodInput('${devId}')" style="flex: 1; padding: 8px 12px; border-radius: var(--border-radius-sm); border: 1px solid #cbd5e1;">
+              <input type="number" id="autoDispensePeriod_${devId}" class="form-input" value="${dev.period}" min="1" max="${maxMonths}" step="1" oninput="onDevicePeriodInput('${devId}')" onchange="onDevicePeriodChange('${devId}')" list="autoDispenseList_${devId}" style="flex: 1; padding: 8px 12px; border-radius: var(--border-radius-sm); border: 1px solid #cbd5e1;">
+              <datalist id="autoDispenseList_${devId}">
+                ${validDispenseMonths.map(m => `<option value="${m}">${m} ${m === 1 ? 'maand' : 'maanden'}</option>`).join('')}
+              </datalist>
               <select id="autoDispenseUnit_${devId}" class="form-select" onchange="onDeviceCapChange('${devId}')" style="width: 120px; padding: 8px 12px; border-radius: var(--border-radius-sm); border: 1px solid #cbd5e1;">
                 <option value="months"${dev.unit === 'months' ? ' selected' : ''}>maanden</option>
                 <option value="weeks"${dev.unit === 'weeks' ? ' selected' : ''}>weken</option>
                 <option value="days"${dev.unit === 'days' ? ' selected' : ''}>dagen</option>
               </select>
             </div>
+            ${dev.unit === 'months' && isMspSpecial ? `
+            <div style="font-size: 11px; color: #475569; margin-top: 4px; display: flex; align-items: center; gap: 4px;">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="#0284c7" style="width: 13px; height: 13px; flex-shrink: 0;"><path fill-rule="evenodd" d="M18 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0zm-7-4a1 1 0 1 1-2 0 1 1 0 0 1 2 0zM9 9a.75.75 0 0 0 0 1.5h.253a.25.25 0 0 1 .244.304l-.459 2.066A1.75 1.75 0 0 0 10.747 15H11a.75.75 0 0 0 0-1.5h-.253a.25.25 0 0 1-.244-.304l.459-2.066A1.75 1.75 0 0 0 9.253 9H9z" clip-rule="evenodd" /></svg>
+              <span>Displaystanden MSP ${dev.cap}ml: <strong>${validDispenseMonths.join(', ')} maanden</strong></span>
+            </div>
+            ` : ''}
             
             <div id="autoDialBadge_${devId}" style="margin-top: 8px; background-color: #ffffff; border: 1px solid #cbd5e1; border-radius: var(--border-radius-sm); padding: 8px 10px; font-size: 11.5px; color: var(--text-dark); line-height: 1.4;">
               <div style="font-weight: 700; color: var(--primary-red); display: flex; align-items: center; justify-content: space-between; gap: 6px;">
@@ -2066,7 +2176,7 @@ function renderPdfAutomationExtraPage(doc, autoData, autoDataUrl, autoRatio, wat
     const totalDailyNeedForDev = dailyNeedCm3 * pts;
     const recDays = capMl / (totalDailyNeedForDev > 0 ? totalDailyNeedForDev : 0.704);
     const recMonths = recDays / 30.4375;
-    const recSetting = getRecommendedSettingMonths(recMonths);
+    const recSetting = getRecommendedSettingMonths(recMonths, deviceKey, capMl);
 
     let periodMonths = periodVal;
     if (curUnit === "weeks") periodMonths = (periodVal * 7) / 30.4375;
@@ -2323,27 +2433,7 @@ function getAutomationDeviceImageDataUrl(imageSrc, callback) {
 
 
 
-// Helper to calculate recommended lubricator setting months (1..12):
-// Decimals < 0.5 round DOWN, decimals >= 0.5 round UP
-function getRecommendedSettingMonths(recMonths) {
-  if (recMonths <= 0) {
-    return { months: 1, roundedUp: false };
-  }
-  // Round to 1 decimal place to align with displayed theoretical months (e.g. 1.7)
-  const rounded1Dec = Math.round(recMonths * 10) / 10;
-  const whole = Math.floor(rounded1Dec);
-  const frac = Math.round((rounded1Dec - whole) * 10) / 10;
-
-  // Vanaf 0.5 (frac >= 0.5) round UP to whole + 1, otherwise round DOWN to whole
-  // Hardware instelmogelijkheden voor alle Pulsartoestellen & Single Point zijn 1..12 maanden
-  if (frac >= 0.5) {
-    const m = Math.min(12, whole + 1);
-    return { months: m, roundedUp: true };
-  } else {
-    const m = Math.min(12, Math.max(1, whole));
-    return { months: m, roundedUp: false };
-  }
-}
+// Helper to calculate recommended lubricator setting months (defined with deviceKey & capMl awareness above)
 // App Logic - SKF Lager Smeercalculator
 // Beheert inloggen, paginanavigatie, zoeken naar lagers en dynamische visualisatie.
 
@@ -8218,11 +8308,19 @@ function onAutoNumPointsChange() {
 function onAutoPeriodInput() {
   userHasManuallyEditedAutoPeriod = true;
   const periodInput = document.getElementById("autoDispensePeriod");
-  const unitSelect = document.getElementById("autoPeriodUnit");
+  const unitSelect = document.getElementById("autoPeriodUnit") || document.getElementById("autoDispenseUnit");
+  const deviceSelect = document.getElementById("automationDeviceSelect") || document.getElementById("autoDeviceSelect");
+  const capSelect = document.getElementById("autoCartridgeCap");
+  const deviceKey = deviceSelect ? deviceSelect.value : "single_point";
+  const capMl = capSelect ? (parseInt(capSelect.value, 10) || 120) : 120;
+  const validMonths = getValidDispenseMonths(deviceKey, capMl);
+  const maxM = validMonths[validMonths.length - 1];
+
   if (periodInput && unitSelect && unitSelect.value === "months") {
-    const raw = parseFloat(periodInput.value);
-    if (!isNaN(raw) && raw !== Math.round(raw)) {
-      periodInput.value = Math.round(raw);
+    let raw = parseFloat(periodInput.value);
+    if (!isNaN(raw)) {
+      raw = Math.min(maxM, Math.max(1, Math.round(raw)));
+      periodInput.value = raw;
     }
   }
   calculateAutomationLubrication();
@@ -8328,7 +8426,7 @@ function calculateAutomationLubrication() {
     const recMonths = recDays / 30.4375;
     const recWeeks = recDays / 7;
 
-    const recSetting = getRecommendedSettingMonths(recMonths);
+    const recSetting = getRecommendedSettingMonths(recMonths, deviceKey, capMl);
     const dialLabel = `${recSetting.months} ${recSetting.months === 1 ? 'maand' : 'maanden'}`;
     const theoMonthsStr = recMonths > 10 ? `${Math.round(recMonths)} maanden` : `${recMonths.toLocaleString("nl-BE", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} maanden`;
 
@@ -8346,7 +8444,7 @@ function calculateAutomationLubrication() {
     const roundReason = recSetting.roundedUp ? "afgerond naar boven bij ≥ 0,5" : "afgerond naar beneden bij < 0,5";
     const pointsText = points === 1 ? "1 lager" : `${points} lagers`;
 
-    const smartAdv = getOptimalSmartAdvice(totalDailyNeedForDev, deviceKey, greaseName);
+    const smartAdv = getOptimalSmartAdvice(totalDailyNeedCm3 * points, deviceKey, greaseName);
     const isSmartMatch = (capMl === smartAdv.cap && recSetting.months === smartAdv.months);
     const smartDialLabel = `${smartAdv.months} ${smartAdv.months === 1 ? 'maand' : 'maanden'}`;
 
@@ -8399,6 +8497,21 @@ function calculateAutomationLubrication() {
         periodInput.value = recSetting.months;
       }
       dev.period = parseFloat(periodInput.value) || 1;
+    } else if (dev.userEditedPeriod && curUnit === "months" && periodInput) {
+      const validMonths = getValidDispenseMonths(deviceKey, capMl);
+      if (!validMonths.includes(dev.period)) {
+        let nearest = validMonths[0];
+        let minDiff = Math.abs(dev.period - nearest);
+        for (let m of validMonths) {
+          const diff = Math.abs(dev.period - m);
+          if (diff < minDiff) {
+            minDiff = diff;
+            nearest = m;
+          }
+        }
+        dev.period = nearest;
+        periodInput.value = nearest;
+      }
     }
 
     // 3. Compute Volume Output Boxes for THIS device
@@ -10239,7 +10352,7 @@ function calculateChainAutomation() {
   const recMonths = recDays / 30.4375;
   const recWeeks = recDays / 7;
 
-  const recSetting = getRecommendedSettingMonths(recMonths);
+  const recSetting = getRecommendedSettingMonths(recMonths, deviceKey, capMl);
   const dialLabel = `${recSetting.months} ${recSetting.months === 1 ? 'maand' : 'maanden'}`;
   const theoMonthsStr = recMonths > 10 ? `${Math.round(recMonths)} maanden` : `${recMonths.toLocaleString("nl-BE", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} maanden`;
 
