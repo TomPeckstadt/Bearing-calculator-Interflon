@@ -5384,6 +5384,9 @@
       bearingDataMapSec2[activeBearingSec2].q29_life = document.getElementById('q29_life').value;
       bearingDataMapSec2[activeBearingSec2].q13 = document.getElementById('q13').value;
       bearingDataMapSec2[activeBearingSec2].q14 = document.getElementById('q14').value;
+      if (typeof saveRasterConfigToLocalStorage === 'function') {
+        saveRasterConfigToLocalStorage();
+      }
     }
 
     function loadSection2DataForBearing(letter) {
@@ -5401,6 +5404,9 @@
       saveCurrentSection2Data();
       activeBearingSec2 = newLetter;
       loadSection2DataForBearing(newLetter);
+      if (typeof saveRasterConfigToLocalStorage === 'function') {
+        saveRasterConfigToLocalStorage();
+      }
     }
 
     // --- SECTION 3 HANDLERS ---
