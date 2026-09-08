@@ -2810,6 +2810,7 @@ const TRANSLATIONS = {
     passwordLabel: "Paswoord",
     passwordPlaceholder: "Vul paswoord in...",
     loginBtn: "Inloggen",
+    loginWithIntroBtn: "Inloggen + intro",
     loginError: "Onjuist paswoord. Probeer opnieuw.",
     loginInactivityNotice: "U bent automatisch uitgelogd wegens 90 minuten inactiviteit.",
     menuSearch: "Lager Zoeken",
@@ -3322,6 +3323,7 @@ const TRANSLATIONS = {
     passwordLabel: "Password",
     passwordPlaceholder: "Enter password...",
     loginBtn: "Log In",
+    loginWithIntroBtn: "Login + intro",
     loginError: "Incorrect password. Please try again.",
     loginInactivityNotice: "You have been automatically logged out due to 90 minutes of inactivity.",
     menuSearch: "Search Bearing",
@@ -3834,6 +3836,7 @@ const TRANSLATIONS = {
     passwordLabel: "Mot de passe",
     passwordPlaceholder: "Saisir le mot de passe...",
     loginBtn: "Se connecter",
+    loginWithIntroBtn: "Connexion + intro",
     loginError: "Mot de passe incorrect. Veuillez réessayer.",
     loginInactivityNotice: "Vous avez été automatiquement déconnecté après 90 minutes d'inactivité.",
     menuSearch: "Recherche Roulement",
@@ -4633,6 +4636,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
 function handleLogin(event) {
   if (event) event.preventDefault();
+  return processLogin(false);
+}
+
+function handleLoginWithIntro(event) {
+  if (event) event.preventDefault();
+  return processLogin(true);
+}
+
+function processLogin(includeIntro = false) {
   const passwordInput = document.getElementById("passwordInput");
   const loginError = document.getElementById("loginError");
   const loginNotice = document.getElementById("loginInactivityNotice");
@@ -4645,7 +4657,7 @@ function handleLogin(event) {
     sessionStorage.setItem("bearing_calc_logged_in", "true");
     sessionStorage.setItem("bearing_calc_last_activity", Date.now().toString());
     startInactivityMonitoring();
-    playOpeningAnimation();
+    playOpeningAnimation(includeIntro);
   } else {
     if (loginError) loginError.style.display = "flex";
     if (loginNotice) loginNotice.style.display = "none";
@@ -4657,10 +4669,11 @@ function handleLogin(event) {
   return false;
 }
 
-function playOpeningAnimation() {
+function playOpeningAnimation(includeIntro = false) {
   const loginCard = document.querySelector('.login-card');
   const videoOverlay = document.getElementById('videoOverlay');
-  const video = document.getElementById('openingVideo');
+  const openingVideo = document.getElementById('openingVideo');
+  const introVideo = document.getElementById('introVideo');
   const loginOverlay = document.getElementById('loginOverlay');
   const passwordInput = document.getElementById('passwordInput');
   const loginError = document.getElementById('loginError');
@@ -4670,7 +4683,7 @@ function playOpeningAnimation() {
   if (loginError) loginError.style.display = 'none';
   if (loginNotice) loginNotice.style.display = 'none';
 
-  if (!videoOverlay || !video) {
+  if (!videoOverlay || !openingVideo) {
     if (loginOverlay) {
       loginOverlay.classList.add('hidden');
       loginOverlay.style.display = 'none';
@@ -4682,6 +4695,14 @@ function playOpeningAnimation() {
   let animationFinished = false;
   let safetyTimer = null;
 
+  const handleSkipKey = (e) => {
+    if (e.key === 'Escape' || e.key === ' ' || e.key === 'Enter') {
+      if (typeof window.skipCurrentVideo === 'function') {
+        window.skipCurrentVideo();
+      }
+    }
+  };
+
   const proceedToApp = () => {
     if (animationFinished) return;
     animationFinished = true;
@@ -4691,9 +4712,10 @@ function playOpeningAnimation() {
       safetyTimer = null;
     }
 
-    try {
-      video.pause();
-    } catch (e) {}
+    window.removeEventListener('keydown', handleSkipKey);
+
+    try { if (introVideo) introVideo.pause(); } catch (e) {}
+    try { if (openingVideo) openingVideo.pause(); } catch (e) {}
 
     // Hide login overlay completely behind the scenes
     if (loginOverlay) {
@@ -4707,6 +4729,8 @@ function playOpeningAnimation() {
       setTimeout(() => {
         videoOverlay.classList.remove('active');
         videoOverlay.style.opacity = '';
+        if (introVideo) introVideo.style.display = 'none';
+        if (openingVideo) openingVideo.style.display = 'none';
         if (loginCard) loginCard.classList.remove('fade-out');
         if (typeof openModeSelectionModal === 'function') {
           openModeSelectionModal();
@@ -4719,41 +4743,95 @@ function playOpeningAnimation() {
     }
   };
 
-  // Expose global skip function
-  window.skipOpeningAnimation = proceedToApp;
-  videoOverlay.onclick = (e) => {
-    e.stopPropagation();
-    proceedToApp();
-  };
+  const playElevatorVideo = () => {
+    if (animationFinished) return;
+    if (safetyTimer) {
+      clearTimeout(safetyTimer);
+      safetyTimer = null;
+    }
 
-  const handleSkipKey = (e) => {
-    if (e.key === 'Escape' || e.key === ' ' || e.key === 'Enter') {
-      window.removeEventListener('keydown', handleSkipKey);
+    if (introVideo) {
+      try { introVideo.pause(); } catch(e){}
+      introVideo.style.display = 'none';
+    }
+
+    if (openingVideo) {
+      openingVideo.style.display = 'block';
+      openingVideo.currentTime = 0;
+      openingVideo.muted = true; // Muted guarantees video plays reliably without autoplay block
+
+      // 12-second safety timeout for elevator video
+      safetyTimer = setTimeout(proceedToApp, 12000);
+
+      openingVideo.onended = () => { proceedToApp(); };
+      openingVideo.onerror = () => { proceedToApp(); };
+
+      const playPromise = openingVideo.play();
+      if (playPromise && typeof playPromise.catch === 'function') {
+        playPromise.catch((err) => {
+          console.warn("Autoplay was prevented:", err);
+          proceedToApp();
+        });
+      }
+
+      window.skipCurrentVideo = proceedToApp;
+    } else {
       proceedToApp();
     }
   };
-  window.addEventListener('keydown', handleSkipKey, { once: true });
 
-  // 12-second safety timeout (video is ~10s) to guarantee app opens no matter what
-  safetyTimer = setTimeout(proceedToApp, 12000);
+  // Expose global skip function
+  window.skipOpeningAnimation = proceedToApp;
+  window.addEventListener('keydown', handleSkipKey);
+
+  videoOverlay.onclick = (e) => {
+    e.stopPropagation();
+    if (typeof window.skipCurrentVideo === 'function') {
+      window.skipCurrentVideo();
+    }
+  };
 
   // Fade out login card and activate video overlay
   if (loginCard) loginCard.classList.add('fade-out');
   videoOverlay.classList.add('active');
   videoOverlay.style.opacity = '1';
 
-  // Play opening elevator doors video
-  video.currentTime = 0;
-  video.muted = true; // Muted guarantees video plays reliably without autoplay block
-  video.onended = () => { proceedToApp(); };
-  video.onerror = () => { proceedToApp(); };
+  if (includeIntro && introVideo) {
+    // Phase 1: Intro video
+    if (openingVideo) openingVideo.style.display = 'none';
+    introVideo.style.display = 'block';
+    introVideo.currentTime = 0;
+    introVideo.muted = false; // Direct user click allows sound!
 
-  const playPromise = video.play();
-  if (playPromise && typeof playPromise.catch === 'function') {
-    playPromise.catch((err) => {
-      console.warn("Autoplay was prevented:", err);
-      proceedToApp();
-    });
+    // Skipping intro transitions immediately to elevator doors
+    window.skipCurrentVideo = () => {
+      playElevatorVideo();
+    };
+
+    // 75-second fallback for intro (~62s duration)
+    safetyTimer = setTimeout(playElevatorVideo, 75000);
+
+    introVideo.onended = () => { playElevatorVideo(); };
+    introVideo.onerror = (err) => {
+      console.warn("Intro video error:", err);
+      playElevatorVideo();
+    };
+
+    const playPromise = introVideo.play();
+    if (playPromise && typeof playPromise.catch === 'function') {
+      playPromise.catch(() => {
+        // Fallback to muted if browser policy blocks unmuted autoplay
+        introVideo.muted = true;
+        introVideo.play().catch(() => {
+          playElevatorVideo();
+        });
+      });
+    }
+  } else {
+    // Direct elevator doors video
+    if (introVideo) introVideo.style.display = 'none';
+    window.skipCurrentVideo = proceedToApp;
+    playElevatorVideo();
   }
 }
 
@@ -12704,6 +12782,7 @@ function closePhotoLightboxModal() {
 // Explicitly export all HTML inline handler functions to window object
 if (typeof window !== "undefined") {
   window.handleLogin = handleLogin;
+  window.handleLoginWithIntro = handleLoginWithIntro;
   window.playOpeningAnimation = playOpeningAnimation;
   window.changeLanguage = changeLanguage;
   window.togglePasswordVisibility = togglePasswordVisibility;
