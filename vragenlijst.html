@@ -1403,9 +1403,19 @@
               Vul de omgevingsfactoren (punten 12 t/m 19) in per geselecteerd lager.
             </span>
           </div>
-          <select id="bearingSelectorSection3" class="form-control" style="width: auto; min-width: 240px; font-weight: 700; border-color: #E30613; color: #E30613; background: #fff5f5;" onchange="switchSection3Bearing(this.value)">
-            <option value="A">Lager A</option>
-          </select>
+          <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+            <select id="bearingSelectorSection3" class="form-control" style="width: auto; min-width: 240px; font-weight: 700; border-color: #E30613; color: #E30613; background: #fff5f5;" onchange="switchSection3Bearing(this.value)">
+              <option value="A">Lager A</option>
+            </select>
+            <button type="button" id="btnCopySec3" onclick="copySection3Conditions()" title="Kopieer punten 12 t/m 19 van dit lager" style="display: inline-flex; align-items: center; gap: 6px; padding: 9px 14px; font-size: 13px; font-weight: 700; color: #334155; background: #f8fafc; border: 1.5px solid #cbd5e1; border-radius: 6px; cursor: pointer; transition: all 0.2s; white-space: nowrap;">
+              <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+              <span>Kopieer</span>
+            </button>
+            <button type="button" id="btnPasteSec3" onclick="pasteSection3Conditions()" title="Plak punten 12 t/m 19 op dit lager" style="display: inline-flex; align-items: center; gap: 6px; padding: 9px 14px; font-size: 13px; font-weight: 700; color: #ffffff; background: #E30613; border: 1.5px solid #E30613; border-radius: 6px; cursor: pointer; transition: all 0.2s; white-space: nowrap;">
+              <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/></svg>
+              <span>Plakken</span>
+            </button>
+          </div>
         </div>
 
         <div class="grid-2">
@@ -5422,6 +5432,123 @@
       activeBearingSec3 = newLetter;
       loadSection3DataForBearing(newLetter);
     }
+
+    // --- COPY / PASTE OMGEVINGSCONDITIES (PUNTEN 12 T/M 19) ---
+    function getBearingDisplayName(letter) {
+      const sel = document.getElementById('bearingSelectorSection3');
+      if (sel && sel.options) {
+        for (let i = 0; i < sel.options.length; i++) {
+          if (sel.options[i].value === letter) {
+            return sel.options[i].text || ('Lager ' + letter);
+          }
+        }
+      }
+      return 'Lager ' + letter;
+    }
+
+    function copySection3Conditions() {
+      saveCurrentSection3Data();
+      if (!activeBearingSec3 || !bearingDataMapSec3[activeBearingSec3]) {
+        showSurveyToast("⚠️ Geen gegevens gevonden om te kopiëren.");
+        return;
+      }
+
+      window.copiedSection3Conditions = JSON.parse(JSON.stringify(bearingDataMapSec3[activeBearingSec3]));
+      window.copiedSection3SourceLetter = activeBearingSec3;
+      window.copiedSection3SourceName = getBearingDisplayName(activeBearingSec3);
+
+      const copyBtn = document.getElementById('btnCopySec3');
+      if (copyBtn) {
+        const origHtml = copyBtn.innerHTML;
+        copyBtn.innerHTML = '<span>✅ Gekopieerd!</span>';
+        copyBtn.style.borderColor = '#16a34a';
+        copyBtn.style.color = '#16a34a';
+        copyBtn.style.backgroundColor = '#f0fdf4';
+        setTimeout(() => {
+          copyBtn.innerHTML = origHtml;
+          copyBtn.style.borderColor = '#cbd5e1';
+          copyBtn.style.color = '#334155';
+          copyBtn.style.backgroundColor = '#f8fafc';
+        }, 1600);
+      }
+
+      const name = window.copiedSection3SourceName || ('Lager ' + activeBearingSec3);
+      showSurveyToast(`📋 Condities van ${name} gekopieerd! Kies een ander lager en klik op 'Plakken'.`);
+    }
+
+    function pasteSection3Conditions() {
+      if (!window.copiedSection3Conditions) {
+        showSurveyToast("⚠️ Klik eerst op 'Kopieer' bij een lager om de condities op te slaan.");
+        return;
+      }
+
+      if (!activeBearingSec3) return;
+
+      bearingDataMapSec3[activeBearingSec3] = JSON.parse(JSON.stringify(window.copiedSection3Conditions));
+      loadSection3DataForBearing(activeBearingSec3);
+      saveCurrentSection3Data();
+
+      if (typeof saveRasterConfigToLocalStorage === 'function') {
+        saveRasterConfigToLocalStorage();
+      }
+
+      const pasteBtn = document.getElementById('btnPasteSec3');
+      if (pasteBtn) {
+        const origHtml = pasteBtn.innerHTML;
+        pasteBtn.innerHTML = '<span>✅ Geplakt!</span>';
+        pasteBtn.style.borderColor = '#16a34a';
+        pasteBtn.style.backgroundColor = '#16a34a';
+        setTimeout(() => {
+          pasteBtn.innerHTML = origHtml;
+          pasteBtn.style.borderColor = '#E30613';
+          pasteBtn.style.backgroundColor = '#E30613';
+        }, 1600);
+      }
+
+      const targetName = getBearingDisplayName(activeBearingSec3);
+      const srcName = window.copiedSection3SourceName ? ` (van ${window.copiedSection3SourceName})` : '';
+      showSurveyToast(`✅ Condities${srcName} succesvol geplakt op ${targetName}!`);
+    }
+
+    function showSurveyToast(msg) {
+      let toast = document.getElementById('surveyToast');
+      if (!toast) {
+        toast = document.createElement('div');
+        toast.id = 'surveyToast';
+        toast.style.position = 'fixed';
+        toast.style.bottom = '24px';
+        toast.style.right = '24px';
+        toast.style.backgroundColor = '#0f172a';
+        toast.style.color = '#ffffff';
+        toast.style.padding = '12px 20px';
+        toast.style.borderRadius = '8px';
+        toast.style.fontSize = '13.5px';
+        toast.style.fontWeight = '600';
+        toast.style.boxShadow = '0 10px 25px -5px rgba(0, 0, 0, 0.35)';
+        toast.style.zIndex = '999999';
+        toast.style.display = 'flex';
+        toast.style.alignItems = 'center';
+        toast.style.gap = '10px';
+        toast.style.transition = 'all 0.3s ease';
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateY(15px)';
+        document.body.appendChild(toast);
+      }
+      toast.innerHTML = `<span>${msg}</span>`;
+      toast.style.display = 'flex';
+      toast.style.opacity = '1';
+      toast.style.transform = 'translateY(0)';
+
+      if (window.__surveyToastTimer) clearTimeout(window.__surveyToastTimer);
+      window.__surveyToastTimer = setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateY(15px)';
+      }, 3500);
+    }
+
+    window.copySection3Conditions = copySection3Conditions;
+    window.pasteSection3Conditions = pasteSection3Conditions;
+    window.showSurveyToast = showSurveyToast;
 
     // --- SECTION 4 HANDLERS ---
     function saveCurrentSection4Data() {
