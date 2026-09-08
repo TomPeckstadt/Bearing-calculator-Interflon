@@ -167,7 +167,7 @@ window.onDevicePeriodChange = onDevicePeriodChange;
 function getValidDispenseMonths(deviceKey, capMl) {
   const cap = parseInt(capMl, 10) || 0;
   const dev = deviceKey || "";
-  if (dev === "pulsarlube_msp" || dev === "pulsarlube_msp_oil") {
+  if (dev === "pulsarlube_msp" || dev === "pulsarlube_msp_oil" || dev === "pulsarlube_m2" || dev === "pulsarlube_plc") {
     if (cap === 125 || cap === 250) {
       return [1, 2, 3, 6, 12];
     }
@@ -1753,7 +1753,12 @@ function renderAutoDevicesUI() {
 
     const validDispenseMonths = getValidDispenseMonths(deviceKey, dev.cap);
     const maxMonths = validDispenseMonths[validDispenseMonths.length - 1];
-    const isMspSpecial = (deviceKey === "pulsarlube_msp" && [125, 250, 500].includes(dev.cap));
+    let devShortName = "";
+    if (deviceKey === "pulsarlube_msp") devShortName = "MSP";
+    else if (deviceKey === "pulsarlube_m2") devShortName = "M2";
+    else if (deviceKey === "pulsarlube_plc") devShortName = "PLC";
+    else if (deviceKey === "pulsarlube_msp_oil") devShortName = "MSP";
+    const isPulsarlubeSpecial = !!devShortName && [60, 125, 250, 500].includes(dev.cap);
 
     html += `
     <div class="card" style="background: #ffffff; border: 1px solid #cbd5e1; padding: 20px; border-radius: var(--border-radius-md); box-shadow: 0 2px 8px rgba(0,0,0,0.04); flex: 1;">
@@ -1852,10 +1857,10 @@ function renderAutoDevicesUI() {
                 <option value="days"${dev.unit === 'days' ? ' selected' : ''}>dagen</option>
               </select>
             </div>
-            ${dev.unit === 'months' && isMspSpecial ? `
+            ${dev.unit === 'months' && isPulsarlubeSpecial ? `
             <div style="font-size: 11px; color: #475569; margin-top: 4px; display: flex; align-items: center; gap: 4px;">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="#0284c7" style="width: 13px; height: 13px; flex-shrink: 0;"><path fill-rule="evenodd" d="M18 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0zm-7-4a1 1 0 1 1-2 0 1 1 0 0 1 2 0zM9 9a.75.75 0 0 0 0 1.5h.253a.25.25 0 0 1 .244.304l-.459 2.066A1.75 1.75 0 0 0 10.747 15H11a.75.75 0 0 0 0-1.5h-.253a.25.25 0 0 1-.244-.304l.459-2.066A1.75 1.75 0 0 0 9.253 9H9z" clip-rule="evenodd" /></svg>
-              <span>Displaystanden MSP ${dev.cap}ml: <strong>${validDispenseMonths.join(', ')} maanden</strong></span>
+              <span>${lang === "fr" ? `Réglages écran ${devShortName} ${dev.cap}ml :` : (lang === "en" ? `Display settings ${devShortName} ${dev.cap}ml:` : `Displaystanden ${devShortName} ${dev.cap}ml:`)} <strong>${dev.cap === 60 ? (lang === "fr" ? "1 à 12 mois" : (lang === "en" ? "1 to 12 months" : "1 t/m 12 maanden")) : (validDispenseMonths.join(', ') + (lang === "fr" ? " mois" : (lang === "en" ? " months" : " maanden")))}</strong></span>
             </div>
             ` : ''}
             
