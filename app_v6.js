@@ -4217,6 +4217,8 @@ function logoutDueToInactivity() {
     loginOverlay.classList.remove("hidden");
     loginOverlay.style.display = "flex";
   }
+  const loginCard = document.querySelector(".login-card");
+  if (loginCard) loginCard.classList.remove("fade-out");
 
   if (typeof switchPage === "function") {
     switchPage("search");
@@ -4634,7 +4636,6 @@ function handleLogin(event) {
   const passwordInput = document.getElementById("passwordInput");
   const loginError = document.getElementById("loginError");
   const loginNotice = document.getElementById("loginInactivityNotice");
-  const loginOverlay = document.getElementById("loginOverlay");
 
   if (!passwordInput) return false;
 
@@ -4643,28 +4644,8 @@ function handleLogin(event) {
   if (val === "smeercalculatie") {
     sessionStorage.setItem("bearing_calc_logged_in", "true");
     sessionStorage.setItem("bearing_calc_last_activity", Date.now().toString());
-    
-    // Hide login overlay completely and instantly
-    if (loginOverlay) {
-      loginOverlay.classList.add("hidden");
-      loginOverlay.style.display = "none";
-    }
-    if (loginError) {
-      loginError.style.display = "none";
-    }
-    if (loginNotice) {
-      loginNotice.style.display = "none";
-    }
-    if (passwordInput) {
-      passwordInput.value = "";
-    }
-
     startInactivityMonitoring();
-
-    // Open mode selection modal or main app
-    if (typeof openModeSelectionModal === "function") {
-      openModeSelectionModal();
-    }
+    playOpeningAnimation();
   } else {
     if (loginError) loginError.style.display = "flex";
     if (loginNotice) loginNotice.style.display = "none";
@@ -4683,49 +4664,96 @@ function playOpeningAnimation() {
   const loginOverlay = document.getElementById('loginOverlay');
   const passwordInput = document.getElementById('passwordInput');
   const loginError = document.getElementById('loginError');
+  const loginNotice = document.getElementById('loginInactivityNotice');
 
-  // Hide login overlay immediately so user is never trapped on login screen
-  if (loginOverlay) loginOverlay.classList.add('hidden');
-  if (loginError) loginError.style.display = 'none';
   if (passwordInput) passwordInput.value = '';
+  if (loginError) loginError.style.display = 'none';
+  if (loginNotice) loginNotice.style.display = 'none';
+
+  if (!videoOverlay || !video) {
+    if (loginOverlay) {
+      loginOverlay.classList.add('hidden');
+      loginOverlay.style.display = 'none';
+    }
+    if (typeof openModeSelectionModal === 'function') openModeSelectionModal();
+    return;
+  }
 
   let animationFinished = false;
+  let safetyTimer = null;
 
   const proceedToApp = () => {
     if (animationFinished) return;
     animationFinished = true;
 
+    if (safetyTimer) {
+      clearTimeout(safetyTimer);
+      safetyTimer = null;
+    }
+
+    try {
+      video.pause();
+    } catch (e) {}
+
+    // Hide login overlay completely behind the scenes
+    if (loginOverlay) {
+      loginOverlay.classList.add('hidden');
+      loginOverlay.style.display = 'none';
+    }
+
+    // Smoothly fade out the video overlay
     if (videoOverlay) {
       videoOverlay.style.opacity = '0';
       setTimeout(() => {
         videoOverlay.classList.remove('active');
         videoOverlay.style.opacity = '';
         if (loginCard) loginCard.classList.remove('fade-out');
-        openModeSelectionModal();
-      }, 300);
+        if (typeof openModeSelectionModal === 'function') {
+          openModeSelectionModal();
+        }
+      }, 350);
     } else {
-      openModeSelectionModal();
+      if (typeof openModeSelectionModal === 'function') {
+        openModeSelectionModal();
+      }
     }
   };
 
-  // 1.5 second max safety timeout - app will open NO MATTER WHAT
-  const timer = setTimeout(proceedToApp, 1500);
-
-  if (videoOverlay) videoOverlay.classList.add('active');
-  if (loginCard) loginCard.classList.add('fade-out');
-
-  if (video) {
-    video.currentTime = 0;
-    video.muted = true; // Muted is guaranteed to play without browser autoplay blocks
-    video.onended = () => { clearTimeout(timer); proceedToApp(); };
-    video.onerror = () => { clearTimeout(timer); proceedToApp(); };
-    const p = video.play();
-    if (p && typeof p.catch === "function") {
-      p.catch(() => { clearTimeout(timer); proceedToApp(); });
-    }
-  } else {
-    clearTimeout(timer);
+  // Expose global skip function
+  window.skipOpeningAnimation = proceedToApp;
+  videoOverlay.onclick = (e) => {
+    e.stopPropagation();
     proceedToApp();
+  };
+
+  const handleSkipKey = (e) => {
+    if (e.key === 'Escape' || e.key === ' ' || e.key === 'Enter') {
+      window.removeEventListener('keydown', handleSkipKey);
+      proceedToApp();
+    }
+  };
+  window.addEventListener('keydown', handleSkipKey, { once: true });
+
+  // 12-second safety timeout (video is ~10s) to guarantee app opens no matter what
+  safetyTimer = setTimeout(proceedToApp, 12000);
+
+  // Fade out login card and activate video overlay
+  if (loginCard) loginCard.classList.add('fade-out');
+  videoOverlay.classList.add('active');
+  videoOverlay.style.opacity = '1';
+
+  // Play opening elevator doors video
+  video.currentTime = 0;
+  video.muted = true; // Muted guarantees video plays reliably without autoplay block
+  video.onended = () => { proceedToApp(); };
+  video.onerror = () => { proceedToApp(); };
+
+  const playPromise = video.play();
+  if (playPromise && typeof playPromise.catch === 'function') {
+    playPromise.catch((err) => {
+      console.warn("Autoplay was prevented:", err);
+      proceedToApp();
+    });
   }
 }
 
@@ -4743,6 +4771,8 @@ function handleLogout() {
     if (loginNotice) loginNotice.style.display = "none";
     const loginOverlay = document.getElementById("loginOverlay");
     if (loginOverlay) { loginOverlay.classList.remove("hidden"); loginOverlay.style.display = "flex"; }
+    const loginCard = document.querySelector(".login-card");
+    if (loginCard) loginCard.classList.remove("fade-out");
     switchPage('search');
     return;
   }
@@ -4790,6 +4820,8 @@ function handleLogout() {
           loginOverlay.classList.remove("hidden");
           loginOverlay.style.display = "flex";
         }
+        const loginCard = document.querySelector(".login-card");
+        if (loginCard) loginCard.classList.remove("fade-out");
         switchPage('search');
       }, 100);
     }
@@ -12672,6 +12704,7 @@ function closePhotoLightboxModal() {
 // Explicitly export all HTML inline handler functions to window object
 if (typeof window !== "undefined") {
   window.handleLogin = handleLogin;
+  window.playOpeningAnimation = playOpeningAnimation;
   window.changeLanguage = changeLanguage;
   window.togglePasswordVisibility = togglePasswordVisibility;
   window.openOperatorModal = openOperatorModal;
