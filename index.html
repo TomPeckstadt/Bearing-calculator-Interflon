@@ -1643,6 +1643,14 @@
                   <span id="dimToggleLabel" data-i18n="btnShowDimensions">Bekijk afmetingen</span>
                 </button>
               </div>
+              <div id="automationBrochureToggleWrapper" style="display: block; margin-top: 8px;">
+                <button type="button" class="btn-action-red" onclick="openSinglePointBrochureModal()">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25" />
+                  </svg>
+                  <span id="brochureToggleLabel" data-i18n="btnConsultBrochure">Raadpleeg brochure</span>
+                </button>
+              </div>
 
               <!-- Multi-Device Selection Dropdown -->
               <div id="autoMultiDeviceSelectorContainer" style="margin-top: 16px; padding-top: 14px; border-top: 1px solid #e2e8f0; text-align: left;">
@@ -2998,6 +3006,14 @@
                   <span id="chainAutoActionButtonText">Bekijk afmetingen</span>
                 </button>
               </div>
+              <div id="chainAutomationBrochureToggleWrapper" style="display: block; margin-top: 8px;">
+                <button type="button" class="btn-action-red" onclick="openSinglePointBrochureModal()">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25" />
+                  </svg>
+                  <span data-i18n="btnConsultBrochure">Raadpleeg brochure</span>
+                </button>
+              </div>
             </div>
 
             <!-- Device Information & Calculator Settings -->
@@ -3173,12 +3189,51 @@
     </div>
   </div>
 
+  <!-- PDF Brochure Viewer Modal for Interflon Single Point Lubricator -->
+  <div id="singlePointBrochureModal" class="modal-overlay hidden" style="z-index: 10006;" onclick="if(event.target === this) closeSinglePointBrochureModal()">
+    <div class="modal-card" style="max-width: 1050px; width: 95%; height: 90vh; display: flex; flex-direction: column; overflow: hidden; padding: 20px; background: #ffffff; border-radius: var(--border-radius-md); box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);">
+      <h3 class="modal-title" style="display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; margin-bottom: 12px; border-bottom: 2px solid var(--primary-red); padding-bottom: 8px;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <div style="width: 32px; height: 32px; border-radius: 50%; background-color: #FEF2F2; border: 1px solid #FECACA; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="var(--primary-red)" style="width: 18px; height: 18px;">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25" />
+            </svg>
+          </div>
+          <span style="color: var(--primary-red); font-weight: 800; font-family: 'Outfit', sans-serif; font-size: 1.15rem;">
+            Brochure — Interflon Single Point Lubricators
+          </span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <a href="Brochure_Interflon_Single_Point_Lubricators.pdf" target="_blank" download style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; background: #f8fafc; color: var(--text-dark); border: 1px solid #cbd5e1; border-radius: 4px; font-size: 12px; font-weight: 600; text-decoration: none; cursor: pointer; transition: all 0.2s ease;" onmouseenter="this.style.background='#f1f5f9'" onmouseleave="this.style.background='#f8fafc'" title="Download PDF of open in nieuw tabblad">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width: 14px; height: 14px;">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
+            </svg>
+            <span>Download PDF</span>
+          </a>
+          <button type="button" class="btn-close" onclick="closeSinglePointBrochureModal()" style="background: none; border: none; font-size: 26px; cursor: pointer; color: var(--text-medium); line-height: 1;" title="Sluiten">&times;</button>
+        </div>
+      </h3>
+      
+      <!-- PDF Embed Display Area -->
+      <div style="flex: 1; min-height: 0; background-color: #525659; border-radius: var(--border-radius-sm); overflow: hidden; border: 1px solid #cbd5e1; position: relative;">
+        <iframe id="singlePointBrochureIframe" src="" style="width: 100%; height: 100%; border: none; display: block;" title="Brochure Interflon Single Point Lubricators"></iframe>
+      </div>
+      
+      <div class="modal-actions" style="margin-top: 15px; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0;">
+        <span style="font-size: 11px; color: var(--text-medium);">
+          Wordt de PDF niet direct weergegeven? <a href="Brochure_Interflon_Single_Point_Lubricators.pdf" target="_blank" style="color: var(--primary-blue); text-decoration: underline;">Klik hier om direct te openen</a>.
+        </span>
+        <button type="button" class="btn btn-secondary" onclick="closeSinglePointBrochureModal()" data-i18n="close">Sluiten</button>
+      </div>
+    </div>
+  </div>
+
   <!-- JavaScript logic imports -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="interflon-data.js?v=20260904_1726"></script>
   <script src="bearings-db.js?v=20260904_1726"></script>
   <script src="chains-db.js?v=20260904_1726"></script>
-  <script src="app_v6.js?v=20260908_0850"></script>
+  <script src="app_v6.js?v=20260908_1025"></script>
 
   <!-- Interflon Oil Dispenser Information Modal (PowerPoint Viewer) -->
   <div id="oilDispenserInfoModal" class="modal-overlay hidden" style="z-index: 99999;">
