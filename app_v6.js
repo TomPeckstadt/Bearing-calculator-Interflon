@@ -6750,16 +6750,33 @@ function runBearingPdfExport(includeTco, includeRoi) {
 
           const isHighlight = bgType === "pink-total" || (bgType && bgType.includes("green"));
           doc.setFont("helvetica", isHighlight ? "bold" : "normal");
-          doc.setFontSize(6.2);
+          let labelSize = 6.2;
+          doc.setFontSize(labelSize);
           
           if (bgType === "pink-total") doc.setTextColor(11, 19, 43);
           else if (bgType && bgType.includes("green")) doc.setTextColor(22, 101, 52);
           else doc.setTextColor(72, 84, 96);
 
-          doc.text(label, x + 2, y + h / 2 + 1.2, { maxWidth: w - 12 });
+          let valWidth = 0;
+          if (value !== null && value !== undefined && value !== "") {
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(6.5);
+            valWidth = doc.getTextWidth(value.toString());
+            doc.setFont("helvetica", isHighlight ? "bold" : "normal");
+            doc.setFontSize(labelSize);
+          }
+
+          const availWidth = valWidth > 0 ? (w - valWidth - 5) : (w - 4);
+          const labelWidth = doc.getTextWidth(label);
+          if (labelWidth > availWidth && availWidth > 0) {
+            labelSize = Math.max(5.0, labelSize * (availWidth / labelWidth));
+            doc.setFontSize(labelSize);
+          }
+
+          doc.text(label, x + 2, y + h / 2 + 1.2);
 
           if (value !== null && value !== undefined) {
-            doc.setFont("helvetica", isHighlight ? "bold" : "bold");
+            doc.setFont("helvetica", "bold");
             doc.setFontSize(6.5);
             if (bgType && bgType.includes("green")) doc.setTextColor(22, 101, 52);
             else doc.setTextColor(11, 19, 43);
@@ -6948,17 +6965,17 @@ function runBearingPdfExport(includeTco, includeRoi) {
         const totalCostY1El = document.getElementById("omTotalCostYears1");
         const totalCostY2El = document.getElementById("omTotalCostYears2");
         const savingsMachYEl = document.getElementById("omSavingsMachineYears");
-        drawCell(startX1, curY, 54, 6.5, `Kostprijs / machine na ${tco_yrs} jaar (€)`, totalCostY1El ? totalCostY1El.textContent : "€ 0,00", "pink-total");
-        drawCell(startX2, curY, 54, 6.5, `Kostprijs / machine na ${tco_yrs} jaar (€)`, totalCostY2El ? totalCostY2El.textContent : "€ 0,00", "pink-total");
-        drawCell(startX3, curY, 60, 6.5, `Kostenbesparing / machine / na ${tco_yrs} jaar (€)`, savingsMachYEl ? savingsMachYEl.textContent : "€ 0,00", "green-total");
+        drawCell(startX1, curY, 54, 6.5, `Kostprijs / machine na ${tco_yrs} jaar`, totalCostY1El ? totalCostY1El.textContent : "€ 0,00", "pink-total");
+        drawCell(startX2, curY, 54, 6.5, `Kostprijs / machine na ${tco_yrs} jaar`, totalCostY2El ? totalCostY2El.textContent : "€ 0,00", "pink-total");
+        drawCell(startX3, curY, 60, 6.5, `Kostenbesparing / machine na ${tco_yrs} jaar`, savingsMachYEl ? savingsMachYEl.textContent : "€ 0,00", "green-total");
 
         curY += 6.5;
         const totalParkY1El = document.getElementById("omTotalParkCostYears1");
         const totalParkY2El = document.getElementById("omTotalParkCostYears2");
         const totalSavYEl = document.getElementById("omTotalSavingsYears");
-        drawCell(startX1, curY, 54, 6.5, `Kostprijs / machinepark na ${tco_yrs} jaar (€)`, totalParkY1El ? totalParkY1El.textContent : "€ 0,00", "pink-total");
-        drawCell(startX2, curY, 54, 6.5, `Kostprijs / machinepark na ${tco_yrs} jaar (€)`, totalParkY2El ? totalParkY2El.textContent : "€ 0,00", "pink-total");
-        drawCell(startX3, curY, 60, 6.5, `Kostenbesparing / machinepark / na ${tco_yrs} jaar (€)`, totalSavYEl ? totalSavYEl.textContent : "€ 0,00", "green-total");
+        drawCell(startX1, curY, 54, 6.5, `Kostprijs / park na ${tco_yrs} jaar`, totalParkY1El ? totalParkY1El.textContent : "€ 0,00", "pink-total");
+        drawCell(startX2, curY, 54, 6.5, `Kostprijs / park na ${tco_yrs} jaar`, totalParkY2El ? totalParkY2El.textContent : "€ 0,00", "pink-total");
+        drawCell(startX3, curY, 60, 6.5, `Kostenbesparing / park na ${tco_yrs} jaar`, totalSavYEl ? totalSavYEl.textContent : "€ 0,00", "green-total");
 
         // Page 2 Footer
         doc.setFont("helvetica", "normal");
@@ -9192,16 +9209,33 @@ function runChainPdfExport(includeTco, includeRoi) {
 
             const isHighlight = bgType === "pink-total" || (bgType && bgType.includes("green"));
             doc.setFont("helvetica", isHighlight ? "bold" : "normal");
-            doc.setFontSize(6.2);
+            let labelSize = 6.2;
+            doc.setFontSize(labelSize);
             
             if (bgType === "pink-total") doc.setTextColor(11, 19, 43);
             else if (bgType && bgType.includes("green")) doc.setTextColor(22, 101, 52);
             else doc.setTextColor(72, 84, 96);
 
-            doc.text(label, x + 2, y + h / 2 + 1.2, { maxWidth: w - 12 });
+            let valWidth = 0;
+            if (value !== null && value !== undefined && value !== "") {
+              doc.setFont("helvetica", "bold");
+              doc.setFontSize(6.5);
+              valWidth = doc.getTextWidth(value.toString());
+              doc.setFont("helvetica", isHighlight ? "bold" : "normal");
+              doc.setFontSize(labelSize);
+            }
+
+            const availWidth = valWidth > 0 ? (w - valWidth - 5) : (w - 4);
+            const labelWidth = doc.getTextWidth(label);
+            if (labelWidth > availWidth && availWidth > 0) {
+              labelSize = Math.max(5.0, labelSize * (availWidth / labelWidth));
+              doc.setFontSize(labelSize);
+            }
+
+            doc.text(label, x + 2, y + h / 2 + 1.2);
 
             if (value !== null && value !== undefined) {
-              doc.setFont("helvetica", isHighlight ? "bold" : "bold");
+              doc.setFont("helvetica", "bold");
               doc.setFontSize(6.5);
               if (bgType && bgType.includes("green")) doc.setTextColor(22, 101, 52);
               else doc.setTextColor(11, 19, 43);
@@ -9402,14 +9436,14 @@ function runChainPdfExport(includeTco, includeRoi) {
           drawCell(startX3, curY, 60, 6, "Aantal jaren voor TCO", tco_years + " jaar", "grey");
 
           curY += 6;
-          drawCell(startX1, curY, 54, 6, `Kostprijs / machine na ${tco_years} jaar (€)`, p1_years, "pink-total");
-          drawCell(startX2, curY, 54, 6, `Kostprijs / machine na ${tco_years} jaar (€)`, p2_years, "green-total");
-          drawCell(startX3, curY, 60, 6, `Kostenbesparing / machine / na ${tco_years} jaar (€)`, "€ " + mach_savings_years_val, "green-total");
+          drawCell(startX1, curY, 54, 6, `Kostprijs / machine na ${tco_years} jaar`, p1_years, "pink-total");
+          drawCell(startX2, curY, 54, 6, `Kostprijs / machine na ${tco_years} jaar`, p2_years, "green-total");
+          drawCell(startX3, curY, 60, 6, `Kostenbesparing / machine na ${tco_years} jaar`, "€ " + mach_savings_years_val, "green-total");
 
           curY += 6;
-          drawCell(startX1, curY, 54, 6, `Kostprijs / park na ${tco_years} jaar (€)`, park_years1, "pink-total");
-          drawCell(startX2, curY, 54, 6, `Kostprijs / park na ${tco_years} jaar (€)`, park_years2, "green-total");
-          drawCell(startX3, curY, 60, 6, `Kostenbesparing / machinepark / na ${tco_years} jaar (€)`, total_savings, "green-total");
+          drawCell(startX1, curY, 54, 6, `Kostprijs / park na ${tco_years} jaar`, park_years1, "pink-total");
+          drawCell(startX2, curY, 54, 6, `Kostprijs / park na ${tco_years} jaar`, park_years2, "green-total");
+          drawCell(startX3, curY, 60, 6, `Kostenbesparing / park na ${tco_years} jaar`, total_savings, "green-total");
 
           // Footer
           doc.setFontSize(6.8);
