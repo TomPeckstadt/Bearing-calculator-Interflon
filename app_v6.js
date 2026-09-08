@@ -450,9 +450,9 @@ function loadAutomationStateFromLocalStorage() {
       if (Array.isArray(parsed) && parsed.length > 0) {
         parsed.forEach((item, index) => {
           if (autoDevicesState[index]) {
-            autoDevicesState[index] = { ...autoDevicesState[index], ...item };
+            autoDevicesState[index] = { ...autoDevicesState[index], ...item, unit: "months" };
           } else {
-            autoDevicesState[index] = item;
+            autoDevicesState[index] = { ...item, unit: "months" };
           }
         });
       }
@@ -1863,20 +1863,12 @@ function renderAutoDevicesUI() {
           <div>
             <label for="autoDispensePeriod_${devId}" style="display: block; font-size: 12px; font-weight: 600; color: var(--text-dark); margin-bottom: 4px;">Gewenste Looptijd / Leeglooptijd</label>
             <div style="display: flex; gap: 8px;">
-              ${dev.unit === 'months' ? `
-              <select id="autoDispensePeriod_${devId}" class="form-select" onchange="onDevicePeriodChange('${devId}')" style="flex: 1; padding: 8px 12px; border-radius: var(--border-radius-sm); border: 1px solid #cbd5e1; font-weight: 600; color: var(--text-dark); background-color: #ffffff;">
+              <select id="autoDispensePeriod_${devId}" class="form-select" onchange="onDevicePeriodChange('${devId}')" style="width: 100%; padding: 8px 12px; border-radius: var(--border-radius-sm); border: 1px solid #cbd5e1; font-weight: 600; color: var(--text-dark); background-color: #ffffff;">
                 ${validDispenseMonths.map(m => `<option value="${m}"${m === dev.period ? ' selected' : ''}>${m} ${m === 1 ? (lang === 'fr' ? 'mois' : (lang === 'en' ? 'month' : 'maand')) : (lang === 'fr' ? 'mois' : (lang === 'en' ? 'months' : 'maanden'))}</option>`).join('')}
               </select>
-              ` : `
-              <input type="number" id="autoDispensePeriod_${devId}" class="form-input" value="${dev.period}" min="1" max="1000" step="1" oninput="onDevicePeriodInput('${devId}')" onchange="onDevicePeriodChange('${devId}')" style="flex: 1; padding: 8px 12px; border-radius: var(--border-radius-sm); border: 1px solid #cbd5e1; font-weight: 600; color: var(--text-dark);">
-              `}
-              <select id="autoDispenseUnit_${devId}" class="form-select" onchange="onDeviceCapChange('${devId}')" style="width: 120px; padding: 8px 12px; border-radius: var(--border-radius-sm); border: 1px solid #cbd5e1;">
-                <option value="months"${dev.unit === 'months' ? ' selected' : ''}>${lang === 'fr' ? 'mois' : (lang === 'en' ? 'months' : 'maanden')}</option>
-                <option value="weeks"${dev.unit === 'weeks' ? ' selected' : ''}>${lang === 'fr' ? 'semaines' : (lang === 'en' ? 'weeks' : 'weken')}</option>
-                <option value="days"${dev.unit === 'days' ? ' selected' : ''}>${lang === 'fr' ? 'jours' : (lang === 'en' ? 'days' : 'dagen')}</option>
-              </select>
+              <input type="hidden" id="autoDispenseUnit_${devId}" value="months">
             </div>
-            ${dev.unit === 'months' && isPulsarlubeSpecial ? `
+            ${isPulsarlubeSpecial ? `
             <div style="font-size: 11px; color: #475569; margin-top: 4px; display: flex; align-items: center; gap: 4px;">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="#0284c7" style="width: 13px; height: 13px; flex-shrink: 0;"><path fill-rule="evenodd" d="M18 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0zm-7-4a1 1 0 1 1-2 0 1 1 0 0 1 2 0zM9 9a.75.75 0 0 0 0 1.5h.253a.25.25 0 0 1 .244.304l-.459 2.066A1.75 1.75 0 0 0 10.747 15H11a.75.75 0 0 0 0-1.5h-.253a.25.25 0 0 1-.244-.304l.459-2.066A1.75 1.75 0 0 0 9.253 9H9z" clip-rule="evenodd" /></svg>
               <span>${lang === "fr" ? `Réglages écran ${devShortName} ${dev.cap}ml :` : (lang === "en" ? `Display settings ${devShortName} ${dev.cap}ml:` : `Displaystanden ${devShortName} ${dev.cap}ml:`)} <strong>${validDispenseMonths.join(', ')} ${lang === "fr" ? "mois" : (lang === "en" ? "months" : "maanden")}</strong></span>
