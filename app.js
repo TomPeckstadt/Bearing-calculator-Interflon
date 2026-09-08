@@ -2693,6 +2693,7 @@ const TRANSLATIONS = {
     passwordPlaceholder: "Vul paswoord in...",
     loginBtn: "Inloggen",
     loginError: "Onjuist paswoord. Probeer opnieuw.",
+    loginInactivityNotice: "U bent automatisch uitgelogd wegens 90 minuten inactiviteit.",
     menuSearch: "Lager Zoeken",
     menuCalc: "Berekening",
     menuInfo: "Informatie",
@@ -3204,6 +3205,7 @@ const TRANSLATIONS = {
     passwordPlaceholder: "Enter password...",
     loginBtn: "Log In",
     loginError: "Incorrect password. Please try again.",
+    loginInactivityNotice: "You have been automatically logged out due to 90 minutes of inactivity.",
     menuSearch: "Search Bearing",
     menuCalc: "Calculation",
     menuInfo: "Information",
@@ -3715,6 +3717,7 @@ const TRANSLATIONS = {
     passwordPlaceholder: "Saisir le mot de passe...",
     loginBtn: "Se connecter",
     loginError: "Mot de passe incorrect. Veuillez réessayer.",
+    loginInactivityNotice: "Vous avez été automatiquement déconnecté après 90 minutes d'inactivité.",
     menuSearch: "Recherche Roulement",
     menuCalc: "Calcul",
     menuInfo: "Informations",
@@ -4024,20 +4027,133 @@ function changeLanguage(lang) {
 
 
 // ==========================================================================
-// AUTHENTICATIE & LOGIN LOGICA
+// AUTHENTICATIE, LOGIN & 90 MINUTEN INACTIVITEIT TIMEOUT
 // ==========================================================================
 
-document.addEventListener("DOMContentLoaded", () => {
-  // Controleer of de gebruiker al is ingelogd
-  const isLoggedIn = sessionStorage.getItem("bearing_calc_logged_in") === "true";
-  const loginOverlay = document.getElementById("loginOverlay");
+const INACTIVITY_TIMEOUT_MS = 90 * 60 * 1000; // 90 minuten = 5.400.000 ms
+let inactivityCheckInterval = null;
+let activityThrottleTimer = null;
+let lastRecordedActivityTime = Date.now();
+
+function recordUserActivity() {
+  const now = Date.now();
+  lastRecordedActivityTime = now;
+  if (!activityThrottleTimer) {
+    activityThrottleTimer = setTimeout(() => {
+      activityThrottleTimer = null;
+      if (sessionStorage.getItem("bearing_calc_logged_in") === "true") {
+        sessionStorage.setItem("bearing_calc_last_activity", Date.now().toString());
+      }
+    }, 4000);
+  }
+}
+
+function checkInactivityTimeout() {
+  if (sessionStorage.getItem("bearing_calc_logged_in") !== "true") return;
+  const savedTime = sessionStorage.getItem("bearing_calc_last_activity");
+  const lastTime = savedTime ? parseInt(savedTime, 10) : lastRecordedActivityTime;
+  if (Date.now() - lastTime >= INACTIVITY_TIMEOUT_MS) {
+    logoutDueToInactivity();
+  }
+}
+
+function logoutDueToInactivity() {
+  sessionStorage.removeItem("bearing_calc_logged_in");
+  sessionStorage.removeItem("bearing_calc_last_activity");
   
-  if (isLoggedIn) {
-    loginOverlay.classList.add("hidden");
-    loginOverlay.style.display = "none";
-  } else {
+  if (inactivityCheckInterval) {
+    clearInterval(inactivityCheckInterval);
+    inactivityCheckInterval = null;
+  }
+
+  // Sluit alle eventuele geopende popups
+  if (typeof closeSinglePointBrochureModal === "function") closeSinglePointBrochureModal();
+  if (typeof closeAutomationImageModal === "function") closeAutomationImageModal();
+  if (typeof closeOilDispenserInfoModal === "function") closeOilDispenserInfoModal();
+  if (typeof closeModeSelectionModal === "function") closeModeSelectionModal();
+  if (typeof closePdfViewerModal === "function") closePdfViewerModal();
+
+  document.querySelectorAll(".modal-overlay").forEach(m => {
+    if (m.id !== "loginOverlay") m.classList.add("hidden");
+  });
+
+  const loginOverlay = document.getElementById("loginOverlay");
+  const loginNotice = document.getElementById("loginInactivityNotice");
+  const loginError = document.getElementById("loginError");
+  const passwordInput = document.getElementById("passwordInput");
+
+  if (loginError) loginError.style.display = "none";
+  if (passwordInput) passwordInput.value = "";
+  
+  if (loginNotice) {
+    const lang = (typeof currentLang !== "undefined" && currentLang) || "nl";
+    const langData = (typeof TRANSLATIONS !== "undefined" && TRANSLATIONS[lang]) || {};
+    const noticeText = document.querySelector("#loginInactivityNotice span");
+    if (noticeText) {
+      noticeText.textContent = langData.loginInactivityNotice || "U bent automatisch uitgelogd wegens 90 minuten inactiviteit.";
+    }
+    loginNotice.style.display = "flex";
+  }
+
+  if (loginOverlay) {
     loginOverlay.classList.remove("hidden");
     loginOverlay.style.display = "flex";
+  }
+
+  if (typeof switchPage === "function") {
+    switchPage("search");
+  }
+}
+
+function startInactivityMonitoring() {
+  lastRecordedActivityTime = Date.now();
+  sessionStorage.setItem("bearing_calc_last_activity", lastRecordedActivityTime.toString());
+
+  if (!window._inactivityListenersAttached) {
+    window._inactivityListenersAttached = true;
+    const events = ["mousemove", "mousedown", "keydown", "touchstart", "scroll", "click"];
+    events.forEach(evt => {
+      window.addEventListener(evt, recordUserActivity, { passive: true });
+    });
+
+    document.addEventListener("visibilitychange", () => {
+      if (!document.hidden) checkInactivityTimeout();
+    });
+    window.addEventListener("focus", checkInactivityTimeout);
+  }
+
+  if (inactivityCheckInterval) clearInterval(inactivityCheckInterval);
+  inactivityCheckInterval = setInterval(checkInactivityTimeout, 15000);
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  // Controleer of de gebruiker al is ingelogd en of de sessie nog binnen 90 minuten valt
+  const isLoggedIn = sessionStorage.getItem("bearing_calc_logged_in") === "true";
+  const lastActStr = sessionStorage.getItem("bearing_calc_last_activity");
+  const lastAct = lastActStr ? parseInt(lastActStr, 10) : 0;
+  const isExpired = !lastAct || (Date.now() - lastAct >= INACTIVITY_TIMEOUT_MS);
+
+  const loginOverlay = document.getElementById("loginOverlay");
+  const loginNotice = document.getElementById("loginInactivityNotice");
+  
+  if (isLoggedIn && !isExpired) {
+    sessionStorage.setItem("bearing_calc_last_activity", Date.now().toString());
+    if (loginOverlay) {
+      loginOverlay.classList.add("hidden");
+      loginOverlay.style.display = "none";
+    }
+    if (loginNotice) loginNotice.style.display = "none";
+    startInactivityMonitoring();
+  } else {
+    sessionStorage.removeItem("bearing_calc_logged_in");
+    sessionStorage.removeItem("bearing_calc_last_activity");
+    if (loginOverlay) {
+      loginOverlay.classList.remove("hidden");
+      loginOverlay.style.display = "flex";
+    }
+    if (isLoggedIn && isExpired && loginNotice) {
+      loginNotice.style.display = "flex";
+    }
   }
 
   // Vul de vetselectie dropdown
@@ -4399,6 +4515,7 @@ function handleLogin(event) {
   if (event) event.preventDefault();
   const passwordInput = document.getElementById("passwordInput");
   const loginError = document.getElementById("loginError");
+  const loginNotice = document.getElementById("loginInactivityNotice");
   const loginOverlay = document.getElementById("loginOverlay");
 
   if (!passwordInput) return false;
@@ -4407,6 +4524,7 @@ function handleLogin(event) {
 
   if (val === "smeercalculatie") {
     sessionStorage.setItem("bearing_calc_logged_in", "true");
+    sessionStorage.setItem("bearing_calc_last_activity", Date.now().toString());
     
     // Hide login overlay completely and instantly
     if (loginOverlay) {
@@ -4416,9 +4534,14 @@ function handleLogin(event) {
     if (loginError) {
       loginError.style.display = "none";
     }
+    if (loginNotice) {
+      loginNotice.style.display = "none";
+    }
     if (passwordInput) {
       passwordInput.value = "";
     }
+
+    startInactivityMonitoring();
 
     // Open mode selection modal or main app
     if (typeof openModeSelectionModal === "function") {
@@ -4426,6 +4549,7 @@ function handleLogin(event) {
     }
   } else {
     if (loginError) loginError.style.display = "flex";
+    if (loginNotice) loginNotice.style.display = "none";
     passwordInput.classList.add("error-shake");
     setTimeout(() => {
       passwordInput.classList.remove("error-shake");
@@ -4495,6 +4619,10 @@ function handleLogout() {
 
   if (!vanOverlay || !vanContainer) {
     sessionStorage.removeItem("bearing_calc_logged_in");
+    sessionStorage.removeItem("bearing_calc_last_activity");
+    if (inactivityCheckInterval) { clearInterval(inactivityCheckInterval); inactivityCheckInterval = null; }
+    const loginNotice = document.getElementById("loginInactivityNotice");
+    if (loginNotice) loginNotice.style.display = "none";
     const loginOverlay = document.getElementById("loginOverlay");
     if (loginOverlay) { loginOverlay.classList.remove("hidden"); loginOverlay.style.display = "flex"; }
     switchPage('search');
@@ -4535,6 +4663,10 @@ function handleLogout() {
       setTimeout(() => {
         vanOverlay.style.display = "none";
         sessionStorage.removeItem("bearing_calc_logged_in");
+        sessionStorage.removeItem("bearing_calc_last_activity");
+        if (inactivityCheckInterval) { clearInterval(inactivityCheckInterval); inactivityCheckInterval = null; }
+        const loginNotice = document.getElementById("loginInactivityNotice");
+        if (loginNotice) loginNotice.style.display = "none";
         const loginOverlay = document.getElementById("loginOverlay");
         if (loginOverlay) {
           loginOverlay.classList.remove("hidden");
