@@ -3778,6 +3778,8 @@
 
     // --- SAVE RASTER CONFIGURATION FOR AUTOMATION IMPORT ---
     function saveRasterConfigToLocalStorage() {
+      if (window.__isSavingRasterConfig) return null;
+      window.__isSavingRasterConfig = true;
       try {
         if (window.__questionnaireRestoring) {
           return null;
@@ -4006,8 +4008,10 @@
 
         try {
           if (typeof BroadcastChannel !== 'undefined') {
-            const channel = new BroadcastChannel('interflon_questionnaire_sync');
-            channel.postMessage({ type: 'CONFIG_UPDATED', config: configToSave, bearings: bearings });
+            if (!window.__surveySyncBroadcastChannel) {
+              window.__surveySyncBroadcastChannel = new BroadcastChannel('interflon_questionnaire_sync');
+            }
+            window.__surveySyncBroadcastChannel.postMessage({ type: 'CONFIG_UPDATED', config: configToSave, bearings: bearings });
           }
         } catch (e) {}
 
@@ -4015,6 +4019,8 @@
       } catch (e) {
         console.warn('Could not save survey raster config to localStorage', e);
         return null;
+      } finally {
+        window.__isSavingRasterConfig = false;
       }
     }
     window.saveRasterConfigToLocalStorage = saveRasterConfigToLocalStorage;
@@ -5384,9 +5390,6 @@
       bearingDataMapSec2[activeBearingSec2].q29_life = document.getElementById('q29_life').value;
       bearingDataMapSec2[activeBearingSec2].q13 = document.getElementById('q13').value;
       bearingDataMapSec2[activeBearingSec2].q14 = document.getElementById('q14').value;
-      if (typeof saveRasterConfigToLocalStorage === 'function') {
-        saveRasterConfigToLocalStorage();
-      }
     }
 
     function loadSection2DataForBearing(letter) {
@@ -5978,7 +5981,10 @@
     // Cross-tab BroadcastChannel listener
     try {
       if (typeof BroadcastChannel !== 'undefined') {
-        const surveyChannel = new BroadcastChannel('interflon_questionnaire_sync');
+        if (!window.__surveySyncBroadcastChannel) {
+          window.__surveySyncBroadcastChannel = new BroadcastChannel('interflon_questionnaire_sync');
+        }
+        const surveyChannel = window.__surveySyncBroadcastChannel;
         surveyChannel.onmessage = function(ev) {
           if (ev.data && (ev.data.type === 'REQUEST_LATEST_CONFIG' || ev.data.type === 'REQUEST_SURVEY_BEARINGS')) {
             const cfg = (typeof saveRasterConfigToLocalStorage === 'function') ? saveRasterConfigToLocalStorage() : null;
