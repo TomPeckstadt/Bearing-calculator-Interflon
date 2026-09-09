@@ -1566,12 +1566,22 @@ function importSurveyBearingToOpbrengstmodel(mode) {
     }
   } catch (e) {}
 
-  let fullData = window.latestSurveyFullData || null;
-  if (!fullData) {
-    try {
-      const saved = localStorage.getItem('interflon_questionnaire_full_data') || localStorage.getItem('interflon_last_questionnaire_data');
-      if (saved) fullData = JSON.parse(saved);
-    } catch (e) {}
+  let fullData = null;
+  try {
+    const raw = localStorage.getItem('interflon_questionnaire_full_data') ||
+                localStorage.getItem('interflon_last_questionnaire_data') ||
+                localStorage.getItem('interflon_survey_raster_config');
+    if (raw) {
+      let parsed = JSON.parse(raw);
+      if (parsed && (parsed.fullData || parsed.questionnaire || parsed.data)) {
+        parsed = parsed.fullData || parsed.questionnaire || parsed.data;
+      }
+      fullData = parsed;
+    }
+  } catch (e) {}
+
+  if (!fullData && window.latestSurveyFullData) {
+    fullData = window.latestSurveyFullData;
   }
 
   // Bepaal het actieve lager:
@@ -1613,10 +1623,18 @@ function importSurveyBearingToOpbrengstmodel(mode) {
   const hasBearingRecord = bRec && (bRec.nr || bRec.smeermiddel || bRec.prijsLiter || bRec.interval || bRec.levensduur);
 
   if (!fullData && !hasSec2Data && !hasBearingRecord) {
-    if (typeof showToastNotification === "function") {
-      showToastNotification("⚠️ Geen vragenlijstgegevens gevonden. Vul eerst de vragenlijst in of importeer een bestand.");
-    } else {
-      alert("Geen vragenlijstgegevens gevonden. Vul eerst de vragenlijst in of importeer een bestand.");
+    const lang = (typeof currentLang !== 'undefined' && currentLang) ? currentLang : 'nl';
+    const msg = (lang === 'en')
+      ? 'No active questionnaire data found in the browser.\n\nTip: Open the questionnaire tab first so your data is loaded, or click OK to select a saved questionnaire JSON file from your computer.'
+      : ((lang === 'fr')
+        ? 'Aucune donnée de questionnaire actif trouvée dans le navigateur.\n\nAstuce : Ouvrez d\'abord l\'onglet questionnaire, ou cliquez sur OK pour sélectionner un fichier questionnaire (.json) enregistré.'
+        : 'Er zijn momenteel nog geen actieve vragenlijstgegevens gevonden in de browser.\n\n💡 Tip: Open eerst het tabblad van de vragenlijst zodat uw gegevens geladen zijn, óf klik op OK om een opgeslagen vragenlijstbestand (.json) van uw computer te selecteren.');
+    if (confirm(msg)) {
+      const fileInput = document.getElementById('surveyBearingFileInput') || document.getElementById('surveyConfigFileSelector');
+      if (fileInput) {
+        fileInput.value = '';
+        fileInput.click();
+      }
     }
     return;
   }
@@ -2097,29 +2115,35 @@ try {
       if (!ev.data) return;
       if (ev.data.type === 'SURVEY_BEARINGS_RESPONSE' || ev.data.type === 'QUESTIONNAIRE_IMPORTED' || ev.data.type === 'CONFIG_UPDATED') {
         console.log("Vragenlijst update ontvangen:", ev.data.type);
-        if (Array.isArray(ev.data.bearings) && ev.data.bearings.length > 0) {
-          window.latestSurveyBearings = ev.data.bearings;
+        const incomingData = ev.data.fullData || ev.data.data || ev.data.config;
+        if (incomingData && typeof incomingData === 'object') {
+          window.latestSurveyFullData = incomingData;
+        }
+        const bearings = (Array.isArray(ev.data.bearings) && ev.data.bearings.length > 0)
+          ? ev.data.bearings
+          : (incomingData && Array.isArray(incomingData.bearings) && incomingData.bearings.length > 0)
+            ? incomingData.bearings
+            : null;
+
+        if (bearings && bearings.length > 0) {
+          window.latestSurveyBearings = bearings;
           try {
             let fullData = {};
             try { fullData = JSON.parse(localStorage.getItem('interflon_questionnaire_full_data') || '{}'); } catch(e){}
-            if (ev.data.fullData && typeof ev.data.fullData === 'object') {
-              window.latestSurveyFullData = ev.data.fullData;
-              fullData = Object.assign({}, fullData, ev.data.fullData);
-            } else if (ev.data.data && typeof ev.data.data === 'object') {
-              window.latestSurveyFullData = ev.data.data;
-              fullData = Object.assign({}, fullData, ev.data.data);
+            if (incomingData) {
+              fullData = Object.assign({}, fullData, incomingData);
             }
-            fullData.bearings = ev.data.bearings;
+            fullData.bearings = bearings;
             localStorage.setItem('interflon_questionnaire_full_data', JSON.stringify(fullData));
             localStorage.setItem('interflon_last_questionnaire_data', JSON.stringify(fullData));
 
             let rasterCfg = {};
             try { rasterCfg = JSON.parse(localStorage.getItem('interflon_survey_raster_config') || '{}'); } catch(e){}
-            rasterCfg.bearings = ev.data.bearings;
+            rasterCfg.bearings = bearings;
             localStorage.setItem('interflon_survey_raster_config', JSON.stringify(rasterCfg));
           } catch(e) {}
 
-          populateSurveyBearingsDropdown(ev.data.bearings);
+          populateSurveyBearingsDropdown(bearings);
         } else if (typeof refreshSurveyBearingsList === 'function') {
           refreshSurveyBearingsList(false);
         }
