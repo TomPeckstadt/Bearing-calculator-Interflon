@@ -5086,7 +5086,7 @@
         }
         if (typeof BroadcastChannel !== 'undefined') {
           const channel = new BroadcastChannel('interflon_questionnaire_sync');
-          channel.postMessage({ type: 'QUESTIONNAIRE_IMPORTED', data: data });
+          channel.postMessage({ type: 'QUESTIONNAIRE_IMPORTED', data: data, bearings: data.bearings, fullData: data });
         }
       } catch (e) {
         console.warn('Could not persist questionnaire to localStorage', e);
