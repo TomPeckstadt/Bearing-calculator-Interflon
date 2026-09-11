@@ -13852,7 +13852,7 @@ function addMachineRasterPdfPage(doc, dateString, watermarkDataUrl, aspectRatio)
       doc.text("Binnen bereik", 172, curY + 3.8);
     } else {
       doc.setTextColor(194, 65, 12);
-      doc.text("Let op: Leiding > 6m", 172, curY + 3.8);
+      doc.text("Leiding > 6 m", 172, curY + 3.8);
     }
 
     curY += rh;
