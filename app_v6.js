@@ -9712,7 +9712,7 @@ function calculateAutomationLubrication() {
 
         const locCode = lang === "fr" ? "fr-FR" : (lang === "en" ? "en-US" : "nl-BE");
         const actualStr = (actualDailyVol / points).toLocaleString(locCode, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-        const targetStr = dailyNeedCm3.toLocaleString(locCode, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        const targetStr = devDailyNeed1.toLocaleString(locCode, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
         const actualDevTotalStr = actualDailyVol.toLocaleString(locCode, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
         const targetDevTotalStr = totalDailyNeedForDev.toLocaleString(locCode, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
