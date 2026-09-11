@@ -3879,7 +3879,12 @@
           const rpm = rpmIn && rpmIn.value ? rpmIn.value.trim() : '';
           const posIn = r.querySelector('.bearing-pos-input');
           const asPos = posIn && posIn.value ? posIn.value.trim() : 'Horizontaal';
-          bearings.push({ letter, nr, desc, rpm, pos: asPos, x: pos.x, y: pos.y, qty });
+          const d2 = (typeof bearingDataMapSec2 !== "undefined" && bearingDataMapSec2[letter]) ? bearingDataMapSec2[letter] : {};
+          const d3 = (typeof bearingDataMapSec3 !== "undefined" && bearingDataMapSec3[letter]) ? bearingDataMapSec3[letter] : {};
+          const hoursPerDay = parseFloat(d2.q13) || 16;
+          const daysPerWeek = parseFloat(d2.q14) || 5;
+          const temp = parseFloat(d3.q15) || 20;
+          bearings.push({ letter, nr, desc, rpm, pos: asPos, x: pos.x, y: pos.y, qty, hoursPerDay, daysPerWeek, temp });
         });
 
         if (bearings.length === 0) return null;
@@ -4022,7 +4027,9 @@
           numDevices: numDevices,
           devices: deviceConfigs,
           bearings: bearings,
-          totalBearings: bearings.length
+          totalBearings: bearings.length,
+          bearingDataMapSec2: (typeof bearingDataMapSec2 !== "undefined") ? JSON.parse(JSON.stringify(bearingDataMapSec2)) : null,
+          bearingDataMapSec3: (typeof bearingDataMapSec3 !== "undefined") ? JSON.parse(JSON.stringify(bearingDataMapSec3)) : null
         };
 
         localStorage.setItem('interflon_survey_raster_config', JSON.stringify(configToSave));
