@@ -13867,6 +13867,22 @@ function getActiveMachineRasterData() {
     }
   }
 
+  // Ensure devices have assignedBearingLetters mapped if available in surveyRasterConfig or surveyConfig
+  const cfgDevs = (surveyConfig && Array.isArray(surveyConfig.devices))
+    ? surveyConfig.devices
+    : (qData && qData.surveyRasterConfig && Array.isArray(qData.surveyRasterConfig.devices) ? qData.surveyRasterConfig.devices : []);
+
+  if (cfgDevs.length > 0) {
+    devices.forEach((d, idx) => {
+      if (!d.assignedBearingLetters || d.assignedBearingLetters.length === 0) {
+        const match = cfgDevs.find(sc => sc.surveyId === d.id || sc.id === d.short || sc.name === d.name || sc.index === idx);
+        if (match && match.bearingLetters && match.bearingLetters.length > 0) {
+          d.assignedBearingLetters = [...match.bearingLetters];
+        }
+      }
+    });
+  }
+
   const LETTERS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L'];
   const PRESET_COORDS = [
     { x: -2.4, y: 1.8 },
@@ -13940,7 +13956,8 @@ function getActiveMachineRasterData() {
     showCentralPoint,
     bearingPositions,
     devices,
-    bearings
+    bearings,
+    surveyRasterConfig: (surveyConfig || (qData && qData.surveyRasterConfig) || null)
   };
 }
 
@@ -14116,6 +14133,7 @@ function generateMachineRasterImageDataUrl(rasterData, customZoom = null) {
           short: dev.short || `T${devIdx + 1}`,
           type: dev.type,
           targetBearingLetter: dev.targetBearingLetter,
+          assignedBearingLetters: dev.assignedBearingLetters || null,
           x: dev.x || 0,
           y: dev.y || 0,
           lineColor: pal.line,
@@ -14138,6 +14156,29 @@ function generateMachineRasterImageDataUrl(rasterData, customZoom = null) {
         if (isSinglePoint) {
           if (origin.targetBearingLetter && origin.targetBearingLetter !== letter) return;
           if (distM < 0.15) return;
+        }
+
+        // For multi-device: only connect to assigned bearings!
+        if (origin.type !== 'cp') {
+          const activeDevices = (rasterData.devices || []).filter(d => d.active !== false);
+          if (activeDevices.length > 1) {
+            let isAssigned = false;
+            if (origin.assignedBearingLetters && Array.isArray(origin.assignedBearingLetters) && origin.assignedBearingLetters.length > 0) {
+              isAssigned = origin.assignedBearingLetters.includes(letter);
+            } else {
+              let closestDevId = null;
+              let minD = Infinity;
+              activeDevices.forEach(d => {
+                const dDist = Math.hypot(pos.x - (d.x || 0), pos.y - (d.y || 0));
+                if (dDist < minD) {
+                  minD = dDist;
+                  closestDevId = d.id;
+                }
+              });
+              isAssigned = (closestDevId === origin.id);
+            }
+            if (!isAssigned) return;
+          }
         }
 
         const origScreen = worldToScreen(origin.x, origin.y);
@@ -14549,20 +14590,45 @@ function addMachineRasterPdfPage(doc, dateString, watermarkDataUrl, aspectRatio)
     // Find assigned device
     let assignedDev = null;
     let minDevDist = Infinity;
-    (rasterData.devices || []).forEach(d => {
-      if (d.active !== false) {
+    const activeDevs = (rasterData.devices || []).filter(d => d.active !== false);
+
+    // 1. Explicit assignment via assignedBearingLetters on device
+    activeDevs.forEach(d => {
+      if (d.assignedBearingLetters && Array.isArray(d.assignedBearingLetters) && d.assignedBearingLetters.includes(letter)) {
+        assignedDev = d;
+        minDevDist = Math.hypot(pos.x - (d.x || 0), pos.y - (d.y || 0));
+      } else if (d.targetBearingLetter === letter) {
+        assignedDev = d;
+        minDevDist = Math.hypot(pos.x - (d.x || 0), pos.y - (d.y || 0));
+      }
+    });
+
+    // 2. Explicit assignment via surveyRasterConfig deviceConfigs
+    if (!assignedDev && rasterData.surveyRasterConfig && Array.isArray(rasterData.surveyRasterConfig.devices)) {
+      rasterData.surveyRasterConfig.devices.forEach(dc => {
+        if (dc.bearingLetters && Array.isArray(dc.bearingLetters) && dc.bearingLetters.includes(letter)) {
+          const matchDev = activeDevs.find(d => d.id === dc.surveyId || d.short === dc.id || d.name === dc.name);
+          if (matchDev) {
+            assignedDev = matchDev;
+            minDevDist = Math.hypot(pos.x - (matchDev.x || 0), pos.y - (matchDev.y || 0));
+          }
+        }
+      });
+    }
+
+    // 3. Fallback: closest active device
+    if (!assignedDev) {
+      activeDevs.forEach(d => {
         const dist = Math.hypot(pos.x - (d.x || 0), pos.y - (d.y || 0));
-        if (d.targetBearingLetter === letter) {
-          assignedDev = d;
-          minDevDist = dist;
-        } else if (!assignedDev && dist < minDevDist) {
+        if (dist < minDevDist) {
           minDevDist = dist;
           assignedDev = d;
         }
-      }
-    });
-    if (!assignedDev && rasterData.devices && rasterData.devices[0]) {
-      assignedDev = rasterData.devices[0];
+      });
+    }
+
+    if (!assignedDev && activeDevs.length > 0) {
+      assignedDev = activeDevs[0];
       minDevDist = Math.hypot(pos.x - (assignedDev.x || 0), pos.y - (assignedDev.y || 0));
     }
 
