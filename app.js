@@ -78,6 +78,9 @@ function onDevicePointsChange(devId) {
   if (dev && sel) {
     dev.points = parseInt(sel.value) || 1;
     dev.userEditedPeriod = false;
+    if (dev.dailyNeedCm3 && dev.dailyNeedCm3 > 0) {
+      dev.totalDailyNeed = dev.dailyNeedCm3 * dev.points;
+    }
   }
   calculateAutomationLubrication();
 }
@@ -390,7 +393,9 @@ function applyAutoRecommendationForDevice(devId) {
     const unitSelect = document.getElementById("autoDispenseUnit_" + devId);
     if (unitSelect) unitSelect.value = "months";
 
-    const totalNeed = dailyNeedCm3 * (dev.points || 1);
+    const totalNeed = (dev.totalDailyNeed && dev.totalDailyNeed > 0)
+      ? dev.totalDailyNeed
+      : (dailyNeedCm3 * (dev.points || 1));
     const smartAdv = getOptimalSmartAdvice(totalNeed, deviceKey, greaseName);
 
     dev.cap = smartAdv.cap;
@@ -536,10 +541,161 @@ function importConfigFromSurvey(customData) {
   applySurveyConfig(config);
 }
 
+// ==========================================================================
+// CALCULATE LUBRICATION DEMAND FOR A SINGLE BEARING (FROM SURVEY / DB)
+// ==========================================================================
+function calculateSingleBearingDailyNeed(bearingNr, speedRpm, opts = {}) {
+  let b = null;
+  const cleanKey = (bearingNr || "").toString().trim();
+  let bDb = (typeof bearingDatabase !== "undefined" && bearingDatabase) ? bearingDatabase :
+            (typeof window !== "undefined" && window.bearingDatabase) ? window.bearingDatabase :
+            (typeof global !== "undefined" && global.bearingDatabase) ? global.bearingDatabase : null;
+  if (bDb) {
+    b = bDb[cleanKey];
+    if (!b) {
+      const stripped = cleanKey.replace(/^lager\s+/i, "").trim();
+      b = bDb[stripped];
+    }
+    if (!b) {
+      const numMatch = cleanKey.match(/\b\d{3,6}\b/) || cleanKey.match(/^\d{3,6}/);
+      if (numMatch && bDb[numMatch[0]]) {
+        b = bDb[numMatch[0]];
+      }
+    }
+  }
+
+  // Also try parseBearingDesignation from bearings-db.js if available
+  const parseFn = (typeof parseBearingDesignation === "function") ? parseBearingDesignation :
+                  (typeof window !== "undefined" && typeof window.parseBearingDesignation === "function") ? window.parseBearingDesignation :
+                  (typeof global !== "undefined" && typeof global.parseBearingDesignation === "function") ? global.parseBearingDesignation : null;
+  if (!b && parseFn) {
+    try {
+      const parsed = parseFn(cleanKey);
+      if (parsed && parsed.d && parsed.D) {
+        b = parsed;
+      }
+    } catch (e) {}
+  }
+
+  // Fallback to active bearing form values if available, or sensible defaults
+  const d = b ? (b.d || 100) : (parseFloat(document.getElementById("inputD")?.value) || 125);
+  const D = b ? (b.D || 180) : (parseFloat(document.getElementById("inputOutD")?.value) || 225);
+  const B = b ? (b.B || 50) : (parseFloat(document.getElementById("inputB")?.value) || 68);
+  const limitingSpeed = b ? (b.limitSpeed || b.refSpeed || 3400) : 3400;
+  const bearingType = b ? (b.type || "Pendelrollager") : "Pendelrollager";
+
+  const bTypeCheck = bearingType.toLowerCase();
+  let baseTypeFactor = 1.0;
+  if (bTypeCheck.includes("spherical") || bTypeCheck.includes("sferisch") || bTypeCheck.includes("pendelrol") || bTypeCheck.includes("ton") || bTypeCheck.includes("naald")) {
+    baseTypeFactor = 2.6;
+  } else if (bTypeCheck.includes("tapered") || bTypeCheck.includes("conisch") || bTypeCheck.includes("kegel")) {
+    baseTypeFactor = 2.0;
+  } else if (bTypeCheck.includes("cylindrical") || bTypeCheck.includes("cylindrisch") || bTypeCheck.includes("cilinder")) {
+    baseTypeFactor = 1.7;
+  }
+
+  const speed = parseFloat(speedRpm) || (parseFloat(document.getElementById("inputSpeed")?.value) || 500);
+  const rawRatio = (isNaN(speed) || speed <= 0) ? 0.01 : (speed / limitingSpeed);
+  const ratio = Math.min(1.0, rawRatio * baseTypeFactor);
+
+  let fb = 20000;
+  const freqTable = (typeof BASE_FREQUENCY_TABLE !== "undefined" && Array.isArray(BASE_FREQUENCY_TABLE)) ? BASE_FREQUENCY_TABLE :
+                    (typeof window !== "undefined" && Array.isArray(window.BASE_FREQUENCY_TABLE)) ? window.BASE_FREQUENCY_TABLE :
+                    (typeof global !== "undefined" && Array.isArray(global.BASE_FREQUENCY_TABLE)) ? global.BASE_FREQUENCY_TABLE : null;
+
+  if (freqTable) {
+    const roundedRatio = Math.max(0.01, Math.min(1.0, Math.round(ratio * 100) / 100));
+    const entry = freqTable.find(e => Math.abs(e.ratio - roundedRatio) < 0.001) || freqTable[0];
+    if (bTypeCheck.includes("spherical") || bTypeCheck.includes("sferisch") || bTypeCheck.includes("pendelrol") || bTypeCheck.includes("ton")) {
+      fb = entry.sph;
+    } else if (bTypeCheck.includes("cylindrical") || bTypeCheck.includes("cylindrisch") || bTypeCheck.includes("cilinder") || bTypeCheck.includes("naald")) {
+      fb = entry.cyl;
+    } else if (bTypeCheck.includes("tapered") || bTypeCheck.includes("conisch") || bTypeCheck.includes("kegel")) {
+      fb = entry.cone;
+    } else {
+      fb = entry.ball;
+    }
+  }
+
+  const temp = (typeof opts.temp === "number" && !isNaN(opts.temp)) ? opts.temp : (parseFloat(document.getElementById("inputTemp")?.value) || 20);
+  let Tt = 0.8;
+  if (temp <= 75) Tt = 0.8;
+  else if (temp <= 85) Tt = 0.5;
+  else if (temp <= 120) Tt = 0.3;
+  else Tt = 0.15;
+
+  const Te = (typeof opts.Te === "number" && !isNaN(opts.Te)) ? opts.Te : 0.8;
+  const Ta = (typeof opts.Ta === "number" && !isNaN(opts.Ta)) ? opts.Ta : 0.8;
+  const micPolInput = document.getElementById("inputMicPolFactor");
+  const micPolFactor = (typeof opts.micPolFactor === "number" && !isNaN(opts.micPolFactor)) ? opts.micPolFactor : (micPolInput ? (parseFloat(micPolInput.value) || 4) : 4);
+
+  const fcBase = (fb * Te * Ta * Tt) / 4.0;
+  const fcMicPol = fcBase * micPolFactor;
+
+  const hDay = (typeof opts.hoursPerDay === "number" && opts.hoursPerDay > 0) ? opts.hoursPerDay : (window.currentHoursPerDay || 16);
+  const dWeek = (typeof opts.daysPerWeek === "number" && opts.daysPerWeek > 0) ? opts.daysPerWeek : (window.currentDaysPerWeek || 5);
+  const weeklyOpHours = hDay * dWeek;
+  const totalCalendarDays = (weeklyOpHours > 0) ? (fcMicPol / weeklyOpHours) * 7 : (fcMicPol / 24);
+
+  let coefC = 0.00440;
+  const corrTable = (typeof CORRECTED_FREQUENCY_TABLE !== "undefined" && Array.isArray(CORRECTED_FREQUENCY_TABLE)) ? CORRECTED_FREQUENCY_TABLE :
+                    (typeof window !== "undefined" && Array.isArray(window.CORRECTED_FREQUENCY_TABLE)) ? window.CORRECTED_FREQUENCY_TABLE :
+                    (typeof global !== "undefined" && Array.isArray(global.CORRECTED_FREQUENCY_TABLE)) ? global.CORRECTED_FREQUENCY_TABLE : null;
+
+  if (corrTable) {
+    const table = corrTable;
+    if (fb >= table[table.length - 1].freq) {
+      coefC = table[table.length - 1].c;
+    } else {
+      for (let i = 0; i < table.length - 1; i++) {
+        if (fb >= table[i].freq && fb <= table[i+1].freq) {
+          const f0 = table[i].freq;
+          const f1 = table[i+1].freq;
+          const c0 = table[i].c;
+          const c1 = table[i+1].c;
+          coefC = c0 + (c1 - c0) * (fb - f0) / (f1 - f0);
+          break;
+        }
+      }
+    }
+  }
+
+  const refill_grams = D * B * coefC;
+  const dailyNeed = (totalCalendarDays > 0) ? (refill_grams / totalCalendarDays) : 0;
+
+  return {
+    dailyNeed: Math.max(0.01, dailyNeed),
+    refill_grams,
+    totalCalendarDays,
+    fcMicPol,
+    fb,
+    coefC,
+    bearingNr: cleanKey,
+    speed,
+    hoursPerDay: hDay,
+    daysPerWeek: dWeek
+  };
+}
+window.calculateSingleBearingDailyNeed = calculateSingleBearingDailyNeed;
+
 function applySurveyConfig(config) {
   if (!config || !config.devices || !Array.isArray(config.devices)) return;
 
   const devSelect = document.getElementById('automationDeviceSelect') || document.getElementById('autoDeviceSelect');
+
+  // Also read full questionnaire data if available to ensure we have all bearings & section 2/3 maps
+  let fullData = null;
+  try {
+    const raw = localStorage.getItem('interflon_questionnaire_full_data') || localStorage.getItem('interflon_last_questionnaire_data');
+    if (raw) fullData = JSON.parse(raw);
+  } catch(e) {}
+
+  const allBearings = (config.bearings && config.bearings.length > 0) ? config.bearings :
+                      (fullData && fullData.bearings && fullData.bearings.length > 0) ? fullData.bearings :
+                      (window.latestSurveyBearings && window.latestSurveyBearings.length > 0) ? window.latestSurveyBearings : [];
+
+  const sec2Map = config.bearingDataMapSec2 || (fullData && fullData.bearingDataMapSec2) || {};
+  const sec3Map = config.bearingDataMapSec3 || (fullData && fullData.bearingDataMapSec3) || {};
 
   // Check if configuration is for Single Point Lubricators
   const isSinglePoint = (config.isSinglePoint === true) ||
@@ -575,6 +731,7 @@ function applySurveyConfig(config) {
     }
 
     // 4. Render and recalculate
+    saveAutomationStateToLocalStorage();
     renderAutoDevicesUI();
     calculateAutomationLubrication();
     saveAutomationStateToLocalStorage();
@@ -627,21 +784,86 @@ function applySurveyConfig(config) {
     numSelect.value = String(num);
   }
 
-  // 3. Assign points per device (Pulsarlube A = Toestel 1, Pulsarlube B = Toestel 2, Pulsarlube C = Toestel 3, Pulsarlube D = Toestel 4)
+  const greaseSelect = document.getElementById("selectedGrease") || document.getElementById("greaseSelect") || document.getElementById("inputGrease");
+  const greaseName = greaseSelect ? greaseSelect.value : "Interflon Grease LS2";
+
+  // 3. Assign points, calculate per-device daily grease requirements, and recommend optimal settings per device
   const summaryParts = [];
   for (let i = 0; i < num; i++) {
-    const devCfg = config.devices[i];
-    const pts = devCfg ? (parseInt(devCfg.points, 10) || 1) : 1;
-    const clampedPts = Math.min(8, Math.max(1, pts));
+    const devCfg = config.devices[i] || {};
+    let bLetters = Array.isArray(devCfg.bearingLetters) ? [...devCfg.bearingLetters] : [];
+
+    // If bearing letters not explicitly specified, allocate evenly among active devices
+    if (bLetters.length === 0 && allBearings.length > 0) {
+      allBearings.forEach((b, bIdx) => {
+        if ((bIdx % num) === i) {
+          bLetters.push(b.letter);
+        }
+      });
+    }
+
+    let devTotalDailyNeed = 0;
+    let devTotalPoints = 0;
+    const bearingDetails = [];
+
+    bLetters.forEach(letter => {
+      const bObj = allBearings.find(x => x.letter === letter) || { letter, nr: '22225', rpm: 500, qty: 1 };
+      const d2 = sec2Map[letter] || {};
+      const d3 = sec3Map[letter] || {};
+      const hDay = parseFloat(bObj.hoursPerDay || d2.q13) || 16;
+      const dWeek = parseFloat(bObj.daysPerWeek || d2.q14) || 5;
+      const temp = parseFloat(bObj.temp || d3.q15) || 20;
+      const bQty = parseInt(bObj.qty, 10) || 1;
+      const rpm = parseFloat(bObj.rpm) || 500;
+
+      const need = calculateSingleBearingDailyNeed(bObj.nr, rpm, {
+        hoursPerDay: hDay,
+        daysPerWeek: dWeek,
+        temp: temp
+      });
+
+      devTotalDailyNeed += (need.dailyNeed * bQty);
+      devTotalPoints += bQty;
+      bearingDetails.push({
+        letter: letter,
+        nr: bObj.nr || '22225',
+        rpm: rpm,
+        dailyNeed: need.dailyNeed,
+        qty: bQty
+      });
+    });
+
+    const clampedPts = Math.min(8, Math.max(1, devTotalPoints || (parseInt(devCfg.points, 10) || 1)));
+    const avgDailyNeed = clampedPts > 0 ? (devTotalDailyNeed / clampedPts) : (window.currentDailyNeedCm3 || 0.704);
+    const finalTotalDailyNeed = devTotalDailyNeed > 0 ? devTotalDailyNeed : (avgDailyNeed * clampedPts);
 
     if (autoDevicesState[i]) {
       autoDevicesState[i].points = clampedPts;
       autoDevicesState[i].userEditedPeriod = false;
+      autoDevicesState[i].unit = "months";
+      autoDevicesState[i].bearingLetters = bLetters;
+      autoDevicesState[i].connectedBearings = bLetters;
+      autoDevicesState[i].dailyNeedCm3 = avgDailyNeed;
+      autoDevicesState[i].totalDailyNeed = finalTotalDailyNeed;
+      
+      const bLetterStr = bLetters.length > 0 ? bLetters.join(', ') : String.fromCharCode(65 + i);
+      const rpmList = [...new Set(bearingDetails.map(bd => bd.rpm + ' RPM'))].join(', ');
+      autoDevicesState[i].bearingSummary = `Lager ${bLetterStr}${rpmList ? ` (${rpmList})` : ''}`;
+      autoDevicesState[i].bearingDetailsSummary = bearingDetails.map(bd => `${bd.letter}: ${bd.dailyNeed.toFixed(2).replace('.', ',')} ml/d`).join(' &bull; ');
+
+      // Automatically apply optimal smart advice for this specific device
+      const smartAdv = getOptimalSmartAdvice(finalTotalDailyNeed, targetType, greaseName);
+      autoDevicesState[i].cap = smartAdv.cap;
+      autoDevicesState[i].period = smartAdv.months;
     }
-    summaryParts.push(`Pulsarlube ${String.fromCharCode(65 + i)}: ${clampedPts} ${clampedPts === 1 ? 'smeerpunt' : 'smeerpunten'}`);
+
+    const devLabel = `Pulsarlube ${String.fromCharCode(65 + i)}`;
+    const bSummaryDesc = bLetters.length > 0 ? ` (Lager ${bLetters.join(', ')}: ${finalTotalDailyNeed.toFixed(2).replace('.', ',')} ml/dag)` : '';
+    summaryParts.push(`${devLabel}: ${clampedPts} ${clampedPts === 1 ? 'smeerpunt' : 'smeerpunten'}${bSummaryDesc}`);
   }
 
-  // 4. Trigger UI render, recalculations, and state persistence
+  // 4. Save state, trigger UI render, recalculations
+  saveAutomationStateToLocalStorage();
   renderAutoDevicesUI();
   calculateAutomationLubrication();
   saveAutomationStateToLocalStorage();
@@ -660,7 +882,7 @@ function applySurveyConfig(config) {
     fbEl.innerHTML = `✅ <strong>${num} ${num === 1 ? 'toestel' : 'toestellen'}</strong> direct geïmporteerd uit vragenlijst${machinePart}<br><span style="font-size: 10.5px; opacity: 0.9;">${summaryParts.join(' | ')}</span>`;
     setTimeout(() => {
       if (fbEl) fbEl.style.display = 'none';
-    }, 7000);
+    }, 8000);
   }
 
   // Also sync machine metadata if available
@@ -671,7 +893,7 @@ function applySurveyConfig(config) {
   }
 
   if (typeof showToastNotification === 'function') {
-    showToastNotification(`✓ Vragenlijst direct geïmporteerd: ${num} toestellen (${summaryParts.join(', ')})`);
+    showToastNotification(`✓ Vragenlijst geïmporteerd: ${num} ${num === 1 ? 'toestel' : 'toestellen'} met individuele vetbehoefte`);
   }
 }
 
@@ -769,7 +991,12 @@ function parseSurveyPackageToConfig(data) {
         const desc = (b.desc || b.description || b.omschrijving || b.positie || '').trim();
         const rpm = (b.rpm || b.toerental || '').toString().trim();
         const asPos = (b.pos || b.asPositie || 'Horizontaal').trim();
-        bearings.push({ letter, nr, desc, rpm, pos: asPos, qty, x: pos.x, y: pos.y });
+        const d2 = (data.bearingDataMapSec2 && data.bearingDataMapSec2[letter]) ? data.bearingDataMapSec2[letter] : {};
+        const d3 = (data.bearingDataMapSec3 && data.bearingDataMapSec3[letter]) ? data.bearingDataMapSec3[letter] : {};
+        const hoursPerDay = parseFloat(b.hoursPerDay || d2.q13) || 16;
+        const daysPerWeek = parseFloat(b.daysPerWeek || d2.q14) || 5;
+        const temp = parseFloat(b.temp || d3.q15) || 20;
+        bearings.push({ letter, nr, desc, rpm, pos: asPos, qty, x: pos.x, y: pos.y, hoursPerDay, daysPerWeek, temp });
       });
     }
 
@@ -855,7 +1082,9 @@ function parseSurveyPackageToConfig(data) {
       numDevices: numDevices,
       devices: deviceConfigs,
       bearings: bearings,
-      totalBearings: bearings.length
+      totalBearings: bearings.length,
+      bearingDataMapSec2: data.bearingDataMapSec2 || null,
+      bearingDataMapSec3: data.bearingDataMapSec3 || null
     };
   } catch (err) {
     console.warn('parseSurveyPackageToConfig error:', err);
@@ -2266,6 +2495,19 @@ function renderAutoDevicesUI() {
         ${numDevices > 1 ? `<span style="background-color: #E30613; color: white; font-weight: 800; font-size: 11px; padding: 4px 12px; border-radius: 12px; text-transform: uppercase; white-space: nowrap; flex-shrink: 0;">Toestel ${devId}</span>` : ''}
       </div>
 
+      ${dev.bearingSummary ? `
+      <!-- Connected Bearings Badge from Questionnaire -->
+      <div style="margin-bottom: 14px; background: #f0f9ff; border: 1px solid #bae6fd; border-left: 4px solid #0284c7; border-radius: var(--border-radius-sm); padding: 8px 12px; display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+        <div>
+          <div style="font-size: 11.5px; font-weight: 700; color: #0369a1; display: flex; align-items: center; gap: 5px;">
+            <span>🔗</span> Aangesloten lagers: <strong>${dev.bearingSummary}</strong>
+          </div>
+          ${dev.bearingDetailsSummary ? `<div style="font-size: 10.5px; color: #0284c7; margin-top: 2px;">Individuele behoefte: ${dev.bearingDetailsSummary}</div>` : ''}
+        </div>
+        <span style="background: #0284c7; color: white; font-size: 9.5px; font-weight: 800; padding: 2px 7px; border-radius: 10px; text-transform: uppercase; white-space: nowrap; letter-spacing: 0.5px;">Vragenlijst</span>
+      </div>
+      ` : ''}
+
       <!-- Point Selection per Device -->
       <div style="margin-bottom: 16px; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: var(--border-radius-sm); padding: 12px 14px; display: ${isSinglePoint ? 'none' : 'block'};">
         <label for="autoNumPointsSelect_${devId}" style="display: block; font-size: 12.5px; font-weight: 700; color: var(--text-dark); margin-bottom: 6px;">
@@ -2670,7 +2912,12 @@ function renderPdfAutomationExtraPage(doc, autoData, autoDataUrl, autoRatio, wat
     const curUnit = dev.unit || "months";
     const devName = numDevices === 1 ? baseDeviceName : `Pulsarlube ${devId}`;
 
-    const totalDailyNeedForDev = dailyNeedCm3 * pts;
+    const totalDailyNeedForDev = (dev.totalDailyNeed && dev.totalDailyNeed > 0)
+      ? dev.totalDailyNeed
+      : (dailyNeedCm3 * pts);
+    const devDaily1 = (dev.dailyNeedCm3 && dev.dailyNeedCm3 > 0)
+      ? dev.dailyNeedCm3
+      : (pts > 0 ? (totalDailyNeedForDev / pts) : dailyNeedCm3);
     const recDays = capMl / (totalDailyNeedForDev > 0 ? totalDailyNeedForDev : 0.704);
     const recMonths = recDays / 30.4375;
     const recSetting = getRecommendedSettingMonths(recMonths, deviceKey, capMl);
@@ -2717,7 +2964,7 @@ function renderPdfAutomationExtraPage(doc, autoData, autoDataUrl, autoRatio, wat
     doc.setTextColor(255, 255, 255);
     const cardHeaderTitle = isSinglePoint 
       ? "Single Point - Smeerinstelling & Volumecalculatie" 
-      : `${devName} - Smeerinstelling & Volumecalculatie`;
+      : (dev.bearingSummary ? `${devName} (${dev.bearingSummary})` : `${devName} - Smeerinstelling & Volumecalculatie`);
     doc.text(cardHeaderTitle, cardX + 3, cardY + 5);
 
     if (numDevices > 1) {
@@ -2783,15 +3030,16 @@ function renderPdfAutomationExtraPage(doc, autoData, autoDataUrl, autoRatio, wat
     doc.setTextColor(227, 6, 19);
     doc.text(`GEADVISEERDE INSTELLING OP ${devName.toUpperCase()}`, cardX + 5, innerY + 5);
 
+    const smartAdv = getOptimalSmartAdvice(totalDailyNeedForDev, deviceKey, greaseName);
     doc.setFont("helvetica", "bold");
     doc.setFontSize(9);
     doc.setTextColor(227, 6, 19);
-    doc.text(`${recSetting.months} maanden op ${capMl} ml | ${pts} ${pts === 1 ? 'lager' : 'lagers'}`, cardX + 5, innerY + 11);
+    doc.text(`${smartAdv.months} maanden op ${smartAdv.cap} ml | ${pts} ${pts === 1 ? 'lager' : 'lagers'}`, cardX + 5, innerY + 11);
 
     doc.setFont("helvetica", "normal");
     doc.setFontSize(6);
     doc.setTextColor(30, 41, 59);
-    doc.text(`Optimaal advies voor ${pts} lager(s): ${capMl} ml patroon ingesteld op ${recSetting.months} m.`, cardX + 5, innerY + 16);
+    doc.text(`Optimaal advies voor ${pts} lager(s): ${smartAdv.cap} ml patroon ingesteld op ${smartAdv.months} m.`, cardX + 5, innerY + 16);
 
     innerY += 23;
 
@@ -2832,7 +3080,7 @@ function renderPdfAutomationExtraPage(doc, autoData, autoDataUrl, autoRatio, wat
     doc.setTextColor(227, 6, 19);
     doc.text("SMEERVOLUME (VOOR 1 LAGER)", cardX + 4, innerY + 5);
 
-    const daily1Str = dailyNeedCm3.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const daily1Str = devDaily1.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     doc.setFont("helvetica", "bold");
     doc.setFontSize(8.5);
     doc.setTextColor(227, 6, 19);
@@ -2841,7 +3089,7 @@ function renderPdfAutomationExtraPage(doc, autoData, autoDataUrl, autoRatio, wat
     doc.setFont("helvetica", "normal");
     doc.setFontSize(5.5);
     doc.setTextColor(100, 116, 139);
-    doc.text(`${(dailyNeedCm3 * 30.4375).toFixed(1).replace('.',',')} ml/m • ${(dailyNeedCm3 * 365.25).toFixed(1).replace('.',',')} ml/j`, cardX + 4, innerY + 16);
+    doc.text(`${(devDaily1 * 30.4375).toFixed(1).replace('.',',')} ml/m • ${(devDaily1 * 365.25).toFixed(1).replace('.',',')} ml/j`, cardX + 4, innerY + 16);
 
     // Volume Box 2: Total Toestel (N Lagers)
     doc.setFillColor(255, 255, 255);
@@ -8968,36 +9216,78 @@ function calculateAutomationLubrication() {
   // Render main summary badge above cards
   const needBadgeEl = document.getElementById("autoBearingNeedBadge");
   if (needBadgeEl) {
-    const gqStr = (window.currentRefillGrams || 0).toLocaleString("nl-BE", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
-    const needRateStr = dailyNeedCm3.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 4 });
-    const roundedDaysStr = Math.round(window.currentMicPolDays || 0).toLocaleString("nl-BE");
+    const hasDistinctDeviceNeeds = (!isSinglePoint && numCards > 1 && Array.isArray(autoDevicesState) && autoDevicesState.slice(0, numCards).some(d => d.totalDailyNeed > 0));
+    
+    if (hasDistinctDeviceNeeds) {
+      const devBreakdowns = [];
+      for (let dIdx = 0; dIdx < numCards; dIdx++) {
+        const d = autoDevicesState[dIdx];
+        if (d) {
+          const dNeed = (d.dailyNeedCm3 && d.dailyNeedCm3 > 0)
+            ? d.dailyNeedCm3.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+            : dailyNeedCm3.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+          const bInfo = d.bearingSummary ? ` (${d.bearingSummary})` : '';
+          devBreakdowns.push(`<strong>Pulsarlube ${d.id}:</strong> ${dNeed} ml/dag per lager${bInfo}`);
+        }
+      }
 
-    needBadgeEl.innerHTML = `
-      <div style="margin-bottom: 16px; background-color: #f8fafc; border: 1px solid #e2e8f0; border-left: 4px solid #E30613; border-radius: var(--border-radius-sm); padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.03);">
-        <div style="display: flex; align-items: center; gap: 10px;">
-          <div style="width: 32px; height: 32px; border-radius: 50%; background-color: #fef2f2; border: 1px solid #fecaca; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="#E30613" style="width: 16px; height: 16px;">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6a7.5 7.5 0 1 0 7.5 7.5h-7.5V6z" />
-              <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 10.5H21A7.5 7.5 0 0 0 13.5 3v7.5z" />
-            </svg>
+      needBadgeEl.innerHTML = `
+        <div style="margin-bottom: 16px; background-color: #f0fdf4; border: 1px solid #bbf7d0; border-left: 4px solid #16a34a; border-radius: var(--border-radius-sm); padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.03);">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <div style="width: 32px; height: 32px; border-radius: 50%; background-color: #dcfce7; border: 1px solid #86efac; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="#16a34a" style="width: 16px; height: 16px;">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <div>
+              <div style="font-size: 11px; font-weight: 700; color: #166534; text-transform: uppercase; letter-spacing: 0.5px;">
+                Berekende Lagerbehoefte per Toestel (Geïmporteerd uit Vragenlijst)
+              </div>
+              <div style="font-size: 13px; font-weight: 700; color: #14532d; margin-top: 2px;">
+                ${devBreakdowns.join(' &bull; ')}
+              </div>
+              <div style="font-size: 11.5px; color: #166534; margin-top: 3px;">
+                Elk toestel heeft zijn eigen berekende vetbehoefte op basis van het toerental (RPM) en lagertype van de aangesloten lagers.
+              </div>
+            </div>
           </div>
-          <div>
-            <div style="font-size: 11px; font-weight: 700; color: var(--text-medium); text-transform: uppercase; letter-spacing: 0.5px;">
-              Berekende Lagerbehoefte (Per 1 lager)
-            </div>
-            <div style="font-size: 14px; font-weight: 800; color: var(--primary-dark); margin-top: 1px;">
-              ${needRateStr} ml/dag per lager
-            </div>
-            <div style="font-size: 11.5px; color: var(--text-medium); margin-top: 3px;">
-              Nasmeerhoeveelheid: <strong>${gqStr} g</strong> &bull; Smeerinterval: <strong>${roundedDaysStr} dagen</strong> (${hDay}u/dag, ${dWeek}d/week)
-            </div>
+          <div style="background-color: #ffffff; border: 1px solid #86efac; border-radius: 20px; padding: 4px 12px; font-size: 11.5px; font-weight: 700; color: #166534;">
+            ✓ Vragenlijst Koppeling Actief
           </div>
         </div>
-        <div style="background-color: #ffffff; border: 1px solid #cbd5e1; border-radius: 20px; padding: 4px 12px; font-size: 11.5px; font-weight: 600; color: var(--text-dark);">
-          Afkomstig uit 'Smeercalculatie'
+      `;
+    } else {
+      const gqStr = (window.currentRefillGrams || 0).toLocaleString("nl-BE", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+      const needRateStr = dailyNeedCm3.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 4 });
+      const roundedDaysStr = Math.round(window.currentMicPolDays || 0).toLocaleString("nl-BE");
+
+      needBadgeEl.innerHTML = `
+        <div style="margin-bottom: 16px; background-color: #f8fafc; border: 1px solid #e2e8f0; border-left: 4px solid #E30613; border-radius: var(--border-radius-sm); padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.03);">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <div style="width: 32px; height: 32px; border-radius: 50%; background-color: #fef2f2; border: 1px solid #fecaca; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="#E30613" style="width: 16px; height: 16px;">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6a7.5 7.5 0 1 0 7.5 7.5h-7.5V6z" />
+                <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 10.5H21A7.5 7.5 0 0 0 13.5 3v7.5z" />
+              </svg>
+            </div>
+            <div>
+              <div style="font-size: 11px; font-weight: 700; color: var(--text-medium); text-transform: uppercase; letter-spacing: 0.5px;">
+                Berekende Lagerbehoefte (Per 1 lager)
+              </div>
+              <div style="font-size: 14px; font-weight: 800; color: var(--primary-dark); margin-top: 1px;">
+                ${needRateStr} ml/dag per lager
+              </div>
+              <div style="font-size: 11.5px; color: var(--text-medium); margin-top: 3px;">
+                Nasmeerhoeveelheid: <strong>${gqStr} g</strong> &bull; Smeerinterval: <strong>${roundedDaysStr} dagen</strong> (${hDay}u/dag, ${dWeek}d/week)
+              </div>
+            </div>
+          </div>
+          <div style="background-color: #ffffff; border: 1px solid #cbd5e1; border-radius: 20px; padding: 4px 12px; font-size: 11.5px; font-weight: 600; color: var(--text-dark);">
+            Afkomstig uit 'Smeercalculatie'
+          </div>
         </div>
-      </div>
-    `;
+      `;
+    }
   }
 
   // Iterate over each active device card (A, B, C, D)
@@ -9039,8 +9329,14 @@ function calculateAutomationLubrication() {
     }
 
     // 2. Compute recommendation for THIS device (based on points for this device)
-    const totalDailyNeedForDev = dailyNeedCm3 * points;
-    const recDays = capMl / totalDailyNeedForDev;
+    const totalDailyNeedForDev = (dev.totalDailyNeed && dev.totalDailyNeed > 0)
+      ? dev.totalDailyNeed
+      : (dailyNeedCm3 * points);
+    const devDailyNeed1 = (dev.dailyNeedCm3 && dev.dailyNeedCm3 > 0)
+      ? dev.dailyNeedCm3
+      : (points > 0 ? (totalDailyNeedForDev / points) : dailyNeedCm3);
+
+    const recDays = capMl / (totalDailyNeedForDev > 0 ? totalDailyNeedForDev : 0.704);
     const recMonths = recDays / 30.4375;
     const recWeeks = recDays / 7;
 
@@ -9090,22 +9386,22 @@ function calculateAutomationLubrication() {
       } else if (isSmartMatch) {
         const isExactFit = (smartAdv.ratio >= 0.85 && smartAdv.ratio <= 1.15);
         const fitDescFR = isExactFit
-          ? `Offre une <strong>précision de dosage maximale</strong> (parfaitement adaptée au besoin calculé de ${(totalDailyNeedForDev/points).toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ml/jour par roulement) et évite le sur-graissage.`
+          ? `Offre une <strong>précision de dosage maximale</strong> (parfaitement adaptée au besoin calculé de ${devDailyNeed1.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ml/jour par roulement) et évite le sur-graissage.`
           : (smartAdv.ratio > 1.15
-            ? `Garantit un <strong>graissage sûr</strong> (${((totalDailyNeedForDev/points) * smartAdv.ratio).toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ml/jour par roulement) et élimine tout risque de manque de graisse.`
-            : `C'est le réglage le plus proche disponible (${((totalDailyNeedForDev/points) * smartAdv.ratio).toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ml/jour par roulement).`);
+            ? `Garantit un <strong>graissage sûr</strong> (${(devDailyNeed1 * smartAdv.ratio).toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ml/jour par roulement) et élimine tout risque de manque de graisse.`
+            : `C'est le réglage le plus proche disponible (${(devDailyNeed1 * smartAdv.ratio).toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ml/jour par roulement).`);
 
         const fitDescEN = isExactFit
-          ? `Delivers <strong>maximum dosing precision</strong> (perfectly matched to the calculated demand of ${(totalDailyNeedForDev/points).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ml/day per bearing) and prevents excessive grease build-up.`
+          ? `Delivers <strong>maximum dosing precision</strong> (perfectly matched to the calculated demand of ${devDailyNeed1.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ml/day per bearing) and prevents excessive grease build-up.`
           : (smartAdv.ratio > 1.15
-            ? `Provides <strong>safe reliable lubrication</strong> (${((totalDailyNeedForDev/points) * smartAdv.ratio).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ml/day per bearing) and prevents any risk of bearing starvation.`
-            : `This is the closest available setting (${((totalDailyNeedForDev/points) * smartAdv.ratio).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ml/day per bearing).`);
+            ? `Provides <strong>safe reliable lubrication</strong> (${(devDailyNeed1 * smartAdv.ratio).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ml/day per bearing) and prevents any risk of bearing starvation.`
+            : `This is the closest available setting (${(devDailyNeed1 * smartAdv.ratio).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ml/day per bearing).`);
 
         const fitDescNL = isExactFit
-          ? `Dit biedt de <strong>hoogste doseernauwkeurigheid</strong> (perfect afgestemd op de berekende vetbehoefte van ${(totalDailyNeedForDev/points).toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ml/dag per lager) en voorkomt overmatige vetsmering.`
+          ? `Dit biedt de <strong>hoogste doseernauwkeurigheid</strong> (perfect afgestemd op de berekende vetbehoefte van ${devDailyNeed1.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ml/dag per lager) en voorkomt overmatige vetsmering.`
           : (smartAdv.ratio > 1.15
-            ? `Dit biedt een <strong>veilige smering</strong> (${((totalDailyNeedForDev/points) * smartAdv.ratio).toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ml/dag per lager) en voorkomt elk risico op ondersmering of lagerschade.`
-            : `Dit is de meest nabije veilige instelling (${((totalDailyNeedForDev/points) * smartAdv.ratio).toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ml/dag per lager) binnen de beschikbare standen.`);
+            ? `Dit biedt een <strong>veilige smering</strong> (${(devDailyNeed1 * smartAdv.ratio).toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ml/dag per lager) en voorkomt elk risico op ondersmering of lagerschade.`
+            : `Dit is de meest nabije veilige instelling (${(devDailyNeed1 * smartAdv.ratio).toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ml/dag per lager) binnen de beschikbare standen.`);
 
         recSubtextEl.innerHTML = (lang === "fr")
           ? `&check; <strong>Conseil optimal pour ${pointsText} : cartouche de ${smartAdv.cap} ml réglée sur ${smartAdv.months} mois.</strong><br>&bull; ${fitDescFR}<br>&bull; Maintenance : seulement ${smartAdv.cartridgesPerYear.toFixed(1).replace('.', ',')} cartouches/an (&euro; ${smartAdv.annualCost.toFixed(2).replace('.', ',')}/an).`
@@ -9159,7 +9455,7 @@ function calculateAutomationLubrication() {
     }
 
     // 3. Compute Volume Output Boxes for THIS device
-    const displayDaily1 = dailyNeedCm3;
+    const displayDaily1 = devDailyNeed1;
     const displayMonthly1 = displayDaily1 * 30.4375;
     const displayYearly1 = displayDaily1 * 365.25;
 
@@ -9199,7 +9495,7 @@ function calculateAutomationLubrication() {
     // 4. Match / Under / Over-lubrication Notice Box per Device (WITH FULL NUMERICAL DETAILS & MULTILINGUAL)
     const noticeEl = document.getElementById("autoMatchNotice_" + devId);
     if (noticeEl) {
-      if (dailyNeedCm3 <= 0) {
+      if (devDailyNeed1 <= 0 && dailyNeedCm3 <= 0) {
         noticeEl.innerHTML = '';
       } else {
         const periodInput = document.getElementById("autoDispensePeriod_" + devId);
@@ -9212,7 +9508,6 @@ function calculateAutomationLubrication() {
         else if (curUnit === "days") totalDays = periodVal;
         if (totalDays <= 0) totalDays = 1;
 
-        const totalDailyNeedForDev = dailyNeedCm3 * points;
         const actualDailyVol = capMl / totalDays;
         const ratio = totalDailyNeedForDev > 0 ? (actualDailyVol / totalDailyNeedForDev) : 1;
 
@@ -11876,7 +12171,17 @@ function updateRoiAutomationPage() {
 
   // 2. Annual Volume calculation for ALL points combined
   const dailyNeedCm3 = window.currentDailyNeedCm3 || 0.704;
-  const yearlyMlTotal = dailyNeedCm3 * totalPointsAllDevices * 365.25;
+  let totalDailyNeedAllDevices = 0;
+  for (let i = 0; i < numDevices; i++) {
+    const d = (typeof autoDevicesState !== "undefined" && autoDevicesState[i]) ? autoDevicesState[i] : null;
+    const pts = (deviceKey === "single_point") ? 1 : (d ? (d.points || 1) : 1);
+    if (d && d.totalDailyNeed && d.totalDailyNeed > 0) {
+      totalDailyNeedAllDevices += d.totalDailyNeed;
+    } else {
+      totalDailyNeedAllDevices += ((window.currentDailyNeedCm3 || 0.704) * pts);
+    }
+  }
+  const yearlyMlTotal = totalDailyNeedAllDevices * 365.25;
 
   const headerMlEl = document.getElementById("roiHeaderYearlyMl");
   var lang = currentLang || "nl";
@@ -12563,7 +12868,8 @@ function addRoiPdfPage(doc, dateString, watermarkDataUrl, aspectRatio, autoDataU
     totalInstallKitPrice += pInfo.installKitPrice;
     totalDividerBlockPrice += pInfo.dividerBlockPrice;
 
-    const yearlyMlDev = dailyNeedCm3 * pts * 365.25;
+    const devDailyNeedTotal = (d.totalDailyNeed && d.totalDailyNeed > 0) ? d.totalDailyNeed : (dailyNeedCm3 * pts);
+    const yearlyMlDev = devDailyNeedTotal * 365.25;
     let cartsDev = 0;
     if (period > 0) {
       cartsDev = unit === "weeks" ? (52.1785 / period) : (12 / period);
