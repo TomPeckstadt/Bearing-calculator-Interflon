@@ -1138,9 +1138,19 @@
               Vul de gegevens (punten 6 t/m 11) in per specifiek geselecteerd lager.
             </span>
           </div>
-          <select id="bearingSelectorSection2" class="form-control" style="width: auto; min-width: 240px; font-weight: 700; border-color: #E30613; color: #E30613; background: #fff5f5;" onchange="switchSection2Bearing(this.value)">
-            <option value="A">Lager A</option>
-          </select>
+          <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+            <select id="bearingSelectorSection2" class="form-control" style="width: auto; min-width: 240px; font-weight: 700; border-color: #E30613; color: #E30613; background: #fff5f5;" onchange="switchSection2Bearing(this.value)">
+              <option value="A">Lager A</option>
+            </select>
+            <button type="button" id="btnCopySec2" onclick="copySection2Conditions()" title="Kopieer smeersituatie (punten 6 t/m 11) van dit lager" style="display: inline-flex; align-items: center; gap: 6px; padding: 9px 14px; font-size: 13px; font-weight: 700; color: #334155; background: #f8fafc; border: 1.5px solid #cbd5e1; border-radius: 6px; cursor: pointer; transition: all 0.2s; white-space: nowrap;">
+              <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+              <span>Kopieer</span>
+            </button>
+            <button type="button" id="btnPasteSec2" onclick="pasteSection2Conditions()" title="Plak smeersituatie (punten 6 t/m 11) op dit lager" style="display: inline-flex; align-items: center; gap: 6px; padding: 9px 14px; font-size: 13px; font-weight: 700; color: #ffffff; background: #E30613; border: 1.5px solid #E30613; border-radius: 6px; cursor: pointer; transition: all 0.2s; white-space: nowrap;">
+              <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/></svg>
+              <span>Plakken</span>
+            </button>
+          </div>
         </div>
 
         <div class="grid-2">
@@ -5482,6 +5492,86 @@
         saveRasterConfigToLocalStorage();
       }
     }
+
+    // --- COPY / PASTE HUIDIGE SMEERSITUATIE & BEDRIJFSUREN (PUNTEN 6 T/M 11) ---
+    function getSection2BearingDisplayName(letter) {
+      const sel = document.getElementById('bearingSelectorSection2');
+      if (sel && sel.options) {
+        for (let i = 0; i < sel.options.length; i++) {
+          if (sel.options[i].value === letter) {
+            return sel.options[i].text || ('Lager ' + letter);
+          }
+        }
+      }
+      return 'Lager ' + letter;
+    }
+
+    function copySection2Conditions() {
+      saveCurrentSection2Data();
+      if (!activeBearingSec2 || !bearingDataMapSec2[activeBearingSec2]) {
+        showSurveyToast("⚠️ Geen gegevens gevonden om te kopiëren.");
+        return;
+      }
+
+      window.copiedSection2Data = JSON.parse(JSON.stringify(bearingDataMapSec2[activeBearingSec2]));
+      window.copiedSection2SourceLetter = activeBearingSec2;
+      window.copiedSection2SourceName = getSection2BearingDisplayName(activeBearingSec2);
+
+      const copyBtn = document.getElementById('btnCopySec2');
+      if (copyBtn) {
+        const origHtml = copyBtn.innerHTML;
+        copyBtn.innerHTML = '<span>✅ Gekopieerd!</span>';
+        copyBtn.style.borderColor = '#16a34a';
+        copyBtn.style.color = '#16a34a';
+        copyBtn.style.backgroundColor = '#f0fdf4';
+        setTimeout(() => {
+          copyBtn.innerHTML = origHtml;
+          copyBtn.style.borderColor = '#cbd5e1';
+          copyBtn.style.color = '#334155';
+          copyBtn.style.backgroundColor = '#f8fafc';
+        }, 1600);
+      }
+
+      const name = window.copiedSection2SourceName || ('Lager ' + activeBearingSec2);
+      showSurveyToast(`📋 Smeersituatie van ${name} gekopieerd! Kies een ander lager en klik op 'Plakken'.`);
+    }
+
+    function pasteSection2Conditions() {
+      if (!window.copiedSection2Data) {
+        showSurveyToast("⚠️ Klik eerst op 'Kopieer' bij een lager om de smeersituatie op te slaan.");
+        return;
+      }
+
+      if (!activeBearingSec2) return;
+
+      bearingDataMapSec2[activeBearingSec2] = JSON.parse(JSON.stringify(window.copiedSection2Data));
+      loadSection2DataForBearing(activeBearingSec2);
+      saveCurrentSection2Data();
+
+      if (typeof saveRasterConfigToLocalStorage === 'function') {
+        saveRasterConfigToLocalStorage();
+      }
+
+      const pasteBtn = document.getElementById('btnPasteSec2');
+      if (pasteBtn) {
+        const origHtml = pasteBtn.innerHTML;
+        pasteBtn.innerHTML = '<span>✅ Geplakt!</span>';
+        pasteBtn.style.borderColor = '#16a34a';
+        pasteBtn.style.backgroundColor = '#16a34a';
+        setTimeout(() => {
+          pasteBtn.innerHTML = origHtml;
+          pasteBtn.style.borderColor = '#E30613';
+          pasteBtn.style.backgroundColor = '#E30613';
+        }, 1600);
+      }
+
+      const targetName = getSection2BearingDisplayName(activeBearingSec2);
+      const srcName = window.copiedSection2SourceName ? ` (van ${window.copiedSection2SourceName})` : '';
+      showSurveyToast(`✅ Smeersituatie${srcName} succesvol geplakt op ${targetName}!`);
+    }
+
+    window.copySection2Conditions = copySection2Conditions;
+    window.pasteSection2Conditions = pasteSection2Conditions;
 
     // --- SECTION 3 HANDLERS ---
     function saveCurrentSection3Data() {
