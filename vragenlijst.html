@@ -2622,6 +2622,9 @@
       const newDevices = [];
       sol.devices.forEach((dev, idx) => {
         const palIdx = idx % DEVICE_PALETTES.length;
+        const assignedLetters = (dev.bearings && Array.isArray(dev.bearings))
+          ? dev.bearings.map(b => b.letter)
+          : [];
         newDevices.push({
           id: 'dev-' + (idx + 1),
           name: 'Toestel ' + (idx + 1),
@@ -2629,6 +2632,7 @@
           type: plType,
           x: dev.x,
           y: dev.y,
+          assignedBearingLetters: assignedLetters,
           active: true,
           paletteIndex: palIdx
         });
@@ -3075,6 +3079,7 @@
             short: dev.short,
             type: dev.type,
             targetBearingLetter: dev.targetBearingLetter,
+            assignedBearingLetters: dev.assignedBearingLetters || null,
             x: dev.x,
             y: dev.y,
             lineColor: pal.line,
@@ -3122,6 +3127,29 @@
 
             // Direct-mounted on bearing: no piping line needed (0,0 m)
             if (distM < 0.15) return;
+          }
+
+          // If multiple lubrication devices: ONLY connect to assigned bearing(s)!
+          if (origin.type !== 'cp') {
+            const activeDevices = devices.filter(d => d.active !== false);
+            if (activeDevices.length > 1) {
+              let isAssigned = false;
+              if (origin.assignedBearingLetters && Array.isArray(origin.assignedBearingLetters) && origin.assignedBearingLetters.length > 0) {
+                isAssigned = origin.assignedBearingLetters.includes(letter);
+              } else {
+                let closestDevId = null;
+                let minD = Infinity;
+                activeDevices.forEach(d => {
+                  const dDist = Math.hypot(pos.x - d.x, pos.y - d.y);
+                  if (dDist < minD) {
+                    minD = dDist;
+                    closestDevId = d.id;
+                  }
+                });
+                isAssigned = (closestDevId === origin.id);
+              }
+              if (!isAssigned) return; // Do not draw dashed lines to non-connected devices!
+            }
           }
 
           const origScreen = worldToScreen(origin.x, origin.y, canvas);
@@ -3696,6 +3724,7 @@
             typeShort: typeShort,
             typeName: getDeviceTypeName(dev.type),
             targetBearingLetter: dev.targetBearingLetter,
+            assignedBearingLetters: dev.assignedBearingLetters || null,
             color: pal.color,
             badgeBg: pal.badgeBg,
             badgeText: pal.badgeText,
