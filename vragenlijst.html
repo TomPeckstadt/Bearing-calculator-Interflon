@@ -1049,9 +1049,10 @@
     </div>
 
     <!-- Success Banner -->
-    <div id="successBanner" class="success-banner">
+    <div id="successBanner" class="success-banner" style="position: relative;">
+      <button type="button" onclick="document.getElementById('successBanner').style.display='none';" style="position: absolute; top: 12px; right: 16px; background: transparent; border: none; font-size: 22px; font-weight: bold; color: #166534; cursor: pointer; line-height: 1; padding: 4px 8px; border-radius: 4px;" title="Sluiten">&times;</button>
       <h3>✅ Vragenlijst Succesvol Verzonden!</h3>
-      <p>Hartelijk dank voor uw invoer. Uw Interflon adviseur neemt zo snel mogelijk contact met u op.</p>
+      <p style="margin: 6px 0 0 0;">Hartelijk dank voor uw invoer. Uw Interflon adviseur neemt zo snel mogelijk contact met u op.</p>
     </div>
 
     <!-- Survey Form -->
@@ -6122,8 +6123,25 @@
       }
 
       if (urlParams.get('submitted') === 'true') {
-        document.getElementById('successBanner').style.display = 'block';
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+        const banner = document.getElementById('successBanner');
+        if (banner) {
+          banner.style.display = 'block';
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+          setTimeout(() => {
+            if (banner) banner.style.display = 'none';
+          }, 8000);
+        }
+        try {
+          const newUrl = new URL(window.location.href);
+          newUrl.searchParams.delete('submitted');
+          const cleanQuery = newUrl.searchParams.toString();
+          const cleanPath = newUrl.pathname + (cleanQuery ? '?' + cleanQuery : '') + newUrl.hash;
+          window.history.replaceState({}, document.title, cleanPath);
+        } catch (e) {
+          try {
+            window.history.replaceState({}, document.title, window.location.pathname);
+          } catch (err) {}
+        }
       }
 
       if (urlParams.get('autoprint') === 'true' || urlParams.get('autoPrint') === 'true') {
