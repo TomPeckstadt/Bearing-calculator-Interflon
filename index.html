@@ -297,6 +297,25 @@
         </label>
       </div>
 
+      <div class="form-group" style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; border-top: 1px solid #f1f5f9; padding-top: 14px;">
+        <label style="font-size: 12px; font-weight: 800; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">3. 3D Machineraster & Installatie Schets</label>
+        <label class="pdf-option-label" style="display: flex; align-items: flex-start; gap: 12px; padding: 10px 12px; border: 1px solid #e5e7eb; border-radius: var(--border-radius-md); cursor: pointer; transition: all 0.2s;">
+          <input type="radio" name="pdfRasterOption" value="true" checked style="margin-top: 3px; accent-color: var(--primary-red);">
+          <div>
+            <strong style="display: block; font-size: 13.5px; color: var(--text-dark); margin-bottom: 1px;">Inclusief 3D Machineraster lay-out</strong>
+            <span style="display: block; font-size: 11.5px; color: var(--text-medium);">Voegt een 5de pagina toe met de schets van het interactief machinerooster en leidingafstanden.</span>
+          </div>
+        </label>
+        
+        <label class="pdf-option-label" style="display: flex; align-items: flex-start; gap: 12px; padding: 10px 12px; border: 1px solid #e5e7eb; border-radius: var(--border-radius-md); cursor: pointer; transition: all 0.2s;">
+          <input type="radio" name="pdfRasterOption" value="false" style="margin-top: 3px; accent-color: var(--primary-red);">
+          <div>
+            <strong style="display: block; font-size: 13.5px; color: var(--text-dark); margin-bottom: 1px;">Exclusief 3D Machineraster lay-out</strong>
+            <span style="display: block; font-size: 11.5px; color: var(--text-medium);">Slaat de pagina van het machinerooster over in het PDF rapport.</span>
+          </div>
+        </label>
+      </div>
+
       <div class="modal-actions" style="display: flex; justify-content: flex-end; gap: 12px;">
         <button type="button" class="btn btn-secondary" onclick="closePdfModal()" data-i18n="cancel">Annuleren</button>
         <button type="button" class="btn" onclick="confirmPdfExport()" data-i18n="pdfExportBtn">Rapport exporteren</button>
@@ -3277,7 +3296,7 @@
   <script src="interflon-data.js?v=20260904_1726"></script>
   <script src="bearings-db.js?v=20260911_0655"></script>
   <script src="chains-db.js?v=20260904_1726"></script>
-  <script src="app_v6.js?v=20260909_1100"></script>
+  <script src="app_v6.js?v=20260911_1935"></script>
 
   <!-- Interflon Oil Dispenser Information Modal (PowerPoint Viewer) -->
   <div id="oilDispenserInfoModal" class="modal-overlay hidden" style="z-index: 99999;">
