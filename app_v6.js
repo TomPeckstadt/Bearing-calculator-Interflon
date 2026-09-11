@@ -2873,12 +2873,13 @@ function renderPdfAutomationExtraPage(doc, autoData, autoDataUrl, autoRatio, wat
       doc.setFillColor(254, 242, 242);
       doc.setDrawColor(239, 68, 68);
       doc.setLineWidth(0.3);
-      doc.roundedRect(cardX + 2.5, innerY, colWidth - 5, 12, 2, 2, "FD");
+      doc.roundedRect(cardX + 2.5, innerY, colWidth - 5, 14, 2, 2, "FD");
 
       doc.setFont("helvetica", "bold");
-      doc.setFontSize(6);
-      doc.setTextColor(153, 27, 27);
-      doc.text(`⚠ Hoge vetbehoefte (${dailyXStr} ml/dag): Patroon raakt na ${maxTheoMonthsDev.toFixed(1).replace('.',',')} m leeg. Advies: Bekijk Graco.`, cardX + 4, innerY + 7);
+      doc.setFontSize(5.8);
+      doc.setTextColor(185, 28, 28);
+      const alertText = `LET OP: Hoge vetbehoefte (${dailyXStr} ml/dag) - Patroon raakt na ${maxTheoMonthsDev.toFixed(1).replace('.',',')} m leeg. Advies: Bekijk Graco.`;
+      doc.text(alertText, cardX + 4, innerY + 5.5, { maxWidth: colWidth - 8, lineHeightFactor: 1.25 });
     } else {
       doc.setFillColor(236, 253, 245);
       doc.setDrawColor(167, 243, 208);
@@ -2889,7 +2890,7 @@ function renderPdfAutomationExtraPage(doc, autoData, autoDataUrl, autoRatio, wat
       doc.setFontSize(5.8);
       doc.setTextColor(6, 95, 70);
       const matchText = `Uitstekende match! ${capMl} ml op ${periodVal} ${unitLabel} levert ${actualDailyVol.toFixed(2).replace('.',',')} ml/dag af voor ${pts} lager(s).`;
-      doc.text(matchText, cardX + 4, innerY + 5, { maxWidth: colWidth - 8 });
+      doc.text(matchText, cardX + 4, innerY + 5.5, { maxWidth: colWidth - 8, lineHeightFactor: 1.25 });
     }
   }
 }
@@ -13848,10 +13849,10 @@ function addMachineRasterPdfPage(doc, dateString, watermarkDataUrl, aspectRatio)
       doc.text("Direct op lager", 172, curY + 3.8);
     } else if (distDev <= 6.0) {
       doc.setTextColor(22, 101, 52);
-      doc.text("✓ Binnen bereik", 172, curY + 3.8);
+      doc.text("Binnen bereik", 172, curY + 3.8);
     } else {
       doc.setTextColor(194, 65, 12);
-      doc.text("⚠ Leiding > 6m", 172, curY + 3.8);
+      doc.text("Let op: Leiding > 6m", 172, curY + 3.8);
     }
 
     curY += rh;
