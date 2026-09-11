@@ -1292,6 +1292,7 @@
                   <button type="button" onclick="adjustRasterZoom(-0.2)" title="Uitzoomen">−</button>
                   <span id="rasterZoomLabel" class="canvas-zoom-label">100%</span>
                   <button type="button" onclick="adjustRasterZoom(0.2)" title="Inzoomen">+</button>
+                  <button type="button" onclick="autoFitRasterZoom()" class="canvas-zoom-reset" style="background: rgba(56, 189, 248, 0.15); color: #38bdf8; border-color: rgba(56, 189, 248, 0.3);" title="Automatisch inzoomen voor optimale leesbaarheid (Auto-Fit)">🔍 Auto-Fit</button>
                   <button type="button" onclick="resetRasterZoom()" class="canvas-zoom-reset" title="Herstel zoom naar passend en centreer">↺ Reset</button>
                 </div>
                 <button type="button" id="btnHeaderVergroot" onclick="toggleRasterFullscreen()" class="canvas-header-expand-btn" title="Vergroot naar volledig scherm">
@@ -2743,6 +2744,70 @@
       drawBearingLayout();
     }
 
+    function calculateOptimalRasterZoom(bearingPositionsObj, devicesArr, showCp, gridRange, viewMode) {
+      const points = [];
+      if (showCp) points.push({ x: 0, y: 0 });
+      (devicesArr || []).forEach(dev => {
+        if (dev && dev.active !== false) points.push({ x: dev.x || 0, y: dev.y || 0 });
+      });
+      Object.values(bearingPositionsObj || {}).forEach(pos => {
+        if (pos && typeof pos.x === 'number' && typeof pos.y === 'number') points.push({ x: pos.x, y: pos.y });
+      });
+      if (points.length <= 1) return 2.5;
+
+      const is3D = (viewMode === '3d');
+      let minIsoX = Infinity, maxIsoX = -Infinity;
+      let minIsoY = Infinity, maxIsoY = -Infinity;
+
+      points.forEach(p => {
+        let ix, iy;
+        if (is3D) {
+          ix = (p.x - p.y) * 0.866;
+          iy = -(p.x + p.y) * 0.5;
+        } else {
+          ix = p.x;
+          iy = -p.y;
+        }
+        if (ix < minIsoX) minIsoX = ix;
+        if (ix > maxIsoX) maxIsoX = ix;
+        if (iy < minIsoY) minIsoY = iy;
+        if (iy > maxIsoY) maxIsoY = iy;
+      });
+
+      const maxSpanX = Math.max(Math.abs(minIsoX), Math.abs(maxIsoX));
+      const maxSpanY = Math.max(Math.abs(minIsoY), Math.abs(maxIsoY));
+      const marginMeters = 1.35;
+      const effectiveSpanX = (maxSpanX + marginMeters);
+      const effectiveSpanY = (maxSpanY + marginMeters);
+
+      const rangeNeededX = is3D ? (effectiveSpanX / 1.732) : effectiveSpanX;
+      const rangeNeededY = effectiveSpanY;
+      const rangeNeeded = Math.max(rangeNeededX, rangeNeededY, 2.2);
+
+      let optimalZoom = (gridRange || 10) / rangeNeeded;
+      optimalZoom = Math.max(1.2, Math.min(3.0, Math.round(optimalZoom * 20) / 20));
+      return optimalZoom;
+    }
+
+    function autoFitRasterZoom() {
+      const activeBearingsObj = {};
+      const rows = document.querySelectorAll('.bearing-row');
+      rows.forEach((r, idx) => {
+        const letter = r.getAttribute('data-letter') || (LETTERS[idx] || ('L' + (idx+1)));
+        if (bearingPositions[letter]) {
+          activeBearingsObj[letter] = bearingPositions[letter];
+        }
+      });
+
+      const opt = calculateOptimalRasterZoom(activeBearingsObj, devices, showCentralPoint, machineRangeMeters, layoutViewMode);
+      rasterZoom = opt;
+      rasterPanX = 0;
+      rasterPanY = 0;
+      const lbl = document.getElementById('rasterZoomLabel');
+      if (lbl) lbl.textContent = Math.round(rasterZoom * 100) + '%';
+      drawBearingLayout();
+    }
+
     function setLayoutViewMode(mode) {
       layoutViewMode = mode;
       const btn3D = document.getElementById('btnView3D');
@@ -4144,8 +4209,9 @@
       const prevPanY = rasterPanY;
       const prevFs = isRasterFullscreen;
       
-      // Force enlarged view mode parameters
-      rasterZoom = 1.4; // Enlarged 140% scale
+      // Calculate optimal readable zoom based on active bearings and devices (like in Bijlage 2)
+      const optZoom = calculateOptimalRasterZoom(bearingPositions, devices, showCentralPoint, machineRangeMeters, layoutViewMode);
+      rasterZoom = optZoom;
       rasterPanX = 0;
       rasterPanY = 0;
       isRasterFullscreen = true;
