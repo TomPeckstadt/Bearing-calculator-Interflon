@@ -7094,6 +7094,7 @@ function closePdfModal() {
 function confirmPdfExport() {
   const includeTco = document.querySelector('input[name="pdfTcoOption"]:checked')?.value === "true";
   const includeRoi = document.querySelector('input[name="pdfRoiOption"]:checked')?.value === "true";
+  const includeRaster = document.querySelector('input[name="pdfRasterOption"]:checked')?.value !== "false";
   closePdfModal();
   
   const isChain = (typeof currentAppMode !== "undefined" && currentAppMode === "chain") ||
@@ -7106,11 +7107,11 @@ function confirmPdfExport() {
   if (isChain) {
     runChainPdfExport(includeTco, includeRoi);
   } else {
-    runBearingPdfExport(includeTco, includeRoi);
+    runBearingPdfExport(includeTco, includeRoi, includeRaster);
   }
 }
 
-function runBearingPdfExport(includeTco, includeRoi) {
+function runBearingPdfExport(includeTco, includeRoi, includeRaster = true) {
   const { jsPDF } = window.jspdf;
   const langData = TRANSLATIONS[currentLang] || TRANSLATIONS["nl"];
   
@@ -7831,9 +7832,14 @@ function runBearingPdfExport(includeTco, includeRoi) {
         // Voorlaatste pagina: Automatisering Overzicht (visuele schermkopie zoals in de app)
         renderPdfAutomationExtraPage(doc, {}, autoDataUrl, autoRatio, watermarkDataUrl, aspectRatio, langData, false, divDataUrl);
 
-        // Laatste pagina: ROI Automatisering
+        // Voorlaatste pagina: ROI Automatisering
         if (includeRoi) {
           addRoiPdfPage(doc, dateString, watermarkDataUrl, aspectRatio, autoDataUrl);
+        }
+
+        // 5de pagina: 3D Machineraster & Installatie Lay-out
+        if (includeRaster) {
+          addMachineRasterPdfPage(doc, dateString, watermarkDataUrl, aspectRatio);
         }
 
         const filePrefix = currentLang === "nl" ? "Interflon_Smeeradvies_" : currentLang === "en" ? "Interflon_Lubrication_Advice_" : "Interflon_Conseil_Lubrification_";
@@ -12973,6 +12979,999 @@ function addRoiPdfPage(doc, dateString, watermarkDataUrl, aspectRatio, autoDataU
   doc.setFontSize(7.5);
   doc.setTextColor(227, 6, 19);
   doc.text("INTERFLON - A WORLD WITHOUT FRICTION", 20, footerY + 14);
+}
+
+// ==========================================================================
+// PAGINA 5: 3D MACHINERASTER / INSTALLATIE SCHETS & LEIDINGAFSTANDEN
+// ==========================================================================
+
+function calculateOptimalRasterZoom(bearingPositions, devices, showCentralPoint, machineRangeMeters, layoutViewMode) {
+  const points = [];
+
+  if (showCentralPoint) {
+    points.push({ x: 0, y: 0 });
+  }
+
+  (devices || []).forEach(dev => {
+    if (dev && dev.active !== false) {
+      points.push({ x: dev.x || 0, y: dev.y || 0 });
+    }
+  });
+
+  Object.values(bearingPositions || {}).forEach(pos => {
+    if (pos && typeof pos.x === 'number' && typeof pos.y === 'number') {
+      points.push({ x: pos.x, y: pos.y });
+    }
+  });
+
+  if (points.length <= 1) {
+    return 2.5;
+  }
+
+  const is3D = (layoutViewMode === '3d');
+  let minIsoX = Infinity, maxIsoX = -Infinity;
+  let minIsoY = Infinity, maxIsoY = -Infinity;
+
+  points.forEach(p => {
+    let ix, iy;
+    if (is3D) {
+      ix = (p.x - p.y) * 0.866;
+      iy = -(p.x + p.y) * 0.5;
+    } else {
+      ix = p.x;
+      iy = -p.y;
+    }
+    if (ix < minIsoX) minIsoX = ix;
+    if (ix > maxIsoX) maxIsoX = ix;
+    if (iy < minIsoY) minIsoY = iy;
+    if (iy > maxIsoY) maxIsoY = iy;
+  });
+
+  const maxSpanX = Math.max(Math.abs(minIsoX), Math.abs(maxIsoX));
+  const maxSpanY = Math.max(Math.abs(minIsoY), Math.abs(maxIsoY));
+
+  // Ruime marge in meters voor labels, afstandsbadges en cirkels
+  const marginMeters = 1.35;
+  const effectiveSpanX = (maxSpanX + marginMeters);
+  const effectiveSpanY = (maxSpanY + marginMeters);
+
+  const rangeNeededX = is3D ? (effectiveSpanX / 1.732) : effectiveSpanX;
+  const rangeNeededY = effectiveSpanY;
+  const rangeNeeded = Math.max(rangeNeededX, rangeNeededY, 2.2);
+
+  let optimalZoom = (machineRangeMeters || 10) / rangeNeeded;
+
+  // Begrens zoom tussen 1.20 en 3.00 zodat labels nooit overlappen en altijd scherp leesbaar zijn
+  optimalZoom = Math.max(1.2, Math.min(3.0, Math.round(optimalZoom * 20) / 20));
+
+  return optimalZoom;
+}
+
+function getActiveMachineRasterData() {
+  let qData = null;
+  try {
+    const raw = localStorage.getItem('interflon_questionnaire_full_data') || localStorage.getItem('interflon_last_questionnaire_data');
+    if (raw) qData = JSON.parse(raw);
+  } catch (e) {}
+
+  let surveyConfig = window.currentSurveyRasterConfig || null;
+  if (!surveyConfig) {
+    try {
+      const rawCfg = localStorage.getItem('interflon_survey_raster_config');
+      if (rawCfg) surveyConfig = JSON.parse(rawCfg);
+    } catch (e) {}
+  }
+
+  let machineName = (qData && qData.general && qData.general.machineName) ||
+                    (surveyConfig && surveyConfig.machineName) ||
+                    localStorage.getItem('tech_machine') ||
+                    (document.getElementById('techMachine') ? document.getElementById('techMachine').value : '') ||
+                    'Machine';
+
+  let bearings = [];
+  let bearingPositions = {};
+  let devices = [];
+  let machineRangeMeters = 10;
+  let layoutViewMode = '3d';
+  let showCentralPoint = true;
+
+  if (qData && qData.raster && qData.raster.bearingPositions) {
+    bearingPositions = JSON.parse(JSON.stringify(qData.raster.bearingPositions));
+    machineRangeMeters = qData.raster.machineRangeMeters || 10;
+    layoutViewMode = qData.raster.layoutViewMode || '3d';
+    showCentralPoint = qData.raster.showCentralPoint !== false;
+    devices = (qData.raster.devices && Array.isArray(qData.raster.devices)) ? JSON.parse(JSON.stringify(qData.raster.devices)) : [];
+    if (qData.bearings && Array.isArray(qData.bearings)) {
+      bearings = JSON.parse(JSON.stringify(qData.bearings));
+    }
+  } else if (surveyConfig && surveyConfig.bearings) {
+    bearings = JSON.parse(JSON.stringify(surveyConfig.bearings));
+    if (surveyConfig.devices && Array.isArray(surveyConfig.devices)) {
+      devices = JSON.parse(JSON.stringify(surveyConfig.devices));
+    }
+  }
+
+  const LETTERS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L'];
+  const PRESET_COORDS = [
+    { x: -2.4, y: 1.8 },
+    { x: 2.4, y: 1.8 },
+    { x: -2.4, y: -1.8 },
+    { x: 2.2, y: -1.8 },
+    { x: 0.0, y: 2.8 },
+    { x: 0.0, y: -2.8 },
+    { x: -3.5, y: 0.0 },
+    { x: 3.5, y: 0.0 }
+  ];
+
+  const currentBearingInput = document.getElementById('bearingSearchInput') || document.getElementById('inputBearingNumber');
+  const currentBearingNr = currentBearingInput ? currentBearingInput.value.trim() : '22225';
+
+  const autoDevSelect = document.getElementById('automationDeviceSelect') || document.getElementById('autoDeviceSelect');
+  const devKey = autoDevSelect ? autoDevSelect.value : 'pulsarlube_m2';
+  const isSinglePoint = (devKey === 'single_point');
+  const totalPts = isSinglePoint 
+    ? (window.spNumBearingsValue || 4) 
+    : (typeof autoDevicesState !== 'undefined' && autoDevicesState[0] ? autoDevicesState.reduce((sum, d) => sum + (d.points || 1), 0) : 4);
+
+  if (bearings.length === 0) {
+    const ptsCount = Math.min(8, Math.max(1, totalPts));
+    for (let i = 0; i < ptsCount; i++) {
+      const letter = LETTERS[i];
+      bearings.push({
+        letter: letter,
+        nr: currentBearingNr || '22225',
+        desc: `Lager ${letter}`,
+        qty: '1'
+      });
+      if (!bearingPositions[letter]) {
+        bearingPositions[letter] = { ...PRESET_COORDS[i % PRESET_COORDS.length] };
+      }
+    }
+  } else {
+    bearings.forEach((b, idx) => {
+      const l = b.letter || LETTERS[idx];
+      if (!bearingPositions[l]) {
+        bearingPositions[l] = { ...PRESET_COORDS[idx % PRESET_COORDS.length] };
+      }
+    });
+  }
+
+  if (devices.length === 0) {
+    const numDevs = typeof getActiveNumDevices === 'function' ? getActiveNumDevices() : 1;
+    for (let i = 0; i < numDevs; i++) {
+      let devName = "Toestel 1 • Pulsarlube M2";
+      if (devKey === "single_point") devName = "Interflon Single Point Lubricator";
+      else if (devKey === "pulsarlube_msp") devName = "Toestel 1 • Pulsarlube MSP";
+      else if (devKey === "pulsarlube_plc") devName = "Toestel 1 • Pulsarlube PLC";
+
+      devices.push({
+        id: `dev-${i+1}`,
+        name: `Toestel ${i+1}`,
+        short: `T${i+1}`,
+        type: devKey,
+        active: true,
+        x: (numDevs === 1) ? 2.1 : (i === 0 ? -2.0 : 2.0),
+        y: (numDevs === 1) ? -0.8 : 0,
+        paletteIndex: i
+      });
+    }
+  }
+
+  return {
+    machineName,
+    machineRangeMeters,
+    layoutViewMode,
+    showCentralPoint,
+    bearingPositions,
+    devices,
+    bearings
+  };
+}
+
+function generateMachineRasterImageDataUrl(rasterData, customZoom = null) {
+  try {
+    const canvas = document.createElement('canvas');
+    const width = 1600;
+    const height = 1000;
+    canvas.width = width;
+    canvas.height = height;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return null;
+
+    // 1. Dark Blueprint/CAD Background
+    ctx.fillStyle = '#090e17';
+    ctx.fillRect(0, 0, width, height);
+
+    const is3D = (rasterData.layoutViewMode === '3d');
+    const gridRange = rasterData.machineRangeMeters || 10;
+    const optimalZoom = customZoom || calculateOptimalRasterZoom(
+      rasterData.bearingPositions,
+      rasterData.devices,
+      rasterData.showCentralPoint,
+      gridRange,
+      rasterData.layoutViewMode
+    );
+
+    const padY = 70;
+    const padX = 90;
+    const availH = height - padY * 2;
+    const availW = width - padX * 2;
+
+    let basePpm;
+    if (is3D) {
+      const ppmH = availH / (2 * gridRange);
+      const ppmW = availW / (3.464 * gridRange);
+      basePpm = Math.min(ppmH, ppmW);
+    } else {
+      basePpm = Math.min(availW, availH) / (2 * gridRange);
+    }
+
+    const ppm = basePpm * optimalZoom;
+    const cx = width / 2;
+    const cy = height / 2;
+
+    function worldToScreen(x, y) {
+      if (!is3D) {
+        return { u: cx + x * ppm, v: cy - y * ppm };
+      }
+      const cos30 = 0.866;
+      const sin30 = 0.5;
+      const u = cx + (x - y) * cos30 * ppm;
+      const v = cy - (x + y) * sin30 * ppm;
+      return { u, v };
+    }
+
+    // 2. Machine Floor Grid
+    if (is3D) {
+      const pTop = worldToScreen(gridRange, gridRange);
+      const pRight = worldToScreen(gridRange, -gridRange);
+      const pBottom = worldToScreen(-gridRange, -gridRange);
+      const pLeft = worldToScreen(-gridRange, gridRange);
+
+      ctx.beginPath();
+      ctx.moveTo(pTop.u, pTop.v);
+      ctx.lineTo(pRight.u, pRight.v);
+      ctx.lineTo(pBottom.u, pBottom.v);
+      ctx.lineTo(pLeft.u, pLeft.v);
+      ctx.closePath();
+      ctx.fillStyle = '#0c1322';
+      ctx.fill();
+      ctx.strokeStyle = '#334155';
+      ctx.lineWidth = 2.5;
+      ctx.stroke();
+
+      // Isometric Grid Lines
+      const step = gridRange <= 6 ? 1 : gridRange <= 15 ? 2 : 5;
+      ctx.lineWidth = 1.2;
+      for (let m = -gridRange; m <= gridRange; m += step) {
+        const isCenter = Math.abs(m) < 0.01;
+        ctx.strokeStyle = isCenter ? 'rgba(148, 163, 184, 0.45)' : 'rgba(51, 65, 85, 0.45)';
+
+        const l1 = worldToScreen(-gridRange, m);
+        const l2 = worldToScreen(gridRange, m);
+        ctx.beginPath();
+        ctx.moveTo(l1.u, l1.v);
+        ctx.lineTo(l2.u, l2.v);
+        ctx.stroke();
+
+        const l3 = worldToScreen(m, -gridRange);
+        const l4 = worldToScreen(m, gridRange);
+        ctx.beginPath();
+        ctx.moveTo(l3.u, l3.v);
+        ctx.lineTo(l4.u, l4.v);
+        ctx.stroke();
+      }
+
+      // Concentric distance guide rings with meter tags
+      const ringStep = gridRange <= 6 ? 1 : gridRange <= 12 ? 2 : 4;
+      for (let r = ringStep; r <= gridRange; r += ringStep) {
+        ctx.beginPath();
+        for (let angle = 0; angle <= Math.PI * 2 + 0.1; angle += 0.08) {
+          const rx = Math.cos(angle) * r;
+          const ry = Math.sin(angle) * r;
+          const pt = worldToScreen(rx, ry);
+          if (angle === 0) ctx.moveTo(pt.u, pt.v);
+          else ctx.lineTo(pt.u, pt.v);
+        }
+        ctx.strokeStyle = 'rgba(56, 189, 248, 0.22)';
+        ctx.setLineDash([6, 6]);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        const lblPt = worldToScreen(r, 0);
+        ctx.font = 'bold 15px sans-serif';
+        ctx.fillStyle = 'rgba(56, 189, 248, 0.7)';
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'bottom';
+        ctx.fillText(r + 'm', lblPt.u + 6, lblPt.v - 3);
+      }
+    } else {
+      // 2D Blueprint Grid
+      ctx.fillStyle = '#0c1322';
+      ctx.fillRect(cx - gridRange * ppm, cy - gridRange * ppm, gridRange * 2 * ppm, gridRange * 2 * ppm);
+      ctx.strokeStyle = '#334155';
+      ctx.lineWidth = 2.5;
+      ctx.strokeRect(cx - gridRange * ppm, cy - gridRange * ppm, gridRange * 2 * ppm, gridRange * 2 * ppm);
+
+      const step = gridRange <= 6 ? 1 : gridRange <= 15 ? 2 : 5;
+      ctx.lineWidth = 1.2;
+      for (let m = -gridRange; m <= gridRange; m += step) {
+        ctx.strokeStyle = Math.abs(m) < 0.01 ? 'rgba(148, 163, 184, 0.45)' : 'rgba(51, 65, 85, 0.45)';
+        ctx.beginPath();
+        ctx.moveTo(cx - gridRange * ppm, cy - m * ppm);
+        ctx.lineTo(cx + gridRange * ppm, cy - m * ppm);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(cx + m * ppm, cy - gridRange * ppm);
+        ctx.lineTo(cx + m * ppm, cy + gridRange * ppm);
+        ctx.stroke();
+      }
+    }
+
+    // 3. Active Origins (Central Point & Devices)
+    const activeOrigins = [];
+    if (rasterData.showCentralPoint) {
+      activeOrigins.push({
+        id: 'cp',
+        name: 'Centraal Punt',
+        short: 'CP',
+        x: 0,
+        y: 0,
+        lineColor: '#38bdf8',
+        tagBg: 'rgba(15, 23, 42, 0.94)',
+        tagBorder: '#38bdf8',
+        tagText: '#38bdf8'
+      });
+    }
+
+    const DEVICE_PALETTES = [
+      { color: '#ea580c', line: '#fb923c', tagBg: 'rgba(154, 52, 18, 0.95)' },
+      { color: '#059669', line: '#34d399', tagBg: 'rgba(6, 78, 59, 0.95)' },
+      { color: '#7c3aed', line: '#c084fc', tagBg: 'rgba(91, 33, 182, 0.95)' },
+      { color: '#0d9488', line: '#2dd4bf', tagBg: 'rgba(19, 78, 74, 0.95)' }
+    ];
+
+    (rasterData.devices || []).forEach((dev, devIdx) => {
+      if (dev.active !== false) {
+        const pal = DEVICE_PALETTES[devIdx % DEVICE_PALETTES.length];
+        activeOrigins.push({
+          id: dev.id,
+          name: dev.name || `Toestel ${devIdx + 1}`,
+          short: dev.short || `T${devIdx + 1}`,
+          type: dev.type,
+          targetBearingLetter: dev.targetBearingLetter,
+          x: dev.x || 0,
+          y: dev.y || 0,
+          lineColor: pal.line,
+          tagBg: pal.tagBg,
+          tagBorder: pal.line,
+          tagText: '#ffffff'
+        });
+      }
+    });
+
+    // 4. Connecting Lines & Distance Badges
+    activeOrigins.forEach((origin, origIdx) => {
+      const isSinglePoint = (origin.type === 'single_point');
+
+      rasterData.bearings.forEach((b, bIdx) => {
+        const letter = b.letter || String.fromCharCode(65 + bIdx);
+        const pos = rasterData.bearingPositions[letter] || { x: 0, y: 0 };
+        const distM = Math.hypot(pos.x - origin.x, pos.y - origin.y);
+
+        if (isSinglePoint) {
+          if (origin.targetBearingLetter && origin.targetBearingLetter !== letter) return;
+          if (distM < 0.15) return;
+        }
+
+        const origScreen = worldToScreen(origin.x, origin.y);
+        const bScreen = worldToScreen(pos.x, pos.y);
+
+        // Draw line
+        ctx.beginPath();
+        ctx.moveTo(origScreen.u, origScreen.v);
+        ctx.lineTo(bScreen.u, bScreen.v);
+        ctx.strokeStyle = origin.lineColor;
+        ctx.lineWidth = 2.2;
+        ctx.setLineDash([8, 6]);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // Badge along line
+        const offsetRatio = activeOrigins.length > 1 ? (0.42 + (origIdx * 0.16)) : 0.5;
+        const midU = origScreen.u + (bScreen.u - origScreen.u) * offsetRatio;
+        const midV = origScreen.v + (bScreen.v - origScreen.v) * offsetRatio;
+
+        const distStr = (activeOrigins.length > 1 ? (origin.short + ': ') : '') + distM.toFixed(1).replace('.', ',') + ' m';
+
+        ctx.font = 'bold 15px sans-serif';
+        const textWidth = ctx.measureText(distStr).width;
+        const padW = 8;
+        const padH = 4;
+
+        ctx.fillStyle = origin.tagBg;
+        ctx.beginPath();
+        if (ctx.roundRect) {
+          ctx.roundRect(midU - textWidth/2 - padW, midV - 11 - padH, textWidth + padW*2, 22 + padH*2, 5);
+        } else {
+          ctx.rect(midU - textWidth/2 - padW, midV - 11 - padH, textWidth + padW*2, 22 + padH*2);
+        }
+        ctx.fill();
+        ctx.strokeStyle = origin.tagBorder;
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+
+        ctx.fillStyle = origin.tagText;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(distStr, midU, midV);
+      });
+    });
+
+    // 5. Central Reference Point (0,0)
+    if (rasterData.showCentralPoint) {
+      const centerScreen = worldToScreen(0, 0);
+
+      // Outer glow
+      ctx.beginPath();
+      ctx.arc(centerScreen.u, centerScreen.v, 22, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(227, 6, 19, 0.25)';
+      ctx.fill();
+
+      // Red circle
+      ctx.beginPath();
+      ctx.arc(centerScreen.u, centerScreen.v, 12, 0, Math.PI * 2);
+      ctx.fillStyle = '#E30613';
+      ctx.fill();
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 3;
+      ctx.stroke();
+
+      // White dot
+      ctx.beginPath();
+      ctx.arc(centerScreen.u, centerScreen.v, 4.5, 0, Math.PI * 2);
+      ctx.fillStyle = '#ffffff';
+      ctx.fill();
+
+      // Label below
+      ctx.font = 'bold 16px sans-serif';
+      ctx.fillStyle = '#ffffff';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'top';
+      ctx.fillText('Centraal Punt (0,0)', centerScreen.u, centerScreen.v + 18);
+    }
+
+    // 6. Extra Devices (Toestellen)
+    (rasterData.devices || []).forEach((dev, devIdx) => {
+      if (dev.active === false) return;
+      const pal = DEVICE_PALETTES[devIdx % DEVICE_PALETTES.length];
+      const dScreen = worldToScreen(dev.x || 0, dev.y || 0);
+      const dSize = 44;
+
+      // Ground shadow
+      ctx.beginPath();
+      ctx.ellipse(dScreen.u, dScreen.v + 6, dSize * 0.55, dSize * 0.28, 0, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+      ctx.fill();
+
+      // Rounded Hexagon / Squircle
+      ctx.beginPath();
+      if (ctx.roundRect) {
+        ctx.roundRect(dScreen.u - dSize/2, dScreen.v - dSize/2, dSize, dSize, 10);
+      } else {
+        ctx.rect(dScreen.u - dSize/2, dScreen.v - dSize/2, dSize, dSize);
+      }
+      const grad = ctx.createLinearGradient(dScreen.u - dSize/2, dScreen.v - dSize/2, dScreen.u + dSize/2, dScreen.v + dSize/2);
+      grad.addColorStop(0, pal.line);
+      grad.addColorStop(1, pal.color);
+      ctx.fillStyle = grad;
+      ctx.fill();
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 2.8;
+      ctx.stroke();
+
+      // Text inside device
+      ctx.font = 'bold 18px sans-serif';
+      ctx.fillStyle = '#ffffff';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(dev.short || `T${devIdx+1}`, dScreen.u, dScreen.v);
+
+      // Label badge underneath
+      let devNameText = dev.name || `Toestel ${devIdx+1}`;
+      if (dev.type === 'pulsarlube_m2') devNameText += ' • Pulsarlube M2';
+      else if (dev.type === 'pulsarlube_msp') devNameText += ' • Pulsarlube MSP';
+      else if (dev.type === 'pulsarlube_plc') devNameText += ' • Pulsarlube PLC';
+      else if (dev.type === 'single_point') devNameText = 'Interflon Single Point';
+
+      ctx.font = 'bold 15px sans-serif';
+      const devTagW = ctx.measureText(devNameText).width;
+      const padX = 8;
+      const padY = 4;
+
+      ctx.fillStyle = 'rgba(15, 23, 42, 0.94)';
+      ctx.beginPath();
+      if (ctx.roundRect) {
+        ctx.roundRect(dScreen.u - devTagW/2 - padX, dScreen.v + dSize/2 + 6, devTagW + padX*2, 22 + padY, 5);
+      } else {
+        ctx.rect(dScreen.u - devTagW/2 - padX, dScreen.v + dSize/2 + 6, devTagW + padX*2, 22 + padY);
+      }
+      ctx.fill();
+      ctx.strokeStyle = pal.line;
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+
+      ctx.fillStyle = '#ffffff';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(devNameText, dScreen.u, dScreen.v + dSize/2 + 18);
+    });
+
+    // 7. Bearing Nodes (A, B, C, D...)
+    rasterData.bearings.forEach((b, bIdx) => {
+      const letter = b.letter || String.fromCharCode(65 + bIdx);
+      const pos = rasterData.bearingPositions[letter] || { x: 0, y: 0 };
+      const bScreen = worldToScreen(pos.x, pos.y);
+      const radius = 22;
+
+      // Ground shadow
+      ctx.beginPath();
+      ctx.ellipse(bScreen.u, bScreen.v + 5, radius, radius * 0.5, 0, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.45)';
+      ctx.fill();
+
+      // 3D sphere gradient
+      const grad = ctx.createRadialGradient(
+        bScreen.u - radius * 0.3, bScreen.v - radius * 0.3, radius * 0.1,
+        bScreen.u, bScreen.v, radius
+      );
+      grad.addColorStop(0, '#60a5fa');
+      grad.addColorStop(1, '#1d4ed8');
+
+      ctx.beginPath();
+      ctx.arc(bScreen.u, bScreen.v, radius, 0, Math.PI * 2);
+      ctx.fillStyle = grad;
+      ctx.fill();
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 3;
+      ctx.stroke();
+
+      // Letter inside node
+      ctx.font = 'bold 19px sans-serif';
+      ctx.fillStyle = '#ffffff';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(letter, bScreen.u, bScreen.v);
+
+      // Pill label underneath node: "Lager A: 22225"
+      const nrStr = b.nr || (document.getElementById('bearingSearchInput')?.value.trim()) || "22225";
+      const labelText = `Lager ${letter}: ${nrStr}`;
+
+      ctx.font = 'bold 16px sans-serif';
+      const tagWidth = ctx.measureText(labelText).width;
+      const tagPad = 8;
+      const tagHeight = 24;
+
+      ctx.fillStyle = 'rgba(15, 23, 42, 0.92)';
+      ctx.beginPath();
+      if (ctx.roundRect) {
+        ctx.roundRect(bScreen.u - tagWidth/2 - tagPad, bScreen.v + radius + 7, tagWidth + tagPad*2, tagHeight, 5);
+      } else {
+        ctx.rect(bScreen.u - tagWidth/2 - tagPad, bScreen.v + radius + 7, tagWidth + tagPad*2, tagHeight);
+      }
+      ctx.fill();
+      ctx.strokeStyle = '#3b82f6';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+
+      ctx.fillStyle = '#f8fafc';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(labelText, bScreen.u, bScreen.v + radius + 19);
+    });
+
+    // 8. Top In-Canvas Header Bar
+    ctx.fillStyle = 'rgba(15, 23, 42, 0.88)';
+    ctx.beginPath();
+    if (ctx.roundRect) ctx.roundRect(24, 20, 680, 48, 8);
+    else ctx.rect(24, 20, 680, 48);
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(51, 65, 85, 0.7)';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+
+    // Green Dot
+    ctx.beginPath();
+    ctx.arc(44, 44, 7, 0, Math.PI * 2);
+    ctx.fillStyle = '#10b981';
+    ctx.fill();
+
+    // Header Title
+    ctx.font = 'bold 18px sans-serif';
+    ctx.fillStyle = '#ffffff';
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('Interactief Machineraster', 62, 44);
+
+    // Range Badge
+    ctx.fillStyle = 'rgba(30, 41, 59, 0.9)';
+    ctx.beginPath();
+    if (ctx.roundRect) ctx.roundRect(300, 30, 110, 28, 4);
+    else ctx.rect(300, 30, 110, 28);
+    ctx.fill();
+    ctx.strokeStyle = '#38bdf8';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    ctx.font = 'bold 13.5px sans-serif';
+    ctx.fillStyle = '#38bdf8';
+    ctx.textAlign = 'center';
+    ctx.fillText(`Bereik: ${gridRange} m`, 355, 44);
+
+    // Auto-Zoom Badge
+    const zoomPct = Math.round(optimalZoom * 100);
+    ctx.fillStyle = 'rgba(6, 78, 59, 0.85)';
+    ctx.beginPath();
+    if (ctx.roundRect) ctx.roundRect(420, 30, 268, 28, 4);
+    else ctx.rect(420, 30, 268, 28);
+    ctx.fill();
+    ctx.strokeStyle = '#34d399';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    ctx.font = 'bold 13.5px sans-serif';
+    ctx.fillStyle = '#34d399';
+    ctx.textAlign = 'center';
+    ctx.fillText(`Auto-Zoom: ${zoomPct}% (Optimale Leesbaarheid)`, 554, 44);
+
+    // 9. Bottom Legend Bar
+    ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
+    ctx.beginPath();
+    if (ctx.roundRect) ctx.roundRect(24, height - 56, 520, 36, 6);
+    else ctx.rect(24, height - 56, 520, 36);
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(51, 65, 85, 0.6)';
+    ctx.lineWidth = 1.2;
+    ctx.stroke();
+
+    // Red Legend Dot: Centraal Smeerpunt
+    ctx.beginPath();
+    ctx.arc(42, height - 38, 6, 0, Math.PI * 2);
+    ctx.fillStyle = '#E30613';
+    ctx.fill();
+    ctx.font = 'bold 13.5px sans-serif';
+    ctx.fillStyle = '#f8fafc';
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('Centraal Punt (0,0)', 56, height - 38);
+
+    // Blue Legend Dot: Lagers
+    ctx.beginPath();
+    ctx.arc(225, height - 38, 6, 0, Math.PI * 2);
+    ctx.fillStyle = '#3b82f6';
+    ctx.fill();
+    ctx.fillText('Lagers (Smeerpunten)', 239, height - 38);
+
+    // Orange Legend Dot: Toestel
+    ctx.fillStyle = '#ea580c';
+    ctx.beginPath();
+    if (ctx.roundRect) ctx.roundRect(410, height - 44, 12, 12, 3);
+    else ctx.rect(410, height - 44, 12, 12);
+    ctx.fill();
+    ctx.fillText('Smeertoestel', 430, height - 38);
+
+    return canvas.toDataURL('image/png');
+  } catch (err) {
+    console.error('Error generating raster image:', err);
+    return null;
+  }
+}
+
+function addMachineRasterPdfPage(doc, dateString, watermarkDataUrl, aspectRatio) {
+  doc.addPage();
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const pageHeight = doc.internal.pageSize.getHeight();
+
+  // 1. Watermark logo
+  if (watermarkDataUrl && aspectRatio) {
+    const imgWidth = 160;
+    const imgHeight = 160 * aspectRatio;
+    const x = (pageWidth - imgWidth) / 2;
+    const y = (pageHeight - imgHeight) / 2;
+    try {
+      doc.addImage(watermarkDataUrl, "JPEG", x, y, imgWidth, imgHeight);
+    } catch(e) {}
+  }
+
+  // 2. Header
+  doc.setFillColor(227, 6, 19);
+  doc.rect(20, 15, 170, 2, "F");
+
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(13);
+  doc.setTextColor(227, 6, 19);
+  doc.text("INTERFLON 3D MACHINERASTER & INSTALLATIE LAY-OUT", 20, 24);
+
+  // Retrieve active raster & questionnaire data
+  const rasterData = getActiveMachineRasterData();
+
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(8);
+  doc.setTextColor(100, 100, 100);
+  const subTitle = `Machine: ${rasterData.machineName || "Machine"} • Ruimtelijke opstelling smeerpunten, leidingafstanden & toestelposities`;
+  doc.text(subTitle, 20, 29);
+
+  doc.setDrawColor(220, 220, 220);
+  doc.setLineWidth(0.3);
+  doc.line(20, 32, 190, 32);
+
+  // 3. Render High-Resolution Auto-Zoomed 3D Machineraster Image
+  const rasterImgDataUrl = generateMachineRasterImageDataUrl(rasterData);
+
+  const rasterBoxX = 20;
+  const rasterBoxY = 35;
+  const rasterBoxW = 170;
+  const rasterBoxH = 106;
+
+  // Dark frame background
+  doc.setFillColor(11, 17, 32);
+  doc.rect(rasterBoxX, rasterBoxY, rasterBoxW, rasterBoxH, "F");
+
+  if (rasterImgDataUrl) {
+    try {
+      doc.addImage(rasterImgDataUrl, "PNG", rasterBoxX, rasterBoxY, rasterBoxW, rasterBoxH);
+    } catch (err) {
+      console.warn("Could not add raster image to PDF:", err);
+    }
+  }
+
+  doc.setDrawColor(203, 213, 225);
+  doc.setLineWidth(0.3);
+  doc.rect(rasterBoxX, rasterBoxY, rasterBoxW, rasterBoxH, "D");
+
+  // 4. Section Title: Installation Details & Distances Table
+  const secY = 145;
+  doc.setFillColor(227, 6, 19);
+  doc.rect(20, secY, 170, 5, "F");
+
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(7.5);
+  doc.setTextColor(255, 255, 255);
+  doc.text("INSTALLATIEDETAILS & LEIDINGAFSTANDEN PER SMEERPUNT", 24, secY + 3.6);
+
+  // 5. Table Header
+  const tableY = secY + 5.5;
+  const thH = 5.5;
+  doc.setFillColor(241, 245, 249);
+  doc.rect(20, tableY, 170, thH, "F");
+  doc.setDrawColor(203, 213, 225);
+  doc.setLineWidth(0.2);
+  doc.rect(20, tableY, 170, thH, "D");
+
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(6.5);
+  doc.setTextColor(51, 65, 85);
+  doc.text("PUNT", 23, tableY + 3.8);
+  doc.text("LAGER OMSCHRIJVING / TYPE", 38, tableY + 3.8);
+  doc.text("TOEGEWEZEN TOESTEL", 94, tableY + 3.8);
+  doc.text("LEIDINGAFSTAND", 132, tableY + 3.8);
+  doc.text("AFSTAND CP", 154, tableY + 3.8);
+  doc.text("STATUS", 172, tableY + 3.8);
+
+  // 6. Table Rows
+  let curY = tableY + thH;
+  const rh = 5.6;
+  let totalLineMeters = 0;
+  let maxLineDist = 0;
+  const maxRows = 7;
+  const displayedBearings = rasterData.bearings.slice(0, maxRows);
+
+  displayedBearings.forEach((b, idx) => {
+    const letter = b.letter || String.fromCharCode(65 + idx);
+    const pos = rasterData.bearingPositions[letter] || { x: 0, y: 0 };
+    
+    // Find assigned device
+    let assignedDev = null;
+    let minDevDist = Infinity;
+    (rasterData.devices || []).forEach(d => {
+      if (d.active !== false) {
+        const dist = Math.hypot(pos.x - (d.x || 0), pos.y - (d.y || 0));
+        if (d.targetBearingLetter === letter) {
+          assignedDev = d;
+          minDevDist = dist;
+        } else if (!assignedDev && dist < minDevDist) {
+          minDevDist = dist;
+          assignedDev = d;
+        }
+      }
+    });
+    if (!assignedDev && rasterData.devices && rasterData.devices[0]) {
+      assignedDev = rasterData.devices[0];
+      minDevDist = Math.hypot(pos.x - (assignedDev.x || 0), pos.y - (assignedDev.y || 0));
+    }
+
+    const distDev = (minDevDist < Infinity) ? minDevDist : 0;
+    const distCp = Math.hypot(pos.x, pos.y);
+
+    totalLineMeters += distDev;
+    if (distDev > maxLineDist) maxLineDist = distDev;
+
+    // Alternating Row BG
+    doc.setFillColor(idx % 2 === 0 ? 255 : 248, idx % 2 === 0 ? 255 : 250, idx % 2 === 0 ? 255 : 252);
+    doc.rect(20, curY, 170, rh, "F");
+    doc.setDrawColor(226, 232, 240);
+    doc.setLineWidth(0.2);
+    doc.rect(20, curY, 170, rh, "D");
+
+    // Col 1: Lager Badge
+    doc.setFillColor(37, 99, 235);
+    doc.roundedRect(22, curY + 1.1, 8, 3.6, 0.8, 0.8, "F");
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(6);
+    doc.setTextColor(255, 255, 255);
+    doc.text(letter, 26, curY + 3.7, { align: "center" });
+
+    // Col 2: Nr & Desc
+    const nrStr = b.nr || (document.getElementById('bearingSearchInput')?.value.trim()) || "22225";
+    const descStr = b.desc ? ` - ${b.desc}` : "";
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(6.5);
+    doc.setTextColor(15, 23, 42);
+    const fullDesc = (nrStr + descStr).length > 34 ? (nrStr + descStr).substring(0, 32) + "..." : (nrStr + descStr);
+    doc.text(fullDesc, 38, curY + 3.8);
+
+    // Col 3: Assigned Device
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(6.5);
+    doc.setTextColor(30, 41, 59);
+    const devNameStr = assignedDev ? `${assignedDev.name} (${assignedDev.short})` : "Toestel 1 (T1)";
+    doc.text(devNameStr, 94, curY + 3.8);
+
+    // Col 4: Leidingafstand
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(6.8);
+    if (distDev <= 6.0) doc.setTextColor(22, 101, 52);
+    else doc.setTextColor(194, 65, 12);
+    doc.text(`${distDev.toFixed(1).replace('.', ',')} m`, 132, curY + 3.8);
+
+    // Col 5: Afstand CP
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(6.5);
+    doc.setTextColor(71, 85, 105);
+    doc.text(`${distCp.toFixed(1).replace('.', ',')} m`, 154, curY + 3.8);
+
+    // Col 6: Status
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(5.8);
+    if (distDev < 0.2) {
+      doc.setTextColor(37, 99, 235);
+      doc.text("Direct op lager", 172, curY + 3.8);
+    } else if (distDev <= 6.0) {
+      doc.setTextColor(22, 101, 52);
+      doc.text("✓ Binnen bereik", 172, curY + 3.8);
+    } else {
+      doc.setTextColor(194, 65, 12);
+      doc.text("⚠ Leiding > 6m", 172, curY + 3.8);
+    }
+
+    curY += rh;
+  });
+
+  // 7. Summary Cards below Table
+  const sumY = curY + 3.5;
+  const sumH = 18;
+  const colW = 54;
+
+  // Card 1: Totale Leidinglengte
+  doc.setFillColor(248, 250, 252);
+  doc.setDrawColor(226, 232, 240);
+  doc.setLineWidth(0.25);
+  doc.roundedRect(20, sumY, colW, sumH, 2, 2, "FD");
+
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(5.5);
+  doc.setTextColor(100, 116, 139);
+  doc.text("TOTALE LEIDINGLENGTE", 24, sumY + 4.5);
+
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(9.5);
+  doc.setTextColor(37, 99, 235);
+  doc.text(`${totalLineMeters.toFixed(1).replace('.', ',')} meter`, 24, sumY + 10.5);
+
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(5);
+  doc.setTextColor(71, 85, 105);
+  doc.text("Advies: 6 mm OD polyamide leiding", 24, sumY + 15);
+
+  // Card 2: Maximale Afstand
+  doc.setFillColor(248, 250, 252);
+  doc.roundedRect(78, sumY, colW, sumH, 2, 2, "FD");
+
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(5.5);
+  doc.setTextColor(100, 116, 139);
+  doc.text("MAXIMALE LEIDINGAFSTAND", 82, sumY + 4.5);
+
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(9.5);
+  if (maxLineDist <= 6.0) doc.setTextColor(22, 101, 52);
+  else doc.setTextColor(194, 65, 12);
+  doc.text(`${maxLineDist.toFixed(1).replace('.', ',')} meter`, 82, sumY + 10.5);
+
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(5);
+  doc.setTextColor(71, 85, 105);
+  const maxLineNote = maxLineDist <= 6.0 ? "✓ Binnen veilige pompdruklimiet" : "Bij NLGI 2: gebruik 8 mm leiding";
+  doc.text(maxLineNote, 82, sumY + 15);
+
+  // Card 3: Geadviseerde Configuratie
+  const card3W = 54;
+  doc.setFillColor(254, 242, 242);
+  doc.setDrawColor(254, 202, 202);
+  doc.roundedRect(136, sumY, card3W, sumH, 2, 2, "FD");
+
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(5.5);
+  doc.setTextColor(227, 6, 19);
+  doc.text("GEADVISEERDE HARDWARE", 140, sumY + 4.5);
+
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(8.5);
+  doc.setTextColor(227, 6, 19);
+  const activeDevsCount = (rasterData.devices || []).filter(d => d.active !== false).length || 1;
+  const numPtsCount = rasterData.bearings.length || 1;
+  doc.text(`${activeDevsCount}x Toestel • ${numPtsCount} Lagers`, 140, sumY + 10.5);
+
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(5);
+  doc.setTextColor(127, 29, 29);
+  doc.text("Inclusief verdeelblok & koppelingen", 140, sumY + 15);
+
+  // 8. Installation Guidance Notice Box
+  const noticeY = sumY + sumH + 3.5;
+  const noticeH = 14;
+  doc.setFillColor(240, 253, 244);
+  doc.setDrawColor(187, 247, 208);
+  doc.setLineWidth(0.2);
+  doc.roundedRect(20, noticeY, 170, noticeH, 1.5, 1.5, "FD");
+
+  doc.setFillColor(22, 101, 52);
+  doc.rect(20, noticeY, 1.5, noticeH, "F");
+
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(6.5);
+  doc.setTextColor(22, 101, 52);
+  doc.text("Richtlijnen voor installatie van de leidingen:", 24, noticeY + 4.5);
+
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(5.2);
+  doc.setTextColor(20, 83, 45);
+  const noticeTxt = "Vul alle leidingen vooraf volledig met het aanbevolen Interflon vet vóór aansluiting op de lagers. Houd leidingen zo kort mogelijk en vermijd scherpe bochten (min. buigradius 30 mm). Gebruik bij leidingafstanden boven 6 meter of bij temperaturen onder 0°C een 8 mm leiding om leidingweerstand te minimaliseren.";
+  const splitNotice = doc.splitTextToSize(noticeTxt, 162);
+  doc.text(splitNotice, 24, noticeY + 8.5);
+
+  // 9. Footer
+  const footerY = 268;
+  doc.setDrawColor(226, 232, 240);
+  doc.setLineWidth(0.2);
+  doc.line(20, footerY, 190, footerY);
+
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(5.5);
+  doc.setTextColor(148, 163, 184);
+  const footerText = "De lay-out en afstanden zijn berekend op basis van de ingevoerde coördinaten in het interactief machineraster. Werkelijke leidingroutes kunnen afwijken door obstakels of kabelgoten in de fabriek.";
+  doc.text(footerText, 20, footerY + 4);
+
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(7.5);
+  doc.setTextColor(227, 6, 19);
+  doc.text("INTERFLON - A WORLD WITHOUT FRICTION", 20, footerY + 13);
+
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(7.5);
+  doc.setTextColor(100, 116, 139);
+  const curPage = doc.internal.getNumberOfPages();
+  doc.text(`PAGINA ${curPage} VAN ${curPage}`, 190, footerY + 13, { align: "right" });
 }
 
 function onSinglePointNumBearingsChange(val) {
