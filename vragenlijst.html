@@ -1064,6 +1064,7 @@
       <input type="hidden" name="_replyto" id="hiddenReplyTo" value="">
       <input type="file" name="attachment" id="hiddenLayoutImageInput" accept="image/png" style="display: none;">
       <input type="file" name="attachment2" id="hiddenLayoutCsvInput" accept=".csv,text/csv" style="display: none;">
+      <input type="file" name="attachment3" id="hiddenLayoutJsonInput" accept=".json,application/json" style="display: none;">
       <div id="dynamicHiddenFormSubmitContainer"></div>
 
       <!-- Section 1: Machinedetails -->
@@ -4745,6 +4746,99 @@
       }
     }
 
+    function generateQuestionnaireExportPackage() {
+      if (typeof saveCurrentSection2Data === "function") saveCurrentSection2Data();
+      if (typeof saveCurrentSection3Data === "function") saveCurrentSection3Data();
+      if (typeof saveCurrentSection4Data === "function") saveCurrentSection4Data();
+
+      // Collect bearing rows
+      const bearingRowsData = [];
+      const rows = document.querySelectorAll('.bearing-row');
+      rows.forEach((row, idx) => {
+        const letter = row.getAttribute('data-letter') || (typeof LETTERS !== 'undefined' ? LETTERS[idx] : null) || ('L' + (idx + 1));
+        const qtyIn = row.querySelector('.bearing-qty-input');
+        const nrIn = row.querySelector('.bearing-nr-input');
+        const descIn = row.querySelector('.bearing-desc-input');
+        const rpmIn = row.querySelector('.bearing-rpm-input');
+        const posIn = row.querySelector('.bearing-pos-input');
+        bearingRowsData.push({
+          letter: letter,
+          qty: qtyIn ? qtyIn.value : '1',
+          nr: nrIn ? nrIn.value : '',
+          desc: descIn ? descIn.value : '',
+          rpm: rpmIn ? rpmIn.value : '',
+          pos: posIn ? posIn.value : 'Horizontaal'
+        });
+      });
+
+      const generalData = {
+        machineName: document.getElementById('q1') ? document.getElementById('q1').value : '',
+        machineBrand: document.getElementById('q2') ? document.getElementById('q2').value : '',
+        application: document.getElementById('q3') ? document.getElementById('q3').value : '',
+        machineCount: document.getElementById('q10') ? document.getElementById('q10').value : '1'
+      };
+
+      const contactData = {
+        clientCompany: document.getElementById('clientCompany') ? document.getElementById('clientCompany').value : '',
+        clientContact: document.getElementById('clientContact') ? document.getElementById('clientContact').value : '',
+        clientEmail: document.getElementById('clientEmail') ? document.getElementById('clientEmail').value : '',
+        interflonContactEmail: document.getElementById('interflonContactEmail') ? document.getElementById('interflonContactEmail').value : ''
+      };
+
+      const rasterData = {
+        machineRangeMeters: (typeof machineRangeMeters !== "undefined") ? machineRangeMeters : 10,
+        layoutViewMode: (typeof layoutViewMode !== "undefined") ? layoutViewMode : '3d',
+        showCentralPoint: (typeof showCentralPoint !== "undefined") ? showCentralPoint : true,
+        bearingPositions: (typeof bearingPositions !== "undefined") ? JSON.parse(JSON.stringify(bearingPositions)) : {},
+        devices: (typeof devices !== "undefined") ? JSON.parse(JSON.stringify(devices)) : []
+      };
+
+      return {
+        fileType: 'Interflon_Smeeranalyse_Vragenlijst',
+        version: '1.0',
+        exportDate: new Date().toISOString(),
+        general: generalData,
+        contact: contactData,
+        bearings: bearingRowsData,
+        bearingDataMapSec2: (typeof bearingDataMapSec2 !== "undefined") ? JSON.parse(JSON.stringify(bearingDataMapSec2)) : {},
+        bearingDataMapSec3: (typeof bearingDataMapSec3 !== "undefined") ? JSON.parse(JSON.stringify(bearingDataMapSec3)) : {},
+        bearingDataMapSec4: (typeof bearingDataMapSec4 !== "undefined") ? JSON.parse(JSON.stringify(bearingDataMapSec4)) : {},
+        activeBearings: {
+          sec2: (typeof activeBearingSec2 !== "undefined") ? activeBearingSec2 : 'A',
+          sec3: (typeof activeBearingSec3 !== "undefined") ? activeBearingSec3 : 'A',
+          sec4: (typeof activeBearingSec4 !== "undefined") ? activeBearingSec4 : 'A'
+        },
+        raster: rasterData,
+        surveyRasterConfig: (typeof saveRasterConfigToLocalStorage === 'function' ? saveRasterConfigToLocalStorage() : null)
+      };
+    }
+    window.generateQuestionnaireExportPackage = generateQuestionnaireExportPackage;
+
+    function updateFormSubmitJsonAttachment() {
+      try {
+        if (typeof generateQuestionnaireExportPackage !== "function") return;
+        const exportPackage = generateQuestionnaireExportPackage();
+        const jsonStr = JSON.stringify(exportPackage, null, 2);
+        const machineInput = document.getElementById('q1');
+        const machineName = (machineInput && machineInput.value) ? machineInput.value.trim() : 'Machine';
+        const cleanName = machineName.replace(/[^a-zA-Z0-9_\u00C0-\u017F-]/g, '_').substring(0, 30);
+        const d = new Date();
+        const dateStr = d.getFullYear() + '' + String(d.getMonth() + 1).padStart(2, '0') + String(d.getDate()).padStart(2, '0');
+        const filename = `Interflon_Vragenlijst_${cleanName || 'Machine'}_${dateStr}.json`;
+
+        const blob = new Blob([jsonStr], { type: 'application/json' });
+        const file = new File([blob], filename, { type: 'application/json' });
+        const dataTransfer = new DataTransfer();
+        dataTransfer.items.add(file);
+        const jsonInput = document.getElementById('hiddenLayoutJsonInput');
+        if (jsonInput) {
+          jsonInput.files = dataTransfer.files;
+        }
+      } catch(e) {
+        console.warn("Could not set JSON file input:", e);
+      }
+    }
+
     function updateFormSubmitCsvAttachment() {
       try {
         if (typeof generateExcelMatrixCsv !== "function") return;
@@ -4774,7 +4868,10 @@
         // 1. Sync CSV spreadsheet attachment
         updateFormSubmitCsvAttachment();
 
-        // 2. Sync 3D Machine Layout PNG image attachment
+        // 2. Sync JSON digital import file attachment (1-klik import)
+        updateFormSubmitJsonAttachment();
+
+        // 3. Sync 3D Machine Layout PNG image attachment
         const compCanvas = generateCompositeLayoutCanvas();
         if (!compCanvas) return;
         compCanvas.toBlob(function(blob) {
@@ -4891,74 +4988,10 @@
     // QUESTIONNAIRE IMPORT & EXPORT (FOR INTERFLON MEDEWERKERS)
     // =========================================================================
     async function exportQuestionnaireFile() {
-      saveCurrentSection2Data();
-      saveCurrentSection3Data();
-      saveCurrentSection4Data();
-
-      // Collect bearing rows
-      const bearingRowsData = [];
-      const rows = document.querySelectorAll('.bearing-row');
-      rows.forEach((row, idx) => {
-        const letter = row.getAttribute('data-letter') || LETTERS[idx] || ('L' + (idx + 1));
-        const qtyIn = row.querySelector('.bearing-qty-input');
-        const nrIn = row.querySelector('.bearing-nr-input');
-        const descIn = row.querySelector('.bearing-desc-input');
-        const rpmIn = row.querySelector('.bearing-rpm-input');
-        const posIn = row.querySelector('.bearing-pos-input');
-        bearingRowsData.push({
-          letter: letter,
-          qty: qtyIn ? qtyIn.value : '1',
-          nr: nrIn ? nrIn.value : '',
-          desc: descIn ? descIn.value : '',
-          rpm: rpmIn ? rpmIn.value : '',
-          pos: posIn ? posIn.value : 'Horizontaal'
-        });
-      });
-
-      const generalData = {
-        machineName: document.getElementById('q1') ? document.getElementById('q1').value : '',
-        machineBrand: document.getElementById('q2') ? document.getElementById('q2').value : '',
-        application: document.getElementById('q3') ? document.getElementById('q3').value : '',
-        machineCount: document.getElementById('q10') ? document.getElementById('q10').value : '1'
-      };
-
-      const contactData = {
-        clientCompany: document.getElementById('clientCompany') ? document.getElementById('clientCompany').value : '',
-        clientContact: document.getElementById('clientContact') ? document.getElementById('clientContact').value : '',
-        clientEmail: document.getElementById('clientEmail') ? document.getElementById('clientEmail').value : '',
-        interflonContactEmail: document.getElementById('interflonContactEmail') ? document.getElementById('interflonContactEmail').value : ''
-      };
-
-      const rasterData = {
-        machineRangeMeters: machineRangeMeters,
-        layoutViewMode: layoutViewMode,
-        showCentralPoint: showCentralPoint,
-        bearingPositions: JSON.parse(JSON.stringify(bearingPositions)),
-        devices: JSON.parse(JSON.stringify(devices))
-      };
-
-      const exportPackage = {
-        fileType: 'Interflon_Smeeranalyse_Vragenlijst',
-        version: '1.0',
-        exportDate: new Date().toISOString(),
-        general: generalData,
-        contact: contactData,
-        bearings: bearingRowsData,
-        bearingDataMapSec2: JSON.parse(JSON.stringify(bearingDataMapSec2)),
-        bearingDataMapSec3: JSON.parse(JSON.stringify(bearingDataMapSec3)),
-        bearingDataMapSec4: JSON.parse(JSON.stringify(bearingDataMapSec4)),
-        activeBearings: {
-          sec2: activeBearingSec2,
-          sec3: activeBearingSec3,
-          sec4: activeBearingSec4
-        },
-        raster: rasterData,
-        surveyRasterConfig: (typeof saveRasterConfigToLocalStorage === 'function' ? saveRasterConfigToLocalStorage() : null)
-      };
-
+      const exportPackage = generateQuestionnaireExportPackage();
       const jsonStr = JSON.stringify(exportPackage, null, 2);
       const blob = new Blob([jsonStr], { type: 'application/json' });
-      const cleanName = (generalData.machineName || 'Machine').trim().replace(/[^a-zA-Z0-9_\u00C0-\u017F-]/g, '_');
+      const cleanName = (exportPackage.general.machineName || 'Machine').trim().replace(/[^a-zA-Z0-9_\u00C0-\u017F-]/g, '_');
       const d = new Date();
       const dateStr = d.getFullYear() + '' + String(d.getMonth() + 1).padStart(2, '0') + String(d.getDate()).padStart(2, '0');
       const filename = 'Interflon_Vragenlijst_' + cleanName + '_' + dateStr + '.json';
@@ -5879,7 +5912,10 @@
       // 1. Sync CSV spreadsheet attachment
       updateFormSubmitCsvAttachment();
 
-      // 2. Ensure layout image attachment is populated
+      // 2. Sync JSON digital import file attachment (1-klik import)
+      updateFormSubmitJsonAttachment();
+
+      // 3. Ensure layout image attachment is populated
       const imgInput = document.getElementById('hiddenLayoutImageInput');
       if (imgInput && (!imgInput.files || imgInput.files.length === 0)) {
         const compCanvas = generateCompositeLayoutCanvas();
@@ -5899,7 +5935,7 @@
         }
       }
 
-      // 3. Populate dynamic hidden fields with clean structure
+      // 4. Populate dynamic hidden fields with clean structure
       const container = document.getElementById('dynamicHiddenFormSubmitContainer');
       container.innerHTML = '';
 
@@ -5966,13 +6002,13 @@
       addHidden('📊 VOLLEDIGE EXCEL MATRIX OVERZICHT', '\n' + asciiTable);
 
       // --- DEEL D: BIJLAGEN INFORMATIE ---
-      addHidden('📎 BIJLAGEN IN DEZE E-MAIL', '1x 3D Machine Layout (PNG afbeelding)  +  1x Excel Vergelijkingsbestand (CSV spreadsheet voor Excel)');
+      addHidden('📎 BIJLAGEN IN DEZE E-MAIL', '1x 3D Machine Layout (PNG afbeelding)  +  1x Excel Vergelijkingsbestand (CSV spreadsheet voor Excel)  +  1x Digitaal Importbestand (JSON bestand voor 1-klik import in de app)');
 
       // Strip name attributes from visible inputs so FormSubmit does not send 75 messy duplicate lines!
       const rawInputs = document.querySelectorAll('#publicSurveyForm input[name], #publicSurveyForm select[name], #publicSurveyForm textarea[name]');
       rawInputs.forEach(el => {
         if (el.closest('#dynamicHiddenFormSubmitContainer')) return;
-        if (el.name.startsWith('_') || el.name === 'attachment' || el.name === 'attachment2') return;
+        if (el.name.startsWith('_') || el.name === 'attachment' || el.name === 'attachment2' || el.name === 'attachment3') return;
         el.setAttribute('data-submit-name', el.name);
         el.removeAttribute('name');
       });
