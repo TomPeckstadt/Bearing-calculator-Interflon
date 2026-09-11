@@ -423,3 +423,14 @@ function calculateBoreFromCode(code) {
   if (code === 3) return 17;
   return code * 5;
 }
+
+if (typeof window !== "undefined") {
+  window.bearingDatabase = bearingDatabase;
+  window.BEARING_TYPES = BEARING_TYPES;
+  window.parseBearingDesignation = parseBearingDesignation;
+}
+if (typeof global !== "undefined") {
+  global.bearingDatabase = bearingDatabase;
+  global.BEARING_TYPES = BEARING_TYPES;
+  global.parseBearingDesignation = parseBearingDesignation;
+}
