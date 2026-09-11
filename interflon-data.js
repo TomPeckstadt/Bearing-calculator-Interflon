@@ -5346,3 +5346,14 @@ function getChainProductSpecs(productName) {
     desc: "Hoogwaardige kettingolie met MicPol® technologie. Dringt diep door tot tussen de pennen en bussen, stoot vuil en vocht af en vermindert wrijving en kettingrek."
   };
 }
+
+if (typeof window !== "undefined") {
+  window.BASE_FREQUENCY_TABLE = typeof BASE_FREQUENCY_TABLE !== "undefined" ? BASE_FREQUENCY_TABLE : null;
+  window.CORRECTED_FREQUENCY_TABLE = typeof CORRECTED_FREQUENCY_TABLE !== "undefined" ? CORRECTED_FREQUENCY_TABLE : null;
+  window.INTERFLON_GREASES = typeof INTERFLON_GREASES !== "undefined" ? INTERFLON_GREASES : null;
+}
+if (typeof global !== "undefined") {
+  global.BASE_FREQUENCY_TABLE = typeof BASE_FREQUENCY_TABLE !== "undefined" ? BASE_FREQUENCY_TABLE : null;
+  global.CORRECTED_FREQUENCY_TABLE = typeof CORRECTED_FREQUENCY_TABLE !== "undefined" ? CORRECTED_FREQUENCY_TABLE : null;
+  global.INTERFLON_GREASES = typeof INTERFLON_GREASES !== "undefined" ? INTERFLON_GREASES : null;
+}
