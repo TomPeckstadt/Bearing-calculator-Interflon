@@ -1233,64 +1233,175 @@ function populateSurveyBearingsDropdown(bearings) {
 }
 
 function populateOmSurveyBearingsDropdown(bearings) {
-  const selectEls = [
-    document.getElementById("omSurveyBearingSelect"),
-    document.getElementById("chainOmSurveyBearingSelect")
-  ].filter(Boolean);
-  if (selectEls.length === 0) return;
+  const configs = [
+    { el: document.getElementById("omSurveyBearingSelect"), mode: "bearing" },
+    { el: document.getElementById("chainOmSurveyBearingSelect"), mode: "chain" }
+  ];
 
   const lang = (typeof currentLang !== 'undefined' && currentLang) ? currentLang : 'nl';
-  const placeholderText = (lang === 'en')
-    ? 'Select a bearing from questionnaire'
-    : ((lang === 'fr')
-      ? 'Sélectionner un roulement du questionnaire'
-      : 'Selecteer een lager uit de vragenlijst');
+  const surveyBearings = (bearings && Array.isArray(bearings) && bearings.length > 0)
+    ? bearings
+    : ((typeof getQuestionnaireBearings === 'function') ? getQuestionnaireBearings() : []);
 
-  selectEls.forEach(selectEl => {
-    const currentVal = selectEl.value;
+  const activeSource = window.activeTcoBearingSource || localStorage.getItem("active_tco_bearing_source") || "";
+
+  configs.forEach(({ el, mode }) => {
+    if (!el) return;
+
+    const currentVal = el.value;
     let currentSelectedLetter = '';
-    if (selectEl.selectedIndex >= 0 && selectEl.options[selectEl.selectedIndex] && selectEl.options[selectEl.selectedIndex].dataset) {
-      currentSelectedLetter = selectEl.options[selectEl.selectedIndex].dataset.letter || '';
+    if (el.selectedIndex >= 0 && el.options[el.selectedIndex] && el.options[el.selectedIndex].dataset) {
+      currentSelectedLetter = el.options[el.selectedIndex].dataset.letter || '';
     }
 
-    selectEl.innerHTML = '';
-    const defOpt = document.createElement("option");
-    defOpt.value = "";
-    defOpt.setAttribute("data-i18n", "omImportSurveyBearing");
-    defOpt.textContent = placeholderText;
-    selectEl.appendChild(defOpt);
+    el.innerHTML = '';
 
-    if (bearings && bearings.length > 0) {
-      bearings.forEach(b => {
-        const opt = document.createElement("option");
-        opt.value = b.letter || b.nr;
-        opt.textContent = formatSurveyBearingOptionText(b);
-        opt.dataset.letter = b.letter || "";
-        opt.dataset.nr = b.nr || "";
-        opt.dataset.desc = b.desc || "";
-        opt.dataset.rpm = b.rpm || "";
-        opt.dataset.pos = b.pos || "";
-        selectEl.appendChild(opt);
-      });
+    if (mode === "chain") {
+      // 1. Zelf gezochte ketting optie
+      const activeChName = (typeof activeChain !== "undefined" && activeChain && activeChain.designation)
+        ? activeChain.designation
+        : (document.getElementById("chainSearchInput") ? document.getElementById("chainSearchInput").value.trim() : "");
+      
+      const manualChainLabel = (lang === 'en')
+        ? (activeChName ? `🔍 Custom searched chain: ${activeChName}` : '🔍 Custom searched chain (from Chain Search)')
+        : ((lang === 'fr')
+          ? (activeChName ? `🔍 Chaîne recherchée : ${activeChName}` : '🔍 Chaîne recherchée (personnalisée)')
+          : (activeChName ? `🔍 Zelf gezochte ketting: ${activeChName}` : '🔍 Zelf gezochte ketting (uit Ketting Opzoeken)'));
 
-      let restored = false;
-      if (currentSelectedLetter) {
-        for (let i = 0; i < selectEl.options.length; i++) {
-          if (selectEl.options[i].dataset && selectEl.options[i].dataset.letter === currentSelectedLetter) {
-            selectEl.selectedIndex = i;
-            restored = true;
-            break;
-          }
+      const manualOpt = document.createElement("option");
+      manualOpt.value = "manual";
+      manualOpt.setAttribute("data-i18n", "omManualSearchedChain");
+      manualOpt.textContent = manualChainLabel;
+      el.appendChild(manualOpt);
+
+      // 2. Optiegroep voor vragenlijst als er kettingen/lagers zijn
+      if (surveyBearings && surveyBearings.length > 0) {
+        const groupLabel = (lang === 'en') ? '📋 Chains from questionnaire' : (lang === 'fr' ? '📋 Chaînes du questionnaire' : '📋 Kettingen / lagers uit vragenlijst');
+        const optGroup = document.createElement("optgroup");
+        optGroup.label = groupLabel;
+        optGroup.setAttribute("data-i18n-label", "omSurveyChainsGroup");
+        surveyBearings.forEach(b => {
+          const opt = document.createElement("option");
+          opt.value = b.letter || b.nr;
+          opt.textContent = formatSurveyBearingOptionText(b);
+          opt.dataset.letter = b.letter || "";
+          opt.dataset.nr = b.nr || "";
+          opt.dataset.desc = b.desc || "";
+          opt.dataset.rpm = b.rpm || "";
+          opt.dataset.pos = b.pos || "";
+          optGroup.appendChild(opt);
+        });
+        el.appendChild(optGroup);
+      }
+
+      // 3. Navigatie optie
+      const searchNavOpt = document.createElement("option");
+      searchNavOpt.value = "__open_search__";
+      searchNavOpt.setAttribute("data-i18n", "omSearchOtherChain");
+      searchNavOpt.textContent = (lang === 'en')
+        ? "🔎 Search another chain in 'Chain Search' ➔"
+        : ((lang === 'fr')
+          ? "🔎 Rechercher une autre chaîne ➔"
+          : "🔎 Zoek een andere ketting in 'Ketting Opzoeken' ➔");
+      el.appendChild(searchNavOpt);
+
+    } else {
+      // BEARING MODE
+      // 1. Zelf gezocht lager optie
+      const activeDesig = (typeof activeBearing !== "undefined" && activeBearing && activeBearing.designation)
+        ? activeBearing.designation
+        : (localStorage.getItem("active_bearing_designation") || (document.getElementById("bearingSearchInput") ? document.getElementById("bearingSearchInput").value.trim() : ""));
+      
+      const manualBearingLabel = (lang === 'en')
+        ? (activeDesig ? `🔍 Custom searched bearing: SKF ${activeDesig.toUpperCase()}` : '🔍 Custom searched bearing (from Bearing Search)')
+        : ((lang === 'fr')
+          ? (activeDesig ? `🔍 Roulement recherché : SKF ${activeDesig.toUpperCase()}` : '🔍 Roulement recherché (personnalisé)')
+          : (activeDesig ? `🔍 Zelf gezocht lager: SKF ${activeDesig.toUpperCase()}` : '🔍 Zelf gezocht lager (uit Lager Opzoeken)'));
+
+      const manualOpt = document.createElement("option");
+      manualOpt.value = "manual";
+      manualOpt.setAttribute("data-i18n", "omManualSearchedBearing");
+      manualOpt.textContent = manualBearingLabel;
+      el.appendChild(manualOpt);
+
+      // 2. Optiegroep voor vragenlijstlagers
+      if (surveyBearings && surveyBearings.length > 0) {
+        const groupLabel = (lang === 'en') ? '📋 Bearings from questionnaire' : (lang === 'fr' ? '📋 Roulements du questionnaire' : '📋 Lagers uit de vragenlijst');
+        const optGroup = document.createElement("optgroup");
+        optGroup.label = groupLabel;
+        optGroup.setAttribute("data-i18n-label", "omSurveyBearingsGroup");
+        surveyBearings.forEach(b => {
+          const opt = document.createElement("option");
+          opt.value = b.letter || b.nr;
+          opt.textContent = formatSurveyBearingOptionText(b);
+          opt.dataset.letter = b.letter || "";
+          opt.dataset.nr = b.nr || "";
+          opt.dataset.desc = b.desc || "";
+          opt.dataset.rpm = b.rpm || "";
+          opt.dataset.pos = b.pos || "";
+          optGroup.appendChild(opt);
+        });
+        el.appendChild(optGroup);
+      }
+
+      // 3. Navigatie optie
+      const searchNavOpt = document.createElement("option");
+      searchNavOpt.value = "__open_search__";
+      searchNavOpt.setAttribute("data-i18n", "omSearchOtherBearing");
+      searchNavOpt.textContent = (lang === 'en')
+        ? "🔎 Search another bearing in 'Bearing Search' ➔"
+        : ((lang === 'fr')
+          ? "🔎 Rechercher un autre roulement ➔"
+          : "🔎 Zoek een ander lager in 'Lager Opzoeken' ➔");
+      el.appendChild(searchNavOpt);
+    }
+
+    // Herstel de actieve selectie
+    let restored = false;
+    if (activeSource === "manual") {
+      el.value = "manual";
+      restored = true;
+    } else if (activeSource.startsWith("survey_")) {
+      const targetL = activeSource.replace("survey_", "");
+      for (let i = 0; i < el.options.length; i++) {
+        if (el.options[i].dataset && el.options[i].dataset.letter === targetL) {
+          el.selectedIndex = i;
+          restored = true;
+          break;
         }
       }
-      if (!restored && currentVal) {
-        for (let i = 0; i < selectEl.options.length; i++) {
-          if (selectEl.options[i].value === currentVal) {
-            selectEl.selectedIndex = i;
-            restored = true;
+    } else if (currentSelectedLetter) {
+      for (let i = 0; i < el.options.length; i++) {
+        if (el.options[i].dataset && el.options[i].dataset.letter === currentSelectedLetter) {
+          el.selectedIndex = i;
+          restored = true;
+          break;
+        }
+      }
+    } else if (currentVal && currentVal !== "__open_search__") {
+      for (let i = 0; i < el.options.length; i++) {
+        if (el.options[i].value === currentVal) {
+          el.selectedIndex = i;
+          restored = true;
+          break;
+        }
+      }
+    }
+
+    if (!restored) {
+      if (mode === "chain" && typeof activeChain !== "undefined" && activeChain) {
+        el.value = "manual";
+      } else if (mode !== "chain" && (typeof activeBearing !== "undefined" && activeBearing || localStorage.getItem("active_bearing_designation"))) {
+        el.value = "manual";
+      } else if (surveyBearings && surveyBearings.length > 0) {
+        for (let i = 0; i < el.options.length; i++) {
+          if (el.options[i].dataset && el.options[i].dataset.letter) {
+            el.selectedIndex = i;
             break;
           }
         }
+      } else {
+        el.value = "manual";
       }
     }
   });
@@ -1307,29 +1418,6 @@ function refreshOmSurveyBearingsDropdown(mode) {
   } catch (e) {}
 
   const bearings = (typeof getQuestionnaireBearings === 'function') ? getQuestionnaireBearings() : [];
-  const selectEl = mode === 'chain'
-    ? document.getElementById("chainOmSurveyBearingSelect")
-    : document.getElementById("omSurveyBearingSelect");
-
-  if (!bearings || bearings.length === 0) {
-    if (selectEl && selectEl.options.length <= 1) {
-      const lang = (typeof currentLang !== 'undefined' && currentLang) ? currentLang : 'nl';
-      const msg = (lang === 'en')
-        ? 'No active questionnaire bearings found in the browser.\n\nTip: Open the questionnaire tab first so your bearings are loaded, or click OK to select a saved questionnaire JSON file.'
-        : ((lang === 'fr')
-          ? 'Aucun roulement actif trouvé dans le questionnaire.\n\nAstuce : Ouvrez d\'abord le questionnaire, ou cliquez sur OK pour sélectionner un fichier JSON.'
-          : 'Er zijn momenteel nog geen lagers gevonden in de vragenlijst.\n\n💡 Tip: Open eerst het tabblad van de vragenlijst zodat uw lagers geladen zijn, óf klik op OK om een opgeslagen vragenlijstbestand (.json) te selecteren.');
-      if (confirm(msg)) {
-        const fileInput = document.getElementById('surveyBearingFileInput') || document.getElementById('surveyConfigFileSelector');
-        if (fileInput) {
-          fileInput.value = '';
-          fileInput.click();
-        }
-      }
-    }
-    return;
-  }
-
   populateOmSurveyBearingsDropdown(bearings);
 }
 window.refreshOmSurveyBearingsDropdown = refreshOmSurveyBearingsDropdown;
@@ -1339,14 +1427,105 @@ function onOmSurveyBearingSelected(selectEl, mode) {
   const rawVal = selectEl.value;
   if (!rawVal) return;
 
+  if (rawVal === "__open_search__") {
+    if (mode === 'chain') {
+      switchPage('chainSearch');
+      setTimeout(() => {
+        const inp = document.getElementById("chainSearchInput");
+        if (inp) { inp.focus(); inp.select(); }
+      }, 100);
+    } else {
+      switchPage('search');
+      setTimeout(() => {
+        const inp = document.getElementById("bearingSearchInput");
+        if (inp) { inp.focus(); inp.select(); }
+      }, 100);
+    }
+    return;
+  }
+
+  if (rawVal === "manual") {
+    activateManualSearchedBearingInOm(mode);
+    return;
+  }
+
   const opt = selectEl.options[selectEl.selectedIndex];
   const targetLetter = (opt && opt.dataset && opt.dataset.letter)
     ? opt.dataset.letter
     : (rawVal.includes('___') ? rawVal.split('___')[0] : rawVal);
 
+  window.activeTcoBearingSource = "survey_" + targetLetter;
+  try { localStorage.setItem("active_tco_bearing_source", "survey_" + targetLetter); } catch(e) {}
+
   importSurveyBearingToOpbrengstmodel(mode, targetLetter);
 }
 window.onOmSurveyBearingSelected = onOmSurveyBearingSelected;
+
+function activateManualSearchedBearingInOm(mode) {
+  window.activeTcoBearingSource = "manual";
+  try { localStorage.setItem("active_tco_bearing_source", "manual"); } catch(e) {}
+
+  if (mode === 'chain') {
+    if (typeof activeChain !== "undefined" && activeChain) {
+      if (typeof calculateChainGrease === "function") calculateChainGrease();
+      if (typeof calculateChainTco === "function") calculateChainTco();
+      const cName = document.getElementById("chainOmProdName1");
+      if (cName) cName.textContent = activeChain.designation || "Ketting";
+      if (typeof saveChainTcoDetails === "function") saveChainTcoDetails();
+      if (typeof showToastNotification === "function") {
+        showToastNotification(`✅ Zelf gezochte ketting (${activeChain.designation}) actief in Opbrengstmodel!`);
+      }
+    } else {
+      switchPage('chainSearch');
+      setTimeout(() => {
+        const inp = document.getElementById("chainSearchInput");
+        if (inp) { inp.focus(); inp.select(); }
+      }, 100);
+    }
+    return;
+  }
+
+  // Bearing mode:
+  let bearingObj = (typeof activeBearing !== "undefined" && activeBearing) ? activeBearing : null;
+  if (!bearingObj) {
+    const savedDesig = localStorage.getItem("active_bearing_designation");
+    if (savedDesig && typeof parseBearingDesignation === "function") {
+      bearingObj = parseBearingDesignation(savedDesig);
+      if (bearingObj) activeBearing = bearingObj;
+    }
+  }
+
+  if (bearingObj) {
+    // Verberg vragenlijst badge op de zoekpagina
+    const badge = document.getElementById("surveyBearingSelectedBadge");
+    if (badge) badge.style.display = "none";
+
+    if (typeof updateCalculatorFields === "function") updateCalculatorFields();
+    if (typeof updateTcoFrequencies === "function") updateTcoFrequencies();
+    
+    const omProdName1 = document.getElementById("omProdName1");
+    if (omProdName1) {
+      omProdName1.textContent = "SKF " + (bearingObj.designation ? bearingObj.designation.toUpperCase() : "");
+    }
+
+    if (typeof calculateTco === "function") calculateTco();
+    if (typeof updateOmMetadata === "function") updateOmMetadata();
+    if (typeof saveBearingTcoDetails === "function") saveBearingTcoDetails();
+
+    const desigLabel = bearingObj.designation ? `SKF ${bearingObj.designation.toUpperCase()}` : "lager";
+    if (typeof showToastNotification === "function") {
+      showToastNotification(`✅ Zelf gezocht lager (${desigLabel}) actief in Opbrengstmodel!`);
+    }
+  } else {
+    // Nog geen lager gezocht -> switch direct naar de zoekpagina
+    switchPage('search');
+    setTimeout(() => {
+      const inp = document.getElementById("bearingSearchInput");
+      if (inp) { inp.focus(); inp.select(); }
+    }, 100);
+  }
+}
+window.activateManualSearchedBearingInOm = activateManualSearchedBearingInOm;
 
 function handleImportBearingFromSurveyClick() {
   // Request latest config and raw bearings from active questionnaire if tab is open
@@ -3916,6 +4095,14 @@ const TRANSLATIONS = {
     omInstructionText: "Vul de grijze cellen in",
     omAutoInstructionText: "De blauwe cellen zijn automatisch berekend maar kunnen handmatig aangepast worden",
     omImportSurveyBearing: "Selecteer een lager uit de vragenlijst",
+    omBtnSearchBearing: "Lager opzoeken",
+    omBtnSearchChain: "Ketting opzoeken",
+    omManualSearchedBearing: "🔍 Zelf gezocht lager",
+    omManualSearchedChain: "🔍 Zelf gezochte ketting",
+    omSurveyBearingsGroup: "📋 Lagers uit de vragenlijst",
+    omSurveyChainsGroup: "📋 Kettingen / lagers uit vragenlijst",
+    omSearchOtherBearing: "🔎 Zoek een ander lager in 'Lager Opzoeken' ➔",
+    omSearchOtherChain: "🔎 Zoek een andere ketting in 'Ketting Opzoeken' ➔",
     omGroupCurrent: "Huidige situatie",
     omGroupInterflon: "Nieuwe situatie (Interflon)",
     omGroupGeneral: "Algemene info",
@@ -4430,6 +4617,14 @@ const TRANSLATIONS = {
     omInstructionText: "Fill in the grey cells",
     omAutoInstructionText: "The blue cells are automatically calculated but can be manually adjusted",
     omImportSurveyBearing: "Select a bearing from questionnaire",
+    omBtnSearchBearing: "Search bearing",
+    omBtnSearchChain: "Search chain",
+    omManualSearchedBearing: "🔍 Custom searched bearing",
+    omManualSearchedChain: "🔍 Custom searched chain",
+    omSurveyBearingsGroup: "📋 Bearings from questionnaire",
+    omSurveyChainsGroup: "📋 Chains from questionnaire",
+    omSearchOtherBearing: "🔎 Search another bearing in 'Bearing Search' ➔",
+    omSearchOtherChain: "🔎 Search another chain in 'Chain Search' ➔",
     omGroupCurrent: "Current situation",
     omGroupInterflon: "New situation (Interflon)",
     omGroupGeneral: "General info",
@@ -4944,6 +5139,14 @@ const TRANSLATIONS = {
     omInstructionText: "Remplir les cellules grises",
     omAutoInstructionText: "Les cellules bleues sont calculées automatiquement mais peuvent être ajustées manuellement",
     omImportSurveyBearing: "Sélectionner un roulement du questionnaire",
+    omBtnSearchBearing: "Rechercher roulement",
+    omBtnSearchChain: "Rechercher chaîne",
+    omManualSearchedBearing: "🔍 Roulement recherché",
+    omManualSearchedChain: "🔍 Chaîne recherchée",
+    omSurveyBearingsGroup: "📋 Roulements du questionnaire",
+    omSurveyChainsGroup: "📋 Chaînes du questionnaire",
+    omSearchOtherBearing: "🔎 Rechercher un autre roulement ➔",
+    omSearchOtherChain: "🔎 Rechercher une autre chaîne ➔",
     omGroupCurrent: "Situation actuelle",
     omGroupInterflon: "Nouvelle situation (Interflon)",
     omGroupGeneral: "Infos générales",
@@ -6215,9 +6418,41 @@ function handleSearchInput() {
 }
 
 function selectBearing(key) {
-  document.getElementById("bearingSearchInput").value = key;
-  document.getElementById("suggestionsBox").style.display = "none";
+  const searchInp = document.getElementById("bearingSearchInput");
+  if (searchInp) searchInp.value = key;
+  const suggestionsBox = document.getElementById("suggestionsBox");
+  if (suggestionsBox) suggestionsBox.style.display = "none";
   loadBearingDetails(key);
+
+  // Activeer dit gezochte lager direct als actieve bron voor TCO / Opbrengstmodel
+  window.activeTcoBearingSource = "manual";
+  try { localStorage.setItem("active_tco_bearing_source", "manual"); } catch(e) {}
+
+  // Verberg vragenlijst badge op de zoekpagina zodat duidelijk is dat dit een eigen gezocht lager is
+  const badge = document.getElementById("surveyBearingSelectedBadge");
+  if (badge) badge.style.display = "none";
+
+  if (typeof updateCalculatorFields === "function") updateCalculatorFields();
+  if (typeof updateTcoFrequencies === "function") updateTcoFrequencies();
+
+  const omProdName1 = document.getElementById("omProdName1");
+  if (omProdName1) {
+    const desig = (typeof activeBearing !== "undefined" && activeBearing && activeBearing.designation)
+      ? activeBearing.designation.toUpperCase()
+      : key.toUpperCase();
+    omProdName1.textContent = "SKF " + desig;
+  }
+
+  if (typeof calculateTco === "function") calculateTco();
+  if (typeof updateOmMetadata === "function") updateOmMetadata();
+  if (typeof saveBearingTcoDetails === "function") saveBearingTcoDetails();
+
+  // Werk dropdown bij in Opbrengstmodel en selecteer 'manual'
+  if (typeof populateOmSurveyBearingsDropdown === "function") {
+    populateOmSurveyBearingsDropdown();
+  }
+  const omSelect = document.getElementById("omSurveyBearingSelect");
+  if (omSelect) omSelect.value = "manual";
 }
 
 // Sluit suggesties als buiten de zoekbalk wordt geklikt
@@ -10055,7 +10290,44 @@ function selectChain(chain) {
   if (svgPin) svgPin.textContent = chain.pinDiameter ? `${chain.pinDiameter.toFixed(2)} mm / ${pinInch}"` : "-";
 
   calculateChainGrease();
+
+  // Activeer direct voor Ketting Opbrengstmodel
+  window.activeTcoBearingSource = "manual";
+  try { localStorage.setItem("active_tco_bearing_source", "manual"); } catch(e) {}
+
+  const chainOmProdName1 = document.getElementById("chainOmProdName1");
+  if (chainOmProdName1 && chain.designation) {
+    chainOmProdName1.textContent = chain.designation;
+  }
+
+  if (typeof calculateChainTco === "function") calculateChainTco();
+  if (typeof saveChainTcoDetails === "function") saveChainTcoDetails();
+
+  if (typeof populateOmSurveyBearingsDropdown === "function") {
+    populateOmSurveyBearingsDropdown();
+  }
+  const chainSelect = document.getElementById("chainOmSurveyBearingSelect");
+  if (chainSelect) chainSelect.value = "manual";
 }
+
+function handleChainSearchEnter(input) {
+  if (!input) return;
+  const suggestionsBox = document.getElementById("chainSuggestionsBox");
+  if (suggestionsBox) {
+    suggestionsBox.style.display = "none";
+    suggestionsBox.innerHTML = "";
+  }
+  if (typeof CHAINS_DB === "undefined" || !CHAINS_DB.length) return;
+  const cleanInput = input.toUpperCase().replace(/[\s-]/g, "");
+  let match = CHAINS_DB.find(c => c.designation.toUpperCase().replace(/[\s-]/g, "") === cleanInput);
+  if (!match) {
+    match = CHAINS_DB.find(c => c.designation.toUpperCase().replace(/[\s-]/g, "").includes(cleanInput) || cleanInput.includes(c.designation.toUpperCase().replace(/[\s-]/g, "")));
+  }
+  if (match) {
+    selectChain(match);
+  }
+}
+window.handleChainSearchEnter = handleChainSearchEnter;
 
 function goToChainCalculator() {
   switchPage("chainCalc");
