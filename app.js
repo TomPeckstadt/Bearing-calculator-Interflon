@@ -6028,7 +6028,8 @@ function playOpeningAnimation(includeIntro = false) {
     if (openingVideo) {
       openingVideo.style.display = 'block';
       openingVideo.currentTime = 0;
-      openingVideo.muted = true; // Muted guarantees video plays reliably without autoplay block
+      openingVideo.muted = false; // Geluid van liftdeuren inschakelen (directe klik/enter autoriseert audio)
+      openingVideo.volume = 1.0;
 
       // 12-second safety timeout for elevator video
       safetyTimer = setTimeout(proceedToApp, 12000);
@@ -6039,8 +6040,15 @@ function playOpeningAnimation(includeIntro = false) {
       const playPromise = openingVideo.play();
       if (playPromise && typeof playPromise.catch === 'function') {
         playPromise.catch((err) => {
-          console.warn("Autoplay was prevented:", err);
-          proceedToApp();
+          console.warn("Unmuted autoplay failed, trying muted fallback:", err);
+          openingVideo.muted = true;
+          const retryPromise = openingVideo.play();
+          if (retryPromise && typeof retryPromise.catch === 'function') {
+            retryPromise.catch((e) => {
+              console.warn("Autoplay was prevented:", e);
+              proceedToApp();
+            });
+          }
         });
       }
 
