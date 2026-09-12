@@ -7881,18 +7881,26 @@ function showPdfModal() {
   const allBearingsRadio = document.querySelector('input[name="pdfScopeOption"][value="all_no_auto"]');
   const allBearingsDesc = document.getElementById("pdfScopeAllBearingsDesc");
   const allBearingsLabel = document.getElementById("pdfScopeAllBearingsLabel");
+  const curTitle = document.getElementById("pdfScopeCurrentTitle");
+  const curDesc = document.getElementById("pdfScopeCurrentDesc");
 
   if (qBearings && qBearings.length > 0) {
+    const letters = qBearings.map(b => b.letter).join(", ");
+    if (curTitle) curTitle.textContent = `Standaard rapport (alle ${qBearings.length} lagers + automatisatie)`;
+    if (curDesc) curDesc.textContent = `Genereert automatisch pagina 1 & 2 voor alle ${qBearings.length} lagers (${letters}), gevolgd door automatisering, ROI en 3D raster.`;
+
     if (allBearingsRadio) allBearingsRadio.disabled = false;
     if (allBearingsLabel) {
       allBearingsLabel.style.opacity = "1";
       allBearingsLabel.style.pointerEvents = "auto";
     }
     if (allBearingsDesc) {
-      const letters = qBearings.map(b => b.letter).join(", ");
       allBearingsDesc.textContent = `Genereert enkel pagina 1 (Smeeradvies) en pagina 2 (TCO model) voor alle ${qBearings.length} lagers (${letters}) uit de vragenlijst.`;
     }
   } else {
+    if (curTitle) curTitle.textContent = "Standaard rapport (huidig geselecteerd lager)";
+    if (curDesc) curDesc.textContent = "Genereert het volledige rapport voor het actieve lager met onderstaande opties.";
+
     if (allBearingsRadio) {
       allBearingsRadio.disabled = true;
       allBearingsRadio.checked = false;
@@ -8765,6 +8773,89 @@ function runBearingPdfExport(includeTco, includeRoi, includeRaster = true) {
     autoImgSrc = "pulsarlube-msp.png";
   }
 
+  const qBearings = (typeof getQuestionnaireBearings === 'function') ? getQuestionnaireBearings() : [];
+  const hasQBearings = qBearings && qBearings.length > 0;
+
+  // Snapshot van huidige calculator status om na export getrouw te herstellen indien er meerdere lagers zijn
+  let stateSnapshot = null;
+  let restoreState = () => {};
+
+  if (hasQBearings) {
+    stateSnapshot = {
+      searchVal: document.getElementById("bearingSearchInput") ? document.getElementById("bearingSearchInput").value : "",
+      activeBearingDesig: (typeof activeBearing !== "undefined" && activeBearing) ? activeBearing.designation : "",
+      activeSource: window.activeTcoBearingSource,
+      speed: document.getElementById("inputSpeed") ? document.getElementById("inputSpeed").value : "",
+      hours: document.getElementById("inputHoursPerDay") ? document.getElementById("inputHoursPerDay").value : "",
+      days: document.getElementById("inputDaysPerWeek") ? document.getElementById("inputDaysPerWeek").value : "",
+      temp: document.getElementById("inputTemperature") ? document.getElementById("inputTemperature").value : "",
+      teIdx: document.getElementById("inputTe") ? document.getElementById("inputTe").selectedIndex : 1,
+      taIdx: document.getElementById("inputTa") ? document.getElementById("inputTa").selectedIndex : 1,
+      grease: document.getElementById("inputGrease") ? document.getElementById("inputGrease").value : "",
+      micpol: document.getElementById("inputMicPolFactor") ? document.getElementById("inputMicPolFactor").value : "",
+      techProd: document.getElementById("techProductInput") ? document.getElementById("techProductInput").value : "",
+      techPrice: document.getElementById("techPriceInput") ? document.getElementById("techPriceInput").value : "",
+      techInt: document.getElementById("techIntervalInput") ? document.getElementById("techIntervalInput").value : "",
+      omWorktime: document.getElementById("omSharedWorktime") ? document.getElementById("omSharedWorktime").value : "",
+      omLaborRate: document.getElementById("omSharedLaborRate") ? document.getElementById("omSharedLaborRate").value : "",
+      omRepairH: document.getElementById("omSharedRepairH") ? document.getElementById("omSharedRepairH").value : "",
+      omPrepH: document.getElementById("omSharedPrepH") ? document.getElementById("omSharedPrepH").value : "",
+      omDtRate: document.getElementById("omSharedDowntimeRate") ? document.getElementById("omSharedDowntimeRate").value : "",
+      omPartsCost: document.getElementById("omSharedPartsCost") ? document.getElementById("omSharedPartsCost").value : "",
+      omSets: document.getElementById("omSharedSetsPerMachine") ? document.getElementById("omSharedSetsPerMachine").value : "",
+      omLife1: document.getElementById("omLifetime1") ? document.getElementById("omLifetime1").value : "",
+      omLife2: document.getElementById("omLifetime2") ? document.getElementById("omLifetime2").value : "",
+      omProdPrice1: document.getElementById("omProdPrice1") ? document.getElementById("omProdPrice1").value : "",
+      omProdFreq1: document.getElementById("omProdFreq1") ? document.getElementById("omProdFreq1").value : "",
+      surveySelIdx: document.getElementById("surveyBearingSelect") ? document.getElementById("surveyBearingSelect").selectedIndex : -1,
+      omSurveySelIdx: document.getElementById("omSurveyBearingSelect") ? document.getElementById("omSurveyBearingSelect").selectedIndex : -1
+    };
+
+    restoreState = () => {
+      try {
+        if (stateSnapshot.activeBearingDesig) {
+          if (typeof loadBearingDetails === "function") loadBearingDetails(stateSnapshot.activeBearingDesig);
+        }
+        if (document.getElementById("bearingSearchInput")) document.getElementById("bearingSearchInput").value = stateSnapshot.searchVal;
+        if (document.getElementById("inputSpeed")) document.getElementById("inputSpeed").value = stateSnapshot.speed;
+        if (document.getElementById("inputHoursPerDay")) document.getElementById("inputHoursPerDay").value = stateSnapshot.hours;
+        if (document.getElementById("inputDaysPerWeek")) document.getElementById("inputDaysPerWeek").value = stateSnapshot.days;
+        if (document.getElementById("inputTemperature")) document.getElementById("inputTemperature").value = stateSnapshot.temp;
+        if (document.getElementById("inputTe")) document.getElementById("inputTe").selectedIndex = stateSnapshot.teIdx;
+        if (document.getElementById("inputTa")) document.getElementById("inputTa").selectedIndex = stateSnapshot.taIdx;
+        if (document.getElementById("inputGrease")) document.getElementById("inputGrease").value = stateSnapshot.grease;
+        if (document.getElementById("inputMicPolFactor")) document.getElementById("inputMicPolFactor").value = stateSnapshot.micpol;
+        if (document.getElementById("techProductInput")) document.getElementById("techProductInput").value = stateSnapshot.techProd;
+        if (document.getElementById("techPriceInput")) document.getElementById("techPriceInput").value = stateSnapshot.techPrice;
+        if (document.getElementById("techIntervalInput")) document.getElementById("techIntervalInput").value = stateSnapshot.techInt;
+        if (document.getElementById("omSharedWorktime")) document.getElementById("omSharedWorktime").value = stateSnapshot.omWorktime;
+        if (document.getElementById("omSharedLaborRate")) document.getElementById("omSharedLaborRate").value = stateSnapshot.omLaborRate;
+        if (document.getElementById("omSharedRepairH")) document.getElementById("omSharedRepairH").value = stateSnapshot.omRepairH;
+        if (document.getElementById("omSharedPrepH")) document.getElementById("omSharedPrepH").value = stateSnapshot.omPrepH;
+        if (document.getElementById("omSharedDowntimeRate")) document.getElementById("omSharedDowntimeRate").value = stateSnapshot.omDtRate;
+        if (document.getElementById("omSharedPartsCost")) document.getElementById("omSharedPartsCost").value = stateSnapshot.omPartsCost;
+        if (document.getElementById("omSharedSetsPerMachine")) document.getElementById("omSharedSetsPerMachine").value = stateSnapshot.omSets;
+        if (document.getElementById("omLifetime1")) document.getElementById("omLifetime1").value = stateSnapshot.omLife1;
+        if (document.getElementById("omLifetime2")) document.getElementById("omLifetime2").value = stateSnapshot.omLife2;
+        if (document.getElementById("omProdPrice1")) document.getElementById("omProdPrice1").value = stateSnapshot.omProdPrice1;
+        if (document.getElementById("omProdFreq1")) document.getElementById("omProdFreq1").value = stateSnapshot.omProdFreq1;
+        if (stateSnapshot.surveySelIdx >= 0 && document.getElementById("surveyBearingSelect")) {
+          document.getElementById("surveyBearingSelect").selectedIndex = stateSnapshot.surveySelIdx;
+        }
+        if (stateSnapshot.omSurveySelIdx >= 0 && document.getElementById("omSurveyBearingSelect")) {
+          document.getElementById("omSurveyBearingSelect").selectedIndex = stateSnapshot.omSurveySelIdx;
+        }
+        window.activeTcoBearingSource = stateSnapshot.activeSource;
+        if (typeof calculateGrease === "function") calculateGrease();
+        if (typeof updateTcoFrequencies === "function") updateTcoFrequencies();
+        if (typeof calculateTco === "function") calculateTco();
+        if (typeof updateOmMetadata === "function") updateOmMetadata();
+      } catch (err) {
+        console.warn("Could not fully restore calculator state:", err);
+      }
+    };
+  }
+
   getTransparentLogo((watermarkDataUrl, aspectRatio) => {
     getMicPolImageDataUrl((micpolDataUrl, micpolRatio) => {
       getAutomationDeviceImageDataUrl(autoImgSrc, (autoDataUrl, autoRatio) => {
@@ -8779,61 +8870,121 @@ function runBearingPdfExport(includeTco, includeRoi, includeRaster = true) {
           const dateLocale = currentLang === "nl" ? "nl-NL" : currentLang === "en" ? "en-US" : "fr-FR";
           const dateString = now.toLocaleDateString(dateLocale) + " " + now.toLocaleTimeString(dateLocale, {hour: '2-digit', minute:'2-digit'});
 
-          const totalPages = 1 + (includeTco ? 1 : 0) + 1 + (includeRoi ? 1 : 0) + (includeRaster ? 1 : 0);
+          const pagesPerBearing = includeTco ? 2 : 1;
+          const totalBearingPages = hasQBearings ? (qBearings.length * pagesPerBearing) : pagesPerBearing;
+          const totalExtraPages = 1 + (includeRoi ? 1 : 0) + (includeRaster ? 1 : 0);
+          const totalPages = totalBearingPages + totalExtraPages;
           let curPageNum = 1;
 
-          // Page 1: Smeeradvies
-          renderBearingPdfPage1(doc, {
-            watermarkDataUrl,
-            aspectRatio,
-            micpolDataUrl,
-            micpolRatio,
-            langData,
-            dateString,
-            curPageNum: curPageNum,
-            totalPages: totalPages,
-            isFirstPage: true
-          });
-          curPageNum++;
+          if (hasQBearings) {
+            // Render alle lagers uit de vragenlijst
+            qBearings.forEach((b, idx) => {
+              // 1. Toepassen van lager b op calculator
+              applySurveyBearingToCalculator(b);
 
-          // Page 2: Opbrengstmodel TCO (indien geselecteerd)
-          if (includeTco) {
-            renderBearingPdfPage2(doc, {
+              // 2. Pagina 1: Smeeradvies
+              renderBearingPdfPage1(doc, {
+                watermarkDataUrl,
+                aspectRatio,
+                micpolDataUrl,
+                micpolRatio,
+                langData,
+                dateString,
+                bearingLetter: b.letter,
+                bearingDesc: b.desc,
+                bearingPos: b.pos,
+                curPageNum: curPageNum,
+                totalPages: totalPages,
+                isFirstPage: (idx === 0)
+              });
+              curPageNum++;
+
+              // 3. Pagina 2: Opbrengstmodel TCO (indien geselecteerd)
+              if (includeTco) {
+                renderBearingPdfPage2(doc, {
+                  watermarkDataUrl,
+                  aspectRatio,
+                  langData,
+                  dateString,
+                  bearingLetter: b.letter,
+                  bearingDesc: b.desc,
+                  curPageNum: curPageNum,
+                  totalPages: totalPages
+                });
+                curPageNum++;
+              }
+            });
+          } else {
+            // Standalone actieve lager (zonder vragenlijst)
+            renderBearingPdfPage1(doc, {
               watermarkDataUrl,
               aspectRatio,
+              micpolDataUrl,
+              micpolRatio,
               langData,
               dateString,
               curPageNum: curPageNum,
-              totalPages: totalPages
+              totalPages: totalPages,
+              isFirstPage: true
             });
             curPageNum++;
+
+            if (includeTco) {
+              renderBearingPdfPage2(doc, {
+                watermarkDataUrl,
+                aspectRatio,
+                langData,
+                dateString,
+                curPageNum: curPageNum,
+                totalPages: totalPages
+              });
+              curPageNum++;
+            }
           }
 
+          // Aansluitend de automatisatiepagina's toevoegen
           getVerdeelblokImage(function(divDataUrl) {
-            // Automatisering Overzicht
-            renderPdfAutomationExtraPage(doc, {}, autoDataUrl, autoRatio, watermarkDataUrl, aspectRatio, langData, false, divDataUrl);
+            try {
+              // Automatisering Overzicht (Pulsarlube toestellen A en B, verdeelblok, leidingen)
+              renderPdfAutomationExtraPage(doc, {}, autoDataUrl, autoRatio, watermarkDataUrl, aspectRatio, langData, false, divDataUrl);
 
-            // ROI Automatisering
-            if (includeRoi) {
-              addRoiPdfPage(doc, dateString, watermarkDataUrl, aspectRatio, autoDataUrl);
+              // ROI Automatisering
+              if (includeRoi) {
+                addRoiPdfPage(doc, dateString, watermarkDataUrl, aspectRatio, autoDataUrl);
+              }
+
+              // 3D Machineraster
+              if (includeRaster) {
+                addMachineRasterPdfPage(doc, dateString, watermarkDataUrl, aspectRatio);
+              }
+
+              const machine = (localStorage.getItem("tech_machine") || "Machine").replace(/[\\/\?%*:|"<>]/g, "_").replace(/\s+/g, "_");
+              let bearingNum = (typeof activeBearing !== "undefined" && activeBearing && activeBearing.designation)
+                ? activeBearing.designation
+                : "Lager";
+              const fileSuffix = hasQBearings ? machine : (bearingNum.replace(/[\\/\?%*:|"<>]/g, "_").replace(/\s+/g, "_"));
+              const filePrefix = currentLang === "nl" 
+                ? "Interflon_Smeeradvies_" 
+                : currentLang === "en" 
+                  ? "Interflon_Lubrication_Advice_" 
+                  : "Interflon_Conseil_Lubrification_";
+              doc.save(filePrefix + fileSuffix + ".pdf");
+            } catch (err) {
+              console.error("Fout bij toevoegen automatisatiepagina's:", err);
+              alert((langData.pdfErrorGen || "Er is een fout opgetreden bij het genereren van het PDF-rapport: ") + err.message);
+            } finally {
+              restoreState();
+              if (exportBtn) {
+                exportBtn.disabled = false;
+                exportBtn.innerHTML = originalText;
+              }
             }
-
-            // 3D Machineraster
-            if (includeRaster) {
-              addMachineRasterPdfPage(doc, dateString, watermarkDataUrl, aspectRatio);
-            }
-
-            let bearingNum = (typeof activeBearing !== "undefined" && activeBearing && activeBearing.designation)
-              ? activeBearing.designation
-              : "Lager";
-            const filePrefix = currentLang === "nl" ? "Interflon_Smeeradvies_" : currentLang === "en" ? "Interflon_Lubrication_Advice_" : "Interflon_Conseil_Lubrification_";
-            doc.save(filePrefix + bearingNum.replace(/[/\?%*:|"<>/s]/g, "_") + ".pdf");
           });
 
         } catch (e) {
           console.error("Fout bij genereren PDF:", e);
           alert((langData.pdfErrorGen || "Er is een fout opgetreden bij het genereren van het PDF-rapport: ") + e.message);
-        } finally {
+          restoreState();
           if (exportBtn) {
             exportBtn.disabled = false;
             exportBtn.innerHTML = originalText;
