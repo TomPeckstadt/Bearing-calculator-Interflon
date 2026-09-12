@@ -545,6 +545,106 @@ function importConfigFromSurvey(customData) {
 }
 
 // ==========================================================================
+// AUTOMATICALLY DETERMINE CORRECTION FACTORS (Te & Ta) FROM SURVEY (PUNTEN 14-19 & AS POSITIE)
+// ==========================================================================
+function determineBearingCorrectionFactors(sec3Data, shaftPosition) {
+  const d3 = sec3Data || {};
+  const parseNum = (v, defaultVal) => {
+    if (v === undefined || v === null || v === '') return defaultVal;
+    const n = parseFloat(v);
+    return isNaN(n) ? defaultVal : n;
+  };
+
+  const waterVocht = parseNum(d3.q17, 3);
+  const stofZand = parseNum(d3.q18, 4);
+  const abrasief = parseNum(d3.q19, 2);
+  const schok = parseNum(d3.q20, 3);
+  const vibratie = parseNum(d3.q21, 3);
+  const condens = parseNum(d3.q22, 2);
+
+  const posStr = String(shaftPosition || d3.asPositie || '').trim().toLowerCase();
+  const isVertical = posStr.includes('vertic') || posStr.includes('vertik');
+
+  // 1. Omgevingsfactor (Te / Tx):
+  // 0.8: Gemiddeld (1-3)
+  // 0.5: Stof en/of vocht / Hoog (4-6)
+  // 0.3: Stof en/of vocht / Erg hoog (7-8)
+  // 0.15: Condensatie / Extreem (9-10 of condensatie >= 7)
+  const maxEnvScore = Math.max(waterVocht, stofZand, abrasief, condens);
+  let Te = 0.8;
+  let teOptionValue = "0.8";
+  let teReason = "Gemiddeld (0,8)";
+
+  if (condens >= 7 || waterVocht >= 9 || abrasief >= 9 || maxEnvScore >= 9) {
+    Te = 0.15;
+    teOptionValue = "0.15";
+    teReason = "Condensatie / Extreem (0,15)";
+  } else if (maxEnvScore >= 7) {
+    Te = 0.3;
+    teOptionValue = "0.3";
+    teReason = "Stof/vocht Erg hoog (0,3)";
+  } else if (maxEnvScore >= 4) {
+    Te = 0.5;
+    teOptionValue = "0.5";
+    teReason = "Stof/vocht Hoog (0,5)";
+  } else {
+    Te = 0.8;
+    teOptionValue = "0.8";
+    teReason = "Gemiddeld (0,8)";
+  }
+
+  // 2. Toepassingsfactor (Ta):
+  // 0.8: Gemiddeld (1-3)
+  // 0.5: Schokken / Hoog (4-6)
+  // 0.3: Vibraties / Erg hoog (7-8)
+  // 0.15: Verticale as / Extreem (Verticale as of score >= 9)
+  const maxAppScore = Math.max(schok, vibratie);
+  let Ta = 0.8;
+  let taOptionValue = "0.8";
+  let taReason = "Gemiddeld (0,8)";
+
+  if (isVertical) {
+    Ta = 0.15;
+    taOptionValue = "0.15";
+    taReason = "Verticale as / Extreem (0,15)";
+  } else if (maxAppScore >= 9) {
+    Ta = 0.15;
+    taOptionValue = "0.15";
+    taReason = "Extreme belasting (0,15)";
+  } else if (vibratie >= 7) {
+    Ta = 0.3;
+    taOptionValue = "0.3";
+    taReason = "Vibraties Erg hoog (0,3)";
+  } else if (schok >= 7) {
+    Ta = 0.3;
+    taOptionValue = "0.3";
+    taReason = "Zware schokken Erg hoog (0,3)";
+  } else if (maxAppScore >= 4) {
+    Ta = 0.5;
+    taOptionValue = "0.5";
+    taReason = "Schokken/trillingen Hoog (0,5)";
+  } else {
+    Ta = 0.8;
+    taOptionValue = "0.8";
+    taReason = "Gemiddeld (0,8)";
+  }
+
+  return {
+    Te,
+    Ta,
+    teOptionValue,
+    taOptionValue,
+    teReason,
+    taReason,
+    maxEnvScore,
+    maxAppScore,
+    isVertical,
+    scores: { waterVocht, stofZand, abrasief, schok, vibratie, condens }
+  };
+}
+window.determineBearingCorrectionFactors = determineBearingCorrectionFactors;
+
+// ==========================================================================
 // CALCULATE LUBRICATION DEMAND FOR A SINGLE BEARING (FROM SURVEY / DB)
 // ==========================================================================
 function calculateSingleBearingDailyNeed(bearingNr, speedRpm, opts = {}) {
@@ -720,10 +820,14 @@ function applySurveyConfig(config) {
       const temp = parseFloat(b.temp || d3.q15) || 20;
       const rpm = parseFloat(b.rpm) || 500;
       const bQty = parseInt(b.qty, 10) || 1;
+      const bPos = b.asPositie || b.pos || '';
+      const corr = determineBearingCorrectionFactors(d3, bPos);
       const need = calculateSingleBearingDailyNeed(b.nr, rpm, {
         hoursPerDay: hDay,
         daysPerWeek: dWeek,
-        temp: temp
+        temp: temp,
+        Te: corr.Te,
+        Ta: corr.Ta
       });
       return {
         letter: b.letter,
@@ -734,7 +838,9 @@ function applySurveyConfig(config) {
         qty: bQty,
         hoursPerDay: hDay,
         daysPerWeek: dWeek,
-        temp: temp
+        temp: temp,
+        Te: corr.Te,
+        Ta: corr.Ta
       };
     }) : [];
 
@@ -974,11 +1080,15 @@ function applySurveyConfig(config) {
       const temp = parseFloat(bObj.temp || d3.q15) || 20;
       const bQty = parseInt(bObj.qty, 10) || 1;
       const rpm = parseFloat(bObj.rpm) || 500;
+      const bPos = bObj.asPositie || bObj.pos || '';
+      const corr = determineBearingCorrectionFactors(d3, bPos);
 
       const need = calculateSingleBearingDailyNeed(bObj.nr, rpm, {
         hoursPerDay: hDay,
         daysPerWeek: dWeek,
-        temp: temp
+        temp: temp,
+        Te: corr.Te,
+        Ta: corr.Ta
       });
 
       devTotalDailyNeed += (need.dailyNeed * bQty);
@@ -988,7 +1098,9 @@ function applySurveyConfig(config) {
         nr: bObj.nr || '22225',
         rpm: rpm,
         dailyNeed: need.dailyNeed,
-        qty: bQty
+        qty: bQty,
+        Te: corr.Te,
+        Ta: corr.Ta
       });
     });
 
@@ -1184,7 +1296,8 @@ function parseSurveyPackageToConfig(data) {
         const hoursPerDay = parseFloat(b.hoursPerDay || d2.q13) || 16;
         const daysPerWeek = parseFloat(b.daysPerWeek || d2.q14) || 5;
         const temp = parseFloat(b.temp || d3.q15) || 20;
-        bearings.push({ letter, nr, desc, rpm, pos: asPos, qty, x: pos.x, y: pos.y, hoursPerDay, daysPerWeek, temp });
+        const corr = determineBearingCorrectionFactors(d3, asPos);
+        bearings.push({ letter, nr, desc, rpm, pos: asPos, qty, x: pos.x, y: pos.y, hoursPerDay, daysPerWeek, temp, Te: corr.Te, Ta: corr.Ta });
       });
     }
 
@@ -1900,6 +2013,61 @@ function onSurveyBearingSelected(selectEl) {
     }
   }
 
+  // --- Punten 14 t/m 19 & As Positie: Correctiefactoren Te en Ta (Smeercalculatie) ---
+  const asPosVal = (bRec.pos || bRec.asPositie || pos || '').trim();
+  const corrFactors = determineBearingCorrectionFactors(sec3, asPosVal);
+
+  const teInput = document.getElementById("inputTe");
+  if (teInput && corrFactors.teOptionValue) {
+    teInput.value = corrFactors.teOptionValue;
+    try { localStorage.setItem("app_field_inputTe", corrFactors.teOptionValue); } catch(e) {}
+    teInput.dispatchEvent(new Event("change", { bubbles: true }));
+  }
+
+  const taInput = document.getElementById("inputTa");
+  if (taInput && corrFactors.taOptionValue) {
+    taInput.value = corrFactors.taOptionValue;
+    try { localStorage.setItem("app_field_inputTa", corrFactors.taOptionValue); } catch(e) {}
+    taInput.dispatchEvent(new Event("change", { bubbles: true }));
+  }
+
+  const hintEl = document.getElementById("surveyCorrectionFactorsHint");
+  const hintTextEl = document.getElementById("surveyCorrectionFactorsHintText");
+  if (hintEl && hintTextEl) {
+    const reasonParts = [];
+    if (corrFactors.isVertical) {
+      reasonParts.push("Verticale as → Ta " + corrFactors.taOptionValue.replace('.', ','));
+    } else if (corrFactors.maxAppScore >= 4) {
+      reasonParts.push("Schok/Trilling (" + corrFactors.maxAppScore + "/10) → Ta " + corrFactors.taOptionValue.replace('.', ','));
+    } else {
+      reasonParts.push("Ta " + corrFactors.taOptionValue.replace('.', ','));
+    }
+    if (corrFactors.maxEnvScore >= 4) {
+      reasonParts.push("Omgeving (" + corrFactors.maxEnvScore + "/10) → Te " + corrFactors.teOptionValue.replace('.', ','));
+    } else {
+      reasonParts.push("Te " + corrFactors.teOptionValue.replace('.', ','));
+    }
+    hintTextEl.innerHTML = "<strong>Automatisch ingesteld o.b.v. Vragenlijst (Lager " + targetLetter + "):</strong> " + reasonParts.join(" &bull; ");
+    hintEl.style.display = "block";
+  }
+
+  // Setup override listener if user manually tweaks Te/Ta afterwards
+  ["inputTe", "inputTa"].forEach(id => {
+    const el = document.getElementById(id);
+    if (el && typeof el.addEventListener === 'function' && !el.__hasManualOverrideListener) {
+      el.__hasManualOverrideListener = true;
+      el.addEventListener('change', () => {
+        const hEl = document.getElementById("surveyCorrectionFactorsHint");
+        const hText = document.getElementById("surveyCorrectionFactorsHintText");
+        if (hEl && hText && hEl.style.display !== "none") {
+          const curTe = (document.getElementById("inputTe")?.value || '0.8').replace('.', ',');
+          const curTa = (document.getElementById("inputTa")?.value || '0.8').replace('.', ',');
+          hText.innerHTML = "<strong>Handmatig aangepast:</strong> Omgevingsfactor Te (" + curTe + ") &bull; Toepassingsfactor Ta (" + curTa + ")";
+        }
+      });
+    }
+  });
+
   // --- Punt 6: Huidig smeermiddel (Merk & Type) (Smeercalculatie & Opbrengstmodel) ---
   const curLube = (sec2.q11 && sec2.q11.trim() !== '') ? sec2.q11.trim() :
                   (bRec.smeermiddel && bRec.smeermiddel !== '-' ? bRec.smeermiddel.trim() : '');
@@ -2269,6 +2437,8 @@ function clearSurveyBearingSelection() {
   if (selectEl) selectEl.value = "";
   const badge = document.getElementById("surveyBearingSelectedBadge");
   if (badge) badge.style.display = "none";
+  const hintEl = document.getElementById("surveyCorrectionFactorsHint");
+  if (hintEl) hintEl.style.display = "none";
   const omSelect = document.getElementById("omSurveyBearingSelect");
   if (omSelect) omSelect.selectedIndex = 0;
   const chainOmSelect = document.getElementById("chainOmSurveyBearingSelect");
