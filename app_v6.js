@@ -1017,9 +1017,7 @@ function parseSurveyPackageToConfig(data) {
     const deviceConfigs = [];
 
     if (isSinglePoint) {
-      const hasAnyBearingSummary = Array.isArray(autoDevicesState) && autoDevicesState.slice(0, numDevices).some(d => !!d && !!d.bearingSummary);
-
-  for (let i = 0; i < numDevices; i++) {
+      for (let i = 0; i < numDevices; i++) {
         const dev = activeDevs[i] || { id: 'dev-' + (i + 1), name: 'Toestel ' + (i + 1), type: 'single_point', x: 0, y: 0 };
         const targetL = dev.targetBearingLetter || (bearings[i] ? bearings[i].letter : ('L' + (i + 1)));
         deviceConfigs.push({
@@ -2804,6 +2802,8 @@ function renderAutoDevicesUI() {
     container.style.gap = "20px";
     container.style.width = "100%";
   }
+
+  const hasAnyBearingSummary = Array.isArray(autoDevicesState) && autoDevicesState.slice(0, numDevices).some(d => !!d && !!d.bearingSummary);
 
   for (let i = 0; i < numDevices; i++) {
     const dev = autoDevicesState[i];
