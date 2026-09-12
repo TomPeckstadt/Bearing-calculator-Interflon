@@ -5829,6 +5829,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
 function handleLogin(event) {
   if (event) event.preventDefault();
+  return processLogin(true);
+}
+
+function handleLoginDirect(event) {
+  if (event) event.preventDefault();
   return processLogin(false);
 }
 
@@ -5993,7 +5998,9 @@ function playOpeningAnimation(includeIntro = false) {
     // Phase 1: Intro video
     if (openingVideo) openingVideo.style.display = 'none';
     introVideo.style.display = 'block';
-    introVideo.currentTime = 0;
+    try {
+      introVideo.currentTime = 0;
+    } catch(e) {}
     introVideo.muted = false; // Direct user click allows sound!
 
     // Skipping intro transitions immediately to elevator doors
@@ -6001,8 +6008,19 @@ function playOpeningAnimation(includeIntro = false) {
       playElevatorVideo();
     };
 
-    // 75-second fallback for intro (~62s duration)
-    safetyTimer = setTimeout(playElevatorVideo, 75000);
+    // Calculate safety timeout based on video duration (+ 10s margin, fallback 95s for 77s video)
+    let introTimeoutMs = 95000;
+    if (introVideo.duration && !isNaN(introVideo.duration) && introVideo.duration > 0) {
+      introTimeoutMs = Math.ceil(introVideo.duration * 1000) + 10000;
+    }
+    safetyTimer = setTimeout(playElevatorVideo, introTimeoutMs);
+
+    introVideo.onloadedmetadata = () => {
+      if (safetyTimer && introVideo.duration && !isNaN(introVideo.duration) && introVideo.duration > 0) {
+        clearTimeout(safetyTimer);
+        safetyTimer = setTimeout(playElevatorVideo, Math.ceil(introVideo.duration * 1000) + 10000);
+      }
+    };
 
     introVideo.onended = () => { playElevatorVideo(); };
     introVideo.onerror = (err) => {
@@ -15572,6 +15590,7 @@ function closePhotoLightboxModal() {
 // Explicitly export all HTML inline handler functions to window object
 if (typeof window !== "undefined") {
   window.handleLogin = handleLogin;
+  window.handleLoginDirect = handleLoginDirect;
   window.handleLoginWithIntro = handleLoginWithIntro;
   window.playOpeningAnimation = playOpeningAnimation;
   window.changeLanguage = changeLanguage;
