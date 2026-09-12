@@ -1940,3 +1940,17 @@ table {
     max-width: 100% !important;
   }
 }
+
+/* Automation Multi-Device Cards Equal-Height Alignment */
+.auto-connected-bearings-badge {
+  min-height: 68px;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.auto-divider-block-card,
+.auto-points-selection-wrapper,
+.auto-rec-card {
+  box-sizing: border-box;
+}
