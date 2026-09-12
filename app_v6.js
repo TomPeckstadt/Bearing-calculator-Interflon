@@ -7836,9 +7836,61 @@ function selectPackagePrice(pricePerL, isChain) {
 // EXPORT NAAR PDF INCLUSIEF WATERMERK EN GEGEVENS
 // ==========================================================================
 
+function onPdfScopeChange() {
+  const scopeVal = document.querySelector('input[name="pdfScopeOption"]:checked')?.value || 'current';
+  const noticeEl = document.getElementById("pdfNoAutoNotice");
+  const roiGroup = document.getElementById("pdfRoiOptionGroup");
+  const rasterGroup = document.getElementById("pdfRasterOptionGroup");
+  
+  if (scopeVal === "all_no_auto") {
+    if (noticeEl) noticeEl.style.display = "block";
+    if (roiGroup) roiGroup.style.display = "none";
+    if (rasterGroup) rasterGroup.style.display = "none";
+  } else {
+    if (noticeEl) noticeEl.style.display = "none";
+    if (roiGroup) roiGroup.style.display = "flex";
+    if (rasterGroup) rasterGroup.style.display = "flex";
+  }
+}
+window.onPdfScopeChange = onPdfScopeChange;
+
 function showPdfModal() {
   const modal = document.getElementById("pdfOptionsModal");
   if (modal) modal.classList.remove("hidden");
+
+  // Check questionnaire bearings
+  const qBearings = (typeof getQuestionnaireBearings === 'function') ? getQuestionnaireBearings() : [];
+  const allBearingsRadio = document.querySelector('input[name="pdfScopeOption"][value="all_no_auto"]');
+  const allBearingsDesc = document.getElementById("pdfScopeAllBearingsDesc");
+  const allBearingsLabel = document.getElementById("pdfScopeAllBearingsLabel");
+
+  if (qBearings && qBearings.length > 0) {
+    if (allBearingsRadio) allBearingsRadio.disabled = false;
+    if (allBearingsLabel) {
+      allBearingsLabel.style.opacity = "1";
+      allBearingsLabel.style.pointerEvents = "auto";
+    }
+    if (allBearingsDesc) {
+      const letters = qBearings.map(b => b.letter).join(", ");
+      allBearingsDesc.textContent = `Genereert enkel pagina 1 (Smeeradvies) en pagina 2 (TCO model) voor alle ${qBearings.length} lagers (${letters}) uit de vragenlijst.`;
+    }
+  } else {
+    if (allBearingsRadio) {
+      allBearingsRadio.disabled = true;
+      allBearingsRadio.checked = false;
+      const curRadio = document.querySelector('input[name="pdfScopeOption"][value="current"]');
+      if (curRadio) curRadio.checked = true;
+    }
+    if (allBearingsLabel) {
+      allBearingsLabel.style.opacity = "0.5";
+      allBearingsLabel.style.pointerEvents = "none";
+    }
+    if (allBearingsDesc) {
+      allBearingsDesc.textContent = "Geen lagers gevonden in de vragenlijst (vul eerst vraag 5 van de vragenlijst in).";
+    }
+  }
+
+  onPdfScopeChange();
 }
 
 function closePdfModal() {
@@ -7847,6 +7899,7 @@ function closePdfModal() {
 }
 
 function confirmPdfExport() {
+  const scopeVal = document.querySelector('input[name="pdfScopeOption"]:checked')?.value || 'current';
   const includeTco = document.querySelector('input[name="pdfTcoOption"]:checked')?.value === "true";
   const includeRoi = document.querySelector('input[name="pdfRoiOption"]:checked')?.value === "true";
   const includeRaster = document.querySelector('input[name="pdfRasterOption"]:checked')?.value !== "false";
@@ -7861,47 +7914,69 @@ function confirmPdfExport() {
 
   if (isChain) {
     runChainPdfExport(includeTco, includeRoi);
+  } else if (scopeVal === "all_no_auto") {
+    runAllBearingsNoAutoPdfExport(includeTco);
   } else {
     runBearingPdfExport(includeTco, includeRoi, includeRaster);
   }
 }
 
-function runBearingPdfExport(includeTco, includeRoi, includeRaster = true) {
-  const { jsPDF } = window.jspdf;
-  const langData = TRANSLATIONS[currentLang] || TRANSLATIONS["nl"];
+function applySurveyBearingToCalculator(b) {
+  if (!b) return;
+  // 1. If importSurveyBearingToOpbrengstmodel is available, run it with b.letter:
+  if (typeof importSurveyBearingToOpbrengstmodel === "function") {
+    importSurveyBearingToOpbrengstmodel("bearing", b.letter);
+  }
   
-  if (!jsPDF) {
-    alert(langData.pdfErrorLib || "Fout: PDF-bibliotheek kon niet worden geladen. Controleer uw internetverbinding.");
-    return;
+  // 2. Explicitly ensure bearing details are loaded for b.nr
+  if (b.nr) {
+    const searchInput = document.getElementById("bearingSearchInput");
+    if (searchInput) searchInput.value = b.nr;
+    if (typeof loadBearingDetails === "function") {
+      loadBearingDetails(b.nr);
+    }
   }
 
-  const exportBtn = document.getElementById("btnExportPdf");
-  const originalText = exportBtn.innerHTML;
-  exportBtn.disabled = true;
-  exportBtn.innerHTML = langData.pdfGenerating || "Genereren...";
-
-  const autoDeviceSelectEl = document.getElementById("automationDeviceSelect") || document.getElementById("autoDeviceSelect");
-  const autoDeviceKey = autoDeviceSelectEl ? autoDeviceSelectEl.value : "single_point";
-  let autoImgSrc = "interflon-single-point-lubricator.png";
-  if (autoDeviceKey === "pulsarlube_m2") {
-    autoImgSrc = "pulsarlube-m2.png";
-  } else if (autoDeviceKey === "pulsarlube_msp" || autoDeviceKey === "pulsarlube_plc") {
-    autoImgSrc = "pulsarlube-msp.png";
+  // 3. Explicitly ensure RPM is applied if provided
+  if (b.rpm) {
+    const rpmVal = parseFloat(b.rpm);
+    const speedInput = document.getElementById("inputSpeed") || document.getElementById("rpmInput");
+    if (speedInput && !isNaN(rpmVal) && rpmVal > 0) {
+      speedInput.value = rpmVal;
+    }
   }
-  getTransparentLogo((watermarkDataUrl, aspectRatio) => {
-    getMicPolImageDataUrl((micpolDataUrl, micpolRatio) => {
-      getAutomationDeviceImageDataUrl(autoImgSrc, (autoDataUrl, autoRatio) => {
-      try {
-      const doc = new jsPDF({
-        orientation: "portrait",
-        unit: "mm",
-        format: "a4"
-      });
 
-      const pageWidth = doc.internal.pageSize.getWidth();
-      const pageHeight = doc.internal.pageSize.getHeight();
+  // 4. Run calculations
+  if (typeof calculateGrease === "function") calculateGrease();
+  if (typeof updateTcoFrequencies === "function") updateTcoFrequencies();
+  if (typeof calculateTco === "function") calculateTco();
+  if (typeof updateOmMetadata === "function") updateOmMetadata();
+}
 
-      // 1. Watermerk logo toevoegen (gecentreerd)
+function renderBearingPdfPage1(doc, opts = {}) {
+  const {
+    watermarkDataUrl,
+    aspectRatio,
+    micpolDataUrl,
+    micpolRatio,
+    langData,
+    dateString,
+    bearingLetter = "",
+    bearingDesc = "",
+    bearingPos = "",
+    curPageNum = 1,
+    totalPages = 1,
+    isFirstPage = false
+  } = opts;
+
+  if (!isFirstPage) {
+    doc.addPage();
+  }
+
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const pageHeight = doc.internal.pageSize.getHeight();
+
+  // 1. Watermerk logo toevoegen (gecentreerd)
       if (watermarkDataUrl && aspectRatio) {
         const imgWidth = 160;
         const imgHeight = 160 * aspectRatio; // ratio gebaseerd op logo
@@ -7917,15 +7992,22 @@ function runBearingPdfExport(includeTco, includeRoi, includeRaster = true) {
       doc.setFont("helvetica", "bold");
       doc.setFontSize(20);
       doc.setTextColor(227, 6, 19);
-      doc.text(langData.pdfDocTitle || "INTERFLON LAGER SMEERADVIES", 20, 32);
+      const pageTitle = bearingLetter 
+        ? ((langData.pdfDocTitle || "INTERFLON LAGER SMEERADVIES") + " - LAGER " + bearingLetter)
+        : (langData.pdfDocTitle || "INTERFLON LAGER SMEERADVIES");
+      doc.text(pageTitle, 20, 32);
 
       const now = new Date();
       const dateLocale = currentLang === "nl" ? "nl-NL" : currentLang === "en" ? "en-US" : "fr-FR";
-      const dateString = now.toLocaleDateString(dateLocale) + " " + now.toLocaleTimeString(dateLocale, {hour: '2-digit', minute:'2-digit'});
+      const effectiveDateString = dateString || (now.toLocaleDateString(dateLocale) + " " + now.toLocaleTimeString(dateLocale, {hour: '2-digit', minute:'2-digit'}));
       doc.setFont("helvetica", "normal");
       doc.setFontSize(9);
       doc.setTextColor(100, 100, 100);
-      doc.text((langData.pdfReportGeneratedOn || "Rapport gegenereerd op: ") + dateString, 20, 38);
+      let dateLine = (langData.pdfReportGeneratedOn || "Rapport gegenereerd op: ") + effectiveDateString;
+      if (bearingLetter) {
+        dateLine += " | Lager " + bearingLetter + (bearingDesc ? ": " + bearingDesc : "");
+      }
+      doc.text(dateLine, 20, 38);
 
       doc.setDrawColor(220, 220, 220);
       doc.line(20, 42, 190, 42);
@@ -8017,7 +8099,11 @@ function runBearingPdfExport(includeTco, includeRoi, includeRaster = true) {
 
       doc.setFont("helvetica", "bold");
       doc.setTextColor(11, 19, 43);
-      doc.text(bearingNum, 160, 51);
+      let displayBearingNum = bearingNum;
+      if (bearingLetter) {
+        displayBearingNum = `Lager ${bearingLetter}: ${bearingNum}`;
+      }
+      doc.text(displayBearingNum, 160, 51);
       doc.text(bearingType, 160, 56);
       doc.text(d + " mm", 160, 61);
       doc.text(D + " mm", 160, 66);
@@ -8047,7 +8133,14 @@ function runBearingPdfExport(includeTco, includeRoi, includeRaster = true) {
       doc.setFont("helvetica", "bold");
       doc.setTextColor(11, 19, 43);
       doc.text(techMachine, 160, 84.5);
-      doc.text(techApp, 160, 89);
+
+      let displayApp = techApp;
+      if (bearingDesc && (!displayApp || displayApp === "-")) {
+        displayApp = bearingDesc;
+      } else if (bearingDesc && displayApp && !displayApp.includes(bearingDesc)) {
+        displayApp = `${displayApp} (${bearingDesc})`;
+      }
+      doc.text(displayApp, 160, 89);
       doc.text(techBrand, 160, 93.5);
       doc.text(techProduct, 160, 98);
       doc.text(techInterval + (techInterval !== "-" ? " " + (currentLang === "nl" ? "dagen" : currentLang === "en" ? "days" : "jours") : ""), 160, 102.5);
@@ -8066,9 +8159,11 @@ function runBearingPdfExport(includeTco, includeRoi, includeRaster = true) {
       const greaseName = document.getElementById("inputGrease").value;
       const speed = document.getElementById("inputSpeed").value;
       const limitSpeed = document.getElementById("inputLimitingSpeed").value;
-      const temp = document.getElementById("inputTemperature").value;
-      const envFactor = document.getElementById("inputTe").options[document.getElementById("inputTe").selectedIndex].text;
-      const appFactor = document.getElementById("inputTa").options[document.getElementById("inputTa").selectedIndex].text;
+      const temp = document.getElementById("inputTemperature") ? document.getElementById("inputTemperature").value : "60";
+      const teEl = document.getElementById("inputTe");
+      const envFactor = (teEl && teEl.options && teEl.options[teEl.selectedIndex]) ? (teEl.options[teEl.selectedIndex].text || teEl.options[teEl.selectedIndex].textContent || "-") : "-";
+      const taEl = document.getElementById("inputTa");
+      const appFactor = (taEl && taEl.options && taEl.options[taEl.selectedIndex]) ? (taEl.options[taEl.selectedIndex].text || taEl.options[taEl.selectedIndex].textContent || "-") : "-";
       const hoursPerDayVal = document.getElementById("inputHoursPerDay") ? document.getElementById("inputHoursPerDay").value : "24";
       const daysPerWeekVal = document.getElementById("inputDaysPerWeek") ? document.getElementById("inputDaysPerWeek").value : "7";
       const micPolFactorVal = document.getElementById("inputMicPolFactor") ? document.getElementById("inputMicPolFactor").value : "4";
@@ -8258,13 +8353,37 @@ function runBearingPdfExport(includeTco, includeRoi, includeRaster = true) {
       doc.setFontSize(7.5);
       doc.setTextColor(227, 6, 19);
       doc.text("INTERFLON - " + (langData.pdfWatermarkText || "A WORLD WITHOUT FRICTION").toUpperCase(), 20, 282);
-      // ==========================================================================
-      // PAGE 2: OPBRENGSTMODEL TCO BEREKENING (INDIEN GESELECTEERD)
-      // ==========================================================================
-      if (includeTco) {
-        doc.addPage();
 
-        if (watermarkDataUrl && aspectRatio) {
+      if (curPageNum && totalPages) {
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(7.5);
+        doc.setTextColor(100, 116, 139);
+        const pageLabel = bearingLetter 
+          ? `PAGINA ${curPageNum} VAN ${totalPages} | LAGER ${bearingLetter}`
+          : `PAGINA ${curPageNum} VAN ${totalPages}`;
+        doc.text(pageLabel, 190, 282, { align: "right" });
+      }
+      
+}
+
+function renderBearingPdfPage2(doc, opts = {}) {
+  const {
+    watermarkDataUrl,
+    aspectRatio,
+    langData,
+    dateString,
+    bearingLetter = "",
+    bearingDesc = "",
+    curPageNum = 2,
+    totalPages = 2
+  } = opts;
+
+  doc.addPage();
+
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const pageHeight = doc.internal.pageSize.getHeight();
+
+  if (watermarkDataUrl && aspectRatio) {
           const imgWidth = 160;
           const imgHeight = 160 * aspectRatio;
           const x = (pageWidth - imgWidth) / 2;
@@ -8278,12 +8397,19 @@ function runBearingPdfExport(includeTco, includeRoi, includeRaster = true) {
         doc.setFont("helvetica", "bold");
         doc.setFontSize(18);
         doc.setTextColor(227, 6, 19);
-        doc.text("OPBRENGSTMODEL LAGERSMERING (TCO)", 20, 31);
+        const page2Title = bearingLetter 
+          ? "OPBRENGSTMODEL LAGERSMERING (TCO) - LAGER " + bearingLetter 
+          : "OPBRENGSTMODEL LAGERSMERING (TCO)";
+        doc.text(page2Title, 20, 31);
 
         doc.setFont("helvetica", "normal");
         doc.setFontSize(8.5);
         doc.setTextColor(100, 100, 100);
-        doc.text("Analysestructuur op basis van 14 parameters (Vetverbruik, arbeid, wisselstukken en stilstand)", 20, 37);
+        let desigStr = (typeof activeBearing !== "undefined" && activeBearing && activeBearing.designation) ? activeBearing.designation.toUpperCase() : "";
+        const page2Subtitle = bearingLetter
+          ? `Analysestructuur op basis van 14 parameters (Lager ${bearingLetter}${desigStr ? ': ' + desigStr : ''}${bearingDesc ? ' - ' + bearingDesc : ''})`
+          : "Analysestructuur op basis van 14 parameters (Vetverbruik, arbeid, wisselstukken en stilstand)";
+        doc.text(page2Subtitle, 20, 37);
 
         doc.setDrawColor(220, 220, 220);
         doc.line(20, 41, 190, 41);
@@ -8574,6 +8700,7 @@ function runBearingPdfExport(includeTco, includeRoi, includeRaster = true) {
         doc.setLineWidth(0.25);
         doc.line(20, 267, 190, 267);
 
+        const disclaimer = (langData && langData.legalDisclaimerText) ? langData.legalDisclaimerText : "";
         doc.setFontSize(6.8);
         doc.setTextColor(140, 140, 140);
         doc.text(disclaimer, 20, 271, { maxWidth: 170 });
@@ -8582,35 +8709,308 @@ function runBearingPdfExport(includeTco, includeRoi, includeRaster = true) {
         doc.setFontSize(7.5);
         doc.setTextColor(227, 6, 19);
         doc.text("INTERFLON - " + (langData.pdfWatermarkText || "A WORLD WITHOUT FRICTION").toUpperCase(), 20, 282);
-      }
-    getVerdeelblokImage(function(divDataUrl) {
-        // Voorlaatste pagina: Automatisering Overzicht (visuele schermkopie zoals in de app)
-        renderPdfAutomationExtraPage(doc, {}, autoDataUrl, autoRatio, watermarkDataUrl, aspectRatio, langData, false, divDataUrl);
 
-        // Voorlaatste pagina: ROI Automatisering
-        if (includeRoi) {
-          addRoiPdfPage(doc, dateString, watermarkDataUrl, aspectRatio, autoDataUrl);
+        if (curPageNum && totalPages) {
+          doc.setFont("helvetica", "bold");
+          doc.setFontSize(7.5);
+          doc.setTextColor(100, 116, 139);
+          const pageLabel = bearingLetter 
+            ? `PAGINA ${curPageNum} VAN ${totalPages} | LAGER ${bearingLetter}`
+            : `PAGINA ${curPageNum} VAN ${totalPages}`;
+          doc.text(pageLabel, 190, 282, { align: "right" });
         }
+      
+}
 
-        // 5de pagina: 3D Machineraster & Installatie Lay-out
-        if (includeRaster) {
-          addMachineRasterPdfPage(doc, dateString, watermarkDataUrl, aspectRatio);
+function runBearingPdfExport(includeTco, includeRoi, includeRaster = true) {
+  const { jsPDF } = window.jspdf;
+  const langData = TRANSLATIONS[currentLang] || TRANSLATIONS["nl"];
+  
+  if (!jsPDF) {
+    alert(langData.pdfErrorLib || "Fout: PDF-bibliotheek kon niet worden geladen. Controleer uw internetverbinding.");
+    return;
+  }
+
+  const exportBtn = document.getElementById("btnExportPdf");
+  const originalText = exportBtn ? exportBtn.innerHTML : "";
+  if (exportBtn) {
+    exportBtn.disabled = true;
+    exportBtn.innerHTML = langData.pdfGenerating || "Genereren...";
+  }
+
+  const autoDeviceSelectEl = document.getElementById("automationDeviceSelect") || document.getElementById("autoDeviceSelect");
+  const autoDeviceKey = autoDeviceSelectEl ? autoDeviceSelectEl.value : "single_point";
+  let autoImgSrc = "interflon-single-point-lubricator.png";
+  if (autoDeviceKey === "pulsarlube_m2") {
+    autoImgSrc = "pulsarlube-m2.png";
+  } else if (autoDeviceKey === "pulsarlube_msp" || autoDeviceKey === "pulsarlube_plc") {
+    autoImgSrc = "pulsarlube-msp.png";
+  }
+
+  getTransparentLogo((watermarkDataUrl, aspectRatio) => {
+    getMicPolImageDataUrl((micpolDataUrl, micpolRatio) => {
+      getAutomationDeviceImageDataUrl(autoImgSrc, (autoDataUrl, autoRatio) => {
+        try {
+          const doc = new jsPDF({
+            orientation: "portrait",
+            unit: "mm",
+            format: "a4"
+          });
+
+          const now = new Date();
+          const dateLocale = currentLang === "nl" ? "nl-NL" : currentLang === "en" ? "en-US" : "fr-FR";
+          const dateString = now.toLocaleDateString(dateLocale) + " " + now.toLocaleTimeString(dateLocale, {hour: '2-digit', minute:'2-digit'});
+
+          const totalPages = 1 + (includeTco ? 1 : 0) + 1 + (includeRoi ? 1 : 0) + (includeRaster ? 1 : 0);
+          let curPageNum = 1;
+
+          // Page 1: Smeeradvies
+          renderBearingPdfPage1(doc, {
+            watermarkDataUrl,
+            aspectRatio,
+            micpolDataUrl,
+            micpolRatio,
+            langData,
+            dateString,
+            curPageNum: curPageNum,
+            totalPages: totalPages,
+            isFirstPage: true
+          });
+          curPageNum++;
+
+          // Page 2: Opbrengstmodel TCO (indien geselecteerd)
+          if (includeTco) {
+            renderBearingPdfPage2(doc, {
+              watermarkDataUrl,
+              aspectRatio,
+              langData,
+              dateString,
+              curPageNum: curPageNum,
+              totalPages: totalPages
+            });
+            curPageNum++;
+          }
+
+          getVerdeelblokImage(function(divDataUrl) {
+            // Automatisering Overzicht
+            renderPdfAutomationExtraPage(doc, {}, autoDataUrl, autoRatio, watermarkDataUrl, aspectRatio, langData, false, divDataUrl);
+
+            // ROI Automatisering
+            if (includeRoi) {
+              addRoiPdfPage(doc, dateString, watermarkDataUrl, aspectRatio, autoDataUrl);
+            }
+
+            // 3D Machineraster
+            if (includeRaster) {
+              addMachineRasterPdfPage(doc, dateString, watermarkDataUrl, aspectRatio);
+            }
+
+            let bearingNum = (typeof activeBearing !== "undefined" && activeBearing && activeBearing.designation)
+              ? activeBearing.designation
+              : "Lager";
+            const filePrefix = currentLang === "nl" ? "Interflon_Smeeradvies_" : currentLang === "en" ? "Interflon_Lubrication_Advice_" : "Interflon_Conseil_Lubrification_";
+            doc.save(filePrefix + bearingNum.replace(/[/\?%*:|"<>/s]/g, "_") + ".pdf");
+          });
+
+        } catch (e) {
+          console.error("Fout bij genereren PDF:", e);
+          alert((langData.pdfErrorGen || "Er is een fout opgetreden bij het genereren van het PDF-rapport: ") + e.message);
+        } finally {
+          if (exportBtn) {
+            exportBtn.disabled = false;
+            exportBtn.innerHTML = originalText;
+          }
         }
-
-        const filePrefix = currentLang === "nl" ? "Interflon_Smeeradvies_" : currentLang === "en" ? "Interflon_Lubrication_Advice_" : "Interflon_Conseil_Lubrification_";
-        doc.save(filePrefix + bearingNum.replace(/[\/\\?%*:|"<>/\s]/g, "_") + ".pdf");
-      });
-    } catch (e) {
-      console.error("Fout bij genereren PDF:", e);
-      alert((langData.pdfErrorGen || "Er is een fout opgetreden bij het genereren van het PDF-rapport: ") + e.message);
-    } finally {
-      exportBtn.disabled = false;
-      exportBtn.innerHTML = originalText;
-    }
       });
     });
   });
 }
+
+function runAllBearingsNoAutoPdfExport(includeTco = true) {
+  const { jsPDF } = window.jspdf;
+  const langData = TRANSLATIONS[currentLang] || TRANSLATIONS["nl"];
+
+  if (!jsPDF) {
+    alert(langData.pdfErrorLib || "Fout: PDF-bibliotheek kon niet worden geladen. Controleer uw internetverbinding.");
+    return;
+  }
+
+  const bearings = (typeof getQuestionnaireBearings === "function") ? getQuestionnaireBearings() : [];
+  if (!bearings || bearings.length === 0) {
+    alert(currentLang === "nl" 
+      ? "Geen lagers gevonden in de vragenlijst. Vul eerst vraag 5 in van de vragenlijst."
+      : "No bearings found in the questionnaire. Please fill in section 5 first.");
+    return;
+  }
+
+  const exportBtn = document.getElementById("btnExportPdf");
+  const originalText = exportBtn ? exportBtn.innerHTML : "";
+  if (exportBtn) {
+    exportBtn.disabled = true;
+    exportBtn.innerHTML = langData.pdfGenerating || "Genereren...";
+  }
+
+  // Snapshot van huidige calculator status om na export getrouw te herstellen
+  const stateSnapshot = {
+    searchVal: document.getElementById("bearingSearchInput") ? document.getElementById("bearingSearchInput").value : "",
+    activeBearingDesig: (typeof activeBearing !== "undefined" && activeBearing) ? activeBearing.designation : "",
+    activeSource: window.activeTcoBearingSource,
+    speed: document.getElementById("inputSpeed") ? document.getElementById("inputSpeed").value : "",
+    hours: document.getElementById("inputHoursPerDay") ? document.getElementById("inputHoursPerDay").value : "",
+    days: document.getElementById("inputDaysPerWeek") ? document.getElementById("inputDaysPerWeek").value : "",
+    temp: document.getElementById("inputTemperature") ? document.getElementById("inputTemperature").value : "",
+    teIdx: document.getElementById("inputTe") ? document.getElementById("inputTe").selectedIndex : 1,
+    taIdx: document.getElementById("inputTa") ? document.getElementById("inputTa").selectedIndex : 1,
+    grease: document.getElementById("inputGrease") ? document.getElementById("inputGrease").value : "",
+    micpol: document.getElementById("inputMicPolFactor") ? document.getElementById("inputMicPolFactor").value : "",
+    techProd: document.getElementById("techProductInput") ? document.getElementById("techProductInput").value : "",
+    techPrice: document.getElementById("techPriceInput") ? document.getElementById("techPriceInput").value : "",
+    techInt: document.getElementById("techIntervalInput") ? document.getElementById("techIntervalInput").value : "",
+    omWorktime: document.getElementById("omSharedWorktime") ? document.getElementById("omSharedWorktime").value : "",
+    omLaborRate: document.getElementById("omSharedLaborRate") ? document.getElementById("omSharedLaborRate").value : "",
+    omRepairH: document.getElementById("omSharedRepairH") ? document.getElementById("omSharedRepairH").value : "",
+    omPrepH: document.getElementById("omSharedPrepH") ? document.getElementById("omSharedPrepH").value : "",
+    omDtRate: document.getElementById("omSharedDowntimeRate") ? document.getElementById("omSharedDowntimeRate").value : "",
+    omPartsCost: document.getElementById("omSharedPartsCost") ? document.getElementById("omSharedPartsCost").value : "",
+    omSets: document.getElementById("omSharedSetsPerMachine") ? document.getElementById("omSharedSetsPerMachine").value : "",
+    omLife1: document.getElementById("omLifetime1") ? document.getElementById("omLifetime1").value : "",
+    omLife2: document.getElementById("omLifetime2") ? document.getElementById("omLifetime2").value : "",
+    omProdPrice1: document.getElementById("omProdPrice1") ? document.getElementById("omProdPrice1").value : "",
+    omProdFreq1: document.getElementById("omProdFreq1") ? document.getElementById("omProdFreq1").value : "",
+    surveySelIdx: document.getElementById("surveyBearingSelect") ? document.getElementById("surveyBearingSelect").selectedIndex : -1,
+    omSurveySelIdx: document.getElementById("omSurveyBearingSelect") ? document.getElementById("omSurveyBearingSelect").selectedIndex : -1
+  };
+
+  const restoreState = () => {
+    try {
+      if (stateSnapshot.activeBearingDesig) {
+        if (typeof loadBearingDetails === "function") loadBearingDetails(stateSnapshot.activeBearingDesig);
+      }
+      if (document.getElementById("bearingSearchInput")) document.getElementById("bearingSearchInput").value = stateSnapshot.searchVal;
+      if (document.getElementById("inputSpeed")) document.getElementById("inputSpeed").value = stateSnapshot.speed;
+      if (document.getElementById("inputHoursPerDay")) document.getElementById("inputHoursPerDay").value = stateSnapshot.hours;
+      if (document.getElementById("inputDaysPerWeek")) document.getElementById("inputDaysPerWeek").value = stateSnapshot.days;
+      if (document.getElementById("inputTemperature")) document.getElementById("inputTemperature").value = stateSnapshot.temp;
+      if (document.getElementById("inputTe")) document.getElementById("inputTe").selectedIndex = stateSnapshot.teIdx;
+      if (document.getElementById("inputTa")) document.getElementById("inputTa").selectedIndex = stateSnapshot.taIdx;
+      if (document.getElementById("inputGrease")) document.getElementById("inputGrease").value = stateSnapshot.grease;
+      if (document.getElementById("inputMicPolFactor")) document.getElementById("inputMicPolFactor").value = stateSnapshot.micpol;
+      if (document.getElementById("techProductInput")) document.getElementById("techProductInput").value = stateSnapshot.techProd;
+      if (document.getElementById("techPriceInput")) document.getElementById("techPriceInput").value = stateSnapshot.techPrice;
+      if (document.getElementById("techIntervalInput")) document.getElementById("techIntervalInput").value = stateSnapshot.techInt;
+      if (document.getElementById("omSharedWorktime")) document.getElementById("omSharedWorktime").value = stateSnapshot.omWorktime;
+      if (document.getElementById("omSharedLaborRate")) document.getElementById("omSharedLaborRate").value = stateSnapshot.omLaborRate;
+      if (document.getElementById("omSharedRepairH")) document.getElementById("omSharedRepairH").value = stateSnapshot.omRepairH;
+      if (document.getElementById("omSharedPrepH")) document.getElementById("omSharedPrepH").value = stateSnapshot.omPrepH;
+      if (document.getElementById("omSharedDowntimeRate")) document.getElementById("omSharedDowntimeRate").value = stateSnapshot.omDtRate;
+      if (document.getElementById("omSharedPartsCost")) document.getElementById("omSharedPartsCost").value = stateSnapshot.omPartsCost;
+      if (document.getElementById("omSharedSetsPerMachine")) document.getElementById("omSharedSetsPerMachine").value = stateSnapshot.omSets;
+      if (document.getElementById("omLifetime1")) document.getElementById("omLifetime1").value = stateSnapshot.omLife1;
+      if (document.getElementById("omLifetime2")) document.getElementById("omLifetime2").value = stateSnapshot.omLife2;
+      if (document.getElementById("omProdPrice1")) document.getElementById("omProdPrice1").value = stateSnapshot.omProdPrice1;
+      if (document.getElementById("omProdFreq1")) document.getElementById("omProdFreq1").value = stateSnapshot.omProdFreq1;
+      if (stateSnapshot.surveySelIdx >= 0 && document.getElementById("surveyBearingSelect")) {
+        document.getElementById("surveyBearingSelect").selectedIndex = stateSnapshot.surveySelIdx;
+      }
+      if (stateSnapshot.omSurveySelIdx >= 0 && document.getElementById("omSurveyBearingSelect")) {
+        document.getElementById("omSurveyBearingSelect").selectedIndex = stateSnapshot.omSurveySelIdx;
+      }
+      window.activeTcoBearingSource = stateSnapshot.activeSource;
+      if (typeof calculateGrease === "function") calculateGrease();
+      if (typeof updateTcoFrequencies === "function") updateTcoFrequencies();
+      if (typeof calculateTco === "function") calculateTco();
+      if (typeof updateOmMetadata === "function") updateOmMetadata();
+    } catch (err) {
+      console.warn("Could not fully restore calculator state:", err);
+    }
+  };
+
+  getTransparentLogo((watermarkDataUrl, aspectRatio) => {
+    getMicPolImageDataUrl((micpolDataUrl, micpolRatio) => {
+      try {
+        const doc = new jsPDF({
+          orientation: "portrait",
+          unit: "mm",
+          format: "a4"
+        });
+
+        const now = new Date();
+        const dateLocale = currentLang === "nl" ? "nl-NL" : currentLang === "en" ? "en-US" : "fr-FR";
+        const dateString = now.toLocaleDateString(dateLocale) + " " + now.toLocaleTimeString(dateLocale, {hour: '2-digit', minute:'2-digit'});
+
+        const pagesPerBearing = includeTco ? 2 : 1;
+        const totalPages = bearings.length * pagesPerBearing;
+        let curPageNum = 1;
+
+        bearings.forEach((b, idx) => {
+          // 1. Toepassen van dit specifieke lager op de calculator
+          applySurveyBearingToCalculator(b);
+
+          // 2. Pagina 1 genereren (Smeeradvies)
+          renderBearingPdfPage1(doc, {
+            watermarkDataUrl,
+            aspectRatio,
+            micpolDataUrl,
+            micpolRatio,
+            langData,
+            dateString,
+            bearingLetter: b.letter,
+            bearingDesc: b.desc,
+            bearingPos: b.pos,
+            curPageNum: curPageNum,
+            totalPages: totalPages,
+            isFirstPage: (idx === 0)
+          });
+          curPageNum++;
+
+          // 3. Pagina 2 genereren (TCO model indien geselecteerd)
+          if (includeTco) {
+            renderBearingPdfPage2(doc, {
+              watermarkDataUrl,
+              aspectRatio,
+              langData,
+              dateString,
+              bearingLetter: b.letter,
+              bearingDesc: b.desc,
+              curPageNum: curPageNum,
+              totalPages: totalPages
+            });
+            curPageNum++;
+          }
+        });
+
+        // PDF opslaan met duidelijke bestandsnaam
+        const filePrefix = currentLang === "nl" 
+          ? "Interflon_Smeeradvies_Alle_Lagers_" 
+          : currentLang === "en" 
+            ? "Interflon_Lubrication_Advice_All_Bearings_" 
+            : "Interflon_Conseil_Lubrification_Tous_Roulements_";
+        const machine = (localStorage.getItem("tech_machine") || "Machine").replace(/[\\/\\?%*:|"<>]/g, "_").replace(/\s+/g, "_");
+        doc.save(filePrefix + machine + ".pdf");
+
+      } catch (e) {
+        console.error("Fout bij genereren PDF alle lagers:", e);
+        alert((langData.pdfErrorGen || "Er is een fout opgetreden bij het genereren van het PDF-rapport: ") + e.message);
+      } finally {
+        restoreState();
+        if (exportBtn) {
+          exportBtn.disabled = false;
+          exportBtn.innerHTML = originalText;
+        }
+      }
+    });
+  });
+}
+
+window.onPdfScopeChange = onPdfScopeChange;
+window.showPdfModal = showPdfModal;
+window.closePdfModal = closePdfModal;
+window.confirmPdfExport = confirmPdfExport;
+window.applySurveyBearingToCalculator = applySurveyBearingToCalculator;
+window.renderBearingPdfPage1 = renderBearingPdfPage1;
+window.renderBearingPdfPage2 = renderBearingPdfPage2;
+window.runBearingPdfExport = runBearingPdfExport;
+window.runAllBearingsNoAutoPdfExport = runAllBearingsNoAutoPdfExport;
 
 function getTransparentLogo(callback) {
   const img = new Image();
