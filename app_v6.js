@@ -15107,13 +15107,14 @@ function generateMachineRasterImageDataUrl(rasterData, customZoom = null) {
       activeOrigins.push({
         id: 'cp',
         name: 'Centraal Punt',
-        short: 'CP',
+        short: 'Centraal',
+        type: 'cp',
         x: 0,
         y: 0,
-        lineColor: '#38bdf8',
-        tagBg: 'rgba(15, 23, 42, 0.94)',
-        tagBorder: '#38bdf8',
-        tagText: '#38bdf8'
+        lineColor: '#ef4444',
+        tagBg: 'rgba(220, 38, 38, 0.94)',
+        tagBorder: '#ef4444',
+        tagText: '#ffffff'
       });
     }
 
@@ -15159,7 +15160,7 @@ function generateMachineRasterImageDataUrl(rasterData, customZoom = null) {
         }
 
         // For multi-device: only connect to assigned bearings!
-        if (origin.type !== 'cp') {
+        if (origin.id !== 'cp' && origin.type !== 'cp') {
           const activeDevices = (rasterData.devices || []).filter(d => d.active !== false);
           if (activeDevices.length > 1) {
             let isAssigned = false;
