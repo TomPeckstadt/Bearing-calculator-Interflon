@@ -4294,10 +4294,20 @@
               deviceConfigs[bestIdx].bearingLetters.push(b.letter);
             });
 
-            // Single Point units strictly have 1 point per device
+            // Single Point units strictly have 1 point per device; deduplicate bearings across devices
+            const seenLetters = new Set();
             deviceConfigs.forEach(dc => {
+              if (Array.isArray(dc.bearingLetters)) {
+                dc.bearingLetters = dc.bearingLetters.filter(l => {
+                  if (seenLetters.has(l)) return false;
+                  seenLetters.add(l);
+                  return true;
+                });
+              }
               if (dc.type === 'single_point') {
                 dc.points = 1;
+              } else if (!dc.bearingLetters || dc.bearingLetters.length === 0) {
+                dc.points = 0;
               } else {
                 dc.points = Math.min(8, Math.max(1, dc.points));
               }
@@ -4347,10 +4357,20 @@
           });
         }
 
-        // Clamp points between 1 and 8 for each device
+        // Final point clamping & deduplication check
+        const finalSeenLetters = new Set();
         deviceConfigs.forEach(dc => {
+          if (Array.isArray(dc.bearingLetters)) {
+            dc.bearingLetters = dc.bearingLetters.filter(l => {
+              if (finalSeenLetters.has(l)) return false;
+              finalSeenLetters.add(l);
+              return true;
+            });
+          }
           if (dc.type === 'single_point') {
             dc.points = 1;
+          } else if (!dc.bearingLetters || dc.bearingLetters.length === 0) {
+            dc.points = 0;
           } else {
             dc.points = Math.min(8, Math.max(1, dc.points));
           }
