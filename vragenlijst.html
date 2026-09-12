@@ -1686,9 +1686,13 @@
       { id: 'dev-1', name: 'Toestel 1', short: 'T1', type: 'pulsarlube_m2', x: -3.0, y: -2.5, active: true, paletteIndex: 0 },
       { id: 'dev-2', name: 'Toestel 2', short: 'T2', type: 'pulsarlube_m2', x: 3.0, y: 2.5, active: true, paletteIndex: 1 }
     ];
-    if (typeof window !== 'undefined') {
-      window.devices = devices;
+    function setDevices(newDevs) {
+      devices = newDevs;
+      if (typeof window !== 'undefined') {
+        window.devices = newDevs;
+      }
     }
+    setDevices(devices);
 
     let draggedDeviceId = null;
     let hoveredDeviceId = null;
@@ -1884,7 +1888,7 @@
       const defaultType = allSinglePoint ? 'single_point' : ((devices[0] && devices[0].type) || 'pulsarlube_m2');
       
       const newDev = {
-        id: 'dev-' + Date.now(),
+        id: 'dev-' + nextNum,
         name: 'Toestel ' + nextNum,
         short: 'T' + nextNum,
         type: defaultType,
@@ -1893,10 +1897,7 @@
         active: true, // Activated by default upon adding
         paletteIndex: paletteIndex
       };
-      devices.push(newDev);
-      if (typeof window !== 'undefined') {
-        window.devices = devices;
-      }
+      setDevices([...devices, newDev]);
       renderDeviceFilterPills();
       drawBearingLayout();
       renderDistancesOverview();
@@ -1904,15 +1905,38 @@
     }
 
     function deleteDevice(devId) {
-      devices = devices.filter(d => d.id !== devId);
-      devices.forEach((d, idx) => {
+      const deletedDev = devices.find(d => d.id === devId);
+      const remaining = devices.filter(d => d.id !== devId);
+
+      // Re-index remaining devices so their IDs, names, and shorts are sequential (dev-1, dev-2, etc.)
+      remaining.forEach((d, idx) => {
+        d.id = 'dev-' + (idx + 1);
         d.name = 'Toestel ' + (idx + 1);
         d.short = 'T' + (idx + 1);
         d.paletteIndex = idx % DEVICE_PALETTES.length;
       });
-      if (typeof window !== 'undefined') {
-        window.devices = devices;
+
+      // If the deleted device had assigned bearings, re-assign them to the nearest remaining device
+      if (deletedDev && deletedDev.assignedBearingLetters && deletedDev.assignedBearingLetters.length > 0 && remaining.length > 0) {
+        deletedDev.assignedBearingLetters.forEach(letter => {
+          const pos = (typeof bearingPositions !== 'undefined' && bearingPositions[letter]) ? bearingPositions[letter] : { x: 0, y: 0 };
+          let bestD = Infinity;
+          let bestDev = remaining[0];
+          remaining.forEach(d => {
+            const dist = Math.hypot(pos.x - d.x, pos.y - d.y);
+            if (dist < bestD) {
+              bestD = dist;
+              bestDev = d;
+            }
+          });
+          if (bestDev) {
+            if (!bestDev.assignedBearingLetters) bestDev.assignedBearingLetters = [];
+            if (!bestDev.assignedBearingLetters.includes(letter)) bestDev.assignedBearingLetters.push(letter);
+          }
+        });
       }
+
+      setDevices(remaining);
       renderDeviceFilterPills();
       drawBearingLayout();
       renderDistancesOverview();
@@ -2847,10 +2871,7 @@
           };
         });
 
-        devices = newDevices;
-        if (typeof window !== 'undefined') {
-          window.devices = devices;
-        }
+        setDevices(newDevices);
         showCentralPoint = false; // Focus directly on the placed automatic lubrication devices
 
         renderDeviceFilterPills();
@@ -2909,10 +2930,7 @@
         });
       });
 
-      devices = newDevices;
-      if (typeof window !== 'undefined') {
-        window.devices = devices;
-      }
+      setDevices(newDevices);
       showCentralPoint = false;
 
       renderDeviceFilterPills();
@@ -3970,9 +3988,6 @@
       if (event && typeof event.stopPropagation === 'function') {
         event.stopPropagation();
       }
-      if (typeof window !== 'undefined' && window.devices && Array.isArray(window.devices)) {
-        devices = window.devices;
-      }
       if (!devices || !Array.isArray(devices) || devices.length === 0) return;
 
       const activeDevs = devices.filter(d => d.active !== false);
@@ -4019,6 +4034,7 @@
           }
         }
       });
+      setDevices(devices);
 
       // 3. Teken raster en afstandenoverzicht direct opnieuw en sla configuratie op
       drawBearingLayout();
@@ -4046,10 +4062,6 @@
 
       const rows = document.querySelectorAll('.bearing-row');
       container.innerHTML = '';
-
-      if (typeof window !== 'undefined' && window.devices && Array.isArray(window.devices)) {
-        devices = window.devices;
-      }
 
       // Determine active origins
       const activeOrigins = [];
@@ -5617,10 +5629,10 @@
             bearingPositions = JSON.parse(JSON.stringify(data.raster.bearingPositions));
           }
           if (Array.isArray(data.raster.devices)) {
-            devices = JSON.parse(JSON.stringify(data.raster.devices)).map(d => ({
+            setDevices(JSON.parse(JSON.stringify(data.raster.devices)).map(d => ({
               ...d,
               type: d.type || 'pulsarlube_m2'
-            }));
+            })));
           }
           if (typeof data.raster.showCentralPoint === 'boolean') {
             showCentralPoint = data.raster.showCentralPoint;
