@@ -14838,8 +14838,9 @@ function generateMachineRasterImageDataUrl(rasterData, customZoom = null) {
           const activeDevices = (rasterData.devices || []).filter(d => d.active !== false);
           if (activeDevices.length > 1) {
             let isAssigned = false;
-            if (origin.assignedBearingLetters && Array.isArray(origin.assignedBearingLetters) && origin.assignedBearingLetters.length > 0) {
-              isAssigned = origin.assignedBearingLetters.includes(letter);
+            const anyExplicit = activeDevices.some(d => d.assignedBearingLetters && Array.isArray(d.assignedBearingLetters) && d.assignedBearingLetters.length > 0);
+            if (anyExplicit) {
+              isAssigned = (origin.assignedBearingLetters && Array.isArray(origin.assignedBearingLetters) && origin.assignedBearingLetters.includes(letter));
             } else {
               let closestDevId = null;
               let minD = Infinity;
