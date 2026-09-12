@@ -792,18 +792,35 @@ function applySurveyConfig(config) {
 
   // 3. Assign points, calculate per-device daily grease requirements, and recommend optimal settings per device
   const summaryParts = [];
-  for (let i = 0; i < num; i++) {
-    const devCfg = config.devices[i] || {};
-    let bLetters = Array.isArray(devCfg.bearingLetters) ? [...devCfg.bearingLetters] : [];
 
-    // If bearing letters not explicitly specified, allocate evenly among active devices
-    if (bLetters.length === 0 && allBearings.length > 0) {
-      allBearings.forEach((b, bIdx) => {
-        if ((bIdx % num) === i) {
-          bLetters.push(b.letter);
+  // Deduplicate and strictly allocate bearing letters across devices
+  const hasAnyExplicitBearings = Array.isArray(config.devices) && config.devices.some(d => Array.isArray(d.bearingLetters) && d.bearingLetters.length > 0);
+  const assignedBearingMap = {};
+  for (let i = 0; i < num; i++) assignedBearingMap[i] = [];
+
+  if (hasAnyExplicitBearings) {
+    const globallySeenLetters = new Set();
+    for (let i = 0; i < num; i++) {
+      const devCfg = config.devices[i] || {};
+      const rawLetters = Array.isArray(devCfg.bearingLetters) ? devCfg.bearingLetters : [];
+      rawLetters.forEach(l => {
+        if (!globallySeenLetters.has(l)) {
+          globallySeenLetters.add(l);
+          assignedBearingMap[i].push(l);
         }
       });
     }
+  } else if (allBearings.length > 0) {
+    // Only if NO device has explicit bearing letters, allocate evenly with zero duplicates
+    allBearings.forEach((b, bIdx) => {
+      const targetDevIdx = bIdx % num;
+      assignedBearingMap[targetDevIdx].push(b.letter);
+    });
+  }
+
+  for (let i = 0; i < num; i++) {
+    const devCfg = config.devices[i] || {};
+    let bLetters = assignedBearingMap[i] || [];
 
     let devTotalDailyNeed = 0;
     let devTotalPoints = 0;
@@ -836,9 +853,10 @@ function applySurveyConfig(config) {
       });
     });
 
-    const clampedPts = Math.min(8, Math.max(1, devTotalPoints || (parseInt(devCfg.points, 10) || 1)));
-    const avgDailyNeed = clampedPts > 0 ? (devTotalDailyNeed / clampedPts) : (window.currentDailyNeedCm3 || 0.704);
-    const finalTotalDailyNeed = devTotalDailyNeed > 0 ? devTotalDailyNeed : (avgDailyNeed * clampedPts);
+    const hasBearings = (bLetters.length > 0);
+    const clampedPts = hasBearings ? Math.min(8, Math.max(1, devTotalPoints)) : 0;
+    const avgDailyNeed = (hasBearings && clampedPts > 0) ? (devTotalDailyNeed / clampedPts) : 0;
+    const finalTotalDailyNeed = hasBearings ? devTotalDailyNeed : 0;
 
     if (autoDevicesState[i]) {
       autoDevicesState[i].points = clampedPts;
@@ -849,10 +867,15 @@ function applySurveyConfig(config) {
       autoDevicesState[i].dailyNeedCm3 = avgDailyNeed;
       autoDevicesState[i].totalDailyNeed = finalTotalDailyNeed;
       
-      const bLetterStr = bLetters.length > 0 ? bLetters.join(', ') : String.fromCharCode(65 + i);
-      const rpmList = [...new Set(bearingDetails.map(bd => bd.rpm + ' RPM'))].join(', ');
-      autoDevicesState[i].bearingSummary = `Lager ${bLetterStr}${rpmList ? ` (${rpmList})` : ''}`;
-      autoDevicesState[i].bearingDetailsSummary = bearingDetails.map(bd => `${bd.letter}: ${bd.dailyNeed.toFixed(2).replace('.', ',')} ml/d`).join(' &bull; ');
+      if (hasBearings) {
+        const bLetterStr = bLetters.join(', ');
+        const rpmList = [...new Set(bearingDetails.map(bd => bd.rpm + ' RPM'))].join(', ');
+        autoDevicesState[i].bearingSummary = `Lager ${bLetterStr}${rpmList ? ` (${rpmList})` : ''}`;
+        autoDevicesState[i].bearingDetailsSummary = bearingDetails.map(bd => `${bd.letter}: ${bd.dailyNeed.toFixed(2).replace('.', ',')} ml/d`).join(' &bull; ');
+      } else {
+        autoDevicesState[i].bearingSummary = '';
+        autoDevicesState[i].bearingDetailsSummary = '';
+      }
 
       // Automatically apply optimal smart advice for this specific device
       const smartAdv = getOptimalSmartAdvice(finalTotalDailyNeed, targetType, greaseName);
@@ -861,8 +884,23 @@ function applySurveyConfig(config) {
     }
 
     const devLabel = `Pulsarlube ${String.fromCharCode(65 + i)}`;
-    const bSummaryDesc = bLetters.length > 0 ? ` (Lager ${bLetters.join(', ')}: ${finalTotalDailyNeed.toFixed(2).replace('.', ',')} ml/dag)` : '';
-    summaryParts.push(`${devLabel}: ${clampedPts} ${clampedPts === 1 ? 'smeerpunt' : 'smeerpunten'}${bSummaryDesc}`);
+    if (!hasBearings) {
+      summaryParts.push(`${devLabel}: Geen lagers aangesloten`);
+    } else {
+      const bSummaryDesc = ` (Lager ${bLetters.join(', ')}: ${finalTotalDailyNeed.toFixed(2).replace('.', ',')} ml/dag)`;
+      summaryParts.push(`${devLabel}: ${clampedPts} ${clampedPts === 1 ? 'smeerpunt' : 'smeerpunten'}${bSummaryDesc}`);
+    }
+  }
+
+  // Clear any extra inactive devices beyond num
+  for (let i = num; i < autoDevicesState.length; i++) {
+    if (autoDevicesState[i]) {
+      autoDevicesState[i].bearingLetters = [];
+      autoDevicesState[i].connectedBearings = [];
+      autoDevicesState[i].bearingSummary = '';
+      autoDevicesState[i].bearingDetailsSummary = '';
+      autoDevicesState[i].totalDailyNeed = 0;
+    }
   }
 
   // 4. Save state, trigger UI render, recalculations
@@ -2824,6 +2862,11 @@ function renderAutoDevicesUI() {
     const pointsLabel = isSinglePoint ? (lang === "fr" ? "Nombre de points de graissage / roulements :" : (lang === "en" ? "Number of lubrication points / bearings:" : "Aantal te smeren smeerpunten / lagers:")) : (lang === "fr" ? `Nombre de points de graissage pour ${devName} :` : (lang === "en" ? `Nombre de points de graissage pour ${devName}:` : `Aantal smeerpunten voor ${devName}:`));
 
     let optionsHtml = "";
+    if (!isSinglePoint) {
+      const isZero = (dev.points === 0);
+      const zeroLabel = (lang === 'fr') ? "0 point / roulement (non raccordé)" : ((lang === 'en') ? "0 points / bearings (not connected)" : "0 lagers (geen aangesloten)");
+      optionsHtml += `<option value="0"${isZero ? " selected" : ""}>${zeroLabel}</option>`;
+    }
     const maxP = isSinglePoint ? 30 : 8;
     for (let p = 1; p <= maxP; p++) {
       const selStr = dev.points === p ? " selected" : "";
@@ -10327,11 +10370,15 @@ function calculateAutomationLubrication() {
       for (let dIdx = 0; dIdx < numCards; dIdx++) {
         const d = autoDevicesState[dIdx];
         if (d) {
-          const dNeed = (d.dailyNeedCm3 && d.dailyNeedCm3 > 0)
-            ? d.dailyNeedCm3.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-            : dailyNeedCm3.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-          const bInfo = d.bearingSummary ? ` (${d.bearingSummary})` : '';
-          devBreakdowns.push(`<strong>Pulsarlube ${d.id}:</strong> ${dNeed} ml/dag per lager${bInfo}`);
+          if (!d.bearingLetters || d.bearingLetters.length === 0) {
+            devBreakdowns.push(`<strong>Pulsarlube ${d.id}:</strong> <em>${lang === 'fr' ? 'Aucun roulement raccordé' : (lang === 'en' ? 'No bearings connected' : 'Geen lagers aangesloten')}</em>`);
+          } else {
+            const dNeed = (d.dailyNeedCm3 && d.dailyNeedCm3 > 0)
+              ? d.dailyNeedCm3.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+              : dailyNeedCm3.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            const bInfo = d.bearingSummary ? ` (${d.bearingSummary})` : '';
+            devBreakdowns.push(`<strong>Pulsarlube ${d.id}:</strong> ${dNeed} ml/dag per lager${bInfo}`);
+          }
         }
       }
 
@@ -10422,7 +10469,11 @@ function calculateAutomationLubrication() {
     const divDb = (typeof AUTOMATION_PRICE_DATABASE !== "undefined" && AUTOMATION_PRICE_DATABASE.dividerBlocks) ? AUTOMATION_PRICE_DATABASE.dividerBlocks : {};
     const divInfo = divDb[points] || divDb[1] || { artNr: "", price: 0 };
 
-    if (points === 1) {
+    if (points === 0) {
+      if (divTitleEl) divTitleEl.textContent = (lang === "fr") ? "Aucun roulement raccordé" : ((lang === "en") ? "No bearings connected" : "Geen lagers aangesloten");
+      if (divDescEl) divDescEl.textContent = (lang === "fr") ? "Cet appareil ne comporte actuellement aucun roulement raccordé." : ((lang === "en") ? "This device currently has no bearings connected." : "Er zijn momenteel geen lagers op dit toestel aangesloten.");
+      if (divPriceEl) divPriceEl.textContent = (lang === "fr") ? "Pas de bloc répartiteur nécessaire (€ 0,00)" : ((lang === "en") ? "No divider block needed (€ 0.00)" : "Geen verdeelblok nodig (€ 0,00)");
+    } else if (points === 1) {
       if (divTitleEl) divTitleEl.textContent = "Directe aansluiting (1 smeerpunt)";
       if (divDescEl) divDescEl.textContent = "Geen verdeelblok nodig. Toestel wordt rechtstreeks op 1 lager aangesloten.";
       if (divPriceEl) divPriceEl.textContent = "Geen verdeelblok (€ 0,00)";
@@ -10433,12 +10484,15 @@ function calculateAutomationLubrication() {
     }
 
     // 2. Compute recommendation for THIS device (based on points for this device)
+    const hasAssignedBearings = Array.isArray(dev.bearingLetters) && dev.bearingLetters.length > 0;
+    const isSurveyImported = Array.isArray(autoDevicesState) && autoDevicesState.some(d => Array.isArray(d.bearingLetters) && d.bearingLetters.length > 0);
+
     const totalDailyNeedForDev = (dev.totalDailyNeed && dev.totalDailyNeed > 0)
       ? dev.totalDailyNeed
-      : (dailyNeedCm3 * points);
+      : (points === 0 ? 0 : (dailyNeedCm3 * points));
     const devDailyNeed1 = (dev.dailyNeedCm3 && dev.dailyNeedCm3 > 0)
       ? dev.dailyNeedCm3
-      : (points > 0 ? (totalDailyNeedForDev / points) : dailyNeedCm3);
+      : (points > 0 ? (totalDailyNeedForDev / points) : 0);
 
     const recDays = capMl / (totalDailyNeedForDev > 0 ? totalDailyNeedForDev : 0.704);
     const recMonths = recDays / 30.4375;
@@ -10460,14 +10514,20 @@ function calculateAutomationLubrication() {
     const recTitleEl = document.getElementById("autoRecTitle_" + devId);
     const recSubtextEl = document.getElementById("autoRecSubtext_" + devId);
     const roundReason = recSetting.roundedUp ? "afgerond naar boven bij ≥ 0,5" : "afgerond naar beneden bij < 0,5";
-    const pointsText = points === 1 ? "1 lager" : `${points} lagers`;
+    const pointsText = points === 0 ? "0 lagers" : (points === 1 ? "1 lager" : `${points} lagers`);
 
     const smartAdv = getOptimalSmartAdvice(totalDailyNeedForDev, deviceKey, greaseName);
     const isSmartMatch = (capMl === smartAdv.cap && recSetting.months === smartAdv.months);
     const smartDialLabel = `${smartAdv.months} ${smartAdv.months === 1 ? 'maand' : 'maanden'}`;
 
     if (recTitleEl) {
-      if (smartAdv.isGracoRecommended) {
+      if (isSurveyImported && !hasAssignedBearings) {
+        recTitleEl.textContent = (lang === "fr")
+          ? "Aucun roulement raccordé à cet appareil"
+          : ((lang === "en")
+            ? "No bearings connected to this device"
+            : "Geen lagers aangesloten op dit toestel");
+      } else if (smartAdv.isGracoRecommended) {
         recTitleEl.textContent = (lang === "fr")
           ? `Conseil pour ${pointsText} : Examiner l'option Graco (Besoin élevé)`
           : ((lang === "en")
@@ -10481,7 +10541,13 @@ function calculateAutomationLubrication() {
       }
     }
     if (recSubtextEl) {
-      if (smartAdv.isGracoRecommended) {
+      if (isSurveyImported && !hasAssignedBearings) {
+        recSubtextEl.innerHTML = (lang === "fr")
+          ? "Cet appareil ne comporte actuellement aucun point de graissage raccordé dans le questionnaire."
+          : ((lang === "en")
+            ? "This device currently has no lubrication points assigned in the questionnaire."
+            : "Dit toestel heeft in de vragenlijst momenteel geen aangesloten smeerpunten.");
+      } else if (smartAdv.isGracoRecommended) {
         recSubtextEl.innerHTML = (lang === "fr")
           ? `&#9888; <strong>Besoin élevé en graisse pour ${pointsText} (${totalDailyNeedForDev.toFixed(2).replace('.', ',')} ml/jour) :</strong> Une cartouche de 500 ml ne dure que ${((500 / totalDailyNeedForDev)/30.4375).toFixed(1).replace('.', ',')} mois.<br>👉 <strong>Conseil : Examiner l'option Graco</strong> (système de graissage centralisé / pompe de fût pour grands volumes).`
           : ((lang === "en")
@@ -13295,11 +13361,15 @@ function updateRoiAutomationPage() {
   } else {
     for (let i = 0; i < numDevices; i++) {
       const d = (typeof autoDevicesState !== "undefined" && autoDevicesState[i]) ? autoDevicesState[i] : { id: String.fromCharCode(65 + i), points: 1, cap: 120, period: 6, unit: "months" };
-      const pts = d.points || 1;
+      const pts = (typeof d.points === 'number') ? d.points : (parseInt(d.points, 10) || 0);
       totalPointsAllDevices += pts;
       var lang = currentLang || "nl";
       const bearingWord = lang === "fr" ? (pts === 1 ? "roulement" : "roulements") : (lang === "en" ? (pts === 1 ? "bearing" : "bearings") : (pts === 1 ? "lager" : "lagers"));
-      devBreakdownText.push(`Pulsarlube ${d.id}: ${pts} ${bearingWord}`);
+      if (pts === 0) {
+        devBreakdownText.push(`Pulsarlube ${d.id}: 0 ${bearingWord} (${lang === 'fr' ? 'non raccordé' : (lang === 'en' ? 'not connected' : 'niet aangesloten')})`);
+      } else {
+        devBreakdownText.push(`Pulsarlube ${d.id}: ${pts} ${bearingWord}`);
+      }
     }
   }
 
@@ -13318,9 +13388,14 @@ function updateRoiAutomationPage() {
   let totalDailyNeedAllDevices = 0;
   for (let i = 0; i < numDevices; i++) {
     const d = (typeof autoDevicesState !== "undefined" && autoDevicesState[i]) ? autoDevicesState[i] : null;
-    const pts = (deviceKey === "single_point") ? 1 : (d ? (d.points || 1) : 1);
+    const pts = (deviceKey === "single_point") ? 1 : (d ? ((typeof d.points === 'number') ? d.points : (parseInt(d.points, 10) || 0)) : 1);
+    const hasExplicitBearings = d && Array.isArray(d.bearingLetters);
+    const hasZeroAssigned = hasExplicitBearings && d.bearingLetters.length === 0;
+
     if (d && d.totalDailyNeed && d.totalDailyNeed > 0) {
       totalDailyNeedAllDevices += d.totalDailyNeed;
+    } else if (hasZeroAssigned || pts === 0) {
+      totalDailyNeedAllDevices += 0;
     } else {
       totalDailyNeedAllDevices += ((window.currentDailyNeedCm3 || 0.704) * pts);
     }
@@ -13631,7 +13706,10 @@ function updateRoiAutomationPage() {
 
   for (let i = 0; i < numDevices; i++) {
     const d = (typeof autoDevicesState !== "undefined" && autoDevicesState[i]) ? autoDevicesState[i] : { id: String.fromCharCode(65 + i), points: 1, cap: 120, period: 6, unit: "months" };
-    const pts = (deviceKey === "single_point") ? 1 : (d.points || 1);
+    const pts = (deviceKey === "single_point") ? 1 : ((typeof d.points === 'number') ? d.points : (parseInt(d.points, 10) || 0));
+    if (pts === 0) {
+      continue;
+    }
     const devCapEl = document.getElementById("autoCartridgeCap_" + d.id);
     const devCapVal = devCapEl ? parseInt(devCapEl.value, 10) : 0;
     const cap = (deviceKey === "single_point") ? spCapVal : (devCapVal || d.cap || 120);
