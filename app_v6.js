@@ -568,29 +568,52 @@ function determineBearingCorrectionFactors(sec3Data, shaftPosition) {
   // 1. Omgevingsfactor (Te / Tx):
   // 0.8: Gemiddeld (1-3)
   // 0.5: Stof en/of vocht / Hoog (4-6)
-  // 0.3: Stof en/of vocht / Erg hoog (7-8)
-  // 0.15: Condensatie / Extreem (9-10 of condensatie >= 7)
-  const maxEnvScore = Math.max(waterVocht, stofZand, abrasief, condens);
+  // 0.3: Stof en/of vocht / Erg hoog (7-10 voor stof/zand/abrasief, of 7-8 voor water)
+  // 0.15: Condensatie / Extreem (ALLEEN bij condensatie >= 7 of extreem water/stoom >= 9)
   let Te = 0.8;
   let teOptionValue = "0.8";
-  let teReason = "Gemiddeld (0,8)";
+  let teReason = "Schoon/Normaal (Te 0,8)";
 
-  if (condens >= 7 || waterVocht >= 9 || abrasief >= 9 || maxEnvScore >= 9) {
+  if (condens >= 7) {
     Te = 0.15;
     teOptionValue = "0.15";
-    teReason = "Condensatie / Extreem (0,15)";
-  } else if (maxEnvScore >= 7) {
+    teReason = "Condensatie (" + condens + "/10) → Te 0,15";
+  } else if (waterVocht >= 9) {
+    Te = 0.15;
+    teOptionValue = "0.15";
+    teReason = "Extreem water/stoom (" + waterVocht + "/10) → Te 0,15";
+  } else if (stofZand >= 7) {
     Te = 0.3;
     teOptionValue = "0.3";
-    teReason = "Stof/vocht Erg hoog (0,3)";
-  } else if (maxEnvScore >= 4) {
+    teReason = "Stof/zand (" + stofZand + "/10) → Te 0,3";
+  } else if (waterVocht >= 7) {
+    Te = 0.3;
+    teOptionValue = "0.3";
+    teReason = "Zwaar water/vocht (" + waterVocht + "/10) → Te 0,3";
+  } else if (abrasief >= 7) {
+    Te = 0.3;
+    teOptionValue = "0.3";
+    teReason = "Abrasieve stoffen (" + abrasief + "/10) → Te 0,3";
+  } else if (stofZand >= 4) {
     Te = 0.5;
     teOptionValue = "0.5";
-    teReason = "Stof/vocht Hoog (0,5)";
+    teReason = "Stof/zand (" + stofZand + "/10) → Te 0,5";
+  } else if (waterVocht >= 4) {
+    Te = 0.5;
+    teOptionValue = "0.5";
+    teReason = "Vocht/water (" + waterVocht + "/10) → Te 0,5";
+  } else if (abrasief >= 4) {
+    Te = 0.5;
+    teOptionValue = "0.5";
+    teReason = "Abrasieve vervuiling (" + abrasief + "/10) → Te 0,5";
+  } else if (condens >= 3) {
+    Te = 0.5;
+    teOptionValue = "0.5";
+    teReason = "Condensatie (" + condens + "/10) → Te 0,5";
   } else {
     Te = 0.8;
     teOptionValue = "0.8";
-    teReason = "Gemiddeld (0,8)";
+    teReason = "Schoon/Gemiddeld (Te 0,8)";
   }
 
   // 2. Toepassingsfactor (Ta):
@@ -601,33 +624,43 @@ function determineBearingCorrectionFactors(sec3Data, shaftPosition) {
   const maxAppScore = Math.max(schok, vibratie);
   let Ta = 0.8;
   let taOptionValue = "0.8";
-  let taReason = "Gemiddeld (0,8)";
+  let taReason = "Constante loop (Ta 0,8)";
 
   if (isVertical) {
     Ta = 0.15;
     taOptionValue = "0.15";
-    taReason = "Verticale as / Extreem (0,15)";
-  } else if (maxAppScore >= 9) {
+    taReason = "Verticale as → Ta 0,15";
+  } else if (vibratie >= 9) {
     Ta = 0.15;
     taOptionValue = "0.15";
-    taReason = "Extreme belasting (0,15)";
+    taReason = "Extreme vibraties (" + vibratie + "/10) → Ta 0,15";
+  } else if (schok >= 9) {
+    Ta = 0.15;
+    taOptionValue = "0.15";
+    taReason = "Extreme schokken (" + schok + "/10) → Ta 0,15";
   } else if (vibratie >= 7) {
     Ta = 0.3;
     taOptionValue = "0.3";
-    taReason = "Vibraties Erg hoog (0,3)";
+    taReason = "Vibraties/trillingen (" + vibratie + "/10) → Ta 0,3";
   } else if (schok >= 7) {
     Ta = 0.3;
     taOptionValue = "0.3";
-    taReason = "Zware schokken Erg hoog (0,3)";
-  } else if (maxAppScore >= 4) {
+    taReason = "Zware schokken (" + schok + "/10) → Ta 0,3";
+  } else if (vibratie >= 4) {
     Ta = 0.5;
     taOptionValue = "0.5";
-    taReason = "Schokken/trillingen Hoog (0,5)";
+    taReason = "Trillingen (" + vibratie + "/10) → Ta 0,5";
+  } else if (schok >= 4) {
+    Ta = 0.5;
+    taOptionValue = "0.5";
+    taReason = "Schokken (" + schok + "/10) → Ta 0,5";
   } else {
     Ta = 0.8;
     taOptionValue = "0.8";
-    taReason = "Gemiddeld (0,8)";
+    taReason = "Constante loop (Ta 0,8)";
   }
+
+  const maxEnvScore = Math.max(waterVocht, stofZand, abrasief, condens);
 
   return {
     Te,
@@ -2109,20 +2142,7 @@ function onSurveyBearingSelected(selectEl) {
       hintTextEl.innerHTML = "<strong>✏️ Handmatig aangepast (Lager " + targetLetter + "):</strong> Omgevingsfactor Te (" + curTeStr + ") &bull; Toepassingsfactor Ta (" + curTaStr + ") <a href=\"javascript:void(0)\" onclick=\"resetBearingCorrectionFactorsToAdvice('" + targetLetter + "')\" style=\"margin-left:8px; color:#0284c7; text-decoration:underline; font-weight:600;\">Herstel advies</a>";
       hintEl.style.display = "block";
     } else {
-      const reasonParts = [];
-      if (corrFactors.isVertical) {
-        reasonParts.push("Verticale as → Ta " + corrFactors.taOptionValue.replace('.', ','));
-      } else if (corrFactors.maxAppScore >= 4) {
-        reasonParts.push("Schok/Trilling (" + corrFactors.maxAppScore + "/10) → Ta " + corrFactors.taOptionValue.replace('.', ','));
-      } else {
-        reasonParts.push("Ta " + corrFactors.taOptionValue.replace('.', ','));
-      }
-      if (corrFactors.maxEnvScore >= 4) {
-        reasonParts.push("Omgeving (" + corrFactors.maxEnvScore + "/10) → Te " + corrFactors.teOptionValue.replace('.', ','));
-      } else {
-        reasonParts.push("Te " + corrFactors.teOptionValue.replace('.', ','));
-      }
-      hintTextEl.innerHTML = "<strong>💡 Automatisch ingesteld o.b.v. Vragenlijst (Lager " + targetLetter + "):</strong> " + reasonParts.join(" &bull; ");
+      hintTextEl.innerHTML = "<strong>💡 Automatisch ingesteld o.b.v. Vragenlijst (Lager " + targetLetter + "):</strong> " + corrFactors.teReason + " &bull; " + corrFactors.taReason;
       hintEl.style.display = "block";
     }
   }
