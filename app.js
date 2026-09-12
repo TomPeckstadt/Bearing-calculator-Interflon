@@ -396,9 +396,9 @@ function applyAutoRecommendationForDevice(devId) {
     const unitSelect = document.getElementById("autoDispenseUnit_" + devId);
     if (unitSelect) unitSelect.value = "months";
 
-    const totalNeed = (dev.totalDailyNeed && dev.totalDailyNeed > 0)
-      ? dev.totalDailyNeed
-      : (dailyNeedCm3 * (dev.points || 1));
+    const totalNeed = (deviceKey === "single_point")
+      ? ((dev.dailyNeedCm3 && dev.dailyNeedCm3 > 0) ? dev.dailyNeedCm3 : (dailyNeedCm3 > 0 ? dailyNeedCm3 : 0.704))
+      : ((dev.totalDailyNeed && dev.totalDailyNeed > 0) ? dev.totalDailyNeed : (dailyNeedCm3 * (dev.points || 1)));
     const smartAdv = getOptimalSmartAdvice(totalNeed, deviceKey, greaseName);
 
     dev.cap = smartAdv.cap;
@@ -708,18 +708,156 @@ function applySurveyConfig(config) {
 
   if (isSinglePoint) {
     // --- CASE A: SINGLE POINT LUBRICATORS ---
-    const totalUnits = config.totalSinglePoints || config.devices.length || (config.bearings && config.bearings.length) || config.numDevices || 1;
+    const greaseSelect = document.getElementById("selectedGrease") || document.getElementById("greaseSelect") || document.getElementById("inputGrease");
+    const greaseName = greaseSelect ? greaseSelect.value : "Interflon Grease LS2";
 
-    // 1. Set number of bearings / single point units in memory
+    // 1. Calculate each bearing's individual daily grease requirement
+    const calculatedBearings = (allBearings && allBearings.length > 0) ? allBearings.map(b => {
+      const d2 = sec2Map[b.letter] || {};
+      const d3 = sec3Map[b.letter] || {};
+      const hDay = parseFloat(b.hoursPerDay || d2.q13) || 16;
+      const dWeek = parseFloat(b.daysPerWeek || d2.q14) || 5;
+      const temp = parseFloat(b.temp || d3.q15) || 20;
+      const rpm = parseFloat(b.rpm) || 500;
+      const bQty = parseInt(b.qty, 10) || 1;
+      const need = calculateSingleBearingDailyNeed(b.nr, rpm, {
+        hoursPerDay: hDay,
+        daysPerWeek: dWeek,
+        temp: temp
+      });
+      return {
+        letter: b.letter,
+        nr: b.nr || '22225',
+        rpm: rpm,
+        dailyNeed: need.dailyNeed,
+        roundedNeed: Math.round(need.dailyNeed * 100) / 100,
+        qty: bQty,
+        hoursPerDay: hDay,
+        daysPerWeek: dWeek,
+        temp: temp
+      };
+    }) : [];
+
+    // 2. Group bearings by identical rounded daily need
+    const groupsMap = new Map();
+    calculatedBearings.forEach(cb => {
+      const key = cb.roundedNeed.toFixed(2);
+      if (!groupsMap.has(key)) {
+        groupsMap.set(key, {
+          roundedNeed: cb.roundedNeed,
+          dailyNeed: cb.dailyNeed,
+          bearings: [],
+          totalQty: 0
+        });
+      }
+      const grp = groupsMap.get(key);
+      grp.bearings.push(cb);
+      grp.totalQty += cb.qty;
+    });
+
+    const groups = Array.from(groupsMap.values());
+    const totalUnits = (groups.length > 0 ? groups.reduce((sum, g) => sum + g.totalQty, 0) : 0) ||
+                       config.totalSinglePoints || config.devices.length || (config.bearings && config.bearings.length) || config.numDevices || 1;
     window.spNumBearingsValue = totalUnits;
-    if (typeof autoDevicesState !== 'undefined' && autoDevicesState[0]) {
-      autoDevicesState[0].points = 1;
-      if (![15, 60, 120, 250].includes(autoDevicesState[0].cap)) {
-        autoDevicesState[0].cap = 250;
+
+    // 3. Reset all autoDevicesState entries to clean state (remove any stale multi-point Pulsarlube data)
+    if (typeof autoDevicesState !== 'undefined' && Array.isArray(autoDevicesState)) {
+      autoDevicesState.forEach(d => {
+        if (d) {
+          d.bearingSummary = '';
+          d.bearingDetailsSummary = '';
+          d.bearingLetters = [];
+          d.connectedBearings = [];
+          d.totalDailyNeed = 0;
+          d.isSinglePointGroup = false;
+          d.unitCount = 0;
+          d.groupBearingsText = '';
+          d.groupRpmText = '';
+        }
+      });
+
+      if (groups.length <= 1) {
+        // All bearings have the same daily need (or no explicit bearings)
+        const grp = groups[0] || {
+          dailyNeed: window.currentDailyNeedCm3 || 0.704,
+          bearings: calculatedBearings,
+          totalQty: totalUnits
+        };
+        const letters = grp.bearings.map(b => b.letter);
+        const letterStr = letters.join(', ');
+        const rpmList = [...new Set(grp.bearings.map(b => b.rpm + ' RPM'))].join(', ');
+        const smartAdv = getOptimalSmartAdvice(grp.dailyNeed, 'single_point', greaseName);
+
+        if (!autoDevicesState[0]) {
+          autoDevicesState[0] = { id: 'A', points: 1, cap: 120, period: 7, unit: 'months' };
+        }
+        autoDevicesState[0].id = 'A';
+        autoDevicesState[0].name = 'Interflon Single Point Lubricator';
+        autoDevicesState[0].points = 1;
+        autoDevicesState[0].isSinglePointGroup = true;
+        autoDevicesState[0].unitCount = totalUnits;
+        autoDevicesState[0].groupBearingsText = letterStr;
+        autoDevicesState[0].groupRpmText = rpmList;
+        autoDevicesState[0].bearingLetters = letters;
+        autoDevicesState[0].connectedBearings = letters;
+        autoDevicesState[0].dailyNeedCm3 = grp.dailyNeed;
+        autoDevicesState[0].totalDailyNeed = grp.dailyNeed; // Per single point unit grease demand
+        autoDevicesState[0].bearingSummary = '';
+        autoDevicesState[0].bearingDetailsSummary = '';
+        autoDevicesState[0].cap = smartAdv.cap;
+        autoDevicesState[0].period = smartAdv.months;
+        autoDevicesState[0].unit = 'months';
+        autoDevicesState[0].userEditedPeriod = false;
+
+        for (let k = 1; k < autoDevicesState.length; k++) {
+          if (autoDevicesState[k]) {
+            autoDevicesState[k].isSinglePointGroup = false;
+            autoDevicesState[k].unitCount = 0;
+            autoDevicesState[k].totalDailyNeed = 0;
+          }
+        }
+      } else {
+        // Bearings have distinct daily needs: create a card for each unique bearing group
+        groups.forEach((grp, idx) => {
+          const devId = String.fromCharCode(65 + idx);
+          const letters = grp.bearings.map(b => b.letter);
+          const letterStr = letters.join(', ');
+          const rpmList = [...new Set(grp.bearings.map(b => b.rpm + ' RPM'))].join(', ');
+          const smartAdv = getOptimalSmartAdvice(grp.dailyNeed, 'single_point', greaseName);
+
+          if (!autoDevicesState[idx]) {
+            autoDevicesState[idx] = { id: devId, points: 1, cap: 120, period: 7, unit: 'months' };
+          }
+          autoDevicesState[idx].id = devId;
+          autoDevicesState[idx].name = `Single Point (Lager ${letterStr})`;
+          autoDevicesState[idx].points = 1;
+          autoDevicesState[idx].isSinglePointGroup = true;
+          autoDevicesState[idx].unitCount = grp.totalQty;
+          autoDevicesState[idx].groupBearingsText = letterStr;
+          autoDevicesState[idx].groupRpmText = rpmList;
+          autoDevicesState[idx].bearingLetters = letters;
+          autoDevicesState[idx].connectedBearings = letters;
+          autoDevicesState[idx].dailyNeedCm3 = grp.dailyNeed;
+          autoDevicesState[idx].totalDailyNeed = grp.dailyNeed; // Per single point unit grease demand
+          autoDevicesState[idx].bearingSummary = '';
+          autoDevicesState[idx].bearingDetailsSummary = '';
+          autoDevicesState[idx].cap = smartAdv.cap;
+          autoDevicesState[idx].period = smartAdv.months;
+          autoDevicesState[idx].unit = 'months';
+          autoDevicesState[idx].userEditedPeriod = false;
+        });
+
+        for (let k = groups.length; k < autoDevicesState.length; k++) {
+          if (autoDevicesState[k]) {
+            autoDevicesState[k].isSinglePointGroup = false;
+            autoDevicesState[k].unitCount = 0;
+            autoDevicesState[k].totalDailyNeed = 0;
+          }
+        }
       }
     }
 
-    // 2. Switch device type dropdown to single_point
+    // 4. Switch device type dropdown to single_point
     if (devSelect) {
       devSelect.value = 'single_point';
       if (typeof updateAutomationPage === 'function') {
@@ -727,13 +865,13 @@ function applySurveyConfig(config) {
       }
     }
 
-    // 3. Update DOM input element if rendered
+    // 5. Update DOM input element if rendered
     const spInput = document.getElementById('singlePointNumBearingsInput');
     if (spInput) {
       spInput.value = totalUnits;
     }
 
-    // 4. Render and recalculate
+    // 6. Render and recalculate
     saveAutomationStateToLocalStorage();
     renderAutoDevicesUI();
     calculateAutomationLubrication();
@@ -742,15 +880,16 @@ function applySurveyConfig(config) {
       updateRoiAutomationPage();
     }
 
-    // 5. Visual confirmation badge
+    // 7. Visual confirmation badge
     const fbEl = document.getElementById('surveyImportFeedback');
     if (fbEl) {
       const machinePart = config.machineName ? ` voor "${config.machineName}"` : '';
+      const groupInfo = (groups.length > 1) ? `<br><span style="font-size: 10.5px; opacity: 0.9;">Opgesplitst in ${groups.length} lagergroepen met specifieke vetbehoefte en advies per groep</span>` : `<br><span style="font-size: 10.5px; opacity: 0.9;">Automatisch omgeschakeld naar Single Point Lubricators (1 per lager)</span>`;
       fbEl.style.display = 'block';
       fbEl.style.background = '#ecfdf5';
       fbEl.style.color = '#065f46';
       fbEl.style.border = '1px solid #a7f3d0';
-      fbEl.innerHTML = `✅ <strong>${totalUnits} Interflon Single Point Lubricators</strong> direct geïmporteerd uit vragenlijst${machinePart}<br><span style="font-size: 10.5px; opacity: 0.9;">Automatisch omgeschakeld naar Single Point Lubricators (1 per lager)</span>`;
+      fbEl.innerHTML = `✅ <strong>${totalUnits} Interflon Single Point Lubricators</strong> direct geïmporteerd uit vragenlijst${machinePart}${groupInfo}`;
       setTimeout(() => {
         if (fbEl) fbEl.style.display = 'none';
       }, 7000);
@@ -862,6 +1001,10 @@ function applySurveyConfig(config) {
       autoDevicesState[i].points = clampedPts;
       autoDevicesState[i].userEditedPeriod = false;
       autoDevicesState[i].unit = "months";
+      autoDevicesState[i].isSinglePointGroup = false;
+      autoDevicesState[i].unitCount = 0;
+      autoDevicesState[i].groupBearingsText = '';
+      autoDevicesState[i].groupRpmText = '';
       autoDevicesState[i].bearingLetters = bLetters;
       autoDevicesState[i].connectedBearings = bLetters;
       autoDevicesState[i].dailyNeedCm3 = avgDailyNeed;
@@ -900,6 +1043,10 @@ function applySurveyConfig(config) {
       autoDevicesState[i].bearingSummary = '';
       autoDevicesState[i].bearingDetailsSummary = '';
       autoDevicesState[i].totalDailyNeed = 0;
+      autoDevicesState[i].isSinglePointGroup = false;
+      autoDevicesState[i].unitCount = 0;
+      autoDevicesState[i].groupBearingsText = '';
+      autoDevicesState[i].groupRpmText = '';
     }
   }
 
@@ -2819,7 +2966,11 @@ function renderAutoDevicesUI() {
     numDevWrapper.style.display = isSinglePoint ? "none" : "block";
   }
 
-  const numDevices = isSinglePoint ? 1 : getActiveNumDevices();
+  const activeSpGroups = (isSinglePoint && Array.isArray(autoDevicesState))
+    ? autoDevicesState.filter(d => d && d.isSinglePointGroup && (d.unitCount > 0 || (d.bearingLetters && d.bearingLetters.length > 0)))
+    : [];
+  const isSpMultiGroup = (isSinglePoint && activeSpGroups.length > 1);
+  const numDevices = isSinglePoint ? (isSpMultiGroup ? activeSpGroups.length : 1) : getActiveNumDevices();
 
   const outerGrid = document.getElementById("automationInteractiveGrid");
   if (outerGrid) {
@@ -2857,8 +3008,30 @@ function renderAutoDevicesUI() {
     }
     const devId = dev.id;
     lang = currentLang || "nl";
-    const devName = isSinglePoint ? "Interflon Single Point Lubricator" : (numDevices === 1 ? (lang === "fr" ? "Appareil Pulsarlube" : (lang === "en" ? "Pulsarlube Device" : "Pulsarlube Smeertoestel")) : ("Pulsarlube " + devId));
-    const headerTitle = (isSinglePoint || numDevices === 1) ? (lang === "fr" ? "Paramètres de l'Appareil & Réglage de Lubrification" : (lang === "en" ? "Device Parameters & Lubrication Setting" : "Toestel Parameters & Smeerinstelling")) : (devName + (lang === "fr" ? " - Réglage & Volume" : (lang === "en" ? " - Setting & Volume" : " - Smeerinstelling & Volumecalculatie")));
+
+    let devName = "";
+    let headerTitle = "";
+    let badgeHtml = "";
+
+    if (isSinglePoint) {
+      if (isSpMultiGroup) {
+        const groupLetters = dev.groupBearingsText || (dev.bearingLetters && dev.bearingLetters.join(', ')) || devId;
+        const groupUnits = dev.unitCount || (dev.bearingLetters ? dev.bearingLetters.length : 1);
+        devName = `Single Point: Lager ${groupLetters}`;
+        headerTitle = `Single Point Lubricators — Lager ${groupLetters}`;
+        badgeHtml = `<span style="background-color: #E30613; color: white; font-weight: 800; font-size: 11px; padding: 4px 12px; border-radius: 12px; text-transform: uppercase; white-space: nowrap; flex-shrink: 0;">${groupUnits}x Single Point</span>`;
+      } else {
+        const totalU = window.spNumBearingsValue || dev.unitCount || 1;
+        devName = "Interflon Single Point Lubricator";
+        headerTitle = totalU > 1 ? `Interflon Single Point Lubricators (${totalU} stuks)` : (lang === "fr" ? "Paramètres de l'Appareil & Réglage de Lubrification" : (lang === "en" ? "Device Parameters & Lubrication Setting" : "Toestel Parameters & Smeerinstelling"));
+        badgeHtml = `<span style="background-color: #166534; color: white; font-weight: 800; font-size: 11px; padding: 4px 12px; border-radius: 12px; text-transform: uppercase; white-space: nowrap; flex-shrink: 0;">${totalU}x Single Point</span>`;
+      }
+    } else {
+      devName = (numDevices === 1 ? (lang === "fr" ? "Appareil Pulsarlube" : (lang === "en" ? "Pulsarlube Device" : "Pulsarlube Smeertoestel")) : ("Pulsarlube " + devId));
+      headerTitle = (numDevices === 1) ? (lang === "fr" ? "Paramètres de l'Appareil & Réglage de Lubrification" : (lang === "en" ? "Device Parameters & Lubrication Setting" : "Toestel Parameters & Smeerinstelling")) : (devName + (lang === "fr" ? " - Réglage & Volume" : (lang === "en" ? " - Setting & Volume" : " - Smeerinstelling & Volumecalculatie")));
+      badgeHtml = numDevices > 1 ? `<span style="background-color: #E30613; color: white; font-weight: 800; font-size: 11px; padding: 4px 12px; border-radius: 12px; text-transform: uppercase; white-space: nowrap; flex-shrink: 0;">Toestel ${devId}</span>` : '';
+    }
+
     const pointsLabel = isSinglePoint ? (lang === "fr" ? "Nombre de points de graissage / roulements :" : (lang === "en" ? "Number of lubrication points / bearings:" : "Aantal te smeren smeerpunten / lagers:")) : (lang === "fr" ? `Nombre de points de graissage pour ${devName} :` : (lang === "en" ? `Nombre de points de graissage pour ${devName}:` : `Aantal smeerpunten voor ${devName}:`));
 
     let optionsHtml = "";
@@ -2914,11 +3087,11 @@ function renderAutoDevicesUI() {
         <h4 style="color: var(--primary-blue); font-family: 'Outfit', sans-serif; font-size: 1.1rem; margin: 0; font-weight: 700;">
           ${headerTitle}
         </h4>
-        ${numDevices > 1 ? `<span style="background-color: #E30613; color: white; font-weight: 800; font-size: 11px; padding: 4px 12px; border-radius: 12px; text-transform: uppercase; white-space: nowrap; flex-shrink: 0;">Toestel ${devId}</span>` : ''}
+        ${badgeHtml}
       </div>
 
-      ${dev.bearingSummary ? `
-      <!-- Connected Bearings Badge from Questionnaire -->
+      ${(!isSinglePoint && dev.bearingSummary) ? `
+      <!-- Connected Bearings Badge from Questionnaire (Pulsarlube Multi-Point Only) -->
       <div class="auto-connected-bearings-badge" style="margin-bottom: 14px; background: #f0f9ff; border: 1px solid #bae6fd; border-left: 4px solid #0284c7; border-radius: var(--border-radius-sm); padding: 8px 12px; display: flex; align-items: center; justify-content: space-between; gap: 10px; box-sizing: border-box; min-height: 68px;">
         <div style="flex: 1; min-width: 0;">
           <div style="font-size: 11.5px; font-weight: 700; color: #0369a1; line-height: 1.4; word-break: break-word;">
@@ -2928,7 +3101,7 @@ function renderAutoDevicesUI() {
         </div>
         <span style="background: #0284c7; color: white; font-size: 9.5px; font-weight: 800; padding: 3px 8px; border-radius: 10px; text-transform: uppercase; white-space: nowrap; letter-spacing: 0.5px; flex-shrink: 0; align-self: center;">Vragenlijst</span>
       </div>
-      ` : (hasAnyBearingSummary ? `
+      ` : (!isSinglePoint && hasAnyBearingSummary ? `
       <!-- Placeholder Badge for Device without Assigned Bearings -->
       <div class="auto-connected-bearings-badge" style="margin-bottom: 14px; background: #f8fafc; border: 1px dashed #cbd5e1; border-left: 4px solid #94a3b8; border-radius: var(--border-radius-sm); padding: 8px 12px; display: flex; align-items: center; justify-content: space-between; gap: 10px; box-sizing: border-box; min-height: 68px;">
         <div style="flex: 1; min-width: 0;">
@@ -2937,7 +3110,20 @@ function renderAutoDevicesUI() {
           </div>
         </div>
       </div>
-      ` : '')}
+      ` : (isSinglePoint && dev.groupBearingsText ? `
+      <!-- Single Point Direct Connection Info Bar -->
+      <div style="margin-bottom: 14px; background: #f0fdf4; border: 1px solid #bbf7d0; border-left: 4px solid #16a34a; border-radius: var(--border-radius-sm); padding: 8px 12px; display: flex; align-items: center; justify-content: space-between; gap: 10px; box-sizing: border-box; min-height: 60px;">
+        <div style="flex: 1; min-width: 0;">
+          <div style="font-size: 11.5px; font-weight: 700; color: #166534; line-height: 1.4;">
+            <span style="display: inline-block; margin-right: 4px;">📍</span>Rechtstreekse 1-op-1 aansluiting op: <strong style="color: #14532d;">Lager ${dev.groupBearingsText}</strong>${dev.groupRpmText ? ` (${dev.groupRpmText})` : ''}
+          </div>
+          <div style="font-size: 10.5px; color: #15803d; margin-top: 2px;">
+            Individuele berekende vetbehoefte: <strong>${(dev.dailyNeedCm3 || 0.56).toFixed(2).replace('.', ',')} ml/dag</strong> &bull; Aantal smeerpunten: <strong>${dev.unitCount || 1}</strong>
+          </div>
+        </div>
+        <span style="background: #16a34a; color: white; font-size: 9.5px; font-weight: 800; padding: 3px 8px; border-radius: 10px; text-transform: uppercase; white-space: nowrap; letter-spacing: 0.5px; flex-shrink: 0;">1 per lager</span>
+      </div>
+      ` : ''))}
 
       <!-- Point Selection per Device -->
       <div class="auto-points-selection-wrapper" style="margin-bottom: 16px; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: var(--border-radius-sm); padding: 12px 14px; display: ${isSinglePoint ? 'none' : 'block'};">
@@ -2990,10 +3176,10 @@ function renderAutoDevicesUI() {
         <div style="display: flex; flex-direction: column; gap: 12px;">
           ${isSinglePoint ? `
           <div>
-            <label for="singlePointNumBearingsInput" style="display: block; font-size: 12px; font-weight: 600; color: var(--text-dark); margin-bottom: 4px;">
-              Aantal te smeren lagers
+            <label for="${isSpMultiGroup ? ('singlePointGroupCount_' + devId) : 'singlePointNumBearingsInput'}" style="display: block; font-size: 12px; font-weight: 600; color: var(--text-dark); margin-bottom: 4px;">
+              ${isSpMultiGroup ? 'Aantal te smeren lagers in deze groep' : 'Aantal te smeren lagers'}
             </label>
-            <input type="number" id="singlePointNumBearingsInput" class="form-input" value="${window.spNumBearingsValue || 1}" min="1" max="100" step="1" oninput="onSinglePointNumBearingsChange(this.value)" style="width: 100%; padding: 8px 12px; border-radius: var(--border-radius-sm); border: 1px solid #cbd5e1; font-weight: 700; color: #0f172a;" title="Voer het aantal te smeren lagers / single point toestellen in">
+            <input type="number" id="${isSpMultiGroup ? ('singlePointGroupCount_' + devId) : 'singlePointNumBearingsInput'}" class="form-input" value="${isSpMultiGroup ? (dev.unitCount || 1) : (window.spNumBearingsValue || 1)}" min="1" max="100" step="1" oninput="${isSpMultiGroup ? `onSinglePointGroupCountChange('${devId}', this.value)` : 'onSinglePointNumBearingsChange(this.value)'}" style="width: 100%; padding: 8px 12px; border-radius: var(--border-radius-sm); border: 1px solid #cbd5e1; font-weight: 700; color: #0f172a;" title="Voer het aantal te smeren lagers / single point toestellen in">
           </div>
           ` : ''}
           ${!pInfo.isPriceFound ? `
@@ -10355,7 +10541,11 @@ function calculateAutomationLubrication() {
   const deviceSelect = document.getElementById("automationDeviceSelect") || document.getElementById("autoDeviceSelect");
   const deviceKey = deviceSelect ? deviceSelect.value : "single_point";
   const isSinglePoint = (deviceKey === "single_point");
-  const numCards = isSinglePoint ? 1 : getActiveNumDevices();
+  const activeSpGroups = (isSinglePoint && Array.isArray(autoDevicesState))
+    ? autoDevicesState.filter(d => d && d.isSinglePointGroup && (d.unitCount > 0 || (d.bearingLetters && d.bearingLetters.length > 0)))
+    : [];
+  const isSpMultiGroup = (isSinglePoint && activeSpGroups.length > 1);
+  const numCards = isSinglePoint ? (isSpMultiGroup ? activeSpGroups.length : 1) : getActiveNumDevices();
   const container = document.getElementById("autoDevicesCardsContainer");
   if (container && container.children.length !== numCards) {
     renderAutoDevicesUI();
@@ -10371,21 +10561,27 @@ function calculateAutomationLubrication() {
   // Render main summary badge above cards
   const needBadgeEl = document.getElementById("autoBearingNeedBadge");
   if (needBadgeEl) {
-    const hasDistinctDeviceNeeds = (!isSinglePoint && numCards > 1 && Array.isArray(autoDevicesState) && autoDevicesState.slice(0, numCards).some(d => d.totalDailyNeed > 0));
+    const hasDistinctDeviceNeeds = (numCards > 1 && Array.isArray(autoDevicesState) && autoDevicesState.slice(0, numCards).some(d => d && (d.totalDailyNeed > 0 || d.dailyNeedCm3 > 0)));
     
     if (hasDistinctDeviceNeeds) {
       const devBreakdowns = [];
       for (let dIdx = 0; dIdx < numCards; dIdx++) {
         const d = autoDevicesState[dIdx];
         if (d) {
-          if (!d.bearingLetters || d.bearingLetters.length === 0) {
-            devBreakdowns.push(`<strong>Pulsarlube ${d.id}:</strong> <em>${lang === 'fr' ? 'Aucun roulement raccordé' : (lang === 'en' ? 'No bearings connected' : 'Geen lagers aangesloten')}</em>`);
+          const dNeed = (d.dailyNeedCm3 && d.dailyNeedCm3 > 0)
+            ? d.dailyNeedCm3.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+            : dailyNeedCm3.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+          if (isSinglePoint) {
+            const bInfo = d.groupBearingsText ? ` (Lager ${d.groupBearingsText})` : (d.bearingLetters ? ` (Lager ${d.bearingLetters.join(', ')})` : '');
+            const cnt = d.unitCount || (d.bearingLetters ? d.bearingLetters.length : 1);
+            devBreakdowns.push(`<strong>${cnt}x Single Point${bInfo}:</strong> ${dNeed} ml/dag per lager`);
           } else {
-            const dNeed = (d.dailyNeedCm3 && d.dailyNeedCm3 > 0)
-              ? d.dailyNeedCm3.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-              : dailyNeedCm3.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-            const bInfo = d.bearingSummary ? ` (${d.bearingSummary})` : '';
-            devBreakdowns.push(`<strong>Pulsarlube ${d.id}:</strong> ${dNeed} ml/dag per lager${bInfo}`);
+            if (!d.bearingLetters || d.bearingLetters.length === 0) {
+              devBreakdowns.push(`<strong>Pulsarlube ${d.id}:</strong> <em>${lang === 'fr' ? 'Aucun roulement raccordé' : (lang === 'en' ? 'No bearings connected' : 'Geen lagers aangesloten')}</em>`);
+            } else {
+              const bInfo = d.bearingSummary ? ` (${d.bearingSummary})` : '';
+              devBreakdowns.push(`<strong>Pulsarlube ${d.id}:</strong> ${dNeed} ml/dag per lager${bInfo}`);
+            }
           }
         }
       }
@@ -10400,13 +10596,13 @@ function calculateAutomationLubrication() {
             </div>
             <div>
               <div style="font-size: 11px; font-weight: 700; color: #166534; text-transform: uppercase; letter-spacing: 0.5px;">
-                Berekende Lagerbehoefte per Toestel (Geïmporteerd uit Vragenlijst)
+                ${isSinglePoint ? 'Berekende Lagerbehoefte per Lagergroep (Geïmporteerd uit Vragenlijst)' : 'Berekende Lagerbehoefte per Toestel (Geïmporteerd uit Vragenlijst)'}
               </div>
               <div style="font-size: 13px; font-weight: 700; color: #14532d; margin-top: 2px;">
                 ${devBreakdowns.join(' &bull; ')}
               </div>
               <div style="font-size: 11.5px; color: #166534; margin-top: 3px;">
-                Elk toestel heeft zijn eigen berekende vetbehoefte op basis van het toerental (RPM) en lagertype van de aangesloten lagers.
+                ${isSinglePoint ? 'Omdat de lagers verschillende vetbehoeften hebben, adviseert de app het optimale Single Point toestel en de juiste looptijd per lagergroep.' : 'Elk toestel heeft zijn eigen berekende vetbehoefte op basis van het toerental (RPM) en lagertype van de aangesloten lagers.'}
               </div>
             </div>
           </div>
@@ -10495,12 +10691,12 @@ function calculateAutomationLubrication() {
     const hasAssignedBearings = Array.isArray(dev.bearingLetters) && dev.bearingLetters.length > 0;
     const isSurveyImported = Array.isArray(autoDevicesState) && autoDevicesState.some(d => Array.isArray(d.bearingLetters) && d.bearingLetters.length > 0);
 
-    const totalDailyNeedForDev = (dev.totalDailyNeed && dev.totalDailyNeed > 0)
-      ? dev.totalDailyNeed
-      : (points === 0 ? 0 : (dailyNeedCm3 * points));
-    const devDailyNeed1 = (dev.dailyNeedCm3 && dev.dailyNeedCm3 > 0)
-      ? dev.dailyNeedCm3
-      : (points > 0 ? (totalDailyNeedForDev / points) : 0);
+    const totalDailyNeedForDev = isSinglePoint
+      ? ((dev.dailyNeedCm3 && dev.dailyNeedCm3 > 0) ? dev.dailyNeedCm3 : (dailyNeedCm3 > 0 ? dailyNeedCm3 : 0.704))
+      : ((dev.totalDailyNeed && dev.totalDailyNeed > 0) ? dev.totalDailyNeed : (points === 0 ? 0 : (dailyNeedCm3 * points)));
+    const devDailyNeed1 = isSinglePoint
+      ? totalDailyNeedForDev
+      : ((dev.dailyNeedCm3 && dev.dailyNeedCm3 > 0) ? dev.dailyNeedCm3 : (points > 0 ? (totalDailyNeedForDev / points) : 0));
 
     const recDays = capMl / (totalDailyNeedForDev > 0 ? totalDailyNeedForDev : 0.704);
     const recMonths = recDays / 30.4375;
@@ -13364,8 +13560,22 @@ function updateRoiAutomationPage() {
   // Aggregate total points across all active devices
   let totalPointsAllDevices = 0;
   let devBreakdownText = [];
+  const activeSpGroups = (deviceKey === "single_point" && Array.isArray(autoDevicesState))
+    ? autoDevicesState.filter(d => d && d.isSinglePointGroup && (d.unitCount > 0 || (d.bearingLetters && d.bearingLetters.length > 0)))
+    : [];
+  const isSpMultiGroup = (deviceKey === "single_point" && activeSpGroups.length > 1);
+
   if (deviceKey === "single_point") {
-    totalPointsAllDevices = numDevices;
+    if (isSpMultiGroup) {
+      totalPointsAllDevices = activeSpGroups.reduce((sum, g) => sum + (g.unitCount || (g.bearingLetters ? g.bearingLetters.length : 1)), 0);
+      activeSpGroups.forEach(g => {
+        const cnt = g.unitCount || (g.bearingLetters ? g.bearingLetters.length : 1);
+        const lStr = g.groupBearingsText || (g.bearingLetters ? g.bearingLetters.join(', ') : g.id);
+        devBreakdownText.push(`${cnt}x Single Point (Lager ${lStr})`);
+      });
+    } else {
+      totalPointsAllDevices = window.spNumBearingsValue || (autoDevicesState[0] && autoDevicesState[0].unitCount) || 1;
+    }
   } else {
     for (let i = 0; i < numDevices; i++) {
       const d = (typeof autoDevicesState !== "undefined" && autoDevicesState[i]) ? autoDevicesState[i] : { id: String.fromCharCode(65 + i), points: 1, cap: 120, period: 6, unit: "months" };
@@ -13384,28 +13594,42 @@ function updateRoiAutomationPage() {
   if (roiSubtextEl) {
     var lang = currentLang || "nl";
     const ptsWord = lang === "fr" ? (totalPointsAllDevices === 1 ? "roulement" : "roulements") : (lang === "en" ? (totalPointsAllDevices === 1 ? "bearing" : "bearings") : (totalPointsAllDevices === 1 ? "lager" : "lagers"));
-    const devListStr = (numDevices === 1 || deviceKey === "single_point") ? `${totalPointsAllDevices} ${ptsWord}` : devBreakdownText.join(" &bull; ");
+    const devListStr = (numDevices === 1 || (deviceKey === "single_point" && !isSpMultiGroup)) ? `${totalPointsAllDevices} ${ptsWord}` : devBreakdownText.join(" &bull; ");
     var lang = currentLang || "nl";
     const numDevLabel = lang === "fr" ? "Nombre d'appareils :" : (lang === "en" ? "Number of devices:" : "Aantal toestellen:");
     const selGreaseLabel = lang === "fr" ? "Graisse sélectionnée :" : (lang === "en" ? "Selected grease:" : "Geselecteerd vet:");
-    roiSubtextEl.innerHTML = `${numDevLabel} <strong>${numDevices}</strong> (${devListStr}) &bull; ${selGreaseLabel} <strong>${greaseName}</strong>`;
+    roiSubtextEl.innerHTML = `${numDevLabel} <strong>${totalPointsAllDevices}</strong> (${devListStr}) &bull; ${selGreaseLabel} <strong>${greaseName}</strong>`;
   }
 
   // 2. Annual Volume calculation for ALL points combined
   const dailyNeedCm3 = window.currentDailyNeedCm3 || 0.704;
   let totalDailyNeedAllDevices = 0;
-  for (let i = 0; i < numDevices; i++) {
-    const d = (typeof autoDevicesState !== "undefined" && autoDevicesState[i]) ? autoDevicesState[i] : null;
-    const pts = (deviceKey === "single_point") ? 1 : (d ? ((typeof d.points === 'number') ? d.points : (parseInt(d.points, 10) || 0)) : 1);
-    const hasExplicitBearings = d && Array.isArray(d.bearingLetters);
-    const hasZeroAssigned = hasExplicitBearings && d.bearingLetters.length === 0;
-
-    if (d && d.totalDailyNeed && d.totalDailyNeed > 0) {
-      totalDailyNeedAllDevices += d.totalDailyNeed;
-    } else if (hasZeroAssigned || pts === 0) {
-      totalDailyNeedAllDevices += 0;
+  if (deviceKey === "single_point") {
+    if (isSpMultiGroup) {
+      activeSpGroups.forEach(g => {
+        const cnt = g.unitCount || (g.bearingLetters ? g.bearingLetters.length : 1);
+        const need1 = (g.dailyNeedCm3 && g.dailyNeedCm3 > 0) ? g.dailyNeedCm3 : (window.currentDailyNeedCm3 || 0.704);
+        totalDailyNeedAllDevices += (need1 * cnt);
+      });
     } else {
-      totalDailyNeedAllDevices += ((window.currentDailyNeedCm3 || 0.704) * pts);
+      const cnt = window.spNumBearingsValue || (autoDevicesState[0] && autoDevicesState[0].unitCount) || 1;
+      const need1 = (autoDevicesState[0] && autoDevicesState[0].dailyNeedCm3 > 0) ? autoDevicesState[0].dailyNeedCm3 : (window.currentDailyNeedCm3 || 0.704);
+      totalDailyNeedAllDevices = need1 * cnt;
+    }
+  } else {
+    for (let i = 0; i < numDevices; i++) {
+      const d = (typeof autoDevicesState !== "undefined" && autoDevicesState[i]) ? autoDevicesState[i] : null;
+      const pts = (deviceKey === "single_point") ? 1 : (d ? ((typeof d.points === 'number') ? d.points : (parseInt(d.points, 10) || 0)) : 1);
+      const hasExplicitBearings = d && Array.isArray(d.bearingLetters);
+      const hasZeroAssigned = hasExplicitBearings && d.bearingLetters.length === 0;
+
+      if (d && d.totalDailyNeed && d.totalDailyNeed > 0) {
+        totalDailyNeedAllDevices += d.totalDailyNeed;
+      } else if (hasZeroAssigned || pts === 0) {
+        totalDailyNeedAllDevices += 0;
+      } else {
+        totalDailyNeedAllDevices += ((window.currentDailyNeedCm3 || 0.704) * pts);
+      }
     }
   }
   const yearlyMlTotal = totalDailyNeedAllDevices * 365.25;
@@ -13712,23 +13936,36 @@ function updateRoiAutomationPage() {
   const spUnitEl = document.getElementById("autoDispenseUnit_A") || document.getElementById("autoDispenseUnit");
   const spUnitVal = (spUnitEl ? spUnitEl.value : "") || (typeof autoDevicesState !== "undefined" && autoDevicesState[0] ? autoDevicesState[0].unit : "months");
 
-  for (let i = 0; i < numDevices; i++) {
+  const numLoop = (deviceKey === "single_point")
+    ? (isSpMultiGroup ? activeSpGroups.length : 1)
+    : numDevices;
+
+  for (let i = 0; i < numLoop; i++) {
     const d = (typeof autoDevicesState !== "undefined" && autoDevicesState[i]) ? autoDevicesState[i] : { id: String.fromCharCode(65 + i), points: 1, cap: 120, period: 6, unit: "months" };
+    const multiplier = (deviceKey === "single_point")
+      ? (isSpMultiGroup ? (d.unitCount || 1) : (window.spNumBearingsValue || (autoDevicesState[0] && autoDevicesState[0].unitCount) || 1))
+      : 1;
     const pts = (deviceKey === "single_point") ? 1 : ((typeof d.points === 'number') ? d.points : (parseInt(d.points, 10) || 0));
-    if (pts === 0) {
+    if (pts === 0 && deviceKey !== "single_point") {
       continue;
     }
     const devCapEl = document.getElementById("autoCartridgeCap_" + d.id);
     const devCapVal = devCapEl ? parseInt(devCapEl.value, 10) : 0;
-    const cap = (deviceKey === "single_point") ? spCapVal : (devCapVal || d.cap || 120);
+    const cap = (deviceKey === "single_point" && !isSpMultiGroup)
+      ? spCapVal
+      : (devCapVal || d.cap || (deviceKey === "single_point" ? 120 : 125));
 
     const devPeriodEl = document.getElementById("autoDispensePeriod_" + d.id);
     const devPeriodVal = devPeriodEl ? parseFloat(devPeriodEl.value) : 0;
     const devUnitEl = document.getElementById("autoDispenseUnit_" + d.id);
     const devUnitVal = devUnitEl ? devUnitEl.value : "";
 
-    const period = (deviceKey === "single_point") ? spPeriodVal : (devPeriodVal || d.period || 6);
-    const unit = (deviceKey === "single_point") ? spUnitVal : (devUnitVal || d.unit || "months");
+    const period = (deviceKey === "single_point" && !isSpMultiGroup)
+      ? spPeriodVal
+      : (devPeriodVal || d.period || 6);
+    const unit = (deviceKey === "single_point" && !isSpMultiGroup)
+      ? spUnitVal
+      : (devUnitVal || d.unit || "months");
 
     const domCustomPriceEl = document.getElementById("autoCustomPackPrice_" + d.id) || document.getElementById("autoCustomPackPrice_A");
     const domCustomVal = domCustomPriceEl ? parseFloat(domCustomPriceEl.value) : 0;
@@ -13736,23 +13973,25 @@ function updateRoiAutomationPage() {
     const activeCustomPrice = (!isNaN(domCustomVal) && domCustomVal > 0) ? domCustomVal : (d.customPackPrice || ((deviceKey === "single_point" || i === 0) ? spCustomFallback : 0));
     const pInfo = getAutomationPriceInfo(deviceKey, cap, greaseName, pts, activeCustomPrice);
     
-    totalUnitsPrice += pInfo.unitPrice;
-    totalInstallKitPrice += pInfo.installKitPrice;
-    totalDividerBlockPrice += pInfo.dividerBlockPrice;
+    totalUnitsPrice += (pInfo.unitPrice * multiplier);
+    totalInstallKitPrice += (pInfo.installKitPrice * multiplier);
+    totalDividerBlockPrice += (pInfo.dividerBlockPrice * multiplier);
 
     artNrUnitStr = pInfo.artNrUnit;
     artNrServicepackStr = pInfo.artNrServicepack;
     servicepackUnitPrice = pInfo.servicepackPrice;
 
-    const yearlyMlDev = dailyNeedCm3 * pts * 365.25;
+    const devNeedRate = (deviceKey === "single_point" && d.dailyNeedCm3 && d.dailyNeedCm3 > 0) ? d.dailyNeedCm3 : dailyNeedCm3;
+    const yearlyMlDev = devNeedRate * pts * 365.25;
     let cartsDev = 0;
     if (period > 0) {
       cartsDev = unit === "weeks" ? (52.1785 / period) : (12 / period);
     } else {
       cartsDev = cap > 0 ? (yearlyMlDev / cap) : 0;
     }
-    totalCartridgesPerYear += cartsDev;
-    totalCartridgesCostYear += (cartsDev * pInfo.servicepackPrice);
+    const cartsGroup = cartsDev * multiplier;
+    totalCartridgesPerYear += cartsGroup;
+    totalCartridgesCostYear += (cartsGroup * pInfo.servicepackPrice);
 
     deviceBreakdownList.push({
       id: d.id,
@@ -13761,9 +14000,9 @@ function updateRoiAutomationPage() {
       artNrPack: pInfo.artNrServicepack,
       unitPrice: pInfo.unitPrice,
       artNrUnit: pInfo.artNrUnit,
-      cartsDev: cartsDev,
-      annualCartCost: cartsDev * pInfo.servicepackPrice,
-      points: pts
+      cartsDev: cartsGroup,
+      annualCartCost: cartsGroup * pInfo.servicepackPrice,
+      points: pts * multiplier
     });
 
     if (pInfo.dividerBlockPrice > 0) {
@@ -15589,6 +15828,28 @@ function onSinglePointNumBearingsChange(val) {
     updateRoiAutomationPage();
   }
 }
+window.onSinglePointNumBearingsChange = onSinglePointNumBearingsChange;
+
+function onSinglePointGroupCountChange(devId, val) {
+  const count = Math.max(1, parseInt(val, 10) || 1);
+  if (typeof autoDevicesState !== 'undefined' && Array.isArray(autoDevicesState)) {
+    const dev = autoDevicesState.find(d => d.id === devId);
+    if (dev) {
+      dev.unitCount = count;
+    }
+    const total = autoDevicesState.filter(d => d.isSinglePointGroup).reduce((sum, d) => sum + (d.unitCount || 0), 0);
+    if (total > 0) {
+      window.spNumBearingsValue = total;
+    }
+  }
+  if (typeof calculateAutomationLubrication === "function") {
+    calculateAutomationLubrication();
+  }
+  if (typeof updateRoiAutomationPage === "function") {
+    updateRoiAutomationPage();
+  }
+}
+window.onSinglePointGroupCountChange = onSinglePointGroupCountChange;
 
 
 
