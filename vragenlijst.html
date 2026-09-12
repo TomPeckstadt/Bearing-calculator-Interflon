@@ -3352,13 +3352,14 @@
         activeOrigins.push({
           id: 'cp',
           name: 'Centraal Punt',
-          short: 'CP',
+          short: 'Centraal',
+          type: 'cp',
           x: 0,
           y: 0,
-          lineColor: '#38bdf8',
-          tagBg: 'rgba(15, 23, 42, 0.92)',
-          tagBorder: '#38bdf8',
-          tagText: '#38bdf8',
+          lineColor: '#ef4444',
+          tagBg: 'rgba(220, 38, 38, 0.92)',
+          tagBorder: '#ef4444',
+          tagText: '#ffffff',
           dash: [5 * dpr, 4 * dpr]
         });
       }
@@ -3422,7 +3423,7 @@
           }
 
           // If multiple lubrication devices: ONLY connect to assigned bearing(s)!
-          if (origin.type !== 'cp') {
+          if (origin.id !== 'cp' && origin.type !== 'cp') {
             const activeDevices = devices.filter(d => d.active !== false);
             if (activeDevices.length > 1) {
               let isAssigned = false;
