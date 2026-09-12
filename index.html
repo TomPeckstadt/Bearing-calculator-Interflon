@@ -13,7 +13,7 @@
       window.location.replace('https://www.interflonapps.com' + window.location.pathname + window.location.search + window.location.hash);
     }
   </script>
-  <link rel="stylesheet" href="style.css?v=20260912_1045">
+  <link rel="stylesheet" href="style.css?v=20260912_1210">
 </head>
 <body>
 
@@ -257,7 +257,32 @@
         </svg>
         <span data-i18n="pdfExportTitle">Rapport exporteren</span>
       </h3>
-      <p class="modal-subtitle" style="margin-bottom: 20px;" data-i18n="pdfExportSubtitle">Kies hoe u het PDF-rapport wilt genereren:</p>
+      <p class="modal-subtitle" style="margin-bottom: 16px;" data-i18n="pdfExportSubtitle">Kies hoe u het PDF-rapport wilt genereren:</p>
+      
+      <!-- Scope Selection: Standard (Single bearing) vs All bearings without automation -->
+      <div id="pdfScopeSection" class="form-group" style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; padding-bottom: 14px; border-bottom: 1px solid #f1f5f9;">
+        <label style="font-size: 12px; font-weight: 800; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">Rapporttype</label>
+        
+        <label class="pdf-option-label" style="display: flex; align-items: flex-start; gap: 12px; padding: 10px 12px; border: 1.5px solid #e5e7eb; border-radius: var(--border-radius-md); cursor: pointer; transition: all 0.2s;">
+          <input type="radio" name="pdfScopeOption" value="current" checked onchange="onPdfScopeChange()" style="margin-top: 3px; accent-color: var(--primary-red);">
+          <div>
+            <strong style="display: block; font-size: 13.5px; color: var(--text-dark); margin-bottom: 1px;">Standaard rapport (huidig geselecteerd lager)</strong>
+            <span style="display: block; font-size: 11.5px; color: var(--text-medium);">Genereert het volledige rapport voor het actieve lager met onderstaande opties.</span>
+          </div>
+        </label>
+        
+        <label id="pdfScopeAllBearingsLabel" class="pdf-option-label" style="display: flex; align-items: flex-start; gap: 12px; padding: 10px 12px; border: 1.5px solid #0284c7; background: #f0f9ff; border-radius: var(--border-radius-md); cursor: pointer; transition: all 0.2s;">
+          <input type="radio" name="pdfScopeOption" value="all_no_auto" onchange="onPdfScopeChange()" style="margin-top: 3px; accent-color: #0284c7;">
+          <div>
+            <strong id="pdfScopeAllBearingsTitle" style="display: block; font-size: 13.5px; color: #0369a1; margin-bottom: 1px;">Rapport van alle lagers zonder automatisatie</strong>
+            <span id="pdfScopeAllBearingsDesc" style="display: block; font-size: 11.5px; color: #0284c7;">Genereert enkel pagina 1 (Smeeradvies) en pagina 2 (TCO model) voor elk lager uit de vragenlijst.</span>
+          </div>
+        </label>
+      </div>
+      
+      <div id="pdfNoAutoNotice" style="display: none; background-color: #f0fdf4; border: 1px solid #86efac; border-radius: var(--border-radius-sm); padding: 10px 12px; color: #166534; font-size: 11.5px; font-weight: 600; margin-bottom: 16px; line-height: 1.4;">
+        ✅ <strong>Rapport zonder automatisatie actief:</strong> Er wordt voor elk ingevuld lager opeenvolgend pagina 1 (Smeeradvies) en pagina 2 (TCO model) gegenereerd. De automatisatiepagina's worden overgeslagen.
+      </div>
       
       <div class="form-group" style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px;">
         <label style="font-size: 12px; font-weight: 800; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">1. TCO Calculatie Model</label>
@@ -278,7 +303,7 @@
         </label>
       </div>
 
-      <div class="form-group" style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; border-top: 1px solid #f1f5f9; padding-top: 14px;">
+      <div id="pdfRoiOptionGroup" class="form-group" style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; border-top: 1px solid #f1f5f9; padding-top: 14px;">
         <label style="font-size: 12px; font-weight: 800; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">2. ROI Berekening Automatisatie</label>
         <label class="pdf-option-label" style="display: flex; align-items: flex-start; gap: 12px; padding: 10px 12px; border: 1px solid #e5e7eb; border-radius: var(--border-radius-md); cursor: pointer; transition: all 0.2s;">
           <input type="radio" name="pdfRoiOption" value="true" checked style="margin-top: 3px; accent-color: var(--primary-red);">
@@ -297,7 +322,7 @@
         </label>
       </div>
 
-      <div class="form-group" style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; border-top: 1px solid #f1f5f9; padding-top: 14px;">
+      <div id="pdfRasterOptionGroup" class="form-group" style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; border-top: 1px solid #f1f5f9; padding-top: 14px;">
         <label style="font-size: 12px; font-weight: 800; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">3. 3D Machineraster & Installatie Schets</label>
         <label class="pdf-option-label" style="display: flex; align-items: flex-start; gap: 12px; padding: 10px 12px; border: 1px solid #e5e7eb; border-radius: var(--border-radius-md); cursor: pointer; transition: all 0.2s;">
           <input type="radio" name="pdfRasterOption" value="true" checked style="margin-top: 3px; accent-color: var(--primary-red);">
@@ -3318,7 +3343,7 @@
   <script src="interflon-data.js?v=20260904_1726"></script>
   <script src="bearings-db.js?v=20260911_0655"></script>
   <script src="chains-db.js?v=20260904_1726"></script>
-  <script src="app_v6.js?v=20260912_1045"></script>
+  <script src="app_v6.js?v=20260912_1210"></script>
 
   <!-- Interflon Oil Dispenser Information Modal (PowerPoint Viewer) -->
   <div id="oilDispenserInfoModal" class="modal-overlay hidden" style="z-index: 99999;">
