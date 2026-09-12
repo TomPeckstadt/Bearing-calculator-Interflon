@@ -3603,39 +3603,6 @@
         ctx.textBaseline = 'middle';
         ctx.fillText(dev.short, dScreen.u, dScreen.v);
 
-        // Device name tag underneath (showing assigned hardware type)
-        const typeShort = getDeviceTypeShort(dev.type);
-        let tagText = '';
-        if (directBearing) {
-          tagText = dev.short + ' • Direct op Lager ' + directBearing;
-        } else if (isHovered) {
-          tagText = dev.name + ': ' + getDeviceTypeName(dev.type) + (dev.active ? '' : ' (Uit)');
-        } else {
-          tagText = dev.name + ' • ' + typeShort + (dev.active ? '' : ' (Uit)');
-        }
-
-        ctx.font = 'bold ' + Math.round(9.5 * dpr) + 'px sans-serif';
-        const tagW = ctx.measureText(tagText).width;
-        const padX = 5 * dpr;
-        const padY = 2 * dpr;
-
-        ctx.fillStyle = dev.active ? 'rgba(15, 23, 42, 0.92)' : 'rgba(15, 23, 42, 0.7)';
-        ctx.beginPath();
-        if (ctx.roundRect) {
-          ctx.roundRect(dScreen.u - tagW/2 - padX, dScreen.v + dSize/2 + 3 * dpr, tagW + padX*2, 14 * dpr + padY, 4 * dpr);
-        } else {
-          ctx.rect(dScreen.u - tagW/2 - padX, dScreen.v + dSize/2 + 3 * dpr, tagW + padX*2, 14 * dpr + padY);
-        }
-        ctx.fill();
-        ctx.strokeStyle = dev.active ? pal.line : '#475569';
-        ctx.lineWidth = 1 * dpr;
-        ctx.stroke();
-
-        ctx.fillStyle = dev.active ? '#ffffff' : '#94a3b8';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'top';
-        ctx.fillText(tagText, dScreen.u, dScreen.v + dSize/2 + 4.5 * dpr);
-
         ctx.restore();
       });
 
@@ -3644,11 +3611,6 @@
         const letter = r.getAttribute('data-letter') || (LETTERS[idx] || ('L' + (idx+1)));
         const pos = bearingPositions[letter] || { x: 0, y: 0 };
         const bScreen = worldToScreen(pos.x, pos.y, canvas);
-
-        const nrIn = r.querySelector('.bearing-nr-input');
-        const nrVal = nrIn && nrIn.value ? nrIn.value.trim() : '';
-        const descIn = r.querySelector('.bearing-desc-input');
-        const descVal = descIn && descIn.value ? descIn.value.trim() : '';
 
         const isHovered = (hoveredBearingLetter === letter);
         const isDragged = (draggedBearingLetter === letter);
@@ -3690,34 +3652,114 @@
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.fillText(letter, bScreen.u, bScreen.v);
-
-        // Tag label underneath node with full text on hover
-        let labelText = 'Lager ' + letter;
-        if (nrVal) labelText += ': ' + nrVal;
-        if (isHovered && descVal) labelText += ' (' + descVal + ')';
-
-        ctx.font = 'bold ' + Math.round((isHovered ? 11.5 : 10.5) * dpr) + 'px sans-serif';
-        const tagWidth = ctx.measureText(labelText).width;
-        const tagPad = (isHovered ? 8 : 5) * dpr;
-        const tagHeight = (isHovered ? 18 : 16) * dpr;
-
-        ctx.fillStyle = isHovered ? 'rgba(15, 23, 42, 0.95)' : 'rgba(15, 23, 42, 0.85)';
-        ctx.beginPath();
-        if (ctx.roundRect) {
-          ctx.roundRect(bScreen.u - tagWidth/2 - tagPad, bScreen.v + radius + 4 * dpr, tagWidth + tagPad*2, tagHeight, 4 * dpr);
-        } else {
-          ctx.rect(bScreen.u - tagWidth/2 - tagPad, bScreen.v + radius + 4 * dpr, tagWidth + tagPad*2, tagHeight);
-        }
-        ctx.fill();
-        ctx.strokeStyle = isHovered ? '#60a5fa' : '#475569';
-        ctx.lineWidth = (isHovered ? 1.5 : 1) * dpr;
-        ctx.stroke();
-
-        ctx.fillStyle = isHovered ? '#93c5fd' : '#f8fafc';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'top';
-        ctx.fillText(labelText, bScreen.u, bScreen.v + radius + 6 * dpr);
       });
+
+      // --- 7. TOP-LAYER FLOATING TOOLTIPS (ONLY DISPLAYED ON HOVER OR DRAG) ---
+      if (hoveredDeviceId || draggedDeviceId) {
+        const activeDevId = draggedDeviceId || hoveredDeviceId;
+        const dev = devices.find(d => d.id === activeDevId);
+        if (dev) {
+          const pal = DEVICE_PALETTES[dev.paletteIndex % DEVICE_PALETTES.length];
+          let dScreen = worldToScreen(dev.x, dev.y, canvas);
+          const isSinglePoint = (dev.type === 'single_point');
+          let directBearing = null;
+          if (isSinglePoint && !draggedDeviceId) {
+            const targetL = dev.targetBearingLetter || Object.keys(bearingPositions).find(l => Math.hypot(bearingPositions[l].x - dev.x, bearingPositions[l].y - dev.y) < 0.2);
+            if (targetL && bearingPositions[targetL] && Math.hypot(bearingPositions[targetL].x - dev.x, bearingPositions[targetL].y - dev.y) < 0.2) {
+              directBearing = targetL;
+              dScreen.v -= 24 * dpr;
+            }
+          }
+          const dSize = 30 * dpr;
+
+          let tagText = '';
+          if (directBearing) {
+            tagText = dev.name + ' (' + dev.short + ') • Direct op Lager ' + directBearing;
+          } else {
+            tagText = dev.name + ': ' + getDeviceTypeName(dev.type) + (dev.active ? '' : ' (Uit)');
+          }
+
+          ctx.save();
+          ctx.font = 'bold ' + Math.round(11 * dpr) + 'px sans-serif';
+          const tagW = ctx.measureText(tagText).width;
+          const padX = 8 * dpr;
+          const padY = 3 * dpr;
+          const tagH = 18 * dpr;
+
+          ctx.shadowColor = 'rgba(0, 0, 0, 0.65)';
+          ctx.shadowBlur = 8 * dpr;
+          ctx.fillStyle = 'rgba(15, 23, 42, 0.96)';
+          ctx.beginPath();
+          if (ctx.roundRect) {
+            ctx.roundRect(dScreen.u - tagW/2 - padX, dScreen.v + dSize/2 + 5 * dpr, tagW + padX*2, tagH + padY, 5 * dpr);
+          } else {
+            ctx.rect(dScreen.u - tagW/2 - padX, dScreen.v + dSize/2 + 5 * dpr, tagW + padX*2, tagH + padY);
+          }
+          ctx.fill();
+          ctx.shadowBlur = 0;
+          ctx.strokeStyle = pal.line || '#ffffff';
+          ctx.lineWidth = 1.5 * dpr;
+          ctx.stroke();
+
+          ctx.fillStyle = '#ffffff';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'top';
+          ctx.fillText(tagText, dScreen.u, dScreen.v + dSize/2 + 6.5 * dpr);
+          ctx.restore();
+        }
+      }
+
+      if (hoveredBearingLetter || draggedBearingLetter) {
+        const activeLetter = draggedBearingLetter || hoveredBearingLetter;
+        const pos = bearingPositions[activeLetter];
+        if (pos) {
+          const bScreen = worldToScreen(pos.x, pos.y, canvas);
+          const radius = 16 * dpr;
+
+          let nrVal = '';
+          let descVal = '';
+          rows.forEach((r, idx) => {
+            const letter = r.getAttribute('data-letter') || (LETTERS[idx] || ('L' + (idx+1)));
+            if (letter === activeLetter) {
+              const nrIn = r.querySelector('.bearing-nr-input');
+              if (nrIn && nrIn.value) nrVal = nrIn.value.trim();
+              const descIn = r.querySelector('.bearing-desc-input');
+              if (descIn && descIn.value) descVal = descIn.value.trim();
+            }
+          });
+
+          let labelText = 'Lager ' + activeLetter;
+          if (nrVal) labelText += ': ' + nrVal;
+          if (descVal) labelText += ' (' + descVal + ')';
+
+          ctx.save();
+          ctx.font = 'bold ' + Math.round(11 * dpr) + 'px sans-serif';
+          const tagWidth = ctx.measureText(labelText).width;
+          const tagPad = 8 * dpr;
+          const tagHeight = 18 * dpr;
+
+          ctx.shadowColor = 'rgba(0, 0, 0, 0.65)';
+          ctx.shadowBlur = 8 * dpr;
+          ctx.fillStyle = 'rgba(15, 23, 42, 0.96)';
+          ctx.beginPath();
+          if (ctx.roundRect) {
+            ctx.roundRect(bScreen.u - tagWidth/2 - tagPad, bScreen.v + radius + 5 * dpr, tagWidth + tagPad*2, tagHeight, 5 * dpr);
+          } else {
+            ctx.rect(bScreen.u - tagWidth/2 - tagPad, bScreen.v + radius + 5 * dpr, tagWidth + tagPad*2, tagHeight);
+          }
+          ctx.fill();
+          ctx.shadowBlur = 0;
+          ctx.strokeStyle = '#60a5fa';
+          ctx.lineWidth = 1.5 * dpr;
+          ctx.stroke();
+
+          ctx.fillStyle = '#93c5fd';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'top';
+          ctx.fillText(labelText, bScreen.u, bScreen.v + radius + 6.5 * dpr);
+          ctx.restore();
+        }
+      }
 
       ctx.restore();
       if (typeof updateFormSubmitAttachment === "function") updateFormSubmitAttachment();
@@ -3733,7 +3775,7 @@
         const dpr = window.devicePixelRatio || 1;
         const mouseU = (clientX - rect.left) * dpr;
         const mouseV = (clientY - rect.top) * dpr;
-        const hitRadius = 22 * dpr;
+        const hitRadius = 24 * dpr;
 
         // Check devices first (accounting for perched offset if direct mounted on a bearing)
         for (let i = devices.length - 1; i >= 0; i--) {
@@ -3750,6 +3792,9 @@
           if (dx * dx + dy * dy <= hitRadius * hitRadius) {
             return { type: 'device', id: dev.id };
           }
+          if (hoveredDeviceId === dev.id && Math.abs(dx) <= 75 * dpr && dy >= 0 && dy <= 38 * dpr) {
+            return { type: 'device', id: dev.id };
+          }
         }
 
         // Check bearings
@@ -3763,6 +3808,9 @@
           const dx = mouseU - bScreen.u;
           const dy = mouseV - bScreen.v;
           if (dx * dx + dy * dy <= hitRadius * hitRadius) {
+            return { type: 'bearing', letter: letter };
+          }
+          if (hoveredBearingLetter === letter && Math.abs(dx) <= 75 * dpr && dy >= 0 && dy <= 38 * dpr) {
             return { type: 'bearing', letter: letter };
           }
         }
