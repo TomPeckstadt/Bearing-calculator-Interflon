@@ -1017,7 +1017,9 @@ function parseSurveyPackageToConfig(data) {
     const deviceConfigs = [];
 
     if (isSinglePoint) {
-      for (let i = 0; i < numDevices; i++) {
+      const hasAnyBearingSummary = Array.isArray(autoDevicesState) && autoDevicesState.slice(0, numDevices).some(d => !!d && !!d.bearingSummary);
+
+  for (let i = 0; i < numDevices; i++) {
         const dev = activeDevs[i] || { id: 'dev-' + (i + 1), name: 'Toestel ' + (i + 1), type: 'single_point', x: 0, y: 0 };
         const targetL = dev.targetBearingLetter || (bearings[i] ? bearings[i].letter : ('L' + (i + 1)));
         deviceConfigs.push({
@@ -2861,8 +2863,8 @@ function renderAutoDevicesUI() {
     }
 
     html += `
-    <div class="card" style="background: #ffffff; border: 1px solid #cbd5e1; padding: 20px; border-radius: var(--border-radius-md); box-shadow: 0 2px 8px rgba(0,0,0,0.04); flex: 1;">
-      <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--accent-yellow); padding-bottom: 8px; margin-bottom: 16px;">
+    <div class="card auto-device-card" style="background: #ffffff; border: 1px solid #cbd5e1; padding: 20px; border-radius: var(--border-radius-md); box-shadow: 0 2px 8px rgba(0,0,0,0.04); flex: 1; display: flex; flex-direction: column;">
+      <div class="auto-device-card-header" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--accent-yellow); padding-bottom: 8px; margin-bottom: 16px;">
         <h4 style="color: var(--primary-blue); font-family: 'Outfit', sans-serif; font-size: 1.1rem; margin: 0; font-weight: 700;">
           ${headerTitle}
         </h4>
@@ -2871,19 +2873,28 @@ function renderAutoDevicesUI() {
 
       ${dev.bearingSummary ? `
       <!-- Connected Bearings Badge from Questionnaire -->
-      <div style="margin-bottom: 14px; background: #f0f9ff; border: 1px solid #bae6fd; border-left: 4px solid #0284c7; border-radius: var(--border-radius-sm); padding: 8px 12px; display: flex; align-items: center; justify-content: space-between; gap: 8px;">
-        <div>
-          <div style="font-size: 11.5px; font-weight: 700; color: #0369a1; display: flex; align-items: center; gap: 5px;">
-            <span>🔗</span> Aangesloten lagers: <strong>${dev.bearingSummary}</strong>
+      <div class="auto-connected-bearings-badge" style="margin-bottom: 14px; background: #f0f9ff; border: 1px solid #bae6fd; border-left: 4px solid #0284c7; border-radius: var(--border-radius-sm); padding: 8px 12px; display: flex; align-items: center; justify-content: space-between; gap: 10px; box-sizing: border-box; min-height: 68px;">
+        <div style="flex: 1; min-width: 0;">
+          <div style="font-size: 11.5px; font-weight: 700; color: #0369a1; line-height: 1.4; word-break: break-word;">
+            <span style="display: inline-block; margin-right: 4px;">🔗</span>Aangesloten lagers: <strong style="color: #0c4a6e;">${dev.bearingSummary}</strong>
           </div>
-          ${dev.bearingDetailsSummary ? `<div style="font-size: 10.5px; color: #0284c7; margin-top: 2px;">Individuele behoefte: ${dev.bearingDetailsSummary}</div>` : ''}
+          ${dev.bearingDetailsSummary ? `<div style="font-size: 10.5px; color: #0284c7; margin-top: 3px; line-height: 1.35; word-break: break-word;">Individuele behoefte: ${dev.bearingDetailsSummary}</div>` : ''}
         </div>
-        <span style="background: #0284c7; color: white; font-size: 9.5px; font-weight: 800; padding: 2px 7px; border-radius: 10px; text-transform: uppercase; white-space: nowrap; letter-spacing: 0.5px;">Vragenlijst</span>
+        <span style="background: #0284c7; color: white; font-size: 9.5px; font-weight: 800; padding: 3px 8px; border-radius: 10px; text-transform: uppercase; white-space: nowrap; letter-spacing: 0.5px; flex-shrink: 0; align-self: center;">Vragenlijst</span>
       </div>
-      ` : ''}
+      ` : (hasAnyBearingSummary ? `
+      <!-- Placeholder Badge for Device without Assigned Bearings -->
+      <div class="auto-connected-bearings-badge" style="margin-bottom: 14px; background: #f8fafc; border: 1px dashed #cbd5e1; border-left: 4px solid #94a3b8; border-radius: var(--border-radius-sm); padding: 8px 12px; display: flex; align-items: center; justify-content: space-between; gap: 10px; box-sizing: border-box; min-height: 68px;">
+        <div style="flex: 1; min-width: 0;">
+          <div style="font-size: 11.5px; font-weight: 600; color: #64748b; line-height: 1.4;">
+            <span style="display: inline-block; margin-right: 4px;">ℹ️</span> Geen specifieke lagers gekoppeld aan Toestel ${devId}
+          </div>
+        </div>
+      </div>
+      ` : '')}
 
       <!-- Point Selection per Device -->
-      <div style="margin-bottom: 16px; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: var(--border-radius-sm); padding: 12px 14px; display: ${isSinglePoint ? 'none' : 'block'};">
+      <div class="auto-points-selection-wrapper" style="margin-bottom: 16px; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: var(--border-radius-sm); padding: 12px 14px; display: ${isSinglePoint ? 'none' : 'block'};">
         <label for="autoNumPointsSelect_${devId}" style="display: block; font-size: 12.5px; font-weight: 700; color: var(--text-dark); margin-bottom: 6px;">
           ${pointsLabel}
         </label>
@@ -2892,7 +2903,7 @@ function renderAutoDevicesUI() {
         </select>
         
         <!-- Interactive Verdeelblok Card -->
-        <div id="dividerBlockCard_${devId}" style="margin-top: 10px; background-color: #ffffff; border: 1px solid #cbd5e1; border-radius: var(--border-radius-sm); padding: 10px 12px; display: ${isSinglePoint ? 'none' : 'flex'}; align-items: center; gap: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
+        <div id="dividerBlockCard_${devId}" class="auto-divider-block-card" style="margin-top: 10px; background-color: #ffffff; border: 1px solid #cbd5e1; border-radius: var(--border-radius-sm); padding: 10px 12px; display: ${isSinglePoint ? 'none' : 'flex'}; align-items: center; gap: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); box-sizing: border-box;">
           <div style="position: relative; width: 75px; height: 75px; flex-shrink: 0; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 4px; display: flex; align-items: center; justify-content: center;">
             <img src="pulsarlube-verdeelblok.jpg?v=20260821_1647" alt="Verdeelblok" style="max-width: 100%; max-height: 100%; object-fit: contain;">
             <div style="position: absolute; bottom: 2px; right: 2px; width: 30px; height: 30px; border-radius: 50%; background-color: #ffffff; border: 3px solid #E30613; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(227, 6, 19, 0.3); z-index: 2;">
@@ -2908,7 +2919,7 @@ function renderAutoDevicesUI() {
       </div>
 
       <!-- Recommended Period Card -->
-      <div id="autoRecCard_${devId}" style="background: #FEF2F2; border: 2px solid var(--primary-red); border-radius: var(--border-radius-sm); padding: 12px 14px; margin-bottom: 16px; box-shadow: 0 2px 6px rgba(227, 6, 19, 0.08);">
+      <div id="autoRecCard_${devId}" class="auto-rec-card" style="background: #FEF2F2; border: 2px solid var(--primary-red); border-radius: var(--border-radius-sm); padding: 12px 14px; margin-bottom: 16px; box-shadow: 0 2px 6px rgba(227, 6, 19, 0.08); box-sizing: border-box;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; flex-wrap: wrap; gap: 8px;">
           <span style="font-size: 11px; font-weight: 800; color: var(--primary-red); text-transform: uppercase; letter-spacing: 0.5px;">
             GEADVISEERDE INSTELLING OP ${devName.toUpperCase()}
@@ -3034,6 +3045,69 @@ function renderAutoDevicesUI() {
   }
 
   container.innerHTML = html;
+  if (typeof syncAutomationDeviceCardHeights === "function") {
+    syncAutomationDeviceCardHeights();
+    requestAnimationFrame(() => {
+      syncAutomationDeviceCardHeights();
+    });
+  }
+}
+
+// ==========================================================================
+// AUTOMATION DEVICE CARDS EQUAL-HEIGHT SYNCHRONIZATION
+// ==========================================================================
+function syncAutomationDeviceCardHeights() {
+  try {
+    const syncGroup = (selector, minThreshold) => {
+      const els = Array.from(document.querySelectorAll(selector));
+      if (!els || els.length === 0) return;
+      if (els.length === 1) {
+        if (minThreshold) els[0].style.minHeight = minThreshold + 'px';
+        return;
+      }
+      els.forEach(el => {
+        el.style.minHeight = 'auto';
+        el.style.height = 'auto';
+      });
+      let maxH = 0;
+      els.forEach(el => {
+        const rect = el.getBoundingClientRect();
+        const h = Math.max(rect.height || 0, el.offsetHeight || 0, el.scrollHeight || 0);
+        if (h > maxH) maxH = h;
+      });
+      if (minThreshold && maxH < minThreshold) maxH = minThreshold;
+      if (maxH > 0) {
+        const targetStr = Math.ceil(maxH) + 'px';
+        els.forEach(el => {
+          el.style.minHeight = targetStr;
+          el.style.boxSizing = 'border-box';
+        });
+      }
+    };
+
+    // 1. Equalize blue connected bearings badges across all cards
+    syncGroup('.auto-connected-bearings-badge', 68);
+
+    // 2. Harmonize card headers
+    syncGroup('.auto-device-card-header');
+
+    // 3. Harmonize points selection wrappers (including verdeelblok card)
+    syncGroup('.auto-points-selection-wrapper');
+
+    // 4. Harmonize recommended period cards
+    syncGroup('.auto-rec-card');
+  } catch (e) {
+    console.warn("syncAutomationDeviceCardHeights error:", e);
+  }
+}
+window.syncAutomationDeviceCardHeights = syncAutomationDeviceCardHeights;
+
+if (typeof window !== "undefined") {
+  window.addEventListener('resize', () => {
+    if (typeof syncAutomationDeviceCardHeights === 'function') {
+      syncAutomationDeviceCardHeights();
+    }
+  });
 }
 
 
@@ -10063,6 +10137,9 @@ function calculateAutomationLubrication() {
   }
 
   saveAutomationStateToLocalStorage();
+  if (typeof syncAutomationDeviceCardHeights === "function") {
+    syncAutomationDeviceCardHeights();
+  }
 }
 
 // ==========================================================================
