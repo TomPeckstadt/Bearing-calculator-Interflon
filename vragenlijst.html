@@ -2095,7 +2095,7 @@
                   diffRpmCount++;
                   const ratio = Math.max(r1, r2) / Math.min(r1, r2);
                   if (ratio > 1.05) {
-                    penalty += 18.0 + Math.log(ratio) * 10.0;
+                    penalty += 50.0 + Math.log(ratio) * 20.0;
                   }
                 }
 
@@ -2203,7 +2203,7 @@
                 const r2 = existing.rpm ? parseFloat(existing.rpm) : null;
                 if (r1 && r2 && r1 !== r2) {
                   const ratio = Math.max(r1, r2) / Math.min(r1, r2);
-                  if (ratio > 1.05) costExtra += 15.0 + Math.log(ratio) * 10.0;
+                  if (ratio > 1.05) costExtra += 50.0 + Math.log(ratio) * 20.0;
                 }
                 const nr1 = (b.nr || '').trim().toLowerCase();
                 const nr2 = (existing.nr || '').trim().toLowerCase();
@@ -2291,7 +2291,7 @@
               if (r1 && r2 && r1 !== r2) {
                 diffRpmCount++;
                 const ratio = Math.max(r1, r2) / Math.min(r1, r2);
-                if (ratio > 1.05) penalty += 18.0 + Math.log(ratio) * 10.0;
+                if (ratio > 1.05) penalty += 50.0 + Math.log(ratio) * 20.0;
               }
             }
           }
