@@ -1686,6 +1686,9 @@
       { id: 'dev-1', name: 'Toestel 1', short: 'T1', type: 'pulsarlube_m2', x: -3.0, y: -2.5, active: true, paletteIndex: 0 },
       { id: 'dev-2', name: 'Toestel 2', short: 'T2', type: 'pulsarlube_m2', x: 3.0, y: 2.5, active: true, paletteIndex: 1 }
     ];
+    if (typeof window !== 'undefined') {
+      window.devices = devices;
+    }
 
     let draggedDeviceId = null;
     let hoveredDeviceId = null;
@@ -1909,6 +1912,8 @@
       renderDistancesOverview();
       if (typeof saveRasterConfigToLocalStorage === 'function') saveRasterConfigToLocalStorage();
     }
+    window.addNewDevice = addNewDevice;
+    window.deleteDevice = deleteDevice;
 
     // =========================================================================
     // SECTION 3: SMART DEVICE ADVICE & AUTO-PLACEMENT ALGORITHMIC ENGINE
@@ -3293,8 +3298,9 @@
             const activeDevices = devices.filter(d => d.active !== false);
             if (activeDevices.length > 1) {
               let isAssigned = false;
-              if (origin.assignedBearingLetters && Array.isArray(origin.assignedBearingLetters) && origin.assignedBearingLetters.length > 0) {
-                isAssigned = origin.assignedBearingLetters.includes(letter);
+              const anyExplicit = activeDevices.some(d => d.assignedBearingLetters && Array.isArray(d.assignedBearingLetters) && d.assignedBearingLetters.length > 0);
+              if (anyExplicit) {
+                isAssigned = (origin.assignedBearingLetters && Array.isArray(origin.assignedBearingLetters) && origin.assignedBearingLetters.includes(letter));
               } else {
                 let closestDevId = null;
                 let minD = Infinity;
@@ -3849,6 +3855,80 @@
       });
     }
 
+    // --- 5B. MANUELE AANSLUITING VAN LAGER OP SPECIFIEK TOESTEL ---
+    function manuallyAssignBearingToDevice(letter, devId, event) {
+      if (event && typeof event.stopPropagation === 'function') {
+        event.stopPropagation();
+      }
+      if (typeof window !== 'undefined' && window.devices && Array.isArray(window.devices)) {
+        devices = window.devices;
+      }
+      if (!devices || !Array.isArray(devices) || devices.length === 0) return;
+
+      const activeDevs = devices.filter(d => d.active !== false);
+      if (activeDevs.length === 0) return;
+
+      // 1. Zorg dat assignedBearingLetters op elk actief toestel geïnitialiseerd is
+      const hasExplicit = activeDevs.some(d => d.assignedBearingLetters && Array.isArray(d.assignedBearingLetters) && d.assignedBearingLetters.length > 0);
+      if (!hasExplicit) {
+        // Initialiseer initiële toewijzing op basis van geometrische nabijheid
+        const rows = document.querySelectorAll('.bearing-row');
+        rows.forEach((r, idx) => {
+          const l = r.getAttribute('data-letter') || (LETTERS[idx] || ('L' + (idx + 1)));
+          const pos = (typeof bearingPositions !== 'undefined' && bearingPositions[l]) ? bearingPositions[l] : { x: 0, y: 0 };
+          let bestD = Infinity;
+          let bestDev = activeDevs[0];
+          activeDevs.forEach(d => {
+            const dist = Math.hypot(pos.x - d.x, pos.y - d.y);
+            if (dist < bestD) {
+              bestD = dist;
+              bestDev = d;
+            }
+          });
+          if (bestDev) {
+            if (!bestDev.assignedBearingLetters) bestDev.assignedBearingLetters = [];
+            if (!bestDev.assignedBearingLetters.includes(l)) bestDev.assignedBearingLetters.push(l);
+          }
+        });
+      }
+
+      // 2. Verplaats het lager naar het geselecteerde toestel
+      let targetDevName = devId;
+      devices.forEach(d => {
+        if (!d.assignedBearingLetters) d.assignedBearingLetters = [];
+        const idx = d.assignedBearingLetters.indexOf(letter);
+        if (d.id === devId) {
+          targetDevName = d.name || devId;
+          if (idx === -1) {
+            d.assignedBearingLetters.push(letter);
+          }
+          d.active = true;
+        } else {
+          if (idx !== -1) {
+            d.assignedBearingLetters.splice(idx, 1);
+          }
+        }
+      });
+
+      // 3. Teken raster en afstandenoverzicht direct opnieuw en sla configuratie op
+      drawBearingLayout();
+      renderDistancesOverview();
+      if (typeof saveRasterConfigToLocalStorage === 'function') {
+        saveRasterConfigToLocalStorage();
+      }
+
+      // 4. Toast-bevestiging in de canvas infobalk
+      const infoEl = document.getElementById('canvasZoomInfo');
+      if (infoEl) {
+        infoEl.innerHTML = '<span style="color: #38bdf8; font-weight: 800;">🔗 Lager ' + letter + ' handmatig gekoppeld aan ' + targetDevName + '</span>';
+        clearTimeout(window.__manualAssignToastTimeout);
+        window.__manualAssignToastTimeout = setTimeout(() => {
+          infoEl.textContent = '💡 Tip: Versleep lagers om te verplaatsen • Muiswiel of ➕/➖ om te zoomen';
+        }, 3500);
+      }
+    }
+    window.manuallyAssignBearingToDevice = manuallyAssignBearingToDevice;
+
     // --- 6. RENDER DISTANCES OVERVIEW LIST & STATISTICS (RIGHT PANEL) ---
     function renderDistancesOverview() {
       const container = document.getElementById('bearingDistancesList');
@@ -3856,6 +3936,10 @@
 
       const rows = document.querySelectorAll('.bearing-row');
       container.innerHTML = '';
+
+      if (typeof window !== 'undefined' && window.devices && Array.isArray(window.devices)) {
+        devices = window.devices;
+      }
 
       // Determine active origins
       const activeOrigins = [];
@@ -3949,7 +4033,7 @@
           originDists.push({ origin, d });
         });
 
-        // Find closest origin (actual assigned connection)
+        // Find closest origin by geometry
         let minD = Infinity;
         let closestOriginId = null;
         originDists.forEach(od => {
@@ -3959,12 +4043,30 @@
           }
         });
 
-        if (minD < Infinity && minD > overallMaxDist) {
-          overallMaxDist = minD;
+        // Bepaal welk toestel actief aangesloten is op dit lager
+        let assignedOriginId = null;
+        const activeDevsForAssign = (typeof devices !== 'undefined' && Array.isArray(devices)) ? devices.filter(d => d.active !== false) : [];
+        const anyExplicitAssigned = activeDevsForAssign.some(d => d.assignedBearingLetters && Array.isArray(d.assignedBearingLetters) && d.assignedBearingLetters.length > 0);
+
+        if (anyExplicitAssigned) {
+          originDists.forEach(od => {
+            if (od.origin.assignedBearingLetters && Array.isArray(od.origin.assignedBearingLetters) && od.origin.assignedBearingLetters.includes(letter)) {
+              assignedOriginId = od.origin.id;
+            }
+          });
+        }
+        if (!assignedOriginId) {
+          assignedOriginId = closestOriginId;
+        }
+
+        const assignedDistObj = originDists.find(od => od.origin.id === assignedOriginId);
+        const actualAssignedD = assignedDistObj ? assignedDistObj.d : minD;
+        if (actualAssignedD < Infinity && actualAssignedD > overallMaxDist) {
+          overallMaxDist = actualAssignedD;
         }
 
         const card = document.createElement('div');
-        card.style.cssText = 'background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 8px; padding: 10px 12px; display: flex; flex-direction: column; gap: 8px; transition: all 0.2s; cursor: pointer;';
+        card.style.cssText = 'background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 8px; padding: 10px 12px; display: flex; flex-direction: column; gap: 8px; transition: all 0.2s; cursor: default;';
         
         card.onmouseenter = function() {
           card.style.background = '#eff6ff';
@@ -3995,7 +4097,7 @@
             '</div>' +
           '</div>';
 
-        // Distances row
+        // Distances row with interactive selectable pills
         let distRowsHtml = '<div style="display: flex; flex-wrap: wrap; gap: 6px; align-items: center;">';
 
         if (originDists.length === 0) {
@@ -4003,11 +4105,13 @@
         } else {
           originDists.forEach(od => {
             const isClosest = (originDists.length > 1 && od.origin.id === closestOriginId);
-            
+            const isAssigned = (originDists.length > 1 && od.origin.id === assignedOriginId);
+            const canReassign = (od.origin.type !== 'single_point' && originDists.length > 1);
+
             if (od.origin.type === 'single_point') {
               const isDirect = (od.d < 0.15);
               distRowsHtml += 
-                '<div style="display: inline-flex; align-items: center; gap: 5px; background: ' + (isDirect ? '#dcfce7' : '#fef3c7') + '; border: 1.5px solid ' + (isDirect ? '#86efac' : '#fde68a') + '; border-radius: 5px; padding: 3px 8px; font-size: 11px;">' +
+                '<div style="display: inline-flex; align-items: center; gap: 5px; background: ' + (isDirect ? '#dcfce7' : '#fef3c7') + '; border: 1.5px solid ' + (isDirect ? '#86efac' : '#fde68a') + '; border-radius: 6px; padding: 3px 8px; font-size: 11px;">' +
                   '<span style="font-weight: 800; color: ' + od.origin.color + ';" title="' + od.origin.name + '">' + od.origin.short + ' <small style="font-weight: 700; opacity: 0.9;">Single Point</small>:</span>' +
                   '<span style="font-weight: 800; color: ' + (isDirect ? '#166534' : '#92400e') + ';">' + (isDirect ? '0,0 m' : (od.d.toFixed(1).replace('.', ',') + ' m')) + '</span>' +
                   (isDirect ? '<span style="font-size: 9.5px; font-weight: 800; color: #15803d; background: #bbf7d0; padding: 1px 5px; border-radius: 3px;" title="Direct op lager gemonteerd zonder leiding">⭐ Direct op lager</span>' : '<span style="font-size: 9px; font-weight: 800; color: #92400e; background: #fde68a; padding: 1px 4px; border-radius: 3px;">⚠️ Niet direct op lager</span>') +
@@ -4027,11 +4131,32 @@
                 statusBorder = '#fde68a';
               }
 
+              const borderStyle = isAssigned 
+                ? ('2px solid ' + od.origin.color) 
+                : ('1px solid ' + statusBorder);
+              const bgStyle = isAssigned ? '#ffffff' : statusBg;
+              const shadowStyle = isAssigned 
+                ? ('box-shadow: 0 2px 6px ' + od.origin.color + '33;') 
+                : '';
+              const clickAttr = canReassign 
+                ? ('onclick="manuallyAssignBearingToDevice(\`' + letter + '\`, \`' + od.origin.id + '\`, event)"') 
+                : '';
+              const cursorStyle = canReassign ? 'cursor: pointer;' : 'cursor: default;';
+              const titleAttr = isAssigned 
+                ? ('Actief aangesloten op ' + od.origin.name + ' (klik op een ander toestel om te wijzigen)') 
+                : (canReassign ? ('Klik om Lager ' + letter + ' handmatig aan te sluiten op ' + od.origin.name) : od.origin.name);
+
               distRowsHtml += 
-                '<div style="display: inline-flex; align-items: center; gap: 5px; background: ' + statusBg + '; border: 1px solid ' + statusBorder + '; border-radius: 5px; padding: 2px 7px; font-size: 11px;">' +
-                  '<span style="font-weight: 700; color: ' + od.origin.color + ';" title="' + od.origin.name + (od.origin.typeName ? (' (' + od.origin.typeName + ')') : '') + '">' + od.origin.short + (od.origin.typeShort ? (' <small style="font-weight: 700; opacity: 0.85;">' + od.origin.typeShort + '</small>') : '') + ':</span>' +
+                '<div ' + clickAttr + ' ' +
+                  'class="raster-dist-pill ' + (isAssigned ? 'is-assigned' : 'is-unassigned') + '" ' +
+                  'style="display: inline-flex; align-items: center; gap: 5px; background: ' + bgStyle + '; border: ' + borderStyle + '; ' + shadowStyle + ' border-radius: 6px; padding: 3px 8px; font-size: 11px; ' + cursorStyle + ' transition: all 0.18s ease; user-select: none;" ' +
+                  'title="' + titleAttr + '" ' +
+                  (canReassign && !isAssigned ? ('onmouseenter="this.style.borderColor=\'' + od.origin.color + '\'; this.style.transform=\'translateY(-1px)\';" onmouseleave="this.style.borderColor=\'' + statusBorder + '\'; this.style.transform=\'none\';"') : '') + '>' +
+                  '<span style="font-weight: 800; color: ' + od.origin.color + ';">' + od.origin.short + (od.origin.typeShort ? (' <small style="font-weight: 700; opacity: 0.85;">' + od.origin.typeShort + '</small>') : '') + ':</span>' +
                   '<span style="font-weight: 800; color: ' + statusCol + ';">' + roundedD.toFixed(1).replace('.', ',') + ' m</span>' +
-                  (isClosest ? '<span style="font-size: 9px; font-weight: 800; color: #15803d; background: #bbf7d0; padding: 1px 4px; border-radius: 3px;" title="Kortste afstand">⭐ Dichtstbij</span>' : '') +
+                  (isClosest ? '<span style="font-size: 9px; font-weight: 800; color: #15803d; background: #bbf7d0; padding: 1px 4px; border-radius: 3px;" title="Fysiek kortste leidingafstand">⭐ Dichtstbij</span>' : '') +
+                  (isAssigned && originDists.length > 1 ? '<span style="font-size: 9px; font-weight: 800; color: #ffffff; background: ' + od.origin.color + '; padding: 1.5px 5px; border-radius: 3px; display: inline-flex; align-items: center; gap: 2px;" title="Lager is actief aangesloten op dit toestel">✓ Aangesloten</span>' : '') +
+                  (!isAssigned && canReassign ? '<span style="font-size: 8.5px; font-weight: 700; color: #64748b; opacity: 0.75;" title="Klik om handmatig aan te sluiten op dit toestel">(Koppel)</span>' : '') +
                 '</div>';
             }
           });
@@ -4061,6 +4186,8 @@
       // Automatically sync latest raster device configuration to localStorage
       saveRasterConfigToLocalStorage();
     }
+    window.renderDistancesOverview = renderDistancesOverview;
+    window.drawBearingLayout = drawBearingLayout;
 
     // --- SAVE RASTER CONFIGURATION FOR AUTOMATION IMPORT ---
     function saveRasterConfigToLocalStorage() {
@@ -4096,7 +4223,9 @@
         if (bearings.length === 0) return null;
 
         // Check devices placed on raster (all devices in array are real placed devices)
-        let activeDevs = (typeof devices !== 'undefined' && Array.isArray(devices) && devices.length > 0) ? devices : [];
+        let activeDevs = (typeof window !== 'undefined' && window.devices && Array.isArray(window.devices) && window.devices.length > 0)
+          ? window.devices
+          : ((typeof devices !== 'undefined' && Array.isArray(devices) && devices.length > 0) ? devices : []);
 
         let numDevices = 1;
         let deviceConfigs = [];
@@ -4135,23 +4264,29 @@
               });
             }
 
-            // Allocate each bearing to closest active device (or assigned device for Single Point)
+            // Allocate each bearing to assigned device (or closest active device for fallback)
             bearings.forEach(b => {
-              let bestIdx = 0;
-              let bestDist = Infinity;
-              for (let i = 0; i < numDevices; i++) {
-                const dev = activeDevs[i];
-                if (dev.type === 'single_point' && dev.targetBearingLetter) {
-                  if (dev.targetBearingLetter === b.letter) {
-                    bestIdx = i;
-                    bestDist = 0;
-                    break;
+              let bestIdx = -1;
+              const assignedIdx = activeDevs.findIndex(d => d.assignedBearingLetters && Array.isArray(d.assignedBearingLetters) && d.assignedBearingLetters.includes(b.letter));
+              if (assignedIdx !== -1 && assignedIdx < numDevices) {
+                bestIdx = assignedIdx;
+              } else {
+                let bestDist = Infinity;
+                bestIdx = 0;
+                for (let i = 0; i < numDevices; i++) {
+                  const dev = activeDevs[i];
+                  if (dev.type === 'single_point' && dev.targetBearingLetter) {
+                    if (dev.targetBearingLetter === b.letter) {
+                      bestIdx = i;
+                      bestDist = 0;
+                      break;
+                    }
                   }
-                }
-                const d = Math.hypot(b.x - dev.x, b.y - dev.y);
-                if (d < bestDist) {
-                  bestDist = d;
-                  bestIdx = i;
+                  const d = Math.hypot(b.x - dev.x, b.y - dev.y);
+                  if (d < bestDist) {
+                    bestDist = d;
+                    bestIdx = i;
+                  }
                 }
               }
               const ptsToAdd = (deviceConfigs[bestIdx].type === 'single_point') ? 1 : (b.qty || 1);
