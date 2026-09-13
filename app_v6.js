@@ -108,7 +108,7 @@ function onDeviceCapChange(devId) {
   const capSel = document.getElementById("autoCartridgeCap_" + devId);
   const unitSel = document.getElementById("autoDispenseUnit_" + devId);
   if (dev && capSel) {
-    dev.cap = parseFloat(capSel.value) || 120;
+    dev.cap = parseFloat(capSel.value) || 125;
     if (unitSel) dev.unit = unitSel.value;
     dev.userEditedPeriod = false;
   }
@@ -238,12 +238,12 @@ window.getRecommendedSettingMonths = getRecommendedSettingMonths;
 function getOptimalSmartAdvice(totalDailyNeedCm3, deviceKey, greaseName) {
   if (!totalDailyNeedCm3 || totalDailyNeedCm3 <= 0) {
     const defaultDevMonths = (deviceKey === "pulsarlube_msp") ? 6 : 6;
-    return { cap: 120, months: defaultDevMonths, annualCost: 109.2, cartridgesPerYear: 2, unitPackPrice: 54.60, theoMonths: 5.7, label: "Standaard 120 ml op 6 maanden" };
+    return { cap: 125, months: defaultDevMonths, annualCost: 109.2, cartridgesPerYear: 2, unitPackPrice: 54.60, theoMonths: 5.7, label: "Standaard 125 ml op 6 maanden" };
   }
 
   const devKey = deviceKey || "single_point";
   const grName = greaseName || "Interflon Grease LS2";
-  const availableCaps = (devKey === "single_point") ? [15, 60, 120, 250] : [60, 125, 250, 500];
+  const availableCaps = (devKey === "single_point") ? [15, 60, 125, 250] : [60, 125, 250, 500];
   const maxCap = availableCaps[availableCaps.length - 1];
   const minCap = availableCaps[0];
   const monthlyNeed = totalDailyNeedCm3 * 30.4375;
@@ -316,8 +316,8 @@ function getOptimalSmartAdvice(totalDailyNeedCm3, deviceKey, greaseName) {
 
   // DIEPERE REDENERING / MULTI-CRITERIA SELECTIE:
   // Prioriteit 1: Smeertechnische precisie & veiligheid (geen ondersmering < 0.85, voorkeur voor groene zone 0.85 .. 1.15).
-  // Prioriteit 2: Praktisch onderhoudsinterval (voorkeur voor langere intervallen, bijv. >= 4 maanden, minder wissels per jaar).
-  // Prioriteit 3: Jaarlijkse patroonkosten (alleen bij gelijkwaardige technische match de voordeligste kiezen).
+  // Prioriteit 2: Praktisch onderhoudsinterval (minder wissels per jaar, vermijden van 1 maand wisselronde als 2+ maanden veilig kan).
+  // Prioriteit 3: Jaarlijkse patroonkosten (alleen bij gelijkwaardig onderhoudsregime of groot kostenverschil de voordeligste kiezen).
   candidates.sort((a, b) => {
     // Rangschikking in kwaliteitsklassen (tiers):
     const getTier = (c) => {
@@ -337,22 +337,28 @@ function getOptimalSmartAdvice(totalDailyNeedCm3, deviceKey, greaseName) {
       return tierA - tierB;
     }
 
-    // Binnen Tier 1 (beide natuurlijk én in de groene zone):
+    // Binnen Tier 1 (beide natuurlijk én in de groene zone 0.85 .. 1.15):
     if (tierA === 1) {
-      // Voorkeur voor comfortabel onderhoudsinterval (>= 4 maanden boven 1 of 2 maanden)
-      const practicalA = a.months >= 4 ? 1 : 0;
-      const practicalB = b.months >= 4 ? 1 : 0;
-      if (practicalA !== practicalB) {
-        return practicalB - practicalA;
+      // 1. Vermijd te allen tijde 1 maand (12 wissels per jaar!) als er een veilige stand van 2+ maanden beschikbaar is:
+      if (a.months === 1 && b.months > 1) return 1;
+      if (b.months === 1 && a.months > 1) return -1;
+
+      // 2. Voorkeur voor minder onderhoudswissels per jaar (langere leeglooptijd):
+      // Als een patroon minstens 1 maand langer meegaat en het kostenverschil acceptabel is (<= € 100/jaar),
+      // weegt de halvering van de arbeidsuren en wisselrondes zwaarder dan een kleine meerprijs in vet:
+      if (a.months !== b.months) {
+        const costDiff = a.annualCost - b.annualCost;
+        if (a.months > b.months && costDiff <= 100.0) return -1;
+        if (b.months > a.months && -costDiff <= 100.0) return 1;
       }
 
-      // Bij wezenlijk kostenverschil (> €15/jaar) telt de jaarlijkse kostprijs mee
+      // 3. Bij gelijk onderhoudsinterval of groot kostenverschil (> €15/jaar) telt de jaarlijkse kostprijs mee
       const costDiff = a.annualCost - b.annualCost;
       if (Math.abs(costDiff) > 15.0) {
         return costDiff;
       }
 
-      // Bij vergelijkbare kosten kiezen we de meest nauwkeurige dosering
+      // 4. Bij vergelijkbare kosten kiezen we de meest nauwkeurige dosering
       const errDiff = a.dosingError - b.dosingError;
       if (Math.abs(errDiff) > 0.03) {
         return errDiff;
@@ -974,7 +980,7 @@ function applySurveyConfig(config) {
         const smartAdv = getOptimalSmartAdvice(grp.dailyNeed, 'single_point', greaseName);
 
         if (!autoDevicesState[0]) {
-          autoDevicesState[0] = { id: 'A', points: 1, cap: 120, period: 7, unit: 'months' };
+          autoDevicesState[0] = { id: 'A', points: 1, cap: smartAdv.cap, period: smartAdv.months, unit: 'months' };
         }
         autoDevicesState[0].id = 'A';
         autoDevicesState[0].name = 'Interflon Single Point Lubricator';
@@ -1011,7 +1017,7 @@ function applySurveyConfig(config) {
           const smartAdv = getOptimalSmartAdvice(grp.dailyNeed, 'single_point', greaseName);
 
           if (!autoDevicesState[idx]) {
-            autoDevicesState[idx] = { id: devId, points: 1, cap: 120, period: 7, unit: 'months' };
+            autoDevicesState[idx] = { id: devId, points: 1, cap: smartAdv.cap, period: smartAdv.months, unit: 'months' };
           }
           autoDevicesState[idx].id = devId;
           autoDevicesState[idx].name = `Single Point (Lager ${letterStr})`;
@@ -3327,7 +3333,7 @@ function renderAutoDevicesUI() {
     }
 
     let capOptionsHtml = "";
-    const capsList = isSinglePoint ? [15, 60, 120, 250] : [60, 125, 250, 500];
+    const capsList = isSinglePoint ? [15, 60, 125, 250] : [60, 125, 250, 500];
     if (isSinglePoint && !capsList.includes(dev.cap)) {
       dev.cap = 250;
       if (autoDevicesState[i]) autoDevicesState[i].cap = 250;
@@ -3864,10 +3870,10 @@ function renderPdfAutomationExtraPage(doc, autoData, autoDataUrl, autoRatio, wat
   const cardH = isGrid ? 101 : (numDevices === 1 ? 120 : 118);
 
   for (let i = 0; i < numDevices; i++) {
-    const dev = (typeof autoDevicesState !== "undefined" && autoDevicesState[i]) ? autoDevicesState[i] : ((typeof window !== "undefined" && window.autoDevicesState && window.autoDevicesState[i]) ? window.autoDevicesState[i] : { id: String.fromCharCode(65 + i), points: 1, cap: 120, period: 6, unit: 'months' });
+    const dev = (typeof autoDevicesState !== "undefined" && autoDevicesState[i]) ? autoDevicesState[i] : ((typeof window !== "undefined" && window.autoDevicesState && window.autoDevicesState[i]) ? window.autoDevicesState[i] : { id: String.fromCharCode(65 + i), points: 1, cap: 125, period: 6, unit: 'months' });
     const devId = dev.id || String.fromCharCode(65 + i);
     const pts = dev.points || 1;
-    const capMl = dev.cap || 120;
+    const capMl = dev.cap || 125;
     const periodVal = parseFloat(dev.period) || 1;
     const curUnit = dev.unit || "months";
     const devName = numDevices === 1 ? baseDeviceName : `Pulsarlube ${devId}`;
@@ -10608,7 +10614,7 @@ const DEVICE_CAPACITIES = {
   single_point: [
     { value: "15", label: "15 ml" },
     { value: "60", label: "60 ml" },
-    { value: "120", label: "120 ml" },
+    { value: "125", label: "125 ml" },
     { value: "250", label: "250 ml" }
   ],
   pulsarlube_m2: [
@@ -10651,15 +10657,13 @@ function updateAutomationPage() {
 
   // Dynamically update Cartridge Capacities dropdown based on active device
   if (capSelect) {
-    const prevVal = capSelect.value || "120";
+    const prevVal = capSelect.value || "125";
     const caps = DEVICE_CAPACITIES[device] || DEVICE_CAPACITIES.single_point;
     capSelect.innerHTML = caps.map(c => `<option value="${c.value}">${c.label}</option>`).join("");
     if (caps.some(c => c.value === prevVal)) {
       capSelect.value = prevVal;
     } else if (prevVal === "120" && caps.some(c => c.value === "125")) {
       capSelect.value = "125";
-    } else if (prevVal === "125" && caps.some(c => c.value === "120")) {
-      capSelect.value = "120";
     } else {
       capSelect.value = caps[0].value;
     }
@@ -10797,7 +10801,7 @@ function onAutoPeriodInput() {
   const deviceSelect = document.getElementById("automationDeviceSelect") || document.getElementById("autoDeviceSelect");
   const capSelect = document.getElementById("autoCartridgeCap");
   const deviceKey = deviceSelect ? deviceSelect.value : "single_point";
-  const capMl = capSelect ? (parseInt(capSelect.value, 10) || 120) : 120;
+  const capMl = capSelect ? (parseInt(capSelect.value, 10) || 125) : 125;
   const validMonths = getValidDispenseMonths(deviceKey, capMl);
   const maxM = validMonths[validMonths.length - 1];
 
@@ -10926,19 +10930,19 @@ function calculateAutomationLubrication() {
 
   // Iterate over each active device card (A, B, C, D)
   for (let i = 0; i < numCards; i++) {
-    const dev = (typeof autoDevicesState !== "undefined" && autoDevicesState[i]) ? autoDevicesState[i] : { id: String.fromCharCode(65 + i), points: 1, cap: 120, period: 6, unit: "months" };
+    const dev = (typeof autoDevicesState !== "undefined" && autoDevicesState[i]) ? autoDevicesState[i] : { id: String.fromCharCode(65 + i), points: 1, cap: 125, period: 6, unit: "months" };
     if (deviceKey === "single_point") {
       dev.points = 1;
       if (autoDevicesState[i]) autoDevicesState[i].points = 1;
     }
     const devId = dev.id;
     const points = isSinglePoint ? 1 : (dev.points || 1);
-    const validCaps = isSinglePoint ? [15, 60, 120, 250] : [60, 125, 250, 500];
+    const validCaps = isSinglePoint ? [15, 60, 125, 250] : [60, 125, 250, 500];
     if (!validCaps.includes(dev.cap)) {
-      dev.cap = isSinglePoint ? 120 : 125;
+      dev.cap = 125;
       if (autoDevicesState[i]) autoDevicesState[i].cap = dev.cap;
     }
-    const capMl = dev.cap || (isSinglePoint ? 120 : 125);
+    const capMl = dev.cap || 125;
     const devName = isSinglePoint ? "Interflon Single Point Lubricator" : (numCards === 1 ? "Pulsarlube Smeertoestel" : `Pulsarlube ${devId}`);
 
     // 1. Update Verdeelblok Card Info for this device
@@ -11221,7 +11225,7 @@ function calculateAutomationLubrication() {
           const validMonths = getValidDispenseMonths(deviceKey, capMl);
           const lowerMonths = validMonths.filter(m => m < periodVal);
           const shorterSetting = lowerMonths.length > 0 ? lowerMonths[lowerMonths.length - 1] : null;
-          const availableCaps = (deviceKey === "single_point") ? [15, 60, 120, 250] : [60, 125, 250, 500];
+          const availableCaps = (deviceKey === "single_point") ? [15, 60, 125, 250] : [60, 125, 250, 500];
           const largerCaps = availableCaps.filter(c => c > capMl);
           const nextLargerCap = largerCaps.length > 0 ? largerCaps[0] : null;
 
@@ -13857,7 +13861,7 @@ function updateRoiAutomationPage() {
     }
   } else {
     for (let i = 0; i < numDevices; i++) {
-      const d = (typeof autoDevicesState !== "undefined" && autoDevicesState[i]) ? autoDevicesState[i] : { id: String.fromCharCode(65 + i), points: 1, cap: 120, period: 6, unit: "months" };
+      const d = (typeof autoDevicesState !== "undefined" && autoDevicesState[i]) ? autoDevicesState[i] : { id: String.fromCharCode(65 + i), points: 1, cap: 125, period: 6, unit: "months" };
       const pts = (typeof d.points === 'number') ? d.points : (parseInt(d.points, 10) || 0);
       totalPointsAllDevices += pts;
       var lang = currentLang || "nl";
@@ -14220,7 +14224,7 @@ function updateRoiAutomationPage() {
     : numDevices;
 
   for (let i = 0; i < numLoop; i++) {
-    const d = (typeof autoDevicesState !== "undefined" && autoDevicesState[i]) ? autoDevicesState[i] : { id: String.fromCharCode(65 + i), points: 1, cap: 120, period: 6, unit: "months" };
+    const d = (typeof autoDevicesState !== "undefined" && autoDevicesState[i]) ? autoDevicesState[i] : { id: String.fromCharCode(65 + i), points: 1, cap: 125, period: 6, unit: "months" };
     const multiplier = (deviceKey === "single_point")
       ? (isSpMultiGroup ? (d.unitCount || 1) : (window.spNumBearingsValue || (autoDevicesState[0] && autoDevicesState[0].unitCount) || 1))
       : 1;
@@ -14232,7 +14236,7 @@ function updateRoiAutomationPage() {
     const devCapVal = devCapEl ? parseInt(devCapEl.value, 10) : 0;
     const cap = (deviceKey === "single_point" && !isSpMultiGroup)
       ? spCapVal
-      : (devCapVal || d.cap || (deviceKey === "single_point" ? 120 : 125));
+      : (devCapVal || d.cap || 125);
 
     const devPeriodEl = document.getElementById("autoDispensePeriod_" + d.id);
     const devPeriodVal = devPeriodEl ? parseFloat(devPeriodEl.value) : 0;
@@ -14434,13 +14438,13 @@ function updateRoiAutomationPage() {
       }
       if (autoDivBlockCostEl) {
         if (numDevices === 1) {
-          const pInfo = getAutomationPriceInfo(deviceKey, 120, greaseName, autoDevicesState[0].points || 1);
+          const pInfo = getAutomationPriceInfo(deviceKey, 125, greaseName, autoDevicesState[0].points || 1);
           autoDivBlockCostEl.innerHTML = `Art. ${pInfo.artNrDividerBlock} (${autoDevicesState[0].points}-poorts verdeelblok)`;
         } else {
           let listHtml = "";
           for (let i = 0; i < numDevices; i++) {
-            const d = (typeof autoDevicesState !== "undefined" && autoDevicesState[i]) ? autoDevicesState[i] : { id: String.fromCharCode(65 + i), points: 1, cap: 120, period: 6, unit: "months" };
-            const pInfo = getAutomationPriceInfo(deviceKey, d.cap || 120, greaseName, d.points || 1);
+            const d = (typeof autoDevicesState !== "undefined" && autoDevicesState[i]) ? autoDevicesState[i] : { id: String.fromCharCode(65 + i), points: 1, cap: 125, period: 6, unit: "months" };
+            const pInfo = getAutomationPriceInfo(deviceKey, d.cap || 125, greaseName, d.points || 1);
             if (pInfo.dividerBlockPrice > 0) {
               listHtml += `<div>&bull; <strong>Toestel ${d.id}:</strong> € ${pInfo.dividerBlockPrice.toFixed(2).replace('.', ',')} <em>(Art. ${pInfo.artNrDividerBlock} &bull; ${d.points}-poorts)</em></div>`;
             } else {
@@ -14577,7 +14581,7 @@ function addRoiPdfPage(doc, dateString, watermarkDataUrl, aspectRatio, autoDataU
   let totalDividerBlockPrice = 0;
   let totalCartridgesPerYear = 0;
   let totalCartridgesCostYear = 0;
-  let mainCapMl = 120;
+  let mainCapMl = 125;
   let devBreakdownText = [];
 
   const spCapEl = document.getElementById("autoCartridgeCap_A") || document.getElementById("autoCartridgeCap");
@@ -14588,11 +14592,11 @@ function addRoiPdfPage(doc, dateString, watermarkDataUrl, aspectRatio, autoDataU
   const spUnitVal = (spUnitEl ? spUnitEl.value : "") || (typeof autoDevicesState !== "undefined" && autoDevicesState[0] ? autoDevicesState[0].unit : "months");
 
   for (let i = 0; i < numDevices; i++) {
-    const d = (typeof autoDevicesState !== "undefined" && autoDevicesState[i]) ? autoDevicesState[i] : { id: String.fromCharCode(65 + i), points: 1, cap: 120, period: 6, unit: 'months' };
+    const d = (typeof autoDevicesState !== "undefined" && autoDevicesState[i]) ? autoDevicesState[i] : { id: String.fromCharCode(65 + i), points: 1, cap: 125, period: 6, unit: 'months' };
     const pts = (deviceKey === "single_point") ? 1 : (d.points || 1);
     const devCapEl = document.getElementById("autoCartridgeCap_" + d.id);
     const devCapVal = devCapEl ? parseInt(devCapEl.value, 10) : 0;
-    const cap = (deviceKey === "single_point") ? spCapVal : (devCapVal || d.cap || 120);
+    const cap = (deviceKey === "single_point") ? spCapVal : (devCapVal || d.cap || 125);
     mainCapMl = cap;
     totalPointsAllDevices += pts;
     if (deviceKey !== "single_point") {
