@@ -3287,6 +3287,7 @@ function renderAutoDevicesUI() {
     const selectGrease = document.getElementById("inputGrease") || document.getElementById("selectGrease");
     const greaseName = selectGrease ? selectGrease.value : "Interflon Grease MP2/3";
     const pInfo = getAutomationPriceInfo(deviceKey, dev.cap, greaseName, dev.points, dev.customPackPrice || (i === 0 ? window.customSinglePointPackPrice : 0));
+    const spGrpUnits = isSinglePoint ? (isSpMultiGroup ? (dev.unitCount || (dev.bearingLetters ? dev.bearingLetters.length : 1)) : (window.spNumBearingsValue || dev.unitCount || 1)) : (dev.points || 1);
     if (isSinglePoint) {
       dev.points = 1;
       autoDevicesState[i].points = 1;
@@ -3536,9 +3537,9 @@ function renderAutoDevicesUI() {
           </div>
         </div>
 
-        <!-- Box 2: Voor X lagers -->
-        <div id="autoBox2Container_${devId}" style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-left: 4px solid #E30613; border-radius: var(--border-radius-sm); padding: 12px 14px; display: ${isSinglePoint ? 'none' : 'block'};">
-          <div id="autoTotalVolumeHeaderTitle_${devId}" style="font-size: 10.5px; font-weight: 800; color: #E30613; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; border-bottom: 1px solid #cbd5e1; padding-bottom: 4px;">TOTAAL SMEERVOLUME TOESTEL</div>
+        <!-- Box 2: Voor X lagers / groep -->
+        <div id="autoBox2Container_${devId}" style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-left: 4px solid #E30613; border-radius: var(--border-radius-sm); padding: 12px 14px; display: ${(isSinglePoint && spGrpUnits <= 1) ? 'none' : 'block'};">
+          <div id="autoTotalVolumeHeaderTitle_${devId}" style="font-size: 10.5px; font-weight: 800; color: #E30613; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; border-bottom: 1px solid #cbd5e1; padding-bottom: 4px;">${isSinglePoint ? `TOTAAL SMEERVOLUME GROEP (${spGrpUnits} LAGERS)` : 'TOTAAL SMEERVOLUME TOESTEL'}</div>
           <div style="margin-bottom: 6px;">
             <div id="autoDailyVolumeTotalLabel_${devId}" style="font-size: 10px; font-weight: 700; color: var(--text-medium); text-transform: uppercase;">BEREKEND DAGELIJKS SMEERVOLUME:</div>
             <div id="autoDailyVolumeTotalRes_${devId}" style="font-size: 18px; font-weight: 800; color: #E30613; margin-top: 1px;">0,00 ml/dag</div>
@@ -3550,6 +3551,9 @@ function renderAutoDevicesUI() {
           <div>
             <div id="autoYearlyVolumeTotalLabel_${devId}" style="font-size: 10px; font-weight: 700; color: var(--text-medium); text-transform: uppercase;">BEREKEND JAARLIJKS SMEERVOLUME:</div>
             <div id="autoYearlyVolumeTotalRes_${devId}" style="font-size: 14px; font-weight: 800; color: var(--primary-dark); margin-top: 1px;">0,0 ml/jaar</div>
+          </div>
+          <div id="autoYearlyCartsTotalRow_${devId}" style="margin-top: 6px; padding-top: 6px; border-top: 1px dashed #cbd5e1; font-size: 11px; font-weight: 700; color: #166534; display: ${isSinglePoint && spGrpUnits > 1 ? 'block' : 'none'};">
+            &bull; Totaal verbruik: <span id="autoYearlyCartsTotalRes_${devId}">0,0 patronen/jaar</span>
           </div>
         </div>
 
@@ -3798,7 +3802,11 @@ function renderPdfAutomationExtraPage(doc, autoData, autoDataUrl, autoRatio, wat
   const deviceSelect = document.getElementById("automationDeviceSelect") || document.getElementById("autoDeviceSelect");
   const deviceKey = deviceSelect ? deviceSelect.value : "single_point";
   const isSinglePoint = (deviceKey === "single_point");
-  const numDevices = isSinglePoint ? 1 : (typeof getActiveNumDevices === "function" ? getActiveNumDevices() : 1);
+  const activeSpGroups = (isSinglePoint && Array.isArray(autoDevicesState))
+    ? autoDevicesState.filter(d => d && d.isSinglePointGroup && (d.unitCount > 0 || (d.bearingLetters && d.bearingLetters.length > 0)))
+    : [];
+  const isSpMultiGroup = (isSinglePoint && activeSpGroups.length > 1);
+  const numDevices = isSinglePoint ? (isSpMultiGroup ? activeSpGroups.length : 1) : (typeof getActiveNumDevices === "function" ? getActiveNumDevices() : 1);
 
   let baseDeviceName = "Interflon Single Point Lubricator";
   if (deviceKey === "pulsarlube_m2") baseDeviceName = "Pulsarlube M2";
@@ -3820,7 +3828,12 @@ function renderPdfAutomationExtraPage(doc, autoData, autoDataUrl, autoRatio, wat
   doc.roundedRect(20, topBannerY, 170, topBannerH, 3, 3, "FD");
 
   // Device Title on Left
-  const fullTitleStr = numDevices === 1 ? baseDeviceName : `${numDevices}x ${baseDeviceName}`;
+  const totalSpUnits = isSinglePoint
+    ? (isSpMultiGroup ? activeSpGroups.reduce((sum, g) => sum + (g.unitCount || (g.bearingLetters ? g.bearingLetters.length : 1)), 0) : (window.spNumBearingsValue || (autoDevicesState[0] && autoDevicesState[0].unitCount) || 1))
+    : 1;
+  const fullTitleStr = isSinglePoint
+    ? (totalSpUnits > 1 ? `${totalSpUnits}x ${baseDeviceName}` : baseDeviceName)
+    : (numDevices === 1 ? baseDeviceName : `${numDevices}x ${baseDeviceName}`);
   doc.setFont("helvetica", "bold");
   doc.setFontSize(isGrid ? 13 : 14);
   doc.setTextColor(227, 6, 19);
@@ -3830,7 +3843,7 @@ function renderPdfAutomationExtraPage(doc, autoData, autoDataUrl, autoRatio, wat
   doc.setFontSize(8);
   doc.setTextColor(71, 85, 105);
   const devSummaryStr = isSinglePoint 
-    ? `Geselecteerd vet: ${greaseName}  •  1-op-1 smering per lager` 
+    ? `Geselecteerd vet: ${greaseName}  •  ${totalSpUnits} toestellen (1-op-1 smering per lager)` 
     : `Geselecteerd vet: ${greaseName}  •  Aantal toestellen: ${numDevices}`;
   doc.text(devSummaryStr, 26, topBannerY + (isGrid ? 17 : 19));
 
@@ -3850,8 +3863,8 @@ function renderPdfAutomationExtraPage(doc, autoData, autoDataUrl, autoRatio, wat
     doc.setDrawColor(241, 245, 249);
     doc.roundedRect(frameX, frameY, frameW, frameH, 2, 2, "FD");
 
-    const imgMaxW = 28;
-    const imgMaxH = isGrid ? 21 : 23;
+    const imgMaxW = frameW - 4;
+    const imgMaxH = frameH - 4;
     let imgW = imgMaxW;
     let imgH = imgW * autoRatio;
     if (imgH > imgMaxH) {
@@ -3876,7 +3889,12 @@ function renderPdfAutomationExtraPage(doc, autoData, autoDataUrl, autoRatio, wat
     const capMl = dev.cap || 125;
     const periodVal = parseFloat(dev.period) || 1;
     const curUnit = dev.unit || "months";
-    const devName = numDevices === 1 ? baseDeviceName : `Pulsarlube ${devId}`;
+    const groupUnits = isSinglePoint
+      ? (isSpMultiGroup ? (dev.unitCount || (dev.bearingLetters ? dev.bearingLetters.length : 1)) : totalSpUnits)
+      : pts;
+    const devName = isSinglePoint
+      ? (isSpMultiGroup ? `Single Point: Lager ${dev.groupBearingsText || devId} (${groupUnits}x)` : (groupUnits > 1 ? `${groupUnits}x Single Point` : "Single Point"))
+      : (numDevices === 1 ? baseDeviceName : `Pulsarlube ${devId}`);
 
     const totalDailyNeedForDev = (dev.totalDailyNeed && dev.totalDailyNeed > 0)
       ? dev.totalDailyNeed
@@ -3940,17 +3958,19 @@ function renderPdfAutomationExtraPage(doc, autoData, autoDataUrl, autoRatio, wat
     doc.setFontSize(isGrid ? 7.2 : 8.5);
     doc.setTextColor(255, 255, 255);
     const cardHeaderTitle = isSinglePoint 
-      ? "Single Point - Smeerinstelling & Volumecalculatie" 
+      ? (isSpMultiGroup ? `Single Point — Lager ${dev.groupBearingsText || devId}` : `Single Point - Smeerinstelling & Volumecalculatie`)
       : (dev.bearingSummary ? `${devName} (${dev.bearingSummary})` : `${devName} - Smeerinstelling & Volumecalculatie`);
     doc.text(cardHeaderTitle, cardX + 3, cardY + (isGrid ? 4.5 : 5));
 
-    if (numDevices > 1) {
+    if (numDevices > 1 || (isSinglePoint && groupUnits > 1)) {
       doc.setFillColor(255, 255, 255);
-      doc.roundedRect(cardX + colWidth - 22, cardY + 1.2, 19, 4, 1, 1, "F");
+      const tagW = isSinglePoint ? 24 : 19;
+      doc.roundedRect(cardX + colWidth - (tagW + 2), cardY + 1.2, tagW, 4, 1, 1, "F");
       doc.setFont("helvetica", "bold");
-      doc.setFontSize(6.5);
+      doc.setFontSize(6);
       doc.setTextColor(227, 6, 19);
-      doc.text(`TOESTEL ${devId}`, cardX + colWidth - 12.5, cardY + 3.9, { align: "center" });
+      const tagText = isSinglePoint ? `${groupUnits}X SINGLE POINT` : `TOESTEL ${devId}`;
+      doc.text(tagText, cardX + colWidth - (tagW / 2 + 2), cardY + 3.9, { align: "center" });
     }
 
     let innerY = cardY + (isGrid ? 8.5 : 10);
@@ -3995,9 +4015,25 @@ function renderPdfAutomationExtraPage(doc, autoData, autoDataUrl, autoRatio, wat
       const divPriceStr = pInfo.dividerBlockPrice > 0 ? `Prijs verdeelblok: € ${pInfo.dividerBlockPrice.toFixed(2).replace('.',',')}` : "Geen verdeelblok (€ 0,00)";
       doc.text(divPriceStr, cardX + (isGrid ? 20 : 22), innerY + (isGrid ? 11 : 12));
 
-      innerY += isGrid ? 18 : 21;
+      innerY += boxAH + 3;
     } else {
-      innerY += 2;
+      const boxAH = isGrid ? 14 : 16;
+      doc.setFillColor(240, 253, 244);
+      doc.setDrawColor(187, 247, 208);
+      doc.setLineWidth(0.2);
+      doc.roundedRect(cardX + 2.5, innerY, colWidth - 5, boxAH, 2, 2, "FD");
+
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(isGrid ? 6.5 : 7.2);
+      doc.setTextColor(22, 101, 52);
+      doc.text("Rechtstreekse 1-op-1 aansluiting", cardX + 5, innerY + (isGrid ? 4.5 : 5));
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(isGrid ? 5.5 : 6);
+      doc.setTextColor(21, 128, 61);
+      const groupBearingStr = dev.groupBearingsText ? `Lager ${dev.groupBearingsText}` : `Lager`;
+      doc.text(`Rechtstreeks aangesloten op ${groupBearingStr} (${groupUnits} toestellen, 1 per lager).`, cardX + 5, innerY + (isGrid ? 8.5 : 9.5));
+      doc.text("Geen verdeelblok nodig • Voorgevuld wegwerptoestel (€ 0,00)", cardX + 5, innerY + (isGrid ? 12 : 13.5));
+      innerY += boxAH + 3;
     }
 
     // B. RECOMMENDED ADVICE BOX (RED OUTLINE CARD)
@@ -4016,12 +4052,18 @@ function renderPdfAutomationExtraPage(doc, autoData, autoDataUrl, autoRatio, wat
     doc.setFont("helvetica", "bold");
     doc.setFontSize(isGrid ? 8.5 : 9);
     doc.setTextColor(227, 6, 19);
-    doc.text(`${smartAdv.months} maanden op ${smartAdv.cap} ml | ${pts} ${pts === 1 ? 'lager' : 'lagers'}`, cardX + 5, innerY + (isGrid ? 10 : 11));
+    const advTitleSuffix = isSinglePoint
+      ? (groupUnits > 1 ? `1 per lager (${groupUnits} lagers)` : `1 lager`)
+      : `${pts} ${pts === 1 ? 'lager' : 'lagers'}`;
+    doc.text(`${smartAdv.months} maanden op ${smartAdv.cap} ml | ${advTitleSuffix}`, cardX + 5, innerY + (isGrid ? 10 : 11));
 
     doc.setFont("helvetica", "normal");
     doc.setFontSize(isGrid ? 5.5 : 6);
     doc.setTextColor(30, 41, 59);
-    doc.text(`Optimaal advies voor ${pts} lager(s): ${smartAdv.cap} ml patroon ingesteld op ${smartAdv.months} m.`, cardX + 5, innerY + (isGrid ? 14.5 : 16));
+    const advSubSuffix = isSinglePoint
+      ? (groupUnits > 1 ? `${(smartAdv.cartridgesPerYear * groupUnits).toFixed(1).replace('.', ',')} patronen/j voor ${groupUnits} lagers` : `${smartAdv.cartridgesPerYear.toFixed(1).replace('.', ',')} patronen/j`)
+      : `${smartAdv.cartridgesPerYear.toFixed(1).replace('.', ',')} patronen/j`;
+    doc.text(`Optimaal advies: ${smartAdv.cap} ml op ${smartAdv.months} m • Onderhoud: ${advSubSuffix}`, cardX + 5, innerY + (isGrid ? 14.5 : 16));
 
     innerY += isGrid ? 19 : 23;
 
@@ -11002,13 +11044,14 @@ function calculateAutomationLubrication() {
     const recSubtextEl = document.getElementById("autoRecSubtext_" + devId);
     const roundReason = recSetting.roundedUp ? "afgerond naar boven bij ≥ 0,5" : "afgerond naar beneden bij < 0,5";
     const pointsText = points === 0 ? "0 lagers" : (points === 1 ? "1 lager" : `${points} lagers`);
+    const groupUnits = isSinglePoint ? (isSpMultiGroup ? (dev.unitCount || (dev.bearingLetters ? dev.bearingLetters.length : 1)) : (window.spNumBearingsValue || dev.unitCount || 1)) : points;
 
     const smartAdv = getOptimalSmartAdvice(totalDailyNeedForDev, deviceKey, greaseName);
     const isSmartMatch = (capMl === smartAdv.cap && recSetting.months === smartAdv.months);
     const smartDialLabel = `${smartAdv.months} ${smartAdv.months === 1 ? 'maand' : 'maanden'}`;
 
     if (recTitleEl) {
-      if (isSurveyImported && !hasAssignedBearings) {
+      if (isSurveyImported && !hasAssignedBearings && !isSinglePoint) {
         recTitleEl.textContent = (lang === "fr")
           ? "Aucun roulement raccordé à cet appareil"
           : ((lang === "en")
@@ -11024,11 +11067,14 @@ function calculateAutomationLubrication() {
         const smartTermLabel = isDialDevice
           ? (lang === "fr" ? "position du sélecteur" : (lang === "en" ? "dial setting" : "draaiknopstand"))
           : (lang === "fr" ? "réglage écran" : (lang === "en" ? "display setting" : "display instelling"));
-        recTitleEl.textContent = `${smartDialLabel} (${smartTermLabel}) op ${smartAdv.cap} ml | ${pointsText}`;
+        const titlePointsSuffix = (isSinglePoint && groupUnits > 1)
+          ? (lang === "fr" ? `1 par roulement (${groupUnits} roulements)` : (lang === "en" ? `1 per bearing (${groupUnits} bearings)` : `1 per lager (${groupUnits} lagers)`))
+          : pointsText;
+        recTitleEl.textContent = `${smartDialLabel} (${smartTermLabel}) op ${smartAdv.cap} ml | ${titlePointsSuffix}`;
       }
     }
     if (recSubtextEl) {
-      if (isSurveyImported && !hasAssignedBearings) {
+      if (isSurveyImported && !hasAssignedBearings && !isSinglePoint) {
         recSubtextEl.innerHTML = (lang === "fr")
           ? "Cet appareil ne comporte actuellement aucun point de graissage raccordé dans le questionnaire."
           : ((lang === "en")
@@ -11060,17 +11106,45 @@ function calculateAutomationLubrication() {
             ? `Dit biedt een <strong>veilige smering</strong> (${(devDailyNeed1 * smartAdv.ratio).toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ml/dag per lager) en voorkomt elk risico op ondersmering of lagerschade.`
             : `Dit is de meest nabije veilige instelling (${(devDailyNeed1 * smartAdv.ratio).toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ml/dag per lager) binnen de beschikbare standen.`);
 
+        const totalGrpCarts = smartAdv.cartridgesPerYear * groupUnits;
+        const totalGrpCost = smartAdv.annualCost * groupUnits;
+
+        const optAdvicePrefixNL = (isSinglePoint && groupUnits > 1)
+          ? `&check; <strong>Optimaal advies: ${smartAdv.cap} ml patroon per lager ingesteld op ${smartAdv.months} ${smartAdv.months === 1 ? 'maand' : 'maanden'}.</strong>`
+          : `&check; <strong>Optimaal advies voor ${pointsText}: ${smartAdv.cap} ml patroon ingesteld op ${smartAdv.months} ${smartAdv.months === 1 ? 'maand' : 'maanden'}.</strong>`;
+        const optAdvicePrefixFR = (isSinglePoint && groupUnits > 1)
+          ? `&check; <strong>Conseil optimal : cartouche de ${smartAdv.cap} ml par roulement réglée sur ${smartAdv.months} mois.</strong>`
+          : `&check; <strong>Conseil optimal pour ${pointsText} : cartouche de ${smartAdv.cap} ml réglée sur ${smartAdv.months} mois.</strong>`;
+        const optAdvicePrefixEN = (isSinglePoint && groupUnits > 1)
+          ? `&check; <strong>Optimal advice: ${smartAdv.cap} ml cartridge per bearing set to ${smartAdv.months} ${smartAdv.months === 1 ? 'month' : 'months'}.</strong>`
+          : `&check; <strong>Optimal advice for ${pointsText}: ${smartAdv.cap} ml cartridge set to ${smartAdv.months} ${smartAdv.months === 1 ? 'month' : 'months'}.</strong>`;
+
+        const maintDescNL = (isSinglePoint && groupUnits > 1)
+          ? `&bull; Onderhoud: ${smartAdv.cartridgesPerYear.toFixed(1).replace('.', ',')} patronen/jaar per lager &rarr; <strong>${totalGrpCarts.toFixed(1).replace('.', ',')} patronen/jaar voor de ${groupUnits} lagers</strong> (&euro; ${totalGrpCost.toFixed(2).replace('.', ',')}/jaar).`
+          : `&bull; Onderhoud: slechts ${smartAdv.cartridgesPerYear.toFixed(1).replace('.', ',')} patronen/jaar (&euro; ${smartAdv.annualCost.toFixed(2).replace('.', ',')}/jaar).`;
+        const maintDescFR = (isSinglePoint && groupUnits > 1)
+          ? `&bull; Maintenance : ${smartAdv.cartridgesPerYear.toFixed(1).replace('.', ',')} cartouches/an par roulement &rarr; <strong>${totalGrpCarts.toFixed(1).replace('.', ',')} cartouches/an pour les ${groupUnits} roulements</strong> (&euro; ${totalGrpCost.toFixed(2).replace('.', ',')}/an).`
+          : `&bull; Maintenance : seulement ${smartAdv.cartridgesPerYear.toFixed(1).replace('.', ',')} cartouches/an (&euro; ${smartAdv.annualCost.toFixed(2).replace('.', ',')}/an).`;
+        const maintDescEN = (isSinglePoint && groupUnits > 1)
+          ? `&bull; Maintenance: ${smartAdv.cartridgesPerYear.toFixed(1).replace('.', ',')} cartridges/year per bearing &rarr; <strong>${totalGrpCarts.toFixed(1).replace('.', ',')} cartridges/year for the ${groupUnits} bearings</strong> (&euro; ${totalGrpCost.toFixed(2).replace('.', ',')}/year).`
+          : `&bull; Maintenance: only ${smartAdv.cartridgesPerYear.toFixed(1).replace('.', ',')} cartridges/year (&euro; ${smartAdv.annualCost.toFixed(2).replace('.', ',')}/year).`;
+
         recSubtextEl.innerHTML = (lang === "fr")
-          ? `&check; <strong>Conseil optimal pour ${pointsText} : cartouche de ${smartAdv.cap} ml réglée sur ${smartAdv.months} mois.</strong><br>&bull; ${fitDescFR}<br>&bull; Maintenance : seulement ${smartAdv.cartridgesPerYear.toFixed(1).replace('.', ',')} cartouches/an (&euro; ${smartAdv.annualCost.toFixed(2).replace('.', ',')}/an).`
+          ? `${optAdvicePrefixFR}<br>&bull; ${fitDescFR}<br>${maintDescFR}`
           : ((lang === "en")
-            ? `&check; <strong>Optimal advice for ${pointsText}: ${smartAdv.cap} ml cartridge set to ${smartAdv.months} ${smartAdv.months === 1 ? 'month' : 'months'}.</strong><br>&bull; ${fitDescEN}<br>&bull; Maintenance: only ${smartAdv.cartridgesPerYear.toFixed(1).replace('.', ',')} cartridges/year (&euro; ${smartAdv.annualCost.toFixed(2).replace('.', ',')}/year).`
-            : `&check; <strong>Optimaal advies voor ${pointsText}: ${smartAdv.cap} ml patroon ingesteld op ${smartAdv.months} ${smartAdv.months === 1 ? 'maand' : 'maanden'}.</strong><br>&bull; ${fitDescNL}<br>&bull; Onderhoud: slechts ${smartAdv.cartridgesPerYear.toFixed(1).replace('.', ',')} patronen/jaar (&euro; ${smartAdv.annualCost.toFixed(2).replace('.', ',')}/jaar).`);
+            ? `${optAdvicePrefixEN}<br>&bull; ${fitDescEN}<br>${maintDescEN}`
+            : `${optAdvicePrefixNL}<br>&bull; ${fitDescNL}<br>${maintDescNL}`);
       } else {
+        const totalGrpCost = smartAdv.annualCost * groupUnits;
+        const extraCostInfoNL = (isSinglePoint && groupUnits > 1) ? ` (&euro; ${smartAdv.annualCost.toFixed(2).replace('.', ',')}/lager/j &bull; &euro; ${totalGrpCost.toFixed(2).replace('.', ',')}/jaar voor ${groupUnits} lagers)` : ` (&euro; ${smartAdv.annualCost.toFixed(2).replace('.', ',')}/jaar)`;
+        const extraCostInfoFR = (isSinglePoint && groupUnits > 1) ? ` (&euro; ${smartAdv.annualCost.toFixed(2).replace('.', ',')}/roulement/an &bull; &euro; ${totalGrpCost.toFixed(2).replace('.', ',')}/an pour ${groupUnits} roulements)` : ` (&euro; ${smartAdv.annualCost.toFixed(2).replace('.', ',')}/an)`;
+        const extraCostInfoEN = (isSinglePoint && groupUnits > 1) ? ` (&euro; ${smartAdv.annualCost.toFixed(2).replace('.', ',')}/bearing/year &bull; &euro; ${totalGrpCost.toFixed(2).replace('.', ',')}/year for ${groupUnits} bearings)` : ` (&euro; ${smartAdv.annualCost.toFixed(2).replace('.', ',')}/year)`;
+
         recSubtextEl.innerHTML = (lang === "fr")
-          ? `&bull; <strong>Combinaison conseillée :</strong> <strong>cartouche de ${smartAdv.cap} ml sur ${smartDialLabel}</strong> (dosage optimal &bull; &euro; ${smartAdv.annualCost.toFixed(2).replace('.', ',')}/an).<br>&bull; Sélection actuelle : <strong>${capMl} ml sur ${dialLabel}</strong> (${roundReason}).<br>👉 Cliquez sur <em>'Reprendre le conseil'</em> pour appliquer automatiquement <strong>${smartAdv.cap} ml sur ${smartDialLabel}</strong>.`
+          ? `&bull; <strong>Combinaison conseillée :</strong> <strong>cartouche de ${smartAdv.cap} ml sur ${smartDialLabel}</strong> (dosage optimal &bull; ${extraCostInfoFR}).<br>&bull; Sélection actuelle : <strong>${capMl} ml sur ${dialLabel}</strong> (${roundReason}).<br>👉 Cliquez sur <em>'Reprendre le conseil'</em> pour appliquer automatiquement <strong>${smartAdv.cap} ml sur ${smartDialLabel}</strong>.`
           : ((lang === "en")
-            ? `&bull; <strong>Recommended combination:</strong> <strong>${smartAdv.cap} ml cartridge on ${smartDialLabel}</strong> (optimal dosing &bull; minimal grease waste &bull; &euro; ${smartAdv.annualCost.toFixed(2).replace('.', ',')}/year).<br>&bull; Current selection on device: <strong>${capMl} ml cartridge on ${dialLabel}</strong> (${roundReason}).<br>👉 Click <em>'Apply advice'</em> to automatically adopt <strong>${smartAdv.cap} ml on ${smartDialLabel}</strong>.`
-            : `&bull; <strong>Geadviseerde combinatie:</strong> <strong>${smartAdv.cap} ml patroon op ${smartDialLabel}</strong> (optimale dosering &bull; minimale vetverspilling &bull; &euro; ${smartAdv.annualCost.toFixed(2).replace('.', ',')}/jaar).<br>&bull; Huidige selectie op toestel: <strong>${capMl} ml patroon op ${dialLabel}</strong> (${roundReason}).<br>👉 Klik op <em>'Neem advies over'</em> om automatisch te kiezen voor <strong>${smartAdv.cap} ml op ${smartDialLabel}</strong>.`);
+            ? `&bull; <strong>Recommended combination:</strong> <strong>${smartAdv.cap} ml cartridge on ${smartDialLabel}</strong> (optimal dosing &bull; minimal grease waste &bull; ${extraCostInfoEN}).<br>&bull; Current selection on device: <strong>${capMl} ml cartridge on ${dialLabel}</strong> (${roundReason}).<br>👉 Click <em>'Apply advice'</em> to automatically adopt <strong>${smartAdv.cap} ml on ${smartDialLabel}</strong>.`
+            : `&bull; <strong>Geadviseerde combinatie:</strong> <strong>${smartAdv.cap} ml patroon op ${smartDialLabel}</strong> (optimale dosering &bull; minimale vetverspilling &bull; ${extraCostInfoNL}).<br>&bull; Huidige selectie op toestel: <strong>${capMl} ml patroon op ${dialLabel}</strong> (${roundReason}).<br>👉 Klik op <em>'Neem advies over'</em> om automatisch te kiezen voor <strong>${smartAdv.cap} ml op ${smartDialLabel}</strong>.`);
       }
     }
 
@@ -11124,22 +11198,30 @@ function calculateAutomationLubrication() {
     if (monthValEl) monthValEl.textContent = `${displayMonthly1.toLocaleString("nl-BE", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} ml/maand`;
     if (yearValEl) yearValEl.textContent = `${displayYearly1.toLocaleString("nl-BE", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} ml/jaar`;
 
-    const displayDailyX = totalDailyNeedForDev;
+    const displayDailyX = isSinglePoint ? (devDailyNeed1 * groupUnits) : totalDailyNeedForDev;
     const displayMonthlyX = displayDailyX * 30.4375;
     const displayYearlyX = displayDailyX * 365.25;
 
+    const box2Container = document.getElementById("autoBox2Container_" + devId);
+    if (box2Container) {
+      box2Container.style.display = (isSinglePoint && groupUnits <= 1) ? "none" : "block";
+    }
+
     const totalHeaderTitleEl = document.getElementById("autoTotalVolumeHeaderTitle_" + devId);
     if (totalHeaderTitleEl) {
-      totalHeaderTitleEl.textContent = `TOTAAL SMEERVOLUME TOESTEL (VOOR ${points} ${points === 1 ? 'LAGER' : 'LAGERS'})`;
+      totalHeaderTitleEl.textContent = isSinglePoint
+        ? `TOTAAL SMEERVOLUME GROEP (${groupUnits} ${groupUnits === 1 ? 'LAGER' : 'LAGERS'} / TOESTELLEN)`
+        : `TOTAAL SMEERVOLUME TOESTEL (VOOR ${points} ${points === 1 ? 'LAGER' : 'LAGERS'})`;
     }
 
     const labelDailyX = document.getElementById("autoDailyVolumeTotalLabel_" + devId);
     const labelMonthlyX = document.getElementById("autoMonthlyVolumeTotalLabel_" + devId);
     const labelYearlyX = document.getElementById("autoYearlyVolumeTotalLabel_" + devId);
 
-    if (labelDailyX) labelDailyX.textContent = `BEREKEND DAGELIJKS SMEERVOLUME (VOOR ${pointsText}):`;
-    if (labelMonthlyX) labelMonthlyX.textContent = `BEREKEND MAANDELIJKS SMEERVOLUME (VOOR ${pointsText}):`;
-    if (labelYearlyX) labelYearlyX.textContent = `BEREKEND JAARLIJKS SMEERVOLUME (VOOR ${pointsText}):`;
+    const groupPointsText = isSinglePoint ? `${groupUnits} lagers` : pointsText;
+    if (labelDailyX) labelDailyX.textContent = `BEREKEND DAGELIJKS SMEERVOLUME (VOOR ${groupPointsText}):`;
+    if (labelMonthlyX) labelMonthlyX.textContent = `BEREKEND MAANDELIJKS SMEERVOLUME (VOOR ${groupPointsText}):`;
+    if (labelYearlyX) labelYearlyX.textContent = `BEREKEND JAARLIJKS SMEERVOLUME (VOOR ${groupPointsText}):`;
 
     const resDailyX = document.getElementById("autoDailyVolumeTotalRes_" + devId);
     const resMonthlyX = document.getElementById("autoMonthlyVolumeTotalRes_" + devId);
@@ -11148,6 +11230,28 @@ function calculateAutomationLubrication() {
     if (resDailyX) resDailyX.textContent = `${displayDailyX.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ml/dag`;
     if (resMonthlyX) resMonthlyX.textContent = `${displayMonthlyX.toLocaleString("nl-BE", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} ml/maand`;
     if (resYearlyX) resYearlyX.textContent = `${displayYearlyX.toLocaleString("nl-BE", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} ml/jaar`;
+
+    const cartsRowEl = document.getElementById("autoYearlyCartsTotalRow_" + devId);
+    const cartsResEl = document.getElementById("autoYearlyCartsTotalRes_" + devId);
+    if (cartsRowEl && cartsResEl) {
+      if (isSinglePoint && groupUnits > 1) {
+        cartsRowEl.style.display = "block";
+        const curPeriodInput = document.getElementById("autoDispensePeriod_" + devId);
+        const pValMonths = curPeriodInput ? (parseFloat(curPeriodInput.value) || dev.period || 6) : (dev.period || 6);
+        const curCartsPerUnit = pValMonths > 0 ? (12 / pValMonths) : 2;
+        const curGroupCarts = curCartsPerUnit * groupUnits;
+        const domCustomPriceEl = document.getElementById("autoCustomPackPrice_" + dev.id) || document.getElementById("autoCustomPackPrice_A");
+        const domCustomVal = domCustomPriceEl ? parseFloat(domCustomPriceEl.value) : 0;
+        const spCustomFallback = window.customSinglePointPackPrice || (typeof autoDevicesState !== "undefined" && autoDevicesState[0] ? autoDevicesState[0].customPackPrice : 0);
+        const activeCustomPrice = (!isNaN(domCustomVal) && domCustomVal > 0) ? domCustomVal : (dev.customPackPrice || spCustomFallback || 0);
+        const pInfoCur = getAutomationPriceInfo(deviceKey, capMl, greaseName, points, activeCustomPrice);
+        const packP = pInfoCur.servicepackPrice || 121.20;
+        const groupP = curGroupCarts * packP;
+        cartsResEl.textContent = `${curGroupCarts.toFixed(1).replace('.', ',')} patronen/jaar (€ ${groupP.toFixed(2).replace('.', ',')}/jaar)`;
+      } else {
+        cartsRowEl.style.display = "none";
+      }
+    }
 
     // 4. Match / Under / Over-lubrication Notice Box per Device (WITH FULL NUMERICAL DETAILS & MULTILINGUAL)
     const noticeEl = document.getElementById("autoMatchNotice_" + devId);
@@ -14287,7 +14391,11 @@ function updateRoiAutomationPage() {
       artNrUnit: pInfo.artNrUnit,
       cartsDev: cartsGroup,
       annualCartCost: cartsGroup * pInfo.servicepackPrice,
-      points: pts * multiplier
+      points: pts * multiplier,
+      isSinglePoint: (deviceKey === "single_point"),
+      unitCount: multiplier,
+      groupBearingsText: d.groupBearingsText || (d.bearingLetters ? d.bearingLetters.join(', ') : ''),
+      cartsPerUnit: cartsDev
     });
 
     if (pInfo.dividerBlockPrice > 0) {
@@ -14395,12 +14503,26 @@ function updateRoiAutomationPage() {
 
       let packDetailsHtml = "";
       deviceBreakdownList.forEach(d => {
-        const devName = lang === "fr" ? `Appareil ${d.id}` : (lang === "en" ? `Device ${d.id}` : `Toestel ${d.id}`);
         const artPart = d.artNrPack ? `Art. ${d.artNrPack}` : "";
-        const cartsStr = `${d.cartsDev.toLocaleString(locCode, { minimumFractionDigits: 1, maximumFractionDigits: 1 })} ${perYearTxt}`;
-        const detailExtra = artPart ? `(${artPart} &bull; ${cartsStr})` : `(${cartsStr})`;
         const priceFormatted = `€ ${d.packPrice.toLocaleString(locCode, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / ${pieceTxt}`;
-        packDetailsHtml += `<div>&bull; <strong>${devName} (${d.cap} ml):</strong> ${priceFormatted} <em>${detailExtra}</em></div>`;
+        if (deviceKey === "single_point") {
+          const groupLabel = d.groupBearingsText ? `Lager ${d.groupBearingsText}` : (isSpMultiGroup ? `Groep ${d.id}` : '');
+          const uCount = d.unitCount || 1;
+          const devTitle = groupLabel
+            ? (lang === "fr" ? `Single Points ${groupLabel} (${uCount} ${uCount === 1 ? 'appareil' : 'appareils'})` : (lang === "en" ? `Single Points ${groupLabel} (${uCount} ${uCount === 1 ? 'device' : 'devices'})` : `Single Points ${groupLabel} (${uCount} ${uCount === 1 ? 'toestel' : 'toestellen'})`))
+            : (uCount > 1 ? `${uCount}x Single Point Lubricator` : `Single Point Lubricator`);
+          const perUnitCarts = (d.cartsPerUnit || (d.cartsDev / uCount)).toLocaleString(locCode, { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+          const totalCarts = d.cartsDev.toLocaleString(locCode, { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+          const perUnitSuffix = lang === "fr" ? "roulement/an" : (lang === "en" ? "bearing/year" : "lager/jaar");
+          const cartsBreakdown = uCount > 1 ? `${totalCarts} ${perYearTxt} &bull; ${perUnitCarts} / ${perUnitSuffix}` : `${totalCarts} ${perYearTxt}`;
+          const detailExtra = artPart ? `(${artPart} &bull; ${cartsBreakdown})` : `(${cartsBreakdown})`;
+          packDetailsHtml += `<div>&bull; <strong>${devTitle} (${d.cap} ml):</strong> ${priceFormatted} <em>${detailExtra}</em></div>`;
+        } else {
+          const devName = lang === "fr" ? `Appareil ${d.id}` : (lang === "en" ? `Device ${d.id}` : `Toestel ${d.id}`);
+          const cartsStr = `${d.cartsDev.toLocaleString(locCode, { minimumFractionDigits: 1, maximumFractionDigits: 1 })} ${perYearTxt}`;
+          const detailExtra = artPart ? `(${artPart} &bull; ${cartsStr})` : `(${cartsStr})`;
+          packDetailsHtml += `<div>&bull; <strong>${devName} (${d.cap} ml):</strong> ${priceFormatted} <em>${detailExtra}</em></div>`;
+        }
       });
 
       if (autoPackPriceDetailsEl) {
@@ -14593,16 +14715,33 @@ function addRoiPdfPage(doc, dateString, watermarkDataUrl, aspectRatio, autoDataU
   const spUnitEl = document.getElementById("autoDispenseUnit_A") || document.getElementById("autoDispenseUnit");
   const spUnitVal = (spUnitEl ? spUnitEl.value : "") || (typeof autoDevicesState !== "undefined" && autoDevicesState[0] ? autoDevicesState[0].unit : "months");
 
-  for (let i = 0; i < numDevices; i++) {
+  const activeSpGroups = (deviceKey === "single_point" && Array.isArray(autoDevicesState))
+    ? autoDevicesState.filter(d => d && d.isSinglePointGroup && (d.unitCount > 0 || (d.bearingLetters && d.bearingLetters.length > 0)))
+    : [];
+  const isSpMultiGroup = (deviceKey === "single_point" && activeSpGroups.length > 1);
+  const numLoop = (deviceKey === "single_point")
+    ? (isSpMultiGroup ? activeSpGroups.length : 1)
+    : numDevices;
+
+  for (let i = 0; i < numLoop; i++) {
     const d = (typeof autoDevicesState !== "undefined" && autoDevicesState[i]) ? autoDevicesState[i] : { id: String.fromCharCode(65 + i), points: 1, cap: 125, period: 6, unit: 'months' };
-    const pts = (deviceKey === "single_point") ? 1 : (d.points || 1);
+    const multiplier = (deviceKey === "single_point")
+      ? (isSpMultiGroup ? (d.unitCount || 1) : (window.spNumBearingsValue || (autoDevicesState[0] && autoDevicesState[0].unitCount) || 1))
+      : 1;
+    const pts = (deviceKey === "single_point") ? 1 : ((typeof d.points === 'number') ? d.points : (parseInt(d.points, 10) || 0));
+    if (pts === 0 && deviceKey !== "single_point") continue;
+
     const devCapEl = document.getElementById("autoCartridgeCap_" + d.id);
     const devCapVal = devCapEl ? parseInt(devCapEl.value, 10) : 0;
-    const cap = (deviceKey === "single_point") ? spCapVal : (devCapVal || d.cap || 125);
+    const cap = (deviceKey === "single_point" && !isSpMultiGroup) ? spCapVal : (devCapVal || d.cap || 125);
     mainCapMl = cap;
-    totalPointsAllDevices += pts;
+    totalPointsAllDevices += (pts * multiplier);
+
     if (deviceKey !== "single_point") {
       devBreakdownText.push(`Pulsarlube ${d.id}: ${pts} ${pts === 1 ? 'lager' : 'lagers'}`);
+    } else if (isSpMultiGroup) {
+      const lStr = d.groupBearingsText || (d.bearingLetters ? d.bearingLetters.join(', ') : d.id);
+      devBreakdownText.push(`${multiplier}x Single Point (Lager ${lStr})`);
     }
 
     const devPeriodEl = document.getElementById("autoDispensePeriod_" + d.id);
@@ -14610,8 +14749,8 @@ function addRoiPdfPage(doc, dateString, watermarkDataUrl, aspectRatio, autoDataU
     const devUnitEl = document.getElementById("autoDispenseUnit_" + d.id);
     const devUnitVal = devUnitEl ? devUnitEl.value : "";
 
-    const period = (deviceKey === "single_point") ? spPeriodVal : (devPeriodVal || d.period || 6);
-    const unit = (deviceKey === "single_point") ? spUnitVal : (devUnitVal || d.unit || "months");
+    const period = (deviceKey === "single_point" && !isSpMultiGroup) ? spPeriodVal : (devPeriodVal || d.period || 6);
+    const unit = (deviceKey === "single_point" && !isSpMultiGroup) ? spUnitVal : (devUnitVal || d.unit || "months");
 
     const domCustomPriceEl = document.getElementById("autoCustomPackPrice_" + d.id) || document.getElementById("autoCustomPackPrice_A");
     const domCustomVal = domCustomPriceEl ? parseFloat(domCustomPriceEl.value) : 0;
@@ -14619,32 +14758,51 @@ function addRoiPdfPage(doc, dateString, watermarkDataUrl, aspectRatio, autoDataU
     const activeCustomPrice = (!isNaN(domCustomVal) && domCustomVal > 0) ? domCustomVal : (d.customPackPrice || ((deviceKey === "single_point" || i === 0) ? spCustomFallback : 0));
     const pInfo = getAutomationPriceInfo(deviceKey, cap, greaseName, pts, activeCustomPrice);
     if (deviceKey !== "single_point") {
-      totalUnitsPrice += pInfo.unitPrice;
-      totalInstallKitPrice += pInfo.installKitPrice;
-      totalDividerBlockPrice += pInfo.dividerBlockPrice;
+      totalUnitsPrice += (pInfo.unitPrice * multiplier);
+      totalInstallKitPrice += (pInfo.installKitPrice * multiplier);
+      totalDividerBlockPrice += (pInfo.dividerBlockPrice * multiplier);
     }
 
-    const devDailyNeedTotal = (d.totalDailyNeed && d.totalDailyNeed > 0) ? d.totalDailyNeed : (dailyNeedCm3 * pts);
-    const yearlyMlDev = devDailyNeedTotal * 365.25;
+    const devNeedRate = (deviceKey === "single_point" && d.dailyNeedCm3 && d.dailyNeedCm3 > 0) ? d.dailyNeedCm3 : dailyNeedCm3;
+    const yearlyMlDev = devNeedRate * pts * 365.25;
     let cartsDev = 0;
     if (period > 0) {
       cartsDev = unit === "weeks" ? (52.1785 / period) : (12 / period);
     } else {
       cartsDev = cap > 0 ? (yearlyMlDev / cap) : 0;
     }
-    totalCartridgesPerYear += cartsDev;
-    totalCartridgesCostYear += (cartsDev * pInfo.servicepackPrice);
+    const cartsGroup = cartsDev * multiplier;
+    totalCartridgesPerYear += cartsGroup;
+    totalCartridgesCostYear += (cartsGroup * pInfo.servicepackPrice);
   }
 
   const numPoints = totalPointsAllDevices;
-  const yearlyMlTotal = dailyNeedCm3 * totalPointsAllDevices * 365.25;
+  let totalDailyNeedAllDevices = 0;
+  if (deviceKey === "single_point") {
+    if (isSpMultiGroup) {
+      activeSpGroups.forEach(g => {
+        const cnt = g.unitCount || (g.bearingLetters ? g.bearingLetters.length : 1);
+        const need1 = (g.dailyNeedCm3 && g.dailyNeedCm3 > 0) ? g.dailyNeedCm3 : (window.currentDailyNeedCm3 || 0.704);
+        totalDailyNeedAllDevices += (need1 * cnt);
+      });
+    } else {
+      const cnt = window.spNumBearingsValue || (autoDevicesState[0] && autoDevicesState[0].unitCount) || 1;
+      const need1 = (autoDevicesState[0] && autoDevicesState[0].dailyNeedCm3 > 0) ? autoDevicesState[0].dailyNeedCm3 : (window.currentDailyNeedCm3 || 0.704);
+      totalDailyNeedAllDevices = need1 * cnt;
+    }
+  } else {
+    totalDailyNeedAllDevices = dailyNeedCm3 * totalPointsAllDevices;
+  }
+  const yearlyMlTotal = totalDailyNeedAllDevices * 365.25;
 
   let baseDeviceName = "Interflon Single Point Lubricator";
   if (deviceKey === "pulsarlube_m2") baseDeviceName = "Pulsarlube M2";
   else if (deviceKey === "pulsarlube_msp") baseDeviceName = "Pulsarlube MSP";
   else if (deviceKey === "pulsarlube_plc") baseDeviceName = "Pulsarlube PLC";
 
-  const fullDeviceTitle = numDevices === 1 ? baseDeviceName : `${numDevices}x ${baseDeviceName}`;
+  const fullDeviceTitle = (deviceKey === "single_point")
+    ? (numPoints > 1 ? `${numPoints}x ${baseDeviceName}` : baseDeviceName)
+    : (numDevices === 1 ? baseDeviceName : `${numDevices}x ${baseDeviceName}`);
 
   // Banner Box
   doc.setFillColor(248, 250, 252);
