@@ -13733,13 +13733,13 @@ function getAutomationPriceInfo(deviceKey, capMl, greaseName, numPoints = 1, cus
     return {
       deviceType: "Single Point Lubricator",
       isPrefilled: true,
-      unitPrice: finalPrice,
+      unitPrice: 0.00,
       servicepackPrice: finalPrice,
       installKitPrice: 0.00,
       dividerBlockPrice: 0.00,
       artNrDividerBlock: "",
       mandatoryAccessoriesPrice: 0.00,
-      artNrUnit: artNr,
+      artNrUnit: "-",
       artNrServicepack: artNr,
       isPriceFound: isPriceFound,
       isCustomPrice: isCustomPrice,
@@ -14256,9 +14256,11 @@ function updateRoiAutomationPage() {
     const activeCustomPrice = (!isNaN(domCustomVal) && domCustomVal > 0) ? domCustomVal : (d.customPackPrice || ((deviceKey === "single_point" || i === 0) ? spCustomFallback : 0));
     const pInfo = getAutomationPriceInfo(deviceKey, cap, greaseName, pts, activeCustomPrice);
     
-    totalUnitsPrice += (pInfo.unitPrice * multiplier);
-    totalInstallKitPrice += (pInfo.installKitPrice * multiplier);
-    totalDividerBlockPrice += (pInfo.dividerBlockPrice * multiplier);
+    if (deviceKey !== "single_point") {
+      totalUnitsPrice += (pInfo.unitPrice * multiplier);
+      totalInstallKitPrice += (pInfo.installKitPrice * multiplier);
+      totalDividerBlockPrice += (pInfo.dividerBlockPrice * multiplier);
+    }
 
     artNrUnitStr = pInfo.artNrUnit;
     artNrServicepackStr = pInfo.artNrServicepack;
@@ -14616,9 +14618,11 @@ function addRoiPdfPage(doc, dateString, watermarkDataUrl, aspectRatio, autoDataU
     const spCustomFallback = window.customSinglePointPackPrice || (typeof autoDevicesState !== "undefined" && autoDevicesState[0] ? autoDevicesState[0].customPackPrice : 0);
     const activeCustomPrice = (!isNaN(domCustomVal) && domCustomVal > 0) ? domCustomVal : (d.customPackPrice || ((deviceKey === "single_point" || i === 0) ? spCustomFallback : 0));
     const pInfo = getAutomationPriceInfo(deviceKey, cap, greaseName, pts, activeCustomPrice);
-    totalUnitsPrice += pInfo.unitPrice;
-    totalInstallKitPrice += pInfo.installKitPrice;
-    totalDividerBlockPrice += pInfo.dividerBlockPrice;
+    if (deviceKey !== "single_point") {
+      totalUnitsPrice += pInfo.unitPrice;
+      totalInstallKitPrice += pInfo.installKitPrice;
+      totalDividerBlockPrice += pInfo.dividerBlockPrice;
+    }
 
     const devDailyNeedTotal = (d.totalDailyNeed && d.totalDailyNeed > 0) ? d.totalDailyNeed : (dailyNeedCm3 * pts);
     const yearlyMlDev = devDailyNeedTotal * 365.25;
@@ -14898,11 +14902,11 @@ function addRoiPdfPage(doc, dateString, watermarkDataUrl, aspectRatio, autoDataU
   y2 += rh;
   drawRow(108, y2, colW, rh, "Verbruik patronen/jaar:", `${totalCartridgesPerYear.toFixed(1).replace('.', ',')} patronen/j`, false, false, false);
   y2 += rh;
-  drawRow(108, y2, colW, rh, "Prijs leeg toestel (totaal):", `€ ${totalUnitsPrice.toFixed(2).replace('.', ',')}`, false, false, false);
+  drawRow(108, y2, colW, rh, "Prijs leeg toestel (totaal):", (deviceKey === 'single_point' ? '€ 0,00 (Voorgevuld)' : `€ ${totalUnitsPrice.toFixed(2).replace('.', ',')}`), false, false, false);
   y2 += rh;
   drawRow(108, y2, colW, rh, "Jaarlijkse kosten patronen:", `€ ${totalCartridgesCostYear.toFixed(2).replace('.', ',')} / j`, false, false, false);
   y2 += rh;
-  drawRow(108, y2, colW, rh, "Installatiekits + Verdeelblokken:", `€ ${(totalInstallKitPrice + totalDividerBlockPrice).toFixed(2).replace('.', ',')} (Eenmalig)`, false, false, false);
+  drawRow(108, y2, colW, rh, "Installatiekits + Verdeelblokken:", (deviceKey === 'single_point' ? '€ 0,00 (Niet nodig)' : `€ ${(totalInstallKitPrice + totalDividerBlockPrice).toFixed(2).replace('.', ',')} (Eenmalig)`), false, false, false);
   y2 += rh;
   drawRow(108, y2, colW, rh, "Arbeidskost patroonwissels:", `€ ${autoLaborCost.toFixed(2).replace('.', ',')} / j`, false, false, false);
   y2 += rh;
