@@ -3311,6 +3311,158 @@ try {
 function renderAutomationDeviceCards() { return renderAutoDevicesUI(); }
 window.renderAutomationDeviceCards = renderAutomationDeviceCards;
 
+function updateAutomationHeaderImages() {
+  const titleEl = document.getElementById("automationImageTitle");
+  let imgBox = document.getElementById("automationDeviceImgBox");
+  if (!imgBox) {
+    const fallbackImg = document.getElementById("automationDeviceImg");
+    imgBox = fallbackImg ? fallbackImg.parentElement : null;
+  }
+  if (!imgBox) return;
+
+  const deviceSelect = document.getElementById("automationDeviceSelect") || document.getElementById("autoDeviceSelect");
+  const deviceKey = deviceSelect ? deviceSelect.value : "single_point";
+  const isSinglePoint = (deviceKey === "single_point");
+  const numDevices = isSinglePoint ? 1 : getActiveNumDevices();
+
+  const DEVICE_IMAGE_META = {
+    pulsarlube_m2: {
+      name: "Pulsarlube M2",
+      short: "M2",
+      img: "pulsarlube-m2.png",
+      color: "#dc2626",
+      bg: "#fee2e2",
+      border: "#fca5a5",
+      feature: "Batterij-gevoed &bull; Continu 24/7 smering"
+    },
+    pulsarlube_msp: {
+      name: "Pulsarlube MSP",
+      short: "MSP",
+      img: "pulsarlube-msp.png",
+      color: "#ea580c",
+      bg: "#ffedd5",
+      border: "#fdba74",
+      feature: "Extern gevoed &bull; Synchroon met machine"
+    },
+    pulsarlube_plc: {
+      name: "Pulsarlube PLC",
+      short: "PLC",
+      img: "pulsarlube-plc.png?v=20260823_1525",
+      color: "#0284c7",
+      bg: "#e0f2fe",
+      border: "#7dd3fc",
+      feature: "PLC-gestuurd &bull; Direct via machinebesturing"
+    },
+    single_point: {
+      name: "Interflon Single Point Lubricator",
+      short: "Single Point",
+      img: "interflon-single-point-lubricator.png",
+      color: "#166534",
+      bg: "#dcfce7",
+      border: "#86efac",
+      feature: "Directe puntsmering"
+    }
+  };
+
+  if (isSinglePoint) {
+    if (titleEl) titleEl.textContent = "Interflon Single Point Lubricator";
+    imgBox.innerHTML = `
+      <img id="automationDeviceImg" src="interflon-single-point-lubricator.png" alt="Interflon Single Point Lubricator" style="max-width: 100%; max-height: 320px; object-fit: contain; border-radius: var(--border-radius-sm); transition: opacity 0.3s ease;">
+    `;
+    if (deviceSelect) {
+      const mixedOpt = deviceSelect.querySelector('option[value="mixed"]');
+      if (mixedOpt) mixedOpt.remove();
+    }
+    return;
+  }
+
+  // Multi-point: check distinct device types across active devices
+  const activeDevices = (Array.isArray(autoDevicesState) ? autoDevicesState.slice(0, numDevices) : []);
+  const typeMap = new Map();
+
+  activeDevices.forEach((d, idx) => {
+    const dId = d.id || String.fromCharCode(65 + idx);
+    const dType = d.type || (deviceKey !== "mixed" ? deviceKey : "pulsarlube_m2");
+    if (!typeMap.has(dType)) {
+      typeMap.set(dType, []);
+    }
+    typeMap.get(dType).push(`Toestel ${dId}`);
+  });
+
+  const distinctTypes = Array.from(typeMap.keys());
+  const descEl = document.getElementById("automationDeviceDesc");
+
+  if (distinctTypes.length <= 1) {
+    // Single device type across all devices
+    const t = distinctTypes[0] || (deviceKey !== "mixed" ? deviceKey : "pulsarlube_m2");
+    const meta = DEVICE_IMAGE_META[t] || DEVICE_IMAGE_META.pulsarlube_m2;
+    if (titleEl) titleEl.textContent = meta.name;
+    imgBox.innerHTML = `
+      <img id="automationDeviceImg" src="${meta.img}" alt="${meta.name}" style="max-width: 100%; max-height: 320px; object-fit: contain; border-radius: var(--border-radius-sm); transition: opacity 0.3s ease;">
+    `;
+    if (deviceSelect) {
+      const mixedOpt = deviceSelect.querySelector('option[value="mixed"]');
+      if (mixedOpt) mixedOpt.remove();
+      if (deviceSelect.value === 'mixed') deviceSelect.value = t;
+    }
+  } else {
+    // Multiple distinct device types across active devices (e.g. MSP and M2)
+    const names = distinctTypes.map(t => (DEVICE_IMAGE_META[t] ? DEVICE_IMAGE_META[t].name : t));
+    if (titleEl) {
+      titleEl.innerHTML = `<span style="color: var(--primary-red); font-weight: 800;">Gecombineerde Configuratie:</span> ${names.join(' &bull; ')}`;
+    }
+
+    if (descEl) {
+      const formattedNames = names.map(n => `<strong>${n}</strong>`).join(' en ');
+      descEl.innerHTML = `Deze gecombineerde installatie gebruikt ${formattedNames} om elk specifiek lagerpunt optimaal te smeren volgens de machineraster-analyse.`;
+    }
+
+    let columnsHtml = '';
+    distinctTypes.forEach(t => {
+      const meta = DEVICE_IMAGE_META[t] || { name: t, short: t, img: 'pulsarlube-m2.png', color: '#dc2626', bg: '#fee2e2', border: '#fca5a5', feature: '' };
+      const devLabels = typeMap.get(t).join(' &amp; ');
+      columnsHtml += `
+        <div style="flex: 1 1 240px; max-width: 380px; min-width: 220px; background: #ffffff; border: 1.5px solid ${meta.border}; border-radius: 8px; padding: 14px; display: flex; flex-direction: column; align-items: center; justify-content: space-between; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
+          <div style="margin-bottom: 10px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: center;">
+            <span style="background: ${meta.color}; color: white; font-weight: 800; font-size: 11px; padding: 3px 10px; border-radius: 12px; text-transform: uppercase; white-space: nowrap;">
+              ${devLabels} &bull; ${meta.short}
+            </span>
+            <span style="font-weight: 700; font-size: 13.5px; color: #1e293b;">
+              ${meta.name}
+            </span>
+          </div>
+          <div style="flex: 1; display: flex; align-items: center; justify-content: center; min-height: 220px; width: 100%; padding: 8px 0;">
+            <img src="${meta.img}" alt="${meta.name}" style="max-width: 100%; max-height: 240px; object-fit: contain; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.08));">
+          </div>
+          <div style="margin-top: 10px; font-size: 11px; font-weight: 700; color: ${meta.color}; text-align: center; background: ${meta.bg}; padding: 5px 12px; border-radius: 6px; width: 100%; box-sizing: border-box;">
+            ${meta.feature}
+          </div>
+        </div>
+      `;
+    });
+
+    imgBox.innerHTML = `
+      <div style="display: flex; gap: 18px; width: 100%; justify-content: center; flex-wrap: wrap;">
+        ${columnsHtml}
+      </div>
+    `;
+
+    if (deviceSelect) {
+      let mixedOpt = deviceSelect.querySelector('option[value="mixed"]');
+      if (!mixedOpt) {
+        mixedOpt = document.createElement('option');
+        mixedOpt.value = 'mixed';
+        mixedOpt.textContent = `Gecombineerd (${names.join(' & ')})`;
+        deviceSelect.appendChild(mixedOpt);
+      } else {
+        mixedOpt.textContent = `Gecombineerd (${names.join(' & ')})`;
+      }
+      deviceSelect.value = 'mixed';
+    }
+  }
+}
+window.updateAutomationHeaderImages = updateAutomationHeaderImages;
+
 function renderAutoDevicesUI() {
   var lang = currentLang || "nl";
   lang = currentLang || "nl";
@@ -3663,6 +3815,9 @@ function renderAutoDevicesUI() {
   }
 
   container.innerHTML = html;
+  if (typeof updateAutomationHeaderImages === "function") {
+    updateAutomationHeaderImages();
+  }
   if (typeof syncAutomationDeviceCardHeights === "function") {
     syncAutomationDeviceCardHeights();
     requestAnimationFrame(() => {
@@ -10986,6 +11141,12 @@ function updateAutomationPage() {
   if (!select) return;
 
   const device = select.value;
+  if (device === "mixed") {
+    if (typeof updateAutomationHeaderImages === "function") updateAutomationHeaderImages();
+    renderAutoDevicesUI();
+    calculateAutomationLubrication();
+    return;
+  }
   const titleEl = document.getElementById("automationImageTitle");
   const imgEl = document.getElementById("automationDeviceImg");
   const descEl = document.getElementById("automationDeviceDesc");
