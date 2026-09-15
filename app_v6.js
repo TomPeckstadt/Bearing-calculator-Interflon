@@ -65,6 +65,15 @@ function getActiveNumDevices() {
 
 function onAutoNumDevicesChange() {
   const num = getActiveNumDevices();
+  const deviceSelect = document.getElementById("automationDeviceSelect") || document.getElementById("autoDeviceSelect");
+  const deviceKey = deviceSelect ? deviceSelect.value : "pulsarlube_m2";
+  if (deviceKey !== "single_point" && Array.isArray(autoDevicesState)) {
+    for (let i = 0; i < num; i++) {
+      if (autoDevicesState[i] && (!autoDevicesState[i].type || autoDevicesState[i].type === "single_point")) {
+        autoDevicesState[i].type = deviceKey;
+      }
+    }
+  }
   renderAutoDevicesUI();
   calculateAutomationLubrication();
 }
@@ -523,6 +532,13 @@ function loadAutomationStateFromLocalStorage() {
             autoDevicesState[index] = { ...item, unit: "months" };
           }
         });
+      }
+    }
+
+    if (savedDeviceKey && savedDeviceKey !== "single_point" && Array.isArray(autoDevicesState)) {
+      const allM2 = autoDevicesState.every(d => !d.type || d.type === 'pulsarlube_m2');
+      if (allM2 && savedDeviceKey !== 'pulsarlube_m2') {
+        autoDevicesState.forEach(d => { if (d) d.type = savedDeviceKey; });
       }
     }
 
@@ -11054,6 +11070,41 @@ function updateAutomationPage() {
     } else {
       brochureLabel.textContent = "Raadpleeg brochure";
     }
+  }
+
+  // Synchroniseer alle actieve toestellen met de gekozen toestel dropdown
+  if (Array.isArray(autoDevicesState)) {
+    const selectGrease = document.getElementById("inputGrease") || document.getElementById("selectGrease");
+    const greaseName = selectGrease ? selectGrease.value : "Interflon Grease MP2/3";
+    autoDevicesState.forEach(d => {
+      if (d) {
+        if (device === "single_point") {
+          d.type = "single_point";
+          d.points = 1;
+          d.userEditedPeriod = false;
+          const dailyNeed = (d.dailyNeedCm3 && d.dailyNeedCm3 > 0)
+            ? d.dailyNeedCm3
+            : (window.currentDailyNeedCm3 || 0.704);
+          const smartAdv = getOptimalSmartAdvice(dailyNeed, "single_point", greaseName);
+          if (smartAdv) {
+            d.cap = smartAdv.cap;
+            d.period = smartAdv.months;
+          }
+        } else {
+          d.type = device;
+          d.userEditedPeriod = false;
+          const totalNeed = (d.totalDailyNeed && d.totalDailyNeed > 0)
+            ? d.totalDailyNeed
+            : ((window.currentDailyNeedCm3 || 0.704) * (d.points || 1));
+          const smartAdv = getOptimalSmartAdvice(totalNeed, device, greaseName);
+          if (smartAdv) {
+            d.cap = smartAdv.cap;
+            d.period = smartAdv.months;
+          }
+        }
+      }
+    });
+    saveAutomationStateToLocalStorage();
   }
 
   renderAutoDevicesUI();
