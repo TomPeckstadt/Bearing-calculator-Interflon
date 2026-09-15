@@ -1978,3 +1978,180 @@ table {
 #photoGridContainer::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
 }
+
+/* ==========================================================================
+   ROI AI AVATAR SPEECH COMPONENT
+   ========================================================================== */
+.roi-avatar-container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #f8fafc;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 50px;
+  padding: 6px 16px 6px 8px;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+  user-select: none;
+  position: relative;
+}
+
+.roi-avatar-container:hover {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.07);
+  transform: translateY(-1px);
+}
+
+.roi-avatar-container.speaking {
+  background: #f0fdf4;
+  border-color: #86efac;
+  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.2), 0 4px 12px rgba(34, 197, 94, 0.15);
+}
+
+.roi-avatar-img-wrapper {
+  position: relative;
+  width: 46px;
+  height: 46px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.roi-avatar-img {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #E30613;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+  position: relative;
+  z-index: 2;
+  transition: transform 0.2s;
+}
+
+.roi-avatar-container:hover .roi-avatar-img {
+  transform: scale(1.05);
+}
+
+.roi-avatar-mic-badge {
+  position: absolute;
+  bottom: -2px;
+  right: -2px;
+  background: #ffffff;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 50%;
+  width: 17px;
+  height: 17px;
+  font-size: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 3;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+
+.roi-avatar-container.speaking .roi-avatar-mic-badge {
+  background: #22c55e;
+  border-color: #16a34a;
+}
+
+/* Pulserende audio ring wanneer ze spreekt */
+.roi-avatar-pulse-ring {
+  position: absolute;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background: rgba(34, 197, 94, 0.45);
+  z-index: 1;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.roi-avatar-container.speaking .roi-avatar-pulse-ring {
+  animation: roiAvatarPulse 1.8s infinite cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+@keyframes roiAvatarPulse {
+  0% {
+    transform: scale(0.95);
+    opacity: 0.8;
+  }
+  50% {
+    transform: scale(1.35);
+    opacity: 0.3;
+  }
+  100% {
+    transform: scale(1.6);
+    opacity: 0;
+  }
+}
+
+.roi-avatar-text-block {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.roi-avatar-name-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.roi-avatar-name {
+  font-weight: 800;
+  font-size: 13px;
+  color: #0f172a;
+}
+
+.roi-avatar-role {
+  font-size: 10.5px;
+  font-weight: 600;
+  color: #64748b;
+  background: #e2e8f0;
+  padding: 1px 6px;
+  border-radius: 10px;
+}
+
+.roi-avatar-status {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #E30613;
+  transition: color 0.2s;
+}
+
+.roi-avatar-container.speaking .roi-avatar-status {
+  color: #16a34a;
+}
+
+.roi-avatar-icon {
+  font-size: 10px;
+}
+
+.roi-avatar-stop-btn {
+  background: #fee2e2;
+  color: #dc2626;
+  border: 1px solid #fca5a5;
+  border-radius: 20px;
+  padding: 4px 10px;
+  font-size: 11.5px;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.2s;
+  margin-left: 4px;
+}
+
+.roi-avatar-stop-btn:hover {
+  background: #dc2626;
+  color: #ffffff;
+  border-color: #b91c1c;
+}
