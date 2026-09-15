@@ -4368,6 +4368,12 @@
         if (window.__questionnaireRestoring) {
           return null;
         }
+
+        // Flush any active input values from Section 2, 3 and 4 into maps first
+        if (typeof saveCurrentSection2Data === 'function') saveCurrentSection2Data();
+        if (typeof saveCurrentSection3Data === 'function') saveCurrentSection3Data();
+        if (typeof saveCurrentSection4Data === 'function') saveCurrentSection4Data();
+
         const rows = document.querySelectorAll('.bearing-row');
         const bearings = [];
         rows.forEach((r, idx) => {
@@ -4388,7 +4394,17 @@
           const hoursPerDay = parseFloat(d2.q13) || 16;
           const daysPerWeek = parseFloat(d2.q14) || 5;
           const temp = parseFloat(d3.q15) || 20;
-          bearings.push({ letter, nr, desc, rpm, pos: asPos, x: pos.x, y: pos.y, qty, hoursPerDay, daysPerWeek, temp });
+          const freqNum = d2.q4_freq_num ? String(d2.q4_freq_num).trim() : '';
+          const freqUnit = d2.q4_freq_unit || 'Weken';
+          const intervalStr = freqNum ? (freqNum + ' ' + freqUnit) : '-';
+          bearings.push({
+            letter, nr, desc, rpm, pos: asPos, x: pos.x, y: pos.y, qty,
+            hoursPerDay, daysPerWeek, temp,
+            interval: intervalStr,
+            smeermiddel: d2.q11 || '',
+            prijsLiter: d2.q12_price || '',
+            levensduur: d2.q29_life || ''
+          });
         });
 
         if (bearings.length === 0) return null;
@@ -4570,9 +4586,12 @@
         // Also save snapshot of full questionnaire for seamless sync with Automatisering
         try {
           const q1El = document.getElementById('q1');
-          const clientCompEl = document.getElementById('clientCompany');
+          const hasSec2Input = (typeof bearingDataMapSec2 !== 'undefined' && bearingDataMapSec2) && Object.values(bearingDataMapSec2).some(d => d && (d.q11 || d.q12_price || d.q4_freq_num || d.q29_life));
+          const hasSec3Input = (typeof bearingDataMapSec3 !== 'undefined' && bearingDataMapSec3) && Object.values(bearingDataMapSec3).some(d => d && (d.q15 || d.q16));
+          const hasSec4Input = (typeof bearingDataMapSec4 !== 'undefined' && bearingDataMapSec4) && Object.values(bearingDataMapSec4).some(d => d && (d.q24 || d.q25 || d.q26 || d.q28 || d.q30));
           const hasUserInput = (q1El && q1El.value.trim() !== '') ||
                                (clientCompEl && clientCompEl.value.trim() !== '') ||
+                               hasSec2Input || hasSec3Input || hasSec4Input ||
                                bearings.some(b => (b.nr && !b.nr.startsWith('Lager ')) || b.desc || b.rpm) ||
                                bearings.length > 1;
 
@@ -4580,10 +4599,6 @@
           if (!hasUserInput && localStorage.getItem('interflon_questionnaire_full_data')) {
             return configToSave;
           }
-
-          if (typeof saveCurrentSection2Data === 'function') saveCurrentSection2Data();
-          if (typeof saveCurrentSection3Data === 'function') saveCurrentSection3Data();
-          if (typeof saveCurrentSection4Data === 'function') saveCurrentSection4Data();
 
           const generalData = {
             machineName: machineName,
@@ -6029,6 +6044,18 @@
       if (typeof saveRasterConfigToLocalStorage === 'function') saveRasterConfigToLocalStorage();
     }
 
+    // Auto-save debounce timer for active section inputs
+    let __surveyAutoSaveTimer = null;
+    function triggerSurveyAutoSave() {
+      if (window.__questionnaireRestoring) return;
+      if (__surveyAutoSaveTimer) clearTimeout(__surveyAutoSaveTimer);
+      __surveyAutoSaveTimer = setTimeout(() => {
+        if (typeof saveRasterConfigToLocalStorage === 'function') {
+          saveRasterConfigToLocalStorage();
+        }
+      }, 300);
+    }
+
     // --- SECTION 2 HANDLERS ---
     function saveCurrentSection2Data() {
       if (window.__questionnaireRestoring) return;
@@ -6042,6 +6069,7 @@
       bearingDataMapSec2[activeBearingSec2].q29_life = document.getElementById('q29_life').value;
       bearingDataMapSec2[activeBearingSec2].q13 = document.getElementById('q13').value;
       bearingDataMapSec2[activeBearingSec2].q14 = document.getElementById('q14').value;
+      triggerSurveyAutoSave();
     }
 
     function loadSection2DataForBearing(letter) {
@@ -6158,6 +6186,7 @@
       bearingDataMapSec3[activeBearingSec3].q20 = document.getElementById('q20').value;
       bearingDataMapSec3[activeBearingSec3].q21 = document.getElementById('q21').value;
       bearingDataMapSec3[activeBearingSec3].q22 = document.getElementById('q22').value;
+      triggerSurveyAutoSave();
     }
 
     function loadSection3DataForBearing(letter) {
@@ -6313,6 +6342,7 @@
       bearingDataMapSec4[activeBearingSec4].q27 = document.getElementById('q27').value;
       bearingDataMapSec4[activeBearingSec4].q28 = document.getElementById('q28').value;
       bearingDataMapSec4[activeBearingSec4].q30 = document.getElementById('q30').value;
+      triggerSurveyAutoSave();
     }
 
     function loadSection4DataForBearing(letter) {
