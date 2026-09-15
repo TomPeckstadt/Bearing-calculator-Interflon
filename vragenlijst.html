@@ -2918,7 +2918,7 @@
         });
 
         setDevices(newDevices);
-        showCentralPoint = false; // Focus directly on the placed automatic lubrication devices
+        showCentralPoint = true; // Centraal punt blijft actief
 
         renderDeviceFilterPills();
         drawBearingLayout();
@@ -2977,7 +2977,7 @@
       });
 
       setDevices(newDevices);
-      showCentralPoint = false;
+      showCentralPoint = true;
 
       renderDeviceFilterPills();
       drawBearingLayout();
@@ -4984,7 +4984,7 @@
               raster: {
                 machineRangeMeters: (typeof machineRangeMeters !== 'undefined') ? machineRangeMeters : 10,
                 layoutViewMode: (typeof layoutViewMode !== 'undefined') ? layoutViewMode : '3d',
-                showCentralPoint: (typeof showCentralPoint !== 'undefined') ? showCentralPoint : false,
+                showCentralPoint: (typeof showCentralPoint !== 'undefined') ? showCentralPoint : true,
                 bearingPositions: (typeof bearingPositions !== 'undefined') ? JSON.parse(JSON.stringify(bearingPositions)) : {},
                 devices: (typeof devices !== 'undefined') ? JSON.parse(JSON.stringify(devices)) : []
               },
@@ -6070,9 +6070,8 @@
               type: d.type || 'pulsarlube_m2'
             })));
           }
-          if (typeof data.raster.showCentralPoint === 'boolean') {
-            showCentralPoint = data.raster.showCentralPoint;
-          }
+          // Centraal Punt default altijd AAN bij het openen van een vragenlijst
+          showCentralPoint = true;
           if (data.raster.machineRangeMeters) {
             machineRangeMeters = Number(data.raster.machineRangeMeters);
             const scaleSelect = document.getElementById('layoutScaleSelect');
@@ -6370,7 +6369,7 @@
           paletteIndex: 0
         });
       }
-      if (typeof showCentralPoint !== 'undefined') showCentralPoint = false;
+      if (typeof showCentralPoint !== 'undefined') showCentralPoint = true;
       if (typeof machineRangeMeters !== 'undefined') {
         machineRangeMeters = 10;
         const scaleSelect = document.getElementById('layoutScaleSelect');
@@ -7301,6 +7300,7 @@
       }
 
       // Initialize canvas and raster interactions
+      showCentralPoint = true;
       if (typeof renderDeviceFilterPills === "function") renderDeviceFilterPills();
       if (typeof initCanvasInteractions === "function") initCanvasInteractions();
       if (typeof syncBearingsToLayout === "function") setTimeout(syncBearingsToLayout, 100);
