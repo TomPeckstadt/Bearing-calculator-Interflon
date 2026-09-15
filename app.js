@@ -15348,6 +15348,7 @@ if (typeof window !== "undefined") {
 // ==========================================================================
 let isAutoAvatarSpeaking = false;
 let autoSpeechQueue = [];
+let activeAutoUtterance = null;
 
 function setAutoAvatarUiState(speaking) {
   isAutoAvatarSpeaking = speaking;
@@ -15381,6 +15382,7 @@ function stopAutoAvatarSpeech() {
   if (typeof window !== "undefined" && "speechSynthesis" in window) {
     window.speechSynthesis.cancel();
   }
+  activeAutoUtterance = null;
   autoSpeechQueue = [];
   setAutoAvatarUiState(false);
 }
@@ -15520,7 +15522,12 @@ function generateAutomationSpeechScript() {
   }
   if (totalPoints <= 0) totalPoints = numCards;
 
-  const distinctTypes = [...new Set(autoDevicesState.slice(0, numCards).map(d => d.type || deviceKey))];
+  const pointsWord = (typeof numberToDutchWords === 'function') ? numberToDutchWords(totalPoints) : totalPoints.toString();
+  const devicesWord = (typeof numberToDutchWords === 'function') ? numberToDutchWords(numCards) : numCards.toString();
+  const pointsNoun = totalPoints === 1 ? "smeerpunt" : "smeerpunten";
+  const devicesNoun = numCards === 1 ? "toestel" : "toestellen";
+
+  const distinctTypes = [...new Set(autoDevicesState.slice(0, numCards).map(d => (d && d.type) || deviceKey))];
   let deviceTypeSummary = "";
   if (distinctTypes.length === 1) {
     const singleType = distinctTypes[0];
@@ -15528,16 +15535,11 @@ function generateAutomationSpeechScript() {
     deviceTypeSummary = `${typeName} ${devicesNoun}`;
   } else {
     const breakdown = autoDevicesState.slice(0, numCards).map(d => {
-      const tName = getDeviceTypeName(d.type || deviceKey);
-      return `Toestel ${d.id} (${tName})`;
+      const tName = getDeviceTypeName((d && d.type) || deviceKey);
+      return `Toestel ${d ? d.id : ''} (${tName})`;
     }).join(' en ');
     deviceTypeSummary = `Pulsarlube ${devicesNoun} (${breakdown})`;
   }
-
-  const pointsWord = (typeof numberToDutchWords === 'function') ? numberToDutchWords(totalPoints) : totalPoints.toString();
-  const devicesWord = (typeof numberToDutchWords === 'function') ? numberToDutchWords(numCards) : numCards.toString();
-  const pointsNoun = totalPoints === 1 ? "smeerpunt" : "smeerpunten";
-  const devicesNoun = numCards === 1 ? "toestel" : "toestellen";
 
   let script = "";
   if (lang === "nl") {
@@ -15585,7 +15587,8 @@ function generateAutomationSpeechScript() {
 
     script += `Indien u een andere configuratie verkiest, kunt u deze eenvoudig manueel aanpassen in sectie 3 van de vragenlijst.`;
   } else if (lang === "fr") {
-    script += `Avec la sélection actuelle, vous répartissez ${totalPoints} points de lubrification sur ${numCards} appareils ${deviceTypeName}. `;
+    const devTypeName = getDeviceTypeName(deviceKey);
+    script += `Avec la sélection actuelle, vous répartissez ${totalPoints} points de lubrification sur ${numCards} appareils ${devTypeName}. `;
     script += `Sur la base des longueurs de tuyauterie et des besoins individuels de lubrification des roulements, il s'agit de la configuration idéale pour le choix des appareils et la durée de vidange en mois. `;
     for (let i = 0; i < numCards; i++) {
       const d = (autoDevicesState && autoDevicesState[i]) ? autoDevicesState[i] : { id: String.fromCharCode(65 + i) };
@@ -15596,7 +15599,8 @@ function generateAutomationSpeechScript() {
     }
     script += `Si vous préférez une configuration différente, vous pouvez la modifier manuellement dans la section 3 du questionnaire.`;
   } else {
-    script += `With the current selection, you distribute ${totalPoints} lubrication points across ${numCards} ${deviceTypeName} units. `;
+    const devTypeName = getDeviceTypeName(deviceKey);
+    script += `With the current selection, you distribute ${totalPoints} lubrication points across ${numCards} ${devTypeName} units. `;
     script += `Based on pipe lengths and individual bearing lubrication requirements, this represents the ideal configuration regarding device selection and discharge period in months. `;
     for (let i = 0; i < numCards; i++) {
       const d = (autoDevicesState && autoDevicesState[i]) ? autoDevicesState[i] : { id: String.fromCharCode(65 + i) };
@@ -15625,12 +15629,14 @@ function speakNextAutoSentence(voice) {
 
   const lang = typeof currentLang !== "undefined" ? currentLang : "nl";
   const utter = new SpeechSynthesisUtterance(sentence.trim());
+  activeAutoUtterance = utter;
   utter.lang = lang === "fr" ? "fr-FR" : (lang === "en" ? "en-US" : "nl-NL");
   utter.rate = 0.98;
   utter.pitch = 1.05;
   if (voice) utter.voice = voice;
 
   utter.onend = () => {
+    activeAutoUtterance = null;
     if (isAutoAvatarSpeaking && autoSpeechQueue.length > 0) {
       speakNextAutoSentence(voice);
     } else {
@@ -15640,9 +15646,13 @@ function speakNextAutoSentence(voice) {
 
   utter.onerror = (e) => {
     console.warn("Spraakfout:", e);
+    activeAutoUtterance = null;
     setAutoAvatarUiState(false);
   };
 
+  if (window.speechSynthesis.paused) {
+    window.speechSynthesis.resume();
+  }
   window.speechSynthesis.speak(utter);
 }
 
