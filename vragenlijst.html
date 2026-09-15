@@ -68,23 +68,25 @@
     }
     .survey-header-clear-btn {
       position: absolute;
-      top: 22px;
-      right: 28px;
+      top: 18px;
+      right: 22px;
       background: #ffffff;
       border: 1.5px solid #cbd5e1;
       color: #64748b;
       font-weight: 700;
-      padding: 8px 14px;
+      padding: 7px 13px;
       border-radius: 8px;
-      font-size: 13px;
+      font-size: 12.5px;
       display: inline-flex;
       align-items: center;
       gap: 6px;
       cursor: pointer;
       transition: all 0.2s;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-      width: auto;
-      z-index: 10;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+      width: auto !important;
+      max-width: max-content;
+      white-space: nowrap;
+      z-index: 20;
     }
     .survey-header-clear-btn:hover {
       border-color: #dc2626;
@@ -120,11 +122,15 @@
     @media (max-width: 768px) {
       .grid-2 { grid-template-columns: 1fr; }
       .survey-body { padding: 20px 16px; }
-      .survey-header { padding: 24px 16px; }
+      .survey-header { padding: 36px 16px 20px 16px; }
       .survey-header-clear-btn {
-        position: static !important;
-        margin: 0 auto 16px auto !important;
-        display: inline-flex !important;
+        position: absolute !important;
+        top: 10px !important;
+        right: 12px !important;
+        padding: 5px 10px !important;
+        font-size: 11.5px !important;
+        margin: 0 !important;
+        width: auto !important;
       }
       .bearing-row { grid-template-columns: 1fr 1fr !important; gap: 8px !important; }
     }
@@ -1073,7 +1079,7 @@
   <div class="survey-container">
     <!-- Header with Interflon Logo & Intro Text -->
     <div class="survey-header">
-      <button type="button" onclick="clearQuestionnaireData()" class="btn-secondary survey-header-clear-btn" title="Wis alle ingevulde gegevens en begin opnieuw met een lege vragenlijst">
+      <button type="button" onclick="clearQuestionnaireData()" class="survey-header-clear-btn" title="Wis alle ingevulde gegevens en begin opnieuw met een lege vragenlijst">
         🗑️ Formulier wissen
       </button>
       <img src="interflon-logo-clean.png" alt="Interflon Logo" class="survey-logo">
