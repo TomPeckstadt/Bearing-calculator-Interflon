@@ -2250,13 +2250,13 @@ function onSurveyBearingSelected(selectEl) {
     let intervalDays = freqNum;
     if (u.includes('dag') || u.includes('day') || u.includes('jour')) {
       intervalDays = freqNum;
-    } else if (u.includes('wek') || u.includes('week') || u.includes('semaine')) {
+    } else if (u.includes('wek') || u.includes('week') || u.includes('semaine') || u.includes('sem') || u.includes('wk')) {
       intervalDays = freqNum * 7;
-    } else if (u.includes('mnd') || u.includes('maand') || u.includes('month') || u.includes('mois')) {
+    } else if (u.includes('mnd') || u.includes('maand') || u.includes('month') || u.includes('mois') || u.includes('mon')) {
       intervalDays = freqNum * (365 / 12);
-    } else if (u.includes('jaar') || u.includes('year') || u.includes('an')) {
+    } else if (u.includes('jaar') || u.includes('jaren') || u.includes('jar') || u.includes('year') || u.includes('yr') || u.includes('an') || u.includes('ann')) {
       intervalDays = freqNum * 365;
-    } else if (u.includes('uur') || u.includes('hour') || u.includes('heur')) {
+    } else if (u.includes('uur') || u.includes('uren') || u.includes('hour') || u.includes('heur') || u.includes('hr')) {
       const operHoursPerCalDay = (operHours * operDays) / 7;
       intervalDays = freqNum / (operHoursPerCalDay > 0 ? operHoursPerCalDay : 24);
     } else {
@@ -2571,15 +2571,31 @@ function importSurveyBearingToOpbrengstmodel(mode, explicitLetter) {
 
   let fullData = null;
   try {
-    const raw = localStorage.getItem('interflon_questionnaire_full_data') ||
-                localStorage.getItem('interflon_last_questionnaire_data') ||
-                localStorage.getItem('interflon_survey_raster_config');
-    if (raw) {
-      let parsed = JSON.parse(raw);
-      if (parsed && (parsed.fullData || parsed.questionnaire || parsed.data)) {
-        parsed = parsed.fullData || parsed.questionnaire || parsed.data;
+    const rawFull = localStorage.getItem('interflon_questionnaire_full_data') ||
+                    localStorage.getItem('interflon_last_questionnaire_data');
+    const rawCfg = localStorage.getItem('interflon_survey_raster_config');
+    let parsedFull = null;
+    let parsedCfg = null;
+    if (rawFull) {
+      parsedFull = JSON.parse(rawFull);
+      if (parsedFull && (parsedFull.fullData || parsedFull.questionnaire || parsedFull.data)) {
+        parsedFull = parsedFull.fullData || parsedFull.questionnaire || parsedFull.data;
       }
-      fullData = parsed;
+    }
+    if (rawCfg) {
+      try { parsedCfg = JSON.parse(rawCfg); } catch(e) {}
+    }
+    fullData = parsedFull || parsedCfg;
+    if (parsedCfg && fullData) {
+      if (parsedCfg.bearingDataMapSec2) {
+        fullData.bearingDataMapSec2 = { ...(fullData.bearingDataMapSec2 || {}), ...parsedCfg.bearingDataMapSec2 };
+      }
+      if (parsedCfg.bearingDataMapSec3) {
+        fullData.bearingDataMapSec3 = { ...(fullData.bearingDataMapSec3 || {}), ...parsedCfg.bearingDataMapSec3 };
+      }
+      if (parsedCfg.bearings && (!fullData.bearings || fullData.bearings.length === 0)) {
+        fullData.bearings = parsedCfg.bearings;
+      }
     }
   } catch (e) {}
 
@@ -2773,13 +2789,13 @@ function importSurveyBearingToOpbrengstmodel(mode, explicitLetter) {
     let intervalDays = freqNum;
     if (u.includes('dag') || u.includes('day') || u.includes('jour')) {
       intervalDays = freqNum;
-    } else if (u.includes('wek') || u.includes('week') || u.includes('semaine')) {
+    } else if (u.includes('wek') || u.includes('week') || u.includes('semaine') || u.includes('sem') || u.includes('wk')) {
       intervalDays = freqNum * 7;
-    } else if (u.includes('mnd') || u.includes('maand') || u.includes('month') || u.includes('mois')) {
+    } else if (u.includes('mnd') || u.includes('maand') || u.includes('month') || u.includes('mois') || u.includes('mon')) {
       intervalDays = freqNum * (365 / 12);
-    } else if (u.includes('jaar') || u.includes('year') || u.includes('an')) {
+    } else if (u.includes('jaar') || u.includes('jaren') || u.includes('jar') || u.includes('year') || u.includes('yr') || u.includes('an') || u.includes('ann')) {
       intervalDays = freqNum * 365;
-    } else if (u.includes('uur') || u.includes('hour') || u.includes('heur')) {
+    } else if (u.includes('uur') || u.includes('uren') || u.includes('hour') || u.includes('heur') || u.includes('hr')) {
       const operHoursPerCalDay = (operHours * operDays) / 7;
       intervalDays = freqNum / (operHoursPerCalDay > 0 ? operHoursPerCalDay : 24);
     } else {
