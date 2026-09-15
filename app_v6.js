@@ -40,10 +40,10 @@ function getVerdeelblokImage(callback) {
 // ==========================================
 
 let autoDevicesState = [
-  { id: 'A', name: 'Pulsarlube A', points: 1, cap: 125, period: 7, unit: 'months', userEditedPeriod: false, customPackPrice: 0 },
-  { id: 'B', name: 'Pulsarlube B', points: 1, cap: 125, period: 7, unit: 'months', userEditedPeriod: false, customPackPrice: 0 },
-  { id: 'C', name: 'Pulsarlube C', points: 1, cap: 125, period: 7, unit: 'months', userEditedPeriod: false, customPackPrice: 0 },
-  { id: 'D', name: 'Pulsarlube D', points: 1, cap: 125, period: 7, unit: 'months', userEditedPeriod: false, customPackPrice: 0 }
+  { id: 'A', name: 'Pulsarlube A', type: 'pulsarlube_m2', points: 1, cap: 125, period: 7, unit: 'months', userEditedPeriod: false, customPackPrice: 0 },
+  { id: 'B', name: 'Pulsarlube B', type: 'pulsarlube_m2', points: 1, cap: 125, period: 7, unit: 'months', userEditedPeriod: false, customPackPrice: 0 },
+  { id: 'C', name: 'Pulsarlube C', type: 'pulsarlube_m2', points: 1, cap: 125, period: 7, unit: 'months', userEditedPeriod: false, customPackPrice: 0 },
+  { id: 'D', name: 'Pulsarlube D', type: 'pulsarlube_m2', points: 1, cap: 125, period: 7, unit: 'months', userEditedPeriod: false, customPackPrice: 0 }
 ];
 if (typeof window !== "undefined") {
   window.autoDevicesState = autoDevicesState;
@@ -126,7 +126,8 @@ function onDevicePeriodInput(devId) {
     dev.userEditedPeriod = true;
     const deviceSelect = document.getElementById("automationDeviceSelect") || document.getElementById("autoDeviceSelect");
     const deviceKey = deviceSelect ? deviceSelect.value : "single_point";
-    const validMonths = getValidDispenseMonths(deviceKey, dev.cap);
+    const devType = (deviceKey === "single_point") ? "single_point" : (dev.type || deviceKey || "pulsarlube_m2");
+    const validMonths = getValidDispenseMonths(devType, dev.cap);
     const maxM = validMonths[validMonths.length - 1];
     if (unitSel && unitSel.value === "months") {
       let val = parseFloat(input.value);
@@ -148,7 +149,8 @@ function onDevicePeriodChange(devId) {
     dev.userEditedPeriod = true;
     const deviceSelect = document.getElementById("automationDeviceSelect") || document.getElementById("autoDeviceSelect");
     const deviceKey = deviceSelect ? deviceSelect.value : "single_point";
-    const validMonths = getValidDispenseMonths(deviceKey, dev.cap);
+    const devType = (deviceKey === "single_point") ? "single_point" : (dev.type || deviceKey || "pulsarlube_m2");
+    const validMonths = getValidDispenseMonths(devType, dev.cap);
     let val = parseFloat(input.value) || 1;
     if (unitSel && unitSel.value === "months") {
       if (!validMonths.includes(val)) {
@@ -182,12 +184,46 @@ function getValidDispenseMonths(deviceKey, capMl) {
     if (cap === 500) {
       return [1, 2, 4, 5, 6, 12, 18, 24];
     }
-    // 60ml blijft 1 tot en met 12 maanden
     return [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+  }
+  if (dev === "pulsarlube_m2") {
+    return [1, 2, 3, 6, 12];
   }
   return [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
 }
 window.getValidDispenseMonths = getValidDispenseMonths;
+
+function getDeviceTypeName(typeId) {
+  if (typeId === "pulsarlube_msp" || typeId === "pulsarlube_msp_oil") return "Pulsarlube MSP";
+  if (typeId === "pulsarlube_m2") return "Pulsarlube M2";
+  if (typeId === "pulsarlube_plc") return "Pulsarlube PLC";
+  if (typeId === "single_point") return "Interflon Single Point Lubricator";
+  return "Pulsarlube M2";
+}
+window.getDeviceTypeName = getDeviceTypeName;
+
+function onDeviceTypeChange(devId, newType) {
+  if (typeof autoDevicesState !== "undefined") {
+    const dev = autoDevicesState.find(d => d.id === devId);
+    if (dev) {
+      dev.type = newType;
+      dev.userEditedPeriod = false;
+      const selectGrease = document.getElementById("inputGrease") || document.getElementById("selectGrease");
+      const greaseName = selectGrease ? selectGrease.value : "Interflon Grease MP2/3";
+      const totalNeed = (dev.totalDailyNeed && dev.totalDailyNeed > 0)
+        ? dev.totalDailyNeed
+        : ((window.currentDailyNeedCm3 || 0.704) * (dev.points || 1));
+      const smartAdv = getOptimalSmartAdvice(totalNeed, newType, greaseName);
+      dev.cap = smartAdv.cap;
+      dev.period = smartAdv.months;
+    }
+    saveAutomationStateToLocalStorage();
+    renderAutoDevicesUI();
+    calculateAutomationLubrication();
+    if (typeof updateRoiAutomationPage === "function") updateRoiAutomationPage();
+  }
+}
+window.onDeviceTypeChange = onDeviceTypeChange;
 
 // Helper to calculate recommended lubricator setting months:
 // Respects physical device display settings (e.g. MSP 125/250ml: 1, 2, 3, 6, 12; MSP 500ml: 1, 2, 4, 5, 6, 12, 18, 24)
@@ -279,13 +315,12 @@ function getOptimalSmartAdvice(totalDailyNeedCm3, deviceKey, greaseName) {
     const cartridgesPerYear = 12 / settingMonths;
     const annualCartridgeCost = cartridgesPerYear * unitPackPrice;
 
-    // Is het patroon een natuurlijke fit binnen de fysieke hardware instelruimte?
-    const isNatural = (theoMonths >= 0.75 && theoMonths <= (maxSettingMonths + 0.5));
-    // Valt de dosering binnen de 'groene zone' van de app (0.85 .. 1.15, max 15% afwijking)?
+    // Is het patroon een natuurlijke fit binnen de fysieke hardware instelruimte of veilige doseerzone?
     const isGreen = (ratio >= 0.85 && ratio <= 1.15);
     const isSafeLubrication = (ratio >= 0.85 && ratio <= 1.40);
     const isAcceptable = (ratio >= 0.85 && ratio <= 1.65);
     const isUnderLubricated = (ratio < 0.85);
+    const isNatural = (theoMonths >= 0.75 && (theoMonths <= (maxSettingMonths + 0.5) || isGreen || isSafeLubrication));
 
     candidates.push({
       cap: cap,
@@ -343,7 +378,13 @@ function getOptimalSmartAdvice(totalDailyNeedCm3, deviceKey, greaseName) {
       if (a.months === 1 && b.months > 1) return 1;
       if (b.months === 1 && a.months > 1) return -1;
 
-      // 2. Voorkeur voor minder onderhoudswissels per jaar (langere leeglooptijd):
+      // 2. 12 maanden is de gouden standaard voor een jaarlijkse onderhoudscyclus (exact 1 preventieve wissel per jaar bij de inspectie/stop).
+      // Runtimes > 12 maanden (bv. 18 of 24 maanden) verhogen het risico op vetveroudering/olieafscheiding
+      // en hebben een lagere voorkeur dan een veilige jaarlijkse 12-maands cyclus:
+      if (a.months === 12 && b.months > 12) return -1;
+      if (b.months === 12 && a.months > 12) return 1;
+
+      // 3. Voorkeur voor minder onderhoudswissels per jaar (langere leeglooptijd):
       // Als een patroon minstens 1 maand langer meegaat en het kostenverschil acceptabel is (<= € 100/jaar),
       // weegt de halvering van de arbeidsuren en wisselrondes zwaarder dan een kleine meerprijs in vet:
       if (a.months !== b.months) {
@@ -405,7 +446,8 @@ function applyAutoRecommendationForDevice(devId) {
     const totalNeed = (deviceKey === "single_point")
       ? ((dev.dailyNeedCm3 && dev.dailyNeedCm3 > 0) ? dev.dailyNeedCm3 : (dailyNeedCm3 > 0 ? dailyNeedCm3 : 0.704))
       : ((dev.totalDailyNeed && dev.totalDailyNeed > 0) ? dev.totalDailyNeed : (dailyNeedCm3 * (dev.points || 1)));
-    const smartAdv = getOptimalSmartAdvice(totalNeed, deviceKey, greaseName);
+    const devType = (deviceKey === "single_point") ? "single_point" : (dev.type || deviceKey || "pulsarlube_m2");
+    const smartAdv = getOptimalSmartAdvice(totalNeed, devType, greaseName);
 
     dev.cap = smartAdv.cap;
     dev.period = smartAdv.months;
@@ -1221,8 +1263,12 @@ function applySurveyConfig(config) {
         autoDevicesState[i].bearingDetailsSummary = '';
       }
 
+      // Determine and store device type for THIS specific device
+      const thisDevType = (devCfg.type && devCfg.type.startsWith('pulsarlube')) ? devCfg.type : targetType;
+      autoDevicesState[i].type = thisDevType;
+
       // Automatically apply optimal smart advice for this specific device
-      const smartAdv = getOptimalSmartAdvice(finalTotalDailyNeed, targetType, greaseName);
+      const smartAdv = getOptimalSmartAdvice(finalTotalDailyNeed, thisDevType, greaseName);
       autoDevicesState[i].cap = smartAdv.cap;
       autoDevicesState[i].period = smartAdv.months;
     }
@@ -3302,9 +3348,10 @@ function renderAutoDevicesUI() {
 
   for (let i = 0; i < numDevices; i++) {
     const dev = autoDevicesState[i];
+    const cardDevType = isSinglePoint ? "single_point" : (dev.type || deviceKey || "pulsarlube_m2");
     const selectGrease = document.getElementById("inputGrease") || document.getElementById("selectGrease");
     const greaseName = selectGrease ? selectGrease.value : "Interflon Grease MP2/3";
-    const pInfo = getAutomationPriceInfo(deviceKey, dev.cap, greaseName, dev.points, dev.customPackPrice || (i === 0 ? window.customSinglePointPackPrice : 0));
+    const pInfo = getAutomationPriceInfo(cardDevType, dev.cap, greaseName, dev.points, dev.customPackPrice || (i === 0 ? window.customSinglePointPackPrice : 0));
     const spGrpUnits = isSinglePoint ? (isSpMultiGroup ? (dev.unitCount || (dev.bearingLetters ? dev.bearingLetters.length : 1)) : (window.spNumBearingsValue || dev.unitCount || 1)) : (dev.points || 1);
     if (isSinglePoint) {
       dev.points = 1;
@@ -3312,6 +3359,14 @@ function renderAutoDevicesUI() {
     }
     const devId = dev.id;
     lang = currentLang || "nl";
+
+    const validDispenseMonths = getValidDispenseMonths(cardDevType, dev.cap);
+    const maxMonths = validDispenseMonths[validDispenseMonths.length - 1];
+    let devShortName = "";
+    if (cardDevType === "pulsarlube_msp" || cardDevType === "pulsarlube_msp_oil") devShortName = "MSP";
+    else if (cardDevType === "pulsarlube_m2") devShortName = "M2";
+    else if (cardDevType === "pulsarlube_plc") devShortName = "PLC";
+    const isPulsarlubeSpecial = !!devShortName && [60, 125, 250, 500].includes(dev.cap);
 
     let devName = "";
     let headerTitle = "";
@@ -3331,9 +3386,12 @@ function renderAutoDevicesUI() {
         badgeHtml = `<span style="background-color: #166534; color: white; font-weight: 800; font-size: 11px; padding: 4px 12px; border-radius: 12px; text-transform: uppercase; white-space: nowrap; flex-shrink: 0;">${totalU}x Single Point</span>`;
       }
     } else {
-      devName = (numDevices === 1 ? (lang === "fr" ? "Appareil Pulsarlube" : (lang === "en" ? "Pulsarlube Device" : "Pulsarlube Smeertoestel")) : ("Pulsarlube " + devId));
-      headerTitle = (numDevices === 1) ? (lang === "fr" ? "Paramètres de l'Appareil & Réglage de Lubrification" : (lang === "en" ? "Device Parameters & Lubrication Setting" : "Toestel Parameters & Smeerinstelling")) : (devName + (lang === "fr" ? " - Réglage & Volume" : (lang === "en" ? " - Setting & Volume" : " - Smeerinstelling & Volumecalculatie")));
-      badgeHtml = numDevices > 1 ? `<span style="background-color: #E30613; color: white; font-weight: 800; font-size: 11px; padding: 4px 12px; border-radius: 12px; text-transform: uppercase; white-space: nowrap; flex-shrink: 0;">Toestel ${devId}</span>` : '';
+      const thisDevTypeName = getDeviceTypeName(cardDevType);
+      devName = (numDevices === 1 ? thisDevTypeName : `Toestel ${devId} (${devShortName})`);
+      headerTitle = (numDevices === 1)
+        ? (lang === "fr" ? "Paramètres de l'Appareil & Réglage de Lubrification" : (lang === "en" ? "Device Parameters & Lubrication Setting" : "Toestel Parameters & Smeerinstelling"))
+        : (`Pulsarlube ${devId} • ${thisDevTypeName}`);
+      badgeHtml = numDevices > 1 ? `<span style="background-color: #E30613; color: white; font-weight: 800; font-size: 11px; padding: 4px 12px; border-radius: 12px; text-transform: uppercase; white-space: nowrap; flex-shrink: 0;">Toestel ${devId} • ${devShortName}</span>` : '';
     }
 
     const pointsLabel = isSinglePoint ? (lang === "fr" ? "Nombre de points de graissage / roulements :" : (lang === "en" ? "Number of lubrication points / bearings:" : "Aantal te smeren smeerpunten / lagers:")) : (lang === "fr" ? `Nombre de points de graissage pour ${devName} :` : (lang === "en" ? `Nombre de points de graissage pour ${devName}:` : `Aantal smeerpunten voor ${devName}:`));
@@ -3362,15 +3420,6 @@ function renderAutoDevicesUI() {
       capOptionsHtml += `<option value="${c}"${cSel}>${c} ml</option>`;
     });
 
-    const validDispenseMonths = getValidDispenseMonths(deviceKey, dev.cap);
-    const maxMonths = validDispenseMonths[validDispenseMonths.length - 1];
-    let devShortName = "";
-    if (deviceKey === "pulsarlube_msp") devShortName = "MSP";
-    else if (deviceKey === "pulsarlube_m2") devShortName = "M2";
-    else if (deviceKey === "pulsarlube_plc") devShortName = "PLC";
-    else if (deviceKey === "pulsarlube_msp_oil") devShortName = "MSP";
-    const isPulsarlubeSpecial = !!devShortName && [60, 125, 250, 500].includes(dev.cap);
-
     if (dev.unit === "months" && !validDispenseMonths.includes(dev.period)) {
       let nearest = validDispenseMonths[0];
       let minDiff = Math.abs(dev.period - nearest);
@@ -3393,6 +3442,20 @@ function renderAutoDevicesUI() {
         </h4>
         ${badgeHtml}
       </div>
+
+      ${!isSinglePoint ? `
+      <!-- Device Type Selector per Device -->
+      <div class="auto-device-type-wrapper" style="margin-bottom: 14px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: var(--border-radius-sm); padding: 8px 12px; display: flex; align-items: center; justify-content: space-between; gap: 10px;">
+        <label for="autoDeviceType_${devId}" style="font-size: 12px; font-weight: 700; color: #475569; margin: 0; white-space: nowrap;">
+          🏷️ Model Toestel ${devId}:
+        </label>
+        <select id="autoDeviceType_${devId}" class="form-select" style="max-width: 230px; padding: 5px 10px; font-size: 12px; font-weight: 700; border-radius: var(--border-radius-sm); border: 1px solid #cbd5e1; background: #ffffff; color: var(--primary-dark);" onchange="onDeviceTypeChange('${devId}', this.value)">
+          <option value="pulsarlube_m2"${cardDevType === 'pulsarlube_m2' ? ' selected' : ''}>Pulsarlube M2 (Batterij)</option>
+          <option value="pulsarlube_msp"${cardDevType === 'pulsarlube_msp' ? ' selected' : ''}>Pulsarlube MSP (Synchroon)</option>
+          <option value="pulsarlube_plc"${cardDevType === 'pulsarlube_plc' ? ' selected' : ''}>Pulsarlube PLC (Extern)</option>
+        </select>
+      </div>
+      ` : ''}
 
       ${(!isSinglePoint && dev.bearingSummary) ? `
       <!-- Connected Bearings Badge from Questionnaire (Pulsarlube Multi-Point Only) -->
@@ -11238,6 +11301,7 @@ function calculateAutomationLubrication() {
     const hasAssignedBearings = Array.isArray(dev.bearingLetters) && dev.bearingLetters.length > 0;
     const isSurveyImported = Array.isArray(autoDevicesState) && autoDevicesState.some(d => Array.isArray(d.bearingLetters) && d.bearingLetters.length > 0);
 
+    const cardDevType = isSinglePoint ? "single_point" : (dev.type || deviceKey || "pulsarlube_m2");
     const totalDailyNeedForDev = isSinglePoint
       ? ((dev.dailyNeedCm3 && dev.dailyNeedCm3 > 0) ? dev.dailyNeedCm3 : (dailyNeedCm3 > 0 ? dailyNeedCm3 : 0.704))
       : ((dev.totalDailyNeed && dev.totalDailyNeed > 0) ? dev.totalDailyNeed : (points === 0 ? 0 : (dailyNeedCm3 * points)));
@@ -11249,7 +11313,7 @@ function calculateAutomationLubrication() {
     const recMonths = recDays / 30.4375;
     const recWeeks = recDays / 7;
 
-    const recSetting = getRecommendedSettingMonths(recMonths, deviceKey, capMl);
+    const recSetting = getRecommendedSettingMonths(recMonths, cardDevType, capMl);
     const dialLabel = `${recSetting.months} ${recSetting.months === 1 ? 'maand' : 'maanden'}`;
     const theoMonthsStr = recMonths > 10 ? `${Math.round(recMonths)} maanden` : `${recMonths.toLocaleString("nl-BE", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} maanden`;
 
@@ -11258,7 +11322,7 @@ function calculateAutomationLubrication() {
     if (dialValEl) dialValEl.textContent = dialLabel;
     if (theoValEl) theoValEl.textContent = theoMonthsStr;
 
-    const isDialDevice = (deviceKey === "single_point");
+    const isDialDevice = (cardDevType === "single_point");
     const settingTerm = isDialDevice ? "draaiknopstand" : "display instelling";
     const settingLabel = isDialDevice ? "Instelstand op toestel:" : "Display instelling op toestel:";
 
@@ -11268,7 +11332,7 @@ function calculateAutomationLubrication() {
     const pointsText = points === 0 ? "0 lagers" : (points === 1 ? "1 lager" : `${points} lagers`);
     const groupUnits = isSinglePoint ? (isSpMultiGroup ? (dev.unitCount || (dev.bearingLetters ? dev.bearingLetters.length : 1)) : (window.spNumBearingsValue || dev.unitCount || 1)) : points;
 
-    const smartAdv = getOptimalSmartAdvice(totalDailyNeedForDev, deviceKey, greaseName);
+    const smartAdv = getOptimalSmartAdvice(totalDailyNeedForDev, cardDevType, greaseName);
     const isSmartMatch = (capMl === smartAdv.cap && recSetting.months === smartAdv.months);
     const smartDialLabel = `${smartAdv.months} ${smartAdv.months === 1 ? 'maand' : 'maanden'}`;
 
@@ -11391,7 +11455,7 @@ function calculateAutomationLubrication() {
       }
       dev.period = parseFloat(periodInput.value) || 1;
     } else if (dev.userEditedPeriod && curUnit === "months" && periodInput) {
-      const validMonths = getValidDispenseMonths(deviceKey, capMl);
+      const validMonths = getValidDispenseMonths(cardDevType, capMl);
       if (!validMonths.includes(dev.period)) {
         let nearest = validMonths[0];
         let minDiff = Math.abs(dev.period - nearest);
@@ -11548,10 +11612,10 @@ function calculateAutomationLubrication() {
             </div>
           `);
         } else if (ratio < 0.85) {
-          const validMonths = getValidDispenseMonths(deviceKey, capMl);
+          const validMonths = getValidDispenseMonths(cardDevType, capMl);
           const lowerMonths = validMonths.filter(m => m < periodVal);
           const shorterSetting = lowerMonths.length > 0 ? lowerMonths[lowerMonths.length - 1] : null;
-          const availableCaps = (deviceKey === "single_point") ? [15, 60, 125, 250] : [60, 125, 250, 500];
+          const availableCaps = (cardDevType === "single_point") ? [15, 60, 125, 250] : [60, 125, 250, 500];
           const largerCaps = availableCaps.filter(c => c > capMl);
           const nextLargerCap = largerCaps.length > 0 ? largerCaps[0] : null;
 
@@ -15456,13 +15520,18 @@ function generateAutomationSpeechScript() {
   }
   if (totalPoints <= 0) totalPoints = numCards;
 
-  let deviceTypeName = "Pulsarlube";
-  if (deviceKey === "pulsarlube_m2") {
-    deviceTypeName = "Pulsarlube M2";
-  } else if (deviceKey === "pulsarlube_msp") {
-    deviceTypeName = "Pulsarlube MSP";
-  } else if (deviceKey === "pulsarlube_plc") {
-    deviceTypeName = "Pulsarlube PLC";
+  const distinctTypes = [...new Set(autoDevicesState.slice(0, numCards).map(d => d.type || deviceKey))];
+  let deviceTypeSummary = "";
+  if (distinctTypes.length === 1) {
+    const singleType = distinctTypes[0];
+    const typeName = getDeviceTypeName(singleType);
+    deviceTypeSummary = `${typeName} ${devicesNoun}`;
+  } else {
+    const breakdown = autoDevicesState.slice(0, numCards).map(d => {
+      const tName = getDeviceTypeName(d.type || deviceKey);
+      return `Toestel ${d.id} (${tName})`;
+    }).join(' en ');
+    deviceTypeSummary = `Pulsarlube ${devicesNoun} (${breakdown})`;
   }
 
   const pointsWord = (typeof numberToDutchWords === 'function') ? numberToDutchWords(totalPoints) : totalPoints.toString();
@@ -15472,12 +15541,13 @@ function generateAutomationSpeechScript() {
 
   let script = "";
   if (lang === "nl") {
-    script += `Bij de huidige selectie verdeelt u ${pointsWord} ${pointsNoun} over ${devicesWord} ${deviceTypeName} ${devicesNoun}. `;
+    script += `Bij de huidige selectie verdeelt u ${pointsWord} ${pointsNoun} over ${devicesWord} ${deviceTypeSummary}. `;
     script += `Op basis van leidingafstanden en individuele smeerbehoeften van de lagers is dit de ideale configuratie wat betreft keuze van de juiste toestellen en de leeglooptijd in maanden. `;
 
     for (let i = 0; i < numCards; i++) {
       const d = (autoDevicesState && autoDevicesState[i]) ? autoDevicesState[i] : { id: String.fromCharCode(65 + i) };
       const devId = d.id || String.fromCharCode(65 + i);
+      const devModelName = getDeviceTypeName(d.type || deviceKey);
 
       const devPts = d.points || 1;
       const devPeriod = d.period || 6;
@@ -15486,9 +15556,11 @@ function generateAutomationSpeechScript() {
       const devPtsWord = (typeof numberToDutchWords === 'function') ? numberToDutchWords(devPts) : devPts.toString();
       const devPtsNoun = devPts === 1 ? "lager" : "lagers";
 
+      const capMl = d.cap || 125;
+      const capWord = (typeof numberToDutchWords === 'function') ? numberToDutchWords(capMl) : capMl.toString();
+
       const dailyNeed = (d.dailyNeedCm3 && d.dailyNeedCm3 > 0) ? d.dailyNeedCm3 : ((typeof window !== 'undefined' && window.currentDailyNeedCm3) ? window.currentDailyNeedCm3 : 0.20);
       const totalDailyNeedForDev = d.totalDailyNeed && d.totalDailyNeed > 0 ? d.totalDailyNeed : dailyNeed * devPts;
-      const capMl = d.cap || 125;
       const totalDays = 30.4375 * devPeriod;
       const actualDosePerBearing = (capMl / totalDays) / (devPts > 0 ? devPts : 1);
       const targetNeedPerBearing = devPts > 0 ? (totalDailyNeedForDev / devPts) : 0;
@@ -15500,13 +15572,13 @@ function generateAutomationSpeechScript() {
       const isGraco = maxTheoMonths < 2.0;
 
       if (isGraco) {
-        script += `Voor Toestel ${devId}: vanwege een bijzonder hoge vetbehoefte wordt geadviseerd om een centraal Graco smeersysteem te overwegen. `;
+        script += `Voor Toestel ${devId} (${devModelName}): vanwege een bijzonder hoge vetbehoefte wordt geadviseerd om een centraal Graco smeersysteem te overwegen. `;
       } else {
         const isMatch = Math.abs(actualDosePerBearing - targetNeedPerBearing) < 0.03;
         if (isMatch) {
-          script += `Voor Toestel ${devId}: met een instelling van ${periodWord} ${periodUnitWord} doseert dit toestel ${doseSpoken} milliliter per dag per lager voor ${devPtsWord} ${devPtsNoun}, wat perfect aansluit bij de berekende vetbehoefte van ${needSpoken} milliliter per dag. `;
+          script += `Voor Toestel ${devId} (${devModelName}): met een patroon van ${capWord} milliliter en een instelling van ${periodWord} ${periodUnitWord} doseert dit toestel ${doseSpoken} milliliter per dag per lager voor ${devPtsWord} ${devPtsNoun}, wat perfect aansluit bij de berekende vetbehoefte van ${needSpoken} milliliter per dag. `;
         } else {
-          script += `Voor Toestel ${devId}: met een instelling van ${periodWord} ${periodUnitWord} doseert dit toestel ${doseSpoken} milliliter per dag per lager voor ${devPtsWord} ${devPtsNoun}, ten opzichte van een berekende behoefte van ${needSpoken} milliliter per dag. `;
+          script += `Voor Toestel ${devId} (${devModelName}): met een patroon van ${capWord} milliliter en een instelling van ${periodWord} ${periodUnitWord} doseert dit toestel ${doseSpoken} milliliter per dag per lager voor ${devPtsWord} ${devPtsNoun}, ten opzichte van een berekende behoefte van ${needSpoken} milliliter per dag. `;
         }
       }
     }
