@@ -66,6 +66,31 @@
       margin: 0 auto;
       font-weight: 400;
     }
+    .survey-header-clear-btn {
+      position: absolute;
+      top: 22px;
+      right: 28px;
+      background: #ffffff;
+      border: 1.5px solid #cbd5e1;
+      color: #64748b;
+      font-weight: 700;
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      transition: all 0.2s;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+      width: auto;
+      z-index: 10;
+    }
+    .survey-header-clear-btn:hover {
+      border-color: #dc2626;
+      color: #dc2626;
+      background-color: #fef2f2;
+    }
     .survey-body {
       padding: 32px 28px;
     }
@@ -96,6 +121,11 @@
       .grid-2 { grid-template-columns: 1fr; }
       .survey-body { padding: 20px 16px; }
       .survey-header { padding: 24px 16px; }
+      .survey-header-clear-btn {
+        position: static !important;
+        margin: 0 auto 16px auto !important;
+        display: inline-flex !important;
+      }
       .bearing-row { grid-template-columns: 1fr 1fr !important; gap: 8px !important; }
     }
     .form-group {
@@ -1043,17 +1073,11 @@
   <div class="survey-container">
     <!-- Header with Interflon Logo & Intro Text -->
     <div class="survey-header">
-      <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px;">
-        <div>
-          <img src="interflon-logo-clean.png" alt="Interflon Logo" class="survey-logo">
-          <h1 class="survey-title">Smeeranalyse & TCO Vragenlijst</h1>
-        </div>
-        <div style="display: flex; gap: 8px; margin-top: 6px;">
-          <button type="button" onclick="clearQuestionnaireData()" class="btn-secondary" style="background: #ffffff; border: 1.5px solid #cbd5e1; color: #64748b; font-weight: 700; padding: 8px 14px; border-radius: 8px; font-size: 13px; display: inline-flex; align-items: center; gap: 6px; cursor: pointer; transition: all 0.2s; box-shadow: 0 1px 3px rgba(0,0,0,0.05);" onmouseenter="this.style.borderColor='#dc2626'; this.style.color='#dc2626'; this.style.backgroundColor='#fef2f2';" onmouseleave="this.style.borderColor='#cbd5e1'; this.style.color='#64748b'; this.style.backgroundColor='#ffffff';" title="Wis alle ingevulde gegevens en begin opnieuw met een lege vragenlijst">
-            🗑️ Formulier wissen
-          </button>
-        </div>
-      </div>
+      <button type="button" onclick="clearQuestionnaireData()" class="btn-secondary survey-header-clear-btn" title="Wis alle ingevulde gegevens en begin opnieuw met een lege vragenlijst">
+        🗑️ Formulier wissen
+      </button>
+      <img src="interflon-logo-clean.png" alt="Interflon Logo" class="survey-logo">
+      <h1 class="survey-title">Smeeranalyse & TCO Vragenlijst</h1>
       <p class="survey-intro">
         Beste klant, om een nauwkeurige smeeranalyse en rendementsberekening (TCO) voor uw machinepark uit te voeren, vragen wij u vriendelijk onderstaande vragen in te vullen. Met deze gegevens berekenen onze technische specialisten de optimale smeerfrequentie, kostenbesparing en levensduurverlenging.
       </p>
