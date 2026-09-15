@@ -6132,6 +6132,13 @@
       }
 
       if (isUserImport) {
+        try {
+          const cleanUrl = new URL(window.location.href);
+          cleanUrl.searchParams.delete('new');
+          cleanUrl.searchParams.delete('blank');
+          cleanUrl.searchParams.delete('mode');
+          window.history.replaceState({}, document.title, cleanUrl.toString());
+        } catch (errUrl) {}
         alert('✅ Vragenlijst succesvol geïmporteerd!\nAlle machinegegevens, lagers en het machineraster zijn hersteld.');
         window.dispatchEvent(new CustomEvent('questionnaireImported', { detail: data }));
       }
@@ -6230,6 +6237,25 @@
             return;
           }
           restoreQuestionnaireDOM(data, true);
+
+          // Strip ?new=1, ?blank=1, ?mode=blank from URL so refresh NEVER wipes imported data
+          try {
+            const cleanUrl = new URL(window.location.href);
+            cleanUrl.searchParams.delete('new');
+            cleanUrl.searchParams.delete('blank');
+            cleanUrl.searchParams.delete('mode');
+            window.history.replaceState({}, document.title, cleanUrl.toString());
+          } catch (errUrl) {}
+
+          // Ensure imported data is solidly saved in localStorage
+          try {
+            localStorage.setItem('interflon_questionnaire_full_data', JSON.stringify(data));
+            localStorage.setItem('interflon_last_questionnaire_data', JSON.stringify(data));
+          } catch (eSave) {}
+
+          if (typeof showSurveyToast === 'function') {
+            showSurveyToast('✅ Vragenlijst succesvol geïmporteerd en bewaard!');
+          }
         } catch (err) {
           console.error("Fout bij importeren van vragenlijst:", err);
           alert('Er is een fout opgetreden bij het inlezen van het bestand: ' + err.message);
@@ -6371,14 +6397,12 @@
         }
       } catch (e) {}
 
-      // 9. Update URL query params without reloading
+      // 9. Clean URL query params without reloading
       try {
         const url = new URL(window.location.href);
         const contact = url.searchParams.get('contact') || url.searchParams.get('contact_email') || url.searchParams.get('interflon_email');
         url.search = '';
         if (contact) url.searchParams.set('contact', contact);
-        url.searchParams.set('new', '1');
-        url.searchParams.set('blank', '1');
         window.history.replaceState({}, document.title, url.toString());
       } catch (err) {}
 
@@ -7181,6 +7205,14 @@
       if (isBlankRequest) {
         console.log("Blanco vragenlijst verzocht via URL-parameter (new=1/blank=1). Oude sessiedata wordt gewist.");
         resetQuestionnaireFormToBlank(true);
+        // Immediately strip new and blank params from URL so refresh or subsequent actions NEVER re-wipe
+        try {
+          const cleanUrl = new URL(window.location.href);
+          cleanUrl.searchParams.delete('new');
+          cleanUrl.searchParams.delete('blank');
+          cleanUrl.searchParams.delete('mode');
+          window.history.replaceState({}, document.title, cleanUrl.toString());
+        } catch (e) {}
       }
 
       const contactEmail = urlParams.get('contact') || urlParams.get('contact_email') || urlParams.get('interflon_email');
@@ -7243,8 +7275,13 @@
             const hasGeneral = savedData.general && (savedData.general.machineName || savedData.general.machineBrand || savedData.general.application);
             const hasContact = savedData.contact && (savedData.contact.clientCompany || savedData.contact.clientContact || savedData.contact.clientEmail);
             const hasMultipleBearings = Array.isArray(savedData.bearings) && savedData.bearings.length > 1;
+            const hasSec2 = savedData.bearingDataMapSec2 && Object.values(savedData.bearingDataMapSec2).some(d => d && (d.q11 || d.q12_price || d.q4_freq_num || d.q29_life));
+            const hasSec3 = savedData.bearingDataMapSec3 && Object.values(savedData.bearingDataMapSec3).some(d => d && (d.q15 || d.q16));
+            const hasSec4 = savedData.bearingDataMapSec4 && Object.values(savedData.bearingDataMapSec4).some(d => d && (d.q24 || d.q25 || d.q26 || d.q28 || d.q30));
+            const hasDevices = savedData.raster && Array.isArray(savedData.raster.devices) && savedData.raster.devices.length > 1;
+            const hasSurveyRasterConfig = savedData.surveyRasterConfig && Array.isArray(savedData.surveyRasterConfig.bearings) && savedData.surveyRasterConfig.bearings.length > 0;
 
-            if (hasBearings || hasGeneral || hasContact || hasMultipleBearings) {
+            if (hasBearings || hasGeneral || hasContact || hasMultipleBearings || hasSec2 || hasSec3 || hasSec4 || hasDevices || hasSurveyRasterConfig) {
               console.log("Restoring saved questionnaire from localStorage on page load...");
               window.__questionnaireRestoring = true;
               restoreQuestionnaireDOM(savedData, false);
@@ -7275,6 +7312,15 @@
         let autoSaveTimer = null;
         const debouncedSave = () => {
           if (window.__questionnaireRestoring || window.__isClearingQuestionnaire) return;
+          try {
+            const curUrl = new URL(window.location.href);
+            if (curUrl.searchParams.has('new') || curUrl.searchParams.has('blank') || curUrl.searchParams.has('mode')) {
+              curUrl.searchParams.delete('new');
+              curUrl.searchParams.delete('blank');
+              curUrl.searchParams.delete('mode');
+              window.history.replaceState({}, document.title, curUrl.toString());
+            }
+          } catch (e) {}
           clearTimeout(autoSaveTimer);
           autoSaveTimer = setTimeout(() => {
             if (typeof saveRasterConfigToLocalStorage === 'function') {
