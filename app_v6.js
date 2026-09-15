@@ -11212,7 +11212,7 @@ function calculateAutomationLubrication() {
                 ${devBreakdowns.join(' &bull; ')}
               </div>
               <div style="font-size: 11.5px; color: #166534; margin-top: 3px;">
-                ${isSinglePoint ? 'Omdat de lagers verschillende vetbehoeften hebben, adviseert de app het optimale Single Point toestel en de juiste looptijd per lagergroep.' : 'Elk toestel heeft zijn eigen berekende vetbehoefte op basis van het toerental (RPM) en lagertype van de aangesloten lagers.'}
+                ${isSinglePoint ? 'Omdat de lagers verschillende vetbehoeften hebben, adviseren wij het optimale Single Point toestel en de juiste looptijd per lagergroep.' : 'Elk toestel heeft zijn eigen berekende vetbehoefte op basis van het toerental (RPM) en lagertype van de aangesloten lagers.'}
               </div>
             </div>
           </div>
@@ -15451,7 +15451,7 @@ function generateAutomationSpeechScript() {
       }
 
       let script = `Bij de huidige selectie voorziet u ${lagersWord} lagers van een rechtstreekse automatische smering met in totaal ${totalUnitsWord} Single Point Lubricators, direct gemonteerd op de smeerpunten. `;
-      script += `Om optimaal in te spelen op de toerentallen en individuele vetbehoeften van uw lagers adviseert de app ${groupSummaryPhrase} om ${totalUnitsWord} lagers in totaal te smeren. `;
+      script += `Om optimaal in te spelen op de toerentallen en individuele vetbehoeften van uw lagers adviseren wij ${groupSummaryPhrase} om ${totalUnitsWord} lagers in totaal te smeren. `;
 
       spGroups.forEach(g => {
         const uCount = g.unitCount || (g.bearingLetters ? g.bearingLetters.length : 1);
