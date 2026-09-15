@@ -14657,11 +14657,93 @@ function updateRoiAutomationPage() {
 }
 
 /* ==========================================================================
-   INTERACTIVE AI AVATAR SPEECH CONTROLLER (EMMA - INTERFLON SPECIALIST)
+   INTERACTIVE AI AVATAR SPEECH CONTROLLER (MICPOL - INTERFLON SPECIALIST)
    ========================================================================== */
 let isRoiAvatarSpeaking = false;
 let roiSpeechQueue = [];
 let roiSpeechVoices = [];
+
+function numberToDutchWords(n) {
+  n = Math.round(Math.abs(n));
+  if (n === 0) return 'nul';
+
+  const eenheden = ['', 'een', 'twee', 'drie', 'vier', 'vijf', 'zes', 'zeven', 'acht', 'negen',
+    'tien', 'elf', 'twaalf', 'dertien', 'veertien', 'vijftien', 'zestien', 'zeventien', 'achttien', 'negentien'];
+  const tientallen = ['', '', 'twintig', 'dertig', 'veertig', 'vijftig', 'zestig', 'zeventig', 'tachtig', 'negentig'];
+
+  function onder100(num) {
+    if (num === 0) return '';
+    if (num < 20) return eenheden[num];
+    const t = Math.floor(num / 10);
+    const e = num % 10;
+    if (e === 0) return tientallen[t];
+    const voegwoord = (e === 2 || e === 3) ? 'ën' : 'en';
+    return eenheden[e] + voegwoord + tientallen[t];
+  }
+
+  function onder1000(num) {
+    if (num === 0) return '';
+    const h = Math.floor(num / 100);
+    const rest = num % 100;
+    let res = '';
+    if (h === 1) {
+      res = 'honderd';
+    } else if (h > 1) {
+      res = eenheden[h] + 'honderd';
+    }
+    if (rest > 0) {
+      if (res) {
+        res += 'en' + onder100(rest);
+      } else {
+        res = onder100(rest);
+      }
+    }
+    return res;
+  }
+
+  function convert(num) {
+    if (num === 0) return '';
+    let str = '';
+    const m = Math.floor(num / 1000000);
+    let rest = num % 1000000;
+    if (m > 0) {
+      str += (m === 1 ? 'een miljoen ' : convert(m) + ' miljoen ');
+    }
+    const d = Math.floor(rest / 1000);
+    rest = rest % 1000;
+    if (d > 0) {
+      if (d === 1) {
+        str += 'duizend ';
+      } else {
+        str += onder1000(d) + 'duizend ';
+      }
+    }
+    if (rest > 0) {
+      str += onder1000(rest);
+    }
+    return str.trim();
+  }
+
+  return convert(n);
+}
+
+function sanitizeDeviceNameForSpeech(name, lang) {
+  if (!name) return "";
+  let clean = name;
+  if (lang === "nl" || !lang) {
+    const dutchNumWords = ['', 'één', 'twee', 'drie', 'vier', 'vijf', 'zes', 'zeven', 'acht', 'negen', 'tien'];
+    clean = clean.replace(/(\d+)\s*[xX]\b/g, (match, p1) => {
+      const n = parseInt(p1, 10);
+      const w = (n >= 1 && n <= 10) ? dutchNumWords[n] : p1;
+      return `${w} maal `;
+    });
+  } else if (lang === "fr") {
+    clean = clean.replace(/(\d+)\s*[xX]\b/g, '$1 fois ');
+  } else if (lang === "en") {
+    clean = clean.replace(/(\d+)\s*[xX]\b/g, '$1 times ');
+  }
+  return clean.replace(/\s+/g, ' ').trim();
+}
 
 function initRoiAvatarVoices() {
   if (typeof window !== "undefined" && "speechSynthesis" in window) {
@@ -14799,7 +14881,8 @@ function generateRoiSpeechScript() {
   const year1Num = parseNumFromText(rawYear1);
   const multiYearNum = parseNumFromText(rawMultiYear);
 
-  const deviceName = getCleanVal("roiAutoDeviceName") || (lang === "fr" ? "le graissage automatique Interflon" : (lang === "en" ? "Interflon automatic lubrication" : "automatische Interflon smering"));
+  const rawDeviceName = getCleanVal("roiAutoDeviceName") || (lang === "fr" ? "le graissage automatique Interflon" : (lang === "en" ? "Interflon automatic lubrication" : "automatische Interflon smering"));
+  const deviceName = sanitizeDeviceNameForSpeech(rawDeviceName, lang);
 
   let bearingCount = 0;
   if (typeof autoSelectedBearings !== "undefined" && Array.isArray(autoSelectedBearings) && autoSelectedBearings.length > 0) {
@@ -14810,8 +14893,11 @@ function generateRoiSpeechScript() {
 
   const formatEuro = (amount) => {
     const rounded = Math.round(Math.abs(amount));
-    if (rounded === 0) return "0 euro";
-    const loc = lang === "fr" ? "fr-FR" : (lang === "en" ? "en-US" : "nl-NL");
+    if (rounded === 0) return "nul euro";
+    if (lang === "nl") {
+      return numberToDutchWords(rounded) + " euro";
+    }
+    const loc = lang === "fr" ? "fr-FR" : "en-US";
     const suffix = lang === "en" ? "euros" : "euro";
     return rounded.toLocaleString(loc) + " " + suffix;
   };
@@ -14891,14 +14977,15 @@ function generateRoiSpeechScript() {
   if (rawPayback.toLowerCase().includes("direct")) {
     script += `De investering is direct vanaf dag één rendabel. `;
   } else {
-    const paybackClean = rawPayback.split("(")[0].trim();
+    let paybackClean = rawPayback.split("(")[0].trim();
+    paybackClean = paybackClean.replace(/(\d+),(\d+)/, "$1 komma $2");
     if (paybackClean) {
       script += `De totale investering heeft een bijzonder snelle terugverdientijd van slechts ${paybackClean}. `;
     }
   }
 
   if (multiYearNum > 0) {
-    script += `Over een periode van ${numYears} jaar loopt uw totale nettobesparing op tot ruim ${formatEuro(multiYearNum)}. `;
+    script += `Over een periode van ${numYears} jaar loopt uw totale nettobesparing op tot ${formatEuro(multiYearNum)}. `;
   }
 
   script += `Bovendien ontstaat het grootste voordeel in de praktijk door maximale bedrijfszekerheid: minder lagerschade, lagere revisiekosten en het vermijden van ongeplande machinestilstand.`;
