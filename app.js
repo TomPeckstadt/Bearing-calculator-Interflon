@@ -14656,6 +14656,331 @@ function updateRoiAutomationPage() {
   }
 }
 
+/* ==========================================================================
+   INTERACTIVE AI AVATAR SPEECH CONTROLLER (EMMA - INTERFLON SPECIALIST)
+   ========================================================================== */
+let isRoiAvatarSpeaking = false;
+let roiSpeechQueue = [];
+let roiSpeechVoices = [];
+
+function initRoiAvatarVoices() {
+  if (typeof window !== "undefined" && "speechSynthesis" in window) {
+    roiSpeechVoices = window.speechSynthesis.getVoices();
+    if (window.speechSynthesis.onvoiceschanged !== undefined) {
+      window.speechSynthesis.onvoiceschanged = () => {
+        roiSpeechVoices = window.speechSynthesis.getVoices();
+      };
+    }
+  }
+}
+initRoiAvatarVoices();
+
+function getBestVoiceForLang(langCode) {
+  if (!roiSpeechVoices || roiSpeechVoices.length === 0) {
+    if (typeof window !== "undefined" && "speechSynthesis" in window) {
+      roiSpeechVoices = window.speechSynthesis.getVoices();
+    }
+  }
+  if (!roiSpeechVoices || roiSpeechVoices.length === 0) return null;
+
+  const targetLang = (langCode || "nl").toLowerCase();
+  let filtered = [];
+
+  if (targetLang === "fr") {
+    filtered = roiSpeechVoices.filter(v => v.lang && v.lang.toLowerCase().startsWith("fr"));
+  } else if (targetLang === "en") {
+    filtered = roiSpeechVoices.filter(v => v.lang && v.lang.toLowerCase().startsWith("en"));
+  } else {
+    // Nederlands
+    filtered = roiSpeechVoices.filter(v => v.lang && (v.lang.toLowerCase().startsWith("nl") || v.lang.toLowerCase().includes("dutch")));
+  }
+
+  if (filtered.length === 0) {
+    filtered = roiSpeechVoices.filter(v => v.lang && v.lang.toLowerCase().startsWith("nl"));
+  }
+  if (filtered.length === 0) return null;
+
+  // 1. Zoek naar 'Natural', 'Neural' of 'Online' vrouwelijke stemmen (Edge / Chrome)
+  const naturalFemale = filtered.find(v => {
+    const name = v.name.toLowerCase();
+    const isNatural = name.includes("natural") || name.includes("online") || name.includes("neural") || name.includes("google");
+    const isFemale = name.includes("colette") || name.includes("fenna") || name.includes("dena") || name.includes("fleur") || 
+                     name.includes("denise") || name.includes("brigitte") || name.includes("hortense") || name.includes("jenny") ||
+                     name.includes("female") || name.includes("vrouw");
+    return isNatural && isFemale;
+  });
+  if (naturalFemale) return naturalFemale;
+
+  // 2. Zoek naar 'Natural' / 'Google' stemmen algemeen
+  const naturalAny = filtered.find(v => {
+    const name = v.name.toLowerCase();
+    return name.includes("natural") || name.includes("online") || name.includes("google") || name.includes("neural");
+  });
+  if (naturalAny) return naturalAny;
+
+  // 3. Zoek naar vrouwelijke stem
+  const femaleAny = filtered.find(v => {
+    const name = v.name.toLowerCase();
+    return name.includes("colette") || name.includes("fenna") || name.includes("dena") || name.includes("fleur") ||
+           name.includes("female") || name.includes("vrouw");
+  });
+  if (femaleAny) return femaleAny;
+
+  // 4. Eerste beschikbare stem
+  return filtered[0];
+}
+
+function setRoiAvatarUiState(speaking) {
+  isRoiAvatarSpeaking = speaking;
+  const container = document.getElementById("roiAvatarContainer");
+  const statusText = document.getElementById("roiAvatarStatusText");
+  const icon = document.getElementById("roiAvatarIcon");
+  const stopBtn = document.getElementById("roiAvatarStopBtn");
+  const lang = typeof currentLang !== "undefined" ? currentLang : "nl";
+
+  if (container) {
+    if (speaking) {
+      container.classList.add("speaking");
+    } else {
+      container.classList.remove("speaking");
+    }
+  }
+  if (statusText) {
+    if (speaking) {
+      statusText.textContent = lang === "fr" ? "En cours d'explication..." : (lang === "en" ? "Explaining..." : "Aan het toelichten...");
+    } else {
+      statusText.textContent = lang === "fr" ? "Écouter l'analyse" : (lang === "en" ? "Listen to summary" : "Toelichting beluisteren");
+    }
+  }
+  if (icon) {
+    icon.textContent = speaking ? "🔊" : "▶";
+  }
+  if (stopBtn) {
+    stopBtn.style.display = speaking ? "inline-flex" : "none";
+  }
+}
+
+function stopRoiAvatarSpeech() {
+  roiSpeechQueue = [];
+  if (typeof window !== "undefined" && "speechSynthesis" in window) {
+    try {
+      window.speechSynthesis.cancel();
+    } catch (e) {
+      console.warn("Fout bij annuleren van spraak:", e);
+    }
+  }
+  setRoiAvatarUiState(false);
+}
+
+function generateRoiSpeechScript() {
+  const getCleanVal = (id) => {
+    const el = document.getElementById(id);
+    if (!el) return "";
+    return (el.innerText || el.textContent || "").trim();
+  };
+
+  const parseNumFromText = (txt) => {
+    if (!txt) return 0;
+    const cleaned = txt.replace(/[^0-9,-]/g, '').replace(',', '.');
+    const v = parseFloat(cleaned);
+    return isNaN(v) ? 0 : v;
+  };
+
+  const lang = typeof currentLang !== "undefined" ? currentLang : "nl";
+
+  const rawNetYearly = getCleanVal("roiNetYearlySaving");
+  const rawYear1 = getCleanVal("roiYear1NetResult");
+  const rawPayback = getCleanVal("roiPaybackPeriod");
+  const rawMultiYear = getCleanVal("roiMultiYearSaving");
+  const yearsInput = document.getElementById("roiYearsInput");
+  const numYears = yearsInput ? (parseInt(yearsInput.value, 10) || 5) : 5;
+
+  const netYearlyNum = parseNumFromText(rawNetYearly);
+  const year1Num = parseNumFromText(rawYear1);
+  const multiYearNum = parseNumFromText(rawMultiYear);
+
+  const deviceName = getCleanVal("roiAutoDeviceName") || (lang === "fr" ? "le graissage automatique Interflon" : (lang === "en" ? "Interflon automatic lubrication" : "automatische Interflon smering"));
+
+  let bearingCount = 0;
+  if (typeof autoSelectedBearings !== "undefined" && Array.isArray(autoSelectedBearings) && autoSelectedBearings.length > 0) {
+    bearingCount = autoSelectedBearings.length;
+  } else if (typeof bearingsData !== "undefined" && Array.isArray(bearingsData) && bearingsData.length > 0) {
+    bearingCount = bearingsData.length;
+  }
+
+  const formatEuro = (amount) => {
+    const rounded = Math.round(Math.abs(amount));
+    if (rounded === 0) return "0 euro";
+    const loc = lang === "fr" ? "fr-FR" : (lang === "en" ? "en-US" : "nl-NL");
+    const suffix = lang === "en" ? "euros" : "euro";
+    return rounded.toLocaleString(loc) + " " + suffix;
+  };
+
+  if (lang === "fr") {
+    const ptTxt = bearingCount > 1 ? `pour les ${bearingCount} points de lubrification` : "pour votre installation";
+    let script = `Bienvenue. Permettez-moi de vous présenter les résultats de ce calcul financier ${ptTxt}. `;
+    script += `Dans la pratique manuelle actuelle, vos techniciens effectuent des tournées régulières de graissage, ce qui mobilise des heures précieuses et présente des risques de surdosage ou d'oubli de points. `;
+    script += `En adoptant ${deviceName}, vos roulements bénéficient d'un apport continu et extrêmement précis. Notre technologie exclusive MicPol assure un film lubrifiant ininterrompu et réduit drastiquement les frottements. `;
+    script += `Sur le plan financier, l'analyse démontre une rentabilité immédiate. `;
+    if (year1Num >= 0) {
+      script += `Dès la première année, vous réalisez une économie nette de ${formatEuro(year1Num)}, coût d'acquisition et installation complète inclus. `;
+    } else {
+      script += `La première année nécessite un investissement initial net de ${formatEuro(Math.abs(year1Num))}. `;
+    }
+    if (netYearlyNum > 0) {
+      script += `À partir de la deuxième année, votre gain structurel annuel s'élève à ${formatEuro(netYearlyNum)}. `;
+    }
+    if (rawPayback.toLowerCase().includes("direct")) {
+      script += `L'investissement est immédiatement rentable dès le premier jour. `;
+    } else {
+      const pClean = rawPayback.split("(")[0].trim();
+      if (pClean) script += `Le délai d'amortissement est particulièrement rapide avec seulement ${pClean}. `;
+    }
+    if (multiYearNum > 0) {
+      script += `Sur une durée de ${numYears} ans, votre économie nette cumulée atteint plus de ${formatEuro(multiYearNum)}. `;
+    }
+    script += `Enfin, le gain opérationnel majeur réside dans une fiabilité accrue : moins d'usure, baisse des coûts de révision et suppression des arrêts de production non planifiés.`;
+    return script;
+  }
+
+  if (lang === "en") {
+    const ptTxt = bearingCount > 1 ? `for the ${bearingCount} lubrication points` : "for your application";
+    let script = `Welcome. I would be pleased to present the results of this financial calculation ${ptTxt}. `;
+    script += `In your current manual practice, technicians perform periodic greasing rounds. This requires valuable labor hours and carries risks of over-lubrication or missed lubrication points. `;
+    script += `By switching to ${deviceName}, your bearings receive continuous and precisely metered lubrication. Our MicPol technology guarantees an unbroken protective lubricating film and drastically reduces friction. `;
+    script += `Looking at the financial return, the business case is compelling. `;
+    if (year1Num >= 0) {
+      script += `In year one, you achieve a net saving of ${formatEuro(year1Num)}, fully covering the equipment purchase and installation. `;
+    } else {
+      script += `In year one, the initial net investment is ${formatEuro(Math.abs(year1Num))}. `;
+    }
+    if (netYearlyNum > 0) {
+      script += `From year two onwards, your structural annual savings amount to ${formatEuro(netYearlyNum)} per year. `;
+    }
+    if (rawPayback.toLowerCase().includes("direct") || rawPayback.toLowerCase().includes("immediately")) {
+      script += `The investment is profitable immediately from day one. `;
+    } else {
+      const pClean = rawPayback.split("(")[0].trim();
+      if (pClean) script += `The payback period is exceptionally short at just ${pClean}. `;
+    }
+    if (multiYearNum > 0) {
+      script += `Over a ${numYears}-year period, your cumulative net savings will exceed ${formatEuro(multiYearNum)}. `;
+    }
+    script += `In addition, the greatest practical benefit comes from maximum reliability: longer component life, reduced overhaul costs, and avoidance of unplanned production downtime.`;
+    return script;
+  }
+
+  // Standaard: Nederlands
+  const bearingPhrase = bearingCount > 1 ? `voor de ${bearingCount} aangesloten smeerpunten` : (bearingCount === 1 ? "voor dit smeerpunt" : "voor uw smeerpunten");
+
+  let script = `Welkom. Graag licht ik de resultaten van deze berekening toe ${bearingPhrase}. `;
+  script += `In de huidige handmatige praktijk voeren uw medewerkers periodiek smeerrondes uit. Dit vraagt kostbare arbeidsuren en brengt risico's met zich mee op vergeten smeerpunten of overmatige vetdosering. `;
+  script += `Door over te stappen op ${deviceName} worden uw lagers volautomatisch en continu voorzien van de exact benodigde hoeveelheid smeermiddel. Onze hoogwaardige MicPol-technologie garandeert een ononderbroken beschermende smeerfilm en verlaagt de wrijving drastisch. `;
+  script += `Kijken we naar het financiële resultaat, dan levert dit direct een overtuigende businesscase op. `;
+
+  if (year1Num >= 0) {
+    script += `In het eerste jaar realiseert u een directe nettobesparing van ${formatEuro(year1Num)}, waarbij de volledige aanschaf en montage al is verrekend. `;
+  } else {
+    script += `In het eerste jaar vraagt de initiële investering een netto inzet van ${formatEuro(Math.abs(year1Num))}. `;
+  }
+
+  if (netYearlyNum > 0) {
+    script += `Vanaf het tweede jaar bespaart u structureel ${formatEuro(netYearlyNum)} per jaar aan vermeden arbeid en smeermiddel. `;
+  }
+
+  if (rawPayback.toLowerCase().includes("direct")) {
+    script += `De investering is direct vanaf dag één rendabel. `;
+  } else {
+    const paybackClean = rawPayback.split("(")[0].trim();
+    if (paybackClean) {
+      script += `De totale investering heeft een bijzonder snelle terugverdientijd van slechts ${paybackClean}. `;
+    }
+  }
+
+  if (multiYearNum > 0) {
+    script += `Over een periode van ${numYears} jaar loopt uw totale nettobesparing op tot ruim ${formatEuro(multiYearNum)}. `;
+  }
+
+  script += `Bovendien ontstaat het grootste voordeel in de praktijk door maximale bedrijfszekerheid: minder lagerschade, lagere revisiekosten en het vermijden van ongeplande machinestilstand.`;
+
+  return script;
+}
+
+function speakNextRoiSentence(voice) {
+  if (!isRoiAvatarSpeaking || roiSpeechQueue.length === 0) {
+    setRoiAvatarUiState(false);
+    return;
+  }
+
+  const sentence = roiSpeechQueue.shift();
+  if (!sentence || !sentence.trim()) {
+    speakNextRoiSentence(voice);
+    return;
+  }
+
+  const lang = typeof currentLang !== "undefined" ? currentLang : "nl";
+  const utter = new SpeechSynthesisUtterance(sentence.trim());
+  utter.lang = lang === "fr" ? "fr-FR" : (lang === "en" ? "en-US" : "nl-NL");
+  utter.rate = 0.98;
+  utter.pitch = 1.05;
+  if (voice) utter.voice = voice;
+
+  utter.onend = () => {
+    if (isRoiAvatarSpeaking && roiSpeechQueue.length > 0) {
+      speakNextRoiSentence(voice);
+    } else {
+      setRoiAvatarUiState(false);
+    }
+  };
+
+  utter.onerror = (e) => {
+    console.warn("Spraakfout:", e);
+    setRoiAvatarUiState(false);
+  };
+
+  window.speechSynthesis.speak(utter);
+}
+
+function toggleRoiAvatarSpeech() {
+  if (isRoiAvatarSpeaking) {
+    stopRoiAvatarSpeech();
+    return;
+  }
+
+  if (typeof window === "undefined" || !("speechSynthesis" in window)) {
+    alert("Uw browser ondersteunt helaas geen spraaksynthese (Web Speech API). Probeer Google Chrome of Microsoft Edge.");
+    return;
+  }
+
+  // Annuleer eventuele actieve spraak
+  window.speechSynthesis.cancel();
+
+  const script = generateRoiSpeechScript();
+  if (!script || !script.trim()) return;
+
+  // Split in afzonderlijke zinnen voor continue vloeiendheid zonder browser-timeouts
+  roiSpeechQueue = script.split(/(?<=[.?!])\s+/).filter(s => s.trim().length > 0);
+  if (roiSpeechQueue.length === 0) return;
+
+  const lang = typeof currentLang !== "undefined" ? currentLang : "nl";
+  const voice = getBestVoiceForLang(lang);
+
+  setRoiAvatarUiState(true);
+
+  if (window.speechSynthesis.paused) {
+    window.speechSynthesis.resume();
+  }
+
+  speakNextRoiSentence(voice);
+}
+
+// Zorg dat spraak stopt bij sluiten of verlaten van pagina
+if (typeof window !== "undefined") {
+  window.addEventListener("beforeunload", () => {
+    stopRoiAvatarSpeech();
+  });
+}
+
 
 function addRoiPdfPage(doc, dateString, watermarkDataUrl, aspectRatio, autoDataUrl) {
   const pVal = (id) => {
