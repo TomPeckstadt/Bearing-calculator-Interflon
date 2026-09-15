@@ -14200,30 +14200,6 @@ function updateRoiAutomationPage() {
 
   const numDevices = getActiveNumDevices();
 
-  // 1. Sync Image & Title from Automatisering
-  const roiImgEl = document.getElementById("roiDeviceImg");
-  const roiTitleEl = document.getElementById("roiDeviceTitle");
-  const roiSubtextEl = document.getElementById("roiDeviceSubtext");
-
-  let baseDeviceName = "Interflon Single Point Lubricator";
-  let imgSrc = "interflon-single-point-lubricator.png";
-
-  if (deviceKey === "pulsarlube_m2") {
-    baseDeviceName = "Pulsarlube M2";
-    imgSrc = "pulsarlube-m2.png";
-  } else if (deviceKey === "pulsarlube_msp") {
-    baseDeviceName = "Pulsarlube MSP";
-    imgSrc = "pulsarlube-msp.png";
-  } else if (deviceKey === "pulsarlube_plc") {
-    baseDeviceName = "Pulsarlube PLC";
-    imgSrc = "pulsarlube-plc.png?v=20260823_1525";
-  }
-
-  const fullDeviceTitle = numDevices === 1 ? baseDeviceName : `${numDevices}x ${baseDeviceName}`;
-
-  if (roiImgEl) roiImgEl.src = imgSrc;
-  if (roiTitleEl) roiTitleEl.textContent = fullDeviceTitle;
-
   // Selected Grease Name & Price per Liter
   const selectGrease = document.getElementById("inputGrease") || document.getElementById("selectGrease");
   const greaseName = selectGrease ? selectGrease.value : "Interflon Grease MP2/3";
@@ -14256,22 +14232,71 @@ function updateRoiAutomationPage() {
       totalPointsAllDevices += pts;
       var lang = currentLang || "nl";
       const bearingWord = lang === "fr" ? (pts === 1 ? "roulement" : "roulements") : (lang === "en" ? (pts === 1 ? "bearing" : "bearings") : (pts === 1 ? "lager" : "lagers"));
+      const thisDevType = d.type || deviceKey;
+      const devTypeName = getDeviceTypeName(thisDevType);
       if (pts === 0) {
-        devBreakdownText.push(`Pulsarlube ${d.id}: 0 ${bearingWord} (${lang === 'fr' ? 'non raccordé' : (lang === 'en' ? 'not connected' : 'niet aangesloten')})`);
+        devBreakdownText.push(`Toestel ${d.id} (${devTypeName}): 0 ${bearingWord} (${lang === 'fr' ? 'non raccordé' : (lang === 'en' ? 'not connected' : 'niet aangesloten')})`);
       } else {
-        devBreakdownText.push(`Pulsarlube ${d.id}: ${pts} ${bearingWord}`);
+        devBreakdownText.push(`Toestel ${d.id} (${devTypeName}): ${pts} ${bearingWord}`);
       }
     }
   }
+
+  // 1. Sync Image & Title from Automatisering
+  const roiImgEl = document.getElementById("roiDeviceImg");
+  const roiTitleEl = document.getElementById("roiDeviceTitle");
+  const roiSubtextEl = document.getElementById("roiDeviceSubtext");
+
+  let fullDeviceTitle = "";
+  let imgSrc = "interflon-single-point-lubricator.png";
+
+  if (deviceKey === "single_point") {
+    const totalSp = isSpMultiGroup ? totalPointsAllDevices : (window.spNumBearingsValue || (autoDevicesState[0] && autoDevicesState[0].unitCount) || 1);
+    fullDeviceTitle = totalSp > 1 ? `${totalSp}x Interflon Single Point Lubricator` : `Interflon Single Point Lubricator`;
+    imgSrc = "interflon-single-point-lubricator.png";
+  } else {
+    const typeCounts = {};
+    const typeOrder = [];
+    for (let i = 0; i < numDevices; i++) {
+      const d = (typeof autoDevicesState !== "undefined" && autoDevicesState[i]) ? autoDevicesState[i] : null;
+      const t = (d && d.type) ? d.type : deviceKey;
+      if (!typeCounts[t]) {
+        typeCounts[t] = 0;
+        typeOrder.push(t);
+      }
+      typeCounts[t]++;
+    }
+
+    if (numDevices === 1) {
+      fullDeviceTitle = getDeviceTypeName(typeOrder[0] || deviceKey);
+    } else {
+      const titleParts = typeOrder.map(t => `${typeCounts[t]}x ${getDeviceTypeName(t)}`);
+      fullDeviceTitle = titleParts.join(" + ");
+    }
+
+    const primaryType = typeOrder.includes("pulsarlube_msp") ? "pulsarlube_msp" : (typeOrder[0] || deviceKey);
+    if (primaryType === "pulsarlube_m2") {
+      imgSrc = "pulsarlube-m2.png";
+    } else if (primaryType === "pulsarlube_msp") {
+      imgSrc = "pulsarlube-msp.png";
+    } else if (primaryType === "pulsarlube_plc") {
+      imgSrc = "pulsarlube-plc.png?v=20260823_1525";
+    } else {
+      imgSrc = "pulsarlube-m2.png";
+    }
+  }
+
+  if (roiImgEl) roiImgEl.src = imgSrc;
+  if (roiTitleEl) roiTitleEl.textContent = fullDeviceTitle;
 
   if (roiSubtextEl) {
     var lang = currentLang || "nl";
     const ptsWord = lang === "fr" ? (totalPointsAllDevices === 1 ? "roulement" : "roulements") : (lang === "en" ? (totalPointsAllDevices === 1 ? "bearing" : "bearings") : (totalPointsAllDevices === 1 ? "lager" : "lagers"));
     const devListStr = (numDevices === 1 || (deviceKey === "single_point" && !isSpMultiGroup)) ? `${totalPointsAllDevices} ${ptsWord}` : devBreakdownText.join(" &bull; ");
-    var lang = currentLang || "nl";
     const numDevLabel = lang === "fr" ? "Nombre d'appareils :" : (lang === "en" ? "Number of devices:" : "Aantal toestellen:");
     const selGreaseLabel = lang === "fr" ? "Graisse sélectionnée :" : (lang === "en" ? "Selected grease:" : "Geselecteerd vet:");
-    roiSubtextEl.innerHTML = `${numDevLabel} <strong>${totalPointsAllDevices}</strong> (${devListStr}) &bull; ${selGreaseLabel} <strong>${greaseName}</strong>`;
+    const actualDevCount = (deviceKey === "single_point") ? totalPointsAllDevices : numDevices;
+    roiSubtextEl.innerHTML = `${numDevLabel} <strong>${actualDevCount}</strong> (${devListStr}) &bull; ${selGreaseLabel} <strong>${greaseName}</strong>`;
   }
 
   // 2. Annual Volume calculation for ALL points combined
@@ -14644,7 +14669,8 @@ function updateRoiAutomationPage() {
     const domCustomVal = domCustomPriceEl ? parseFloat(domCustomPriceEl.value) : 0;
     const spCustomFallback = window.customSinglePointPackPrice || (typeof autoDevicesState !== "undefined" && autoDevicesState[0] ? autoDevicesState[0].customPackPrice : 0);
     const activeCustomPrice = (!isNaN(domCustomVal) && domCustomVal > 0) ? domCustomVal : (d.customPackPrice || ((deviceKey === "single_point" || i === 0) ? spCustomFallback : 0));
-    const pInfo = getAutomationPriceInfo(deviceKey, cap, greaseName, pts, activeCustomPrice);
+    const thisDevType = (deviceKey === "single_point") ? "single_point" : (d.type || deviceKey);
+    const pInfo = getAutomationPriceInfo(thisDevType, cap, greaseName, pts, activeCustomPrice);
     
     if (deviceKey !== "single_point") {
       totalUnitsPrice += (pInfo.unitPrice * multiplier);
@@ -14670,6 +14696,8 @@ function updateRoiAutomationPage() {
 
     deviceBreakdownList.push({
       id: d.id,
+      type: thisDevType,
+      deviceTypeName: getDeviceTypeName(thisDevType),
       cap: cap,
       packPrice: pInfo.servicepackPrice,
       artNrPack: pInfo.artNrServicepack,
@@ -14754,7 +14782,8 @@ function updateRoiAutomationPage() {
       deviceBreakdownList.forEach(d => {
         const devName = lang === "fr" ? `Appareil ${d.id}` : (lang === "en" ? `Device ${d.id}` : `Toestel ${d.id}`);
         const priceFormatted = `€ ${d.unitPrice.toLocaleString(locCode, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-        devDetailsHtml += `<div>&bull; <strong>${devName}:</strong> ${priceFormatted} <em>(Art. ${d.artNrUnit} &bull; ${d.cap} ml)</em></div>`;
+        const typeLabel = (d.deviceTypeName && numDevices > 1) ? ` (${d.deviceTypeName})` : "";
+        devDetailsHtml += `<div>&bull; <strong>${devName}${typeLabel}:</strong> ${priceFormatted} <em>(Art. ${d.artNrUnit} &bull; ${d.cap} ml)</em></div>`;
       });
       if (autoDevicePriceDetailsEl) {
         autoDevicePriceDetailsEl.style.display = "block";
@@ -14806,8 +14835,9 @@ function updateRoiAutomationPage() {
         } else {
           const devName = lang === "fr" ? `Appareil ${d.id}` : (lang === "en" ? `Device ${d.id}` : `Toestel ${d.id}`);
           const cartsStr = `${d.cartsDev.toLocaleString(locCode, { minimumFractionDigits: 1, maximumFractionDigits: 1 })} ${perYearTxt}`;
+          const typeLabel = (d.deviceTypeName && numDevices > 1) ? ` (${d.deviceTypeName})` : "";
           const detailExtra = artPart ? `(${artPart} &bull; ${cartsStr})` : `(${cartsStr})`;
-          packDetailsHtml += `<div>&bull; <strong>${devName} (${d.cap} ml):</strong> ${priceFormatted} <em>${detailExtra}</em></div>`;
+          packDetailsHtml += `<div>&bull; <strong>${devName}${typeLabel} (${d.cap} ml):</strong> ${priceFormatted} <em>${detailExtra}</em></div>`;
         }
       });
 
@@ -14848,17 +14878,20 @@ function updateRoiAutomationPage() {
       }
       if (autoDivBlockCostEl) {
         if (numDevices === 1) {
-          const pInfo = getAutomationPriceInfo(deviceKey, 125, greaseName, autoDevicesState[0].points || 1);
+          const thisDevType = (autoDevicesState[0] && autoDevicesState[0].type) || deviceKey;
+          const pInfo = getAutomationPriceInfo(thisDevType, 125, greaseName, autoDevicesState[0].points || 1);
           autoDivBlockCostEl.innerHTML = `Art. ${pInfo.artNrDividerBlock} (${autoDevicesState[0].points}-poorts verdeelblok)`;
         } else {
           let listHtml = "";
           for (let i = 0; i < numDevices; i++) {
             const d = (typeof autoDevicesState !== "undefined" && autoDevicesState[i]) ? autoDevicesState[i] : { id: String.fromCharCode(65 + i), points: 1, cap: 125, period: 6, unit: "months" };
-            const pInfo = getAutomationPriceInfo(deviceKey, d.cap || 125, greaseName, d.points || 1);
+            const thisDevType = d.type || deviceKey;
+            const pInfo = getAutomationPriceInfo(thisDevType, d.cap || 125, greaseName, d.points || 1);
+            const devTypeName = getDeviceTypeName(thisDevType);
             if (pInfo.dividerBlockPrice > 0) {
-              listHtml += `<div>&bull; <strong>Toestel ${d.id}:</strong> € ${pInfo.dividerBlockPrice.toFixed(2).replace('.', ',')} <em>(Art. ${pInfo.artNrDividerBlock} &bull; ${d.points}-poorts)</em></div>`;
+              listHtml += `<div>&bull; <strong>Toestel ${d.id} (${devTypeName}):</strong> € ${pInfo.dividerBlockPrice.toFixed(2).replace('.', ',')} <em>(Art. ${pInfo.artNrDividerBlock} &bull; ${d.points}-poorts)</em></div>`;
             } else {
-              listHtml += `<div>&bull; <strong>Toestel ${d.id}:</strong> € 0,00 <em>(Directe aansluiting &bull; 1 lager)</em></div>`;
+              listHtml += `<div>&bull; <strong>Toestel ${d.id} (${devTypeName}):</strong> € 0,00 <em>(Directe aansluiting &bull; 1 lager)</em></div>`;
             }
           }
           autoDivBlockCostEl.innerHTML = listHtml;
@@ -15001,6 +15034,7 @@ function sanitizeDeviceNameForSpeech(name, lang) {
   if (!name) return "";
   let clean = name;
   if (lang === "nl" || !lang) {
+    clean = clean.replace(/\s*\+\s*/g, ' en ');
     const dutchNumWords = ['', 'één', 'twee', 'drie', 'vier', 'vijf', 'zes', 'zeven', 'acht', 'negen', 'tien'];
     clean = clean.replace(/(\d+)\s*[xX]\b/g, (match, p1) => {
       const n = parseInt(p1, 10);
@@ -15008,8 +15042,10 @@ function sanitizeDeviceNameForSpeech(name, lang) {
       return `${w} maal `;
     });
   } else if (lang === "fr") {
+    clean = clean.replace(/\s*\+\s*/g, ' et ');
     clean = clean.replace(/(\d+)\s*[xX]\b/g, '$1 fois ');
   } else if (lang === "en") {
+    clean = clean.replace(/\s*\+\s*/g, ' and ');
     clean = clean.replace(/(\d+)\s*[xX]\b/g, '$1 times ');
   }
   return clean.replace(/\s+/g, ' ').trim();
@@ -15791,7 +15827,9 @@ function addRoiPdfPage(doc, dateString, watermarkDataUrl, aspectRatio, autoDataU
     totalPointsAllDevices += (pts * multiplier);
 
     if (deviceKey !== "single_point") {
-      devBreakdownText.push(`Pulsarlube ${d.id}: ${pts} ${pts === 1 ? 'lager' : 'lagers'}`);
+      const thisDevType = d.type || deviceKey;
+      const devTypeName = getDeviceTypeName(thisDevType);
+      devBreakdownText.push(`Toestel ${d.id} (${devTypeName}): ${pts} ${pts === 1 ? 'lager' : 'lagers'}`);
     } else if (isSpMultiGroup) {
       const lStr = d.groupBearingsText || (d.bearingLetters ? d.bearingLetters.join(', ') : d.id);
       devBreakdownText.push(`${multiplier}x Single Point (Lager ${lStr})`);
@@ -15809,7 +15847,8 @@ function addRoiPdfPage(doc, dateString, watermarkDataUrl, aspectRatio, autoDataU
     const domCustomVal = domCustomPriceEl ? parseFloat(domCustomPriceEl.value) : 0;
     const spCustomFallback = window.customSinglePointPackPrice || (typeof autoDevicesState !== "undefined" && autoDevicesState[0] ? autoDevicesState[0].customPackPrice : 0);
     const activeCustomPrice = (!isNaN(domCustomVal) && domCustomVal > 0) ? domCustomVal : (d.customPackPrice || ((deviceKey === "single_point" || i === 0) ? spCustomFallback : 0));
-    const pInfo = getAutomationPriceInfo(deviceKey, cap, greaseName, pts, activeCustomPrice);
+    const thisDevType = (deviceKey === "single_point") ? "single_point" : (d.type || deviceKey);
+    const pInfo = getAutomationPriceInfo(thisDevType, cap, greaseName, pts, activeCustomPrice);
     if (deviceKey !== "single_point") {
       totalUnitsPrice += (pInfo.unitPrice * multiplier);
       totalInstallKitPrice += (pInfo.installKitPrice * multiplier);
@@ -15848,14 +15887,27 @@ function addRoiPdfPage(doc, dateString, watermarkDataUrl, aspectRatio, autoDataU
   }
   const yearlyMlTotal = totalDailyNeedAllDevices * 365.25;
 
-  let baseDeviceName = "Interflon Single Point Lubricator";
-  if (deviceKey === "pulsarlube_m2") baseDeviceName = "Pulsarlube M2";
-  else if (deviceKey === "pulsarlube_msp") baseDeviceName = "Pulsarlube MSP";
-  else if (deviceKey === "pulsarlube_plc") baseDeviceName = "Pulsarlube PLC";
-
-  const fullDeviceTitle = (deviceKey === "single_point")
-    ? (numPoints > 1 ? `${numPoints}x ${baseDeviceName}` : baseDeviceName)
-    : (numDevices === 1 ? baseDeviceName : `${numDevices}x ${baseDeviceName}`);
+  let fullDeviceTitle = "";
+  if (deviceKey === "single_point") {
+    fullDeviceTitle = (numPoints > 1 ? `${numPoints}x Interflon Single Point Lubricator` : "Interflon Single Point Lubricator");
+  } else if (numDevices === 1) {
+    const t = (autoDevicesState && autoDevicesState[0] && autoDevicesState[0].type) || deviceKey;
+    fullDeviceTitle = getDeviceTypeName(t);
+  } else {
+    const typeCounts = {};
+    const typeOrder = [];
+    for (let i = 0; i < numDevices; i++) {
+      const d = (typeof autoDevicesState !== "undefined" && autoDevicesState[i]) ? autoDevicesState[i] : null;
+      const t = (d && d.type) ? d.type : deviceKey;
+      if (!typeCounts[t]) {
+        typeCounts[t] = 0;
+        typeOrder.push(t);
+      }
+      typeCounts[t]++;
+    }
+    const titleParts = typeOrder.map(t => `${typeCounts[t]}x ${getDeviceTypeName(t)}`);
+    fullDeviceTitle = titleParts.join(" + ");
+  }
 
   // Banner Box
   doc.setFillColor(248, 250, 252);
