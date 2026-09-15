@@ -2171,6 +2171,28 @@
                 <span style="font-size: 12.5px; color: #64748b;" data-i18n="roiFinancialAnalysisSubtitle">Directe vergelijking manuele arbeid & vet vs. automatische smeermodule</span>
               </div>
             </div>
+
+            <!-- AI AVATAR SPEECH ADVISOR -->
+            <div id="roiAvatarContainer" class="roi-avatar-container" onclick="toggleRoiAvatarSpeech()" title="Klik om de toelichting te starten of te stoppen">
+              <div class="roi-avatar-img-wrapper">
+                <div class="roi-avatar-pulse-ring"></div>
+                <img src="interflon-avatar.jpg" alt="Interflon AI Adviseur" class="roi-avatar-img">
+                <div class="roi-avatar-mic-badge" id="roiAvatarMicBadge">🎙️</div>
+              </div>
+              <div class="roi-avatar-text-block">
+                <div class="roi-avatar-name-row">
+                  <span class="roi-avatar-name">Emma</span>
+                  <span class="roi-avatar-role">Interflon Specialist</span>
+                </div>
+                <div class="roi-avatar-status" id="roiAvatarStatus">
+                  <span class="roi-avatar-icon" id="roiAvatarIcon">▶</span>
+                  <span id="roiAvatarStatusText">Toelichting beluisteren</span>
+                </div>
+              </div>
+              <button type="button" id="roiAvatarStopBtn" class="roi-avatar-stop-btn" style="display: none;" onclick="event.stopPropagation(); stopRoiAvatarSpeech();" title="Toelichting stoppen">
+                ⏹ Stop
+              </button>
+            </div>
           </div>
 
           <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; text-align: center;">
