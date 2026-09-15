@@ -187,7 +187,7 @@ function getValidDispenseMonths(deviceKey, capMl) {
     return [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
   }
   if (dev === "pulsarlube_m2") {
-    return [1, 2, 3, 6, 12];
+    return [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
   }
   return [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
 }
