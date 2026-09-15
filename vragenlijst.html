@@ -1043,8 +1043,17 @@
   <div class="survey-container">
     <!-- Header with Interflon Logo & Intro Text -->
     <div class="survey-header">
-      <img src="interflon-logo-clean.png" alt="Interflon Logo" class="survey-logo">
-      <h1 class="survey-title">Smeeranalyse & TCO Vragenlijst</h1>
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px;">
+        <div>
+          <img src="interflon-logo-clean.png" alt="Interflon Logo" class="survey-logo">
+          <h1 class="survey-title">Smeeranalyse & TCO Vragenlijst</h1>
+        </div>
+        <div style="display: flex; gap: 8px; margin-top: 6px;">
+          <button type="button" onclick="clearQuestionnaireData()" class="btn-secondary" style="background: #ffffff; border: 1.5px solid #cbd5e1; color: #64748b; font-weight: 700; padding: 8px 14px; border-radius: 8px; font-size: 13px; display: inline-flex; align-items: center; gap: 6px; cursor: pointer; transition: all 0.2s; box-shadow: 0 1px 3px rgba(0,0,0,0.05);" onmouseenter="this.style.borderColor='#dc2626'; this.style.color='#dc2626'; this.style.backgroundColor='#fef2f2';" onmouseleave="this.style.borderColor='#cbd5e1'; this.style.color='#64748b'; this.style.backgroundColor='#ffffff';" title="Wis alle ingevulde gegevens en begin opnieuw met een lege vragenlijst">
+            🗑️ Formulier wissen
+          </button>
+        </div>
+      </div>
       <p class="survey-intro">
         Beste klant, om een nauwkeurige smeeranalyse en rendementsberekening (TCO) voor uw machinepark uit te voeren, vragen wij u vriendelijk onderstaande vragen in te vullen. Met deze gegevens berekenen onze technische specialisten de optimale smeerfrequentie, kostenbesparing en levensduurverlenging.
       </p>
@@ -4676,9 +4685,12 @@
     // --- SAVE RASTER CONFIGURATION FOR AUTOMATION IMPORT ---
     function saveRasterConfigToLocalStorage() {
       if (window.__isSavingRasterConfig) return null;
+      if (window.__isClearingQuestionnaire || window.__questionnaireRestoring) {
+        return null;
+      }
       window.__isSavingRasterConfig = true;
       try {
-        if (window.__questionnaireRestoring) {
+        if (window.__isClearingQuestionnaire || window.__questionnaireRestoring) {
           return null;
         }
 
@@ -4893,12 +4905,12 @@
           bearingDataMapSec3: (typeof bearingDataMapSec3 !== "undefined") ? JSON.parse(JSON.stringify(bearingDataMapSec3)) : null
         };
 
-        localStorage.setItem('interflon_survey_raster_config', JSON.stringify(configToSave));
         window.currentSurveyRasterConfig = configToSave;
 
         // Also save snapshot of full questionnaire for seamless sync with Automatisering
         try {
           const q1El = document.getElementById('q1');
+          const clientCompEl = document.getElementById('clientCompany');
           const hasSec2Input = (typeof bearingDataMapSec2 !== 'undefined' && bearingDataMapSec2) && Object.values(bearingDataMapSec2).some(d => d && (d.q11 || d.q12_price || d.q4_freq_num || d.q29_life));
           const hasSec3Input = (typeof bearingDataMapSec3 !== 'undefined' && bearingDataMapSec3) && Object.values(bearingDataMapSec3).some(d => d && (d.q15 || d.q16));
           const hasSec4Input = (typeof bearingDataMapSec4 !== 'undefined' && bearingDataMapSec4) && Object.values(bearingDataMapSec4).some(d => d && (d.q24 || d.q25 || d.q26 || d.q28 || d.q30));
@@ -4908,49 +4920,49 @@
                                bearings.some(b => (b.nr && !b.nr.startsWith('Lager ')) || b.desc || b.rpm) ||
                                bearings.length > 1;
 
-          // If current DOM is empty and we already have saved data in localStorage, do NOT overwrite with blank!
-          if (!hasUserInput && localStorage.getItem('interflon_questionnaire_full_data')) {
-            return configToSave;
-          }
+          // Only persist to localStorage if user has entered data and we are not clearing
+          if (hasUserInput && !window.__isClearingQuestionnaire) {
+            localStorage.setItem('interflon_survey_raster_config', JSON.stringify(configToSave));
 
-          const generalData = {
-            machineName: machineName,
-            machineBrand: document.getElementById('q2') ? document.getElementById('q2').value : '',
-            application: document.getElementById('q3') ? document.getElementById('q3').value : '',
-            machineCount: document.getElementById('q10') ? document.getElementById('q10').value : '1'
-          };
-          const contactData = {
-            clientCompany: document.getElementById('clientCompany') ? document.getElementById('clientCompany').value : '',
-            clientContact: document.getElementById('clientContact') ? document.getElementById('clientContact').value : '',
-            clientEmail: document.getElementById('clientEmail') ? document.getElementById('clientEmail').value : '',
-            interflonContactEmail: document.getElementById('interflonContactEmail') ? document.getElementById('interflonContactEmail').value : ''
-          };
-          const fullData = {
-            fileType: 'Interflon_Smeeranalyse_Vragenlijst',
-            version: '1.0',
-            exportDate: new Date().toISOString(),
-            general: generalData,
-            contact: contactData,
-            bearings: bearings,
-            bearingDataMapSec2: (typeof bearingDataMapSec2 !== 'undefined') ? JSON.parse(JSON.stringify(bearingDataMapSec2)) : {},
-            bearingDataMapSec3: (typeof bearingDataMapSec3 !== 'undefined') ? JSON.parse(JSON.stringify(bearingDataMapSec3)) : {},
-            bearingDataMapSec4: (typeof bearingDataMapSec4 !== 'undefined') ? JSON.parse(JSON.stringify(bearingDataMapSec4)) : {},
-            activeBearings: {
-              sec2: (typeof activeBearingSec2 !== 'undefined') ? activeBearingSec2 : 'A',
-              sec3: (typeof activeBearingSec3 !== 'undefined') ? activeBearingSec3 : 'A',
-              sec4: (typeof activeBearingSec4 !== 'undefined') ? activeBearingSec4 : 'A'
-            },
-            raster: {
-              machineRangeMeters: (typeof machineRangeMeters !== 'undefined') ? machineRangeMeters : 10,
-              layoutViewMode: (typeof layoutViewMode !== 'undefined') ? layoutViewMode : '3d',
-              showCentralPoint: (typeof showCentralPoint !== 'undefined') ? showCentralPoint : false,
-              bearingPositions: (typeof bearingPositions !== 'undefined') ? JSON.parse(JSON.stringify(bearingPositions)) : {},
-              devices: (typeof devices !== 'undefined') ? JSON.parse(JSON.stringify(devices)) : []
-            },
-            surveyRasterConfig: configToSave
-          };
-          localStorage.setItem('interflon_questionnaire_full_data', JSON.stringify(fullData));
-          localStorage.setItem('interflon_last_questionnaire_data', JSON.stringify(fullData));
+            const generalData = {
+              machineName: machineName,
+              machineBrand: document.getElementById('q2') ? document.getElementById('q2').value : '',
+              application: document.getElementById('q3') ? document.getElementById('q3').value : '',
+              machineCount: document.getElementById('q10') ? document.getElementById('q10').value : '1'
+            };
+            const contactData = {
+              clientCompany: document.getElementById('clientCompany') ? document.getElementById('clientCompany').value : '',
+              clientContact: document.getElementById('clientContact') ? document.getElementById('clientContact').value : '',
+              clientEmail: document.getElementById('clientEmail') ? document.getElementById('clientEmail').value : '',
+              interflonContactEmail: document.getElementById('interflonContactEmail') ? document.getElementById('interflonContactEmail').value : ''
+            };
+            const fullData = {
+              fileType: 'Interflon_Smeeranalyse_Vragenlijst',
+              version: '1.0',
+              exportDate: new Date().toISOString(),
+              general: generalData,
+              contact: contactData,
+              bearings: bearings,
+              bearingDataMapSec2: (typeof bearingDataMapSec2 !== 'undefined') ? JSON.parse(JSON.stringify(bearingDataMapSec2)) : {},
+              bearingDataMapSec3: (typeof bearingDataMapSec3 !== 'undefined') ? JSON.parse(JSON.stringify(bearingDataMapSec3)) : {},
+              bearingDataMapSec4: (typeof bearingDataMapSec4 !== 'undefined') ? JSON.parse(JSON.stringify(bearingDataMapSec4)) : {},
+              activeBearings: {
+                sec2: (typeof activeBearingSec2 !== 'undefined') ? activeBearingSec2 : 'A',
+                sec3: (typeof activeBearingSec3 !== 'undefined') ? activeBearingSec3 : 'A',
+                sec4: (typeof activeBearingSec4 !== 'undefined') ? activeBearingSec4 : 'A'
+              },
+              raster: {
+                machineRangeMeters: (typeof machineRangeMeters !== 'undefined') ? machineRangeMeters : 10,
+                layoutViewMode: (typeof layoutViewMode !== 'undefined') ? layoutViewMode : '3d',
+                showCentralPoint: (typeof showCentralPoint !== 'undefined') ? showCentralPoint : false,
+                bearingPositions: (typeof bearingPositions !== 'undefined') ? JSON.parse(JSON.stringify(bearingPositions)) : {},
+                devices: (typeof devices !== 'undefined') ? JSON.parse(JSON.stringify(devices)) : []
+              },
+              surveyRasterConfig: configToSave
+            };
+            localStorage.setItem('interflon_questionnaire_full_data', JSON.stringify(fullData));
+            localStorage.setItem('interflon_last_questionnaire_data', JSON.stringify(fullData));
+          }
         } catch (errFull) {}
 
         try {
@@ -6201,17 +6213,166 @@
     window.importQuestionnaireFile = importQuestionnaireFile;
     window.exportQuestionnaireFile = exportQuestionnaireFile;
 
-    function clearQuestionnaireData() {
-      if (!confirm("Weet u zeker dat u alle ingevulde gegevens wilt wissen en met een lege vragenlijst wilt beginnen?")) {
-        return;
-      }
+    function resetQuestionnaireFormToBlank(silent) {
+      window.__isClearingQuestionnaire = true;
+      window.__questionnaireRestoring = true;
+
+      // 1. Purge all localStorage items
       try {
         localStorage.removeItem('interflon_questionnaire_full_data');
         localStorage.removeItem('interflon_last_questionnaire_data');
         localStorage.removeItem('interflon_survey_raster_config');
         localStorage.removeItem('interflon_raster_config');
+        localStorage.removeItem('client_company');
+        localStorage.removeItem('client_contact');
+        localStorage.removeItem('client_email');
+        localStorage.removeItem('tech_machine');
       } catch (e) {}
-      window.location.href = window.location.pathname + '?new=1&blank=1';
+
+      // 2. Clear Machine & Contact inputs
+      const fieldsToClear = ['q1', 'q2', 'q3', 'clientCompany', 'clientContact', 'clientEmail', 'clientPhone'];
+      fieldsToClear.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = '';
+      });
+      const q10El = document.getElementById('q10');
+      if (q10El) q10El.value = '1';
+
+      // 3. Reset bearing rows: keep only Lager A with clean empty fields
+      const container = document.getElementById('bearingRowsContainer');
+      if (container) {
+        const rows = container.querySelectorAll('.bearing-row');
+        rows.forEach((r, idx) => {
+          if (idx === 0) {
+            r.setAttribute('data-letter', 'A');
+            const badge = r.querySelector('.bearing-badge');
+            if (badge) badge.innerText = 'Lager A';
+            const qtyIn = r.querySelector('.bearing-qty-input');
+            if (qtyIn) { qtyIn.value = '1'; qtyIn.name = 'Lager A - Aantal'; }
+            const nrIn = r.querySelector('.bearing-nr-input');
+            if (nrIn) { nrIn.value = ''; nrIn.name = 'Lager A - Lagernummer'; }
+            const descIn = r.querySelector('.bearing-desc-input');
+            if (descIn) { descIn.value = ''; descIn.name = 'Lager A - Omschrijving'; }
+            const rpmIn = r.querySelector('.bearing-rpm-input');
+            if (rpmIn) { rpmIn.value = ''; rpmIn.name = 'Lager A - Toerental RPM'; }
+            const posIn = r.querySelector('.bearing-pos-input');
+            if (posIn) { posIn.value = 'Horizontaal'; posIn.name = 'Lager A - As Positie'; }
+          } else {
+            r.remove();
+          }
+        });
+      }
+
+      // 4. Reset Section 2, 3, 4 maps and active bearing keys
+      activeBearingSec2 = 'A';
+      activeBearingSec3 = 'A';
+      activeBearingSec4 = 'A';
+      bearingDataMapSec2 = {
+        'A': { q11: '', q12_price: '', q4_freq_num: '', q4_freq_unit: 'Weken', q29_life: '', q13: '16', q14: '5' }
+      };
+      bearingDataMapSec3 = {
+        'A': { q15: '', q16: '', q17: '3', q18: '4', q19: '2', q20: '3', q21: '3', q22: '2' }
+      };
+      bearingDataMapSec4 = {
+        'A': { q24: '', q25: '', q26: '', q27: '', q28: '', q30: '' }
+      };
+      window.copiedSection2Data = null;
+      window.copiedSection3Conditions = null;
+      window.copiedSection4Costs = null;
+
+      // 5. Load default values into Section 2, 3, 4 DOM controls
+      if (typeof loadSection2DataForBearing === 'function') loadSection2DataForBearing('A');
+      if (typeof loadSection3DataForBearing === 'function') loadSection3DataForBearing('A');
+      if (typeof loadSection4DataForBearing === 'function') loadSection4DataForBearing('A');
+
+      // 6. Reset Raster State
+      if (typeof bearingPositions !== 'undefined') {
+        for (const k in bearingPositions) delete bearingPositions[k];
+        bearingPositions['A'] = { x: 0, y: 0 };
+      }
+      if (typeof setDevices === 'function') {
+        setDevices([{
+          id: 'dev-1',
+          name: 'Toestel 1',
+          short: 'T1',
+          type: 'single_point',
+          x: 0,
+          y: 0,
+          active: true,
+          paletteIndex: 0
+        }]);
+      } else if (typeof devices !== 'undefined' && Array.isArray(devices)) {
+        devices.length = 0;
+        devices.push({
+          id: 'dev-1',
+          name: 'Toestel 1',
+          short: 'T1',
+          type: 'single_point',
+          x: 0,
+          y: 0,
+          active: true,
+          paletteIndex: 0
+        });
+      }
+      if (typeof showCentralPoint !== 'undefined') showCentralPoint = false;
+      if (typeof machineRangeMeters !== 'undefined') {
+        machineRangeMeters = 10;
+        const scaleSelect = document.getElementById('layoutScaleSelect');
+        if (scaleSelect) scaleSelect.value = 10;
+        const infoEl = document.getElementById('canvasZoomInfo');
+        if (infoEl) infoEl.textContent = 'Bereik: 10 m';
+      }
+      if (typeof resetRasterZoom === 'function') resetRasterZoom();
+
+      // 7. Update UI components & redraw
+      if (typeof updateBearingLettersAndDropdown === 'function') updateBearingLettersAndDropdown();
+      if (typeof renderDeviceFilterPills === 'function') renderDeviceFilterPills();
+      if (typeof drawBearingLayout === 'function') drawBearingLayout();
+      if (typeof renderDistancesOverview === 'function') renderDistancesOverview();
+      if (typeof updateFormSubmitAttachment === 'function') updateFormSubmitAttachment();
+
+      // 8. Broadcast clear event to other tabs if any
+      try {
+        if (typeof BroadcastChannel !== 'undefined') {
+          if (!window.__surveySyncBroadcastChannel) {
+            window.__surveySyncBroadcastChannel = new BroadcastChannel('interflon_questionnaire_sync');
+          }
+          window.__surveySyncBroadcastChannel.postMessage({ type: 'SURVEY_CLEARED' });
+        }
+      } catch (e) {}
+
+      // 9. Update URL query params without reloading
+      try {
+        const url = new URL(window.location.href);
+        const contact = url.searchParams.get('contact') || url.searchParams.get('contact_email') || url.searchParams.get('interflon_email');
+        url.search = '';
+        if (contact) url.searchParams.set('contact', contact);
+        url.searchParams.set('new', '1');
+        url.searchParams.set('blank', '1');
+        window.history.replaceState({}, document.title, url.toString());
+      } catch (err) {}
+
+      // 10. Reset restore flags
+      window.__questionnaireRestoring = false;
+      setTimeout(() => {
+        window.__isClearingQuestionnaire = false;
+      }, 500);
+
+      // 11. Visual feedback & scroll
+      if (!silent) {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        if (typeof showSurveyToast === 'function') {
+          showSurveyToast('🗑️ Het formulier is gewist en blanco gemaakt.');
+        }
+      }
+    }
+    window.resetQuestionnaireFormToBlank = resetQuestionnaireFormToBlank;
+
+    function clearQuestionnaireData() {
+      if (!confirm("Weet u zeker dat u alle ingevulde gegevens wilt wissen en met een lege vragenlijst wilt beginnen?")) {
+        return;
+      }
+      resetQuestionnaireFormToBlank(false);
     }
     window.clearQuestionnaireData = clearQuestionnaireData;
 
@@ -6380,7 +6541,7 @@
     // Auto-save debounce timer for active section inputs
     let __surveyAutoSaveTimer = null;
     function triggerSurveyAutoSave() {
-      if (window.__questionnaireRestoring) return;
+      if (window.__questionnaireRestoring || window.__isClearingQuestionnaire) return;
       if (__surveyAutoSaveTimer) clearTimeout(__surveyAutoSaveTimer);
       __surveyAutoSaveTimer = setTimeout(() => {
         if (typeof saveRasterConfigToLocalStorage === 'function') {
@@ -6394,7 +6555,7 @@
 
     // --- SECTION 2 HANDLERS ---
     function saveCurrentSection2Data() {
-      if (window.__questionnaireRestoring) return;
+      if (window.__questionnaireRestoring || window.__isClearingQuestionnaire) return;
       if (!activeBearingSec2 || !bearingDataMapSec2[activeBearingSec2]) {
         bearingDataMapSec2[activeBearingSec2] = {};
       }
@@ -6510,7 +6671,7 @@
 
     // --- SECTION 3 HANDLERS ---
     function saveCurrentSection3Data() {
-      if (window.__questionnaireRestoring) return;
+      if (window.__questionnaireRestoring || window.__isClearingQuestionnaire) return;
       if (!activeBearingSec3 || !bearingDataMapSec3[activeBearingSec3]) {
         bearingDataMapSec3[activeBearingSec3] = {};
       }
@@ -6668,7 +6829,7 @@
 
     // --- SECTION 4 HANDLERS ---
     function saveCurrentSection4Data() {
-      if (window.__questionnaireRestoring) return;
+      if (window.__questionnaireRestoring || window.__isClearingQuestionnaire) return;
       if (!activeBearingSec4 || !bearingDataMapSec4[activeBearingSec4]) {
         bearingDataMapSec4[activeBearingSec4] = {};
       }
@@ -6989,62 +7150,7 @@
 
       if (isBlankRequest) {
         console.log("Blanco vragenlijst verzocht via URL-parameter (new=1/blank=1). Oude sessiedata wordt gewist.");
-        try {
-          localStorage.removeItem('interflon_questionnaire_full_data');
-          localStorage.removeItem('interflon_last_questionnaire_data');
-          localStorage.removeItem('interflon_survey_raster_config');
-          localStorage.removeItem('interflon_raster_config');
-        } catch (e) {}
-
-        // Ensure all contact and machine inputs are completely blank
-        const fieldsToClear = ['clientCompany', 'clientContact', 'clientEmail', 'clientPhone', 'q1', 'q2', 'q3'];
-        fieldsToClear.forEach(id => {
-          const el = document.getElementById(id);
-          if (el) el.value = '';
-        });
-        const q10El = document.getElementById('q10');
-        if (q10El) q10El.value = '1';
-
-        // Ensure bearing rows container has only 1 empty bearing row (Lager A)
-        const container = document.getElementById('bearingRowsContainer');
-        if (container) {
-          const rows = container.querySelectorAll('.bearing-row');
-          rows.forEach((r, idx) => {
-            if (idx === 0) {
-              const nrIn = r.querySelector('.bearing-nr-input');
-              if (nrIn) nrIn.value = '';
-              const descIn = r.querySelector('.bearing-desc-input');
-              if (descIn) descIn.value = '';
-              const rpmIn = r.querySelector('.bearing-rpm-input');
-              if (rpmIn) rpmIn.value = '';
-              const qtyIn = r.querySelector('.bearing-qty-input');
-              if (qtyIn) qtyIn.value = '1';
-              const posIn = r.querySelector('.bearing-pos-input');
-              if (posIn) posIn.value = 'Horizontaal';
-            } else {
-              r.remove();
-            }
-          });
-        }
-
-        // Reset positions and devices
-        if (typeof bearingPositions !== 'undefined') {
-          for (const k in bearingPositions) delete bearingPositions[k];
-          bearingPositions['A'] = { x: 0, y: 0 };
-        }
-        if (typeof devices !== 'undefined' && Array.isArray(devices)) {
-          devices.length = 0;
-          devices.push({
-            id: 'dev-1',
-            name: 'Toestel 1',
-            short: 'T1',
-            type: 'single_point',
-            x: 0,
-            y: 0,
-            active: true,
-            paletteIndex: 0
-          });
-        }
+        resetQuestionnaireFormToBlank(true);
       }
 
       const contactEmail = urlParams.get('contact') || urlParams.get('contact_email') || urlParams.get('interflon_email');
@@ -7138,7 +7244,7 @@
       if (surveyForm) {
         let autoSaveTimer = null;
         const debouncedSave = () => {
-          if (window.__questionnaireRestoring) return;
+          if (window.__questionnaireRestoring || window.__isClearingQuestionnaire) return;
           clearTimeout(autoSaveTimer);
           autoSaveTimer = setTimeout(() => {
             if (typeof saveRasterConfigToLocalStorage === 'function') {
@@ -7153,11 +7259,13 @@
 
     // Auto-save whenever user switches tabs or navigates away
     document.addEventListener('visibilitychange', function() {
+      if (window.__isClearingQuestionnaire) return;
       if (document.visibilityState === 'hidden' && typeof saveRasterConfigToLocalStorage === 'function') {
         saveRasterConfigToLocalStorage();
       }
     });
     window.addEventListener('beforeunload', function() {
+      if (window.__isClearingQuestionnaire) return;
       if (typeof saveRasterConfigToLocalStorage === 'function') {
         saveRasterConfigToLocalStorage();
       }
