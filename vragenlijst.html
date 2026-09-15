@@ -15,6 +15,8 @@
   <meta name="description" content="Vul de vragenlijst in voor een nauwkeurige Interflon smeeranalyse en TCO-kostenberekening van uw machines.">
   <link rel="icon" type="image/png" href="interflon-logo-clean.png">
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="bearings-db.js"></script>
+  <script src="interflon-data.js"></script>
 
   <style>
     body {
@@ -1383,6 +1385,11 @@
                 <span style="color: #166534;">● ≤ 3m (Ideaal)</span>
                 <span style="color: #92400e;">● 3-4m (Goed)</span>
                 <span style="color: #991b1b;">● > 4m (Let op)</span>
+              </div>
+              <div id="bearingNeedLegendBox" style="font-size: 10.5px; color: #475569; border-top: 1px solid #e2e8f0; padding-top: 6px; margin-top: 6px;">
+                <span style="color: #64748b; display: inline-flex; align-items: center; gap: 4px;">
+                  💡 Gelijke kleur bolletje = gelijke vetbehoefte
+                </span>
               </div>
             </div>
 
@@ -3653,6 +3660,21 @@
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.fillText(letter, bScreen.u, bScreen.v);
+
+        // Small pip with vetbehoefte group color on top-right of node
+        const bNeed = (window.__surveyBearingsNeedMap && window.__surveyBearingsNeedMap[letter]);
+        if (bNeed && bNeed.palette) {
+          const pipR = 4 * dpr;
+          const pipU = bScreen.u + radius * 0.68;
+          const pipV = bScreen.v - radius * 0.68;
+          ctx.beginPath();
+          ctx.arc(pipU, pipV, pipR, 0, Math.PI * 2);
+          ctx.fillStyle = bNeed.palette.color;
+          ctx.fill();
+          ctx.strokeStyle = '#ffffff';
+          ctx.lineWidth = 1.2 * dpr;
+          ctx.stroke();
+        }
       });
 
       // --- 7. TOP-LAYER FLOATING TOOLTIPS (ONLY DISPLAYED ON HOVER OR DRAG) ---
@@ -3732,6 +3754,10 @@
           let labelText = 'Lager ' + activeLetter;
           if (nrVal) labelText += ': ' + nrVal;
           if (descVal) labelText += ' (' + descVal + ')';
+          const activeNeed = (window.__surveyBearingsNeedMap && window.__surveyBearingsNeedMap[activeLetter]);
+          if (activeNeed && activeNeed.formattedNeed) {
+            labelText += ' • ' + activeNeed.formattedNeed + ' ml/dag';
+          }
 
           ctx.save();
           ctx.font = 'bold ' + Math.round(11 * dpr) + 'px sans-serif';
@@ -4104,6 +4130,244 @@
     }
     window.manuallyAssignBearingToDevice = manuallyAssignBearingToDevice;
 
+    // --- BEARING NEED PALETTE & CALCULATION ENGINE ---
+    const BEARING_NEED_PALETTES = [
+      { color: '#10B981', bg: '#ecfdf5', border: '#a7f3d0', text: '#065f46', name: 'Smaragdgroen' },
+      { color: '#3B82F6', bg: '#eff6ff', border: '#bfdbfe', text: '#1e40af', name: 'Hemelsblauw' },
+      { color: '#F59E0B', bg: '#fffbeb', border: '#fde68a', text: '#92400e', name: 'Amber/Oranje' },
+      { color: '#8B5CF6', bg: '#f5f3ff', border: '#ddd6fe', text: '#5b21b6', name: 'Paars' },
+      { color: '#EC4899', bg: '#fdf2f8', border: '#fbcfe8', text: '#9d174d', name: 'Roze' },
+      { color: '#06B6D4', bg: '#ecfeff', border: '#a5f3fc', text: '#155e75', name: 'Cyaan' },
+      { color: '#E11D48', bg: '#fff1f2', border: '#fecdd3', text: '#9f1239', name: 'Karmijnrood' },
+      { color: '#14B8A6', bg: '#f0fdfa', border: '#99f6e4', text: '#115e59', name: 'Teal' },
+      { color: '#6366F1', bg: '#eef2ff', border: '#c7d2fe', text: '#3730a3', name: 'Indigo' },
+      { color: '#84CC16', bg: '#f7fee7', border: '#d9f99d', text: '#3f6212', name: 'Lime' }
+    ];
+
+    function determineSurveyBearingCorrectionFactors(sec3Data, shaftPosition) {
+      const d3 = sec3Data || {};
+      const parseNum = (v, defaultVal) => {
+        if (v === undefined || v === null || v === '') return defaultVal;
+        const n = parseFloat(v);
+        return isNaN(n) ? defaultVal : n;
+      };
+
+      const waterVocht = parseNum(d3.q17, 3);
+      const stofZand = parseNum(d3.q18, 4);
+      const abrasief = parseNum(d3.q19, 2);
+      const schok = parseNum(d3.q20, 3);
+      const vibratie = parseNum(d3.q21, 3);
+      const condens = parseNum(d3.q22, 2);
+
+      const posStr = String(shaftPosition || d3.asPositie || '').trim().toLowerCase();
+      const isVertical = posStr.includes('vertic') || posStr.includes('vertik');
+
+      let Te = 0.8;
+      if (condens >= 7) Te = 0.15;
+      else if (waterVocht >= 9) Te = 0.15;
+      else if (stofZand >= 7) Te = 0.3;
+      else if (waterVocht >= 7) Te = 0.3;
+      else if (abrasief >= 6) Te = 0.3;
+      else if (stofZand >= 4 || waterVocht >= 4) Te = 0.5;
+
+      let Ta = 0.8;
+      if (isVertical) Ta = 0.5;
+      else if (vibratie >= 7 || schok >= 7) Ta = 0.5;
+      else if (vibratie >= 4 || schok >= 4) Ta = 0.8;
+
+      return { Te, Ta };
+    }
+
+    function calculateSurveyBearingDailyNeed(bearingNr, speedRpm, opts = {}) {
+      let b = null;
+      const cleanKey = (bearingNr || "").toString().trim();
+      let bDb = (typeof bearingDatabase !== "undefined" && bearingDatabase) ? bearingDatabase :
+                (typeof window !== "undefined" && window.bearingDatabase) ? window.bearingDatabase : null;
+      if (bDb) {
+        b = bDb[cleanKey];
+        if (!b) {
+          const stripped = cleanKey.replace(/^lager\s+/i, "").trim();
+          b = bDb[stripped];
+        }
+        if (!b) {
+          const numMatch = cleanKey.match(/\b\d{3,6}\b/) || cleanKey.match(/^\d{3,6}/);
+          if (numMatch && bDb[numMatch[0]]) {
+            b = bDb[numMatch[0]];
+          }
+        }
+      }
+
+      const parseFn = (typeof parseBearingDesignation === "function") ? parseBearingDesignation :
+                      (typeof window !== "undefined" && typeof window.parseBearingDesignation === "function") ? window.parseBearingDesignation : null;
+      if (!b && parseFn) {
+        try {
+          const parsed = parseFn(cleanKey);
+          if (parsed && parsed.d && parsed.D) {
+            b = parsed;
+          }
+        } catch (e) {}
+      }
+
+      const d = b ? (b.d || 100) : 100;
+      const D = b ? (b.D || 180) : 180;
+      const B = b ? (b.B || 50) : 50;
+      const limitingSpeed = b ? (b.limitSpeed || b.refSpeed || 3400) : 3400;
+      const bearingType = b ? (b.type || "Pendelrollager") : "Pendelrollager";
+
+      const bTypeCheck = bearingType.toLowerCase();
+      let baseTypeFactor = 1.0;
+      if (bTypeCheck.includes("spherical") || bTypeCheck.includes("sferisch") || bTypeCheck.includes("pendelrol") || bTypeCheck.includes("ton") || bTypeCheck.includes("naald")) {
+        baseTypeFactor = 2.6;
+      } else if (bTypeCheck.includes("tapered") || bTypeCheck.includes("conisch") || bTypeCheck.includes("kegel")) {
+        baseTypeFactor = 2.0;
+      } else if (bTypeCheck.includes("cylindrical") || bTypeCheck.includes("cylindrisch") || bTypeCheck.includes("cilinder")) {
+        baseTypeFactor = 1.7;
+      }
+
+      const speed = parseFloat(speedRpm) || 500;
+      const rawRatio = (isNaN(speed) || speed <= 0) ? 0.01 : (speed / limitingSpeed);
+      const ratio = Math.min(1.0, rawRatio * baseTypeFactor);
+
+      let fb = 20000;
+      const freqTable = (typeof BASE_FREQUENCY_TABLE !== "undefined" && Array.isArray(BASE_FREQUENCY_TABLE)) ? BASE_FREQUENCY_TABLE :
+                        (typeof window !== "undefined" && Array.isArray(window.BASE_FREQUENCY_TABLE)) ? window.BASE_FREQUENCY_TABLE : null;
+
+      if (freqTable) {
+        const roundedRatio = Math.max(0.01, Math.min(1.0, Math.round(ratio * 100) / 100));
+        const entry = freqTable.find(e => Math.abs(e.ratio - roundedRatio) < 0.001) || freqTable[0];
+        if (bTypeCheck.includes("spherical") || bTypeCheck.includes("sferisch") || bTypeCheck.includes("pendelrol") || bTypeCheck.includes("ton")) {
+          fb = entry.sph;
+        } else if (bTypeCheck.includes("cylindrical") || bTypeCheck.includes("cylindrisch") || bTypeCheck.includes("cilinder") || bTypeCheck.includes("naald")) {
+          fb = entry.cyl;
+        } else if (bTypeCheck.includes("tapered") || bTypeCheck.includes("conisch") || bTypeCheck.includes("kegel")) {
+          fb = entry.cone;
+        } else {
+          fb = entry.ball;
+        }
+      }
+
+      const temp = (typeof opts.temp === "number" && !isNaN(opts.temp)) ? opts.temp : 20;
+      let Tt = 0.8;
+      if (temp <= 75) Tt = 0.8;
+      else if (temp <= 85) Tt = 0.5;
+      else if (temp <= 120) Tt = 0.3;
+      else Tt = 0.15;
+
+      const Te = (typeof opts.Te === "number" && !isNaN(opts.Te)) ? opts.Te : 0.8;
+      const Ta = (typeof opts.Ta === "number" && !isNaN(opts.Ta)) ? opts.Ta : 0.8;
+      const micPolFactor = (typeof opts.micPolFactor === "number" && !isNaN(opts.micPolFactor)) ? opts.micPolFactor : 4;
+
+      const fcBase = (fb * Te * Ta * Tt) / 4.0;
+      const fcMicPol = fcBase * micPolFactor;
+
+      const hDay = (typeof opts.hoursPerDay === "number" && opts.hoursPerDay > 0) ? opts.hoursPerDay : 16;
+      const dWeek = (typeof opts.daysPerWeek === "number" && opts.daysPerWeek > 0) ? opts.daysPerWeek : 5;
+      const weeklyOpHours = hDay * dWeek;
+      const totalCalendarDays = (weeklyOpHours > 0) ? (fcMicPol / weeklyOpHours) * 7 : (fcMicPol / 24);
+
+      let coefC = 0.00440;
+      const corrTable = (typeof CORRECTED_FREQUENCY_TABLE !== "undefined" && Array.isArray(CORRECTED_FREQUENCY_TABLE)) ? CORRECTED_FREQUENCY_TABLE :
+                        (typeof window !== "undefined" && Array.isArray(window.CORRECTED_FREQUENCY_TABLE)) ? window.CORRECTED_FREQUENCY_TABLE : null;
+
+      if (corrTable) {
+        const table = corrTable;
+        if (fb >= table[table.length - 1].freq) {
+          coefC = table[table.length - 1].c;
+        } else {
+          for (let i = 0; i < table.length - 1; i++) {
+            if (fb >= table[i].freq && fb <= table[i+1].freq) {
+              const f0 = table[i].freq;
+              const f1 = table[i+1].freq;
+              const c0 = table[i].c;
+              const c1 = table[i+1].c;
+              coefC = c0 + (c1 - c0) * (fb - f0) / (f1 - f0);
+              break;
+            }
+          }
+        }
+      }
+
+      const refill_grams = D * B * coefC;
+      const dailyNeed = (totalCalendarDays > 0) ? (refill_grams / totalCalendarDays) : 0;
+
+      return {
+        dailyNeed: Math.max(0.01, dailyNeed),
+        refill_grams,
+        totalCalendarDays,
+        fcMicPol
+      };
+    }
+
+    function getSurveyBearingsNeedAnalysis() {
+      const rows = document.querySelectorAll('.bearing-row');
+      const groupsMap = new Map();
+      const bearingMap = {};
+
+      rows.forEach((r, idx) => {
+        const letter = r.getAttribute('data-letter') || (LETTERS[idx] || ('L' + (idx+1)));
+        const nrIn = r.querySelector('.bearing-nr-input');
+        const nrVal = nrIn && nrIn.value ? nrIn.value.trim() : ('Lager ' + letter);
+        const rpmIn = r.querySelector('.bearing-rpm-input');
+        let rpmVal = rpmIn && rpmIn.value ? parseFloat(rpmIn.value) : 500;
+        if (isNaN(rpmVal) || rpmVal <= 0) rpmVal = 500;
+        const posIn = r.querySelector('.bearing-pos-input');
+        const posVal = posIn && posIn.value ? posIn.value.trim() : 'Horizontaal';
+
+        const d2 = (typeof bearingDataMapSec2 !== "undefined" && bearingDataMapSec2[letter]) ? bearingDataMapSec2[letter] : {};
+        const d3 = (typeof bearingDataMapSec3 !== "undefined" && bearingDataMapSec3[letter]) ? bearingDataMapSec3[letter] : {};
+
+        const hoursPerDay = parseFloat(d2.q13) || 16;
+        const daysPerWeek = parseFloat(d2.q14) || 5;
+        const temp = parseFloat(d3.q15) || 20;
+
+        const corr = determineSurveyBearingCorrectionFactors(d3, posVal);
+        const needRes = calculateSurveyBearingDailyNeed(nrVal, rpmVal, {
+          hoursPerDay,
+          daysPerWeek,
+          temp,
+          Te: corr.Te,
+          Ta: corr.Ta
+        });
+
+        const dailyNeed = needRes.dailyNeed;
+        const roundedNeed = Math.round(dailyNeed * 100) / 100;
+        const key = roundedNeed.toFixed(2);
+
+        if (!groupsMap.has(key)) {
+          const gIndex = groupsMap.size;
+          const pal = BEARING_NEED_PALETTES[gIndex % BEARING_NEED_PALETTES.length];
+          groupsMap.set(key, {
+            groupIndex: gIndex,
+            key: key,
+            roundedNeed: roundedNeed,
+            formattedNeed: roundedNeed.toFixed(2).replace('.', ','),
+            palette: pal,
+            bearingLetters: []
+          });
+        }
+
+        const grp = groupsMap.get(key);
+        grp.bearingLetters.push(letter);
+
+        bearingMap[letter] = {
+          letter: letter,
+          nr: nrVal,
+          rpm: rpmVal,
+          dailyNeed: dailyNeed,
+          roundedNeed: roundedNeed,
+          formattedNeed: roundedNeed.toFixed(2).replace('.', ','),
+          groupIndex: grp.groupIndex,
+          palette: grp.palette,
+          groupKey: key
+        };
+      });
+
+      const groups = Array.from(groupsMap.values());
+      window.__surveyBearingsNeedMap = bearingMap;
+      window.__surveyBearingsNeedGroups = groups;
+      return { bearingMap, groups };
+    }
+
     // --- 6. RENDER DISTANCES OVERVIEW LIST & STATISTICS (RIGHT PANEL) ---
     function renderDistancesOverview() {
       const container = document.getElementById('bearingDistancesList');
@@ -4111,6 +4375,11 @@
 
       const rows = document.querySelectorAll('.bearing-row');
       container.innerHTML = '';
+
+      // Compute need analysis for all bearings to determine color grouping
+      const needAnalysis = getSurveyBearingsNeedAnalysis();
+      const bearingNeedMap = needAnalysis.bearingMap;
+      const needGroups = needAnalysis.groups;
 
       // Determine active origins
       const activeOrigins = [];
@@ -4256,15 +4525,31 @@
           drawBearingLayout();
         };
 
-        // Header: Lager badge + Naam
+        // Determine grease demand & palette for this bearing
+        const needInfo = bearingNeedMap[letter] || {
+          formattedNeed: '0,35',
+          palette: BEARING_NEED_PALETTES[0],
+          groupIndex: 0
+        };
+        const needPal = needInfo.palette || BEARING_NEED_PALETTES[0];
+
+        // Subtle colored dot next to bearing name (bearings with identical grease requirement have the exact same color)
+        const dotHtml = '<span style="display: inline-block; width: 8.5px; height: 8.5px; border-radius: 50%; background-color: ' + needPal.color + '; box-shadow: 0 0 0 1.5px #ffffff, 0 0 0 2.5px ' + needPal.color + '88; margin-right: 5px; flex-shrink: 0; vertical-align: middle;" title="Vetbehoefte: ' + needInfo.formattedNeed + ' ml/dag (Lagers met dezelfde kleur hebben een gelijke vetbehoefte)"></span>';
+
+        // Header: Lager badge + Colored Dot + Naam + Daily need chip on the right
         let headerHtml = 
-          '<div style="display: flex; align-items: center; justify-content: space-between; gap: 10px;">' +
+          '<div style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">' +
             '<div style="display: flex; align-items: center; gap: 8px; min-width: 0;">' +
               '<span style="background: #2563EB; color: white; padding: 2px 7px; border-radius: 5px; font-weight: 800; font-size: 11.5px; flex-shrink: 0; box-shadow: 0 1px 3px rgba(37,99,235,0.3);">Lager ' + letter + '</span>' +
-              '<div style="min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">' +
+              '<div style="display: inline-flex; align-items: center; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">' +
+                dotHtml +
                 '<span style="font-size: 13px; font-weight: 700; color: #0f172a;" title="' + nrVal + '">' + nrVal + '</span>' +
-                (descVal ? ' <span style="font-size: 11px; color: #64748b;" title="' + descVal + '">(' + descVal + ')</span>' : '') +
+                (descVal ? ' <span style="font-size: 11px; color: #64748b; margin-left: 4px;" title="' + descVal + '">(' + descVal + ')</span>' : '') +
               '</div>' +
+            '</div>' +
+            '<div style="flex-shrink: 0; display: inline-flex; align-items: center; gap: 4px; background: ' + needPal.bg + '; border: 1px solid ' + needPal.border + '; padding: 2px 7px; border-radius: 12px; font-size: 10.5px; font-weight: 700; color: ' + needPal.text + ';" title="Berekende vetbehoefte: ' + needInfo.formattedNeed + ' ml/dag (Lagers met dezelfde kleur hebben een gelijke vetbehoefte)">' +
+              '<span style="display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: ' + needPal.color + ';"></span>' +
+              needInfo.formattedNeed + ' ml/d' +
             '</div>' +
           '</div>';
 
@@ -4351,6 +4636,34 @@
         } else {
           maxEl.textContent = '-';
           maxEl.style.color = '#0f172a';
+        }
+      }
+
+      // Update bearing need legend box
+      const legendBox = document.getElementById('bearingNeedLegendBox');
+      if (legendBox) {
+        if (needGroups.length <= 1) {
+          const g0 = needGroups[0] || { formattedNeed: '-', palette: BEARING_NEED_PALETTES[0] };
+          legendBox.innerHTML = 
+            '<div style="display: flex; align-items: center; justify-content: space-between; width: 100%; font-size: 10px; color: #475569;">' +
+              '<span style="display: inline-flex; align-items: center; gap: 4px;">' +
+                '💡 <span style="display: inline-block; width: 6.5px; height: 6.5px; border-radius: 50%; background: ' + g0.palette.color + ';"></span>' +
+                'Gelijke vetbehoefte: <strong>' + g0.formattedNeed + ' ml/dag</strong>' +
+              '</span>' +
+            '</div>';
+        } else {
+          let legendChips = needGroups.map(g => 
+            '<span style="display: inline-flex; align-items: center; gap: 3.5px; background: ' + g.palette.bg + '; border: 1px solid ' + g.palette.border + '; color: ' + g.palette.text + '; padding: 1.5px 5.5px; border-radius: 4px; font-weight: 700; font-size: 9.5px;" title="' + g.bearingLetters.join(', ') + ': ' + g.formattedNeed + ' ml/dag">' +
+              '<span style="width: 5px; height: 5px; border-radius: 50%; background: ' + g.palette.color + ';"></span>' +
+              g.bearingLetters.join('+') + ': ' + g.formattedNeed + ' ml/d' +
+            '</span>'
+          ).join(' ');
+
+          legendBox.innerHTML = 
+            '<div style="display: flex; align-items: center; justify-content: space-between; width: 100%; gap: 6px; flex-wrap: wrap;">' +
+              '<span style="color: #475569; font-weight: 600; font-size: 10px;">Vetbehoefte:</span>' +
+              '<div style="display: flex; gap: 4px; flex-wrap: wrap;">' + legendChips + '</div>' +
+            '</div>';
         }
       }
 
@@ -4896,17 +5209,34 @@
         ctx.textBaseline = 'middle';
         ctx.fillText('Lager ' + letter, rightX + 63, itemY + 28);
 
-        // Lager Designation & Description
+        // Lager Designation & Description with colored dot
+        const bNeed = (window.__surveyBearingsNeedMap && window.__surveyBearingsNeedMap[letter]) || {
+          formattedNeed: '0,35',
+          palette: BEARING_NEED_PALETTES[0]
+        };
+        const dotPal = bNeed.palette || BEARING_NEED_PALETTES[0];
+
+        // Draw colored dot
+        ctx.save();
+        ctx.fillStyle = dotPal.color;
+        ctx.beginPath();
+        ctx.arc(rightX + 110, itemY + 19, 4.5, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+        ctx.restore();
+
         ctx.font = 'bold 13px "Outfit", sans-serif';
         ctx.fillStyle = '#0f172a';
         ctx.textAlign = 'left';
         ctx.textBaseline = 'top';
-        ctx.fillText(nrVal.length > 22 ? nrVal.substring(0, 20) + '...' : nrVal, rightX + 104, itemY + 12);
+        ctx.fillText(nrVal.length > 20 ? nrVal.substring(0, 18) + '...' : nrVal, rightX + 120, itemY + 12);
 
         if (descVal) {
           ctx.font = '11px "Outfit", sans-serif';
           ctx.fillStyle = '#64748b';
-          ctx.fillText(descVal.length > 26 ? descVal.substring(0, 24) + '...' : descVal, rightX + 104, itemY + 32);
+          ctx.fillText(descVal.length > 24 ? descVal.substring(0, 22) + '...' : descVal, rightX + 120, itemY + 32);
         }
 
         // Distances
@@ -5879,8 +6209,9 @@
         localStorage.removeItem('interflon_questionnaire_full_data');
         localStorage.removeItem('interflon_last_questionnaire_data');
         localStorage.removeItem('interflon_survey_raster_config');
+        localStorage.removeItem('interflon_raster_config');
       } catch (e) {}
-      window.location.href = window.location.pathname;
+      window.location.href = window.location.pathname + '?new=1&blank=1';
     }
     window.clearQuestionnaireData = clearQuestionnaireData;
 
@@ -6041,6 +6372,8 @@
       saveCurrentSection3Data();
       saveCurrentSection4Data();
       updateBearingLettersAndDropdown();
+      if (typeof renderDistancesOverview === 'function') renderDistancesOverview();
+      if (typeof drawBearingLayout === 'function') drawBearingLayout();
       if (typeof saveRasterConfigToLocalStorage === 'function') saveRasterConfigToLocalStorage();
     }
 
@@ -6052,6 +6385,9 @@
       __surveyAutoSaveTimer = setTimeout(() => {
         if (typeof saveRasterConfigToLocalStorage === 'function') {
           saveRasterConfigToLocalStorage();
+        }
+        if (typeof renderDistancesOverview === 'function') {
+          renderDistancesOverview();
         }
       }, 300);
     }
@@ -6647,6 +6983,69 @@
 
     window.addEventListener('DOMContentLoaded', () => {
       const urlParams = new URLSearchParams(window.location.search);
+      const isBlankRequest = urlParams.get('new') === '1' || urlParams.get('new') === 'true' ||
+                             urlParams.get('blank') === '1' || urlParams.get('blank') === 'true' ||
+                             urlParams.get('mode') === 'blank';
+
+      if (isBlankRequest) {
+        console.log("Blanco vragenlijst verzocht via URL-parameter (new=1/blank=1). Oude sessiedata wordt gewist.");
+        try {
+          localStorage.removeItem('interflon_questionnaire_full_data');
+          localStorage.removeItem('interflon_last_questionnaire_data');
+          localStorage.removeItem('interflon_survey_raster_config');
+          localStorage.removeItem('interflon_raster_config');
+        } catch (e) {}
+
+        // Ensure all contact and machine inputs are completely blank
+        const fieldsToClear = ['clientCompany', 'clientContact', 'clientEmail', 'clientPhone', 'q1', 'q2', 'q3'];
+        fieldsToClear.forEach(id => {
+          const el = document.getElementById(id);
+          if (el) el.value = '';
+        });
+        const q10El = document.getElementById('q10');
+        if (q10El) q10El.value = '1';
+
+        // Ensure bearing rows container has only 1 empty bearing row (Lager A)
+        const container = document.getElementById('bearingRowsContainer');
+        if (container) {
+          const rows = container.querySelectorAll('.bearing-row');
+          rows.forEach((r, idx) => {
+            if (idx === 0) {
+              const nrIn = r.querySelector('.bearing-nr-input');
+              if (nrIn) nrIn.value = '';
+              const descIn = r.querySelector('.bearing-desc-input');
+              if (descIn) descIn.value = '';
+              const rpmIn = r.querySelector('.bearing-rpm-input');
+              if (rpmIn) rpmIn.value = '';
+              const qtyIn = r.querySelector('.bearing-qty-input');
+              if (qtyIn) qtyIn.value = '1';
+              const posIn = r.querySelector('.bearing-pos-input');
+              if (posIn) posIn.value = 'Horizontaal';
+            } else {
+              r.remove();
+            }
+          });
+        }
+
+        // Reset positions and devices
+        if (typeof bearingPositions !== 'undefined') {
+          for (const k in bearingPositions) delete bearingPositions[k];
+          bearingPositions['A'] = { x: 0, y: 0 };
+        }
+        if (typeof devices !== 'undefined' && Array.isArray(devices)) {
+          devices.length = 0;
+          devices.push({
+            id: 'dev-1',
+            name: 'Toestel 1',
+            short: 'T1',
+            type: 'single_point',
+            x: 0,
+            y: 0,
+            active: true,
+            paletteIndex: 0
+          });
+        }
+      }
 
       const contactEmail = urlParams.get('contact') || urlParams.get('contact_email') || urlParams.get('interflon_email');
       if (contactEmail) {
@@ -6654,16 +7053,18 @@
         updateFormSubmitAction(contactEmail);
       }
 
-      const company = urlParams.get('company') || urlParams.get('client_company');
-      if (company) document.getElementById('clientCompany').value = company;
+      if (!isBlankRequest) {
+        const company = urlParams.get('company') || urlParams.get('client_company');
+        if (company) document.getElementById('clientCompany').value = company;
 
-      const clientContact = urlParams.get('client_contact') || urlParams.get('contact_name');
-      if (clientContact) document.getElementById('clientContact').value = clientContact;
+        const clientContact = urlParams.get('client_contact') || urlParams.get('contact_name');
+        if (clientContact) document.getElementById('clientContact').value = clientContact;
 
-      const clientEmail = urlParams.get('client_email');
-      if (clientEmail) {
-        document.getElementById('clientEmail').value = clientEmail;
-        syncReplyTo(clientEmail);
+        const clientEmail = urlParams.get('client_email');
+        if (clientEmail) {
+          document.getElementById('clientEmail').value = clientEmail;
+          syncReplyTo(clientEmail);
+        }
       }
 
       if (urlParams.get('submitted') === 'true') {
@@ -6696,27 +7097,29 @@
 
       // Check for saved data in localStorage FIRST before initializing or overwriting anything!
       let restoredFromStorage = false;
-      try {
-        const savedDataStr = localStorage.getItem('interflon_questionnaire_full_data') || localStorage.getItem('interflon_last_questionnaire_data');
-        if (savedDataStr) {
-          const savedData = JSON.parse(savedDataStr);
-          const hasBearings = Array.isArray(savedData.bearings) && savedData.bearings.length > 0 &&
-                              savedData.bearings.some(b => (b.nr && !b.nr.startsWith('Lager ')) || b.desc || b.rpm || (b.letter && b.letter !== 'A'));
-          const hasGeneral = savedData.general && (savedData.general.machineName || savedData.general.machineBrand || savedData.general.application);
-          const hasContact = savedData.contact && (savedData.contact.clientCompany || savedData.contact.clientContact || savedData.contact.clientEmail);
-          const hasMultipleBearings = Array.isArray(savedData.bearings) && savedData.bearings.length > 1;
+      if (!isBlankRequest) {
+        try {
+          const savedDataStr = localStorage.getItem('interflon_questionnaire_full_data') || localStorage.getItem('interflon_last_questionnaire_data');
+          if (savedDataStr) {
+            const savedData = JSON.parse(savedDataStr);
+            const hasBearings = Array.isArray(savedData.bearings) && savedData.bearings.length > 0 &&
+                                savedData.bearings.some(b => (b.nr && !b.nr.startsWith('Lager ')) || b.desc || b.rpm || (b.letter && b.letter !== 'A'));
+            const hasGeneral = savedData.general && (savedData.general.machineName || savedData.general.machineBrand || savedData.general.application);
+            const hasContact = savedData.contact && (savedData.contact.clientCompany || savedData.contact.clientContact || savedData.contact.clientEmail);
+            const hasMultipleBearings = Array.isArray(savedData.bearings) && savedData.bearings.length > 1;
 
-          if (hasBearings || hasGeneral || hasContact || hasMultipleBearings) {
-            console.log("Restoring saved questionnaire from localStorage on page load...");
-            window.__questionnaireRestoring = true;
-            restoreQuestionnaireDOM(savedData, false);
-            window.__questionnaireRestoring = false;
-            restoredFromStorage = true;
+            if (hasBearings || hasGeneral || hasContact || hasMultipleBearings) {
+              console.log("Restoring saved questionnaire from localStorage on page load...");
+              window.__questionnaireRestoring = true;
+              restoreQuestionnaireDOM(savedData, false);
+              window.__questionnaireRestoring = false;
+              restoredFromStorage = true;
+            }
           }
+        } catch (e) {
+          console.warn('Auto-restore questionnaire error:', e);
+          window.__questionnaireRestoring = false;
         }
-      } catch (e) {
-        console.warn('Auto-restore questionnaire error:', e);
-        window.__questionnaireRestoring = false;
       }
 
       // If no saved data was restored, initialize bearing letters and dropdowns
