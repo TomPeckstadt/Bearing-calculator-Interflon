@@ -4011,7 +4011,7 @@ function cleanPdfText(str) {
     .trim();
 }
 
-function renderPdfAutomationExtraPage(doc, autoData, autoDataUrl, autoRatio, watermarkDataUrl, aspectRatio, langData, isChain = false, divDataUrl = null) {
+function renderPdfAutomationExtraPage(doc, autoData, autoDataUrl, autoRatio, watermarkDataUrl, aspectRatio, langData, isChain = false, divDataUrl = null, autoImagesMap = null) {
   doc.addPage();
 
   const pageWidth = doc.internal.pageSize.getWidth();
@@ -4052,13 +4052,18 @@ function renderPdfAutomationExtraPage(doc, autoData, autoDataUrl, autoRatio, wat
 
   // Read active devices state
   const deviceSelect = document.getElementById("automationDeviceSelect") || document.getElementById("autoDeviceSelect");
-  const deviceKey = deviceSelect ? deviceSelect.value : "single_point";
-  const isSinglePoint = (deviceKey === "single_point");
+  let deviceKey = deviceSelect ? deviceSelect.value : "single_point";
+
+  const rawNumDevices = (typeof getActiveNumDevices === "function" ? getActiveNumDevices() : 1);
+  const activeDevicesList = (Array.isArray(autoDevicesState) ? autoDevicesState.slice(0, rawNumDevices) : []);
+  const hasPulsarInState = activeDevicesList.some(d => d && d.type && d.type.startsWith("pulsarlube"));
+
+  const isSinglePoint = isChain ? false : ((deviceKey === "single_point") && !hasPulsarInState);
   const activeSpGroups = (isSinglePoint && Array.isArray(autoDevicesState))
     ? autoDevicesState.filter(d => d && d.isSinglePointGroup && (d.unitCount > 0 || (d.bearingLetters && d.bearingLetters.length > 0)))
     : [];
   const isSpMultiGroup = (isSinglePoint && activeSpGroups.length > 1);
-  const numDevices = isSinglePoint ? (isSpMultiGroup ? activeSpGroups.length : 1) : (typeof getActiveNumDevices === "function" ? getActiveNumDevices() : 1);
+  const numDevices = isSinglePoint ? (isSpMultiGroup ? activeSpGroups.length : 1) : rawNumDevices;
 
   let baseDeviceName = "Interflon Single Point Lubricator";
   if (deviceKey === "pulsarlube_m2") baseDeviceName = "Pulsarlube M2";
@@ -4083,11 +4088,49 @@ function renderPdfAutomationExtraPage(doc, autoData, autoDataUrl, autoRatio, wat
   const totalSpUnits = isSinglePoint
     ? (isSpMultiGroup ? activeSpGroups.reduce((sum, g) => sum + (g.unitCount || (g.bearingLetters ? g.bearingLetters.length : 1)), 0) : (window.spNumBearingsValue || (autoDevicesState[0] && autoDevicesState[0].unitCount) || 1))
     : 1;
-  const fullTitleStr = isSinglePoint
-    ? (totalSpUnits > 1 ? `${totalSpUnits}x ${baseDeviceName}` : baseDeviceName)
-    : (numDevices === 1 ? baseDeviceName : `${numDevices}x ${baseDeviceName}`);
+
+  let fullTitleStr = "";
+  if (isSinglePoint) {
+    fullTitleStr = (totalSpUnits > 1 ? `${totalSpUnits}x Interflon Single Point Lubricator` : "Interflon Single Point Lubricator");
+  } else if (numDevices === 1) {
+    const t = (activeDevicesList[0] && activeDevicesList[0].type) || (deviceKey !== "mixed" ? deviceKey : "pulsarlube_m2");
+    fullTitleStr = getDeviceTypeName(t);
+  } else {
+    const typeCounts = {};
+    const typeOrder = [];
+    for (let i = 0; i < numDevices; i++) {
+      const d = activeDevicesList[i] || null;
+      const t = (d && d.type) ? d.type : (deviceKey !== "mixed" ? deviceKey : "pulsarlube_m2");
+      if (!typeCounts[t]) {
+        typeCounts[t] = 0;
+        typeOrder.push(t);
+      }
+      typeCounts[t]++;
+    }
+    const titleParts = typeOrder.map(t => `${typeCounts[t]}x ${getDeviceTypeName(t)}`);
+    fullTitleStr = titleParts.join(" + ");
+  }
+
+  // Distinct device models for banner spotlight
+  const bannerDevTypes = [];
+  if (isSinglePoint) {
+    bannerDevTypes.push("single_point");
+  } else {
+    for (let i = 0; i < numDevices; i++) {
+      const d = activeDevicesList[i] || null;
+      const t = (d && d.type) ? d.type : (deviceKey !== "mixed" ? deviceKey : "pulsarlube_m2");
+      if (!bannerDevTypes.includes(t)) {
+        bannerDevTypes.push(t);
+      }
+    }
+    if (bannerDevTypes.length === 0) {
+      bannerDevTypes.push(deviceKey !== "mixed" ? deviceKey : "pulsarlube_m2");
+    }
+  }
+
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(isGrid ? 13 : 14);
+  const titleFontSize = fullTitleStr.length > 32 ? 10.5 : (fullTitleStr.length > 22 ? 11.5 : (isGrid ? 13 : 14));
+  doc.setFontSize(titleFontSize);
   doc.setTextColor(227, 6, 19);
   doc.text(fullTitleStr, 26, topBannerY + (isGrid ? 10.5 : 12));
 
@@ -4104,30 +4147,76 @@ function renderPdfAutomationExtraPage(doc, autoData, autoDataUrl, autoRatio, wat
   doc.setTextColor(227, 6, 19);
   doc.text(`Berekende vetbehoefte per lager: ${dailyNeedCm3.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ml/dag`, 26, topBannerY + (isGrid ? 23.5 : 26));
 
-  // Device Photo Spotlight Centered on Right
-  if (autoDataUrl && autoRatio) {
-    const frameW = 34;
-    const frameH = isGrid ? 25 : 27;
-    const frameX = 152;
-    const frameY = topBannerY + 2.5;
+  // Device Photo Spotlight on Right
+  if (bannerDevTypes.length <= 1) {
+    const t = bannerDevTypes[0] || (isSinglePoint ? "single_point" : "pulsarlube_m2");
+    const imgObj = (autoImagesMap && autoImagesMap[t]) || { dataUrl: autoDataUrl, ratio: autoRatio };
+    if (imgObj && imgObj.dataUrl) {
+      const frameW = 34;
+      const frameH = isGrid ? 25 : 27;
+      const frameX = 152;
+      const frameY = topBannerY + 2.5;
 
-    doc.setFillColor(255, 255, 255);
-    doc.setDrawColor(241, 245, 249);
-    doc.roundedRect(frameX, frameY, frameW, frameH, 2, 2, "FD");
+      doc.setFillColor(255, 255, 255);
+      doc.setDrawColor(241, 245, 249);
+      doc.roundedRect(frameX, frameY, frameW, frameH, 2, 2, "FD");
 
-    const imgMaxW = frameW - 4;
-    const imgMaxH = frameH - 4;
-    let imgW = imgMaxW;
-    let imgH = imgW * autoRatio;
-    if (imgH > imgMaxH) {
-      imgH = imgMaxH;
-      imgW = imgH / autoRatio;
+      const imgMaxW = frameW - 4;
+      const imgMaxH = frameH - 4;
+      let imgW = imgMaxW;
+      let imgH = imgW * (imgObj.ratio || 1.0);
+      if (imgH > imgMaxH) {
+        imgH = imgMaxH;
+        imgW = imgH / (imgObj.ratio || 1.0);
+      }
+      const imgX = frameX + (frameW - imgW) / 2;
+      const imgY = frameY + (frameH - imgH) / 2;
+      try {
+        doc.addImage(imgObj.dataUrl, "PNG", imgX, imgY, imgW, imgH);
+      } catch (e) {}
     }
-    const imgX = frameX + (frameW - imgW) / 2;
-    const imgY = frameY + (frameH - imgH) / 2;
-    try {
-      doc.addImage(autoDataUrl, "PNG", imgX, imgY, imgW, imgH);
-    } catch (e) {}
+  } else {
+    // Multi-model: render 2 distinct models side-by-side in spotlight
+    const frameW = 32;
+    const frameH = isGrid ? 25 : 27;
+    const count = Math.min(2, bannerDevTypes.length);
+    for (let bi = 0; bi < count; bi++) {
+      const t = bannerDevTypes[bi];
+      const imgObj = (autoImagesMap && autoImagesMap[t]) || { dataUrl: autoDataUrl, ratio: autoRatio };
+      const frameX = (bi === 0) ? 120 : 155;
+      const frameY = topBannerY + 2.5;
+
+      doc.setFillColor(255, 255, 255);
+      doc.setDrawColor(226, 232, 240);
+      doc.setLineWidth(0.3);
+      doc.roundedRect(frameX, frameY, frameW, frameH, 2, 2, "FD");
+
+      const shortName = (t === "pulsarlube_msp" || t === "pulsarlube_msp_oil") ? "MSP" : (t === "pulsarlube_plc" ? "PLC" : (t === "pulsarlube_m2" ? "M2" : "Single Point"));
+      const badgeBg = (t === "pulsarlube_msp") ? [234, 88, 12] : (t === "pulsarlube_plc") ? [2, 132, 199] : [220, 38, 38];
+      doc.setFillColor(badgeBg[0], badgeBg[1], badgeBg[2]);
+      const badgeW = 14;
+      doc.roundedRect(frameX + (frameW - badgeW) / 2, frameY + 1.2, badgeW, 3.4, 1, 1, "F");
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(5.2);
+      doc.setTextColor(255, 255, 255);
+      doc.text(shortName, frameX + frameW / 2, frameY + 3.6, { align: "center" });
+
+      if (imgObj && imgObj.dataUrl) {
+        const imgMaxW = frameW - 4;
+        const imgMaxH = frameH - 6.5;
+        let imgW = imgMaxW;
+        let imgH = imgW * (imgObj.ratio || 1.0);
+        if (imgH > imgMaxH) {
+          imgH = imgMaxH;
+          imgW = imgH / (imgObj.ratio || 1.0);
+        }
+        const imgX = frameX + (frameW - imgW) / 2;
+        const imgY = frameY + 5 + (imgMaxH - imgH) / 2;
+        try {
+          doc.addImage(imgObj.dataUrl, "PNG", imgX, imgY, imgW, imgH);
+        } catch (e) {}
+      }
+    }
   }
 
   // 4. DEVICE CARDS (SIDE-BY-SIDE IF 2 DEVICES, OR 2x2 GRID IF 3-4 DEVICES)
@@ -4144,9 +4233,14 @@ function renderPdfAutomationExtraPage(doc, autoData, autoDataUrl, autoRatio, wat
     const groupUnits = isSinglePoint
       ? (isSpMultiGroup ? (dev.unitCount || (dev.bearingLetters ? dev.bearingLetters.length : 1)) : totalSpUnits)
       : pts;
+
+    const thisDevType = isSinglePoint ? "single_point" : ((dev && dev.type) ? dev.type : (deviceKey !== "mixed" ? deviceKey : "pulsarlube_m2"));
+    const thisDevTypeName = getDeviceTypeName(thisDevType);
+    const thisDevShort = (thisDevType === "pulsarlube_msp" || thisDevType === "pulsarlube_msp_oil") ? "MSP" : (thisDevType === "pulsarlube_plc" ? "PLC" : (thisDevType === "pulsarlube_m2" ? "M2" : "Single Point"));
+
     const devName = isSinglePoint
       ? (isSpMultiGroup ? `Single Point: Lager ${dev.groupBearingsText || devId} (${groupUnits}x)` : (groupUnits > 1 ? `${groupUnits}x Single Point` : "Single Point"))
-      : (numDevices === 1 ? baseDeviceName : `Pulsarlube ${devId}`);
+      : (numDevices === 1 ? thisDevTypeName : `Pulsarlube ${devId}`);
 
     const totalDailyNeedForDev = (dev.totalDailyNeed && dev.totalDailyNeed > 0)
       ? dev.totalDailyNeed
@@ -4156,7 +4250,7 @@ function renderPdfAutomationExtraPage(doc, autoData, autoDataUrl, autoRatio, wat
       : (pts > 0 ? (totalDailyNeedForDev / pts) : dailyNeedCm3);
     const recDays = capMl / (totalDailyNeedForDev > 0 ? totalDailyNeedForDev : 0.704);
     const recMonths = recDays / 30.4375;
-    const recSetting = getRecommendedSettingMonths(recMonths, deviceKey, capMl);
+    const recSetting = getRecommendedSettingMonths(recMonths, thisDevType, capMl);
 
     let periodMonths = periodVal;
     if (curUnit === "weeks") periodMonths = (periodVal * 7) / 30.4375;
@@ -4211,18 +4305,19 @@ function renderPdfAutomationExtraPage(doc, autoData, autoDataUrl, autoRatio, wat
     doc.setTextColor(255, 255, 255);
     const cardHeaderTitle = isSinglePoint 
       ? (isSpMultiGroup ? `Single Point — Lager ${dev.groupBearingsText || devId}` : `Single Point - Smeerinstelling & Volumecalculatie`)
-      : (dev.bearingSummary ? `${devName} (${dev.bearingSummary})` : `${devName} - Smeerinstelling & Volumecalculatie`);
+      : (dev.bearingSummary ? `Pulsarlube ${devId} • ${thisDevShort} (${dev.bearingSummary})` : `Pulsarlube ${devId} • ${thisDevTypeName}`);
     doc.text(cardHeaderTitle, cardX + 3, cardY + (isGrid ? 4.5 : 5));
 
     if (numDevices > 1 || (isSinglePoint && groupUnits > 1)) {
       doc.setFillColor(255, 255, 255);
-      const tagW = isSinglePoint ? 24 : 19;
-      doc.roundedRect(cardX + colWidth - (tagW + 2), cardY + 1.2, tagW, 4, 1, 1, "F");
+      const tagText = isSinglePoint ? `${groupUnits}X SINGLE POINT` : `TOESTEL ${devId} • ${thisDevShort}`;
       doc.setFont("helvetica", "bold");
-      doc.setFontSize(6);
+      doc.setFontSize(5.8);
+      const textW = doc.getTextWidth(tagText);
+      const tagW = Math.max(isSinglePoint ? 24 : 22, textW + 4);
+      doc.roundedRect(cardX + colWidth - (tagW + 2), cardY + 1.2, tagW, 4, 1, 1, "F");
       doc.setTextColor(227, 6, 19);
-      const tagText = isSinglePoint ? `${groupUnits}X SINGLE POINT` : `TOESTEL ${devId}`;
-      doc.text(tagText, cardX + colWidth - (tagW / 2 + 2), cardY + 3.9, { align: "center" });
+      doc.text(tagText, cardX + colWidth - (tagW / 2 + 2), cardY + 3.8, { align: "center" });
     }
 
     let innerY = cardY + (isGrid ? 8.5 : 10);
@@ -4260,7 +4355,7 @@ function renderPdfAutomationExtraPage(doc, autoData, autoDataUrl, autoRatio, wat
       const divTitleStr = pts === 1 ? "Directe aansluiting (1 smeerpunt)" : `HU Type Verdeelblok (${pts}-poorts)`;
       doc.text(divTitleStr, cardX + (isGrid ? 20 : 22), innerY + (isGrid ? 5.5 : 6));
 
-      const pInfo = getAutomationPriceInfo(deviceKey, capMl, greaseName, pts);
+      const pInfo = getAutomationPriceInfo(thisDevType, capMl, greaseName, pts);
       doc.setFont("helvetica", "bold");
       doc.setFontSize(isGrid ? 6.5 : 7);
       doc.setTextColor(227, 6, 19);
@@ -4300,7 +4395,7 @@ function renderPdfAutomationExtraPage(doc, autoData, autoDataUrl, autoRatio, wat
     doc.setTextColor(227, 6, 19);
     doc.text(`GEADVISEERDE INSTELLING OP ${devName.toUpperCase()}`, cardX + 5, innerY + (isGrid ? 4.5 : 5));
 
-    const smartAdv = getOptimalSmartAdvice(totalDailyNeedForDev, deviceKey, greaseName);
+    const smartAdv = getOptimalSmartAdvice(totalDailyNeedForDev, thisDevType, greaseName);
     doc.setFont("helvetica", "bold");
     doc.setFontSize(isGrid ? 8.5 : 9);
     doc.setTextColor(227, 6, 19);
@@ -4455,6 +4550,29 @@ function getAutomationDeviceImageDataUrl(imageSrc, callback) {
   };
   img.src = imageSrc;
 }
+
+function loadAllAutomationImages(callback) {
+  const imageSources = {
+    pulsarlube_m2: "pulsarlube-m2.png",
+    pulsarlube_msp: "pulsarlube-msp.png",
+    pulsarlube_plc: "pulsarlube-plc.png?v=20260823_1525",
+    single_point: "interflon-single-point-lubricator.png"
+  };
+  const keys = Object.keys(imageSources);
+  const result = {};
+  let pending = keys.length;
+
+  keys.forEach(key => {
+    getAutomationDeviceImageDataUrl(imageSources[key], (dataUrl, ratio) => {
+      result[key] = { dataUrl, ratio };
+      pending--;
+      if (pending === 0) {
+        callback(result);
+      }
+    });
+  });
+}
+window.loadAllAutomationImages = loadAllAutomationImages;
 
 
 
@@ -9610,12 +9728,25 @@ function runBearingPdfExport(includeTco, includeRoi, includeRaster = true) {
   }
 
   const autoDeviceSelectEl = document.getElementById("automationDeviceSelect") || document.getElementById("autoDeviceSelect");
-  const autoDeviceKey = autoDeviceSelectEl ? autoDeviceSelectEl.value : "single_point";
+  let autoDeviceKey = autoDeviceSelectEl ? autoDeviceSelectEl.value : "single_point";
+
+  const rawNumDevs = (typeof getActiveNumDevices === "function" ? getActiveNumDevices() : 1);
+  const activeDevList = (Array.isArray(autoDevicesState) ? autoDevicesState.slice(0, rawNumDevs) : []);
+  const hasPulsarDev = activeDevList.some(d => d && d.type && d.type.startsWith("pulsarlube"));
+  if (autoDeviceKey === "single_point" && hasPulsarDev) {
+    autoDeviceKey = (activeDevList[0] && activeDevList[0].type) || "pulsarlube_m2";
+  }
+
   let autoImgSrc = "interflon-single-point-lubricator.png";
   if (autoDeviceKey === "pulsarlube_m2") {
     autoImgSrc = "pulsarlube-m2.png";
-  } else if (autoDeviceKey === "pulsarlube_msp" || autoDeviceKey === "pulsarlube_plc") {
+  } else if (autoDeviceKey === "pulsarlube_msp") {
     autoImgSrc = "pulsarlube-msp.png";
+  } else if (autoDeviceKey === "pulsarlube_plc") {
+    autoImgSrc = "pulsarlube-plc.png?v=20260823_1525";
+  } else if (autoDeviceKey === "mixed") {
+    const firstPulsar = activeDevList.find(d => d && d.type && d.type.startsWith("pulsarlube"));
+    autoImgSrc = (firstPulsar && firstPulsar.type === "pulsarlube_m2") ? "pulsarlube-m2.png" : "pulsarlube-msp.png";
   }
 
   const qBearings = (typeof getQuestionnaireBearings === 'function') ? getQuestionnaireBearings() : [];
@@ -9703,7 +9834,14 @@ function runBearingPdfExport(includeTco, includeRoi, includeRaster = true) {
 
   getTransparentLogo((watermarkDataUrl, aspectRatio) => {
     getMicPolImageDataUrl((micpolDataUrl, micpolRatio) => {
-      getAutomationDeviceImageDataUrl(autoImgSrc, (autoDataUrl, autoRatio) => {
+      loadAllAutomationImages((autoImagesMap) => {
+        const primaryImgObj = (autoImagesMap && autoImagesMap[autoDeviceKey]) || 
+                              (autoImagesMap && autoImagesMap.pulsarlube_msp) || 
+                              (autoImagesMap && autoImagesMap.pulsarlube_m2) || 
+                              (autoImagesMap && autoImagesMap.single_point) || 
+                              { dataUrl: null, ratio: 1.0 };
+        const autoDataUrl = primaryImgObj.dataUrl;
+        const autoRatio = primaryImgObj.ratio;
         try {
           const doc = new jsPDF({
             orientation: "portrait",
@@ -9791,11 +9929,11 @@ function runBearingPdfExport(includeTco, includeRoi, includeRaster = true) {
           getVerdeelblokImage(function(divDataUrl) {
             try {
               // Automatisering Overzicht (Pulsarlube toestellen A en B, verdeelblok, leidingen)
-              renderPdfAutomationExtraPage(doc, {}, autoDataUrl, autoRatio, watermarkDataUrl, aspectRatio, langData, false, divDataUrl);
+              renderPdfAutomationExtraPage(doc, {}, autoDataUrl, autoRatio, watermarkDataUrl, aspectRatio, langData, false, divDataUrl, autoImagesMap);
 
               // ROI Automatisering
               if (includeRoi) {
-                addRoiPdfPage(doc, dateString, watermarkDataUrl, aspectRatio, autoDataUrl);
+                addRoiPdfPage(doc, dateString, watermarkDataUrl, aspectRatio, autoDataUrl, autoImagesMap);
               }
 
               // 3D Machineraster
@@ -15942,7 +16080,7 @@ function toggleAutoAvatarSpeech() {
 window.toggleAutoAvatarSpeech = toggleAutoAvatarSpeech;
 
 
-function addRoiPdfPage(doc, dateString, watermarkDataUrl, aspectRatio, autoDataUrl) {
+function addRoiPdfPage(doc, dateString, watermarkDataUrl, aspectRatio, autoDataUrl, autoImagesMap = null) {
   const pVal = (id) => {
     const prefixes = ["omShared", "om", "chainOmShared", "chainOm"];
     for (const p of prefixes) {
@@ -15990,9 +16128,13 @@ function addRoiPdfPage(doc, dateString, watermarkDataUrl, aspectRatio, autoDataU
 
   // Read active devices state
   const deviceSelect = document.getElementById("automationDeviceSelect") || document.getElementById("autoDeviceSelect");
-  const deviceKey = deviceSelect ? deviceSelect.value : "single_point";
+  let deviceKey = deviceSelect ? deviceSelect.value : "single_point";
 
   const numDevices = typeof getActiveNumDevices === "function" ? getActiveNumDevices() : 1;
+  const activeDevList = (Array.isArray(autoDevicesState) ? autoDevicesState.slice(0, numDevices) : []);
+  const hasPulsarInState = activeDevList.some(d => d && d.type && d.type.startsWith("pulsarlube"));
+  const isSinglePoint = (deviceKey === "single_point") && !hasPulsarInState;
+
   const selectGrease = document.getElementById("inputGrease") || document.getElementById("selectGrease");
   const greaseName = selectGrease ? selectGrease.value : "Interflon Grease MP2/3";
   const greasePriceInput = document.getElementById("omProdPrice2") || document.getElementById("chainOmProdPrice2") || document.getElementById("tcoPriceInterflonInput");
@@ -16016,30 +16158,30 @@ function addRoiPdfPage(doc, dateString, watermarkDataUrl, aspectRatio, autoDataU
   const spUnitEl = document.getElementById("autoDispenseUnit_A") || document.getElementById("autoDispenseUnit");
   const spUnitVal = (spUnitEl ? spUnitEl.value : "") || (typeof autoDevicesState !== "undefined" && autoDevicesState[0] ? autoDevicesState[0].unit : "months");
 
-  const activeSpGroups = (deviceKey === "single_point" && Array.isArray(autoDevicesState))
+  const activeSpGroups = (isSinglePoint && Array.isArray(autoDevicesState))
     ? autoDevicesState.filter(d => d && d.isSinglePointGroup && (d.unitCount > 0 || (d.bearingLetters && d.bearingLetters.length > 0)))
     : [];
-  const isSpMultiGroup = (deviceKey === "single_point" && activeSpGroups.length > 1);
-  const numLoop = (deviceKey === "single_point")
+  const isSpMultiGroup = (isSinglePoint && activeSpGroups.length > 1);
+  const numLoop = isSinglePoint
     ? (isSpMultiGroup ? activeSpGroups.length : 1)
     : numDevices;
 
   for (let i = 0; i < numLoop; i++) {
     const d = (typeof autoDevicesState !== "undefined" && autoDevicesState[i]) ? autoDevicesState[i] : { id: String.fromCharCode(65 + i), points: 1, cap: 125, period: 6, unit: 'months' };
-    const multiplier = (deviceKey === "single_point")
+    const multiplier = isSinglePoint
       ? (isSpMultiGroup ? (d.unitCount || 1) : (window.spNumBearingsValue || (autoDevicesState[0] && autoDevicesState[0].unitCount) || 1))
       : 1;
-    const pts = (deviceKey === "single_point") ? 1 : ((typeof d.points === 'number') ? d.points : (parseInt(d.points, 10) || 0));
-    if (pts === 0 && deviceKey !== "single_point") continue;
+    const pts = isSinglePoint ? 1 : ((typeof d.points === 'number') ? d.points : (parseInt(d.points, 10) || 0));
+    if (pts === 0 && !isSinglePoint) continue;
 
     const devCapEl = document.getElementById("autoCartridgeCap_" + d.id);
     const devCapVal = devCapEl ? parseInt(devCapEl.value, 10) : 0;
-    const cap = (deviceKey === "single_point" && !isSpMultiGroup) ? spCapVal : (devCapVal || d.cap || 125);
+    const cap = (isSinglePoint && !isSpMultiGroup) ? spCapVal : (devCapVal || d.cap || 125);
     mainCapMl = cap;
     totalPointsAllDevices += (pts * multiplier);
 
-    if (deviceKey !== "single_point") {
-      const thisDevType = d.type || deviceKey;
+    if (!isSinglePoint) {
+      const thisDevType = d.type || (deviceKey !== "mixed" ? deviceKey : "pulsarlube_m2");
       const devTypeName = getDeviceTypeName(thisDevType);
       devBreakdownText.push(`Toestel ${d.id} (${devTypeName}): ${pts} ${pts === 1 ? 'lager' : 'lagers'}`);
     } else if (isSpMultiGroup) {
@@ -16052,22 +16194,22 @@ function addRoiPdfPage(doc, dateString, watermarkDataUrl, aspectRatio, autoDataU
     const devUnitEl = document.getElementById("autoDispenseUnit_" + d.id);
     const devUnitVal = devUnitEl ? devUnitEl.value : "";
 
-    const period = (deviceKey === "single_point" && !isSpMultiGroup) ? spPeriodVal : (devPeriodVal || d.period || 6);
-    const unit = (deviceKey === "single_point" && !isSpMultiGroup) ? spUnitVal : (devUnitVal || d.unit || "months");
+    const period = (isSinglePoint && !isSpMultiGroup) ? spPeriodVal : (devPeriodVal || d.period || 6);
+    const unit = (isSinglePoint && !isSpMultiGroup) ? spUnitVal : (devUnitVal || d.unit || "months");
 
     const domCustomPriceEl = document.getElementById("autoCustomPackPrice_" + d.id) || document.getElementById("autoCustomPackPrice_A");
     const domCustomVal = domCustomPriceEl ? parseFloat(domCustomPriceEl.value) : 0;
     const spCustomFallback = window.customSinglePointPackPrice || (typeof autoDevicesState !== "undefined" && autoDevicesState[0] ? autoDevicesState[0].customPackPrice : 0);
-    const activeCustomPrice = (!isNaN(domCustomVal) && domCustomVal > 0) ? domCustomVal : (d.customPackPrice || ((deviceKey === "single_point" || i === 0) ? spCustomFallback : 0));
-    const thisDevType = (deviceKey === "single_point") ? "single_point" : (d.type || deviceKey);
+    const activeCustomPrice = (!isNaN(domCustomVal) && domCustomVal > 0) ? domCustomVal : (d.customPackPrice || ((isSinglePoint || i === 0) ? spCustomFallback : 0));
+    const thisDevType = isSinglePoint ? "single_point" : (d.type || (deviceKey !== "mixed" ? deviceKey : "pulsarlube_m2"));
     const pInfo = getAutomationPriceInfo(thisDevType, cap, greaseName, pts, activeCustomPrice);
-    if (deviceKey !== "single_point") {
+    if (!isSinglePoint) {
       totalUnitsPrice += (pInfo.unitPrice * multiplier);
       totalInstallKitPrice += (pInfo.installKitPrice * multiplier);
       totalDividerBlockPrice += (pInfo.dividerBlockPrice * multiplier);
     }
 
-    const devNeedRate = (deviceKey === "single_point" && d.dailyNeedCm3 && d.dailyNeedCm3 > 0) ? d.dailyNeedCm3 : dailyNeedCm3;
+    const devNeedRate = (isSinglePoint && d.dailyNeedCm3 && d.dailyNeedCm3 > 0) ? d.dailyNeedCm3 : dailyNeedCm3;
     const yearlyMlDev = devNeedRate * pts * 365.25;
     let cartsDev = 0;
     if (period > 0) {
@@ -16082,7 +16224,7 @@ function addRoiPdfPage(doc, dateString, watermarkDataUrl, aspectRatio, autoDataU
 
   const numPoints = totalPointsAllDevices;
   let totalDailyNeedAllDevices = 0;
-  if (deviceKey === "single_point") {
+  if (isSinglePoint) {
     if (isSpMultiGroup) {
       activeSpGroups.forEach(g => {
         const cnt = g.unitCount || (g.bearingLetters ? g.bearingLetters.length : 1);
@@ -16100,17 +16242,17 @@ function addRoiPdfPage(doc, dateString, watermarkDataUrl, aspectRatio, autoDataU
   const yearlyMlTotal = totalDailyNeedAllDevices * 365.25;
 
   let fullDeviceTitle = "";
-  if (deviceKey === "single_point") {
+  if (isSinglePoint) {
     fullDeviceTitle = (numPoints > 1 ? `${numPoints}x Interflon Single Point Lubricator` : "Interflon Single Point Lubricator");
   } else if (numDevices === 1) {
-    const t = (autoDevicesState && autoDevicesState[0] && autoDevicesState[0].type) || deviceKey;
+    const t = (autoDevicesState && autoDevicesState[0] && autoDevicesState[0].type) || (deviceKey !== "mixed" ? deviceKey : "pulsarlube_m2");
     fullDeviceTitle = getDeviceTypeName(t);
   } else {
     const typeCounts = {};
     const typeOrder = [];
     for (let i = 0; i < numDevices; i++) {
       const d = (typeof autoDevicesState !== "undefined" && autoDevicesState[i]) ? autoDevicesState[i] : null;
-      const t = (d && d.type) ? d.type : deviceKey;
+      const t = (d && d.type) ? d.type : (deviceKey !== "mixed" ? deviceKey : "pulsarlube_m2");
       if (!typeCounts[t]) {
         typeCounts[t] = 0;
         typeOrder.push(t);
@@ -16127,22 +16269,56 @@ function addRoiPdfPage(doc, dateString, watermarkDataUrl, aspectRatio, autoDataU
   doc.setLineWidth(0.25);
   doc.roundedRect(20, 36, 170, 20, 2, 2, "FD");
 
-  if (autoDataUrl) {
-    try {
-      doc.addImage(autoDataUrl, "PNG", 24, 38, 16, 16);
-    } catch(e){}
+  const roiDevTypes = [];
+  if (isSinglePoint) {
+    roiDevTypes.push("single_point");
+  } else {
+    for (let i = 0; i < numDevices; i++) {
+      const d = activeDevList[i] || null;
+      const t = (d && d.type) ? d.type : (deviceKey !== "mixed" ? deviceKey : "pulsarlube_m2");
+      if (!roiDevTypes.includes(t)) {
+        roiDevTypes.push(t);
+      }
+    }
+    if (roiDevTypes.length === 0) {
+      roiDevTypes.push(deviceKey !== "mixed" ? deviceKey : "pulsarlube_m2");
+    }
+  }
+
+  let textStartX = 44;
+  if (roiDevTypes.length <= 1) {
+    const t = roiDevTypes[0];
+    const imgData = (autoImagesMap && autoImagesMap[t] && autoImagesMap[t].dataUrl) ? autoImagesMap[t].dataUrl : autoDataUrl;
+    if (imgData) {
+      try {
+        doc.addImage(imgData, "PNG", 24, 38, 16, 16);
+      } catch(e){}
+    }
+    textStartX = 44;
+  } else {
+    const t1 = roiDevTypes[0];
+    const t2 = roiDevTypes[1];
+    const img1 = (autoImagesMap && autoImagesMap[t1] && autoImagesMap[t1].dataUrl) ? autoImagesMap[t1].dataUrl : autoDataUrl;
+    const img2 = (autoImagesMap && autoImagesMap[t2] && autoImagesMap[t2].dataUrl) ? autoImagesMap[t2].dataUrl : null;
+    if (img1) {
+      try { doc.addImage(img1, "PNG", 22, 38, 15, 15); } catch(e){}
+    }
+    if (img2) {
+      try { doc.addImage(img2, "PNG", 38, 38, 15, 15); } catch(e){}
+    }
+    textStartX = 56;
   }
 
   doc.setFont("helvetica", "bold");
   doc.setFontSize(11);
   doc.setTextColor(30, 41, 59);
-  doc.text(fullDeviceTitle, 44, 43);
+  doc.text(fullDeviceTitle, textStartX, 43);
 
   doc.setFont("helvetica", "normal");
   doc.setFontSize(8.5);
   doc.setTextColor(100, 116, 139);
   const capInfoStr = numDevices === 1 ? `Patrooninhoud: ${mainCapMl} ml` : `${numDevices} geselecteerde toestellen`;
-  doc.text(`${capInfoStr}  •  Aantal lagers: ${numPoints}  •  Geselecteerd product: ${greaseName}`, 44, 49);
+  doc.text(`${capInfoStr}  •  Aantal lagers: ${numPoints}  •  Geselecteerd product: ${greaseName}`, textStartX, 49);
 
   doc.setFont("helvetica", "bold");
   doc.setFontSize(9);
