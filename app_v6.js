@@ -17404,37 +17404,44 @@ window.onSinglePointGroupCountChange = onSinglePointGroupCountChange;
 
 
 
-function getSurveyUrl() {
+function getSurveyUrl(options = {}) {
   const opEmail = localStorage.getItem("operator_email") || "";
-  const clientCompany = localStorage.getItem("client_company") || "";
-  const clientContact = localStorage.getItem("client_contact") || "";
-  const clientEmail = localStorage.getItem("client_email") || "";
 
   let params = new URLSearchParams();
+  // Ensure the link always opens a clean, blank questionnaire for clients
+  params.set("new", "1");
+  params.set("blank", "1");
   params.set("v", Date.now().toString());
   if (typeof currentLang !== "undefined" && currentLang) params.set("lang", currentLang);
   if (opEmail) params.set("contact", opEmail);
-  if (clientCompany) params.set("company", clientCompany);
-  if (clientContact) params.set("client_contact", clientContact);
-  if (clientEmail) params.set("client_email", clientEmail);
+
+  // Only include previous client data if explicitly requested (default is blank for mailing to clients)
+  if (options && options.includeClientData) {
+    const clientCompany = localStorage.getItem("client_company") || "";
+    const clientContact = localStorage.getItem("client_contact") || "";
+    const clientEmail = localStorage.getItem("client_email") || "";
+    if (clientCompany) params.set("company", clientCompany);
+    if (clientContact) params.set("client_contact", clientContact);
+    if (clientEmail) params.set("client_email", clientEmail);
+  }
 
   return "https://www.interflonapps.com/vragenlijst.html?" + params.toString();
 }
 
 function openSurveyLink(e) {
   if (e) e.preventDefault();
-  const url = getSurveyUrl();
+  const url = getSurveyUrl({ includeClientData: false });
   window.open(url, '_blank');
 }
 
 
 function printSurveyPage() {
-  const url = getSurveyUrl() + "&autoprint=true";
+  const url = getSurveyUrl({ includeClientData: false }) + "&autoprint=true";
   window.open(url, '_blank');
 }
 
 function copySurveyLink() {
-  const url = getSurveyUrl();
+  const url = getSurveyUrl({ includeClientData: false });
 
   const dummy = document.createElement("textarea");
   dummy.value = url;
@@ -17449,7 +17456,7 @@ function copySurveyLink() {
     navigator.clipboard.writeText(url).catch(() => {});
   }
 
-  alert("📋 Unieke vragenlijst-link is gekopieerd naar uw klembord!\n\nLink: " + url + "\n\nU kunt deze link nu direct plakken (Ctrl + V) in een e-mail naar uw klant.");
+  alert("📋 Blanco vragenlijst-link is gekopieerd naar uw klembord!\n\nLink: " + url + "\n\nDeze link opent voor iedere klant gegarandeerd een schone, lege invullijst zonder eerdere testgegevens.\nU kunt deze nu direct plakken (Ctrl + V) in een e-mail naar uw klant.");
 }
 
 // ==========================================================================
