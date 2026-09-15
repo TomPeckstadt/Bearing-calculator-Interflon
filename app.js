@@ -2641,6 +2641,8 @@ function importSurveyBearingToOpbrengstmodel(mode, explicitLetter) {
   if (!targetLetter) {
     targetLetter = 'A';
   }
+  window.currentSurveyBearingLetter = targetLetter;
+  window.activeSurveyLetter = targetLetter;
 
   const sec2 = (fullData && fullData.bearingDataMapSec2 && fullData.bearingDataMapSec2[targetLetter])
     ? fullData.bearingDataMapSec2[targetLetter]
@@ -10144,6 +10146,17 @@ function calculateTcoForPrefix(prefix) {
   setSummaryEl("AnnSavingsSummary", fmtCurrency(ann_savings_park));
   setSummaryEl("TotalSavingsSummary", fmtCurrency(total_savings_years));
   setSummaryEl("ProdCostPercentSummary", fmtPercent(prod_cost_percent));
+
+  if (prefix === "om") {
+    window.lastOmSingleSavings = {
+      annSavings: ann_savings_park,
+      totalSavings: total_savings_years,
+      prodCostPercent: prod_cost_percent
+    };
+    if (typeof updateOmKpiSummaryCards === "function") {
+      updateOmKpiSummaryCards();
+    }
+  }
 }
 
 function calculateTco() {
@@ -10154,6 +10167,199 @@ function calculateTco() {
   }
   setTimeout(() => { if (typeof updateRoiAutomationPage === "function") updateRoiAutomationPage(); }, 0);
 }
+
+// ==========================================================================
+// OPBRENGSTMODEL KPI SCOPE SELECTOR & FULL SURVEY TCO AGGREGATION
+// ==========================================================================
+window.currentOmKpiScope = "single";
+
+function setOmKpiScope(scope) {
+  window.currentOmKpiScope = scope || "single";
+  const selectEl = document.getElementById("omKpiScopeSelect");
+  if (selectEl && selectEl.value !== window.currentOmKpiScope) {
+    selectEl.value = window.currentOmKpiScope;
+  }
+  updateOmKpiSummaryCards();
+}
+window.setOmKpiScope = setOmKpiScope;
+
+function calculateFullSurveyTcoSavings() {
+  let fullData = null;
+  try {
+    const rawFull = localStorage.getItem('interflon_questionnaire_full_data') ||
+                    localStorage.getItem('interflon_last_questionnaire_data');
+    const rawCfg = localStorage.getItem('interflon_survey_raster_config');
+    let parsedFull = rawFull ? JSON.parse(rawFull) : null;
+    if (parsedFull && (parsedFull.fullData || parsedFull.questionnaire || parsedFull.data)) {
+      parsedFull = parsedFull.fullData || parsedFull.questionnaire || parsedFull.data;
+    }
+    const parsedCfg = rawCfg ? JSON.parse(rawCfg) : null;
+    fullData = parsedFull || parsedCfg;
+    if (parsedCfg && fullData) {
+      if (parsedCfg.bearingDataMapSec2) fullData.bearingDataMapSec2 = { ...(fullData.bearingDataMapSec2 || {}), ...parsedCfg.bearingDataMapSec2 };
+      if (parsedCfg.bearingDataMapSec3) fullData.bearingDataMapSec3 = { ...(fullData.bearingDataMapSec3 || {}), ...parsedCfg.bearingDataMapSec3 };
+      if (parsedCfg.bearingDataMapSec4) fullData.bearingDataMapSec4 = { ...(fullData.bearingDataMapSec4 || {}), ...parsedCfg.bearingDataMapSec4 };
+      if (parsedCfg.bearings && (!fullData.bearings || fullData.bearings.length === 0)) fullData.bearings = parsedCfg.bearings;
+    }
+  } catch(e) {}
+
+  if (!fullData && window.latestSurveyFullData) {
+    fullData = window.latestSurveyFullData;
+  }
+
+  const bearings = (fullData && Array.isArray(fullData.bearings) && fullData.bearings.length > 0)
+    ? fullData.bearings
+    : ((window.latestSurveyBearings && Array.isArray(window.latestSurveyBearings) && window.latestSurveyBearings.length > 0)
+        ? window.latestSurveyBearings
+        : []);
+
+  if (bearings.length === 0) {
+    return null;
+  }
+
+  const val = (id) => {
+    const el = document.getElementById("om" + id);
+    if (!el) return 0;
+    const v = parseFloat(el.value);
+    return isNaN(v) ? 0 : v;
+  };
+
+  const shared_labor_rate = val("SharedLaborRate") || 50;
+  const shared_repair_h = val("SharedRepairH") || 4;
+  const shared_prep_h = val("SharedPrepH") || 1;
+  const shared_worktime = val("SharedWorktime") || 5;
+  const shared_worktime_hours = shared_worktime / 60;
+  const shared_parts_cost = val("SharedPartsCost") || 250;
+  const shared_downtime_rate = val("SharedDowntimeRate") || 150;
+  const shared_num_machines = val("SharedNumMachines") || 1;
+  const tco_years = val("TcoYears") || 5;
+
+  let density = 0.92;
+  const selectedGrease = document.getElementById("inputGrease") ? document.getElementById("inputGrease").value : "";
+  const grease = (typeof INTERFLON_GREASES !== "undefined" && INTERFLON_GREASES[selectedGrease]) ? INTERFLON_GREASES[selectedGrease] : { density: 0.92 };
+  density = grease.density || 0.92;
+
+  let totalP1AnnPark = 0;
+  let totalP2AnnPark = 0;
+  let totalP2AnnProdCost = 0;
+  let bearingLetters = [];
+
+  bearings.forEach(b => {
+    const letter = b.letter || 'A';
+    bearingLetters.push(letter);
+    const sec2 = (fullData && fullData.bearingDataMapSec2 && fullData.bearingDataMapSec2[letter]) ? fullData.bearingDataMapSec2[letter] : {};
+    const sec3 = (fullData && fullData.bearingDataMapSec3 && fullData.bearingDataMapSec3[letter]) ? fullData.bearingDataMapSec3[letter] : {};
+    const sec4 = (fullData && fullData.bearingDataMapSec4 && fullData.bearingDataMapSec4[letter]) ? fullData.bearingDataMapSec4[letter] : {};
+
+    const num_bearings = b.aantal || b.points || 1;
+
+    let p1_cons = parseFloat(sec2.q13 || sec2.gq_manual || b.vetVerbruik || val("ProdCons1")) || 50;
+    let p2_cons = parseFloat(sec3.interflonCons || val("ProdCons2")) || p1_cons;
+    let p1_price = parseFloat(sec2.q12_price || b.prijsLiter || val("ProdPrice1")) || 15;
+    let p2_price = parseFloat(val("ProdPrice2")) || 70.50;
+
+    let p1_freq = parseFloat(sec2.q4_freq_num || (b.intervalDagen ? (365 / (b.intervalDagen || 7)) : val("ProdFreq1"))) || 52;
+    let p2_freq = parseFloat(sec3.interflonFreq || (p1_freq > 2 ? (p1_freq / 2) : p1_freq)) || (p1_freq / 2);
+
+    let p1_lifetime = parseFloat(sec2.q29_life || b.levensduur || val("Lifetime1")) || 12;
+    let p2_lifetime = parseFloat(sec4.targetLifetime || (p1_lifetime * 2) || val("Lifetime2")) || (p1_lifetime * 2);
+    if (p1_lifetime <= 0) p1_lifetime = 12;
+    if (p2_lifetime <= 0) p2_lifetime = p1_lifetime * 2;
+
+    let p1_downtime_h = parseFloat(val("DowntimeH1")) || 2;
+    let p2_downtime_h = parseFloat(val("DowntimeH2")) || 1;
+
+    const p1_cons_L = p1_cons / (density * 1000);
+    const p2_cons_L = p2_cons / (density * 1000);
+
+    const b_p1_prod = p1_cons_L * p1_price * p1_freq * num_bearings;
+    const b_p2_prod = p2_cons_L * p2_price * p2_freq * num_bearings;
+
+    const b_p1_labor = (p1_freq * shared_worktime_hours * num_bearings * shared_labor_rate) +
+      ((12 / p1_lifetime) * (shared_repair_h + shared_prep_h) * num_bearings * shared_labor_rate);
+    const b_p2_labor = (p2_freq * shared_worktime_hours * num_bearings * shared_labor_rate) +
+      ((12 / p2_lifetime) * (shared_repair_h + shared_prep_h) * num_bearings * shared_labor_rate);
+
+    const b_p1_mat = shared_parts_cost * num_bearings * (12 / p1_lifetime);
+    const b_p2_mat = shared_parts_cost * num_bearings * (12 / p2_lifetime);
+
+    const b_p1_down = (12 / p1_lifetime) * p1_downtime_h * shared_downtime_rate;
+    const b_p2_down = (12 / p2_lifetime) * p2_downtime_h * shared_downtime_rate;
+
+    const b_p1_total_mach = b_p1_prod + b_p1_labor + b_p1_mat + b_p1_down;
+    const b_p2_total_mach = b_p2_prod + b_p2_labor + b_p2_mat + b_p2_down;
+
+    totalP1AnnPark += b_p1_total_mach * shared_num_machines;
+    totalP2AnnPark += b_p2_total_mach * shared_num_machines;
+    totalP2AnnProdCost += (b_p2_prod * shared_num_machines);
+  });
+
+  const totalAnnSavings = totalP1AnnPark - totalP2AnnPark;
+  const totalSavingsYears = totalAnnSavings * tco_years;
+  const weightedProdCostPercent = totalP1AnnPark > 0 ? (totalP2AnnProdCost / totalP1AnnPark) : 0;
+
+  return {
+    bearingCount: bearings.length,
+    bearingLetters: bearingLetters,
+    totalP1AnnPark,
+    totalP2AnnPark,
+    totalAnnSavings,
+    totalSavingsYears,
+    weightedProdCostPercent
+  };
+}
+
+function updateOmKpiSummaryCards() {
+  const fmtCurrency = (n) => {
+    return new Intl.NumberFormat(currentLang === 'nl' ? 'nl-NL' : currentLang === 'fr' ? 'fr-FR' : 'en-US', {
+      style: 'currency',
+      currency: 'EUR',
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    }).format(n);
+  };
+  const fmtPercent = (n) => {
+    return new Intl.NumberFormat(currentLang === 'nl' ? 'nl-NL' : currentLang === 'fr' ? 'fr-FR' : 'en-US', {
+      style: 'percent',
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    }).format(n);
+  };
+
+  const badgeEl = document.getElementById("omKpiScopeBadge");
+  const annSavingsEl = document.getElementById("omAnnSavingsSummary");
+  const totalSavingsEl = document.getElementById("omTotalSavingsSummary");
+  const prodCostPercentEl = document.getElementById("omProdCostPercentSummary");
+
+  if (window.currentOmKpiScope === "full") {
+    const fullCalc = calculateFullSurveyTcoSavings();
+    if (fullCalc && fullCalc.bearingCount > 0) {
+      if (badgeEl) {
+        badgeEl.textContent = `${fullCalc.bearingCount} Lagers (${fullCalc.bearingLetters.join(', ')})`;
+        badgeEl.classList.add("badge-full");
+      }
+      if (annSavingsEl) annSavingsEl.textContent = fmtCurrency(fullCalc.totalAnnSavings);
+      if (totalSavingsEl) totalSavingsEl.textContent = fmtCurrency(fullCalc.totalSavingsYears);
+      if (prodCostPercentEl) prodCostPercentEl.textContent = fmtPercent(fullCalc.weightedProdCostPercent);
+      return;
+    }
+  }
+
+  // Single mode (default)
+  if (badgeEl) {
+    const activeBearingLetter = window.currentSurveyBearingLetter || (window.activeSurveyLetter ? window.activeSurveyLetter : null);
+    const activeDesig = window.currentBearingDesignation || (document.getElementById("bearingSearchInput") ? document.getElementById("bearingSearchInput").value : null);
+    badgeEl.textContent = activeBearingLetter ? `Lager ${activeBearingLetter}` : (activeDesig ? `Lager ${activeDesig}` : "Geselecteerd Lager");
+    badgeEl.classList.remove("badge-full");
+  }
+
+  if (window.lastOmSingleSavings) {
+    if (annSavingsEl) annSavingsEl.textContent = fmtCurrency(window.lastOmSingleSavings.annSavings);
+    if (totalSavingsEl) totalSavingsEl.textContent = fmtCurrency(window.lastOmSingleSavings.totalSavings);
+    if (prodCostPercentEl) prodCostPercentEl.textContent = fmtPercent(window.lastOmSingleSavings.prodCostPercent);
+  }
+}
+window.updateOmKpiSummaryCards = updateOmKpiSummaryCards;
 
 // ==========================================================================
 // INTERACTIEVE LAGER ROTATIE ANIMATIE (CANVAS)
@@ -15042,6 +15248,10 @@ function toggleRoiAvatarSpeech() {
   // Annuleer eventuele actieve spraak
   window.speechSynthesis.cancel();
 
+  if (typeof stopAutoAvatarSpeech === "function") {
+    stopAutoAvatarSpeech();
+  }
+
   const script = generateRoiSpeechScript();
   if (!script || !script.trim()) return;
 
@@ -15065,8 +15275,250 @@ function toggleRoiAvatarSpeech() {
 if (typeof window !== "undefined") {
   window.addEventListener("beforeunload", () => {
     stopRoiAvatarSpeech();
+    stopAutoAvatarSpeech();
   });
 }
+
+// ==========================================================================
+// AUTOMATISERING AI AVATAR SPEECH SYNTHESIS (MICPOL)
+// ==========================================================================
+let isAutoAvatarSpeaking = false;
+let autoSpeechQueue = [];
+
+function setAutoAvatarUiState(speaking) {
+  isAutoAvatarSpeaking = speaking;
+  const container = document.getElementById("autoAvatarContainer");
+  const icon = document.getElementById("autoAvatarIcon");
+  const statusText = document.getElementById("autoAvatarStatusText");
+  const stopBtn = document.getElementById("autoAvatarStopBtn");
+
+  if (container) {
+    if (speaking) {
+      container.classList.add("speaking");
+    } else {
+      container.classList.remove("speaking");
+    }
+  }
+
+  if (icon) {
+    icon.textContent = speaking ? "🔊" : "▶";
+  }
+
+  if (statusText) {
+    statusText.textContent = speaking ? "Aan het woord... (klik om te stoppen)" : "Toelichting configuratie beluisteren";
+  }
+
+  if (stopBtn) {
+    stopBtn.style.display = speaking ? "inline-flex" : "none";
+  }
+}
+
+function stopAutoAvatarSpeech() {
+  if (typeof window !== "undefined" && "speechSynthesis" in window) {
+    window.speechSynthesis.cancel();
+  }
+  autoSpeechQueue = [];
+  setAutoAvatarUiState(false);
+}
+window.stopAutoAvatarSpeech = stopAutoAvatarSpeech;
+
+function formatDecForDutchSpeech(val) {
+  const num = (typeof val === 'number') ? val : (parseFloat(val) || 0);
+  const fixed = num.toFixed(2).replace('.', ',');
+  const parts = fixed.split(',');
+  const wholeVal = parseInt(parts[0], 10);
+  const fracVal = parseInt(parts[1], 10);
+  const wholeWord = (typeof numberToDutchWords === 'function') ? numberToDutchWords(wholeVal) : wholeVal.toString();
+  const fracWord = (typeof numberToDutchWords === 'function') ? numberToDutchWords(fracVal) : fracVal.toString();
+  return `${wholeWord} komma ${fracWord}`;
+}
+
+function generateAutomationSpeechScript() {
+  const lang = typeof currentLang !== "undefined" ? currentLang : "nl";
+  const deviceSelect = document.getElementById("automationDeviceSelect") || document.getElementById("autoDeviceSelect");
+  const deviceKey = deviceSelect ? deviceSelect.value : "single_point";
+  const isSinglePoint = (deviceKey === "single_point");
+
+  const numDevices = typeof getActiveNumDevices === "function" ? getActiveNumDevices() : 1;
+  const activeSpGroups = (isSinglePoint && Array.isArray(autoDevicesState))
+    ? autoDevicesState.filter(d => d && d.isSinglePointGroup && (d.unitCount > 0 || (d.bearingLetters && d.bearingLetters.length > 0)))
+    : [];
+  const isSpMultiGroup = (isSinglePoint && activeSpGroups.length > 1);
+  const numCards = isSinglePoint ? (isSpMultiGroup ? activeSpGroups.length : 1) : numDevices;
+
+  let totalPoints = 0;
+  for (let i = 0; i < numCards; i++) {
+    const d = (autoDevicesState && autoDevicesState[i]) ? autoDevicesState[i] : null;
+    if (d) {
+      if (isSinglePoint) {
+        totalPoints += (isSpMultiGroup ? (d.unitCount || (d.bearingLetters ? d.bearingLetters.length : 1)) : (window.spNumBearingsValue || d.unitCount || 1));
+      } else {
+        totalPoints += (typeof d.points === 'number' ? d.points : (parseInt(d.points, 10) || 0));
+      }
+    } else {
+      totalPoints += 1;
+    }
+  }
+  if (totalPoints <= 0) totalPoints = numCards;
+
+  let deviceTypeName = "Pulsarlube";
+  if (isSinglePoint) {
+    deviceTypeName = "Single Point Lubricator";
+  } else if (deviceKey === "pulsarlube_m2") {
+    deviceTypeName = "Pulsarlube M2";
+  } else if (deviceKey === "pulsarlube_msp") {
+    deviceTypeName = "Pulsarlube MSP";
+  } else if (deviceKey === "pulsarlube_plc") {
+    deviceTypeName = "Pulsarlube PLC";
+  }
+
+  const pointsWord = (typeof numberToDutchWords === 'function') ? numberToDutchWords(totalPoints) : totalPoints.toString();
+  const devicesWord = (typeof numberToDutchWords === 'function') ? numberToDutchWords(numCards) : numCards.toString();
+  const pointsNoun = totalPoints === 1 ? "smeerpunt" : "smeerpunten";
+  const devicesNoun = numCards === 1 ? "toestel" : "toestellen";
+
+  let script = "";
+  if (lang === "nl") {
+    script += `Bij de huidige selectie verdeelt u ${pointsWord} ${pointsNoun} over ${devicesWord} ${deviceTypeName} ${devicesNoun}. `;
+    script += `Op basis van leidingafstanden en individuele smeerbehoeften van de lagers is dit de ideale configuratie wat betreft keuze van de juiste toestellen en de leeglooptijd in maanden. `;
+
+    for (let i = 0; i < numCards; i++) {
+      const d = (autoDevicesState && autoDevicesState[i]) ? autoDevicesState[i] : { id: String.fromCharCode(65 + i) };
+      const devId = d.id || String.fromCharCode(65 + i);
+
+      const devPts = isSinglePoint
+        ? (isSpMultiGroup ? (d.unitCount || (d.bearingLetters ? d.bearingLetters.length : 1)) : (window.spNumBearingsValue || d.unitCount || 1))
+        : (d.points || 1);
+      const devPeriod = d.period || 6;
+      const periodWord = (typeof numberToDutchWords === 'function') ? numberToDutchWords(devPeriod) : devPeriod.toString();
+      const periodUnitWord = devPeriod === 1 ? "maand" : "maanden";
+      const devPtsWord = (typeof numberToDutchWords === 'function') ? numberToDutchWords(devPts) : devPts.toString();
+      const devPtsNoun = devPts === 1 ? "lager" : "lagers";
+
+      const dailyNeed = (d.dailyNeedCm3 && d.dailyNeedCm3 > 0) ? d.dailyNeedCm3 : (window.currentDailyNeedCm3 || 0.20);
+      const totalDailyNeedForDev = isSinglePoint ? dailyNeed : (d.totalDailyNeed && d.totalDailyNeed > 0 ? d.totalDailyNeed : dailyNeed * devPts);
+      const capMl = d.cap || 125;
+      const totalDays = 30.4375 * devPeriod;
+      const actualDosePerBearing = (capMl / totalDays) / (devPts > 0 ? devPts : 1);
+      const targetNeedPerBearing = isSinglePoint ? totalDailyNeedForDev : (devPts > 0 ? (totalDailyNeedForDev / devPts) : 0);
+
+      const doseSpoken = formatDecForDutchSpeech(actualDosePerBearing);
+      const needSpoken = formatDecForDutchSpeech(targetNeedPerBearing);
+
+      const maxTheoMonths = (500 / (totalDailyNeedForDev > 0 ? totalDailyNeedForDev : 1)) / 30.4375;
+      const isGraco = maxTheoMonths < 2.0;
+
+      if (isGraco) {
+        script += `Voor Toestel ${devId}: vanwege een bijzonder hoge vetbehoefte wordt geadviseerd om een centraal Graco smeersysteem te overwegen. `;
+      } else {
+        const isMatch = Math.abs(actualDosePerBearing - targetNeedPerBearing) < 0.03;
+        if (isMatch) {
+          script += `Voor Toestel ${devId}: met een instelling van ${periodWord} ${periodUnitWord} doseert dit toestel ${doseSpoken} milliliter per dag per lager voor ${devPtsWord} ${devPtsNoun}, wat perfect aansluit bij de berekende vetbehoefte van ${needSpoken} milliliter per dag. `;
+        } else {
+          script += `Voor Toestel ${devId}: met een instelling van ${periodWord} ${periodUnitWord} doseert dit toestel ${doseSpoken} milliliter per dag per lager voor ${devPtsWord} ${devPtsNoun}, ten opzichte van een berekende behoefte van ${needSpoken} milliliter per dag. `;
+        }
+      }
+    }
+
+    script += `Indien u een andere configuratie verkiest, kunt u deze eenvoudig manueel aanpassen in sectie 3 van de vragenlijst.`;
+  } else if (lang === "fr") {
+    script += `Avec la sélection actuelle, vous répartissez ${totalPoints} points de lubrification sur ${numCards} appareils ${deviceTypeName}. `;
+    script += `Sur la base des longueurs de tuyauterie et des besoins individuels de lubrification des roulements, il s'agit de la configuration idéale pour le choix des appareils et la durée de vidange en mois. `;
+    for (let i = 0; i < numCards; i++) {
+      const d = (autoDevicesState && autoDevicesState[i]) ? autoDevicesState[i] : { id: String.fromCharCode(65 + i) };
+      const devId = d.id || String.fromCharCode(65 + i);
+      const devPts = isSinglePoint ? 1 : (d.points || 1);
+      const devPeriod = d.period || 6;
+      script += `Pour l'Appareil ${devId}, avec un réglage de ${devPeriod} mois pour ${devPts} roulement${devPts > 1 ? 's' : ''}, le dosage assure une protection optimale parfaitement adaptée. `;
+    }
+    script += `Si vous préférez une configuration différente, vous pouvez la modifier manuellement dans la section 3 du questionnaire.`;
+  } else {
+    script += `With the current selection, you distribute ${totalPoints} lubrication points across ${numCards} ${deviceTypeName} units. `;
+    script += `Based on pipe lengths and individual bearing lubrication requirements, this represents the ideal configuration regarding device selection and discharge period in months. `;
+    for (let i = 0; i < numCards; i++) {
+      const d = (autoDevicesState && autoDevicesState[i]) ? autoDevicesState[i] : { id: String.fromCharCode(65 + i) };
+      const devId = d.id || String.fromCharCode(65 + i);
+      const devPts = isSinglePoint ? 1 : (d.points || 1);
+      const devPeriod = d.period || 6;
+      script += `For Unit ${devId}, with a setting of ${devPeriod} months for ${devPts} bearing${devPts > 1 ? 's' : ''}, the unit delivers an optimal dose matching the calculated need. `;
+    }
+    script += `If you prefer a different configuration, you can easily adjust it manually in section 3 of the questionnaire.`;
+  }
+
+  return script;
+}
+
+function speakNextAutoSentence(voice) {
+  if (!isAutoAvatarSpeaking || autoSpeechQueue.length === 0) {
+    setAutoAvatarUiState(false);
+    return;
+  }
+
+  const sentence = autoSpeechQueue.shift();
+  if (!sentence || !sentence.trim()) {
+    speakNextAutoSentence(voice);
+    return;
+  }
+
+  const lang = typeof currentLang !== "undefined" ? currentLang : "nl";
+  const utter = new SpeechSynthesisUtterance(sentence.trim());
+  utter.lang = lang === "fr" ? "fr-FR" : (lang === "en" ? "en-US" : "nl-NL");
+  utter.rate = 0.98;
+  utter.pitch = 1.05;
+  if (voice) utter.voice = voice;
+
+  utter.onend = () => {
+    if (isAutoAvatarSpeaking && autoSpeechQueue.length > 0) {
+      speakNextAutoSentence(voice);
+    } else {
+      setAutoAvatarUiState(false);
+    }
+  };
+
+  utter.onerror = (e) => {
+    console.warn("Spraakfout:", e);
+    setAutoAvatarUiState(false);
+  };
+
+  window.speechSynthesis.speak(utter);
+}
+
+function toggleAutoAvatarSpeech() {
+  if (isAutoAvatarSpeaking) {
+    stopAutoAvatarSpeech();
+    return;
+  }
+
+  // Annuleer ROI avatar als die nog spreekt
+  if (typeof stopRoiAvatarSpeech === "function") {
+    stopRoiAvatarSpeech();
+  }
+
+  if (typeof window === "undefined" || !("speechSynthesis" in window)) {
+    alert("Uw browser ondersteunt helaas geen spraaksynthese (Web Speech API). Probeer Google Chrome of Microsoft Edge.");
+    return;
+  }
+
+  window.speechSynthesis.cancel();
+
+  const script = generateAutomationSpeechScript();
+  if (!script || !script.trim()) return;
+
+  autoSpeechQueue = script.split(/(?<=[.?!])\s+/).filter(s => s.trim().length > 0);
+  if (autoSpeechQueue.length === 0) return;
+
+  const lang = typeof currentLang !== "undefined" ? currentLang : "nl";
+  const voice = getBestVoiceForLang(lang);
+
+  setAutoAvatarUiState(true);
+
+  if (window.speechSynthesis.paused) {
+    window.speechSynthesis.resume();
+  }
+
+  speakNextAutoSentence(voice);
+}
+window.toggleAutoAvatarSpeech = toggleAutoAvatarSpeech;
 
 
 function addRoiPdfPage(doc, dateString, watermarkDataUrl, aspectRatio, autoDataUrl) {
