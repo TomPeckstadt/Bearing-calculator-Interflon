@@ -4297,7 +4297,7 @@ const TRANSLATIONS = {
     roiCalculatedGreaseCons: "Berekend Vetverbruik",
     roiPerYear: "jaar",
     roiLifetimeExtensionLabel: "Levensduur verlenging:",
-    roiLifetimeInfoText: "De overstap van manuele naar automatische smering verlengt de levensduur van lagers in de praktijk doorgaans met 50% tot 300% (een factor 1,5 tot 4). In zware, vervuilde of continu draaiende toepassingen kan de levensduur zelfs met een factor 4 tot 8 toenemen.",
+    roiLifetimeInfoText: "De overstap van manuele naar automatische smering verlengt de levensduur van lagers in de praktijk doorgaans met 50% tot 300% (een factor 1,5 tot 4). In zware, vervuilde of continu draaiende toepassingen kan de levensduur zelfs met een factor 4 tot 8 toenemen. <span style=\"color: #64748b; font-size: 11px; font-style: italic;\">(Bron: SKF Reliability Systems & Noria Machinery Lubrication veldstudies / ISO 15243)</span>",
     roiManualCardTitle: "Manuele Smering",
     roiManualWithInterflonSubtext: "Met Interflon product (op jaarbasis)",
     roiManualWithCurrentSubtext: "Met huidig product (op jaarbasis)",
@@ -14899,7 +14899,7 @@ function numberToDutchWords(n) {
     }
     if (rest > 0) {
       if (res) {
-        res += 'en' + onder100(rest);
+        res += onder100(rest);
       } else {
         res = onder100(rest);
       }
@@ -15339,22 +15339,117 @@ function generateAutomationSpeechScript() {
   const deviceKey = deviceSelect ? deviceSelect.value : "single_point";
   const isSinglePoint = (deviceKey === "single_point");
 
+  // =========================================================================
+  // 1. SPECIALIZED VOICE SCRIPT FOR SINGLE POINT LUBRICATORS (1-ON-1 DIRECT)
+  // =========================================================================
+  if (isSinglePoint) {
+    const spGroups = (Array.isArray(autoDevicesState) && autoDevicesState.length > 0)
+      ? autoDevicesState.filter(d => d && d.isSinglePointGroup && (d.unitCount > 0 || (d.bearingLetters && d.bearingLetters.length > 0)))
+      : [];
+
+    if (spGroups.length === 0) {
+      const defaultUnits = window.spNumBearingsValue || (autoDevicesState[0] && autoDevicesState[0].unitCount) || 1;
+      const defaultCap = (autoDevicesState[0] && autoDevicesState[0].cap) || 125;
+      const defaultPeriod = (autoDevicesState[0] && autoDevicesState[0].period) || 6;
+      spGroups.push({
+        unitCount: defaultUnits,
+        bearingLetters: [],
+        groupBearingsText: '',
+        cap: defaultCap,
+        period: defaultPeriod,
+        dailyNeedCm3: window.currentDailyNeedCm3 || 0.20
+      });
+    }
+
+    const totalUnits = spGroups.reduce((sum, g) => sum + (g.unitCount || (g.bearingLetters ? g.bearingLetters.length : 1)), 0);
+    const totalUnitsWord = (typeof numberToDutchWords === 'function') ? numberToDutchWords(totalUnits) : totalUnits.toString();
+    const lagersWord = (typeof numberToDutchWords === 'function') ? numberToDutchWords(totalUnits) : totalUnits.toString();
+
+    if (lang === "nl") {
+      const groupSummaries = spGroups.map((g, idx) => {
+        const uCount = g.unitCount || (g.bearingLetters ? g.bearingLetters.length : 1);
+        const uWord = (typeof numberToDutchWords === 'function') ? numberToDutchWords(uCount) : uCount.toString();
+        const capWord = (typeof numberToDutchWords === 'function') ? numberToDutchWords(g.cap || 125) : `${g.cap || 125}`;
+        if (idx === 0) {
+          return `${uWord} Single Point toestellen van ${capWord} milliliter`;
+        } else {
+          return `${uWord} van ${capWord} milliliter`;
+        }
+      });
+
+      let groupSummaryPhrase = "";
+      if (groupSummaries.length === 1) {
+        groupSummaryPhrase = groupSummaries[0];
+      } else if (groupSummaries.length === 2) {
+        groupSummaryPhrase = `${groupSummaries[0]} en ${groupSummaries[1]}`;
+      } else {
+        groupSummaryPhrase = groupSummaries.slice(0, -1).join(', ') + ' en ' + groupSummaries[groupSummaries.length - 1];
+      }
+
+      let script = `Bij de huidige selectie voorziet u ${lagersWord} lagers van een rechtstreekse automatische smering met in totaal ${totalUnitsWord} Single Point Lubricators, direct gemonteerd op de smeerpunten. `;
+      script += `Om optimaal in te spelen op de toerentallen en individuele vetbehoeften van uw lagers adviseert de app ${groupSummaryPhrase} om ${totalUnitsWord} lagers in totaal te smeren. `;
+
+      spGroups.forEach(g => {
+        const uCount = g.unitCount || (g.bearingLetters ? g.bearingLetters.length : 1);
+        const bText = g.groupBearingsText
+          ? `Lagers ${g.groupBearingsText.replace(/,\s*([^,]+)$/, ' en $1')}`
+          : (g.bearingLetters && g.bearingLetters.length > 0
+              ? `Lagers ${g.bearingLetters.join(', ').replace(/,\s*([^,]+)$/, ' en $1')}`
+              : (uCount > 1 ? `deze ${uCount} lagers` : 'dit lager'));
+        const uWord = (typeof numberToDutchWords === 'function') ? numberToDutchWords(uCount) : uCount.toString();
+        const capWord = (typeof numberToDutchWords === 'function') ? numberToDutchWords(g.cap || 125) : `${g.cap || 125}`;
+        const pVal = g.period || 6;
+        const pWord = (typeof numberToDutchWords === 'function') ? numberToDutchWords(pVal) : pVal.toString();
+        const periodUnitWord = pVal === 1 ? "maand" : "maanden";
+
+        const dailyNeed = (g.dailyNeedCm3 && g.dailyNeedCm3 > 0) ? g.dailyNeedCm3 : ((typeof window !== 'undefined' && window.currentDailyNeedCm3) ? window.currentDailyNeedCm3 : 0.20);
+        const totalDays = 30.4375 * pVal;
+        const actualDose = (g.cap || 125) / totalDays;
+        const doseSpoken = formatDecForDutchSpeech(actualDose);
+        const needSpoken = formatDecForDutchSpeech(dailyNeed);
+        const isMatch = Math.abs(actualDose - dailyNeed) < 0.03;
+
+        if (isMatch) {
+          script += `Voor ${bText}: ${uWord} Single Point toestellen van ${capWord} milliliter, met een draaiknopstand van ${pWord} ${periodUnitWord}. Dit doseert ${doseSpoken} milliliter per dag per lager, wat perfect aansluit bij de berekende vetbehoefte van ${needSpoken} milliliter per dag. `;
+        } else {
+          script += `Voor ${bText}: ${uWord} Single Point toestellen van ${capWord} milliliter, met een draaiknopstand van ${pWord} ${periodUnitWord}. Dit doseert ${doseSpoken} milliliter per dag per lager, bij een berekende behoefte van ${needSpoken} milliliter per dag. `;
+        }
+      });
+
+      script += `Indien u een andere configuratie of looptijd wenst, kunt u deze eenvoudig aanpassen in sectie 3 van de vragenlijst.`;
+      return script;
+    } else if (lang === "fr") {
+      let script = `Avec la sélection actuelle, vous équipez ${totalUnits} roulements d'une lubrification automatique directe avec ${totalUnits} appareils Single Point Lubricator montés directement sur les points de graissage. `;
+      spGroups.forEach(g => {
+        const uCount = g.unitCount || 1;
+        const bText = g.groupBearingsText ? `Roulements ${g.groupBearingsText}` : `ces ${uCount} roulements`;
+        script += `Pour ${bText} : ${uCount} appareils de ${g.cap || 125} ml réglés sur ${g.period || 6} mois. `;
+      });
+      script += `Si vous préférez une configuration différente, vous pouvez la modifier dans la section 3 du questionnaire.`;
+      return script;
+    } else {
+      let script = `With the current selection, you provide ${totalUnits} bearings with direct automated lubrication using a total of ${totalUnits} Single Point Lubricators mounted directly on the lubrication points. `;
+      spGroups.forEach(g => {
+        const uCount = g.unitCount || 1;
+        const bText = g.groupBearingsText ? `Bearings ${g.groupBearingsText}` : `these ${uCount} bearings`;
+        script += `For ${bText}: ${uCount} units of ${g.cap || 125} ml set to a ${g.period || 6}-month dial setting. `;
+      });
+      script += `If you prefer a different configuration, you can adjust it in section 3 of the questionnaire.`;
+      return script;
+    }
+  }
+
+  // =========================================================================
+  // 2. MULTI-POINT VOICE SCRIPT FOR PULSARLUBE (DIVIDER BLOCKS & LINES)
+  // =========================================================================
   const numDevices = typeof getActiveNumDevices === "function" ? getActiveNumDevices() : 1;
-  const activeSpGroups = (isSinglePoint && Array.isArray(autoDevicesState))
-    ? autoDevicesState.filter(d => d && d.isSinglePointGroup && (d.unitCount > 0 || (d.bearingLetters && d.bearingLetters.length > 0)))
-    : [];
-  const isSpMultiGroup = (isSinglePoint && activeSpGroups.length > 1);
-  const numCards = isSinglePoint ? (isSpMultiGroup ? activeSpGroups.length : 1) : numDevices;
+  const numCards = numDevices;
 
   let totalPoints = 0;
   for (let i = 0; i < numCards; i++) {
     const d = (autoDevicesState && autoDevicesState[i]) ? autoDevicesState[i] : null;
     if (d) {
-      if (isSinglePoint) {
-        totalPoints += (isSpMultiGroup ? (d.unitCount || (d.bearingLetters ? d.bearingLetters.length : 1)) : (window.spNumBearingsValue || d.unitCount || 1));
-      } else {
-        totalPoints += (typeof d.points === 'number' ? d.points : (parseInt(d.points, 10) || 0));
-      }
+      totalPoints += (typeof d.points === 'number' ? d.points : (parseInt(d.points, 10) || 0));
     } else {
       totalPoints += 1;
     }
@@ -15362,9 +15457,7 @@ function generateAutomationSpeechScript() {
   if (totalPoints <= 0) totalPoints = numCards;
 
   let deviceTypeName = "Pulsarlube";
-  if (isSinglePoint) {
-    deviceTypeName = "Single Point Lubricator";
-  } else if (deviceKey === "pulsarlube_m2") {
+  if (deviceKey === "pulsarlube_m2") {
     deviceTypeName = "Pulsarlube M2";
   } else if (deviceKey === "pulsarlube_msp") {
     deviceTypeName = "Pulsarlube MSP";
@@ -15386,21 +15479,19 @@ function generateAutomationSpeechScript() {
       const d = (autoDevicesState && autoDevicesState[i]) ? autoDevicesState[i] : { id: String.fromCharCode(65 + i) };
       const devId = d.id || String.fromCharCode(65 + i);
 
-      const devPts = isSinglePoint
-        ? (isSpMultiGroup ? (d.unitCount || (d.bearingLetters ? d.bearingLetters.length : 1)) : (window.spNumBearingsValue || d.unitCount || 1))
-        : (d.points || 1);
+      const devPts = d.points || 1;
       const devPeriod = d.period || 6;
       const periodWord = (typeof numberToDutchWords === 'function') ? numberToDutchWords(devPeriod) : devPeriod.toString();
       const periodUnitWord = devPeriod === 1 ? "maand" : "maanden";
       const devPtsWord = (typeof numberToDutchWords === 'function') ? numberToDutchWords(devPts) : devPts.toString();
       const devPtsNoun = devPts === 1 ? "lager" : "lagers";
 
-      const dailyNeed = (d.dailyNeedCm3 && d.dailyNeedCm3 > 0) ? d.dailyNeedCm3 : (window.currentDailyNeedCm3 || 0.20);
-      const totalDailyNeedForDev = isSinglePoint ? dailyNeed : (d.totalDailyNeed && d.totalDailyNeed > 0 ? d.totalDailyNeed : dailyNeed * devPts);
+      const dailyNeed = (d.dailyNeedCm3 && d.dailyNeedCm3 > 0) ? d.dailyNeedCm3 : ((typeof window !== 'undefined' && window.currentDailyNeedCm3) ? window.currentDailyNeedCm3 : 0.20);
+      const totalDailyNeedForDev = d.totalDailyNeed && d.totalDailyNeed > 0 ? d.totalDailyNeed : dailyNeed * devPts;
       const capMl = d.cap || 125;
       const totalDays = 30.4375 * devPeriod;
       const actualDosePerBearing = (capMl / totalDays) / (devPts > 0 ? devPts : 1);
-      const targetNeedPerBearing = isSinglePoint ? totalDailyNeedForDev : (devPts > 0 ? (totalDailyNeedForDev / devPts) : 0);
+      const targetNeedPerBearing = devPts > 0 ? (totalDailyNeedForDev / devPts) : 0;
 
       const doseSpoken = formatDecForDutchSpeech(actualDosePerBearing);
       const needSpoken = formatDecForDutchSpeech(targetNeedPerBearing);
@@ -15427,7 +15518,7 @@ function generateAutomationSpeechScript() {
     for (let i = 0; i < numCards; i++) {
       const d = (autoDevicesState && autoDevicesState[i]) ? autoDevicesState[i] : { id: String.fromCharCode(65 + i) };
       const devId = d.id || String.fromCharCode(65 + i);
-      const devPts = isSinglePoint ? 1 : (d.points || 1);
+      const devPts = d.points || 1;
       const devPeriod = d.period || 6;
       script += `Pour l'Appareil ${devId}, avec un réglage de ${devPeriod} mois pour ${devPts} roulement${devPts > 1 ? 's' : ''}, le dosage assure une protection optimale parfaitement adaptée. `;
     }
@@ -15438,7 +15529,7 @@ function generateAutomationSpeechScript() {
     for (let i = 0; i < numCards; i++) {
       const d = (autoDevicesState && autoDevicesState[i]) ? autoDevicesState[i] : { id: String.fromCharCode(65 + i) };
       const devId = d.id || String.fromCharCode(65 + i);
-      const devPts = isSinglePoint ? 1 : (d.points || 1);
+      const devPts = d.points || 1;
       const devPeriod = d.period || 6;
       script += `For Unit ${devId}, with a setting of ${devPeriod} months for ${devPts} bearing${devPts > 1 ? 's' : ''}, the unit delivers an optimal dose matching the calculated need. `;
     }
