@@ -1288,6 +1288,26 @@
            ========================================================================== -->
       <section id="pageOm" class="page-section">
         
+        <!-- KPI Scope Selector (Geselecteerd lager vs Volledige configuratie uit vragenlijst) -->
+        <div id="omKpiScopeSelectorWrapper" class="om-kpi-scope-wrapper">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width: 16px; height: 16px; color: var(--primary-red, #E30613);">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z" />
+            </svg>
+            <span style="font-size: 13px; font-weight: 700; color: #334155;">Resultaatweergave van de 3 bovenstaande KPI's:</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+            <div style="position: relative; display: inline-flex; align-items: center;">
+              <select id="omKpiScopeSelect" onchange="setOmKpiScope(this.value)" class="om-kpi-scope-select">
+                <option value="single" selected>Geselecteerd lager</option>
+                <option value="full">Volledige configuratie uit vragenlijst</option>
+              </select>
+              <span style="position: absolute; right: 10px; pointer-events: none; color: #b91c1c; font-size: 9px; line-height: 1; z-index: 2;">▼</span>
+            </div>
+            <span id="omKpiScopeBadge" class="om-kpi-scope-badge">Lager A</span>
+          </div>
+        </div>
+
         <!-- Key Performance Savings Banner -->
         <div class="om-savings-summary-grid">
           <div class="card om-summary-card">
@@ -1766,6 +1786,30 @@
                   </button>
                   <input type="file" id="surveyConfigFileSelector" accept=".json,application/json" style="display: none;" onchange="handleSurveyConfigFile(event)">
                   <div id="surveyImportFeedback" style="display: none; margin-top: 6px; padding: 6px 10px; border-radius: 6px; font-size: 11.5px; font-weight: 600; text-align: center; transition: all 0.3s ease;"></div>
+                </div>
+
+                <!-- Automatisering AI Avatar Voice Advisor -->
+                <div id="autoAvatarWrapper" style="margin-top: 14px; display: flex; justify-content: center;">
+                  <div id="autoAvatarContainer" class="roi-avatar-container" onclick="toggleAutoAvatarSpeech()" title="Klik om de toelichting over de automatische configuratie te starten of te stoppen">
+                    <div class="roi-avatar-img-wrapper">
+                      <div class="roi-avatar-pulse-ring"></div>
+                      <img src="interflon-avatar.jpg" alt="MicPol - Interflon Specialist" class="roi-avatar-img">
+                      <div class="roi-avatar-mic-badge" id="autoAvatarMicBadge">🎙️</div>
+                    </div>
+                    <div class="roi-avatar-text-block">
+                      <div class="roi-avatar-name-row">
+                        <span class="roi-avatar-name">MicPol</span>
+                        <span class="roi-avatar-role">Interflon Specialist</span>
+                      </div>
+                      <div class="roi-avatar-status" id="autoAvatarStatus">
+                        <span class="roi-avatar-icon" id="autoAvatarIcon">▶</span>
+                        <span id="autoAvatarStatusText">Toelichting configuratie beluisteren</span>
+                      </div>
+                    </div>
+                    <button type="button" id="autoAvatarStopBtn" class="roi-avatar-stop-btn" style="display: none;" onclick="event.stopPropagation(); stopAutoAvatarSpeech();" title="Toelichting stoppen">
+                      ⏹ Stop
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
