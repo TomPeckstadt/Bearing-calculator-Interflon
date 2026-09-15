@@ -16528,7 +16528,7 @@ function renderPhotoGrid() {
 
   photoLibrary.forEach((photo, idx) => {
     const card = document.createElement("div");
-    card.style.cssText = "background: #ffffff; border: 1px solid #cbd5e1; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 6px rgba(0,0,0,0.04); display: flex; flex-direction: column;";
+    card.style.cssText = "background: #ffffff; border: 1px solid #cbd5e1; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 6px rgba(0,0,0,0.04); display: flex; flex-direction: column; min-height: 205px; height: auto;";
     const photoBadge = (t.photoLabel || "Foto") + " " + (idx + 1);
     const enlargeTxt = t.enlargeLabel || "🔍 Vergroot";
     const clickTitle = t.clickToEnlarge || "Klik om te vergroten 🔍";
@@ -16536,13 +16536,13 @@ function renderPhotoGrid() {
     const delTitle = t.deletePhotoTitle || "Verwijderen";
 
     card.innerHTML = `
-      <div style="position: relative; width: 100%; height: 140px; background: #000; overflow: hidden;">
+      <div style="position: relative; width: 100%; height: 140px; min-height: 140px; flex-shrink: 0; background: #000; overflow: hidden;">
         <img src="${photo.dataUrl}" alt="${photoBadge}" onclick="openPhotoLightbox('${photo.id}')" title="${clickTitle}" style="width: 100%; height: 100%; object-fit: cover; cursor: pointer; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
         <div onclick="openPhotoLightbox('${photo.id}')" title="${clickTitle}" style="position: absolute; bottom: 6px; right: 6px; background: rgba(15,23,42,0.75); color: #fff; border-radius: 4px; padding: 2px 6px; font-size: 11px; cursor: pointer; pointer-events: auto;">${enlargeTxt}</div>
         <span style="position: absolute; top: 6px; left: 6px; background: rgba(15,23,42,0.75); color: #fff; font-size: 11px; font-weight: 700; padding: 2px 7px; border-radius: 4px;">${photoBadge}</span>
         <button type="button" onclick="deletePhoto('${photo.id}')" title="${delTitle}" style="position: absolute; top: 6px; right: 6px; background: rgba(227,6,19,0.9); color: #fff; border: none; width: 26px; height: 26px; border-radius: 50%; cursor: pointer; font-size: 13px; font-weight: 800; display: flex; align-items: center; justify-content: center;">✕</button>
       </div>
-      <div style="padding: 10px; flex: 1; display: flex; flex-direction: column; gap: 6px;">
+      <div style="padding: 10px; flex: 1 0 auto; display: flex; flex-direction: column; gap: 6px;">
         <input type="text" value="${photo.description || ''}" placeholder="${descPlaceholder}" oninput="updatePhotoDescription('${photo.id}', this.value)" style="width: 100%; padding: 6px 10px; font-size: 12.5px; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box;">
       </div>
     `;
