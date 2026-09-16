@@ -16965,7 +16965,7 @@ function generateRoiSpeechScript() {
   script += `Kijken we naar het financiële resultaat, dan levert dit direct een overtuigende businesscase op. `;
 
   if (year1Num >= 0) {
-    script += `In het eerste jaar realiseert u een directe nettobesparing van ${formatEuro(year1Num)}, waarbij de volledige aanschaf en montage al is verrekend. `;
+    script += `In het eerste jaar realiseert u een directe nettobesparing van ${formatEuro(year1Num)}, waarbij de aanschaf van de hardware al is verrekend. `;
   } else {
     script += `In het eerste jaar vraagt de initiële investering een netto inzet van ${formatEuro(Math.abs(year1Num))}. `;
   }
@@ -21262,7 +21262,7 @@ Beste directie / management,
 Om de bedrijfszekerheid van installatie "${d.machineName}" te verhogen en ongeplande stilstand te voorkomen, stellen wij voor om de smering te automatiseren met ${unitText} (${pointsText}), uitgerust met hoogwaardig ${d.greaseName}.
 
 Financiële kerncijfers & Business Case:
-• Investering (hardware & montage): ${formatTwinEuro(d.investment)}
+• Investering (hardware): ${formatTwinEuro(d.investment)}
 • Jaarlijkse netto besparing:       ${formatTwinEuro(d.annualSavings)} / jaar
 • Verwachte terugverdientijd:        ${d.paybackMonthsStr}!
 • Netto financieel voordeel na 3 jaar: ${formatTwinEuro(d.annualSavings * 3 - d.investment)}
