@@ -4308,17 +4308,7 @@ function renderPdfAutomationExtraPage(doc, autoData, autoDataUrl, autoRatio, wat
       : (dev.bearingSummary ? `Pulsarlube ${devId} • ${thisDevShort} (${dev.bearingSummary})` : `Pulsarlube ${devId} • ${thisDevTypeName}`);
     doc.text(cardHeaderTitle, cardX + 3, cardY + (isGrid ? 4.5 : 5));
 
-    if (numDevices > 1 || (isSinglePoint && groupUnits > 1)) {
-      doc.setFillColor(255, 255, 255);
-      const tagText = isSinglePoint ? `${groupUnits}X SINGLE POINT` : `TOESTEL ${devId} • ${thisDevShort}`;
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(5.8);
-      const textW = doc.getTextWidth(tagText);
-      const tagW = Math.max(isSinglePoint ? 24 : 22, textW + 4);
-      doc.roundedRect(cardX + colWidth - (tagW + 2), cardY + 1.2, tagW, 4, 1, 1, "F");
-      doc.setTextColor(227, 6, 19);
-      doc.text(tagText, cardX + colWidth - (tagW / 2 + 2), cardY + 3.8, { align: "center" });
-    }
+// White tag badge removed per user request: info is already in the title
 
     let innerY = cardY + (isGrid ? 8.5 : 10);
 
