@@ -15631,21 +15631,21 @@ function openOdooQuoteModal() {
   const infoBox = document.getElementById("odooCustomerInfoBox");
   if (infoBox) {
     infoBox.innerHTML = `
-      <div>
-        <span style="display: block; font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase;">Bedrijf klant</span>
-        <strong style="font-size: 14px; color: #0f172a;">${escapeOdooHtml(data.clientCompany)}</strong>
+      <div style="display: flex; align-items: center; gap: 6px;">
+        <span style="font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase;">Klant:</span>
+        <strong style="font-size: 12.5px; color: #0f172a;">${escapeOdooHtml(data.clientCompany)}</strong>
       </div>
-      <div>
-        <span style="display: block; font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase;">Contactpersoon klant</span>
-        <strong style="font-size: 14px; color: #0f172a;">${escapeOdooHtml(data.clientContact)}</strong>
+      <div style="display: flex; align-items: center; gap: 6px;">
+        <span style="font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase;">Contact:</span>
+        <strong style="font-size: 12.5px; color: #0f172a;">${escapeOdooHtml(data.clientContact)}</strong>
       </div>
-      <div>
-        <span style="display: block; font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase;">Machine / Installatie</span>
-        <strong style="font-size: 14px; color: #0f172a;">${escapeOdooHtml(data.machineName)}</strong>
+      <div style="display: flex; align-items: center; gap: 6px;">
+        <span style="font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase;">Machine:</span>
+        <strong style="font-size: 12.5px; color: #0f172a;">${escapeOdooHtml(data.machineName)}</strong>
       </div>
-      <div>
-        <span style="display: block; font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase;">Smeermiddel & Punten</span>
-        <strong style="font-size: 14px; color: #0f172a;">${data.totalPoints} ${data.totalPoints === 1 ? 'smeerpunt' : 'smeerpunten'} &bull; ${escapeOdooHtml(data.greaseName)}</strong>
+      <div style="display: flex; align-items: center; gap: 6px;">
+        <span style="font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase;">Smeerpunten:</span>
+        <strong style="font-size: 12.5px; color: #0f172a;">${data.totalPoints} ${data.totalPoints === 1 ? 'punt' : 'punten'} &bull; ${escapeOdooHtml(data.greaseName)}</strong>
       </div>
     `;
   }
@@ -15661,12 +15661,12 @@ function openOdooQuoteModal() {
         currentCategory = item.category;
         const isOptCategory = item.isOptional;
         const catBg = isOptCategory ? "#fdf4f9" : "#f1f5f9";
-        const catColor = isOptCategory ? "#714B67" : "#334155";
-        const catBadge = isOptCategory ? `<span style="background: #714B67; color: #ffffff; padding: 2px 8px; border-radius: 10px; font-size: 10px; font-weight: 800; margin-left: 8px; text-transform: uppercase;">Optioneel</span>` : "";
+        const catColor = isOptCategory ? "#714B67" : "#475569";
+        const catBadge = isOptCategory ? `<span style="background: #714B67; color: #ffffff; padding: 1px 6px; border-radius: 8px; font-size: 9.5px; font-weight: 800; margin-left: 6px; text-transform: uppercase;">Optioneel</span>` : "";
 
         rowsHtml += `
-          <tr style="background: ${catBg}; border-top: 1.5px solid #cbd5e1; border-bottom: 1px solid #e2e8f0;">
-            <td colspan="5" style="padding: 7px 14px; font-weight: 800; font-size: 11.5px; color: ${catColor}; text-transform: uppercase; letter-spacing: 0.5px;">
+          <tr style="background: ${catBg}; border-top: 1px solid #cbd5e1; border-bottom: 1px solid #e2e8f0;">
+            <td colspan="5" style="padding: 4px 12px; font-weight: 800; font-size: 10.5px; color: ${catColor}; text-transform: uppercase; letter-spacing: 0.5px;">
               ${escapeOdooHtml(currentCategory)} ${catBadge}
             </td>
           </tr>
@@ -15675,25 +15675,24 @@ function openOdooQuoteModal() {
 
       const rowBg = item.isOptional ? "#fdfcfd" : (idx % 2 === 0 ? "#ffffff" : "#f8fafc");
       const unitLbl = item.unitLabel || "st";
-      const optBadge = item.isOptional ? `<span style="display: inline-block; background: #fae8f4; color: #714B67; border: 1px solid #f3c7e7; font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 4px; margin-left: 6px;">Optioneel</span>` : "";
-      const noteHtml = item.optionalNote ? `<div style="font-size: 11px; color: #64748b; font-style: italic; margin-top: 2px;">${escapeOdooHtml(item.optionalNote)}</div>` : "";
+      const optBadge = item.isOptional ? `<span style="display: inline-block; background: #fae8f4; color: #714B67; border: 1px solid #f3c7e7; font-size: 9.5px; font-weight: 700; padding: 1px 5px; border-radius: 4px; margin-left: 6px;">Optioneel</span>` : "";
+      const noteHtml = item.optionalNote ? `<span style="font-size: 11px; color: #64748b; font-style: italic; margin-left: 6px;">(${escapeOdooHtml(item.optionalNote)})</span>` : "";
 
       rowsHtml += `
         <tr style="background: ${rowBg}; border-bottom: 1px solid #e2e8f0;">
-          <td style="padding: 10px 14px; font-family: monospace; font-weight: 700; color: #1e293b;">
+          <td style="padding: 6px 12px; font-family: monospace; font-weight: 700; color: #1e293b; font-size: 11.5px;">
             ${escapeOdooHtml(item.artNr)}
           </td>
-          <td style="padding: 10px 14px; color: #0f172a;">
-            <strong>${escapeOdooHtml(item.name)}</strong>${optBadge}
-            ${noteHtml}
+          <td style="padding: 6px 12px; color: #0f172a; font-size: 12px;">
+            <strong>${escapeOdooHtml(item.name)}</strong>${optBadge}${noteHtml}
           </td>
-          <td style="padding: 10px 14px; text-align: center; font-weight: 700; color: #0f172a;">
+          <td style="padding: 6px 12px; text-align: center; font-weight: 700; color: #0f172a; font-size: 12px;">
             ${item.qty} ${unitLbl}
           </td>
-          <td style="padding: 10px 14px; text-align: right; color: #475569; font-variant-numeric: tabular-nums;">
+          <td style="padding: 6px 12px; text-align: right; color: #475569; font-variant-numeric: tabular-nums; font-size: 12px;">
             € ${item.unitPrice.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </td>
-          <td style="padding: 10px 14px; text-align: right; font-weight: 800; color: ${item.isOptional ? '#714B67' : '#0f172a'}; font-variant-numeric: tabular-nums;">
+          <td style="padding: 6px 12px; text-align: right; font-weight: 800; color: ${item.isOptional ? '#714B67' : '#0f172a'}; font-variant-numeric: tabular-nums; font-size: 12px;">
             € ${item.totalPrice.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </td>
         </tr>
@@ -15706,7 +15705,7 @@ function openOdooQuoteModal() {
   // 3. Populate Summary
   const summaryEl = document.getElementById("odooTotalSummary");
   if (summaryEl) {
-    const reqStr = `Totaal Configuratie: <span style="font-size: 17px; font-weight: 800; color: #0f172a;">€ ${data.subtotalRequired.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span> <span style="font-size: 11px; color: #64748b; font-weight: normal;">(excl. BTW)</span>`;
+    const reqStr = `Totaal Configuratie: <span style="font-size: 15px; font-weight: 800; color: #0f172a;">€ ${data.subtotalRequired.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span> <span style="font-size: 11px; color: #64748b; font-weight: normal;">(excl. BTW)</span>`;
     const optStr = data.subtotalOptional > 0 ? ` &bull; <span style="color: #714B67; font-weight: 700;">Optioneel: € ${data.subtotalOptional.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>` : "";
     summaryEl.innerHTML = reqStr + optStr;
   }
