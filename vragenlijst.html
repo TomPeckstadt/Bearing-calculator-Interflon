@@ -649,6 +649,40 @@
       color: #0f172a;
     }
 
+    .raster-btn-undo {
+      width: 32px;
+      min-width: 32px;
+      height: 32px;
+      padding: 0;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      color: #475569;
+    }
+    .raster-btn-undo:disabled {
+      opacity: 0.35 !important;
+      cursor: not-allowed !important;
+      pointer-events: none !important;
+    }
+    .raster-btn-undo:hover:not(:disabled) {
+      color: #0f172a;
+      background: #f1f5f9;
+      border-color: #94a3b8;
+    }
+    #rasterInteractiveWrapper.raster-modal-fullscreen .raster-btn-undo {
+      background: rgba(30, 41, 59, 0.8) !important;
+      border: 1px solid rgba(255, 255, 255, 0.18) !important;
+      color: #cbd5e1 !important;
+    }
+    #rasterInteractiveWrapper.raster-modal-fullscreen .raster-btn-undo:hover:not(:disabled) {
+      background: rgba(51, 65, 85, 0.95) !important;
+      border-color: rgba(255, 255, 255, 0.35) !important;
+      color: #ffffff !important;
+    }
+    #rasterInteractiveWrapper.raster-modal-fullscreen .raster-btn-undo:disabled {
+      opacity: 0.3 !important;
+    }
+
     .raster-btn-download {
       background: #eff6ff;
       border: 1px solid #93c5fd;
@@ -1310,6 +1344,12 @@
             </div>
 
             <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+              <button type="button" id="btnUndoRaster" onclick="undoLastRasterAction()" class="raster-btn raster-btn-secondary raster-btn-undo" title="Geen wijzigingen in het raster om ongedaan te maken" disabled>
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M9 14L4 9l5-5"/>
+                  <path d="M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5v0a5.5 5.5 0 0 1-5.5 5.5H11"/>
+                </svg>
+              </button>
               <button type="button" onclick="resetBearingPositions()" class="raster-btn raster-btn-secondary" title="Herstel standaardposities">
                 🔄 Reset
               </button>
@@ -1754,6 +1794,7 @@
       cpBtn.type = 'button';
       cpBtn.className = 'device-pill-toggle-btn';
       cpBtn.onclick = function() {
+        if (typeof pushRasterHistorySnapshot === 'function') pushRasterHistorySnapshot();
         showCentralPoint = !showCentralPoint;
         renderDeviceFilterPills();
         drawBearingLayout();
@@ -1828,6 +1869,7 @@
 
         toggleBtn.onclick = function(e) {
           e.stopPropagation();
+          if (typeof pushRasterHistorySnapshot === 'function') pushRasterHistorySnapshot();
           dev.active = !dev.active;
           renderDeviceFilterPills();
           drawBearingLayout();
@@ -1873,6 +1915,7 @@
 
         typeSelect.onchange = function(e) {
           e.stopPropagation();
+          if (typeof pushRasterHistorySnapshot === 'function') pushRasterHistorySnapshot();
           dev.type = this.value;
           renderDeviceFilterPills();
           drawBearingLayout();
@@ -1906,6 +1949,7 @@
 
         // Outer pill click fallback
         devPill.onclick = function(e) {
+          if (typeof pushRasterHistorySnapshot === 'function') pushRasterHistorySnapshot();
           dev.active = !dev.active;
           renderDeviceFilterPills();
           drawBearingLayout();
@@ -1918,6 +1962,7 @@
     }
 
     function addNewDevice() {
+      if (typeof pushRasterHistorySnapshot === 'function') pushRasterHistorySnapshot();
       const nextNum = devices.length + 1;
       const paletteIndex = devices.length % DEVICE_PALETTES.length;
       const presets = [
@@ -1951,6 +1996,7 @@
     }
 
     function deleteDevice(devId) {
+      if (typeof pushRasterHistorySnapshot === 'function') pushRasterHistorySnapshot();
       const deletedDev = devices.find(d => d.id === devId);
       const remaining = devices.filter(d => d.id !== devId);
 
@@ -2897,6 +2943,7 @@
 
     function applyCurrentDeviceAdvice() {
       if (!currentAdviceData) return;
+      if (typeof pushRasterHistorySnapshot === 'function') pushRasterHistorySnapshot();
 
       if (currentAdviceSystemMode === 'single_point') {
         const sol = currentAdviceData.solSinglePoint;
@@ -3007,6 +3054,117 @@
     };
     let draggedBearingLetter = null;
     let hoveredBearingLetter = null;
+
+    // --- RASTER UNDO HISTORY ENGINE ---
+    const rasterHistoryStack = [];
+    let pendingRasterDragSnapshot = null;
+
+    function getRasterStateSnapshot() {
+      return {
+        bearingPositions: (typeof bearingPositions !== 'undefined') ? JSON.parse(JSON.stringify(bearingPositions)) : {},
+        devices: (typeof devices !== 'undefined' && Array.isArray(devices)) ? JSON.parse(JSON.stringify(devices)) : [],
+        showCentralPoint: (typeof showCentralPoint === 'boolean') ? showCentralPoint : true,
+        machineRangeMeters: (typeof machineRangeMeters === 'number') ? machineRangeMeters : 10,
+        layoutViewMode: (typeof layoutViewMode === 'string') ? layoutViewMode : '3d'
+      };
+    }
+
+    function pushRasterHistorySnapshot() {
+      try {
+        const snap = getRasterStateSnapshot();
+        if (rasterHistoryStack.length > 0) {
+          const top = rasterHistoryStack[rasterHistoryStack.length - 1];
+          if (JSON.stringify(top) === JSON.stringify(snap)) {
+            return;
+          }
+        }
+        rasterHistoryStack.push(snap);
+        if (rasterHistoryStack.length > 50) {
+          rasterHistoryStack.shift();
+        }
+        updateUndoButtonState();
+      } catch (err) {
+        console.warn('Fout bij opslaan raster geschiedenis:', err);
+      }
+    }
+
+    function updateUndoButtonState() {
+      const btn = document.getElementById('btnUndoRaster');
+      if (!btn) return;
+      const canUndo = rasterHistoryStack.length > 0;
+      btn.disabled = !canUndo;
+      if (canUndo) {
+        btn.removeAttribute('disabled');
+        btn.style.opacity = '1';
+        btn.style.cursor = 'pointer';
+        btn.title = 'Laatste wijziging in het raster ongedaan maken (Ctrl+Z) • ' + rasterHistoryStack.length + ' stap' + (rasterHistoryStack.length > 1 ? 'pen' : '') + ' beschikbaar';
+      } else {
+        btn.setAttribute('disabled', 'true');
+        btn.style.opacity = '0.35';
+        btn.style.cursor = 'not-allowed';
+        btn.title = 'Geen wijzigingen in het raster om ongedaan te maken';
+      }
+    }
+
+    function undoLastRasterAction() {
+      if (!rasterHistoryStack || rasterHistoryStack.length === 0) return;
+      const prevState = rasterHistoryStack.pop();
+      if (!prevState) return;
+
+      try {
+        if (prevState.bearingPositions && typeof bearingPositions !== 'undefined') {
+          for (const k in bearingPositions) delete bearingPositions[k];
+          Object.assign(bearingPositions, JSON.parse(JSON.stringify(prevState.bearingPositions)));
+        }
+        if (prevState.devices && typeof setDevices === 'function') {
+          setDevices(JSON.parse(JSON.stringify(prevState.devices)));
+        }
+        if (typeof prevState.showCentralPoint === 'boolean') {
+          showCentralPoint = prevState.showCentralPoint;
+        }
+        if (prevState.machineRangeMeters !== undefined) {
+          machineRangeMeters = prevState.machineRangeMeters;
+          const sel = document.getElementById('layoutScaleSelect');
+          if (sel) sel.value = String(machineRangeMeters);
+        }
+        if (prevState.layoutViewMode) {
+          layoutViewMode = prevState.layoutViewMode;
+          const btn3D = document.getElementById('btnView3D');
+          const btn2D = document.getElementById('btnView2D');
+          if (btn3D && btn2D) {
+            if (layoutViewMode === '3d') {
+              btn3D.classList.add('active');
+              btn2D.classList.remove('active');
+            } else {
+              btn2D.classList.add('active');
+              btn3D.classList.remove('active');
+            }
+          }
+        }
+
+        renderDeviceFilterPills();
+        drawBearingLayout();
+        renderDistancesOverview();
+        if (typeof saveRasterConfigToLocalStorage === 'function') {
+          saveRasterConfigToLocalStorage();
+        }
+        updateUndoButtonState();
+
+        const infoEl = document.getElementById('canvasZoomInfo');
+        if (infoEl) {
+          const defaultText = 'Bereik: ' + machineRangeMeters + ' m';
+          infoEl.innerHTML = '<span style="color: #38bdf8; font-weight: 800;">↩️ Wijziging in raster hersteld (' + rasterHistoryStack.length + ' over)</span>';
+          clearTimeout(window.__undoToastTimeout);
+          window.__undoToastTimeout = setTimeout(() => {
+            infoEl.textContent = defaultText;
+          }, 2500);
+        }
+      } catch (err) {
+        console.error('Fout bij herstellen raster status:', err);
+      }
+    }
+    window.undoLastRasterAction = undoLastRasterAction;
+    window.pushRasterHistorySnapshot = pushRasterHistorySnapshot;
 
     // Standard preset positions to avoid overlap when adding multiple bearings
     const PRESET_COORDS = [
@@ -3195,6 +3353,7 @@
     }
 
     function onLayoutScaleChange(val) {
+      if (typeof pushRasterHistorySnapshot === 'function') pushRasterHistorySnapshot();
       machineRangeMeters = parseFloat(val) || 10;
       const infoEl = document.getElementById('canvasZoomInfo');
       if (infoEl) {
@@ -3205,6 +3364,7 @@
     }
 
     function resetBearingPositions() {
+      if (typeof pushRasterHistorySnapshot === 'function') pushRasterHistorySnapshot();
       const rows = document.querySelectorAll('.bearing-row');
       rows.forEach((r, idx) => {
         const letter = r.getAttribute('data-letter') || (LETTERS[idx] || ('L' + (idx+1)));
@@ -3888,6 +4048,9 @@
       canvas.addEventListener('mousedown', function(e) {
         const hit = getHitObject(e.clientX, e.clientY);
         if (hit) {
+          if (typeof getRasterStateSnapshot === 'function') {
+            pendingRasterDragSnapshot = getRasterStateSnapshot();
+          }
           if (hit.type === 'bearing') {
             draggedBearingLetter = hit.letter;
           } else if (hit.type === 'device') {
@@ -4006,6 +4169,19 @@
           canvas.style.cursor = (hoveredBearingLetter || hoveredDeviceId) ? 'grab' : 'default';
           drawBearingLayout();
           if (typeof saveRasterConfigToLocalStorage === 'function') saveRasterConfigToLocalStorage();
+
+          if (pendingRasterDragSnapshot && typeof getRasterStateSnapshot === 'function') {
+            const currentSnap = getRasterStateSnapshot();
+            if (JSON.stringify(pendingRasterDragSnapshot.bearingPositions) !== JSON.stringify(currentSnap.bearingPositions) ||
+                JSON.stringify(pendingRasterDragSnapshot.devices) !== JSON.stringify(currentSnap.devices)) {
+              rasterHistoryStack.push(pendingRasterDragSnapshot);
+              if (rasterHistoryStack.length > 50) rasterHistoryStack.shift();
+              updateUndoButtonState();
+            }
+            pendingRasterDragSnapshot = null;
+          }
+        } else {
+          pendingRasterDragSnapshot = null;
         }
       });
 
@@ -4024,6 +4200,9 @@
           const touch = e.touches[0];
           const hit = getHitObject(touch.clientX, touch.clientY);
           if (hit) {
+            if (typeof getRasterStateSnapshot === 'function') {
+              pendingRasterDragSnapshot = getRasterStateSnapshot();
+            }
             if (hit.type === 'bearing') {
               draggedBearingLetter = hit.letter;
             } else if (hit.type === 'device') {
@@ -4089,12 +4268,44 @@
           draggedDeviceId = null;
           drawBearingLayout();
           if (typeof saveRasterConfigToLocalStorage === 'function') saveRasterConfigToLocalStorage();
+
+          if (pendingRasterDragSnapshot && typeof getRasterStateSnapshot === 'function') {
+            const currentSnap = getRasterStateSnapshot();
+            if (JSON.stringify(pendingRasterDragSnapshot.bearingPositions) !== JSON.stringify(currentSnap.bearingPositions) ||
+                JSON.stringify(pendingRasterDragSnapshot.devices) !== JSON.stringify(currentSnap.devices)) {
+              rasterHistoryStack.push(pendingRasterDragSnapshot);
+              if (rasterHistoryStack.length > 50) rasterHistoryStack.shift();
+              updateUndoButtonState();
+            }
+            pendingRasterDragSnapshot = null;
+          }
+        } else {
+          pendingRasterDragSnapshot = null;
         }
       });
 
       window.addEventListener('resize', function() {
         drawBearingLayout();
       });
+
+      // Keyboard shortcut Ctrl+Z / Cmd+Z for Raster Undo
+      window.addEventListener('keydown', function(e) {
+        if ((e.ctrlKey || e.metaKey) && (e.key === 'z' || e.key === 'Z') && !e.shiftKey) {
+          const tag = document.activeElement ? (document.activeElement.tagName || '').toLowerCase() : '';
+          if (tag === 'input' || tag === 'textarea' || (document.activeElement && document.activeElement.isContentEditable)) {
+            return;
+          }
+          if (typeof rasterHistoryStack !== 'undefined' && rasterHistoryStack.length > 0) {
+            e.preventDefault();
+            undoLastRasterAction();
+          }
+        }
+      });
+
+      // Initialize Undo button state
+      if (typeof updateUndoButtonState === 'function') {
+        updateUndoButtonState();
+      }
     }
 
     // --- 5B. MANUELE AANSLUITING VAN LAGER OP SPECIFIEK TOESTEL ---
@@ -4103,6 +4314,7 @@
         event.stopPropagation();
       }
       if (!devices || !Array.isArray(devices) || devices.length === 0) return;
+      if (typeof pushRasterHistorySnapshot === 'function') pushRasterHistorySnapshot();
 
       const activeDevs = devices.filter(d => d.active !== false);
       if (activeDevs.length === 0) return;
