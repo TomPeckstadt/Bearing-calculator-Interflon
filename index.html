@@ -1996,29 +1996,32 @@
         
         <!-- HEADER SYNC CARD WITH AUTOMATION DEVICE IMAGE -->
         <div style="background: white; border-radius: var(--border-radius-lg); padding: 24px 32px; box-shadow: var(--shadow-sm); border: 1px solid var(--border-color); margin-bottom: 24px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 20px;">
-          <div style="display: flex; align-items: center; gap: 20px;">
-            <div style="width: 100px; height: 100px; border-radius: var(--border-radius-md); background: #f8fafc; border: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: center; padding: 8px; flex-shrink: 0;">
-              <img id="roiDeviceImg" src="interflon-single-point-lubricator.png" alt="Smeerunit" style="max-width: 100%; max-height: 100%; object-fit: contain;">
-            </div>
-            <div>
-              <div style="display: inline-flex; align-items: center; gap: 6px; background-color: #eff6ff; color: #1d4ed8; padding: 4px 10px; border-radius: 12px; font-size: 11.5px; font-weight: 700; margin-bottom: 6px;">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width: 14px; height: 14px;">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
-                </svg>
-                <span data-i18n="roiSyncLabel">Synchroon met Automatisering</span>
+          <div style="display: flex; flex-direction: column; gap: 14px; flex: 1 1 500px; min-width: 280px;">
+            <div style="display: flex; align-items: center; gap: 20px;">
+              <div style="width: 100px; height: 100px; border-radius: var(--border-radius-md); background: #f8fafc; border: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: center; padding: 8px; flex-shrink: 0;">
+                <img id="roiDeviceImg" src="interflon-single-point-lubricator.png" alt="Smeerunit" style="max-width: 100%; max-height: 100%; object-fit: contain;">
               </div>
-              <h2 id="roiDeviceTitle" style="font-size: 22px; font-weight: 800; color: #0f172a; margin: 0 0 4px 0;">Interflon Single Point Lubricator</h2>
-              <p id="roiDeviceSubtext" style="color: #64748b; font-size: 13.5px; margin: 0;">Patrooninhoud: <strong>125 ml</strong> &bull; Geselecteerd vet: <strong>Interflon Grease MP2/3</strong></p>
+              <div>
+                <div style="display: inline-flex; align-items: center; gap: 6px; background-color: #eff6ff; color: #1d4ed8; padding: 4px 10px; border-radius: 12px; font-size: 11.5px; font-weight: 700; margin-bottom: 6px;">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width: 14px; height: 14px;">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
+                  </svg>
+                  <span data-i18n="roiSyncLabel">Synchroon met Automatisering</span>
+                </div>
+                <h2 id="roiDeviceTitle" style="font-size: 22px; font-weight: 800; color: #0f172a; margin: 0 0 4px 0;">Interflon Single Point Lubricator</h2>
+                <p id="roiDeviceSubtext" style="color: #64748b; font-size: 13.5px; margin: 0;">Patrooninhoud: <strong>125 ml</strong> &bull; Geselecteerd vet: <strong>Interflon Grease MP2/3</strong></p>
+              </div>
             </div>
-          </div>
-          <div style="display: flex; align-items: center; gap: 14px; flex-wrap: wrap; justify-content: flex-end; margin-left: auto;">
-            <!-- BEREKEND VETVERBRUIK BADGE -->
-            <div style="background: #f8fafc; border: 1px solid #cbd5e1; border-radius: var(--border-radius-md); padding: 12px 18px; text-align: right;">
+
+            <!-- BEREKEND VETVERBRUIK BADGE (Links in het veld) -->
+            <div style="background: #f8fafc; border: 1px solid #cbd5e1; border-radius: var(--border-radius-md); padding: 10px 18px; width: fit-content; text-align: left;">
               <div style="font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;" data-i18n="roiCalculatedGreaseCons">Berekend Vetverbruik</div>
               <div id="roiHeaderYearlyMl" style="font-size: 18px; font-weight: 800; color: var(--primary-dark); margin-top: 2px;">257,1 ml / jaar</div>
             </div>
+          </div>
 
-            <!-- ODOO QUOTE BUTTON (Rechts in het veld geplaatst) -->
+          <!-- ODOO QUOTE BUTTON (Enkel de knop rechts in het veld) -->
+          <div style="display: flex; align-items: center; justify-content: flex-end; margin-left: auto; flex-shrink: 0;">
             <button type="button" id="btnOdooQuote" onclick="openOdooQuoteModal()" style="display: inline-flex; align-items: center; gap: 10px; background: #ffffff; border: 1.5px solid #714B67; color: #714B67; padding: 10px 18px; border-radius: 10px; font-weight: 700; font-size: 13.5px; cursor: pointer; box-shadow: 0 2px 5px rgba(113,75,103,0.12); transition: all 0.2s ease;" onmouseover="this.style.background='#fdf4f9'; this.style.borderColor='#58344e'; this.style.transform='translateY(-1px)';" onmouseout="this.style.background='#ffffff'; this.style.borderColor='#714B67'; this.style.transform='none';" title="Genereer offerte specificatie voor Odoo ERP">
               <img src="odoo-logo.jpg" alt="Odoo" style="height: 26px; width: auto; object-fit: contain; border-radius: 4px;">
               <span>Offerte Odoo</span>
@@ -3481,7 +3484,7 @@
   <script src="interflon-data.js?v=20260904_1726"></script>
   <script src="bearings-db.js?v=20260911_0655"></script>
   <script src="chains-db.js?v=20260904_1726"></script>
-  <script src="app_v6.js?v=20260916_0746"></script>
+  <script src="app_v6.js?v=20260916_0748"></script>
 
   <!-- Interflon Oil Dispenser Information Modal (PowerPoint Viewer) -->
   <div id="oilDispenserInfoModal" class="modal-overlay hidden" style="z-index: 99999;">
