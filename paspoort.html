@@ -637,9 +637,21 @@
       // Delivery Rate
       document.getElementById('passRateVal').textContent = currentData.v || '-';
 
-      // Refill
-      document.getElementById('passArtNr').textContent = `Art. ${currentData.art || '1061'}`;
-      document.getElementById('passRefillTitle').textContent = `Servicepack ${sysName}`;
+      // Refill & Article Number Resolution
+      let refillArt = currentData.art;
+      if (!refillArt || refillArt === "Op aanvraag" || refillArt === "Manueel") {
+        const c = parseInt(currentData.cap, 10) || 125;
+        if (currentData.t === "single_point") {
+          refillArt = (c === 60) ? "1071" : ((c === 250) ? "1087" : "1061");
+        } else {
+          refillArt = (c === 250) ? "4401" : ((c === 60) ? "4419" : ((c === 500) ? "4408" : "4201"));
+        }
+      }
+      currentData.art = refillArt;
+      document.getElementById('passArtNr').textContent = `Art. ${refillArt}`;
+      document.getElementById('passRefillTitle').textContent = (currentData.t === 'single_point')
+        ? `Single Point Navulunit (${currentData.cap || 125} ml)`
+        : `Servicepack ${sysName}`;
       document.getElementById('passGreaseName').textContent = currentData.g || 'Interflon Grease MP2/3';
 
       document.title = `${currentData.m} • ${currentData.u} • Interflon Paspoort`;
