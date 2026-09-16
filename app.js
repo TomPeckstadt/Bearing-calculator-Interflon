@@ -16936,7 +16936,7 @@ function generateRoiSpeechScript() {
     script += `By switching to ${deviceName}, your bearings receive continuous and precisely metered lubrication. Our MicPol technology guarantees an unbroken protective lubricating film and drastically reduces friction. `;
     script += `Looking at the financial return, the business case is compelling. `;
     if (year1Num >= 0) {
-      script += `In year one, you achieve a net saving of ${formatEuro(year1Num)}, fully covering the equipment purchase and installation. `;
+      script += `In year one, you achieve a net saving of ${formatEuro(year1Num)}, fully covering the equipment purchase. `;
     } else {
       script += `In year one, the initial net investment is ${formatEuro(Math.abs(year1Num))}. `;
     }
@@ -16965,7 +16965,7 @@ function generateRoiSpeechScript() {
   script += `Kijken we naar het financiële resultaat, dan levert dit direct een overtuigende businesscase op. `;
 
   if (year1Num >= 0) {
-    script += `In het eerste jaar realiseert u een directe nettobesparing van ${formatEuro(year1Num)}, waarbij de aanschaf van de hardware al is verrekend. `;
+    script += `In het eerste jaar realiseert u een directe nettobesparing van ${formatEuro(year1Num)}, waarbij de aanschaf van de hardware al volledig is verrekend. `;
   } else {
     script += `In het eerste jaar vraagt de initiële investering een netto inzet van ${formatEuro(Math.abs(year1Num))}. `;
   }
