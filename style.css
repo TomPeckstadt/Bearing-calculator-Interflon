@@ -2344,6 +2344,11 @@ table {
     break-inside: avoid !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
+    overflow: visible !important;
+  }
+  body.printing-qr-stickers .qr-size-standard .qr-sticker-card .qr-img-box img {
+    width: 76px !important;
+    height: 76px !important;
   }
 }
 
