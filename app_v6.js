@@ -15771,7 +15771,13 @@ function openOdooQuoteModal() {
   if (summaryEl) {
     const reqStr = `Totaal Configuratie: <span style="font-size: 15px; font-weight: 800; color: #0f172a;">€ ${data.subtotalRequired.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span> <span style="font-size: 11px; color: #64748b; font-weight: normal;">(excl. BTW)</span>`;
     const optStr = data.subtotalOptional > 0 ? ` &bull; <span style="color: #714B67; font-weight: 700;">Optioneel: € ${data.subtotalOptional.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>` : "";
-    summaryEl.innerHTML = reqStr + optStr;
+    summaryEl.innerHTML = `
+      <div>${reqStr}${optStr}</div>
+      <div style="font-size: 11.5px; color: #b45309; font-style: italic; font-weight: 600; margin-top: 4px; display: flex; align-items: center; gap: 5px;">
+        <span style="font-style: normal;">⚠️</span>
+        <span>Opmerking: Voeg steeds het benodigde aantal vetcartouches toe om de leidingen voor te smeren</span>
+      </div>
+    `;
   }
 
   // Reset copy button
@@ -15814,6 +15820,7 @@ function copyOdooQuoteToClipboard() {
 
   txt += `----------------------------------------------------------------------\n`;
   txt += `SUBTOTAAL CONFIGURATIE (EXCL. BTW): € ${data.subtotalRequired.toFixed(2).replace('.', ',')}\n`;
+  txt += `* OPMERKING: Voeg steeds het benodigde aantal vetcartouches toe om de leidingen voor te smeren\n`;
 
   if (data.optionalItems && data.optionalItems.length > 0) {
     txt += `\n----------------------------------------------------------------------\n`;
@@ -15868,6 +15875,9 @@ function copyOdooQuoteToClipboard() {
     <td colspan="3" style="padding: 8px 10px; text-align: right; border: 1px solid #cbd5e1;">SUBTOTAAL (EXCL. BTW):</td>
     <td style="padding: 8px 10px; text-align: right; border: 1px solid #cbd5e1; color: #714B67;">€ ${data.subtotalRequired.toFixed(2).replace('.', ',')}</td>
   </tr></table>`;
+  html += `<div style="margin-top: 8px; font-size: 11.5px; color: #b45309; font-style: italic;">
+    <strong>⚠️ Opmerking:</strong> Voeg steeds het benodigde aantal vetcartouches toe om de leidingen voor te smeren
+  </div>`;
 
   if (data.optionalItems && data.optionalItems.length > 0) {
     html += `<h4 style="color: #714B67; margin: 14px 0 6px 0; font-size: 12.5px;">OPTIONELE TOEBEHOREN:</h4>
