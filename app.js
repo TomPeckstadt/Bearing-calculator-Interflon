@@ -14479,6 +14479,7 @@ function getAutomationPriceInfo(deviceKey, capMl, greaseName, numPoints = 1, cus
   else if (rawName.includes("G220") || rawName.includes("G 220")) gSearch = "G220";
   else if (rawName.includes("PN32")) gSearch = "PN32";
   else if (rawName.includes("PN68")) gSearch = "PN68";
+  else gSearch = "MP2/3"; // Safe fallback to standard Interflon Grease MP2/3
 
   const numCustom = (customPrice !== null && !isNaN(customPrice) && parseFloat(customPrice) > 0) ? parseFloat(customPrice) : null;
 
@@ -14489,7 +14490,10 @@ function getAutomationPriceInfo(deviceKey, capMl, greaseName, numPoints = 1, cus
     const isPriceFound = !!match;
     const isCustomPrice = numCustom !== null;
     const finalPrice = isCustomPrice ? numCustom : (isPriceFound ? match.price : 0.00);
-    const artNr = isCustomPrice ? "Manueel" : (isPriceFound ? match.artNr : "Op aanvraag");
+    let artNr = isCustomPrice ? "Manueel" : (isPriceFound ? match.artNr : "Op aanvraag");
+    if ((artNr === "Op aanvraag" || !artNr) && !isCustomPrice) {
+      artNr = (targetCap === 60) ? "1071" : ((targetCap === 250) ? "1087" : ((targetCap === 30) ? "1051" : ((targetCap === 15) ? "1082" : "1061")));
+    }
 
     return {
       deviceType: "Single Point Lubricator",
@@ -14521,7 +14525,10 @@ function getAutomationPriceInfo(deviceKey, capMl, greaseName, numPoints = 1, cus
     const isPriceFound = !!packMatch;
     const isCustomPrice = numCustom !== null;
     const finalPackPrice = isCustomPrice ? numCustom : (isPriceFound ? packMatch.price : 0.00);
-    const packArtNr = isCustomPrice ? "Manueel" : (isPriceFound ? packMatch.artNr : "Op aanvraag");
+    let packArtNr = isCustomPrice ? "Manueel" : (isPriceFound ? packMatch.artNr : "Op aanvraag");
+    if ((packArtNr === "Op aanvraag" || !packArtNr) && !isCustomPrice) {
+      packArtNr = (targetPulsarCap === 250) ? "4401" : ((targetPulsarCap === 60) ? "4419" : ((targetPulsarCap === 500) ? "4408" : "4201"));
+    }
 
     let installKitPrice = AUTOMATION_PRICE_DATABASE.accessories.installKit.price + (10 * AUTOMATION_PRICE_DATABASE.accessories.nylonTubePerM.price);
     const divDb = AUTOMATION_PRICE_DATABASE.dividerBlocks || {};
@@ -15401,7 +15408,7 @@ function getOdooQuoteData() {
       const g0 = (activeSpGroups && activeSpGroups[0]) || (activeDevState && activeDevState[0]) || {};
       const spCapEl = document.getElementById("autoCartridgeCap_A") || document.getElementById("autoCartridgeCap");
       const cap = (spCapEl ? parseInt(spCapEl.value, 10) : 0) || g0.cap || 125;
-      const count = window.spNumBearingsValue || g0.unitCount || 1;
+      const count = ((typeof window !== "undefined" && window.spNumBearingsValue) ? window.spNumBearingsValue : null) || g0.unitCount || 1;
       const bearingText = g0.groupBearingsText || (g0.bearingLetters ? g0.bearingLetters.join(', ') : '');
       const domCustomPriceEl = document.getElementById("autoCustomPackPrice_A") || document.getElementById("autoCustomPackPrice");
       const domCustomVal = domCustomPriceEl ? parseFloat(domCustomPriceEl.value) : 0;
@@ -16021,10 +16028,76 @@ function copyOdooQuoteToClipboard() {
 
 let currentQrPassportTab = "units"; // "units" | "machine"
 
+function formatGreaseDisplayName(name) {
+  if (!name) return "Interflon Grease MP2/3";
+  let cleaned = name.trim();
+  if (cleaned === cleaned.toUpperCase()) {
+    cleaned = cleaned.split(" ").map(w => {
+      const u = w.toUpperCase();
+      if (["MP2/3", "MP2", "MP1", "MP00", "MP3", "EP", "HD2", "HD00", "HS2", "HS1", "HTG", "LT2", "LS1/2", "LS2", "OG", "3H", "S1/2", "G150", "G220", "PN32", "PN68"].includes(u)) {
+        return u;
+      }
+      return w.charAt(0).toUpperCase() + w.slice(1).toLowerCase();
+    }).join(" ");
+  }
+  if (!cleaned.toLowerCase().startsWith("interflon")) {
+    cleaned = "Interflon " + cleaned;
+  }
+  return cleaned;
+}
+
+function getStandardServicepackArtNr(deviceType, cap, grease) {
+  const isSp = (deviceType === "single_point");
+  const c = parseInt(cap, 10) || 125;
+  const rawG = (grease || "").toUpperCase();
+
+  if (isSp) {
+    if (c === 60) {
+      if (rawG.includes("LT2")) return "1078";
+      if (rawG.includes("HD2")) return "1079";
+      if (rawG.includes("LS1/2")) return "1049";
+      return "1071";
+    }
+    if (c === 250) return "1087";
+    if (c === 30) return "1051";
+    if (c === 15) return "1082";
+    if (rawG.includes("LT2")) return "1083";
+    if (rawG.includes("HD2")) return "1081";
+    if (rawG.includes("LS1/2")) return "1086";
+    if (rawG.includes("EP")) return "1065";
+    return "1061";
+  } else {
+    if (c === 250) {
+      if (rawG.includes("LT2")) return "4415";
+      if (rawG.includes("HD2")) return "4418";
+      if (rawG.includes("LS1/2")) return "4407";
+      if (rawG.includes("LS2")) return "4403";
+      if (rawG.includes("HTG")) return "4406";
+      return "4401";
+    }
+    if (c === 60) {
+      if (rawG.includes("LT2")) return "4210";
+      return "4419";
+    }
+    if (c === 500) {
+      if (rawG.includes("HD2")) return "4416";
+      if (rawG.includes("HTG")) return "4412";
+      return "4408";
+    }
+    if (rawG.includes("LT2")) return "4208";
+    if (rawG.includes("HD2")) return "4209";
+    if (rawG.includes("LS1/2")) return "4207";
+    if (rawG.includes("LS2")) return "4203";
+    if (rawG.includes("HTG")) return "4206";
+    if (rawG.includes("EP")) return "4205";
+    if (rawG.includes("MP00")) return "4202";
+    return "4201";
+  }
+}
+
 function encodeQrPassportPayload(data) {
   try {
     const jsonStr = JSON.stringify(data);
-    // URL-safe base64 encoding with UTF-8 support
     const base64 = btoa(unescape(encodeURIComponent(jsonStr)));
     return base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
   } catch (err) {
@@ -16034,26 +16107,50 @@ function encodeQrPassportPayload(data) {
 }
 
 function getQrPassportsData() {
-  // 1. Get Client & Machine info
-  const machineryEl = document.getElementById("machinery") || document.getElementById("application");
-  let machineName = (machineryEl && machineryEl.value ? machineryEl.value.trim() : "") || localStorage.getItem("bearing_calc_machinery") || localStorage.getItem("app_field_machinery") || "Machine / Installatie";
+  // 1. Customer & Machine details
+  const clientCompany = (document.getElementById("clientCompanyInput") && document.getElementById("clientCompanyInput").value.trim()) ||
+                        (document.getElementById("omClientCompany") && document.getElementById("omClientCompany").value.trim()) ||
+                        (document.getElementById("company") && document.getElementById("company").value.trim()) ||
+                        localStorage.getItem("client_company") || localStorage.getItem("bearing_calc_company") || "Klantbedrijf";
 
-  const companyEl = document.getElementById("company");
-  let clientCompany = (companyEl && companyEl.value ? companyEl.value.trim() : "") || localStorage.getItem("bearing_calc_company") || localStorage.getItem("app_field_company") || "Klantbedrijf";
+  const machineName = (document.getElementById("techMachine") && document.getElementById("techMachine").value.trim()) ||
+                      (document.getElementById("omTechMachine") && document.getElementById("omTechMachine").value.trim()) ||
+                      (document.getElementById("machinery") && document.getElementById("machinery").value.trim()) ||
+                      (document.getElementById("application") && document.getElementById("application").value.trim()) ||
+                      localStorage.getItem("tech_machine") || localStorage.getItem("bearing_calc_machinery") || "Machine / Installatie";
 
-  let greaseName = "Interflon Grease";
-  if (typeof getGreaseName === "function") {
-    greaseName = getGreaseName() || greaseName;
-  } else {
-    const gEl = document.getElementById("greaseSelect");
-    if (gEl && gEl.value) greaseName = gEl.value;
+  // 2. Grease resolution
+  let rawGrease = "";
+  const selectGrease = document.getElementById("inputGrease") || document.getElementById("selectGrease");
+  if (selectGrease && selectGrease.value && selectGrease.value.trim()) {
+    rawGrease = selectGrease.value.trim();
+  }
+  if (!rawGrease) {
+    const chainSelect = document.getElementById("chainProductSelect");
+    if (chainSelect && chainSelect.value && chainSelect.value.trim()) {
+      rawGrease = chainSelect.value.trim();
+    }
+  }
+  if (!rawGrease) {
+    const roiSub = document.getElementById("roiDeviceSubtext");
+    if (roiSub && roiSub.textContent) {
+      const match = roiSub.textContent.match(/vet:\s*([^\n\r•]+)/i);
+      if (match && match[1]) rawGrease = match[1].trim();
+    }
+  }
+  if (!rawGrease) {
+    rawGrease = localStorage.getItem("app_field_inputGrease") || localStorage.getItem("bearing_calc_grease") || localStorage.getItem("selected_grease") || "";
+  }
+  if (!rawGrease || rawGrease.toLowerCase() === "interflon grease" || rawGrease.toLowerCase() === "interflon vet" || rawGrease === "Interflon Grease") {
+    rawGrease = "Interflon Grease MP2/3";
   }
 
+  const greaseName = formatGreaseDisplayName(rawGrease);
   const dateStr = new Date().toLocaleDateString("nl-BE");
 
-  // 2. Check device configuration
+  // 3. Check device configuration
   const deviceSelect = document.getElementById("automationDeviceSelect") || document.getElementById("autoDeviceSelect");
-  const deviceKey = deviceSelect ? deviceSelect.value : (window.selectedAutoDevice || "pulsarlube_m2");
+  const deviceKey = deviceSelect ? deviceSelect.value : ((typeof window !== "undefined" && window.selectedAutoDevice) || "pulsarlube_m2");
   const isSinglePoint = deviceKey === "single_point";
 
   const activeDevState = (typeof autoDevicesState !== "undefined" && Array.isArray(autoDevicesState)) ? autoDevicesState : [];
@@ -16080,10 +16177,15 @@ function getQrPassportsData() {
         const rateEl = document.getElementById("autoDailyVolumeRes_" + devId);
         const rateStr = (rateEl && rateEl.textContent) ? rateEl.textContent.trim() : "-";
 
-        let artNr = (cap === 60 ? "1071" : (cap === 250 ? "1051" : "1061"));
+        let artNr = "";
         if (typeof getAutomationPriceInfo === "function") {
-          const pInfo = getAutomationPriceInfo("single_point", cap, greaseName, 1);
-          if (pInfo && pInfo.artNrServicepack) artNr = pInfo.artNrServicepack;
+          const pInfo = getAutomationPriceInfo("single_point", cap, rawGrease, 1);
+          if (pInfo && pInfo.artNrServicepack && pInfo.artNrServicepack !== "Op aanvraag") {
+            artNr = pInfo.artNrServicepack;
+          }
+        }
+        if (!artNr || artNr === "Op aanvraag" || artNr === "Manueel") {
+          artNr = getStandardServicepackArtNr("single_point", cap, rawGrease);
         }
 
         const bearingText = grp.groupBearingsText || (grp.bearingLetters ? grp.bearingLetters.join(", ") : "");
@@ -16126,13 +16228,18 @@ function getQrPassportsData() {
       const rateEl = document.getElementById("autoDailyVolumeRes_A") || document.getElementById("autoDailyVolumeRes");
       const rateStr = (rateEl && rateEl.textContent) ? rateEl.textContent.trim() : "-";
 
-      let artNr = (cap === 60 ? "1071" : (cap === 250 ? "1051" : "1061"));
+      let artNr = "";
       if (typeof getAutomationPriceInfo === "function") {
-        const pInfo = getAutomationPriceInfo("single_point", cap, greaseName, 1);
-        if (pInfo && pInfo.artNrServicepack) artNr = pInfo.artNrServicepack;
+        const pInfo = getAutomationPriceInfo("single_point", cap, rawGrease, 1);
+        if (pInfo && pInfo.artNrServicepack && pInfo.artNrServicepack !== "Op aanvraag") {
+          artNr = pInfo.artNrServicepack;
+        }
+      }
+      if (!artNr || artNr === "Op aanvraag" || artNr === "Manueel") {
+        artNr = getStandardServicepackArtNr("single_point", cap, rawGrease);
       }
 
-      const count = window.spNumBearingsValue || g0.unitCount || 1;
+      const count = ((typeof window !== "undefined" && window.spNumBearingsValue) ? window.spNumBearingsValue : null) || g0.unitCount || 1;
 
       for (let u = 1; u <= count; u++) {
         passports.push({
@@ -16173,10 +16280,15 @@ function getQrPassportsData() {
       const rateStr = (rateEl && rateEl.textContent) ? rateEl.textContent.trim() : "-";
 
       const thisType = d.type || deviceKey;
-      let artNr = "4401";
+      let artNr = "";
       if (typeof getAutomationPriceInfo === "function") {
-        const pInfo = getAutomationPriceInfo(thisType, cap, greaseName, pts);
-        if (pInfo && pInfo.artNrServicepack) artNr = pInfo.artNrServicepack;
+        const pInfo = getAutomationPriceInfo(thisType, cap, rawGrease, pts);
+        if (pInfo && pInfo.artNrServicepack && pInfo.artNrServicepack !== "Op aanvraag") {
+          artNr = pInfo.artNrServicepack;
+        }
+      }
+      if (!artNr || artNr === "Op aanvraag" || artNr === "Manueel") {
+        artNr = getStandardServicepackArtNr(thisType, cap, rawGrease);
       }
 
       let devTypeLabel = "Pulsarlube M";
@@ -16207,6 +16319,7 @@ function getQrPassportsData() {
     }
 
     if (passports.length === 0) {
+      const fallbackArt = getStandardServicepackArtNr(deviceKey, 125, rawGrease);
       passports.push({
         m: machineName,
         c: clientCompany,
@@ -16214,7 +16327,7 @@ function getQrPassportsData() {
         t: deviceKey,
         cap: 125,
         g: greaseName,
-        art: "4401",
+        art: fallbackArt,
         p: "6 mnd",
         v: "-",
         l: "1 smeerpunt",
