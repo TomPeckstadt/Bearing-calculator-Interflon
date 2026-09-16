@@ -15483,11 +15483,11 @@ function getOdooQuoteData() {
       artNr: impulseAcc.artNr,
       name: `${impulseAcc.name} (Draadloze bewakingssensor)`,
       category: "Optionele Toebehoren",
-      qty: 1,
+      qty: totalSpUnits,
       unitPrice: impulseAcc.price,
-      totalPrice: impulseAcc.price,
+      totalPrice: totalSpUnits * impulseAcc.price,
       isOptional: true,
-      optionalNote: "Optioneel: 1 sensor per kritiek smeerpunt / installatie",
+      optionalNote: "Optioneel: 1 sensor per Single Point unit",
       unitLabel: "st"
     });
 
