@@ -3859,21 +3859,12 @@
         </div>
       </div>
 
-      <!-- Template Selection Tabs -->
+      <!-- Template Header & Live Editing Hint -->
       <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; flex-shrink: 0;">
         <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
-          <button type="button" id="tabPropFormal" class="proposal-tab-btn active" onclick="switchExecutiveProposalTab('formal')">
-            📄 Formeel Directievoorstel
-          </button>
-          <button type="button" id="tabPropEmail" class="proposal-tab-btn" onclick="switchExecutiveProposalTab('email')">
+          <span id="tabPropEmail" style="display: inline-flex; align-items: center; gap: 6px; background: #ecfdf5; color: #065f46; border: 1.5px solid #a7f3d0; padding: 6px 14px; border-radius: 8px; font-weight: 800; font-size: 13px;">
             ✉️ Snelle Management E-mail
-          </button>
-          <button type="button" id="tabPropAdvisor" class="proposal-tab-btn" onclick="switchExecutiveProposalTab('advisor')">
-            🤝 Mail van Adviseur → TD
-          </button>
-          <button type="button" id="tabPropEsg" class="proposal-tab-btn" onclick="switchExecutiveProposalTab('esg')">
-            🛡️ Veiligheid & ESG Focus
-          </button>
+          </span>
         </div>
         <div style="font-size: 11px; color: #64748b; font-weight: 600;">
           💡 Tekst is direct bewerkbaar in het veld hieronder
@@ -3906,9 +3897,6 @@
         </div>
 
         <div style="display: flex; align-items: center; gap: 10px;">
-          <button type="button" onclick="downloadExecutiveProposal()" style="display: inline-flex; align-items: center; gap: 6px; background: #ffffff; border: 1.5px solid #cbd5e1; color: #334155; padding: 8px 14px; border-radius: 6px; font-weight: 700; font-size: 12.5px; cursor: pointer; transition: all 0.2s ease;" title="Download als tekstbestand">
-            <span>💾 Download (.txt)</span>
-          </button>
           <button type="button" onclick="emailExecutiveProposal()" style="display: inline-flex; align-items: center; gap: 6px; background: #ffffff; border: 1.5px solid #0284c7; color: #0284c7; padding: 8px 16px; border-radius: 6px; font-weight: 700; font-size: 12.5px; cursor: pointer; transition: all 0.2s ease;" title="Open in uw e-mailprogramma">
             <span>✉️ Open in E-mail</span>
           </button>
