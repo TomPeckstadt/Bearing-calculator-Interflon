@@ -3418,38 +3418,38 @@
 
   <!-- ODOO ERP QUOTE MODAL -->
   <div id="odooQuoteModal" class="modal-overlay hidden" style="z-index: 10007;" onclick="if(event.target === this) closeOdooQuoteModal()">
-    <div class="modal-card" style="max-width: 920px; width: 95%; max-height: 90vh; display: flex; flex-direction: column; overflow: hidden; padding: 24px; background: #ffffff; border-radius: var(--border-radius-lg); box-shadow: 0 25px 50px -12px rgba(113,75,103,0.35); border-top: 5px solid #714B67;">
+    <div class="modal-card" style="max-width: 960px; width: 96%; max-height: 96vh; display: flex; flex-direction: column; overflow: hidden; padding: 18px 24px; gap: 10px; background: #ffffff; border-radius: var(--border-radius-lg); box-shadow: 0 25px 50px -12px rgba(113,75,103,0.35); border-top: 4px solid #714B67;">
       <!-- Header -->
-      <div style="display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; padding-bottom: 16px; border-bottom: 1.5px solid #e2e8f0; margin-bottom: 16px;">
-        <div style="display: flex; align-items: center; gap: 14px;">
-          <img src="odoo-logo.jpg" alt="Odoo" style="height: 38px; width: auto; object-fit: contain; border-radius: 6px;">
+      <div style="display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; padding-bottom: 8px; border-bottom: 1px solid #e2e8f0;">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <img src="odoo-logo.jpg" alt="Odoo" style="height: 30px; width: auto; object-fit: contain; border-radius: 4px;">
           <div>
-            <h3 style="font-size: 19px; font-weight: 800; color: #0f172a; margin: 0; font-family: 'Outfit', sans-serif;">
+            <h3 style="font-size: 17px; font-weight: 800; color: #0f172a; margin: 0; font-family: 'Outfit', sans-serif; line-height: 1.2;">
               Offerte Specificatie <span style="color: #714B67;">• Odoo ERP</span>
             </h3>
-            <p style="font-size: 12.5px; color: #64748b; margin: 2px 0 0 0;">
-              Overzicht van benodigde artikelen, omschrijvingen en aantallen voor offertetraject
+            <p style="font-size: 11.5px; color: #64748b; margin: 2px 0 0 0;">
+              Overzicht van benodigde artikelen, omschrijvingen en aantallen voor offerte aanvraag
             </p>
           </div>
         </div>
-        <button type="button" class="btn-close" onclick="closeOdooQuoteModal()" style="background: none; border: none; font-size: 28px; cursor: pointer; color: #64748b; line-height: 1; padding: 4px;" title="Sluiten">&times;</button>
+        <button type="button" class="btn-close" onclick="closeOdooQuoteModal()" style="background: none; border: none; font-size: 26px; cursor: pointer; color: #64748b; line-height: 1; padding: 2px 6px;" title="Sluiten">&times;</button>
       </div>
 
-      <!-- Customer & Machine Info Card -->
-      <div id="odooCustomerInfoBox" style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: var(--border-radius-md); padding: 14px 18px; margin-bottom: 18px; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px;">
+      <!-- Customer & Machine Info Strip -->
+      <div id="odooCustomerInfoBox" style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 8px 14px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 6px 16px; font-size: 12px;">
         <!-- Populated by JS -->
       </div>
 
-      <!-- Items Table Area (Scrollable) -->
-      <div style="flex: 1; min-height: 0; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: var(--border-radius-md); margin-bottom: 18px;">
-        <table style="width: 100%; border-collapse: collapse; font-size: 13px; text-align: left;">
+      <!-- Items Table Area (Naturally fits all articles without scrolling) -->
+      <div style="overflow-x: auto; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 6px; max-height: calc(96vh - 165px);">
+        <table style="width: 100%; border-collapse: collapse; font-size: 12px; text-align: left;">
           <thead style="background: #f1f5f9; position: sticky; top: 0; z-index: 2; border-bottom: 1.5px solid #cbd5e1;">
             <tr>
-              <th style="padding: 10px 14px; font-weight: 700; color: #475569; width: 110px;">Artikelnr.</th>
-              <th style="padding: 10px 14px; font-weight: 700; color: #475569;">Benaming / Omschrijving</th>
-              <th style="padding: 10px 14px; font-weight: 700; color: #475569; text-align: center; width: 85px;">Aantal</th>
-              <th style="padding: 10px 14px; font-weight: 700; color: #475569; text-align: right; width: 115px;">Prijs / st (€)</th>
-              <th style="padding: 10px 14px; font-weight: 700; color: #475569; text-align: right; width: 120px;">Totaal (€)</th>
+              <th style="padding: 7px 12px; font-weight: 700; color: #475569; width: 95px;">Artikelnr.</th>
+              <th style="padding: 7px 12px; font-weight: 700; color: #475569;">Benaming / Omschrijving</th>
+              <th style="padding: 7px 12px; font-weight: 700; color: #475569; text-align: center; width: 80px;">Aantal</th>
+              <th style="padding: 7px 12px; font-weight: 700; color: #475569; text-align: right; width: 110px;">Prijs / st (€)</th>
+              <th style="padding: 7px 12px; font-weight: 700; color: #475569; text-align: right; width: 115px;">Totaal (€)</th>
             </tr>
           </thead>
           <tbody id="odooQuoteTableBody">
@@ -3459,18 +3459,18 @@
       </div>
 
       <!-- Footer & Actions -->
-      <div style="display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; flex-wrap: wrap; gap: 12px; padding-top: 6px;">
-        <div id="odooTotalSummary" style="font-size: 14px; color: #334155; font-weight: 600;">
+      <div style="display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; flex-wrap: wrap; gap: 10px; padding-top: 4px; border-top: 1px solid #f1f5f9;">
+        <div id="odooTotalSummary" style="font-size: 13.5px; color: #334155; font-weight: 600;">
           <!-- Populated by JS -->
         </div>
         <div style="display: flex; align-items: center; gap: 10px;">
-          <button type="button" id="btnCopyOdooQuote" onclick="copyOdooQuoteToClipboard()" style="display: inline-flex; align-items: center; gap: 8px; background: #714B67; color: #ffffff; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 700; font-size: 13.5px; cursor: pointer; box-shadow: 0 2px 4px rgba(113,75,103,0.3); transition: all 0.2s ease;" onmouseover="this.style.background='#5a3c52'" onmouseout="this.style.background='#714B67'">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width: 16px; height: 16px;">
+          <button type="button" id="btnCopyOdooQuote" onclick="copyOdooQuoteToClipboard()" style="display: inline-flex; align-items: center; gap: 8px; background: #714B67; color: #ffffff; border: none; padding: 8px 16px; border-radius: 6px; font-weight: 700; font-size: 13px; cursor: pointer; box-shadow: 0 2px 4px rgba(113,75,103,0.25); transition: all 0.2s ease;" onmouseover="this.style.background='#5a3c52'" onmouseout="this.style.background='#714B67'">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width: 15px; height: 15px;">
               <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 0 1-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 0 1 1.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 0 0-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 0 1-1.125-1.125v-9.25m12 6.625v-1.875a3.375 3.375 0 0 0-3.375-3.375h-1.5a1.125 1.125 0 0 1-1.125-1.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H9.75" />
             </svg>
             <span id="btnCopyOdooText">Kopieer voor Odoo</span>
           </button>
-          <button type="button" class="btn btn-secondary" onclick="closeOdooQuoteModal()" style="padding: 10px 18px; font-weight: 600;">Sluiten</button>
+          <button type="button" class="btn btn-secondary" onclick="closeOdooQuoteModal()" style="padding: 8px 16px; font-size: 13px; font-weight: 600; border-radius: 6px;">Sluiten</button>
         </div>
       </div>
     </div>
@@ -3481,7 +3481,7 @@
   <script src="interflon-data.js?v=20260904_1726"></script>
   <script src="bearings-db.js?v=20260911_0655"></script>
   <script src="chains-db.js?v=20260904_1726"></script>
-  <script src="app_v6.js?v=20260916_0720"></script>
+  <script src="app_v6.js?v=20260916_0732"></script>
 
   <!-- Interflon Oil Dispenser Information Modal (PowerPoint Viewer) -->
   <div id="oilDispenserInfoModal" class="modal-overlay hidden" style="z-index: 99999;">
