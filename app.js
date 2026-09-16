@@ -20035,28 +20035,98 @@ function formatTwinEuro(amount) {
 
 function getActiveBearingDataForTwin() {
   let bearingName = "Lager 6208 (Groefkogellager)";
-  const bSelect = document.getElementById("bearingType") || document.getElementById("omSurveyBearingSelect");
-  if (bSelect && bSelect.value) {
-    if (bSelect.options && bSelect.selectedIndex >= 0) {
-      bearingName = bSelect.options[bSelect.selectedIndex].text || bSelect.value;
-    } else {
-      bearingName = bSelect.value;
+  let detectedRpm = null;
+
+  // 1. Zoek geselecteerd lager in dropdowns (Opbrengstmodel of Vragenlijst)
+  const omSelect = document.getElementById("omSurveyBearingSelect");
+  const surveySelect = document.getElementById("surveyBearingSelect");
+  const sel = (omSelect && omSelect.value && omSelect.value !== "manual" && omSelect.value !== "__open_search__") ? omSelect :
+              (surveySelect && surveySelect.value ? surveySelect : null);
+
+  if (sel && sel.selectedIndex >= 0 && sel.options[sel.selectedIndex]) {
+    const opt = sel.options[sel.selectedIndex];
+    const optText = opt.text || opt.value || "";
+    if (optText && !optText.startsWith("--") && !optText.startsWith("🔍") && !optText.startsWith("🔎")) {
+      bearingName = optText;
+    }
+    if (opt.dataset && opt.dataset.rpm) {
+      const pRpm = parseFloat(opt.dataset.rpm);
+      if (!isNaN(pRpm) && pRpm > 0) detectedRpm = Math.round(pRpm);
+    }
+  } else if (typeof activeBearing !== "undefined" && activeBearing && activeBearing.designation) {
+    const bType = activeBearing.type || (window.currentBearingDetails && window.currentBearingDetails.type) || "";
+    bearingName = `SKF ${activeBearing.designation.toUpperCase()}${bType ? ' (' + bType + ')' : ''}`;
+  } else {
+    const searchInp = document.getElementById("bearingSearchInput");
+    if (searchInp && searchInp.value && searchInp.value.trim()) {
+      bearingName = `SKF ${searchInp.value.trim().toUpperCase()}`;
     }
   }
 
+  // 2. Smeermiddel
   let greaseName = "Interflon Grease MP2/3 (Micpol®)";
   const gSelect = document.getElementById("inputGrease");
   if (gSelect && gSelect.value) {
     greaseName = typeof formatGreaseDisplayName === "function" ? formatGreaseDisplayName(gSelect.value) : gSelect.value;
   }
 
-  let rpm = 1450;
-  const rpmInput = document.getElementById("inputRpm");
-  if (rpmInput && rpmInput.value) {
-    const val = parseFloat(rpmInput.value);
-    if (!isNaN(val) && val > 0) rpm = Math.round(val);
+  // 3. Toerental (RPM) detectie:
+  // 3a. Uit tekst van het lager (bv. "Lager A: 22216 - Aandrijfzijde links (500 RPM)")
+  if (!detectedRpm && bearingName) {
+    const m = bearingName.match(/\((\d+)\s*RPM\)/i) || bearingName.match(/\b(\d+)\s*RPM\b/i);
+    if (m && m[1]) {
+      const pRpm = parseInt(m[1], 10);
+      if (!isNaN(pRpm) && pRpm > 0) detectedRpm = pRpm;
+    }
   }
 
+  // 3b. Uit invoervelden in de calculator
+  if (!detectedRpm) {
+    const speedInput = document.getElementById("inputSpeed") || document.getElementById("rpmInput") || document.getElementById("inputRpm");
+    if (speedInput && speedInput.value) {
+      const pRpm = parseFloat(speedInput.value);
+      if (!isNaN(pRpm) && pRpm > 0) detectedRpm = Math.round(pRpm);
+    }
+  }
+
+  // 3c. Uit actieve badges
+  if (!detectedRpm) {
+    const badgeRpm = document.getElementById("surveyBearingBadgeRpm") || document.getElementById("bearingAnimRpmVal");
+    if (badgeRpm && badgeRpm.textContent) {
+      const m = badgeRpm.textContent.match(/(\d+)/);
+      if (m && m[1]) {
+        const pRpm = parseInt(m[1], 10);
+        if (!isNaN(pRpm) && pRpm > 0) detectedRpm = pRpm;
+      }
+    }
+  }
+
+  // 3d. Uit vragenlijst data
+  if (!detectedRpm && typeof getQuestionnaireBearings === "function") {
+    try {
+      const qBearings = getQuestionnaireBearings();
+      if (Array.isArray(qBearings) && qBearings.length > 0) {
+        const letter = window.currentActiveSurveyBearingLetter || window.currentSurveyBearingLetter || 'A';
+        const matchB = qBearings.find(b => (b.letter && b.letter.toUpperCase() === letter.toUpperCase()) || b.nr === letter);
+        if (matchB && matchB.rpm) {
+          const pRpm = parseFloat(matchB.rpm);
+          if (!isNaN(pRpm) && pRpm > 0) detectedRpm = Math.round(pRpm);
+        } else if (qBearings[0] && qBearings[0].rpm) {
+          const pRpm = parseFloat(qBearings[0].rpm);
+          if (!isNaN(pRpm) && pRpm > 0) detectedRpm = Math.round(pRpm);
+        }
+      }
+    } catch(e) {}
+  }
+
+  const rpm = detectedRpm || 1450;
+
+  // Zorg dat de titel altijd het actuele toerental toont
+  if (bearingName && !/\bRPM\b/i.test(bearingName)) {
+    bearingName += ` (${rpm} RPM)`;
+  }
+
+  // Besparing
   let savings = 1480;
   const roiCard = document.getElementById("roiAnnualSavings") || document.getElementById("roiTotalSavingsCard");
   if (roiCard && roiCard.textContent) {
@@ -20838,7 +20908,15 @@ function openDigitalTwinModal() {
 
   const rpmSlider = document.getElementById("twinRpmSlider");
   const rpmDisplay = document.getElementById("twinRpmDisplay");
-  if (rpmSlider) rpmSlider.value = twinSimState.rpm;
+  if (rpmSlider) {
+    if (twinSimState.rpm < parseInt(rpmSlider.min, 10)) {
+      rpmSlider.min = Math.max(1, Math.floor(twinSimState.rpm / 10) * 10);
+    }
+    if (twinSimState.rpm > parseInt(rpmSlider.max, 10)) {
+      rpmSlider.max = Math.ceil(twinSimState.rpm / 500) * 500;
+    }
+    rpmSlider.value = twinSimState.rpm;
+  }
   if (rpmDisplay) rpmDisplay.textContent = twinSimState.rpm + " RPM";
 
   const savingsEl = document.getElementById("twinSavingsAmount");
@@ -20989,6 +21067,19 @@ function onTwinRpmChange(val) {
   twinSimState.rpm = rpm;
   const disp = document.getElementById("twinRpmDisplay");
   if (disp) disp.textContent = rpm + " RPM";
+
+  const slider = document.getElementById("twinRpmSlider");
+  if (slider && parseInt(slider.value, 10) !== rpm) {
+    slider.value = rpm;
+  }
+
+  // Houd ook de titel in het infoblok synchroon als deze (XXX RPM) bevat
+  const titleEl = document.getElementById("twinBearingInfoTitle");
+  if (titleEl && titleEl.textContent) {
+    if (/\(\d+\s*RPM\)/i.test(titleEl.textContent)) {
+      titleEl.textContent = titleEl.textContent.replace(/\(\d+\s*RPM\)/i, `(${rpm} RPM)`);
+    }
+  }
 }
 
 function triggerDigitalTwinPulse() {
