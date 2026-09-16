@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Interflon • Digitaal Smeerpaspoort</title>
+  <style>
+    :root {
+      --primary: #0284c7;
+      --primary-dark: #0369a1;
+      --primary-light: #e0f2fe;
+      --secondary: #059669;
+      --secondary-light: #ecfdf5;
+      --dark: #0f172a;
+      --slate: #475569;
+      --slate-light: #94a3b8;
+      --bg: #f8fafc;
+      --card: #ffffff;
+      --border: #e2e8f0;
+      --amber: #d97706;
+      --amber-light: #fffbeb;
+      --radius: 14px;
+      --shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.08);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: var(--bg);
+      color: var(--dark);
+      padding: 14px;
+      line-height: 1.45;
+      display: flex;
+      justify-content: center;
+    }
+
+    .passport-container {
+      width: 100%;
+      max-width: 480px;
+      margin: 0 auto;
+      padding-bottom: 30px;
+    }
+
+    /* Header */
+    .header-card {
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+      color: #ffffff;
+      border-radius: var(--radius);
+      padding: 18px 20px;
+      margin-bottom: 14px;
+      box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.25);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .header-card::before {
+      content: "";
+      position: absolute;
+      top: -40px;
+      right: -40px;
+      width: 120px;
+      height: 120px;
+      background: rgba(2, 132, 199, 0.25);
+      border-radius: 50%;
+      pointer-events: none;
+    }
+
+    .brand-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+
+    .brand-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(255, 255, 255, 0.12);
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.6px;
+      text-transform: uppercase;
+      color: #38bdf8;
+    }
+
+    .header-date {
+      font-size: 11px;
+      color: #94a3b8;
+    }
+
+    .machine-title {
+      font-size: 20px;
+      font-weight: 800;
+      color: #ffffff;
+      line-height: 1.25;
+      margin-bottom: 4px;
+    }
+
+    .company-sub {
+      font-size: 13px;
+      color: #cbd5e1;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* Main Unit Highlight Card */
+    .unit-hero-card {
+      background: var(--card);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px 20px;
+      margin-bottom: 14px;
+      box-shadow: var(--shadow);
+      position: relative;
+    }
+
+    .unit-hero-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 12px;
+      margin-bottom: 14px;
+    }
+
+    .unit-hero-name {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .unit-icon-box {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      background: var(--primary-light);
+      color: var(--primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      font-weight: 900;
+      flex-shrink: 0;
+    }
+
+    .unit-main-label {
+      font-size: 17px;
+      font-weight: 800;
+      color: var(--dark);
+      line-height: 1.2;
+    }
+
+    .unit-sub-type {
+      font-size: 12px;
+      color: var(--slate);
+      font-weight: 600;
+    }
+
+    .badge-points {
+      background: #f1f5f9;
+      color: var(--dark);
+      padding: 5px 10px;
+      border-radius: 8px;
+      font-size: 11.5px;
+      font-weight: 700;
+      white-space: nowrap;
+      border: 1px solid #cbd5e1;
+    }
+
+    /* Grid cards for settings & refill */
+    .info-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .info-card {
+      background: var(--card);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px;
+      box-shadow: var(--shadow);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .info-card-header {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--slate);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .info-card-value {
+      font-size: 17px;
+      font-weight: 800;
+      color: var(--dark);
+      line-height: 1.2;
+      margin-bottom: 2px;
+    }
+
+    .info-card-sub {
+      font-size: 11.5px;
+      color: var(--slate);
+    }
+
+    .card-highlight-green {
+      border-color: #a7f3d0;
+      background: #f0fdf4;
+    }
+    .card-highlight-green .info-card-value {
+      color: #065f46;
+    }
+
+    .card-highlight-blue {
+      border-color: #bae6fd;
+      background: #f0f9ff;
+    }
+    .card-highlight-blue .info-card-value {
+      color: #0369a1;
+    }
+
+    /* Smeerpunten lijst */
+    .bearings-box {
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 12px;
+      margin-top: 12px;
+    }
+
+    .bearings-label {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--slate);
+      text-transform: uppercase;
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .bearings-list {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--dark);
+    }
+
+    /* Refill Card with Article nr */
+    .refill-card {
+      background: linear-gradient(135deg, #ffffff 0%, #fff7ed 100%);
+      border: 1.5px solid #fed7aa;
+      border-radius: var(--radius);
+      padding: 16px 18px;
+      margin-bottom: 16px;
+      box-shadow: var(--shadow);
+    }
+
+    .refill-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+
+    .refill-tag {
+      font-size: 11px;
+      font-weight: 800;
+      color: #c2410c;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .art-badge {
+      background: #ea580c;
+      color: #ffffff;
+      font-family: monospace;
+      font-size: 15px;
+      font-weight: 800;
+      padding: 3px 8px;
+      border-radius: 6px;
+      letter-spacing: 0.5px;
+    }
+
+    .refill-title {
+      font-size: 15px;
+      font-weight: 800;
+      color: #7c2d12;
+      margin-bottom: 3px;
+    }
+
+    .refill-grease {
+      font-size: 13px;
+      color: #9a3412;
+      font-weight: 600;
+    }
+
+    /* Action Buttons */
+    .action-group {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+
+    .btn {
+      width: 100%;
+      height: 48px;
+      border-radius: 12px;
+      border: none;
+      font-size: 14px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      text-decoration: none;
+      box-sizing: border-box;
+    }
+
+    .btn-primary {
+      background: #0284c7;
+      color: #ffffff;
+      box-shadow: 0 4px 12px rgba(2, 132, 199, 0.35);
+    }
+    .btn-primary:active {
+      background: #0369a1;
+      transform: scale(0.98);
+    }
+
+    .btn-secondary {
+      background: #ffffff;
+      border: 1.5px solid #cbd5e1;
+      color: #334155;
+    }
+    .btn-secondary:active {
+      background: #f1f5f9;
+      transform: scale(0.98);
+    }
+
+    /* Toast */
+    #toast {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%) translateY(100px);
+      background: #0f172a;
+      color: #ffffff;
+      padding: 12px 20px;
+      border-radius: 30px;
+      font-size: 13px;
+      font-weight: 700;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      opacity: 0;
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      z-index: 1000;
+      pointer-events: none;
+      white-space: nowrap;
+    }
+    #toast.show {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+    }
+
+    /* Accordion / Info */
+    details {
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px 16px;
+      margin-bottom: 12px;
+      font-size: 12.5px;
+      color: var(--slate);
+    }
+    summary {
+      font-weight: 700;
+      color: var(--dark);
+      cursor: pointer;
+      list-style: none;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    summary::-webkit-details-marker {
+      display: none;
+    }
+    summary::after {
+      content: "➕";
+      font-size: 11px;
+    }
+    details[open] summary::after {
+      content: "➖";
+    }
+    details[open] summary {
+      margin-bottom: 8px;
+    }
+    details ol {
+      padding-left: 20px;
+      margin-top: 6px;
+    }
+    details li {
+      margin-bottom: 4px;
+    }
+
+    .footer-note {
+      text-align: center;
+      font-size: 11px;
+      color: var(--slate-light);
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="passport-container">
+    
+    <!-- 1. Header Card -->
+    <div class="header-card">
+      <div class="brand-bar">
+        <span class="brand-badge">🛡️ Interflon Paspoort</span>
+        <span class="header-date" id="passDate">16/09/2026</span>
+      </div>
+      <h1 class="machine-title" id="passMachine">Machine</h1>
+      <div class="company-sub">
+        <span>🏭</span>
+        <span id="passCompany">Klantbedrijf</span>
+      </div>
+    </div>
+
+    <!-- 2. Unit Main Card -->
+    <div class="unit-hero-card">
+      <div class="unit-hero-header">
+        <div class="unit-hero-name">
+          <div class="unit-icon-box" id="passUnitIcon">A</div>
+          <div>
+            <div class="unit-main-label" id="passUnitName">Toestel A</div>
+            <div class="unit-sub-type" id="passSysType">Pulsarlube M2 (125 ml)</div>
+          </div>
+        </div>
+        <div class="badge-points" id="passPointsBadge">1 Smeerpunt</div>
+      </div>
+
+      <!-- Smeerpunten -->
+      <div class="bearings-box">
+        <div class="bearings-label">📍 Aangesloten lagers:</div>
+        <div class="bearings-list" id="passBearingsList">Lager A</div>
+      </div>
+    </div>
+
+    <!-- 3. Grid for Setting & Delivery Rate -->
+    <div class="info-grid">
+      <div class="info-card card-highlight-green">
+        <div class="info-card-header">
+          <span>⚙️ Instelling</span>
+        </div>
+        <div class="info-card-value" id="passSettingVal">Stand 6</div>
+        <div class="info-card-sub" id="passSettingSub">6 Maanden interval</div>
+      </div>
+
+      <div class="info-card card-highlight-blue">
+        <div class="info-card-header">
+          <span>💧 Smeerdebiet</span>
+        </div>
+        <div class="info-card-value" id="passRateVal">0,7 cm³</div>
+        <div class="info-card-sub">Per dag / totaal</div>
+      </div>
+    </div>
+
+    <!-- 4. Refill / Servicepack Card -->
+    <div class="refill-card">
+      <div class="refill-header">
+        <span class="refill-tag">📦 Benodigd Servicepack / Patroon</span>
+        <span class="art-badge" id="passArtNr">Art. 4401</span>
+      </div>
+      <div class="refill-title" id="passRefillTitle">Servicepack Pulsarlube M2 (125 ml)</div>
+      <div class="refill-grease" id="passGreaseName">Interflon Grease MP2/3</div>
+    </div>
+
+    <!-- 5. Action Buttons for Maintenance Tech -->
+    <div class="action-group">
+      <button type="button" class="btn btn-primary" onclick="copyOrderDetails()">
+        <span>📋</span>
+        <span>Kopieer Bestelinformatie</span>
+      </button>
+
+      <button type="button" class="btn btn-secondary" onclick="emailRefillRequest()">
+        <span>✉️</span>
+        <span>E-mail Aanvraag naar Inkoop / Adviseur</span>
+      </button>
+    </div>
+
+    <!-- 6. Quick Instructions Accordion -->
+    <details>
+      <summary>💡 Snelle Instructie Patroonwissel</summary>
+      <ol>
+        <li>Schakel de unit uit en schroef het lege patroon los.</li>
+        <li>Controleer de batterij / batterijpack en vervang deze indien meegeleverd.</li>
+        <li>Draai de beschermdop van het nieuwe Interflon patroon en controleer op vetdoorloop.</li>
+        <li>Schroef het nieuwe patroon handvast op het toestel.</li>
+        <li>Druk 2 seconden op TEST of ontlucht tot er vers vet uit de testpoort komt.</li>
+        <li>Controleer dat de draaiknop / dipswitch op de aangegeven stand staat.</li>
+      </ol>
+    </details>
+
+    <div class="footer-note">
+      Interflon Benelux • Gecalculeerd met Interflon Calculation Engine
+    </div>
+
+  </div>
+
+  <!-- Toast notification -->
+  <div id="toast">
+    <span>✓</span>
+    <span id="toastMsg">Gekopieerd naar klembord!</span>
+  </div>
+
+  <script>
+    // 1. Data Decoder
+    let currentData = {
+      m: "Machine",
+      c: "Klantbedrijf",
+      u: "Toestel A",
+      t: "pulsarlube_m2",
+      cap: 125,
+      g: "Interflon Grease MP2/3",
+      art: "4401",
+      p: "Stand 6 (6 maanden)",
+      v: "0,7 cm³/dag",
+      l: "Lager A",
+      d: new Date().toLocaleDateString('nl-BE')
+    };
+
+    function decodePayload() {
+      try {
+        let hash = window.location.hash;
+        if (hash.startsWith('#')) hash = hash.substring(1);
+        if (hash.startsWith('data=')) hash = hash.substring(5);
+
+        if (hash) {
+          // Decode URL-safe base64
+          let base64 = hash.replace(/-/g, '+').replace(/_/g, '/');
+          while (base64.length % 4) base64 += '=';
+          const jsonStr = decodeURIComponent(escape(atob(base64)));
+          const parsed = JSON.parse(jsonStr);
+          if (parsed && typeof parsed === 'object') {
+            currentData = Object.assign(currentData, parsed);
+          }
+        } else {
+          // Fallback to URL search parameters
+          const params = new URLSearchParams(window.location.search);
+          if (params.has('m')) currentData.m = params.get('m');
+          if (params.has('c')) currentData.c = params.get('c');
+          if (params.has('u')) currentData.u = params.get('u');
+          if (params.has('t')) currentData.t = params.get('t');
+          if (params.has('cap')) currentData.cap = parseInt(params.get('cap'), 10) || currentData.cap;
+          if (params.has('g')) currentData.g = params.get('g');
+          if (params.has('art')) currentData.art = params.get('art');
+          if (params.has('p')) currentData.p = params.get('p');
+          if (params.has('v')) currentData.v = params.get('v');
+          if (params.has('l')) currentData.l = params.get('l');
+          if (params.has('d')) currentData.d = params.get('d');
+        }
+      } catch (err) {
+        console.warn('Fout bij decoderen smeerpaspoort data:', err);
+      }
+    }
+
+    function renderPassport() {
+      decodePayload();
+
+      // Populate DOM elements
+      document.getElementById('passMachine').textContent = currentData.m || 'Machine';
+      document.getElementById('passCompany').textContent = currentData.c || 'Klantbedrijf';
+      document.getElementById('passDate').textContent = currentData.d || new Date().toLocaleDateString('nl-BE');
+      document.getElementById('passUnitName').textContent = currentData.u || 'Smeerunit';
+      
+      const shortId = (currentData.u || 'A').replace(/[^0-9A-Za-z]/g, '').substring(0, 3) || 'U';
+      document.getElementById('passUnitIcon').textContent = shortId.length > 2 ? shortId.substring(shortId.length - 2) : shortId;
+
+      // System Type
+      let sysName = "Smeertoestel";
+      if (currentData.t === 'single_point') {
+        sysName = `Single Point Lubricator (${currentData.cap || 125} ml)`;
+      } else if (currentData.t === 'pulsarlube_m2') {
+        sysName = `Pulsarlube M2 (${currentData.cap || 125} ml)`;
+      } else if (currentData.t === 'pulsarlube_msp') {
+        sysName = `Pulsarlube MSP (${currentData.cap || 125} ml)`;
+      } else if (currentData.t === 'pulsarlube_plc') {
+        sysName = `Pulsarlube PLC (${currentData.cap || 125} ml)`;
+      } else {
+        sysName = `${currentData.t || 'Pulsarlube'} (${currentData.cap || 125} ml)`;
+      }
+      document.getElementById('passSysType').textContent = sysName;
+
+      // Bearings
+      const bList = currentData.l || 'Aangesloten lagers';
+      document.getElementById('passBearingsList').textContent = bList;
+      const bCount = bList.split(',').length;
+      document.getElementById('passPointsBadge').textContent = `${bCount} ${bCount === 1 ? 'Smeerpunt' : 'Smeerpunten'}`;
+
+      // Setting
+      let setVal = currentData.p || 'Stand 6';
+      let setSub = 'Smeerinterval';
+      if (setVal.includes('(')) {
+        const parts = setVal.split('(');
+        setVal = parts[0].trim();
+        setSub = parts[1].replace(')', '').trim();
+      }
+      document.getElementById('passSettingVal').textContent = setVal;
+      document.getElementById('passSettingSub').textContent = setSub;
+
+      // Delivery Rate
+      document.getElementById('passRateVal').textContent = currentData.v || '-';
+
+      // Refill
+      document.getElementById('passArtNr').textContent = `Art. ${currentData.art || '1061'}`;
+      document.getElementById('passRefillTitle').textContent = `Servicepack ${sysName}`;
+      document.getElementById('passGreaseName').textContent = currentData.g || 'Interflon Grease MP2/3';
+
+      document.title = `${currentData.m} • ${currentData.u} • Interflon Paspoort`;
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      const toastMsg = document.getElementById('toastMsg');
+      if (toastMsg) toastMsg.textContent = msg;
+      toast.classList.add('show');
+      setTimeout(() => {
+        toast.classList.remove('show');
+      }, 2800);
+    }
+
+    function copyOrderDetails() {
+      const text = `INTERFLON SMEERPASPOORT BESTELREGEL:
+Artikel: Art. ${currentData.art} (Servicepack / Patroon voor ${currentData.u})
+Smeermiddel: ${currentData.g} (${currentData.cap} ml)
+Instelling: ${currentData.p}
+Machine: ${currentData.m} (${currentData.c})
+Aangesloten op: ${currentData.l}`;
+
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(() => {
+          showToast("✓ Gekopieerd naar klembord!");
+        }).catch(() => {
+          fallbackCopy(text);
+        });
+      } else {
+        fallbackCopy(text);
+      }
+    }
+
+    function fallbackCopy(text) {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      showToast("✓ Gekopieerd naar klembord!");
+    }
+
+    function emailRefillRequest() {
+      const subject = encodeURIComponent(`Navulling aanvraag: ${currentData.m} - ${currentData.u} (Art. ${currentData.art})`);
+      const body = encodeURIComponent(`Beste,
+
+Graag een bestelling / offerte voor navulling van onderstaand smeertoestel:
+
+- Artikelnummer: Art. ${currentData.art}
+- Smeermiddel: ${currentData.g} (${currentData.cap} ml)
+- Machine: ${currentData.m}
+- Toestel: ${currentData.u} (${currentData.p})
+- Lagers: ${currentData.l}
+- Klant: ${currentData.c}
+
+Met vriendelijke groet,`);
+
+      window.location.href = `mailto:?subject=${subject}&body=${body}`;
+    }
+
+    window.addEventListener('DOMContentLoaded', renderPassport);
+  </script>
+</body>
+</html>
