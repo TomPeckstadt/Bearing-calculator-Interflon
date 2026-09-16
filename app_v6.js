@@ -15472,29 +15472,78 @@ function getOdooQuoteData() {
 
     systemTitle = activeDevicesList.map(ad => `Toestel ${ad.id} (${ad.pInfo.deviceType})`).join(" + ");
 
-    // 3) Toestellen: Artikelnummer + benaming + prijs + aantal benodigd voor deze configuratie
+    // 3) Toestellen: Artikelnummer + benaming + prijs + aantal benodigd voor deze configuratie (gegroepeerd per artikelnummer)
+    const unitGroups = {};
     activeDevicesList.forEach(ad => {
+      const art = ad.pInfo.artNrUnit;
+      if (!unitGroups[art]) {
+        unitGroups[art] = {
+          artNr: art,
+          cap: ad.cap,
+          deviceType: ad.pInfo.deviceType,
+          unitPrice: ad.pInfo.unitPrice,
+          devices: []
+        };
+      }
+      unitGroups[art].devices.push(ad.id);
+    });
+
+    Object.values(unitGroups).forEach(ug => {
+      const count = ug.devices.length;
+      const devStr = count > 1 ? `Toestel ${ug.devices.join(", ")}` : `Toestel ${ug.devices[0]}`;
       items.push({
-        artNr: ad.pInfo.artNrUnit,
-        name: `${ad.pInfo.deviceType} (${ad.cap} ml) — Toestel ${ad.id}`,
+        artNr: ug.artNr,
+        name: `${ug.deviceType} (${ug.cap} ml) — ${devStr}`,
         category: "Pulsarlube Smeertoestellen (Leeg)",
-        qty: 1,
-        unitPrice: ad.pInfo.unitPrice,
-        totalPrice: ad.pInfo.unitPrice,
+        qty: count,
+        unitPrice: ug.unitPrice,
+        totalPrice: count * ug.unitPrice,
         isOptional: false,
         unitLabel: "st"
       });
     });
 
-    // 3) Servicepacks: Artikelnummer + benaming + prijs + aantal benodigde servicepacks
+    // 3) Servicepacks: Artikelnummer + benaming + prijs + aantal (herleid identieke artikels tot 1 regel met gecombineerd aantal)
+    const servicepackGroups = {};
     activeDevicesList.forEach(ad => {
+      const art = ad.pInfo.artNrServicepack || "Op aanvraag";
+      if (!servicepackGroups[art]) {
+        servicepackGroups[art] = {
+          artNr: art,
+          cap: ad.cap,
+          unitPrice: ad.pInfo.servicepackPrice,
+          devices: [],
+          deviceTypes: []
+        };
+      }
+      servicepackGroups[art].devices.push(ad.id);
+      if (!servicepackGroups[art].deviceTypes.includes(ad.pInfo.deviceType)) {
+        servicepackGroups[art].deviceTypes.push(ad.pInfo.deviceType);
+      }
+    });
+
+    Object.values(servicepackGroups).forEach(group => {
+      const count = group.devices.length;
+      const devStr = count > 1
+        ? `Toestel ${group.devices.join(", ")}`
+        : `Toestel ${group.devices[0]}`;
+
+      let typeStr = "";
+      if (group.deviceTypes.length === 1) {
+        typeStr = group.deviceTypes[0];
+      } else {
+        typeStr = "Pulsarlube";
+      }
+
+      const name = `Servicepack ${typeStr} ${group.cap} ml (${greaseName}) — ${devStr}`;
+
       items.push({
-        artNr: ad.pInfo.artNrServicepack,
-        name: `Servicepack ${ad.pInfo.deviceType} ${ad.cap} ml (${greaseName}) — Toestel ${ad.id}`,
+        artNr: group.artNr,
+        name: name,
         category: "Servicepacks (1e vulling)",
-        qty: 1,
-        unitPrice: ad.pInfo.servicepackPrice,
-        totalPrice: ad.pInfo.servicepackPrice,
+        qty: count,
+        unitPrice: group.unitPrice,
+        totalPrice: count * group.unitPrice,
         isOptional: false,
         unitLabel: "st"
       });
@@ -15513,23 +15562,38 @@ function getOdooQuoteData() {
       unitLabel: "kit"
     });
 
-    // 5) Verdeelblokken: Artikelnummer + benaming + prijs + aantal benodigde verdeelblokken
+    // 5) Verdeelblokken: Artikelnummer + benaming + prijs + aantal benodigde verdeelblokken (gegroepeerd per artikelnummer)
+    const divBlockGroups = {};
     activeDevicesList.forEach(ad => {
       if (ad.points > 1) {
         const divBlock = (AUTOMATION_PRICE_DATABASE.dividerBlocks || {})[ad.points];
         if (divBlock && divBlock.artNr !== "-") {
-          items.push({
-            artNr: divBlock.artNr,
-            name: `${divBlock.name} (Toestel ${ad.id} • ${ad.points} smeerpunten)`,
-            category: "Verdeelblokken",
-            qty: 1,
-            unitPrice: divBlock.price,
-            totalPrice: divBlock.price,
-            isOptional: false,
-            unitLabel: "st"
-          });
+          const art = divBlock.artNr;
+          if (!divBlockGroups[art]) {
+            divBlockGroups[art] = {
+              artNr: divBlock.artNr,
+              name: divBlock.name,
+              price: divBlock.price,
+              devices: []
+            };
+          }
+          divBlockGroups[art].devices.push(`Toestel ${ad.id} (${ad.points}p)`);
         }
       }
+    });
+
+    Object.values(divBlockGroups).forEach(dbg => {
+      const count = dbg.devices.length;
+      items.push({
+        artNr: dbg.artNr,
+        name: `${dbg.name} (${dbg.devices.join(", ")})`,
+        category: "Verdeelblokken",
+        qty: count,
+        unitPrice: dbg.price,
+        totalPrice: count * dbg.price,
+        isOptional: false,
+        unitLabel: "st"
+      });
     });
 
     // 6) Nylon tube 6 mm (artikel 1431): totaal aantal meters leiding steeds verhoogd met 30%
@@ -15666,7 +15730,7 @@ function openOdooQuoteModal() {
 
         rowsHtml += `
           <tr style="background: ${catBg}; border-top: 1px solid #cbd5e1; border-bottom: 1px solid #e2e8f0;">
-            <td colspan="5" style="padding: 4px 12px; font-weight: 800; font-size: 10.5px; color: ${catColor}; text-transform: uppercase; letter-spacing: 0.5px;">
+            <td colspan="5" style="padding: 3px 10px; font-weight: 800; font-size: 10px; color: ${catColor}; text-transform: uppercase; letter-spacing: 0.5px;">
               ${escapeOdooHtml(currentCategory)} ${catBadge}
             </td>
           </tr>
@@ -15675,24 +15739,24 @@ function openOdooQuoteModal() {
 
       const rowBg = item.isOptional ? "#fdfcfd" : (idx % 2 === 0 ? "#ffffff" : "#f8fafc");
       const unitLbl = item.unitLabel || "st";
-      const optBadge = item.isOptional ? `<span style="display: inline-block; background: #fae8f4; color: #714B67; border: 1px solid #f3c7e7; font-size: 9.5px; font-weight: 700; padding: 1px 5px; border-radius: 4px; margin-left: 6px;">Optioneel</span>` : "";
-      const noteHtml = item.optionalNote ? `<span style="font-size: 11px; color: #64748b; font-style: italic; margin-left: 6px;">(${escapeOdooHtml(item.optionalNote)})</span>` : "";
+      const optBadge = item.isOptional ? `<span style="display: inline-block; background: #fae8f4; color: #714B67; border: 1px solid #f3c7e7; font-size: 9px; font-weight: 700; padding: 1px 4px; border-radius: 4px; margin-left: 6px;">Optioneel</span>` : "";
+      const noteHtml = item.optionalNote ? `<span style="font-size: 10.5px; color: #64748b; font-style: italic; margin-left: 6px;">(${escapeOdooHtml(item.optionalNote)})</span>` : "";
 
       rowsHtml += `
         <tr style="background: ${rowBg}; border-bottom: 1px solid #e2e8f0;">
-          <td style="padding: 6px 12px; font-family: monospace; font-weight: 700; color: #1e293b; font-size: 11.5px;">
+          <td style="padding: 5px 10px; font-family: monospace; font-weight: 700; color: #1e293b; font-size: 11px;">
             ${escapeOdooHtml(item.artNr)}
           </td>
-          <td style="padding: 6px 12px; color: #0f172a; font-size: 12px;">
+          <td style="padding: 5px 10px; color: #0f172a; font-size: 11.5px;">
             <strong>${escapeOdooHtml(item.name)}</strong>${optBadge}${noteHtml}
           </td>
-          <td style="padding: 6px 12px; text-align: center; font-weight: 700; color: #0f172a; font-size: 12px;">
+          <td style="padding: 5px 10px; text-align: center; font-weight: 700; color: #0f172a; font-size: 11.5px;">
             ${item.qty} ${unitLbl}
           </td>
-          <td style="padding: 6px 12px; text-align: right; color: #475569; font-variant-numeric: tabular-nums; font-size: 12px;">
+          <td style="padding: 5px 10px; text-align: right; color: #475569; font-variant-numeric: tabular-nums; font-size: 11.5px;">
             € ${item.unitPrice.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </td>
-          <td style="padding: 6px 12px; text-align: right; font-weight: 800; color: ${item.isOptional ? '#714B67' : '#0f172a'}; font-variant-numeric: tabular-nums; font-size: 12px;">
+          <td style="padding: 5px 10px; text-align: right; font-weight: 800; color: ${item.isOptional ? '#714B67' : '#0f172a'}; font-variant-numeric: tabular-nums; font-size: 11.5px;">
             € ${item.totalPrice.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </td>
         </tr>
