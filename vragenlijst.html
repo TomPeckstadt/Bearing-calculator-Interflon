@@ -7377,35 +7377,171 @@
       return bodyText;
     }
 
+    function copyTextToClipboard(text) {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        return navigator.clipboard.writeText(text).catch(() => {
+          fallbackCopyText(text);
+        });
+      } else {
+        fallbackCopyText(text);
+        return Promise.resolve();
+      }
+    }
+
+    function fallbackCopyText(text) {
+      try {
+        const textArea = document.createElement('textarea');
+        textArea.value = text;
+        textArea.style.position = 'fixed';
+        textArea.style.top = '-9999px';
+        textArea.style.left = '-9999px';
+        textArea.setAttribute('readonly', '');
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+      } catch (e) {
+        console.warn('Fallback copy error:', e);
+      }
+    }
+
+    function showSurveyNotification(title, message, icon) {
+      icon = icon || '📋';
+      let toast = document.getElementById('surveyToastNotification');
+      if (!toast) {
+        toast = document.createElement('div');
+        toast.id = 'surveyToastNotification';
+        toast.style.cssText = 'position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(100px); background: #0f172a; color: #ffffff; padding: 16px 20px; border-radius: 12px; box-shadow: 0 20px 35px -10px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.1); display: flex; align-items: flex-start; gap: 14px; z-index: 999999; max-width: 90vw; width: 540px; font-family: inherit; transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1); opacity: 0; pointer-events: none;';
+        document.body.appendChild(toast);
+      }
+
+      toast.innerHTML = '<div style="font-size: 24px; line-height: 1; flex-shrink: 0; margin-top: 2px;">' + icon + '</div>' +
+        '<div style="flex-grow: 1;">' +
+          '<div style="font-weight: 700; font-size: 14.5px; margin-bottom: 4px; color: #f8fafc;">' + title + '</div>' +
+          '<div style="font-size: 13px; line-height: 1.45; color: #cbd5e1; white-space: pre-line;">' + message + '</div>' +
+        '</div>' +
+        '<button onclick="document.getElementById(\'surveyToastNotification\').style.opacity=\'0\'; document.getElementById(\'surveyToastNotification\').style.transform=\'translateX(-50%) translateY(100px)\';" style="background: transparent; border: none; color: #94a3b8; font-size: 18px; cursor: pointer; padding: 0 4px; line-height: 1;" title="Sluiten">✕</button>';
+
+      requestAnimationFrame(() => {
+        toast.style.opacity = '1';
+        toast.style.transform = 'translateX(-50%) translateY(0)';
+        toast.style.pointerEvents = 'auto';
+      });
+
+      clearTimeout(toast._timeout);
+      toast._timeout = setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateX(-50%) translateY(100px)';
+        toast.style.pointerEvents = 'none';
+      }, 8000);
+    }
+
+    function buildConciseEmailSummary(data) {
+      const company = data.client.company || 'Klant';
+      const contact = data.client.contact || '-';
+      const machine = data.machine.name || 'Machine';
+      const brand = data.machine.brand && data.machine.brand !== '-' ? ' (' + data.machine.brand + ')' : '';
+      const app = data.machine.application && data.machine.application !== '-' ? ' - ' + data.machine.application : '';
+      const count = data.machine.count || '1';
+      const numBearings = data.bearings.length;
+
+      let bearingOverview = '';
+      if (numBearings <= 6) {
+        bearingOverview = data.bearings.map(b => b.letter + ': ' + b.aantal + 'x ' + b.lagernummer + (b.omschrijving && b.omschrijving !== '-' ? ' (' + b.omschrijving + ')' : '')).join('\n• Lager ');
+      } else {
+        const firstFew = data.bearings.slice(0, 4).map(b => b.letter + ': ' + b.aantal + 'x ' + b.lagernummer).join(', ');
+        bearingOverview = firstFew + '... (en nog ' + (numBearings - 4) + ' overige lagers)';
+      }
+
+      let text = "Beste,\n\n";
+      text += "Hierbij bezorgen wij u de ingevulde smeeranalyse vragenlijst:\n\n";
+      text += "• Bedrijf: " + company + "\n";
+      text += "• Contactpersoon: " + contact + "\n";
+      text += "• Machine: " + machine + brand + app + "\n";
+      text += "• Aantal identieke machines: " + count + "\n";
+      text += "• Aantal geanalyseerde lagers: " + numBearings + " stuks\n";
+      if (bearingOverview) {
+        text += "• Lager " + bearingOverview + "\n";
+      }
+      text += "\n";
+      text += "--------------------------------------------------------\n";
+      text += "📋 TIP: HET VOLLEDIGE GEDETAILLEERDE RAPPORT\n";
+      text += "(inclusief matrixvergelijking en alle lagerspecificaties)\n";
+      text += "IS AUTOMATISCH NAAR UW KLEMBORD GEKOPIEERD!\n\n";
+      text += "👉 Druk hieronder op [ Ctrl + V ] om het volledige rapport\n";
+      text += "inclusief alle meetwaarden direct in dit bericht te plakken.\n";
+      text += "--------------------------------------------------------\n\n";
+      text += "Met vriendelijke groet,\n";
+      text += (contact !== '-' ? contact : company);
+      return text;
+    }
+
     function sendViaGmail() {
-      prepareFormSubmission();
-      const targetEmail = document.getElementById('interflonContactEmail').value || 'tom.peckstadt@interflon.com';
-      const subject = encodeURIComponent("Smeeranalyse Vragenlijst - " + (document.getElementById('clientCompany').value || 'Klant'));
-      const body = encodeURIComponent(buildReportSummary());
+      const data = collectAllBearingsData();
+      const fullReport = buildReportSummary();
+      const targetEmail = (document.getElementById('interflonContactEmail') && document.getElementById('interflonContactEmail').value) || 'tom.peckstadt@interflon.com';
+      const company = (document.getElementById('clientCompany') && document.getElementById('clientCompany').value) || 'Klant';
+      const machine = (document.getElementById('machineName') && document.getElementById('machineName').value) || 'Machine';
+      const subject = encodeURIComponent("Smeeranalyse Vragenlijst - " + company + " (" + machine + ")");
+      const body = encodeURIComponent(buildConciseEmailSummary(data));
       const gmailUrl = "https://mail.google.com/mail/?view=cm&fs=1&to=" + encodeURIComponent(targetEmail) + "&su=" + subject + "&body=" + body;
-      window.open(gmailUrl, '_blank');
+
+      copyTextToClipboard(fullReport);
+
+      const win = window.open(gmailUrl, '_blank');
+      if (!win || win.closed || typeof win.closed === 'undefined') {
+        showSurveyNotification(
+          "✉️ Gmail geopend (of pop-up geblokkeerd)",
+          "Het volledige analyserapport is naar uw klembord gekopieerd.\nMocht het venster niet openen, klik dan hier: <a href=\"" + gmailUrl + "\" target=\"_blank\" style=\"color:#38bdf8;font-weight:bold;text-decoration:underline;\">Open Gmail</a>\nDruk in Gmail op Ctrl + V om het rapport te plakken.",
+          "✉️"
+        );
+      } else {
+        showSurveyNotification(
+          "✉️ Gmail geopend & rapport gekopieerd!",
+          "Het volledige analyserapport (inclusief matrix en alle details) staat op uw klembord.\n👉 Druk in uw Gmail-bericht op Ctrl + V om alle gegevens direct in te voegen.",
+          "✉️"
+        );
+      }
     }
 
     function sendViaOutlookMailto() {
-      prepareFormSubmission();
-      const targetEmail = document.getElementById('interflonContactEmail').value || 'tom.peckstadt@interflon.com';
-      const subject = encodeURIComponent("Smeeranalyse Vragenlijst - " + (document.getElementById('clientCompany').value || 'Klant'));
-      const body = encodeURIComponent(buildReportSummary());
-      window.location.href = "mailto:" + encodeURIComponent(targetEmail) + "?subject=" + subject + "&body=" + body;
+      const data = collectAllBearingsData();
+      const fullReport = buildReportSummary();
+      const targetEmail = (document.getElementById('interflonContactEmail') && document.getElementById('interflonContactEmail').value) || 'tom.peckstadt@interflon.com';
+      const company = (document.getElementById('clientCompany') && document.getElementById('clientCompany').value) || 'Klant';
+      const machine = (document.getElementById('machineName') && document.getElementById('machineName').value) || 'Machine';
+      const subject = encodeURIComponent("Smeeranalyse Vragenlijst - " + company + " (" + machine + ")");
+      const body = encodeURIComponent(buildConciseEmailSummary(data));
+      const mailtoUrl = "mailto:" + encodeURIComponent(targetEmail) + "?subject=" + subject + "&body=" + body;
+
+      copyTextToClipboard(fullReport);
+
+      const a = document.createElement('a');
+      a.href = mailtoUrl;
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(() => {
+        if (a.parentNode) a.parentNode.removeChild(a);
+      }, 500);
+
+      showSurveyNotification(
+        "📧 Outlook geopend & rapport gekopieerd!",
+        "Het volledige analyserapport (inclusief matrix en alle details) staat op uw klembord.\n👉 Druk in uw e-mail op Ctrl + V om alle gegevens direct in te voegen.",
+        "📧"
+      );
     }
 
     function copyFullReportText() {
-      prepareFormSubmission();
       const reportText = buildReportSummary();
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(reportText).then(() => {
-          alert("📋 Alle ingevulde antwoorden zijn gekopieerd naar uw klembord!\n\nU kunt deze nu direct plakken (Ctrl + V) in een e-mailbericht.");
-        }).catch(err => {
-          prompt("Kopieer onderstaande antwoorden:", reportText);
-        });
-      } else {
+      copyTextToClipboard(reportText).then(() => {
+        showSurveyNotification(
+          "📋 Gekopieerd naar klembord!",
+          "Alle ingevulde antwoorden en de complete vergelijkingstabel zijn gekopieerd naar uw klembord.\n👉 U kunt deze nu direct plakken (Ctrl + V) in uw e-mailbericht of document.",
+          "📋"
+        );
+      }).catch(err => {
         prompt("Kopieer onderstaande antwoorden:", reportText);
-      }
+      });
     }
 
     window.addEventListener('DOMContentLoaded', () => {
