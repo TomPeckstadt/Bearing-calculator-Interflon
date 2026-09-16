@@ -681,6 +681,7 @@
 
     function copyOrderDetails() {
       const text = `INTERFLON SMEERPASPOORT BESTELREGEL:
+Gewenste aantal eenheden: 
 Artikel: Art. ${currentData.art} (Servicepack / Patroon voor ${currentData.u})
 Smeermiddel: ${currentData.g} (${currentData.cap} ml)
 Instelling: ${currentData.p}
@@ -713,6 +714,8 @@ Aangesloten op: ${currentData.l}`;
       const body = encodeURIComponent(`Beste,
 
 Graag een bestelling / offerte voor navulling van onderstaand smeertoestel:
+
+Gewenste aantal eenheden: 
 
 - Artikelnummer: Art. ${currentData.art}
 - Smeermiddel: ${currentData.g} (${currentData.cap} ml)
