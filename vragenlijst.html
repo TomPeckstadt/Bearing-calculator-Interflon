@@ -1928,6 +1928,7 @@
           drawBearingLayout();
           renderDistancesOverview();
           if (typeof saveRasterConfigToLocalStorage === 'function') saveRasterConfigToLocalStorage();
+          if (typeof updateFormSubmitAttachment === 'function') updateFormSubmitAttachment();
         };
 
         typeSelect.onclick = function(e) {
@@ -1962,6 +1963,7 @@
           drawBearingLayout();
           renderDistancesOverview();
           if (typeof saveRasterConfigToLocalStorage === 'function') saveRasterConfigToLocalStorage();
+          if (typeof updateFormSubmitAttachment === 'function') updateFormSubmitAttachment();
         };
 
         container.appendChild(devPill);
@@ -2000,6 +2002,7 @@
       drawBearingLayout();
       renderDistancesOverview();
       if (typeof saveRasterConfigToLocalStorage === 'function') saveRasterConfigToLocalStorage();
+      if (typeof updateFormSubmitAttachment === 'function') updateFormSubmitAttachment();
     }
 
     function deleteDevice(devId) {
@@ -2040,6 +2043,7 @@
       drawBearingLayout();
       renderDistancesOverview();
       if (typeof saveRasterConfigToLocalStorage === 'function') saveRasterConfigToLocalStorage();
+      if (typeof updateFormSubmitAttachment === 'function') updateFormSubmitAttachment();
     }
     window.addNewDevice = addNewDevice;
     window.deleteDevice = deleteDevice;
@@ -2979,6 +2983,7 @@
         renderDistancesOverview();
         closeDeviceAdviceModal();
         saveRasterConfigToLocalStorage();
+        if (typeof updateFormSubmitAttachment === 'function') updateFormSubmitAttachment();
 
         const infoEl = document.getElementById('canvasZoomInfo');
         if (infoEl) {
@@ -3038,6 +3043,7 @@
       renderDistancesOverview();
       closeDeviceAdviceModal();
       saveRasterConfigToLocalStorage();
+      if (typeof updateFormSubmitAttachment === 'function') updateFormSubmitAttachment();
 
       const infoEl = document.getElementById('canvasZoomInfo');
       if (infoEl) {
@@ -3995,7 +4001,6 @@
       }
 
       ctx.restore();
-      if (typeof updateFormSubmitAttachment === "function") updateFormSubmitAttachment();
     }
 
     // --- 5. MOUSE & TOUCH INTERACTION HANDLERS ---
@@ -4176,6 +4181,7 @@
           canvas.style.cursor = (hoveredBearingLetter || hoveredDeviceId) ? 'grab' : 'default';
           drawBearingLayout();
           if (typeof saveRasterConfigToLocalStorage === 'function') saveRasterConfigToLocalStorage();
+          if (typeof updateFormSubmitAttachment === 'function') updateFormSubmitAttachment();
 
           if (pendingRasterDragSnapshot && typeof getRasterStateSnapshot === 'function') {
             const currentSnap = getRasterStateSnapshot();
@@ -4275,6 +4281,7 @@
           draggedDeviceId = null;
           drawBearingLayout();
           if (typeof saveRasterConfigToLocalStorage === 'function') saveRasterConfigToLocalStorage();
+          if (typeof updateFormSubmitAttachment === 'function') updateFormSubmitAttachment();
 
           if (pendingRasterDragSnapshot && typeof getRasterStateSnapshot === 'function') {
             const currentSnap = getRasterStateSnapshot();
@@ -4375,6 +4382,9 @@
       renderDistancesOverview();
       if (typeof saveRasterConfigToLocalStorage === 'function') {
         saveRasterConfigToLocalStorage();
+      }
+      if (typeof updateFormSubmitAttachment === 'function') {
+        updateFormSubmitAttachment();
       }
 
       // 4. Toast-bevestiging in de canvas infobalk
@@ -4774,23 +4784,27 @@
         }
 
         const card = document.createElement('div');
-        card.style.cssText = 'background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 8px; padding: 10px 12px; display: flex; flex-direction: column; gap: 8px; transition: all 0.2s; cursor: default;';
+        card.className = 'raster-bearing-card';
+        card.setAttribute('data-letter', letter);
+        card.style.cssText = 'background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 8px; padding: 10px 12px; display: flex; flex-direction: column; gap: 8px; transition: background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease; cursor: default;';
         
         card.onmouseenter = function() {
           card.style.background = '#eff6ff';
           card.style.borderColor = '#3b82f6';
-          card.style.transform = 'translateY(-1px)';
           card.style.boxShadow = '0 3px 8px rgba(37,99,235,0.12)';
-          hoveredBearingLetter = letter;
-          drawBearingLayout();
+          if (hoveredBearingLetter !== letter) {
+            hoveredBearingLetter = letter;
+            drawBearingLayout();
+          }
         };
         card.onmouseleave = function() {
           card.style.background = '#f8fafc';
           card.style.borderColor = '#e2e8f0';
-          card.style.transform = 'none';
           card.style.boxShadow = 'none';
-          hoveredBearingLetter = null;
-          drawBearingLayout();
+          if (hoveredBearingLetter === letter) {
+            hoveredBearingLetter = null;
+            drawBearingLayout();
+          }
         };
 
         // Determine grease demand & palette for this bearing
@@ -4878,7 +4892,7 @@
                   'class="raster-dist-pill ' + (isAssigned ? 'is-assigned' : 'is-unassigned') + '" ' +
                   'style="display: inline-flex; align-items: center; gap: 5px; background: ' + bgStyle + '; border: ' + borderStyle + '; ' + shadowStyle + ' border-radius: 6px; padding: 3px 8px; font-size: 11px; ' + cursorStyle + ' transition: all 0.18s ease; user-select: none;" ' +
                   'title="' + titleAttr + '" ' +
-                  (canReassign && !isAssigned ? ('onmouseenter="this.style.borderColor=\'' + od.origin.color + '\'; this.style.transform=\'translateY(-1px)\';" onmouseleave="this.style.borderColor=\'' + statusBorder + '\'; this.style.transform=\'none\';"') : '') + '>' +
+                  (canReassign && !isAssigned ? ('onmouseenter="this.style.borderColor=\'' + od.origin.color + '\'; this.style.backgroundColor=\'#ffffff\';" onmouseleave="this.style.borderColor=\'' + statusBorder + '\'; this.style.backgroundColor=\'' + bgStyle + '\';"') : '') + '>' +
                   '<span style="font-weight: 800; color: ' + od.origin.color + ';">' + od.origin.short + (od.origin.typeShort ? (' <small style="font-weight: 700; opacity: 0.85;">' + od.origin.typeShort + '</small>') : '') + ':</span>' +
                   '<span style="font-weight: 800; color: ' + statusCol + ';">' + roundedD.toFixed(1).replace('.', ',') + ' m</span>' +
                   (isClosest ? '<span style="font-size: 9px; font-weight: 800; color: #15803d; background: #bbf7d0; padding: 1px 4px; border-radius: 3px;" title="Fysiek kortste leidingafstand">⭐ Dichtstbij</span>' : '') +
@@ -4938,8 +4952,7 @@
         }
       }
 
-      // Automatically sync latest raster device configuration to localStorage
-      saveRasterConfigToLocalStorage();
+      // Render complete
     }
     window.renderDistancesOverview = renderDistancesOverview;
     window.drawBearingLayout = drawBearingLayout;
@@ -4956,10 +4969,10 @@
           return null;
         }
 
-        // Flush any active input values from Section 2, 3 and 4 into maps first
-        if (typeof saveCurrentSection2Data === 'function') saveCurrentSection2Data();
-        if (typeof saveCurrentSection3Data === 'function') saveCurrentSection3Data();
-        if (typeof saveCurrentSection4Data === 'function') saveCurrentSection4Data();
+        // Flush any active input values from Section 2, 3 and 4 into maps first (skipAutoSave = true to prevent recursive debounce loop)
+        if (typeof saveCurrentSection2Data === 'function') saveCurrentSection2Data(true);
+        if (typeof saveCurrentSection3Data === 'function') saveCurrentSection3Data(true);
+        if (typeof saveCurrentSection4Data === 'function') saveCurrentSection4Data(true);
 
         const rows = document.querySelectorAll('.bearing-row');
         const bearings = [];
@@ -5384,7 +5397,12 @@
       rasterPanX = prevPanX;
       rasterPanY = prevPanY;
       isRasterFullscreen = prevFs;
-      drawBearingLayout();
+      window.__isGeneratingComposite = true;
+      try {
+        drawBearingLayout();
+      } finally {
+        window.__isGeneratingComposite = false;
+      }
 
       // 4. Right Card: Distances Overview (Afstanden Overzicht)
       const rightX = 1114;
@@ -6003,32 +6021,39 @@
 
     let attachmentUpdateTimer = null;
     function updateFormSubmitAttachment() {
+      if (window.__isGeneratingComposite) return;
       clearTimeout(attachmentUpdateTimer);
       attachmentUpdateTimer = setTimeout(function() {
-        // 1. Sync CSV spreadsheet attachment
-        updateFormSubmitCsvAttachment();
+        if (window.__isGeneratingComposite) return;
+        window.__isGeneratingComposite = true;
+        try {
+          // 1. Sync CSV spreadsheet attachment
+          updateFormSubmitCsvAttachment();
 
-        // 2. Sync JSON digital import file attachment (1-klik import)
-        updateFormSubmitJsonAttachment();
+          // 2. Sync JSON digital import file attachment (1-klik import)
+          updateFormSubmitJsonAttachment();
 
-        // 3. Sync 3D Machine Layout PNG image attachment
-        const compCanvas = generateCompositeLayoutCanvas();
-        if (!compCanvas) return;
-        compCanvas.toBlob(function(blob) {
-          if (!blob) return;
-          try {
-            const file = new File([blob], "Interflon_Machine_Layout_3D.png", { type: "image/png" });
-            const dataTransfer = new DataTransfer();
-            dataTransfer.items.add(file);
-            const fileInput = document.getElementById('hiddenLayoutImageInput');
-            if (fileInput) {
-              fileInput.files = dataTransfer.files;
+          // 3. Sync 3D Machine Layout PNG image attachment
+          const compCanvas = generateCompositeLayoutCanvas();
+          if (!compCanvas) return;
+          compCanvas.toBlob(function(blob) {
+            if (!blob) return;
+            try {
+              const file = new File([blob], "Interflon_Machine_Layout_3D.png", { type: "image/png" });
+              const dataTransfer = new DataTransfer();
+              dataTransfer.items.add(file);
+              const fileInput = document.getElementById('hiddenLayoutImageInput');
+              if (fileInput) {
+                fileInput.files = dataTransfer.files;
+              }
+            } catch(e) {
+              console.warn("Could not set file input:", e);
             }
-          } catch(e) {
-            console.warn("Could not set file input:", e);
-          }
-        }, 'image/png');
-      }, 300);
+          }, 'image/png');
+        } finally {
+          window.__isGeneratingComposite = false;
+        }
+      }, 400);
     }
 
     
@@ -6820,13 +6845,14 @@
     }
 
     function onBearingRowChanged() {
-      saveCurrentSection2Data();
-      saveCurrentSection3Data();
-      saveCurrentSection4Data();
+      saveCurrentSection2Data(true);
+      saveCurrentSection3Data(true);
+      saveCurrentSection4Data(true);
       updateBearingLettersAndDropdown();
       if (typeof renderDistancesOverview === 'function') renderDistancesOverview();
       if (typeof drawBearingLayout === 'function') drawBearingLayout();
       if (typeof saveRasterConfigToLocalStorage === 'function') saveRasterConfigToLocalStorage();
+      if (typeof updateFormSubmitAttachment === 'function') updateFormSubmitAttachment();
     }
 
     // Auto-save debounce timer for active section inputs
@@ -6841,23 +6867,35 @@
         if (typeof renderDistancesOverview === 'function') {
           renderDistancesOverview();
         }
-      }, 300);
+        if (typeof updateFormSubmitAttachment === 'function') {
+          updateFormSubmitAttachment();
+        }
+      }, 450);
     }
 
     // --- SECTION 2 HANDLERS ---
-    function saveCurrentSection2Data() {
+    function saveCurrentSection2Data(skipAutoSave) {
       if (window.__questionnaireRestoring || window.__isClearingQuestionnaire) return;
       if (!activeBearingSec2 || !bearingDataMapSec2[activeBearingSec2]) {
         bearingDataMapSec2[activeBearingSec2] = {};
       }
-      bearingDataMapSec2[activeBearingSec2].q11 = document.getElementById('q11').value;
-      bearingDataMapSec2[activeBearingSec2].q12_price = document.getElementById('q12_price').value;
-      bearingDataMapSec2[activeBearingSec2].q4_freq_num = document.getElementById('q4_freq_num').value;
-      bearingDataMapSec2[activeBearingSec2].q4_freq_unit = document.getElementById('q4_freq_unit').value;
-      bearingDataMapSec2[activeBearingSec2].q29_life = document.getElementById('q29_life').value;
-      bearingDataMapSec2[activeBearingSec2].q13 = document.getElementById('q13').value;
-      bearingDataMapSec2[activeBearingSec2].q14 = document.getElementById('q14').value;
-      triggerSurveyAutoSave();
+      const q11 = document.getElementById('q11');
+      const q12 = document.getElementById('q12_price');
+      const q4n = document.getElementById('q4_freq_num');
+      const q4u = document.getElementById('q4_freq_unit');
+      const q29 = document.getElementById('q29_life');
+      const q13 = document.getElementById('q13');
+      const q14 = document.getElementById('q14');
+
+      if (q11) bearingDataMapSec2[activeBearingSec2].q11 = q11.value;
+      if (q12) bearingDataMapSec2[activeBearingSec2].q12_price = q12.value;
+      if (q4n) bearingDataMapSec2[activeBearingSec2].q4_freq_num = q4n.value;
+      if (q4u) bearingDataMapSec2[activeBearingSec2].q4_freq_unit = q4u.value;
+      if (q29) bearingDataMapSec2[activeBearingSec2].q29_life = q29.value;
+      if (q13) bearingDataMapSec2[activeBearingSec2].q13 = q13.value;
+      if (q14) bearingDataMapSec2[activeBearingSec2].q14 = q14.value;
+
+      if (!skipAutoSave) triggerSurveyAutoSave();
     }
 
     function loadSection2DataForBearing(letter) {
@@ -6961,20 +6999,30 @@
     window.pasteSection2Conditions = pasteSection2Conditions;
 
     // --- SECTION 3 HANDLERS ---
-    function saveCurrentSection3Data() {
+    function saveCurrentSection3Data(skipAutoSave) {
       if (window.__questionnaireRestoring || window.__isClearingQuestionnaire) return;
       if (!activeBearingSec3 || !bearingDataMapSec3[activeBearingSec3]) {
         bearingDataMapSec3[activeBearingSec3] = {};
       }
-      bearingDataMapSec3[activeBearingSec3].q15 = document.getElementById('q15').value;
-      bearingDataMapSec3[activeBearingSec3].q16 = document.getElementById('q16').value;
-      bearingDataMapSec3[activeBearingSec3].q17 = document.getElementById('q17').value;
-      bearingDataMapSec3[activeBearingSec3].q18 = document.getElementById('q18').value;
-      bearingDataMapSec3[activeBearingSec3].q19 = document.getElementById('q19').value;
-      bearingDataMapSec3[activeBearingSec3].q20 = document.getElementById('q20').value;
-      bearingDataMapSec3[activeBearingSec3].q21 = document.getElementById('q21').value;
-      bearingDataMapSec3[activeBearingSec3].q22 = document.getElementById('q22').value;
-      triggerSurveyAutoSave();
+      const q15 = document.getElementById('q15');
+      const q16 = document.getElementById('q16');
+      const q17 = document.getElementById('q17');
+      const q18 = document.getElementById('q18');
+      const q19 = document.getElementById('q19');
+      const q20 = document.getElementById('q20');
+      const q21 = document.getElementById('q21');
+      const q22 = document.getElementById('q22');
+
+      if (q15) bearingDataMapSec3[activeBearingSec3].q15 = q15.value;
+      if (q16) bearingDataMapSec3[activeBearingSec3].q16 = q16.value;
+      if (q17) bearingDataMapSec3[activeBearingSec3].q17 = q17.value;
+      if (q18) bearingDataMapSec3[activeBearingSec3].q18 = q18.value;
+      if (q19) bearingDataMapSec3[activeBearingSec3].q19 = q19.value;
+      if (q20) bearingDataMapSec3[activeBearingSec3].q20 = q20.value;
+      if (q21) bearingDataMapSec3[activeBearingSec3].q21 = q21.value;
+      if (q22) bearingDataMapSec3[activeBearingSec3].q22 = q22.value;
+
+      if (!skipAutoSave) triggerSurveyAutoSave();
     }
 
     function loadSection3DataForBearing(letter) {
@@ -7119,18 +7167,26 @@
     window.showSurveyToast = showSurveyToast;
 
     // --- SECTION 4 HANDLERS ---
-    function saveCurrentSection4Data() {
+    function saveCurrentSection4Data(skipAutoSave) {
       if (window.__questionnaireRestoring || window.__isClearingQuestionnaire) return;
       if (!activeBearingSec4 || !bearingDataMapSec4[activeBearingSec4]) {
         bearingDataMapSec4[activeBearingSec4] = {};
       }
-      bearingDataMapSec4[activeBearingSec4].q24 = document.getElementById('q24').value;
-      bearingDataMapSec4[activeBearingSec4].q25 = document.getElementById('q25').value;
-      bearingDataMapSec4[activeBearingSec4].q26 = document.getElementById('q26').value;
-      bearingDataMapSec4[activeBearingSec4].q27 = document.getElementById('q27').value;
-      bearingDataMapSec4[activeBearingSec4].q28 = document.getElementById('q28').value;
-      bearingDataMapSec4[activeBearingSec4].q30 = document.getElementById('q30').value;
-      triggerSurveyAutoSave();
+      const q24 = document.getElementById('q24');
+      const q25 = document.getElementById('q25');
+      const q26 = document.getElementById('q26');
+      const q27 = document.getElementById('q27');
+      const q28 = document.getElementById('q28');
+      const q30 = document.getElementById('q30');
+
+      if (q24) bearingDataMapSec4[activeBearingSec4].q24 = q24.value;
+      if (q25) bearingDataMapSec4[activeBearingSec4].q25 = q25.value;
+      if (q26) bearingDataMapSec4[activeBearingSec4].q26 = q26.value;
+      if (q27) bearingDataMapSec4[activeBearingSec4].q27 = q27.value;
+      if (q28) bearingDataMapSec4[activeBearingSec4].q28 = q28.value;
+      if (q30) bearingDataMapSec4[activeBearingSec4].q30 = q30.value;
+
+      if (!skipAutoSave) triggerSurveyAutoSave();
     }
 
     function loadSection4DataForBearing(letter) {
