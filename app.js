@@ -21295,7 +21295,6 @@ Wij stellen voor om de installatie uit te rusten met ${unitText} (${d.systemType
 • Continue micro-dosering: Levert 24/7 exact de berekende fractie smeermiddel, exact afgestemd op toerental en belasting.
 • Micpol® Technologie: Gepatenteerde gemicroniseerde en gepolariseerde smering die microscopische oppervlakteruwheid nivelleert en wrijving met ruim 70% reduceert.
 • 100% PFAS- en Microplastic-vrij: Alle Interflon smeermiddelen zijn gegarandeerd vrij van PFAS en microplastics, wat bijdraagt aan een veilige werkomgeving en corporate environmental compliance.
-• Hermetische bescherming: Continue lichte overdruk in het lagerhuis sluit water, stof en omgevingsvuil definitief buiten.
 • Verlenging van de levensduur: De levensduur van de lagers wordt volgens ISO 15243 en SKF-normen met 50 tot 300% verlengd.
 
 3. FINANCIËLE ONDERBOUWING & TERUGVERDIENTIJD (TCO)
@@ -21311,7 +21310,7 @@ De eenmalige investering in hardware verdient zichzelf uitzonderlijk snel terug:
 --------------------------------------------------------------------------------
 • Arbeidsveiligheid (0 risico's): Geen personeel meer in gevaarlijke zones rond draaiende onderdelen.
 • Duurzaamheid & ISO 14001: Drastische reductie van verpakkingsmateriaal en onnodig vetverbruik dankzij micro-dosering.
-• Voorspelbaarheid: Geen ad-hoc revisies meer; smering verloopt autonoom en wordt periodiek gecontroleerd via het digitale Slim Smeerpaspoort.
+• Voorspelbaarheid: Geen ad-hoc revisies meer; smering verloopt autonoom.
 
 5. CONCLUSIE & VERZOEK TOT AKKOORD
 --------------------------------------------------------------------------------
