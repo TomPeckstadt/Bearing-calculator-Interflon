@@ -620,8 +620,10 @@
         sysName = `Single Point Lubricator (${currentData.cap || 125} ml)`;
       } else if (currentData.t === 'pulsarlube_m2') {
         sysName = `Pulsarlube M2 (${currentData.cap || 125} ml)`;
-      } else if (currentData.t === 'pulsarlube_msp') {
-        sysName = `Pulsarlube MSP (${currentData.cap || 125} ml)`;
+      } else if (currentData.t === 'pulsarlube_msp_ac') {
+        sysName = `Pulsarlube MSP AC (${currentData.cap || 125} ml)`;
+      } else if (currentData.t === 'pulsarlube_msp_dc' || currentData.t === 'pulsarlube_msp') {
+        sysName = `Pulsarlube MSP DC (${currentData.cap || 125} ml)`;
       } else if (currentData.t === 'pulsarlube_plc') {
         sysName = `Pulsarlube PLC (${currentData.cap || 125} ml)`;
       } else {
