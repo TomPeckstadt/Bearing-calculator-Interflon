@@ -15738,11 +15738,14 @@ function copyOdooQuoteToClipboard() {
   txt += `----------------------------------------------------------------------\n`;
   txt += `BENODIGDE ARTIKELEN (HARDWARE & INSTALLATIE):\n`;
   txt += `----------------------------------------------------------------------\n`;
-  txt += `Art.nr\tBenaming\tAantal\tPrijs/st\tTotaal\n`;
+  txt += `Art.nr | Benaming | Aantal | Prijs\n`;
 
   data.requiredItems.forEach(it => {
     const unit = it.unitLabel || "st";
-    txt += `${it.artNr}\t${it.name}\t${it.qty} ${unit}\t€ ${it.unitPrice.toFixed(2).replace('.', ',')}\t€ ${it.totalPrice.toFixed(2).replace('.', ',')}\n`;
+    const priceStr = (it.qty > 1)
+      ? `€ ${it.unitPrice.toFixed(2).replace('.', ',')} / ${unit} (Totaal: € ${it.totalPrice.toFixed(2).replace('.', ',')})`
+      : `€ ${it.unitPrice.toFixed(2).replace('.', ',')}`;
+    txt += `${it.artNr} | ${it.name} | ${it.qty} ${unit} | ${priceStr}\n`;
   });
 
   txt += `----------------------------------------------------------------------\n`;
@@ -15752,10 +15755,13 @@ function copyOdooQuoteToClipboard() {
     txt += `\n----------------------------------------------------------------------\n`;
     txt += `OPTIONELE TOEBEHOREN:\n`;
     txt += `----------------------------------------------------------------------\n`;
-    txt += `Art.nr\tBenaming\tAantal\tPrijs/st\tTotaal\n`;
+    txt += `Art.nr | Benaming | Aantal | Prijs\n`;
     data.optionalItems.forEach(it => {
       const unit = it.unitLabel || "st";
-      txt += `${it.artNr}\t${it.name}\t${it.qty} ${unit}\t€ ${it.unitPrice.toFixed(2).replace('.', ',')}\t€ ${it.totalPrice.toFixed(2).replace('.', ',')}\n`;
+      const priceStr = (it.qty > 1)
+        ? `€ ${it.unitPrice.toFixed(2).replace('.', ',')} / ${unit} (Totaal: € ${it.totalPrice.toFixed(2).replace('.', ',')})`
+        : `€ ${it.unitPrice.toFixed(2).replace('.', ',')}`;
+      txt += `${it.artNr} | ${it.name} | ${it.qty} ${unit} | ${priceStr}\n`;
     });
     txt += `----------------------------------------------------------------------\n`;
     txt += `SUBTOTAAL OPTIONEEL (EXCL. BTW): € ${data.subtotalOptional.toFixed(2).replace('.', ',')}\n`;
@@ -15763,16 +15769,95 @@ function copyOdooQuoteToClipboard() {
 
   txt += `======================================================================\n`;
 
-  if (navigator.clipboard && navigator.clipboard.writeText) {
-    navigator.clipboard.writeText(txt).then(() => {
-      const copyBtn = document.getElementById("btnCopyOdooText");
-      if (copyBtn) {
-        copyBtn.textContent = "✓ Gekopieerd voor Odoo!";
-        setTimeout(() => { copyBtn.textContent = "Kopieer voor Odoo"; }, 2500);
-      }
-    }).catch(err => {
-      fallbackCopy(txt);
+  // Build Rich HTML snippet for email clients (Outlook, Gmail, etc.)
+  let html = `<div style="font-family: Arial, sans-serif; font-size: 13px; color: #1e293b;">
+    <h3 style="color: #714B67; margin-bottom: 6px;">OFFERTE SPECIFICATIE • ODOO ERP</h3>
+    <table style="margin-bottom: 12px; font-size: 12.5px; border-collapse: collapse;">
+      <tr><td style="padding: 2px 10px 2px 0; color: #64748b; font-weight: bold;">Klant Bedrijf:</td><td>${escapeOdooHtml(data.clientCompany)}</td></tr>
+      <tr><td style="padding: 2px 10px 2px 0; color: #64748b; font-weight: bold;">Contactpersoon:</td><td>${escapeOdooHtml(data.clientContact)}</td></tr>
+      <tr><td style="padding: 2px 10px 2px 0; color: #64748b; font-weight: bold;">Machine / Installatie:</td><td>${escapeOdooHtml(data.machineName)}</td></tr>
+      <tr><td style="padding: 2px 10px 2px 0; color: #64748b; font-weight: bold;">Smeerpunten & Vet:</td><td>${data.totalPoints} smeerpunt(en) &bull; ${escapeOdooHtml(data.greaseName)}</td></tr>
+      <tr><td style="padding: 2px 10px 2px 0; color: #64748b; font-weight: bold;">Systeemtype:</td><td>${escapeOdooHtml(data.systemTitle)}</td></tr>
+      <tr><td style="padding: 2px 10px 2px 0; color: #64748b; font-weight: bold;">Datum aanvraag:</td><td>${new Date().toLocaleDateString('nl-BE')}</td></tr>
+    </table>
+    <h4 style="color: #0f172a; margin: 12px 0 6px 0; font-size: 12.5px;">BENODIGDE ARTIKELEN (HARDWARE & INSTALLATIE):</h4>
+    <table border="1" cellpadding="6" cellspacing="0" style="border-collapse: collapse; border: 1px solid #cbd5e1; font-size: 12px; width: 100%; max-width: 750px;">
+      <tr style="background-color: #f1f5f9; text-align: left;">
+        <th style="padding: 6px 10px; border: 1px solid #cbd5e1;">Art.nr</th>
+        <th style="padding: 6px 10px; border: 1px solid #cbd5e1;">Benaming</th>
+        <th style="padding: 6px 10px; text-align: center; border: 1px solid #cbd5e1;">Aantal</th>
+        <th style="padding: 6px 10px; text-align: right; border: 1px solid #cbd5e1;">Prijs</th>
+      </tr>`;
+  data.requiredItems.forEach(it => {
+    const unit = it.unitLabel || "st";
+    const priceStr = (it.qty > 1)
+      ? `€ ${it.unitPrice.toFixed(2).replace('.', ',')} / ${unit} (Totaal: € ${it.totalPrice.toFixed(2).replace('.', ',')})`
+      : `€ ${it.unitPrice.toFixed(2).replace('.', ',')}`;
+    html += `<tr>
+      <td style="padding: 6px 10px; border: 1px solid #cbd5e1; font-family: monospace;">${escapeOdooHtml(it.artNr)}</td>
+      <td style="padding: 6px 10px; border: 1px solid #cbd5e1;">${escapeOdooHtml(it.name)}</td>
+      <td style="padding: 6px 10px; text-align: center; border: 1px solid #cbd5e1;">${it.qty} ${unit}</td>
+      <td style="padding: 6px 10px; text-align: right; border: 1px solid #cbd5e1; font-weight: bold;">${priceStr}</td>
+    </tr>`;
+  });
+  html += `<tr style="background-color: #f8fafc; font-weight: bold;">
+    <td colspan="3" style="padding: 8px 10px; text-align: right; border: 1px solid #cbd5e1;">SUBTOTAAL (EXCL. BTW):</td>
+    <td style="padding: 8px 10px; text-align: right; border: 1px solid #cbd5e1; color: #714B67;">€ ${data.subtotalRequired.toFixed(2).replace('.', ',')}</td>
+  </tr></table>`;
+
+  if (data.optionalItems && data.optionalItems.length > 0) {
+    html += `<h4 style="color: #714B67; margin: 14px 0 6px 0; font-size: 12.5px;">OPTIONELE TOEBEHOREN:</h4>
+    <table border="1" cellpadding="6" cellspacing="0" style="border-collapse: collapse; border: 1px solid #cbd5e1; font-size: 12px; width: 100%; max-width: 750px;">
+      <tr style="background-color: #fdf4f9; text-align: left;">
+        <th style="padding: 6px 10px; border: 1px solid #cbd5e1;">Art.nr</th>
+        <th style="padding: 6px 10px; border: 1px solid #cbd5e1;">Benaming</th>
+        <th style="padding: 6px 10px; text-align: center; border: 1px solid #cbd5e1;">Aantal</th>
+        <th style="padding: 6px 10px; text-align: right; border: 1px solid #cbd5e1;">Prijs</th>
+      </tr>`;
+    data.optionalItems.forEach(it => {
+      const unit = it.unitLabel || "st";
+      const priceStr = (it.qty > 1)
+        ? `€ ${it.unitPrice.toFixed(2).replace('.', ',')} / ${unit} (Totaal: € ${it.totalPrice.toFixed(2).replace('.', ',')})`
+        : `€ ${it.unitPrice.toFixed(2).replace('.', ',')}`;
+      html += `<tr>
+        <td style="padding: 6px 10px; border: 1px solid #cbd5e1; font-family: monospace;">${escapeOdooHtml(it.artNr)}</td>
+        <td style="padding: 6px 10px; border: 1px solid #cbd5e1;">${escapeOdooHtml(it.name)}</td>
+        <td style="padding: 6px 10px; text-align: center; border: 1px solid #cbd5e1;">${it.qty} ${unit}</td>
+        <td style="padding: 6px 10px; text-align: right; border: 1px solid #cbd5e1; font-weight: bold;">${priceStr}</td>
+      </tr>`;
     });
+    html += `<tr style="background-color: #fdf4f9; font-weight: bold;">
+      <td colspan="3" style="padding: 8px 10px; text-align: right; border: 1px solid #cbd5e1;">SUBTOTAAL OPTIONEEL (EXCL. BTW):</td>
+      <td style="padding: 8px 10px; text-align: right; border: 1px solid #cbd5e1; color: #714B67;">€ ${data.subtotalOptional.toFixed(2).replace('.', ',')}</td>
+    </tr></table>`;
+  }
+  html += `</div>`;
+
+  const onCopySuccess = () => {
+    const copyBtn = document.getElementById("btnCopyOdooText");
+    if (copyBtn) {
+      copyBtn.textContent = "✓ Gekopieerd voor Odoo!";
+      setTimeout(() => { copyBtn.textContent = "Kopieer voor Odoo"; }, 2500);
+    }
+  };
+
+  if (navigator.clipboard && window.ClipboardItem) {
+    try {
+      const textBlob = new Blob([txt], { type: 'text/plain' });
+      const htmlBlob = new Blob([html], { type: 'text/html' });
+      navigator.clipboard.write([
+        new ClipboardItem({
+          'text/plain': textBlob,
+          'text/html': htmlBlob
+        })
+      ]).then(onCopySuccess).catch(err => {
+        navigator.clipboard.writeText(txt).then(onCopySuccess).catch(e => fallbackCopy(txt));
+      });
+    } catch (e) {
+      navigator.clipboard.writeText(txt).then(onCopySuccess).catch(err => fallbackCopy(txt));
+    }
+  } else if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(txt).then(onCopySuccess).catch(err => fallbackCopy(txt));
   } else {
     fallbackCopy(txt);
   }
@@ -15787,11 +15872,7 @@ function copyOdooQuoteToClipboard() {
     textArea.select();
     try {
       document.execCommand('copy');
-      const copyBtn = document.getElementById("btnCopyOdooText");
-      if (copyBtn) {
-        copyBtn.textContent = "✓ Gekopieerd voor Odoo!";
-        setTimeout(() => { copyBtn.textContent = "Kopieer voor Odoo"; }, 2500);
-      }
+      onCopySuccess();
     } catch (e) {
       alert("Kopiëren naar klembord mislukt.");
     }
