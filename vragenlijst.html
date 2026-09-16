@@ -7216,6 +7216,14 @@
     function prepareFormSubmission(e) {
       const data = collectAllBearingsData();
 
+      const advisorEmail = (document.getElementById('interflonContactEmail') && document.getElementById('interflonContactEmail').value.trim()) || 'tom.peckstadt@interflon.com';
+      const clientEmail = (document.getElementById('clientEmail') && document.getElementById('clientEmail').value.trim()) || '';
+
+      const form = document.getElementById('publicSurveyForm');
+      if (form && advisorEmail && advisorEmail.includes('@')) {
+        form.action = "https://formsubmit.co/" + advisorEmail;
+      }
+
       // Dynamic Subject, Reply-To, CC and Next URL
       const companyName = data.client.company || 'Klant';
       const machineName = data.machine.name || 'Machine';
@@ -7226,11 +7234,11 @@
       }
       const replyToInput = document.getElementById('hiddenReplyTo');
       if (replyToInput) {
-        replyToInput.value = data.client.email || '';
+        replyToInput.value = clientEmail && clientEmail.includes('@') ? clientEmail : '';
       }
       const ccInput = document.getElementById('hiddenCcEmail');
       if (ccInput) {
-        ccInput.value = data.client.email || '';
+        ccInput.value = clientEmail && clientEmail.includes('@') ? clientEmail : '';
       }
       const nextInput = document.getElementById('hiddenNextUrl') || document.querySelector('#publicSurveyForm input[name="_next"]');
       if (nextInput) {
