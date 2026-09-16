@@ -4320,6 +4320,7 @@
       if (event && typeof event.stopPropagation === 'function') {
         event.stopPropagation();
       }
+      if (devId === 'cp') return; // Centraal punt is geen smeertoestel en kan niet gekoppeld worden
       if (!devices || !Array.isArray(devices) || devices.length === 0) return;
       if (typeof pushRasterHistorySnapshot === 'function') pushRasterHistorySnapshot();
 
@@ -4754,7 +4755,16 @@
           });
         }
         if (!assignedOriginId) {
-          assignedOriginId = closestOriginId;
+          // Kies het dichtstbijzijnde werkelijke smeertoestel (nooit Centraal Punt)
+          let closestDevD = Infinity;
+          let closestDevId = null;
+          originDists.forEach(od => {
+            if (od.origin.type !== 'cp' && od.d < closestDevD) {
+              closestDevD = od.d;
+              closestDevId = od.origin.id;
+            }
+          });
+          assignedOriginId = closestDevId;
         }
 
         const assignedDistObj = originDists.find(od => od.origin.id === assignedOriginId);
@@ -4818,9 +4828,10 @@
           distRowsHtml += '<span style="font-size: 11px; color: #94a3b8; font-style: italic;">Geen actief smeertoestel direct voor dit lager</span>';
         } else {
           originDists.forEach(od => {
+            const isCp = (od.origin.type === 'cp' || od.origin.id === 'cp');
             const isClosest = (originDists.length > 1 && od.origin.id === closestOriginId);
-            const isAssigned = (originDists.length > 1 && od.origin.id === assignedOriginId);
-            const canReassign = (od.origin.type !== 'single_point' && originDists.length > 1);
+            const isAssigned = (!isCp && originDists.length > 1 && od.origin.id === assignedOriginId);
+            const canReassign = (!isCp && od.origin.type !== 'single_point' && originDists.length > 1);
 
             if (od.origin.type === 'single_point') {
               const isDirect = (od.d < 0.15);
@@ -4856,9 +4867,11 @@
                 ? ('onclick="manuallyAssignBearingToDevice(\`' + letter + '\`, \`' + od.origin.id + '\`, event)"') 
                 : '';
               const cursorStyle = canReassign ? 'cursor: pointer;' : 'cursor: default;';
-              const titleAttr = isAssigned 
-                ? ('Actief aangesloten op ' + od.origin.name + ' (klik op een ander toestel om te wijzigen)') 
-                : (canReassign ? ('Klik om Lager ' + letter + ' handmatig aan te sluiten op ' + od.origin.name) : od.origin.name);
+              const titleAttr = isCp
+                ? (od.origin.name + ' (geometrisch referentiepunt van de machine)')
+                : (isAssigned 
+                  ? ('Actief aangesloten op ' + od.origin.name + ' (klik op een ander toestel om te wijzigen)') 
+                  : (canReassign ? ('Klik om Lager ' + letter + ' handmatig aan te sluiten op ' + od.origin.name) : od.origin.name));
 
               distRowsHtml += 
                 '<div ' + clickAttr + ' ' +
