@@ -13889,7 +13889,7 @@ function openChainAutomationImageModal() {
 }
 
 
-// Keyboard navigation for PowerPoint modal
+// Keyboard navigation for PowerPoint modal & Odoo quote modal
 document.addEventListener("keydown", function(e) {
   const modal = document.getElementById("oilDispenserInfoModal");
   if (modal && !modal.classList.contains("hidden")) {
@@ -13899,6 +13899,12 @@ document.addEventListener("keydown", function(e) {
       changeOilDispenserSlide(-1);
     } else if (e.key === "Escape") {
       closeOilDispenserInfoModal();
+    }
+  }
+  const odooModal = document.getElementById("odooQuoteModal");
+  if (odooModal && !odooModal.classList.contains("hidden")) {
+    if (e.key === "Escape") {
+      closeOdooQuoteModal();
     }
   }
 });
@@ -13929,6 +13935,21 @@ const AUTOMATION_PRICE_DATABASE = {
       "artNr": "1431",
       "name": "Nylon tube 6 mm (per m)",
       "price": 1.9
+    },
+    "pushIn18": {
+      "artNr": "1453",
+      "name": "Push-in 1/8\"",
+      "price": 3.20
+    },
+    "singlePointBracket": {
+      "artNr": "7540",
+      "name": "Single Point Lubricator Stainless Steel Bracket",
+      "price": 17.80
+    },
+    "singlePointImpulseConnect": {
+      "artNr": "7213",
+      "name": "Single Point Lubricator Impulse Connect",
+      "price": 126.60
     },
     "batteryPackAlkaline": {
       "artNr": "1401",
@@ -15306,6 +15327,476 @@ function updateRoiAutomationPage() {
     const sign = multiYearSaving >= 0 ? "+" : "-";
     roiMultiYearSavingEl.textContent = `${sign} € ${Math.abs(multiYearSaving).toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
     roiMultiYearSavingEl.style.color = multiYearSaving >= 0 ? "#059669" : "#dc2626";
+  }
+}
+
+/* ==========================================================================
+   ODOO ERP QUOTE SPECIFICATION GENERATOR & MODAL CONTROLLER
+   ========================================================================== */
+
+function escapeOdooHtml(str) {
+  if (!str) return "";
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+function getOdooQuoteData() {
+  // 1. Customer & Machine details
+  const clientContact = (document.getElementById("clientContactInput") && document.getElementById("clientContactInput").value.trim()) ||
+                        (document.getElementById("omClientContact") && document.getElementById("omClientContact").value.trim()) ||
+                        localStorage.getItem("client_contact") || "Niet opgegeven";
+  const clientCompany = (document.getElementById("clientCompanyInput") && document.getElementById("clientCompanyInput").value.trim()) ||
+                        (document.getElementById("omClientCompany") && document.getElementById("omClientCompany").value.trim()) ||
+                        localStorage.getItem("client_company") || "Niet opgegeven";
+  const machineName = (document.getElementById("techMachine") && document.getElementById("techMachine").value.trim()) ||
+                      localStorage.getItem("tech_machine") || "Machine";
+
+  const selectGrease = document.getElementById("inputGrease") || document.getElementById("selectGrease");
+  const greaseName = selectGrease ? selectGrease.value : "Interflon Grease MP2/3";
+
+  const deviceSelect = document.getElementById("automationDeviceSelect") || document.getElementById("autoDeviceSelect");
+  const deviceKey = deviceSelect ? deviceSelect.value : "single_point";
+
+  // Check if configuration is Single Point or Pulsarlube
+  const activeDevState = (typeof autoDevicesState !== "undefined" && Array.isArray(autoDevicesState)) ? autoDevicesState : [];
+  const hasPulsarlube = deviceKey.startsWith("pulsarlube") || activeDevState.some(d => d && d.type && d.type.startsWith("pulsarlube"));
+  const isSinglePoint = (deviceKey === "single_point") && !hasPulsarlube;
+
+  let items = [];
+  let totalPoints = 0;
+  let systemTitle = "";
+
+  if (isSinglePoint) {
+    // SINGLE POINT CONFIGURATION
+    const activeSpGroups = activeDevState.filter(d => d && d.isSinglePointGroup && (d.unitCount > 0 || (d.bearingLetters && d.bearingLetters.length > 0)));
+    const isSpMultiGroup = (activeSpGroups.length > 1);
+    
+    let totalSpUnits = 0;
+    if (isSpMultiGroup) {
+      totalSpUnits = activeSpGroups.reduce((sum, g) => sum + (g.unitCount || (g.bearingLetters ? g.bearingLetters.length : 1)), 0);
+    } else {
+      totalSpUnits = window.spNumBearingsValue || (activeDevState[0] && activeDevState[0].unitCount) || 1;
+    }
+    totalPoints = totalSpUnits;
+    systemTitle = totalSpUnits > 1 ? `${totalSpUnits}x Interflon Single Point Lubricator` : `Interflon Single Point Lubricator`;
+
+    const spCapEl = document.getElementById("autoCartridgeCap_A") || document.getElementById("autoCartridgeCap");
+    const cap = (spCapEl ? parseInt(spCapEl.value, 10) : 0) || (activeDevState[0] ? activeDevState[0].cap : 0) || 125;
+
+    const pInfo = getAutomationPriceInfo("single_point", cap, greaseName, 1);
+    const unitPrice = pInfo.servicepackPrice || 54.60;
+    const artNr = pInfo.artNrServicepack || "1061";
+
+    // 3) Artikelnummer + benaming + prijs + aantal Single Points
+    items.push({
+      artNr: artNr,
+      name: `Interflon Single Point Lubricator ${cap} ml (${greaseName})`,
+      category: "Single Point Smeerunits (Gevuld)",
+      qty: totalSpUnits,
+      unitPrice: unitPrice,
+      totalPrice: totalSpUnits * unitPrice,
+      isOptional: false,
+      unitLabel: "st"
+    });
+
+    // 4) Optioneel: Single Point Lubricator Stainless Steel Bracket (artikel 7540) + Single Point Lubricator Impulse Connect (artikel 7213)
+    const bracketAcc = AUTOMATION_PRICE_DATABASE.accessories.singlePointBracket || { artNr: "7540", name: "Single Point Lubricator Stainless Steel Bracket", price: 17.80 };
+    const impulseAcc = AUTOMATION_PRICE_DATABASE.accessories.singlePointImpulseConnect || { artNr: "7213", name: "Single Point Lubricator Impulse Connect", price: 126.60 };
+
+    items.push({
+      artNr: bracketAcc.artNr,
+      name: `${bracketAcc.name} (RVS montagebeugel)`,
+      category: "Optionele Toebehoren",
+      qty: totalSpUnits,
+      unitPrice: bracketAcc.price,
+      totalPrice: totalSpUnits * bracketAcc.price,
+      isOptional: true,
+      optionalNote: "Aanbevolen: 1 beugel per Single Point unit",
+      unitLabel: "st"
+    });
+
+    items.push({
+      artNr: impulseAcc.artNr,
+      name: `${impulseAcc.name} (Draadloze bewakingssensor)`,
+      category: "Optionele Toebehoren",
+      qty: 1,
+      unitPrice: impulseAcc.price,
+      totalPrice: impulseAcc.price,
+      isOptional: true,
+      optionalNote: "Optioneel: 1 sensor per kritiek smeerpunt / installatie",
+      unitLabel: "st"
+    });
+
+  } else {
+    // PULSARLUBE CONFIGURATION
+    const numDevices = getActiveNumDevices();
+    let activeDevicesList = [];
+
+    for (let i = 0; i < numDevices; i++) {
+      const d = activeDevState[i] || { id: String.fromCharCode(65 + i), points: 1, cap: 125, type: deviceKey };
+      const pts = (typeof d.points === 'number') ? d.points : (parseInt(d.points, 10) || 0);
+      if (pts === 0) continue; // Niets aangesloten op dit toestel
+      totalPoints += pts;
+
+      const devCapEl = document.getElementById("autoCartridgeCap_" + d.id);
+      const cap = (devCapEl ? parseInt(devCapEl.value, 10) : 0) || d.cap || 125;
+      const thisType = d.type || deviceKey;
+      const pInfo = getAutomationPriceInfo(thisType, cap, greaseName, pts);
+
+      activeDevicesList.push({
+        dev: d,
+        id: d.id,
+        points: pts,
+        cap: cap,
+        type: thisType,
+        pInfo: pInfo
+      });
+    }
+
+    if (activeDevicesList.length === 0) {
+      const pInfo = getAutomationPriceInfo(deviceKey, 125, greaseName, 1);
+      activeDevicesList.push({
+        dev: { id: "A", points: 1, cap: 125, type: deviceKey },
+        id: "A",
+        points: 1,
+        cap: 125,
+        type: deviceKey,
+        pInfo: pInfo
+      });
+      totalPoints = 1;
+    }
+
+    systemTitle = activeDevicesList.map(ad => `Toestel ${ad.id} (${ad.pInfo.deviceType})`).join(" + ");
+
+    // 3) Toestellen: Artikelnummer + benaming + prijs + aantal benodigd voor deze configuratie
+    activeDevicesList.forEach(ad => {
+      items.push({
+        artNr: ad.pInfo.artNrUnit,
+        name: `${ad.pInfo.deviceType} (${ad.cap} ml) — Toestel ${ad.id}`,
+        category: "Pulsarlube Smeertoestellen (Leeg)",
+        qty: 1,
+        unitPrice: ad.pInfo.unitPrice,
+        totalPrice: ad.pInfo.unitPrice,
+        isOptional: false,
+        unitLabel: "st"
+      });
+    });
+
+    // 3) Servicepacks: Artikelnummer + benaming + prijs + aantal benodigde servicepacks
+    activeDevicesList.forEach(ad => {
+      items.push({
+        artNr: ad.pInfo.artNrServicepack,
+        name: `Servicepack ${ad.pInfo.deviceType} ${ad.cap} ml (${greaseName}) — Toestel ${ad.id}`,
+        category: "Servicepacks (1e vulling)",
+        qty: 1,
+        unitPrice: ad.pInfo.servicepackPrice,
+        totalPrice: ad.pInfo.servicepackPrice,
+        isOptional: false,
+        unitLabel: "st"
+      });
+    });
+
+    // 4) Aantal Pulsarlube installatiekits (1 per toestel)
+    const installKit = AUTOMATION_PRICE_DATABASE.accessories.installKit || { artNr: "1430", name: "Installatiekit 1250RC-1", price: 33.00 };
+    items.push({
+      artNr: installKit.artNr,
+      name: `${installKit.name} (1 kit per toestel)`,
+      category: "Installatiemateriaal",
+      qty: activeDevicesList.length,
+      unitPrice: installKit.price,
+      totalPrice: activeDevicesList.length * installKit.price,
+      isOptional: false,
+      unitLabel: "kit"
+    });
+
+    // 5) Verdeelblokken: Artikelnummer + benaming + prijs + aantal benodigde verdeelblokken
+    activeDevicesList.forEach(ad => {
+      if (ad.points > 1) {
+        const divBlock = (AUTOMATION_PRICE_DATABASE.dividerBlocks || {})[ad.points];
+        if (divBlock && divBlock.artNr !== "-") {
+          items.push({
+            artNr: divBlock.artNr,
+            name: `${divBlock.name} (Toestel ${ad.id} • ${ad.points} smeerpunten)`,
+            category: "Verdeelblokken",
+            qty: 1,
+            unitPrice: divBlock.price,
+            totalPrice: divBlock.price,
+            isOptional: false,
+            unitLabel: "st"
+          });
+        }
+      }
+    });
+
+    // 6) Nylon tube 6 mm (artikel 1431): totaal aantal meters leiding steeds verhoogd met 30%
+    let calculatedMeters = 0;
+    try {
+      if (typeof getActiveMachineRasterData === "function") {
+        const rasterData = getActiveMachineRasterData();
+        if (rasterData && rasterData.bearings && rasterData.bearings.length > 0 && rasterData.bearingPositions) {
+          const activeDevs = (rasterData.devices || []).filter(dev => dev.active !== false);
+          rasterData.bearings.forEach((b, idx) => {
+            const letter = b.letter || String.fromCharCode(65 + idx);
+            const pos = rasterData.bearingPositions[letter] || { x: 0, y: 0 };
+            let minDevDist = Infinity;
+            activeDevs.forEach(dev => {
+              if (dev.assignedBearingLetters && Array.isArray(dev.assignedBearingLetters) && dev.assignedBearingLetters.includes(letter)) {
+                minDevDist = Math.hypot(pos.x - (dev.x || 0), pos.y - (dev.y || 0));
+              } else if (dev.targetBearingLetter === letter) {
+                minDevDist = Math.hypot(pos.x - (dev.x || 0), pos.y - (dev.y || 0));
+              }
+            });
+            if (minDevDist === Infinity) {
+              activeDevs.forEach(dev => {
+                const dist = Math.hypot(pos.x - (dev.x || 0), pos.y - (dev.y || 0));
+                if (dist < minDevDist) minDevDist = dist;
+              });
+            }
+            if (minDevDist < Infinity && minDevDist > 0) {
+              calculatedMeters += minDevDist;
+            }
+          });
+        }
+      }
+    } catch (err) {
+      console.warn("Fout bij berekenen raster meters:", err);
+    }
+
+    if (calculatedMeters <= 0) {
+      calculatedMeters = totalPoints * 4.0; // Standaard 4 meter per smeerpunt
+    }
+
+    // STEEDS VERHOGEN MET 30%
+    const finalMeters = Math.ceil(calculatedMeters * 1.30);
+    const nylonTube = AUTOMATION_PRICE_DATABASE.accessories.nylonTubePerM || { artNr: "1431", name: "Nylon tube 6 mm (per m)", price: 1.90 };
+    items.push({
+      artNr: nylonTube.artNr,
+      name: `${nylonTube.name} (inclusief +30% reserve, berekend: ${calculatedMeters.toFixed(1)} m)`,
+      category: "Installatiemateriaal",
+      qty: finalMeters,
+      unitPrice: nylonTube.price,
+      totalPrice: finalMeters * nylonTube.price,
+      isOptional: false,
+      unitLabel: "m"
+    });
+
+    // 7) Push-in koppelingen 1/8 (artikel 1453): aantal = smeerpunten + 1
+    const pushInQty = totalPoints + 1;
+    const pushInAcc = AUTOMATION_PRICE_DATABASE.accessories.pushIn18 || { artNr: "1453", name: "Push-in 1/8\"", price: 3.20 };
+    items.push({
+      artNr: pushInAcc.artNr,
+      name: `${pushInAcc.name} koppeling (aantal smeerpunten + 1)`,
+      category: "Installatiemateriaal",
+      qty: pushInQty,
+      unitPrice: pushInAcc.price,
+      totalPrice: pushInQty * pushInAcc.price,
+      isOptional: false,
+      unitLabel: "st"
+    });
+  }
+
+  const requiredItems = items.filter(it => !it.isOptional);
+  const optionalItems = items.filter(it => it.isOptional);
+  const subtotalRequired = requiredItems.reduce((sum, it) => sum + it.totalPrice, 0);
+  const subtotalOptional = optionalItems.reduce((sum, it) => sum + it.totalPrice, 0);
+
+  return {
+    clientContact,
+    clientCompany,
+    machineName,
+    greaseName,
+    totalPoints,
+    systemTitle,
+    isSinglePoint,
+    items,
+    requiredItems,
+    optionalItems,
+    subtotalRequired,
+    subtotalOptional,
+    totalEstimate: subtotalRequired
+  };
+}
+
+function openOdooQuoteModal() {
+  const modal = document.getElementById("odooQuoteModal");
+  if (!modal) return;
+
+  const data = getOdooQuoteData();
+
+  // 1. Populate Customer & Machine Info Box
+  const infoBox = document.getElementById("odooCustomerInfoBox");
+  if (infoBox) {
+    infoBox.innerHTML = `
+      <div>
+        <span style="display: block; font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase;">Bedrijf klant</span>
+        <strong style="font-size: 14px; color: #0f172a;">${escapeOdooHtml(data.clientCompany)}</strong>
+      </div>
+      <div>
+        <span style="display: block; font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase;">Contactpersoon klant</span>
+        <strong style="font-size: 14px; color: #0f172a;">${escapeOdooHtml(data.clientContact)}</strong>
+      </div>
+      <div>
+        <span style="display: block; font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase;">Machine / Installatie</span>
+        <strong style="font-size: 14px; color: #0f172a;">${escapeOdooHtml(data.machineName)}</strong>
+      </div>
+      <div>
+        <span style="display: block; font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase;">Smeermiddel & Punten</span>
+        <strong style="font-size: 14px; color: #0f172a;">${data.totalPoints} ${data.totalPoints === 1 ? 'smeerpunt' : 'smeerpunten'} &bull; ${escapeOdooHtml(data.greaseName)}</strong>
+      </div>
+    `;
+  }
+
+  // 2. Populate Items Table
+  const tbody = document.getElementById("odooQuoteTableBody");
+  if (tbody) {
+    let rowsHtml = "";
+    let currentCategory = "";
+
+    data.items.forEach((item, idx) => {
+      if (item.category && item.category !== currentCategory) {
+        currentCategory = item.category;
+        const isOptCategory = item.isOptional;
+        const catBg = isOptCategory ? "#fdf4f9" : "#f1f5f9";
+        const catColor = isOptCategory ? "#714B67" : "#334155";
+        const catBadge = isOptCategory ? `<span style="background: #714B67; color: #ffffff; padding: 2px 8px; border-radius: 10px; font-size: 10px; font-weight: 800; margin-left: 8px; text-transform: uppercase;">Optioneel</span>` : "";
+
+        rowsHtml += `
+          <tr style="background: ${catBg}; border-top: 1.5px solid #cbd5e1; border-bottom: 1px solid #e2e8f0;">
+            <td colspan="5" style="padding: 7px 14px; font-weight: 800; font-size: 11.5px; color: ${catColor}; text-transform: uppercase; letter-spacing: 0.5px;">
+              ${escapeOdooHtml(currentCategory)} ${catBadge}
+            </td>
+          </tr>
+        `;
+      }
+
+      const rowBg = item.isOptional ? "#fdfcfd" : (idx % 2 === 0 ? "#ffffff" : "#f8fafc");
+      const unitLbl = item.unitLabel || "st";
+      const optBadge = item.isOptional ? `<span style="display: inline-block; background: #fae8f4; color: #714B67; border: 1px solid #f3c7e7; font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 4px; margin-left: 6px;">Optioneel</span>` : "";
+      const noteHtml = item.optionalNote ? `<div style="font-size: 11px; color: #64748b; font-style: italic; margin-top: 2px;">${escapeOdooHtml(item.optionalNote)}</div>` : "";
+
+      rowsHtml += `
+        <tr style="background: ${rowBg}; border-bottom: 1px solid #e2e8f0;">
+          <td style="padding: 10px 14px; font-family: monospace; font-weight: 700; color: #1e293b;">
+            ${escapeOdooHtml(item.artNr)}
+          </td>
+          <td style="padding: 10px 14px; color: #0f172a;">
+            <strong>${escapeOdooHtml(item.name)}</strong>${optBadge}
+            ${noteHtml}
+          </td>
+          <td style="padding: 10px 14px; text-align: center; font-weight: 700; color: #0f172a;">
+            ${item.qty} ${unitLbl}
+          </td>
+          <td style="padding: 10px 14px; text-align: right; color: #475569; font-variant-numeric: tabular-nums;">
+            € ${item.unitPrice.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+          </td>
+          <td style="padding: 10px 14px; text-align: right; font-weight: 800; color: ${item.isOptional ? '#714B67' : '#0f172a'}; font-variant-numeric: tabular-nums;">
+            € ${item.totalPrice.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+          </td>
+        </tr>
+      `;
+    });
+
+    tbody.innerHTML = rowsHtml;
+  }
+
+  // 3. Populate Summary
+  const summaryEl = document.getElementById("odooTotalSummary");
+  if (summaryEl) {
+    const reqStr = `Totaal Configuratie: <span style="font-size: 17px; font-weight: 800; color: #0f172a;">€ ${data.subtotalRequired.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span> <span style="font-size: 11px; color: #64748b; font-weight: normal;">(excl. BTW)</span>`;
+    const optStr = data.subtotalOptional > 0 ? ` &bull; <span style="color: #714B67; font-weight: 700;">Optioneel: € ${data.subtotalOptional.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>` : "";
+    summaryEl.innerHTML = reqStr + optStr;
+  }
+
+  // Reset copy button
+  const copyBtn = document.getElementById("btnCopyOdooText");
+  if (copyBtn) copyBtn.textContent = "Kopieer voor Odoo";
+
+  modal.classList.remove("hidden");
+}
+
+function closeOdooQuoteModal() {
+  const modal = document.getElementById("odooQuoteModal");
+  if (modal) modal.classList.add("hidden");
+}
+
+function copyOdooQuoteToClipboard() {
+  const data = getOdooQuoteData();
+  
+  let txt = `======================================================================\n`;
+  txt += `OFFERTE SPECIFICATIE • ODOO ERP\n`;
+  txt += `======================================================================\n`;
+  txt += `Klant Bedrijf:         ${data.clientCompany}\n`;
+  txt += `Contactpersoon:        ${data.clientContact}\n`;
+  txt += `Machine / Installatie: ${data.machineName}\n`;
+  txt += `Smeerpunten:           ${data.totalPoints} smeerpunt(en)\n`;
+  txt += `Smeermiddel:           ${data.greaseName}\n`;
+  txt += `Systeemtype:           ${data.systemTitle}\n`;
+  txt += `Datum aanvraag:        ${new Date().toLocaleDateString('nl-BE')}\n`;
+  txt += `----------------------------------------------------------------------\n`;
+  txt += `BENODIGDE ARTIKELEN (HARDWARE & INSTALLATIE):\n`;
+  txt += `----------------------------------------------------------------------\n`;
+  txt += `Art.nr\tBenaming\tAantal\tPrijs/st\tTotaal\n`;
+
+  data.requiredItems.forEach(it => {
+    const unit = it.unitLabel || "st";
+    txt += `${it.artNr}\t${it.name}\t${it.qty} ${unit}\t€ ${it.unitPrice.toFixed(2).replace('.', ',')}\t€ ${it.totalPrice.toFixed(2).replace('.', ',')}\n`;
+  });
+
+  txt += `----------------------------------------------------------------------\n`;
+  txt += `SUBTOTAAL CONFIGURATIE (EXCL. BTW): € ${data.subtotalRequired.toFixed(2).replace('.', ',')}\n`;
+
+  if (data.optionalItems && data.optionalItems.length > 0) {
+    txt += `\n----------------------------------------------------------------------\n`;
+    txt += `OPTIONELE TOEBEHOREN:\n`;
+    txt += `----------------------------------------------------------------------\n`;
+    txt += `Art.nr\tBenaming\tAantal\tPrijs/st\tTotaal\n`;
+    data.optionalItems.forEach(it => {
+      const unit = it.unitLabel || "st";
+      txt += `${it.artNr}\t${it.name}\t${it.qty} ${unit}\t€ ${it.unitPrice.toFixed(2).replace('.', ',')}\t€ ${it.totalPrice.toFixed(2).replace('.', ',')}\n`;
+    });
+    txt += `----------------------------------------------------------------------\n`;
+    txt += `SUBTOTAAL OPTIONEEL (EXCL. BTW): € ${data.subtotalOptional.toFixed(2).replace('.', ',')}\n`;
+  }
+
+  txt += `======================================================================\n`;
+
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(txt).then(() => {
+      const copyBtn = document.getElementById("btnCopyOdooText");
+      if (copyBtn) {
+        copyBtn.textContent = "✓ Gekopieerd voor Odoo!";
+        setTimeout(() => { copyBtn.textContent = "Kopieer voor Odoo"; }, 2500);
+      }
+    }).catch(err => {
+      fallbackCopy(txt);
+    });
+  } else {
+    fallbackCopy(txt);
+  }
+
+  function fallbackCopy(text) {
+    const textArea = document.createElement("textarea");
+    textArea.value = text;
+    textArea.style.position = "fixed";
+    textArea.style.left = "-999999px";
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+    try {
+      document.execCommand('copy');
+      const copyBtn = document.getElementById("btnCopyOdooText");
+      if (copyBtn) {
+        copyBtn.textContent = "✓ Gekopieerd voor Odoo!";
+        setTimeout(() => { copyBtn.textContent = "Kopieer voor Odoo"; }, 2500);
+      }
+    } catch (e) {
+      alert("Kopiëren naar klembord mislukt.");
+    }
+    document.body.removeChild(textArea);
   }
 }
 
@@ -18437,6 +18928,10 @@ if (typeof window !== "undefined") {
   window.exportCalculationData = exportCalculationData;
   window.triggerImportCalculation = triggerImportCalculation;
   window.handleImportFileSelected = handleImportFileSelected;
+  window.openOdooQuoteModal = openOdooQuoteModal;
+  window.closeOdooQuoteModal = closeOdooQuoteModal;
+  window.copyOdooQuoteToClipboard = copyOdooQuoteToClipboard;
+  window.getOdooQuoteData = getOdooQuoteData;
 }
 
 
