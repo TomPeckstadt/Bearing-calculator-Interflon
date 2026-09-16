@@ -21263,166 +21263,36 @@ function getExecutiveProposalData() {
 function generateExecutiveProposalText(templateType) {
   const d = getExecutiveProposalData();
   const unitText = d.numUnits === 1 ? "1 automatisch Interflon precisiesmeertoestel" : `${d.numUnits} automatische Interflon precisiesmeertoestellen`;
-  const pointsText = d.totalPoints === 1 ? "het smeerpunt" : `de ${d.totalPoints} smeerpunten`;
+  const pointsText = d.totalPoints === 1 ? "1 smeerpunt" : `${d.totalPoints} smeerpunten`;
 
-  if (templateType === "formal") {
-    // 1. Formeel Directievoorstel (Investeringsaanvraag)
-    return `BETREFT: INVESTERINGSAANVRAAG AUTOMATISCHE SMERING - ${d.machineName.toUpperCase()}
-AAN: De Directie / Het Management van ${d.clientCompany}
-VAN: Technische Dienst & Betrouwbaarheidsonderhoud
-DATUM: ${d.dateStr}
-STATUS: Ter goedkeuring voorgelegd
-
-================================================================================
-EXECUTIVE SUMMARY & BUSINESS CASE VOORSTEL
-================================================================================
-
-Geachte directie,
-
-Ter verhoging van de operationele betrouwbaarheid, het reduceren van ongeplande machinestilstand en het waarborgen van de arbeidsveiligheid, leggen wij hierbij het investeringsvoorstel voor om de smering van installatie "${d.machineName}" te automatiseren met Interflon precisiesmeersystemen.
-
-1. HUIDIGE SITUATIE & PIJNPUNTEN (MANUELE SMERING)
---------------------------------------------------------------------------------
-Op dit moment worden ${pointsText} op ${d.machineName} handmatig gesmeerd met de conventionele vetspuit. 
-Uit de technische inventarisatie en TCO-berekening blijkt dat dit gepaard gaat met aanzienlijke risico's en verborgen kosten:
-• Arbeidsintensief: Jaarlijks vereist dit circa ${d.manualRounds} afzonderlijke smeerbeurten (${d.manualHours} uur onderhoudsarbeid).
-• Zaagtand-effect: Handmatig smeren leidt onvermijdelijk tot periodieke overvulling (hoge lagertemperatuur door churning) afgewisseld met droogloop (hongerloop), wat de hoofdoorzaak is van vroegtijdige lagerslijtage.
-• Veiligheidsrisico: Monteurs moeten dicht bij draaiende transporteurs en gevaarlijke zones werken om smeerpunten te bereiken.
-
-2. VOORGESTELDE OPLOSSING (INTERFLON AUTOMATISERING)
---------------------------------------------------------------------------------
-Wij stellen voor om de installatie uit te rusten met ${unitText} (${d.systemType}), gevuld met hoogwaardig ${d.greaseName}:
-• Continue micro-dosering: Levert 24/7 exact de berekende fractie smeermiddel, exact afgestemd op toerental en belasting.
-• Micpol® Technologie: Gepatenteerde gemicroniseerde en gepolariseerde smering die microscopische oppervlakteruwheid nivelleert en wrijving met ruim 70% reduceert.
-• 100% PFAS- en Microplastic-vrij: Alle Interflon smeermiddelen zijn gegarandeerd vrij van PFAS en microplastics, wat bijdraagt aan een veilige werkomgeving en corporate environmental compliance.
-• Verlenging van de levensduur: De levensduur van de lagers wordt volgens ISO 15243 en SKF-normen met 50 tot 300% verlengd.
-
-3. FINANCIËLE ONDERBOUWING & TERUGVERDIENTIJD (TCO)
---------------------------------------------------------------------------------
-De eenmalige investering in hardware verdient zichzelf uitzonderlijk snel terug:
-
-• Eenmalige Aanschafinvestering (Hardware & Montage):   ${formatTwinEuro(d.investment)}
-• Berekende Netto Besparing per Jaar:                   ${formatTwinEuro(d.annualSavings)} / jaar
-• Verwachte Terugverdientijd van de Investering:        ${d.paybackMonthsStr}
-• Netto Financieel Voordeel na 3 Jaar:                  ${formatTwinEuro(d.annualSavings * 3 - d.investment)}
-
-4. VERDERE OPERATIONELE & ESG VOORDELEN
---------------------------------------------------------------------------------
-• Arbeidsveiligheid (0 risico's): Geen personeel meer in gevaarlijke zones rond draaiende onderdelen.
-• Duurzaamheid & ISO 14001: Drastische reductie van verpakkingsmateriaal en onnodig vetverbruik dankzij micro-dosering.
-• Voorspelbaarheid: Geen ad-hoc revisies meer; smering verloopt autonoom.
-
-5. CONCLUSIE & VERZOEK TOT AKKOORD
---------------------------------------------------------------------------------
-Gezien de bescheiden investering van ${formatTwinEuro(d.investment)}, de zeer korte terugverdientijd van ${d.paybackMonthsStr} en de directe risico-eliminatie voor onze productie, verzoeken wij u vriendelijk om akkoord te geven op de uitvoering van dit project.
-
-De gedetailleerde technische calculatie, lageranalyses en productspecificaties zijn als bijlage toegevoegd ter goedkeuring.
-
-Met vriendelijke groet,
-
-De Technische Dienst / Onderhoudsafdeling
-${d.clientCompany}`;
-
-  } else if (templateType === "email") {
-    // 2. Snelle Management E-mail (To the point)
-    const emailUnitText = d.numUnits === 1 ? "1 automatische Interflon precisiesmeerunit" : `${d.numUnits} automatische Interflon precisiesmeerunits`;
-    return `ONDERWERP: Investeringsvoorstel: Automatisering smering ${d.machineName} (Terugverdientijd: ${d.paybackMonthsStr})
+  return `ONDERWERP: Investeringsvoorstel: Automatisering smering ${d.machineName} (Terugverdientijd: ${d.paybackMonthsStr})
 
 Beste directie / management,
 
-Om de operationele betrouwbaarheid van installatie "${d.machineName}" te waarborgen en ongeplande stilstand te voorkomen, willen wij de smering van deze machine automatiseren met ${emailUnitText} (${pointsText}).
+Om de bedrijfszekerheid van installatie "${d.machineName}" te verhogen en ongeplande stilstand te voorkomen, stellen wij voor om de smering te automatiseren met ${unitText} (${pointsText}), uitgerust met hoogwaardig ${d.greaseName}.
 
-De belangrijkste financiële cijfers op een rij:
-• Eenmalige investering (hardware): ${formatTwinEuro(d.investment)}
+Financiële kerncijfers & Business Case:
+• Investering (hardware & montage): ${formatTwinEuro(d.investment)}
 • Jaarlijkse netto besparing:       ${formatTwinEuro(d.annualSavings)} / jaar
-• Terugverdientijd van het project: ${d.paybackMonthsStr}!
+• Verwachte terugverdientijd:        ${d.paybackMonthsStr}!
+• Netto financieel voordeel na 3 jaar: ${formatTwinEuro(d.annualSavings * 3 - d.investment)}
 
-Waarom dit voor onze plant essentieel is:
-1. Elimineert ${d.manualRounds} handmatige smeerrondes en ${d.manualHours} uur onderhoudsarbeid per jaar.
-2. Geen technici meer in gevaarlijke zones bij draaiende transporteurs (100% veilig).
-3. Continue micro-smering met Interflon Micpol® verlengt de levensduur van de lagers met 50 tot 300%.
-4. 100% PFAS- en microplastic-vrij met minimale milieubelasting (ISO 14001 & corporate compliance).
+Belangrijkste operationele & technische voordelen:
+1. Arbeidswinst: ${d.manualRounds} handmatige smeerrondes (${d.manualHours} uur/jaar) geëlimineerd.
+2. Arbeidsveiligheid: Geen technici meer in gevaarlijke zones rond draaiende delen (100% veilig).
+3. Langere levensduur: Continue micro-smering met Interflon Micpol® verlengt de lagerlevensduur met 50 tot 300%.
+4. Geen zaagtand-effect: Sluit periodieke overvulling en hongerloop uit; lagers draaien continu optimaal.
+5. Duurzaamheid & Compliance: 100% PFAS- en microplastic-vrij met drastische reductie van vetverbruik en afval (ISO 14001).
+6. Voorspelbaarheid: Geen ad-hoc revisies meer; de smering verloopt volledig autonoom en betrouwbaar.
 
-Het complete technische rekenblad en de offerte zijn als bijlage bijgevoegd. 
-Graag jullie akkoord om deze bestelling in gang te zetten.
-
-Met vriendelijke groet,
-
-Technische Dienst
-${d.clientCompany}`;
-
-  } else if (templateType === "advisor") {
-    // 3. Begeleidende Mail van Interflon Adviseur → Klant/TD
-    return `ONDERWERP: Kant-en-klare directieaanvraag: Smeerautomatisering ${d.machineName} - ${d.clientCompany}
-
-Beste [Naam Contactpersoon],
-
-Naar aanleiding van ons bezoek en de technische inspectie van installatie "${d.machineName}" heb ik de complete smeer- en TCO-berekening voor jullie uitgewerkt.
-
-Omdat je aangaf dit intern te moeten voorleggen aan de directie / het management voor budgetgoedkeuring, heb ik hieronder alvast een kant-en-klare motivatietekst voor je opgesteld. Je kunt deze tekst 1-op-1 kopiëren of doormailen naar je plant manager of directie:
-
-------------------- [ START TEKST VOOR DIRECTIE ] -------------------
-
-Beste directie,
-
-Ter optimalisatie van de operationele betrouwbaarheid van installatie "${d.machineName}" stellen wij voor om de huidige handmatige smering te vervangen door automatische Interflon precisiesystemen.
-
-Uit de calculatie blijkt een uitzonderlijk sterke business case:
-• Investering in apparatuur:    ${formatTwinEuro(d.investment)}
-• Berekende besparing:          ${formatTwinEuro(d.annualSavings)} per jaar
-• Terugverdientijd:             Slechts ${d.paybackMonthsStr}!
-
-Voordelen voor onze fabriek:
-- We besparen jaarlijks ${d.manualHours} onderhoudsuren en ${d.manualRounds} handmatige smeerbeurten.
-- De lagers krijgen continu de exacte micro-dosering, wat ongeplande revisies uitsluit.
-- Verlenging van de levensduur van de lagers met 50 tot 300% dankzij continue Micpol® bescherming.
-- 100% PFAS- en microplastic-vrij conform de strengste milieunormen.
-- Veiliger voor onze technici: geen handmatige smering meer bij gevaarlijke draaiende delen.
-
-De gedetailleerde technische berekening, lagercalculatie en TCO-analyse zijn als bijlage toegevoegd ter goedkeuring.
+De gedetailleerde technische berekening, lageranalyses en de offerte zijn als bijlage toegevoegd ter goedkeuring.
 
 Graag jullie akkoord om deze bestelling in gang te zetten.
 
-------------------- [ EINDE TEKST VOOR DIRECTIE ] -------------------
-
-De officiële offerte en de complete technische calculatie vind je in de bijlage. Mocht je directie nog vragen hebben, dan schuif ik met veel plezier even aan om de toelichting te geven!
-
 Met vriendelijke groet,
 
-[Jouw Naam]
-Technisch Adviseur • Interflon`;
-
-  } else {
-    // 4. Veiligheid, Arbo & Duurzaamheid Focus (ESG / ISO 14001)
-    return `BETREFT: INVESTERINGSVOORSTEL ARBO-VEILIGHEID & DUURZAAMHEID (ESG)
-INSTALLATIE: ${d.machineName.toUpperCase()}
-AAN: Preventiedienst / SHEQ Manager / Directie ${d.clientCompany}
-DATUM: ${d.dateStr}
-
-Geachte directie en veiligheidsverantwoordelijke,
-
-In het kader van ons continu verbeterbeleid op het gebied van Arbeidsveiligheid (Arbo/VCA) en Duurzaam Ondernemen (ISO 14001 / ESG), stellen wij voor om de smering van machine "${d.machineName}" te automatiseren met Interflon systemen.
-
-1. VEILIGHEID & RISICOPREVENTIE (ELIMINATIE VAL- EN BEKNELLINGSGEVAAR)
-• Huidig risico: Technici moeten jaarlijks ${d.manualRounds} maal handmatig smeernippels bereiken in de directe nabijheid van draaiende transporteurs, kettingen en hete motoren.
-• Oplossing: Door centrale plaatsing van ${unitText} buiten de gevarenzone wordt het betreden van risicovolle zones voor 100% geëlimineerd.
-
-2. MILIEU & AFVALREDUCTIE (ISO 14001)
-• 100% PFAS- en Microplastic-vrij: Alle toegepaste Interflon smeermiddelen zijn gegarandeerd vrij van PFAS en microplastics.
-• Interflon precisiesmering levert exact de benodigde micro-hoeveelheid, wat resulteert in een aanzienlijke reductie van vetverbruik en het elimineren van tientallen lege plastic vetpatronen per jaar.
-
-3. FINANCIËLE HAALBAARHEID
-• Investering in veiligheid: ${formatTwinEuro(d.investment)}
-• Jaarlijkse besparing:      ${formatTwinEuro(d.annualSavings)}
-• Terugverdientijd:         ${d.paybackMonthsStr}
-
-Conclusie: Deze investering betaalt zichzelf binnen ${d.paybackMonthsStr} terug én brengt onze installatie direct op het hoogste veiligheids- en milieuniveau.
-
-Met vriendelijke groet,
-
-Technische Dienst & Preventie
+Technische Dienst / Onderhoudsafdeling
 ${d.clientCompany}`;
-  }
 }
 
 function openExecutiveProposalModal() {
@@ -21448,8 +21318,11 @@ function openExecutiveProposalModal() {
   if (kpiSafe) kpiSafe.textContent = d.manualRounds + " beurten / jr";
   if (docDate) docDate.textContent = "Datum: " + d.dateStr;
 
-  // Switch to current template
-  switchExecutiveProposalTab(currentProposalTemplate || "formal");
+  // Vul tekstveld met het voorstel
+  const textEl = document.getElementById("executiveProposalText");
+  if (textEl) {
+    textEl.value = generateExecutiveProposalText();
+  }
 
   modal.classList.remove("hidden");
   document.body.style.overflow = "hidden";
@@ -21516,17 +21389,17 @@ function fallbackCopyProposal(text) {
 
 function emailExecutiveProposal() {
   const textEl = document.getElementById("executiveProposalText");
-  const fullText = textEl ? textEl.value : generateExecutiveProposalText(currentProposalTemplate);
+  const fullText = textEl ? textEl.value : generateExecutiveProposalText();
   const d = getExecutiveProposalData();
 
-  // 1. Kopieer altijd de volledige, ongekorte tekst naar het klembord
+  // 1. Kopieer altijd de volledige tekst naar het klembord
   if (typeof copyExecutiveProposalText === "function") {
     copyExecutiveProposalText();
   }
 
   // 2. Bepaal het onderwerp
   const lines = fullText.split("\n");
-  let subject = "Investeringsvoorstel Smeerautomatisering - " + d.machineName;
+  let subject = "Investeringsvoorstel: Automatisering smering " + d.machineName;
   for (let l of lines) {
     if (l.startsWith("BETREFT:") || l.startsWith("ONDERWERP:")) {
       subject = l.replace(/^(BETREFT:|ONDERWERP:)/, "").trim();
@@ -21534,85 +21407,8 @@ function emailExecutiveProposal() {
     }
   }
 
-  // 3. Stel een e-mailtekst samen die ruim binnen de Windows mailto-limiet (< 1800 tekens) blijft
-  let emailBody = "";
-  const unitText = d.numUnits === 1 ? "1 automatisch Interflon precisiesmeertoestel" : (d.numUnits + " automatische Interflon precisiesmeertoestellen");
-  const pointsText = d.totalPoints === 1 ? "1 smeerpunt" : (d.totalPoints + " smeerpunten");
-
-  if (currentProposalTemplate === "email") {
-    emailBody = `Beste directie / management,
-
-Om de operationele betrouwbaarheid van installatie "${d.machineName}" te waarborgen en ongeplande stilstand te voorkomen, stellen wij voor om de smering van deze machine te automatiseren met ${unitText} (${pointsText}).
-
-Financiële kerncijfers:
-• Investering in hardware:        ${formatTwinEuro(d.investment)}
-• Jaarlijkse netto besparing:     ${formatTwinEuro(d.annualSavings)} / jaar
-• Verwachte terugverdientijd:     ${d.paybackMonthsStr}!
-
-Belangrijkste voordelen:
-1. Elimineert ${d.manualRounds} handmatige smeerrondes (${d.manualHours} uur onderhoudsarbeid per jaar).
-2. Geen technici meer in gevaarlijke zones bij draaiende transporteurs (100% veilig).
-3. Continue micro-smering met Interflon Micpol® verlengt de levensduur van de lagers met 50 tot 300%.
-4. 100% PFAS- en microplastic-vrij met minimale milieubelasting (ISO 14001 & corporate compliance).
-
-Het complete technische rapport en de offerte zijn als bijlage bijgevoegd.
-Graag jullie akkoord om deze bestelling in gang te zetten.
-
-Met vriendelijke groet,
-Technische Dienst ${d.clientCompany}
-
-[Opmerking: De volledige uitgebreide business case is tevens naar uw klembord gekopieerd en kan direct met Ctrl+V hierboven worden geplakt]`;
-  } else if (currentProposalTemplate === "advisor") {
-    subject = "Aanvraag Directie: Smeerautomatisering " + d.machineName + " - " + d.clientCompany;
-    emailBody = `Beste [Naam Contactpersoon],
-
-Hierbij de motivatietekst en cijfers voor de directie m.b.t. automatisering van installatie "${d.machineName}" (${d.clientCompany}):
-
---- TEKST VOOR DIRECTIE ---
-Beste directie,
-Ter optimalisatie van de betrouwbaarheid van installatie "${d.machineName}" stellen wij voor om de smering te automatiseren met Interflon precisiesystemen.
-• Investering:       ${formatTwinEuro(d.investment)}
-• Netto besparing:   ${formatTwinEuro(d.annualSavings)} per jaar
-• Terugverdientijd:  ${d.paybackMonthsStr}
-• Arbeidsreductie:   ${d.manualRounds} smeerbeurten (${d.manualHours} uur/jaar geëlimineerd)
-• Levensduur:        Verlenging van de lagerlevensduur met 50 tot 300%
-• Duurzaamheid:      100% PFAS- en microplastic-vrije Micpol® smering
-
-De gedetailleerde berekening en TCO-analyse zijn als bijlage toegevoegd ter goedkeuring.
-Graag jullie akkoord om deze bestelling in gang te zetten.
---- EINDE TEKST ---
-
-De officiële offerte en de berekening vind je in bijlage!
-
-Met vriendelijke groet,
-[Jouw Naam] • Technisch Adviseur Interflon
-
-[Opmerking: De volledige tekst is tevens naar uw klembord gekopieerd]`;
-  } else {
-    emailBody = `Geachte directie van ${d.clientCompany},
-
-Hierbij leggen wij het investeringsvoorstel voor om de smering van installatie "${d.machineName}" te automatiseren met ${unitText} (${d.systemType}).
-
-BUSINESS CASE & FINANCIËLE ONDERBOUWING:
-• Eenmalige investering:          ${formatTwinEuro(d.investment)}
-• Berekende netto besparing:      ${formatTwinEuro(d.annualSavings)} / jaar
-• Verwachte terugverdientijd:     ${d.paybackMonthsStr}
-• Arbeidsreductie:                ${d.manualRounds} smeerbeurten (${d.manualHours} uur/jaar geëlimineerd)
-• Smeerfilmtechnologie:           Interflon Micpol® (100% PFAS- en microplastic-vrij)
-
-De gedetailleerde technische calculatie en het analyserapport zijn als bijlage toegevoegd ter goedkeuring.
-
-Graag vernemen wij uw akkoord om dit project uit te voeren.
-
-Met vriendelijke groet,
-Technische Dienst / Onderhoudsafdeling
-${d.clientCompany}
-
-[Opmerking: Het volledige uitgebreide document is reeds naar uw klembord gekopieerd en kan direct met Ctrl+V in deze mail worden geplakt]`;
-  }
-
-  // 4. Veilig openen van mailto via tijdelijke link (voorkomt pop-up blockers en OS-URI crashes)
-  const mailtoUrl = "mailto:?subject=" + encodeURIComponent(subject) + "&body=" + encodeURIComponent(emailBody);
+  // 3. Open mailto veilig via link element (< 2000 tekens)
+  const mailtoUrl = "mailto:?subject=" + encodeURIComponent(subject) + "&body=" + encodeURIComponent(fullText);
   const a = document.createElement("a");
   a.href = mailtoUrl;
   a.target = "_blank";
@@ -21624,7 +21420,7 @@ ${d.clientCompany}
   }, 500);
 
   if (typeof showToastNotification === "function") {
-    showToastNotification("✓ E-mail geopend & volledige tekst gekopieerd naar klembord!");
+    showToastNotification("✓ E-mail geopend & tekst gekopieerd naar klembord!");
   }
 }
 
