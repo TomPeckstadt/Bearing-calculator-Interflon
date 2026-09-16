@@ -2036,6 +2036,9 @@
             <button type="button" id="btnDigitalTwinRoi" onclick="openDigitalTwinModal()" style="display: inline-flex; align-items: center; gap: 8px; background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%); border: 1.5px solid #0284c7; color: #ffffff; padding: 10px 16px; border-radius: 10px; font-weight: 700; font-size: 13.5px; cursor: pointer; box-shadow: 0 4px 12px rgba(14,165,233,0.3); transition: all 0.2s ease; margin-right: 10px;" onmouseover="this.style.transform='translateY(-1px)';" onmouseout="this.style.transform='none';" title="Bekijk 3D Live Digital Twin simulatie van het smeerregime">
               <span>🌟 3D Digital Twin</span>
             </button>
+            <button type="button" id="btnExecutiveProposal" onclick="openExecutiveProposalModal()" style="display: inline-flex; align-items: center; gap: 8px; background: #ffffff; border: 1.5px solid #059669; color: #059669; padding: 10px 16px; border-radius: 10px; font-weight: 700; font-size: 13.5px; cursor: pointer; box-shadow: 0 2px 5px rgba(5,150,105,0.12); transition: all 0.2s ease; margin-right: 10px;" onmouseover="this.style.background='#ecfdf5'; this.style.borderColor='#047857'; this.style.transform='translateY(-1px)';" onmouseout="this.style.background='#ffffff'; this.style.borderColor='#059669'; this.style.transform='none';" title="Genereer formele directieaanvraag / Capex investeringsvoorstel">
+              <span>📄 Directievoorstel</span>
+            </button>
             <button type="button" id="btnQrPassport" onclick="openQrPassportModal()" style="display: inline-flex; align-items: center; gap: 8px; background: #ffffff; border: 1.5px solid #0284c7; color: #0284c7; padding: 10px 16px; border-radius: 10px; font-weight: 700; font-size: 13.5px; cursor: pointer; box-shadow: 0 2px 5px rgba(2,132,199,0.12); transition: all 0.2s ease; margin-right: 10px;" onmouseover="this.style.background='#f0f9ff'; this.style.borderColor='#0369a1'; this.style.transform='translateY(-1px)';" onmouseout="this.style.background='#ffffff'; this.style.borderColor='#0284c7'; this.style.transform='none';" title="Genereer QR-smeerpaspoorten en machinestickers">
               <span>🏷️ Smeerpaspoort & QR</span>
             </button>
@@ -2309,7 +2312,22 @@
               <div style="font-size: 11.5px; line-height: 1.5; color: #334155; font-weight: 500;" data-i18n="roiImportantNoteText">
                 Bovenstaande berekening weerspiegelt uitsluitend de directe overgang van handmatige naar automatische smering. In de praktijk ontstaat het grootste financiële en operationele voordeel echter door een verhoogde bedrijfszekerheid (hogere output), een langere levensduur van componenten (minder reserveonderdelen) en een aanzienlijke reductie in revisie-uren.
               </div>
+          </div>
+
+          <!-- DIRECTIEVOORSTEL ACTION BANNER -->
+          <div style="margin-top: 18px; background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%); border: 1.5px solid #a7f3d0; border-radius: var(--border-radius-md); padding: 14px 20px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 14px;">
+            <div style="display: flex; align-items: center; gap: 12px; flex: 1; min-width: 260px;">
+              <div style="width: 38px; height: 38px; border-radius: 8px; background: #d1fae5; color: #059669; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0;">
+                📄
+              </div>
+              <div>
+                <div style="font-size: 13.5px; font-weight: 800; color: #065f46;">Investeringsvoorstel voor Management of Klant overmaken?</div>
+                <div style="font-size: 11.5px; color: #047857; margin-top: 2px;">Genereer met 1 klik een formele motivatietekst met alle harde cijfers, ROI en terugverdientijd om budget vrij te maken.</div>
+              </div>
             </div>
+            <button type="button" onclick="openExecutiveProposalModal()" style="display: inline-flex; align-items: center; gap: 8px; background: #059669; color: #ffffff; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 700; font-size: 13px; cursor: pointer; box-shadow: 0 4px 12px rgba(5,150,105,0.25); transition: all 0.2s;" onmouseover="this.style.background='#047857'; this.style.transform='translateY(-1px)';" onmouseout="this.style.background='#059669'; this.style.transform='none';">
+              <span>📄 Genereer Directievoorstel</span>
+            </button>
           </div>
         </div>
 
@@ -3799,6 +3817,120 @@
         </div>
         <div style="display: flex; align-items: center; gap: 10px;">
           <button type="button" class="btn btn-secondary" onclick="closeDigitalTwinModal()" style="padding: 7px 18px; font-size: 12.5px; font-weight: 700; border-radius: 6px; background: rgba(255,255,255,0.1); color: #f8fafc; border: 1px solid rgba(255,255,255,0.15); cursor: pointer;">Venster Sluiten</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ==========================================================================
+       AI EXECUTIVE SUMMARY & DIRECTIEVOORSTEL MODAL (CAPEX BUDGET)
+       ========================================================================== -->
+  <div id="executiveProposalModal" class="modal-overlay hidden" style="z-index: 10010;" onclick="if(event.target === this) closeExecutiveProposalModal()">
+    <div class="modal-card" style="max-width: 980px; width: 96%; max-height: 96vh; display: flex; flex-direction: column; overflow: hidden; padding: 18px 24px; gap: 12px; background: #ffffff; border-radius: var(--border-radius-lg); box-shadow: 0 25px 50px -12px rgba(5,150,105,0.35); border-top: 4px solid #059669;">
+      
+      <!-- Modal Header -->
+      <div style="display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; padding-bottom: 10px; border-bottom: 1px solid #e2e8f0;">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <div style="width: 38px; height: 38px; border-radius: 8px; background: #ecfdf5; border: 1px solid #a7f3d0; display: flex; align-items: center; justify-content: center; font-size: 20px;">
+            📄
+          </div>
+          <div>
+            <h3 style="font-size: 17px; font-weight: 800; color: #0f172a; margin: 0; font-family: 'Outfit', sans-serif; line-height: 1.2;">
+              Directievoorstel <span style="color: #059669;">• Capex Investeringsaanvraag</span>
+            </h3>
+            <p style="font-size: 11.5px; color: #64748b; margin: 2px 0 0 0;">
+              Genereer een kant-en-klare, cijfermatig onderbouwde motivatie om budget goed te keuren bij de directie of klant
+            </p>
+          </div>
+        </div>
+        <button type="button" class="btn-close" onclick="closeExecutiveProposalModal()" style="background: none; border: none; font-size: 26px; cursor: pointer; color: #64748b; line-height: 1; padding: 2px 6px;" title="Sluiten">&times;</button>
+      </div>
+
+      <!-- Top KPI Summary Bar -->
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 8px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px 14px; flex-shrink: 0;">
+        <div>
+          <div style="font-size: 9.5px; font-weight: 700; color: #64748b; text-transform: uppercase;">🏭 Machine:</div>
+          <div id="propKpiMachine" style="font-size: 12.5px; font-weight: 800; color: #0f172a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Bunkerband</div>
+        </div>
+        <div>
+          <div style="font-size: 9.5px; font-weight: 700; color: #64748b; text-transform: uppercase;">🏢 Klant:</div>
+          <div id="propKpiCompany" style="font-size: 12.5px; font-weight: 800; color: #0f172a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Klantbedrijf</div>
+        </div>
+        <div>
+          <div style="font-size: 9.5px; font-weight: 700; color: #0f172a; text-transform: uppercase;">💰 Hardware Investering:</div>
+          <div id="propKpiInvestment" style="font-size: 13px; font-weight: 900; color: #0f172a; font-family: monospace;">€ 0,00</div>
+        </div>
+        <div>
+          <div style="font-size: 9.5px; font-weight: 700; color: #059669; text-transform: uppercase;">📈 Besparing / Jaar:</div>
+          <div id="propKpiSavings" style="font-size: 13px; font-weight: 900; color: #059669; font-family: monospace;">€ 0,00</div>
+        </div>
+        <div>
+          <div style="font-size: 9.5px; font-weight: 700; color: #0284c7; text-transform: uppercase;">⏱️ Terugverdientijd:</div>
+          <div id="propKpiPayback" style="font-size: 13px; font-weight: 900; color: #0284c7;">0 mnd</div>
+        </div>
+        <div>
+          <div style="font-size: 9.5px; font-weight: 700; color: #64748b; text-transform: uppercase;">🛡️ Arbeidswinst:</div>
+          <div id="propKpiSafety" style="font-size: 12px; font-weight: 800; color: #0f172a;">52 beurten / jr</div>
+        </div>
+      </div>
+
+      <!-- Template Selection Tabs -->
+      <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; flex-shrink: 0;">
+        <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+          <button type="button" id="tabPropFormal" class="proposal-tab-btn active" onclick="switchExecutiveProposalTab('formal')">
+            📄 Formeel Directievoorstel (Capex)
+          </button>
+          <button type="button" id="tabPropEmail" class="proposal-tab-btn" onclick="switchExecutiveProposalTab('email')">
+            ✉️ Snelle Management E-mail
+          </button>
+          <button type="button" id="tabPropAdvisor" class="proposal-tab-btn" onclick="switchExecutiveProposalTab('advisor')">
+            🤝 Mail van Adviseur → TD
+          </button>
+          <button type="button" id="tabPropEsg" class="proposal-tab-btn" onclick="switchExecutiveProposalTab('esg')">
+            🛡️ Veiligheid & ESG Focus
+          </button>
+        </div>
+        <div style="font-size: 11px; color: #64748b; font-weight: 600;">
+          💡 Tekst is direct bewerkbaar in het veld hieronder
+        </div>
+      </div>
+
+      <!-- Document Preview & Editing Area -->
+      <div style="flex: 1; min-height: 240px; overflow-y: auto; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px; padding: 12px; display: flex; flex-direction: column;">
+        <div class="proposal-paper" style="flex: 1; display: flex; flex-direction: column;">
+          <!-- Top Interflon Document Header Mark -->
+          <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #E30613; padding-bottom: 6px; margin-bottom: 12px; flex-shrink: 0;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span style="font-family: 'Outfit', sans-serif; font-size: 15px; font-weight: 900; color: #E30613; letter-spacing: 0.5px;">INTERFLON</span>
+              <span style="font-size: 10px; font-weight: 800; color: #64748b; text-transform: uppercase;">INVESTERINGS- & BETROUWBAARHEIDSDOSSIER</span>
+            </div>
+            <div id="propDocDate" style="font-size: 11px; font-weight: 700; color: #64748b;">
+              <!-- Populated by JS -->
+            </div>
+          </div>
+
+          <!-- Live Editable Textarea -->
+          <textarea id="executiveProposalText" style="flex: 1; min-height: 260px; width: 100%; border: none; outline: none; font-family: 'Consolas', 'Courier New', monospace; font-size: 12px; line-height: 1.55; color: #1e293b; background: transparent; resize: none;"></textarea>
+        </div>
+      </div>
+
+      <!-- Footer & Action Buttons -->
+      <div style="display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; flex-wrap: wrap; gap: 10px; padding-top: 6px; border-top: 1px solid #f1f5f9;">
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <button type="button" class="btn btn-secondary" onclick="closeExecutiveProposalModal()" style="padding: 8px 16px; font-size: 13px; font-weight: 600; border-radius: 6px;">Sluiten</button>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <button type="button" onclick="downloadExecutiveProposal()" style="display: inline-flex; align-items: center; gap: 6px; background: #ffffff; border: 1.5px solid #cbd5e1; color: #334155; padding: 8px 14px; border-radius: 6px; font-weight: 700; font-size: 12.5px; cursor: pointer; transition: all 0.2s ease;" title="Download als tekstbestand">
+            <span>💾 Download (.txt)</span>
+          </button>
+          <button type="button" onclick="emailExecutiveProposal()" style="display: inline-flex; align-items: center; gap: 6px; background: #ffffff; border: 1.5px solid #0284c7; color: #0284c7; padding: 8px 16px; border-radius: 6px; font-weight: 700; font-size: 12.5px; cursor: pointer; transition: all 0.2s ease;" title="Open in uw e-mailprogramma">
+            <span>✉️ Open in E-mail</span>
+          </button>
+          <button type="button" onclick="copyExecutiveProposalText()" style="display: inline-flex; align-items: center; gap: 6px; background: #059669; color: #ffffff; border: none; padding: 8px 18px; border-radius: 6px; font-weight: 800; font-size: 13px; cursor: pointer; box-shadow: 0 2px 4px rgba(5,150,105,0.25); transition: all 0.2s ease;" onmouseover="this.style.background='#047857'" onmouseout="this.style.background='#059669'">
+            <span>📋 Kopieer Tekst</span>
+          </button>
         </div>
       </div>
 
