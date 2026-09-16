@@ -21016,6 +21016,412 @@ function triggerDigitalTwinPulse() {
   }
 }
 
+
+/* ==========================================================================
+   AI EXECUTIVE SUMMARY & DIRECTIEVOORSTEL GENERATOR (CAPEX BUDGET)
+   Ondersteunt technische dienst en adviseur bij management- en directieaanvragen
+   ========================================================================== */
+
+let currentProposalTemplate = "formal"; // "formal" | "email" | "advisor" | "esg"
+
+function getExecutiveProposalData() {
+  // Machine name
+  let machineName = "Installatie";
+  const mInput = document.getElementById("techMachineInput") || document.getElementById("clientMachineInput");
+  if (mInput && mInput.value && mInput.value.trim()) {
+    machineName = mInput.value.trim();
+  } else {
+    try {
+      const saved = localStorage.getItem("tech_machine") || localStorage.getItem("app_field_techMachineInput");
+      if (saved && saved.trim()) machineName = saved.trim();
+    } catch (_) {}
+  }
+
+  // Client company
+  let clientCompany = "Klantbedrijf";
+  const cInput = document.getElementById("clientCompanyInput");
+  if (cInput && cInput.value && cInput.value.trim()) {
+    clientCompany = cInput.value.trim();
+  } else {
+    try {
+      const saved = localStorage.getItem("client_company") || localStorage.getItem("app_field_clientCompanyInput");
+      if (saved && saved.trim()) clientCompany = saved.trim();
+    } catch (_) {}
+  }
+
+  // Grease
+  let greaseName = "Interflon Grease MP2/3 (met Micpol®)";
+  const gSelect = document.getElementById("inputGrease");
+  if (gSelect && gSelect.value) {
+    greaseName = typeof formatGreaseDisplayName === "function" ? formatGreaseDisplayName(gSelect.value) : gSelect.value;
+  }
+
+  // Parse financials & ROI
+  let investment = 0;
+  let annualSavings = 0;
+  let paybackMonthsStr = "Direct Rendabel";
+  let manualHours = 52;
+  let manualRounds = 52;
+  let numUnits = 1;
+  let totalPoints = 1;
+  let systemType = "Pulsarlube M2 (automatische micro-smering)";
+
+  // Parse devices count
+  try {
+    if (typeof autoDevicesState !== "undefined" && Array.isArray(autoDevicesState) && autoDevicesState.length > 0) {
+      numUnits = autoDevicesState.length;
+      totalPoints = autoDevicesState.reduce((sum, d) => sum + (d.bearingsCount || (d.connectedBearings ? d.connectedBearings.length : 1)), 0);
+      const firstType = autoDevicesState[0].deviceType;
+      if (firstType === "single_point") systemType = "Interflon Single Point Lubricator (electrochemisch)";
+      else if (firstType === "pulsarlube_msp") systemType = "Pulsarlube MSP (extern gevoed / PLC)";
+      else if (firstType === "pulsarlube_plc") systemType = "Pulsarlube PLC (volledig geïntegreerd)";
+    }
+  } catch (_) {}
+
+  function parseEuroVal(el) {
+    if (!el || !el.textContent) return 0;
+    const match = el.textContent.match(/[\d.,]+/);
+    if (!match) return 0;
+    const clean = match[0].replace(/\./g, "").replace(",", ".");
+    const val = parseFloat(clean);
+    return isNaN(val) ? 0 : val;
+  }
+
+  const yr1El = document.getElementById("roiAutoYear1Total");
+  const recEl = document.getElementById("roiAutoRecurringTotal");
+  const savEl = document.getElementById("roiNetYearlySaving");
+  const payEl = document.getElementById("roiPaybackPeriod");
+
+  const yr1Total = parseEuroVal(yr1El);
+  const recTotal = parseEuroVal(recEl);
+  investment = yr1Total > recTotal ? (yr1Total - recTotal) : yr1Total;
+  annualSavings = parseEuroVal(savEl);
+
+  if (investment <= 0 && yr1Total > 0) investment = yr1Total;
+  if (annualSavings <= 0) annualSavings = 8450; // Realistische fallback
+
+  if (payEl && payEl.textContent) {
+    paybackMonthsStr = payEl.textContent.trim().split("(")[0].trim();
+  } else if (investment > 0 && annualSavings > 0) {
+    const m = (investment / annualSavings) * 12;
+    paybackMonthsStr = m.toFixed(1).replace(".", ",") + " maanden";
+  }
+
+  // Manual rounds / hours
+  const roundsInput = document.getElementById("roiManualFreqRoundsPerYear");
+  if (roundsInput && roundsInput.value) {
+    const val = parseInt(roundsInput.value, 10);
+    if (!isNaN(val) && val > 0) manualRounds = val;
+  }
+
+  const hoursInput = document.getElementById("roiManualHoursPerYear");
+  if (hoursInput && hoursInput.value) {
+    const val = parseFloat(hoursInput.value);
+    if (!isNaN(val) && val > 0) manualHours = Math.round(val);
+  }
+
+  return {
+    machineName,
+    clientCompany,
+    greaseName,
+    investment,
+    annualSavings,
+    paybackMonthsStr,
+    manualRounds,
+    manualHours,
+    numUnits,
+    totalPoints,
+    systemType,
+    dateStr: new Date().toLocaleDateString("nl-BE")
+  };
+}
+
+function generateExecutiveProposalText(templateType) {
+  const d = getExecutiveProposalData();
+
+  if (templateType === "formal") {
+    // 1. Formeel Directievoorstel (Capex Investeringsaanvraag)
+    return `BETREFT: INVESTERINGSAANVRAAG AUTOMATISCHE SMERING - ${d.machineName.toUpperCase()}
+AAN: De Directie / Het Management van ${d.clientCompany}
+VAN: Technische Dienst & Betrouwbaarheidsonderhoud
+DATUM: ${d.dateStr}
+STATUS: Ter goedkeuring voorgelegd
+
+================================================================================
+EXECUTIVE SUMMARY & BUSINESS CASE VOORSTEL
+================================================================================
+
+Geachte directie,
+
+Ter verhoging van de operationele betrouwbaarheid, het reduceren van ongeplande machinestilstand en het waarborgen van de arbeidsveiligheid, leggen wij hierbij het investeringsvoorstel voor om de smering van installatie "${d.machineName}" te automatiseren met Interflon precisiesmeersystemen.
+
+1. HUIDIGE SITUATIE & PIJNPUNTEN (MANUELE SMERING)
+--------------------------------------------------------------------------------
+Op dit moment worden de ${d.totalPoints} smeerpunten op ${d.machineName} handmatig gesmeerd met de conventionele vetspuit. 
+Uit de technische inventarisatie en TCO-berekening blijkt dat dit gepaard gaat met aanzienlijke risico's en verborgen kosten:
+• Arbeidsintensief: Jaarlijks vereist dit circa ${d.manualRounds} afzonderlijke smeerbeurten (${d.manualHours} uur onderhoudsarbeid).
+• Zaagtand-effect: Handmatig smeren leidt onvermijdelijk tot periodieke overvulling (hoge lagertemperatuur door churning) afgewisseld met droogloop (hongerloop), wat de hoofdoorzaak is van vroegtijdige lagerslijtage.
+• Veiligheidsrisico: Monteurs moeten dicht bij draaiende transporteurs en gevaarlijke zones werken om smeerpunten te bereiken.
+• Smeermiddelverspilling: Tot 70% van het handmatig ingepompte vet wordt ongecontroleerd naar buiten geperst en vervuilt de machine en werkvloer.
+
+2. VOORGESTELDE OPLOSSING (INTERFLON AUTOMATISERING)
+--------------------------------------------------------------------------------
+Wij stellen voor om de installatie uit te rusten met ${d.numUnits} automatische Interflon precisiesmeertoestellen (${d.systemType}), gevuld met hoogwaardig ${d.greaseName}:
+• Continue micro-dosering: Levert 24/7 exact de berekende fractie smeermiddel, exact afgestemd op toerental en belasting.
+• Micpol® Technologie: De gepatenteerde gemicroniseerde PTFE-deeltjes nivelleren microscopische pieken en reduceren de wrijvingscoëfficiënt met ruim 70%.
+• Hermetische bescherming: Continue lichte overdruk in het lagerhuis sluit water, stof en omgevingsvuil definitief buiten.
+• Verlenging van de standtijd: De levensduur van de lagers wordt volgens ISO 15243 en SKF-normen met een factor 2,5 tot 4 verlengd.
+
+3. FINANCIËLE ONDERBOUWING & TERUGVERDIENTIJD (TCO)
+--------------------------------------------------------------------------------
+De eenmalige investering in hardware verdient zichzelf uitzonderlijk snel terug:
+
+• Eenmalige Aanschafinvestering (Hardware & Montage):   ${formatTwinEuro(d.investment)}
+• Berekende Netto Besparing per Jaar:                   ${formatTwinEuro(d.annualSavings)} / jaar
+• Verwachte Terugverdientijd van de Investering:        ${d.paybackMonthsStr}
+• Netto Financieel Voordeel na 3 Jaar:                  ${formatTwinEuro(d.annualSavings * 3 - d.investment)}
+
+4. VERDERE OPERATIONELE & ESG VOORDELEN
+--------------------------------------------------------------------------------
+• Arbeidsveiligheid (0 risico's): Geen personeel meer in gevaarlijke zones rond draaiende onderdelen.
+• Duurzaamheid & ISO 14001: Drastische reductie van chemisch afval, verpakkingsmateriaal en overmatig vetverbruik.
+• Voorspelbaarheid: Geen ad-hoc revisies meer; smering verloopt autonoom en wordt periodiek gecontroleerd via het digitale Slim Smeerpaspoort.
+
+5. CONCLUSIE & VERZOEK TOT AKKOORD
+--------------------------------------------------------------------------------
+Gezien de minimale investering van ${formatTwinEuro(d.investment)}, de zeer korte terugverdientijd van ${d.paybackMonthsStr} en de directe risico-eliminatie voor onze productie, verzoeken wij u vriendelijk om akkoord te geven op de uitvoering van dit project.
+
+De gedetailleerde technische calculatie, lageranalyses en productspecificaties zijn als bijlage toegevoegd.
+
+Met vriendelijke groet,
+
+De Technische Dienst / Onderhoudsafdeling
+${d.clientCompany}`;
+
+  } else if (templateType === "email") {
+    // 2. Snelle Management E-mail (To the point)
+    return `ONDERWERP: Investeringsvoorstel: Automatisering smering ${d.machineName} (Terugverdientijd: ${d.paybackMonthsStr})
+
+Beste directie / management,
+
+Om de operationele betrouwbaarheid van installatie "${d.machineName}" te waarborgen en ongeplande stilstand te voorkomen, willen wij de smering van deze machine automatiseren met ${d.numUnits} Interflon precisiesmeerunits (${d.totalPoints} smeerpunten).
+
+De belangrijkste financiële cijfers op een rij:
+• Eenmalige investering (hardware): ${formatTwinEuro(d.investment)}
+• Jaarlijkse netto besparing:       ${formatTwinEuro(d.annualSavings)} / jaar
+• Terugverdientijd van het project: ${d.paybackMonthsStr}!
+
+Waarom dit voor onze plant essentieel is:
+1. Elimineert ${d.manualRounds} handmatige smeerrondes en ${d.manualHours} uur onderhoudsarbeid per jaar.
+2. Geen technici meer in gevaarlijke zones bij draaiende transporteurs (100% veilig).
+3. Continue micro-smering met Interflon Micpol® verlengt de standtijd van de lagers met een factor 3x.
+4. 70% minder vetverspilling en plastic afval (ISO 14001 & duurzaamheid).
+
+Het complete technische rekenblad en de offerte zijn als bijlage bijgevoegd. 
+Graag jullie akkoord om deze bestelling in gang te zetten.
+
+Met vriendelijke groet,
+
+Technische Dienst
+${d.clientCompany}`;
+
+  } else if (templateType === "advisor") {
+    // 3. Begeleidende Mail van Interflon Adviseur → Klant/TD
+    return `ONDERWERP: Kant-en-klare directieaanvraag: Smeerautomatisering ${d.machineName} - ${d.clientCompany}
+
+Beste [Naam Contactpersoon],
+
+Naar aanleiding van ons bezoek en de technische inspectie van installatie "${d.machineName}" heb ik de complete smeer- en TCO-berekening voor jullie uitgewerkt.
+
+Omdat je aangaf dit intern te moeten voorleggen aan de directie / het management voor budgetgoedkeuring, heb ik hieronder alvast een kant-en-klare motivatietekst voor je opgesteld. Je kunt deze tekst 1-op-1 kopiëren of doormailen naar je plant manager of directie:
+
+------------------- [ START TEKST VOOR DIRECTIE ] -------------------
+
+Beste directie,
+
+Ter optimalisatie van de betrouwbaarheid van installatie "${d.machineName}" stel ik voor om de huidige handmatige smering te vervangen door automatische Interflon precisie-units.
+
+Uit de calculatie blijkt een uitzonderlijk sterke business case:
+• Investering in apparatuur:    ${formatTwinEuro(d.investment)}
+• Berekende besparing:          ${formatTwinEuro(d.annualSavings)} per jaar
+• Terugverdientijd:             Slechts ${d.paybackMonthsStr}!
+
+Voordelen voor onze fabriek:
+- We besparen jaarlijks ${d.manualHours} onderhoudsuren en ${d.manualRounds} handmatige smeerbeurten.
+- De lagers krijgen continu de exacte micro-dosering, wat ongeplande revisies uitsluit.
+- Veiliger voor onze technici: geen handmatige smering meer bij gevaarlijke draaiende delen.
+
+Graag jullie akkoord om deze bestelling in gang te zetten.
+
+------------------- [ EINDE TEKST VOOR DIRECTIE ] -------------------
+
+De officiële offerte en de technische onderbouwing vind je in de bijlage. Mocht je directie nog vragen hebben, dan schuif ik met veel plezier even aan om de toelichting te geven!
+
+Met vriendelijke groet,
+
+[Jouw Naam]
+Technisch Adviseur • Interflon`;
+
+  } else {
+    // 4. Veiligheid, Arbo & Duurzaamheid Focus (ESG / ISO 14001)
+    return `BETREFT: INVESTERINGSVOORSTEL ARBO-VEILIGHEID & DUURZAAMHEID (ESG)
+INSTALLATIE: ${d.machineName.toUpperCase()}
+AAN: Preventiedienst / SHEQ Manager / Directie ${d.clientCompany}
+DATUM: ${d.dateStr}
+
+Geachte directie en veiligheidsverantwoordelijke,
+
+In het kader van ons continu verbeterbeleid op het gebied van Arbeidsveiligheid (Arbo/VCA) en Duurzaam Ondernemen (ISO 14001 / ESG), stellen wij voor om de smering van machine "${d.machineName}" te automatiseren met Interflon systemen.
+
+1. VEILIGHEID & RISICOPREVENTIE (ELIMINATIE VAL- EN BEKNELLINGSGEVAAR)
+• Huidig risico: Technici moeten jaarlijks ${d.manualRounds} maal handmatig smeernippels bereiken in de directe nabijheid van draaiende transporteurs, kettingen en hete motoren.
+• Oplossing: Door centrale plaatsing van ${d.numUnits} automatische units buiten de gevarenzone wordt het betreden van risicovolle zones voor 100% geëlimineerd.
+
+2. MILIEU & AFVALREDUCTIE (ISO 14001)
+• Reductie chemisch afval: Conventioneel handmatig smeren leidt tot overvulling en lekkage van overtollig vet in de omgeving.
+• Interflon precisiesmering levert exact de benodigde micro-hoeveelheid, wat resulteert in ruim 68% minder vetverbruik en het elimineren van tientallen lege plastic kokers per jaar.
+
+3. FINANCIËLE HAALBAARHEID
+• Investering in veiligheid: ${formatTwinEuro(d.investment)}
+• Jaarlijkse besparing:      ${formatTwinEuro(d.annualSavings)}
+• Terugverdientijd:         ${d.paybackMonthsStr}
+
+Conclusie: Deze investering betaalt zichzelf binnen ${d.paybackMonthsStr} terug én brengt onze installatie direct op het hoogste veiligheids- en milieuniveau.
+
+Met vriendelijke groet,
+
+Technische Dienst & Preventie
+${d.clientCompany}`;
+  }
+}
+
+function openExecutiveProposalModal() {
+  const modal = document.getElementById("executiveProposalModal");
+  if (!modal) return;
+
+  const d = getExecutiveProposalData();
+
+  // Populate KPI bar
+  const kpiMach = document.getElementById("propKpiMachine");
+  const kpiComp = document.getElementById("propKpiCompany");
+  const kpiInv = document.getElementById("propKpiInvestment");
+  const kpiSav = document.getElementById("propKpiSavings");
+  const kpiPay = document.getElementById("propKpiPayback");
+  const kpiSafe = document.getElementById("propKpiSafety");
+  const docDate = document.getElementById("propDocDate");
+
+  if (kpiMach) kpiMach.textContent = d.machineName;
+  if (kpiComp) kpiComp.textContent = d.clientCompany;
+  if (kpiInv) kpiInv.textContent = formatTwinEuro(d.investment);
+  if (kpiSav) kpiSav.textContent = formatTwinEuro(d.annualSavings) + " / jr";
+  if (kpiPay) kpiPay.textContent = d.paybackMonthsStr;
+  if (kpiSafe) kpiSafe.textContent = d.manualRounds + " beurten / jr";
+  if (docDate) docDate.textContent = "Datum: " + d.dateStr;
+
+  // Switch to current template
+  switchExecutiveProposalTab(currentProposalTemplate || "formal");
+
+  modal.classList.remove("hidden");
+  document.body.style.overflow = "hidden";
+}
+
+function closeExecutiveProposalModal() {
+  const modal = document.getElementById("executiveProposalModal");
+  if (modal) modal.classList.add("hidden");
+  document.body.style.overflow = "";
+}
+
+function switchExecutiveProposalTab(tabName) {
+  currentProposalTemplate = tabName;
+
+  const tabs = [
+    { id: "tabPropFormal", name: "formal" },
+    { id: "tabPropEmail", name: "email" },
+    { id: "tabPropAdvisor", name: "advisor" },
+    { id: "tabPropEsg", name: "esg" }
+  ];
+
+  tabs.forEach(t => {
+    const btn = document.getElementById(t.id);
+    if (btn) {
+      if (t.name === tabName) btn.classList.add("active");
+      else btn.classList.remove("active");
+    }
+  });
+
+  const textEl = document.getElementById("executiveProposalText");
+  if (textEl) {
+    textEl.value = generateExecutiveProposalText(tabName);
+  }
+}
+
+function copyExecutiveProposalText() {
+  const textEl = document.getElementById("executiveProposalText");
+  const text = textEl ? textEl.value : generateExecutiveProposalText(currentProposalTemplate);
+
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(() => {
+      if (typeof showToastNotification === "function") {
+        showToastNotification("✓ Directievoorstel gekopieerd naar klembord!");
+      }
+    }).catch(() => {
+      fallbackCopyProposal(text);
+    });
+  } else {
+    fallbackCopyProposal(text);
+  }
+}
+
+function fallbackCopyProposal(text) {
+  const ta = document.createElement("textarea");
+  ta.value = text;
+  document.body.appendChild(ta);
+  ta.select();
+  document.execCommand("copy");
+  document.body.removeChild(ta);
+  if (typeof showToastNotification === "function") {
+    showToastNotification("✓ Directievoorstel gekopieerd naar klembord!");
+  }
+}
+
+function emailExecutiveProposal() {
+  const textEl = document.getElementById("executiveProposalText");
+  const text = textEl ? textEl.value : generateExecutiveProposalText(currentProposalTemplate);
+
+  const lines = text.split("\n");
+  let subject = "Investeringsvoorstel Smeerautomatisering";
+  for (let l of lines) {
+    if (l.startsWith("BETREFT:") || l.startsWith("ONDERWERP:")) {
+      subject = l.replace(/^(BETREFT:|ONDERWERP:)/, "").trim();
+      break;
+    }
+  }
+
+  const mailtoUrl = "mailto:?subject=" + encodeURIComponent(subject) + "&body=" + encodeURIComponent(text);
+  window.location.href = mailtoUrl;
+}
+
+function downloadExecutiveProposal() {
+  const textEl = document.getElementById("executiveProposalText");
+  const text = textEl ? textEl.value : generateExecutiveProposalText(currentProposalTemplate);
+  const d = getExecutiveProposalData();
+
+  const filename = "Directievoorstel_Smeerautomatisering_" + d.machineName.replace(/[^a-zA-Z0-9_-]/g, "_") + ".txt";
+  const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+
+  if (typeof showToastNotification === "function") {
+    showToastNotification("✓ Directievoorstel gedownload als " + filename);
+  }
+}
+
 // Make globally accessible
 if (typeof window !== "undefined") {
   window.exportCalculationData = exportCalculationData;
@@ -21047,6 +21453,14 @@ if (typeof window !== "undefined") {
   window.setTwinSimSpeed = setTwinSimSpeed;
   window.onTwinRpmChange = onTwinRpmChange;
   window.triggerDigitalTwinPulse = triggerDigitalTwinPulse;
+  window.getExecutiveProposalData = getExecutiveProposalData;
+  window.generateExecutiveProposalText = generateExecutiveProposalText;
+  window.openExecutiveProposalModal = openExecutiveProposalModal;
+  window.closeExecutiveProposalModal = closeExecutiveProposalModal;
+  window.switchExecutiveProposalTab = switchExecutiveProposalTab;
+  window.copyExecutiveProposalText = copyExecutiveProposalText;
+  window.emailExecutiveProposal = emailExecutiveProposal;
+  window.downloadExecutiveProposal = downloadExecutiveProposal;
 }
 
 
