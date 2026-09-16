@@ -15359,8 +15359,11 @@ function getOdooQuoteData() {
   const clientCompany = (document.getElementById("clientCompanyInput") && document.getElementById("clientCompanyInput").value.trim()) ||
                         (document.getElementById("omClientCompany") && document.getElementById("omClientCompany").value.trim()) ||
                         localStorage.getItem("client_company") || "Niet opgegeven";
-  const machineName = (document.getElementById("techMachine") && document.getElementById("techMachine").value.trim()) ||
-                      localStorage.getItem("tech_machine") || "Machine";
+  const machineName = (document.getElementById("techMachineInput") && document.getElementById("techMachineInput").value.trim()) ||
+                      (document.getElementById("omTechMachine") && document.getElementById("omTechMachine").value.trim()) ||
+                      (document.getElementById("chainOmTechMachine") && document.getElementById("chainOmTechMachine").value.trim()) ||
+                      (document.getElementById("techMachine") && document.getElementById("techMachine").value.trim()) ||
+                      localStorage.getItem("tech_machine") || localStorage.getItem("app_field_techMachineInput") || "Machine";
 
   const selectGrease = document.getElementById("inputGrease") || document.getElementById("selectGrease");
   const greaseName = selectGrease ? selectGrease.value : "Interflon Grease MP2/3";
@@ -16113,11 +16116,14 @@ function getQrPassportsData() {
                         (document.getElementById("company") && document.getElementById("company").value.trim()) ||
                         localStorage.getItem("client_company") || localStorage.getItem("bearing_calc_company") || "Klantbedrijf";
 
-  const machineName = (document.getElementById("techMachine") && document.getElementById("techMachine").value.trim()) ||
+  const machineName = (document.getElementById("techMachineInput") && document.getElementById("techMachineInput").value.trim()) ||
                       (document.getElementById("omTechMachine") && document.getElementById("omTechMachine").value.trim()) ||
+                      (document.getElementById("chainOmTechMachine") && document.getElementById("chainOmTechMachine").value.trim()) ||
+                      (document.getElementById("techMachine") && document.getElementById("techMachine").value.trim()) ||
+                      (document.getElementById("techAppInput") && document.getElementById("techAppInput").value.trim()) ||
                       (document.getElementById("machinery") && document.getElementById("machinery").value.trim()) ||
                       (document.getElementById("application") && document.getElementById("application").value.trim()) ||
-                      localStorage.getItem("tech_machine") || localStorage.getItem("bearing_calc_machinery") || "Machine / Installatie";
+                      localStorage.getItem("tech_machine") || localStorage.getItem("app_field_techMachineInput") || localStorage.getItem("bearing_calc_machinery") || "Machine / Installatie";
 
   // 2. Grease resolution
   let rawGrease = "";
@@ -16470,11 +16476,18 @@ function renderQrPassportStickers() {
           <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; flex: 1;">
             <!-- Specs (Left) -->
             <div style="flex: 1; min-width: 0; font-size: 10.5px; line-height: 1.35; color: #1e293b;">
-              <div style="font-weight: 800; font-size: 11.5px; color: #0f172a; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${escapeOdooHtml(u.m)}">
-                🏭 ${escapeOdooHtml(u.m)}
-              </div>
-              <div style="font-size: 10px; color: #64748b; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                ${escapeOdooHtml(u.c)} &bull; ${escapeOdooHtml(u.devTypeLabel)}
+              <!-- Explicit Machine & Client Labels -->
+              <div style="margin-bottom: 4px;">
+                <div style="font-size: 11px; line-height: 1.3; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${escapeOdooHtml(u.m)}">
+                  <span style="font-size: 9.5px; font-weight: 800; color: #64748b; text-transform: uppercase; letter-spacing: 0.3px;">MACHINE:</span>
+                  <strong style="color: #0f172a; font-size: 11.5px; margin-left: 3px;">${escapeOdooHtml(u.m)}</strong>
+                </div>
+                <div style="font-size: 10px; color: #475569; line-height: 1.3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                  <span style="font-size: 9px; font-weight: 700; color: #64748b; text-transform: uppercase;">KLANT:</span>
+                  <span style="font-weight: 600; margin-left: 3px;">${escapeOdooHtml(u.c)}</span>
+                  <span style="color: #94a3b8; margin: 0 4px;">&bull;</span>
+                  <span style="color: #0284c7; font-weight: 700;">${escapeOdooHtml(u.devTypeLabel)}</span>
+                </div>
               </div>
 
               <div style="background: #f8fafc; border-left: 3px solid #0284c7; padding: 3px 6px; margin-bottom: 4px; border-radius: 2px;">
@@ -16575,11 +16588,17 @@ function renderQrPassportStickers() {
         <!-- Body -->
         <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 16px;">
           <div style="flex: 1; min-width: 0;">
-            <div style="font-size: 15px; font-weight: 800; color: #0f172a; margin-bottom: 2px;">
-              🏭 ${escapeOdooHtml(c.m)}
-            </div>
-            <div style="font-size: 12px; color: #475569; margin-bottom: 10px;">
-              Klant: <strong>${escapeOdooHtml(c.c)}</strong> &bull; Totaal: <strong>${data.totalPoints} smeerpunten</strong> over <strong>${data.units.length} units</strong>
+            <div style="margin-bottom: 8px;">
+              <div style="font-size: 15px; font-weight: 800; color: #0f172a; margin-bottom: 2px;">
+                <span style="font-size: 11px; font-weight: 800; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">MACHINE:</span>
+                <span style="margin-left: 3px;">${escapeOdooHtml(c.m)}</span>
+              </div>
+              <div style="font-size: 12px; color: #475569;">
+                <span style="font-weight: 700; color: #64748b; text-transform: uppercase; font-size: 10.5px;">KLANT:</span>
+                <strong style="margin-left: 3px;">${escapeOdooHtml(c.c)}</strong>
+                <span style="color: #94a3b8; margin: 0 4px;">&bull;</span>
+                <span>Totaal: <strong>${data.totalPoints} smeerpunten</strong> over <strong>${data.units.length} units</strong></span>
+              </div>
             </div>
 
             <!-- Units Table -->
@@ -19943,6 +19962,1058 @@ function handleImportFileSelected(event) {
   reader.readAsText(file);
 }
 
+
+/* ==========================================================================
+   3D LIVE DIGITAL TWIN SIMULATION ENGINE (THREE.JS)
+   Realtime elastohydrodynamic Micpol® lubrication & wear dynamics
+   ========================================================================== */
+
+let twinScene = null;
+let twinCamera = null;
+let twinRenderer = null;
+let twinControls = null;
+let twinAnimFrameId = null;
+let twinInitialized = false;
+
+// 3D Objects & Meshes
+let twinBearingGroup = null;
+let twinOuterRing = null;
+let twinInnerRing = null;
+let twinShaft = null;
+let twinBalls = [];
+let twinBallFilms = [];
+let twinCage = null;
+let twinRacewayFilm = null;
+let twinFilmMaterial = null;
+let twinBallFilmMaterial = null;
+let twinNippleGroup = null;
+let twinFeedTube = null;
+let twinGreaseSlugs = [];
+let twinParticles = null;
+let twinCavityLight = null;
+
+// Fallback pointer drag state
+let twinFallbackPointer = {
+  isDown: false,
+  startX: 0,
+  startY: 0,
+  theta: Math.PI / 4,
+  phi: Math.PI / 3,
+  radius: 11
+};
+
+// Simulation State
+let twinSimState = {
+  isOpen: false,
+  isPlaying: true,
+  mode: 'auto', // 'auto' | 'manual'
+  simSpeed: 1,  // 1, 5, 20, 60
+  cutaway: true, // Cutaway 1/4 view
+  rpm: 1450,
+  simTime: 0,
+  manualCycleDays: 60,
+  filmHealth: 1.0, // 0.0 to 1.0
+  friction: 0.003,
+  temperature: 41.2,
+  wearUm: 0.0,
+  lifetimeFactor: 3.8,
+  annualSavings: 1480,
+  injectionPulseActive: false,
+  injectionPulseTimer: 0,
+  lastFrameTime: (typeof performance !== "undefined" ? performance.now() : 0),
+  fps: 60,
+  fpsCounter: 0,
+  lastFpsUpdate: (typeof performance !== "undefined" ? performance.now() : 0)
+};
+
+function formatTwinEuro(amount) {
+  const n = typeof amount === "number" ? amount : parseFloat(amount) || 0;
+  return "€ " + n.toLocaleString("nl-NL", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+function getActiveBearingDataForTwin() {
+  let bearingName = "Lager 6208 (Groefkogellager)";
+  const bSelect = document.getElementById("bearingType") || document.getElementById("omSurveyBearingSelect");
+  if (bSelect && bSelect.value) {
+    if (bSelect.options && bSelect.selectedIndex >= 0) {
+      bearingName = bSelect.options[bSelect.selectedIndex].text || bSelect.value;
+    } else {
+      bearingName = bSelect.value;
+    }
+  }
+
+  let greaseName = "Interflon Grease MP2/3 (Micpol®)";
+  const gSelect = document.getElementById("inputGrease");
+  if (gSelect && gSelect.value) {
+    greaseName = typeof formatGreaseDisplayName === "function" ? formatGreaseDisplayName(gSelect.value) : gSelect.value;
+  }
+
+  let rpm = 1450;
+  const rpmInput = document.getElementById("inputRpm");
+  if (rpmInput && rpmInput.value) {
+    const val = parseFloat(rpmInput.value);
+    if (!isNaN(val) && val > 0) rpm = Math.round(val);
+  }
+
+  let savings = 1480;
+  const roiCard = document.getElementById("roiAnnualSavings") || document.getElementById("roiTotalSavingsCard");
+  if (roiCard && roiCard.textContent) {
+    const m = roiCard.textContent.match(/[\d.,]+/);
+    if (m) {
+      const parsed = parseFloat(m[0].replace(/\./g, "").replace(",", "."));
+      if (!isNaN(parsed) && parsed > 0) savings = parsed;
+    }
+  }
+
+  return { bearingName, greaseName, rpm, savings };
+}
+
+function initDigitalTwin3D() {
+  const container = document.getElementById("digitalTwinCanvasContainer");
+  const canvas = document.getElementById("digitalTwinCanvas");
+  if (!container || !canvas || typeof THREE === "undefined") {
+    console.warn("Three.js of Digital Twin canvas container niet gevonden");
+    return;
+  }
+
+  const width = container.clientWidth || 800;
+  const height = container.clientHeight || 500;
+
+  // Scene
+  twinScene = new THREE.Scene();
+  twinScene.background = new THREE.Color(0x080e1a);
+
+  // Camera
+  twinCamera = new THREE.PerspectiveCamera(42, width / height, 0.1, 1000);
+  twinCamera.position.set(7.5, 5.0, 8.5);
+  twinCamera.lookAt(0, 0, 0);
+
+  // Renderer
+  twinRenderer = new THREE.WebGLRenderer({
+    canvas: canvas,
+    antialias: true,
+    alpha: true,
+    powerPreference: "high-performance"
+  });
+  twinRenderer.setSize(width, height, false);
+  twinRenderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+  twinRenderer.shadowMap.enabled = true;
+  twinRenderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+  // Lights
+  const ambientLight = new THREE.AmbientLight(0x334155, 1.4);
+  twinScene.add(ambientLight);
+
+  const keyLight = new THREE.DirectionalLight(0xffffff, 2.0);
+  keyLight.position.set(8, 14, 10);
+  keyLight.castShadow = true;
+  twinScene.add(keyLight);
+
+  const rimLight = new THREE.DirectionalLight(0x38bdf8, 1.4);
+  rimLight.position.set(-8, -4, -6);
+  twinScene.add(rimLight);
+
+  const fillLight = new THREE.DirectionalLight(0x0284c7, 0.8);
+  fillLight.position.set(0, -10, 4);
+  twinScene.add(fillLight);
+
+  // Cavity Light (Pulses green / amber / red)
+  twinCavityLight = new THREE.PointLight(0x10b981, 2.8, 9);
+  twinCavityLight.position.set(0, 0, 0);
+  twinScene.add(twinCavityLight);
+
+  // Ground Grid
+  const gridHelper = new THREE.GridHelper(24, 24, 0x1e293b, 0x0f172a);
+  gridHelper.position.y = -3.4;
+  twinScene.add(gridHelper);
+
+  // Build Bearing 3D Assembly
+  buildBearingAssembly();
+
+  // Setup Interaction (OrbitControls or native pointer drag fallback)
+  setupTwinControls(canvas);
+
+  // Window resize observer
+  window.addEventListener("resize", onTwinWindowResize);
+
+  twinInitialized = true;
+}
+
+function setupTwinControls(canvas) {
+  if (typeof THREE.OrbitControls === "function") {
+    try {
+      twinControls = new THREE.OrbitControls(twinCamera, canvas);
+      twinControls.enableDamping = true;
+      twinControls.dampingFactor = 0.06;
+      twinControls.minDistance = 3.5;
+      twinControls.maxDistance = 24;
+      twinControls.maxPolarAngle = Math.PI / 2 + 0.35;
+      twinControls.target.set(0, 0, 0);
+      return;
+    } catch (e) {
+      console.warn("OrbitControls initialization failed, using fallback drag", e);
+    }
+  }
+
+  // Fallback pointer interaction
+  canvas.addEventListener("pointerdown", function(e) {
+    twinFallbackPointer.isDown = true;
+    twinFallbackPointer.startX = e.clientX;
+    twinFallbackPointer.startY = e.clientY;
+    try { canvas.setPointerCapture(e.pointerId); } catch (_) {}
+  });
+
+  canvas.addEventListener("pointermove", function(e) {
+    if (!twinFallbackPointer.isDown || !twinCamera) return;
+    const dx = e.clientX - twinFallbackPointer.startX;
+    const dy = e.clientY - twinFallbackPointer.startY;
+    twinFallbackPointer.startX = e.clientX;
+    twinFallbackPointer.startY = e.clientY;
+    twinFallbackPointer.theta -= dx * 0.008;
+    twinFallbackPointer.phi = Math.max(0.12, Math.min(Math.PI / 2 + 0.35, twinFallbackPointer.phi - dy * 0.008));
+    updateFallbackCamera();
+  });
+
+  const endDrag = function(e) {
+    twinFallbackPointer.isDown = false;
+    try { canvas.releasePointerCapture(e.pointerId); } catch (_) {}
+  };
+  canvas.addEventListener("pointerup", endDrag);
+  canvas.addEventListener("pointercancel", endDrag);
+
+  canvas.addEventListener("wheel", function(e) {
+    e.preventDefault();
+    twinFallbackPointer.radius = Math.max(3.5, Math.min(24, twinFallbackPointer.radius + e.deltaY * 0.012));
+    updateFallbackCamera();
+  }, { passive: false });
+}
+
+function updateFallbackCamera() {
+  if (!twinCamera) return;
+  twinCamera.position.x = twinFallbackPointer.radius * Math.sin(twinFallbackPointer.phi) * Math.sin(twinFallbackPointer.theta);
+  twinCamera.position.y = twinFallbackPointer.radius * Math.cos(twinFallbackPointer.phi);
+  twinCamera.position.z = twinFallbackPointer.radius * Math.sin(twinFallbackPointer.phi) * Math.cos(twinFallbackPointer.theta);
+  twinCamera.lookAt(0, 0, 0);
+}
+
+function buildBearingAssembly() {
+  if (twinBearingGroup && twinScene) {
+    twinScene.remove(twinBearingGroup);
+  }
+
+  twinBearingGroup = new THREE.Group();
+  twinBalls = [];
+  twinBallFilms = [];
+  twinGreaseSlugs = [];
+
+  const Rp = 2.8;   // Pitch radius
+  const rb = 0.45;  // Ball radius
+  const numBalls = 10;
+  const Roo = 3.9;  // Outer ring OD
+  const Roi = 3.15; // Outer ring raceway ID
+  const Rio = 2.45; // Inner ring raceway OD
+  const Rii = 1.6;  // Inner ring bore ID
+  const W = 1.4;    // Ring width
+  const phiLength = twinSimState.cutaway ? Math.PI * 1.5 : Math.PI * 2.0;
+
+  // Materials
+  const steelOuterMat = new THREE.MeshStandardMaterial({
+    color: 0x94a3b8,
+    metalness: 0.88,
+    roughness: 0.22,
+    side: THREE.DoubleSide
+  });
+
+  const steelInnerMat = new THREE.MeshStandardMaterial({
+    color: 0x94a3b8,
+    metalness: 0.88,
+    roughness: 0.22,
+    side: THREE.DoubleSide
+  });
+
+  const ballSteelMat = new THREE.MeshStandardMaterial({
+    color: 0xf1f5f9,
+    metalness: 0.95,
+    roughness: 0.08
+  });
+
+  const cageBrassMat = new THREE.MeshStandardMaterial({
+    color: 0xd97706,
+    metalness: 0.82,
+    roughness: 0.35,
+    side: THREE.DoubleSide
+  });
+
+  const shaftSteelMat = new THREE.MeshStandardMaterial({
+    color: 0x334155,
+    metalness: 0.82,
+    roughness: 0.4
+  });
+
+  // Dynamic Micpol Film Materials
+  twinFilmMaterial = new THREE.MeshStandardMaterial({
+    color: 0x10b981,
+    emissive: 0x059669,
+    emissiveIntensity: 0.85,
+    transparent: true,
+    opacity: 0.65,
+    roughness: 0.2,
+    metalness: 0.1,
+    side: THREE.DoubleSide
+  });
+
+  twinBallFilmMaterial = new THREE.MeshStandardMaterial({
+    color: 0x10b981,
+    emissive: 0x059669,
+    emissiveIntensity: 0.75,
+    transparent: true,
+    opacity: 0.55,
+    roughness: 0.15,
+    metalness: 0.1
+  });
+
+  // 1. Outer Ring Geometry (Lathe)
+  const outerProfile = [];
+  outerProfile.push(new THREE.Vector2(Roo, -W / 2));
+  outerProfile.push(new THREE.Vector2(Roo, W / 2));
+  outerProfile.push(new THREE.Vector2(Roi, W / 2));
+  // Concave outer raceway arc
+  const arcSteps = 14;
+  for (let i = 0; i <= arcSteps; i++) {
+    const a = -Math.PI / 2 + (Math.PI * i / arcSteps);
+    const rg = 0.48;
+    const r = (Rp + (Roi - Rp)) + rg * Math.cos(a) * 0.6;
+    const y = rg * Math.sin(a);
+    outerProfile.push(new THREE.Vector2(Math.max(Roi, r), y));
+  }
+  outerProfile.push(new THREE.Vector2(Roi, -W / 2));
+  outerProfile.push(new THREE.Vector2(Roo, -W / 2));
+
+  const outerGeo = new THREE.LatheGeometry(outerProfile, 56, 0, phiLength);
+  twinOuterRing = new THREE.Mesh(outerGeo, steelOuterMat);
+  twinOuterRing.rotation.x = Math.PI / 2; // Lie flat in XZ plane
+  twinOuterRing.castShadow = true;
+  twinOuterRing.receiveShadow = true;
+  twinBearingGroup.add(twinOuterRing);
+
+  // 2. Inner Ring Geometry (Lathe)
+  const innerProfile = [];
+  innerProfile.push(new THREE.Vector2(Rii, -W / 2));
+  innerProfile.push(new THREE.Vector2(Rii, W / 2));
+  innerProfile.push(new THREE.Vector2(Rio, W / 2));
+  // Concave inner raceway arc
+  for (let i = 0; i <= arcSteps; i++) {
+    const a = -Math.PI / 2 + (Math.PI * i / arcSteps);
+    const rg = 0.48;
+    const r = (Rp - (Rp - Rio)) - rg * Math.cos(a) * 0.6;
+    const y = rg * Math.sin(a);
+    innerProfile.push(new THREE.Vector2(Math.min(Rio, r), y));
+  }
+  innerProfile.push(new THREE.Vector2(Rio, -W / 2));
+  innerProfile.push(new THREE.Vector2(Rii, -W / 2));
+
+  const innerGeo = new THREE.LatheGeometry(innerProfile, 56, 0, phiLength);
+  twinInnerRing = new THREE.Mesh(innerGeo, steelInnerMat);
+  twinInnerRing.rotation.x = Math.PI / 2;
+  twinInnerRing.castShadow = true;
+  twinBearingGroup.add(twinInnerRing);
+
+  // 3. Central Shaft
+  const shaftGeo = new THREE.CylinderGeometry(Rii * 0.99, Rii * 0.99, 3.6, 40);
+  twinShaft = new THREE.Mesh(shaftGeo, shaftSteelMat);
+  twinShaft.castShadow = true;
+  twinBearingGroup.add(twinShaft);
+
+  // 4. Balls & Micpol Film Coatings
+  const ballGeo = new THREE.SphereGeometry(rb, 32, 24);
+  const ballFilmGeo = new THREE.SphereGeometry(rb * 1.05, 24, 18);
+
+  for (let i = 0; i < numBalls; i++) {
+    const angle = i * 2 * Math.PI / numBalls;
+    // Ball
+    const bMesh = new THREE.Mesh(ballGeo, ballSteelMat);
+    bMesh.position.set(Rp * Math.cos(angle), 0, Rp * Math.sin(angle));
+    bMesh.castShadow = true;
+    twinBearingGroup.add(bMesh);
+    twinBalls.push({ mesh: bMesh, angle: angle });
+
+    // Film coating on ball
+    const fMesh = new THREE.Mesh(ballFilmGeo, twinBallFilmMaterial);
+    fMesh.position.copy(bMesh.position);
+    twinBearingGroup.add(fMesh);
+    twinBallFilms.push(fMesh);
+  }
+
+  // 5. Brass Retainer / Cage
+  const cageGeo = new THREE.TorusGeometry(Rp, 0.22, 14, 56, phiLength);
+  twinCage = new THREE.Mesh(cageGeo, cageBrassMat);
+  twinCage.rotation.x = Math.PI / 2;
+  twinBearingGroup.add(twinCage);
+
+  // 6. Raceway Lubrication Film Ribbon
+  const racewayFilmGeo = new THREE.TorusGeometry(Rp, 0.14, 14, 64, phiLength);
+  twinRacewayFilm = new THREE.Mesh(racewayFilmGeo, twinFilmMaterial);
+  twinRacewayFilm.rotation.x = Math.PI / 2;
+  twinBearingGroup.add(twinRacewayFilm);
+
+  // 7. Lubricator Grease Nipple on top of outer ring
+  twinNippleGroup = new THREE.Group();
+  twinNippleGroup.position.set(0, Roo, 0);
+
+  // Hex nut fitting
+  const hexNutMat = new THREE.MeshStandardMaterial({ color: 0xd4d4d8, metalness: 0.9, roughness: 0.2 });
+  const hexNut = new THREE.Mesh(new THREE.CylinderGeometry(0.32, 0.32, 0.25, 6), hexNutMat);
+  hexNut.position.y = 0.12;
+  twinNippleGroup.add(hexNut);
+
+  // Stainless nipple nozzle
+  const nozzleMat = new THREE.MeshStandardMaterial({ color: 0x0284c7, metalness: 0.8, roughness: 0.3 });
+  const nozzle = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.22, 0.45, 16), nozzleMat);
+  nozzle.position.y = 0.42;
+  twinNippleGroup.add(nozzle);
+
+  // Grease fitting tip
+  const tipMat = new THREE.MeshStandardMaterial({ color: 0xe2e8f0, metalness: 0.95, roughness: 0.1 });
+  const tip = new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.13, 0.2, 16), tipMat);
+  tip.position.y = 0.72;
+  twinNippleGroup.add(tip);
+
+  twinBearingGroup.add(twinNippleGroup);
+
+  // 8. Transparent Feed Line & Grease Slugs
+  const curvePoints = [
+    new THREE.Vector3(0, Roo + 0.8, 0),
+    new THREE.Vector3(0.4, Roo + 1.4, 0.1),
+    new THREE.Vector3(1.2, Roo + 1.9, -0.2),
+    new THREE.Vector3(2.4, Roo + 2.2, -0.4)
+  ];
+  const tubeCurve = new THREE.CatmullRomCurve3(curvePoints);
+  const tubeGeo = new THREE.TubeGeometry(tubeCurve, 32, 0.11, 14, false);
+  const tubeMat = new THREE.MeshStandardMaterial({
+    color: 0x93c5fd,
+    transparent: true,
+    opacity: 0.45,
+    roughness: 0.1,
+    metalness: 0.05
+  });
+  twinFeedTube = new THREE.Mesh(tubeGeo, tubeMat);
+  twinFeedTube.curve = tubeCurve;
+  twinBearingGroup.add(twinFeedTube);
+
+  // Grease Slugs inside tube
+  const slugMat = new THREE.MeshStandardMaterial({
+    color: 0x10b981,
+    emissive: 0x059669,
+    emissiveIntensity: 0.7,
+    roughness: 0.3
+  });
+  const slugGeo = new THREE.SphereGeometry(0.085, 12, 10);
+  for (let s = 0; s < 4; s++) {
+    const sMesh = new THREE.Mesh(slugGeo, slugMat);
+    const progress = s * 0.25;
+    const pt = tubeCurve.getPointAt(1.0 - progress);
+    sMesh.position.copy(pt);
+    twinBearingGroup.add(sMesh);
+    twinGreaseSlugs.push({ mesh: sMesh, progress: progress });
+  }
+
+  // 9. Micpol® Micro-particle Cloud
+  const particleCount = 80;
+  const particleGeo = new THREE.BufferGeometry();
+  const particlePositions = new Float32Array(particleCount * 3);
+  for (let p = 0; p < particleCount; p++) {
+    const pAng = Math.random() * Math.PI * 2;
+    const pRad = Rp + (Math.random() - 0.5) * 0.35;
+    const pY = (Math.random() - 0.5) * 0.4;
+    particlePositions[p * 3] = pRad * Math.cos(pAng);
+    particlePositions[p * 3 + 1] = pY;
+    particlePositions[p * 3 + 2] = pRad * Math.sin(pAng);
+  }
+  particleGeo.setAttribute("position", new THREE.BufferAttribute(particlePositions, 3));
+  const particleMat = new THREE.PointsMaterial({
+    size: 0.09,
+    color: 0x34d399,
+    transparent: true,
+    opacity: 0.85,
+    blending: THREE.AdditiveBlending
+  });
+  twinParticles = new THREE.Points(particleGeo, particleMat);
+  twinBearingGroup.add(twinParticles);
+
+  twinScene.add(twinBearingGroup);
+}
+
+function rebuildBearingGeometry() {
+  if (!twinScene) return;
+  buildBearingAssembly();
+  const btnCut = document.getElementById("btnTwinCutout");
+  if (btnCut) {
+    if (twinSimState.cutaway) {
+      btnCut.classList.add("active");
+      btnCut.innerHTML = "✂️ Cutaway (1/4)";
+      btnCut.style.color = "#38bdf8";
+    } else {
+      btnCut.classList.remove("active");
+      btnCut.innerHTML = "⭕ Volledig Lager";
+      btnCut.style.color = "#94a3b8";
+    }
+  }
+}
+
+function animateDigitalTwin() {
+  if (!twinSimState.isOpen) return;
+
+  const now = (typeof performance !== "undefined" ? performance.now() : Date.now());
+  const dt = Math.min((now - twinSimState.lastFrameTime) / 1000, 0.1);
+  twinSimState.lastFrameTime = now;
+
+  // Calculate FPS
+  twinSimState.fpsCounter++;
+  if (now - twinSimState.lastFpsUpdate >= 1000) {
+    twinSimState.fps = Math.round(twinSimState.fpsCounter * 1000 / (now - twinSimState.lastFpsUpdate));
+    twinSimState.fpsCounter = 0;
+    twinSimState.lastFpsUpdate = now;
+    const fpsEl = document.getElementById("twinFpsCounter");
+    if (fpsEl) fpsEl.textContent = twinSimState.fps + " FPS";
+  }
+
+  if (twinSimState.isPlaying) {
+    const simDt = dt * twinSimState.simSpeed;
+    twinSimState.simTime += simDt;
+
+    // Kinematics (Shaft, Balls, Cage)
+    // Scale visual rotation smoothly so high RPM remains visually pleasing
+    const visualSpeedFactor = 0.05;
+    const omegaShaft = (twinSimState.rpm * 2 * Math.PI / 60) * visualSpeedFactor;
+    const dThetaShaft = omegaShaft * dt;
+    const dThetaCage = dThetaShaft * 0.42;
+    const dThetaSpin = dThetaShaft * 1.25;
+
+    // Rotate inner ring and shaft
+    if (twinInnerRing) twinInnerRing.rotation.z -= dThetaShaft;
+    if (twinShaft) twinShaft.rotation.y += dThetaShaft;
+
+    // Rotate cage
+    if (twinCage) twinCage.rotation.z -= dThetaCage;
+
+    // Rotate balls in orbit and spin
+    if (twinBalls && twinBalls.length > 0) {
+      const Rp = 2.8;
+      const numBalls = twinBalls.length;
+      for (let i = 0; i < numBalls; i++) {
+        const b = twinBalls[i];
+        b.angle = (b.angle || (i * 2 * Math.PI / numBalls)) + dThetaCage;
+        b.mesh.position.x = Rp * Math.cos(b.angle);
+        b.mesh.position.z = Rp * Math.sin(b.angle);
+        b.mesh.rotation.y += dThetaSpin;
+        b.mesh.rotation.x += dThetaSpin * 0.7;
+
+        if (twinBallFilms[i]) {
+          twinBallFilms[i].position.copy(b.mesh.position);
+          twinBallFilms[i].rotation.copy(b.mesh.rotation);
+        }
+      }
+    }
+
+    // Circulate Micpol® particles
+    if (twinParticles && twinParticles.geometry) {
+      const positions = twinParticles.geometry.attributes.position.array;
+      for (let i = 0; i < positions.length; i += 3) {
+        const px = positions[i];
+        const pz = positions[i + 2];
+        const ang = Math.atan2(pz, px) + dThetaCage * 1.12;
+        const rad = Math.sqrt(px * px + pz * pz);
+        positions[i] = rad * Math.cos(ang);
+        positions[i + 2] = rad * Math.sin(ang);
+        positions[i + 1] += Math.sin(twinSimState.simTime * 5 + i) * 0.002;
+      }
+      twinParticles.geometry.attributes.position.needsUpdate = true;
+    }
+
+    // Animate grease slugs in tube
+    if (twinGreaseSlugs && twinGreaseSlugs.length > 0 && twinFeedTube && twinFeedTube.curve) {
+      const slugSpeed = (twinSimState.injectionPulseActive ? 1.0 : (twinSimState.mode === "auto" ? 0.12 : 0.015));
+      for (let s of twinGreaseSlugs) {
+        s.progress = (s.progress + slugSpeed * simDt) % 1.0;
+        const pt = twinFeedTube.curve.getPointAt(1.0 - s.progress);
+        s.mesh.position.copy(pt);
+      }
+    }
+
+    // Pulse Timer Decay
+    if (twinSimState.injectionPulseActive) {
+      twinSimState.injectionPulseTimer -= dt;
+      if (twinSimState.injectionPulseTimer <= 0) {
+        twinSimState.injectionPulseActive = false;
+        const overlay = document.getElementById("twinInjectionPulseOverlay");
+        if (overlay) overlay.style.opacity = "0";
+      }
+    }
+
+    // Update Physics & Telemetry
+    updateTwinSimulationPhysics(simDt);
+  }
+
+  // Update controls
+  if (twinControls && typeof twinControls.update === "function") {
+    twinControls.update();
+  }
+
+  // Render
+  if (twinRenderer && twinScene && twinCamera) {
+    twinRenderer.render(twinScene, twinCamera);
+  }
+
+  twinAnimFrameId = requestAnimationFrame(animateDigitalTwin);
+}
+
+function updateTwinSimulationPhysics(simDt) {
+  let filmColorHex = 0x10b981;
+  let filmEmissiveHex = 0x059669;
+  let hudTitle = "MICPOL® FILM ACTIEF (100%)";
+  let hudDesc = "Optimale elastohydrodynamische vloeistofscheiding & lage wrijving";
+  let dotColor = "#10b981";
+  let filmBarBg = "linear-gradient(90deg, #10b981, #34d399)";
+  let filmSubtext = "Volledige filmopbouw. Micpol® deeltjes nivelleren oppervlakteruwheid (geen metaalcontact).";
+  let frictionBadgeText = "-70% wrijving (Micpol®)";
+  let frictionBadgeColor = "#34d399";
+  let tempBadgeText = "Stabiel thermisch";
+  let tempBadgeColor = "#94a3b8";
+  let wearBadgeText = "Nul loopbaanslijtage";
+  let wearBadgeColor = "#34d399";
+  let lifetimeBadgeText = "+280% verlenging (3.8x)";
+  let lifetimeBadgeColor = "#38bdf8";
+  let timelineHint = "Modus: Continue micro-smering (Pulsarlube Micro-dosering)";
+  let diagnosisText = "<strong style='color: #34d399;'>Automatische Pulsarlube:</strong> Levert non-stop exact berekende micro-doseringen (bvb 0,15 ml/dag). De Micpol® smeerfilm blijft continu 100% intact zonder schadelijke oververhitting of droogloop.";
+
+  const now = (typeof performance !== "undefined" ? performance.now() : Date.now());
+
+  if (twinSimState.mode === "auto") {
+    // AUTOMATIC MODE: Stable optimal regime with micro-dispenses
+    twinSimState.filmHealth = Math.min(1.0, Math.max(0.96, 0.98 + Math.sin(twinSimState.simTime * 1.5) * 0.02));
+    twinSimState.friction = 0.0028 + (1.0 - twinSimState.filmHealth) * 0.01;
+    twinSimState.temperature = 41.0 + (twinSimState.rpm / 2200) * 1.2 + Math.sin(twinSimState.simTime) * 0.15;
+    twinSimState.wearUm = 0.0;
+    twinSimState.lifetimeFactor = 3.8;
+
+    filmColorHex = 0x10b981;
+    filmEmissiveHex = 0x059669;
+    dotColor = "#10b981";
+    filmBarBg = "linear-gradient(90deg, #10b981, #34d399)";
+    timelineHint = "Modus: <span style='color: #10b981; font-weight: 700;'>Continue micro-smering (Pulsarlube)</span>";
+
+    if (twinCavityLight) {
+      twinCavityLight.color.setHex(0x10b981);
+      twinCavityLight.intensity = 2.4;
+    }
+
+  } else {
+    // MANUAL MODE: 60-day Sawtooth Cycle (30 seconds per cycle at 1x speed)
+    const cycleDuration = 30; // seconds
+    const cycleTime = (twinSimState.simTime) % cycleDuration;
+    const day = (cycleTime / cycleDuration) * 60;
+
+    timelineHint = "Modus: <span style='color: #ef4444; font-weight: 700;'>Manueel Zaagtandregime (Dag " + Math.round(day) + " / 60)</span>";
+
+    if (day <= 4) {
+      // Phase 1: Overfill / Churning
+      twinSimState.filmHealth = 1.0;
+      twinSimState.friction = 0.022 + Math.sin(now * 0.01) * 0.003;
+      twinSimState.temperature = 68.0 + (4 - Math.abs(day - 2)) * 1.4;
+      twinSimState.lifetimeFactor = 1.0;
+
+      filmColorHex = 0x84cc16;
+      filmEmissiveHex = 0x4d7c0f;
+      dotColor = "#84cc16";
+      filmBarBg = "linear-gradient(90deg, #84cc16, #a3e635)";
+      hudTitle = "OVERVULLING / CHURNING (100%)";
+      hudDesc = "Hoge inwendige wrijving & opwarming door overmatige vetvulling";
+      filmSubtext = "Lager holte is overvol. Rollende elementen moeten zich door overmaat vet ploegen (churning heat).";
+      frictionBadgeText = "Hoge weerstand (churning)";
+      frictionBadgeColor = "#f59e0b";
+      tempBadgeText = "⚠️ Heet (>68°C)";
+      tempBadgeColor = "#f59e0b";
+      diagnosisText = "<strong style='color: #f59e0b;'>Fase 1 (Dag 1-4) - Overvulling & Churning:</strong> Na manuele vetsmering met de vetspuit zit het lager overvol. De kogels ondervinden zware ploegweerstand, waardoor de temperatuur piekt boven 70°C en het vet sneller oxideert.";
+
+      if (twinCavityLight) {
+        twinCavityLight.color.setHex(0x84cc16);
+        twinCavityLight.intensity = 2.0;
+      }
+
+    } else if (day <= 22) {
+      // Phase 2: Brief optimal window
+      const t = (day - 4) / 18;
+      twinSimState.filmHealth = 0.95 - t * 0.15;
+      twinSimState.friction = 0.006 + t * 0.005;
+      twinSimState.temperature = 48.0 + t * 3.0;
+      twinSimState.lifetimeFactor = 1.2 - t * 0.2;
+
+      filmColorHex = 0x10b981;
+      filmEmissiveHex = 0x059669;
+      dotColor = "#10b981";
+      filmBarBg = "linear-gradient(90deg, #10b981, #34d399)";
+      hudTitle = "OPTIMAAL SMEERVENSTER (" + Math.round(twinSimState.filmHealth * 100) + "%)";
+      hudDesc = "Tijdelijke EHL-film. Dit gunstige venster duurt slechts ~30% van het interval";
+      filmSubtext = "Overtollig vet is weggeperst. Stabiele vloeistofscheiding.";
+      frictionBadgeText = "Normale wrijving";
+      frictionBadgeColor = "#34d399";
+      tempBadgeText = "Normaal";
+      tempBadgeColor = "#94a3b8";
+      diagnosisText = "<strong style='color: #34d399;'>Fase 2 (Dag 4-22) - Kortstondig optimaal:</strong> Het overmatige vet is weggeperst en het lager draait tijdelijk in zijn ideale bereik. Dit gunstige venster duurt echter minder dan een derde van het totale smeerinterval.";
+
+      if (twinCavityLight) {
+        twinCavityLight.color.setHex(0x10b981);
+        twinCavityLight.intensity = 2.2;
+      }
+
+    } else if (day <= 42) {
+      // Phase 3: Degradation & Boundary Lubrication
+      const t = (day - 22) / 20;
+      twinSimState.filmHealth = 0.80 - t * 0.55;
+      twinSimState.friction = 0.011 + t * 0.030;
+      twinSimState.temperature = 51.0 + t * 16.0;
+      twinSimState.wearUm += 0.005 * simDt;
+      twinSimState.lifetimeFactor = Math.max(0.6, 1.0 - t * 0.4);
+
+      filmColorHex = 0xf59e0b;
+      filmEmissiveHex = 0xb45309;
+      dotColor = "#f59e0b";
+      filmBarBg = "linear-gradient(90deg, #f59e0b, #fbbf24)";
+      hudTitle = "⚠️ GRENSSMERING / FILMVERDUNNING (" + Math.round(twinSimState.filmHealth * 100) + "%)";
+      hudDesc = "Basisolie vloeit weg of verdampt. Zeepmatrix droogt uit.";
+      filmSubtext = "Smeerfilm dikte is kleiner dan de oppervlakteruwheid. Microscopische pieken raken elkaar.";
+      frictionBadgeText = "Wrijving stijgt (+300%)";
+      frictionBadgeColor = "#f59e0b";
+      tempBadgeText = "Oplopend (" + Math.round(twinSimState.temperature) + "°C)";
+      tempBadgeColor = "#f59e0b";
+      wearBadgeText = "Beginnende slijtage";
+      wearBadgeColor = "#f59e0b";
+      lifetimeBadgeText = "-40% verkorting";
+      lifetimeBadgeColor = "#f59e0b";
+      diagnosisText = "<strong style='color: #f59e0b;'>Fase 3 (Dag 22-42) - Filmverdunning & Grenssmering:</strong> De basisolie vloeit weg of verdampt en de verdikker droogt uit. De vloeistoffilm verdwijnt, waardoor microscopische oneffenheden elkaar beginnen te raken.";
+
+      if (twinCavityLight) {
+        twinCavityLight.color.setHex(0xf59e0b);
+        twinCavityLight.intensity = 2.0;
+      }
+
+    } else {
+      // Phase 4: Dry Run / Starvation / Metal Contact
+      const t = (day - 42) / 18;
+      twinSimState.filmHealth = Math.max(0.04, 0.25 - t * 0.21);
+      twinSimState.friction = 0.041 + t * 0.045 + (Math.sin(now * 0.05) > 0.6 ? 0.015 : 0);
+      twinSimState.temperature = 67.0 + t * 20.0 + Math.random() * 2.0;
+      twinSimState.wearUm += 0.07 * simDt;
+      twinSimState.lifetimeFactor = Math.max(0.35, 0.6 - t * 0.25);
+
+      filmColorHex = 0xef4444;
+      filmEmissiveHex = 0xdc2626;
+      dotColor = "#ef4444";
+      filmBarBg = "linear-gradient(90deg, #ef4444, #f87171)";
+      hudTitle = "🚨 DROOGLOOP & METAALCONTACT (" + Math.round(twinSimState.filmHealth * 100) + "%)";
+      hudDesc = "Vloeistoffilm verbroken! Wrijvingspieken, pitting en zware slijtage";
+      filmSubtext = "Direct metaal-op-metaal contact. Spoorvorming, adhesieve slijtage en risico op vastlopen.";
+      frictionBadgeText = "🚨 Extreem hoog (+800%)";
+      frictionBadgeColor = "#ef4444";
+      tempBadgeText = "🚨 Alarm (>85°C)";
+      tempBadgeColor = "#ef4444";
+      wearBadgeText = "Zware spoorvorming";
+      wearBadgeColor = "#ef4444";
+      lifetimeBadgeText = "-65% levensduurverlies";
+      lifetimeBadgeColor = "#ef4444";
+      diagnosisText = "<strong style='color: #ef4444;'>Fase 4 (Dag 42-60) - DROOGLOOP & CATASTROFALE SLIJTAGE:</strong> De smeerfilm is volledig verbroken. Metaal-op-metaal contact veroorzaakt micro-lassen en pitting. Dit is de hoofdoorzaak van 54% van alle ongeplande lagerschades!";
+
+      if (twinCavityLight) {
+        twinCavityLight.color.setHex(0xef4444);
+        twinCavityLight.intensity = 2.6 + Math.sin(now * 0.03) * 1.4; // Flickering alert
+      }
+    }
+  }
+
+  // Update 3D Materials
+  if (twinFilmMaterial) {
+    twinFilmMaterial.color.setHex(filmColorHex);
+    twinFilmMaterial.emissive.setHex(filmEmissiveHex);
+    twinFilmMaterial.opacity = Math.max(0.2, twinSimState.filmHealth * 0.65);
+  }
+  if (twinBallFilmMaterial) {
+    twinBallFilmMaterial.color.setHex(filmColorHex);
+    twinBallFilmMaterial.emissive.setHex(filmEmissiveHex);
+    twinBallFilmMaterial.opacity = Math.max(0.15, twinSimState.filmHealth * 0.55);
+  }
+
+  // Update UI Elements
+  const hudBadge = document.getElementById("twinHudFilmBadge");
+  const hudDot = document.getElementById("twinHudFilmDot");
+  const hudTitleEl = document.getElementById("twinHudFilmTitle");
+  const hudDescEl = document.getElementById("twinHudFilmDesc");
+  if (hudBadge) hudBadge.style.borderColor = dotColor;
+  if (hudDot) {
+    hudDot.style.background = dotColor;
+    hudDot.style.boxShadow = "0 0 10px " + dotColor;
+  }
+  if (hudTitleEl) {
+    hudTitleEl.textContent = hudTitle;
+    hudTitleEl.style.color = dotColor;
+  }
+  if (hudDescEl) hudDescEl.textContent = hudDesc;
+
+  const filmPctEl = document.getElementById("twinFilmPercent");
+  const filmBarEl = document.getElementById("twinFilmBar");
+  const filmSubtextEl = document.getElementById("twinFilmSubtext");
+  if (filmPctEl) {
+    filmPctEl.textContent = Math.round(twinSimState.filmHealth * 100) + "%";
+    filmPctEl.style.color = dotColor;
+  }
+  if (filmBarEl) {
+    filmBarEl.style.width = Math.round(twinSimState.filmHealth * 100) + "%";
+    filmBarEl.style.background = filmBarBg;
+  }
+  if (filmSubtextEl) filmSubtextEl.textContent = filmSubtext;
+
+  const frictionValEl = document.getElementById("twinFrictionValue");
+  const frictionBadgeEl = document.getElementById("twinFrictionBadge");
+  if (frictionValEl) frictionValEl.textContent = twinSimState.friction.toFixed(4);
+  if (frictionBadgeEl) {
+    frictionBadgeEl.textContent = frictionBadgeText;
+    frictionBadgeEl.style.color = frictionBadgeColor;
+  }
+
+  const tempValEl = document.getElementById("twinTempValue");
+  const tempBadgeEl = document.getElementById("twinTempBadge");
+  if (tempValEl) {
+    tempValEl.textContent = twinSimState.temperature.toFixed(1) + " °C";
+    tempValEl.style.color = (twinSimState.temperature > 70 ? "#ef4444" : (twinSimState.temperature > 55 ? "#f59e0b" : "#34d399"));
+  }
+  if (tempBadgeEl) {
+    tempBadgeEl.textContent = tempBadgeText;
+    tempBadgeEl.style.color = tempBadgeColor;
+  }
+
+  const wearValEl = document.getElementById("twinWearValue");
+  const wearBadgeEl = document.getElementById("twinWearBadge");
+  if (wearValEl) {
+    wearValEl.textContent = twinSimState.wearUm.toFixed(1) + " μm";
+    wearValEl.style.color = (twinSimState.wearUm > 3.0 ? "#ef4444" : (twinSimState.wearUm > 0.5 ? "#f59e0b" : "#34d399"));
+  }
+  if (wearBadgeEl) {
+    wearBadgeEl.textContent = wearBadgeText;
+    wearBadgeEl.style.color = wearBadgeColor;
+  }
+
+  const lifeValEl = document.getElementById("twinLifetimeFactor");
+  const lifeBadgeEl = document.getElementById("twinLifetimeBadge");
+  if (lifeValEl) {
+    lifeValEl.textContent = twinSimState.lifetimeFactor.toFixed(1) + "x";
+    lifeValEl.style.color = (twinSimState.lifetimeFactor >= 2.0 ? "#38bdf8" : (twinSimState.lifetimeFactor >= 1.0 ? "#34d399" : "#ef4444"));
+  }
+  if (lifeBadgeEl) {
+    lifeBadgeEl.textContent = lifetimeBadgeText;
+    lifeBadgeEl.style.color = lifetimeBadgeColor;
+  }
+
+  const timelineHintEl = document.getElementById("twinTimelineHint");
+  if (timelineHintEl) timelineHintEl.innerHTML = timelineHint;
+
+  const diagTextEl = document.getElementById("twinDiagnosisText");
+  if (diagTextEl) diagTextEl.innerHTML = diagnosisText;
+}
+
+function openDigitalTwinModal() {
+  const modal = document.getElementById("digitalTwinModal");
+  if (!modal) return;
+
+  // Sync with current bearing data
+  const data = getActiveBearingDataForTwin();
+  twinSimState.rpm = data.rpm;
+  twinSimState.annualSavings = data.savings;
+
+  const bearingTitleEl = document.getElementById("twinBearingInfoTitle");
+  if (bearingTitleEl) bearingTitleEl.textContent = data.bearingName;
+
+  const greaseNameEl = document.getElementById("twinGreaseNameText");
+  if (greaseNameEl) greaseNameEl.textContent = data.greaseName;
+
+  const rpmSlider = document.getElementById("twinRpmSlider");
+  const rpmDisplay = document.getElementById("twinRpmDisplay");
+  if (rpmSlider) rpmSlider.value = twinSimState.rpm;
+  if (rpmDisplay) rpmDisplay.textContent = twinSimState.rpm + " RPM";
+
+  const savingsEl = document.getElementById("twinSavingsAmount");
+  if (savingsEl) savingsEl.textContent = formatTwinEuro(twinSimState.annualSavings);
+
+  modal.classList.remove("hidden");
+  document.body.style.overflow = "hidden";
+  twinSimState.isOpen = true;
+  twinSimState.isPlaying = true;
+
+  // Initialize Three.js if first time
+  if (!twinInitialized) {
+    setTimeout(function() {
+      initDigitalTwin3D();
+      onTwinWindowResize();
+      if (!twinAnimFrameId) animateDigitalTwin();
+    }, 50);
+  } else {
+    setTimeout(function() {
+      onTwinWindowResize();
+      if (!twinAnimFrameId) animateDigitalTwin();
+    }, 50);
+  }
+}
+
+function closeDigitalTwinModal() {
+  const modal = document.getElementById("digitalTwinModal");
+  if (modal) modal.classList.add("hidden");
+  document.body.style.overflow = "";
+  twinSimState.isOpen = false;
+
+  if (twinAnimFrameId) {
+    cancelAnimationFrame(twinAnimFrameId);
+    twinAnimFrameId = null;
+  }
+}
+
+function onTwinWindowResize() {
+  if (!twinRenderer || !twinCamera) return;
+  const container = document.getElementById("digitalTwinCanvasContainer");
+  if (!container) return;
+  const width = container.clientWidth || 800;
+  const height = container.clientHeight || 500;
+
+  twinCamera.aspect = width / height;
+  twinCamera.updateProjectionMatrix();
+  twinRenderer.setSize(width, height, false);
+}
+
+function setTwinCameraView(viewName) {
+  if (!twinCamera) return;
+
+  // Update active button classes
+  const btns = ["btnTwinCam3d", "btnTwinCamFront", "btnTwinCamSide", "btnTwinCamTop"];
+  btns.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.classList.remove("active");
+  });
+
+  const activeMap = {
+    perspective: "btnTwinCam3d",
+    front: "btnTwinCamFront",
+    side: "btnTwinCamSide",
+    top: "btnTwinCamTop"
+  };
+  const activeBtn = document.getElementById(activeMap[viewName]);
+  if (activeBtn) activeBtn.classList.add("active");
+
+  if (viewName === "perspective") {
+    twinCamera.position.set(7.5, 5.0, 8.5);
+  } else if (viewName === "front") {
+    twinCamera.position.set(0, 0, 11.5);
+  } else if (viewName === "side") {
+    twinCamera.position.set(11.5, 0, 0);
+  } else if (viewName === "top") {
+    twinCamera.position.set(0, 12.0, 0.01);
+  }
+  twinCamera.lookAt(0, 0, 0);
+
+  if (twinControls) {
+    twinControls.target.set(0, 0, 0);
+    twinControls.update();
+  }
+}
+
+function resetTwinCamera() {
+  setTwinCameraView("perspective");
+}
+
+function toggleTwinCutout() {
+  twinSimState.cutaway = !twinSimState.cutaway;
+  rebuildBearingGeometry();
+}
+
+function toggleTwinPlay() {
+  twinSimState.isPlaying = !twinSimState.isPlaying;
+  const iconEl = document.getElementById("twinPlayPauseIcon");
+  const textEl = document.getElementById("twinPlayPauseText");
+  if (iconEl && textEl) {
+    if (twinSimState.isPlaying) {
+      iconEl.textContent = "⏸️";
+      textEl.textContent = "Live";
+    } else {
+      iconEl.textContent = "▶️";
+      textEl.textContent = "Pauze";
+    }
+  }
+}
+
+function setDigitalTwinMode(mode) {
+  twinSimState.mode = mode;
+  const btnAuto = document.getElementById("btnTwinModeAuto");
+  const btnManual = document.getElementById("btnTwinModeManual");
+  if (btnAuto && btnManual) {
+    if (mode === "auto") {
+      btnAuto.classList.add("active");
+      btnManual.classList.remove("active");
+      twinSimState.filmHealth = 1.0;
+      twinSimState.wearUm = 0.0;
+      twinSimState.lifetimeFactor = 3.8;
+    } else {
+      btnAuto.classList.remove("active");
+      btnManual.classList.add("active");
+      twinSimState.simTime = 0;
+    }
+  }
+}
+
+function setTwinSimSpeed(speed) {
+  twinSimState.simSpeed = speed;
+  const speedIds = [
+    { speed: 1, id: "btnTwinSpeed1" },
+    { speed: 5, id: "btnTwinSpeed5" },
+    { speed: 20, id: "btnTwinSpeed20" },
+    { speed: 60, id: "btnTwinSpeed60" }
+  ];
+  speedIds.forEach(item => {
+    const el = document.getElementById(item.id);
+    if (el) {
+      if (item.speed === speed) el.classList.add("active");
+      else el.classList.remove("active");
+    }
+  });
+}
+
+function onTwinRpmChange(val) {
+  const rpm = Math.max(50, Math.min(6000, parseInt(val, 10) || 1450));
+  twinSimState.rpm = rpm;
+  const disp = document.getElementById("twinRpmDisplay");
+  if (disp) disp.textContent = rpm + " RPM";
+}
+
+function triggerDigitalTwinPulse() {
+  twinSimState.injectionPulseActive = true;
+  twinSimState.injectionPulseTimer = 1.2;
+  twinSimState.filmHealth = 1.0;
+
+  if (twinSimState.mode === "manual") {
+    // Reset manual cycle back to freshly lubricated Day 0
+    twinSimState.simTime = 0;
+  }
+
+  // Flash pulse overlay on 3D canvas
+  const overlay = document.getElementById("twinInjectionPulseOverlay");
+  if (overlay) {
+    overlay.style.opacity = "0.85";
+    setTimeout(function() {
+      overlay.style.opacity = "0";
+    }, 450);
+  }
+
+  // Toast notification
+  if (typeof showToastNotification === "function") {
+    showToastNotification("💉 Verse Interflon Micpol® vetinjectie toegediend! Smeerfilm 100% hersteld.");
+  }
+}
+
 // Make globally accessible
 if (typeof window !== "undefined") {
   window.exportCalculationData = exportCalculationData;
@@ -19959,6 +21030,21 @@ if (typeof window !== "undefined") {
   window.printQrPassports = printQrPassports;
   window.getQrPassportsData = getQrPassportsData;
   window.encodeQrPassportPayload = encodeQrPassportPayload;
+  window.openDigitalTwinModal = openDigitalTwinModal;
+  window.closeDigitalTwinModal = closeDigitalTwinModal;
+  window.initDigitalTwin3D = initDigitalTwin3D;
+  window.buildBearingAssembly = buildBearingAssembly;
+  window.rebuildBearingGeometry = rebuildBearingGeometry;
+  window.animateDigitalTwin = animateDigitalTwin;
+  window.updateTwinSimulationPhysics = updateTwinSimulationPhysics;
+  window.setTwinCameraView = setTwinCameraView;
+  window.resetTwinCamera = resetTwinCamera;
+  window.toggleTwinCutout = toggleTwinCutout;
+  window.toggleTwinPlay = toggleTwinPlay;
+  window.setDigitalTwinMode = setDigitalTwinMode;
+  window.setTwinSimSpeed = setTwinSimSpeed;
+  window.onTwinRpmChange = onTwinRpmChange;
+  window.triggerDigitalTwinPulse = triggerDigitalTwinPulse;
 }
 
 
