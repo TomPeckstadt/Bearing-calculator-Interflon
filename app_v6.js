@@ -18780,6 +18780,53 @@ async function exportCalculationData() {
   try {
     const isEnglish = (typeof currentLang !== "undefined" && currentLang === "en");
 
+    // 0. Ensure all metadata between DOM inputs and localStorage are perfectly synced both ways
+    const syncFieldToLs = (inputId, lsKey) => {
+      const el = document.getElementById(inputId);
+      if (el && el.value !== "") {
+        localStorage.setItem(lsKey, el.value);
+      }
+    };
+    const syncLsToField = (inputId, lsKey) => {
+      const el = document.getElementById(inputId);
+      const val = localStorage.getItem(lsKey);
+      if (el && (!el.value || el.value === "") && val) {
+        el.value = val;
+      }
+    };
+
+    // Sync Client details
+    syncFieldToLs("clientCompanyInput", "client_company");
+    syncFieldToLs("clientContactInput", "client_contact");
+    syncFieldToLs("clientPhoneInput", "client_phone");
+    syncFieldToLs("clientEmailInput", "client_email");
+    syncLsToField("clientCompanyInput", "client_company");
+    syncLsToField("clientContactInput", "client_contact");
+    syncLsToField("clientPhoneInput", "client_phone");
+    syncLsToField("clientEmailInput", "client_email");
+
+    // Sync Operator details (Interflon contactpersoon)
+    syncFieldToLs("opNameInput", "operator_name");
+    syncFieldToLs("opPhoneInput", "operator_phone");
+    syncFieldToLs("opEmailInput", "operator_email");
+    syncLsToField("opNameInput", "operator_name");
+    syncLsToField("opPhoneInput", "operator_phone");
+    syncLsToField("opEmailInput", "operator_email");
+
+    // Sync Technical data
+    syncFieldToLs("techMachineInput", "tech_machine");
+    syncFieldToLs("techAppInput", "tech_app");
+    syncFieldToLs("techBrandInput", "tech_brand");
+    syncFieldToLs("techProductInput", "tech_product");
+    syncFieldToLs("techIntervalInput", "tech_interval");
+    syncFieldToLs("techPriceInput", "tech_price");
+    syncLsToField("techMachineInput", "tech_machine");
+    syncLsToField("techAppInput", "tech_app");
+    syncLsToField("techBrandInput", "tech_brand");
+    syncLsToField("techProductInput", "tech_product");
+    syncLsToField("techIntervalInput", "tech_interval");
+    syncLsToField("techPriceInput", "tech_price");
+
     // Ensure photoLibrary is synchronized from storage if currently empty in memory
     if (!photoLibrary || !Array.isArray(photoLibrary) || photoLibrary.length === 0) {
       try {
@@ -18815,19 +18862,49 @@ async function exportCalculationData() {
       }
     }
 
-    // Explicitly guarantee both photo storage keys exist in localStorage snapshot
-    if (Array.isArray(photoLibrary) && photoLibrary.length > 0) {
-      const photosJson = JSON.stringify(photoLibrary);
+    // Explicitly guarantee all metadata keys exist in localStorage snapshot
+    const clientCompVal = localStorage.getItem("client_company") || (document.getElementById("clientCompanyInput") ? document.getElementById("clientCompanyInput").value : "");
+    const clientContactVal = localStorage.getItem("client_contact") || (document.getElementById("clientContactInput") ? document.getElementById("clientContactInput").value : "");
+    const clientPhoneVal = localStorage.getItem("client_phone") || (document.getElementById("clientPhoneInput") ? document.getElementById("clientPhoneInput").value : "");
+    const clientEmailVal = localStorage.getItem("client_email") || (document.getElementById("clientEmailInput") ? document.getElementById("clientEmailInput").value : "");
+
+    const opNameVal = localStorage.getItem("operator_name") || (document.getElementById("opNameInput") ? document.getElementById("opNameInput").value : "");
+    const opPhoneVal = localStorage.getItem("operator_phone") || (document.getElementById("opPhoneInput") ? document.getElementById("opPhoneInput").value : "");
+    const opEmailVal = localStorage.getItem("operator_email") || (document.getElementById("opEmailInput") ? document.getElementById("opEmailInput").value : "");
+
+    const techMachineVal = localStorage.getItem("tech_machine") || (document.getElementById("techMachineInput") ? document.getElementById("techMachineInput").value : "");
+    const techAppVal = localStorage.getItem("tech_app") || (document.getElementById("techAppInput") ? document.getElementById("techAppInput").value : "");
+    const techBrandVal = localStorage.getItem("tech_brand") || (document.getElementById("techBrandInput") ? document.getElementById("techBrandInput").value : "");
+    const techProductVal = localStorage.getItem("tech_product") || (document.getElementById("techProductInput") ? document.getElementById("techProductInput").value : "");
+    const techIntervalVal = localStorage.getItem("tech_interval") || (document.getElementById("techIntervalInput") ? document.getElementById("techIntervalInput").value : "");
+    const techPriceVal = localStorage.getItem("tech_price") || (document.getElementById("techPriceInput") ? document.getElementById("techPriceInput").value : "");
+
+    localStorageData["client_company"] = clientCompVal;
+    localStorageData["client_contact"] = clientContactVal;
+    localStorageData["client_phone"] = clientPhoneVal;
+    localStorageData["client_email"] = clientEmailVal;
+
+    localStorageData["operator_name"] = opNameVal;
+    localStorageData["operator_phone"] = opPhoneVal;
+    localStorageData["operator_email"] = opEmailVal;
+
+    localStorageData["tech_machine"] = techMachineVal;
+    localStorageData["tech_app"] = techAppVal;
+    localStorageData["tech_brand"] = techBrandVal;
+    localStorageData["tech_product"] = techProductVal;
+    localStorageData["tech_interval"] = techIntervalVal;
+    localStorageData["tech_price"] = techPriceVal;
+
+    const currentPhotos = (Array.isArray(photoLibrary) && photoLibrary.length > 0) ? photoLibrary : ((typeof window !== "undefined" && Array.isArray(window.photoLibrary)) ? window.photoLibrary : []);
+    if (currentPhotos.length > 0) {
+      const photosJson = JSON.stringify(currentPhotos);
       localStorageData["photo_library"] = photosJson;
       localStorageData["photoLibrary"] = photosJson;
     }
 
     // 3. Gather client details for filename
-    const compVal = document.getElementById("clientCompanyInput") ? document.getElementById("clientCompanyInput").value : (localStorage.getItem("app_field_clientCompanyInput") || "");
-    const contactVal = document.getElementById("clientContactInput") ? document.getElementById("clientContactInput").value : (localStorage.getItem("app_field_clientContactInput") || "");
-
-    const cleanComp = sanitizeFilename(compVal);
-    const cleanContact = sanitizeFilename(contactVal);
+    const cleanComp = sanitizeFilename(clientCompVal);
+    const cleanContact = sanitizeFilename(clientContactVal);
     const dateStr = new Date().toISOString().split("T")[0];
 
     let filename = "";
@@ -18845,15 +18922,34 @@ async function exportCalculationData() {
     const exportData = {
       appVersion: "2026.1",
       exportedAt: new Date().toISOString(),
-      clientCompany: compVal,
-      clientContact: contactVal,
+      clientCompany: clientCompVal,
+      clientContact: clientContactVal,
+      client: {
+        company: clientCompVal,
+        contact: clientContactVal,
+        phone: clientPhoneVal,
+        email: clientEmailVal
+      },
+      operator: {
+        name: opNameVal,
+        phone: opPhoneVal,
+        email: opEmailVal
+      },
+      tech: {
+        machine: techMachineVal,
+        app: techAppVal,
+        brand: techBrandVal,
+        product: techProductVal,
+        interval: techIntervalVal,
+        price: techPriceVal
+      },
       inputs: inputsData,
       localStorage: localStorageData,
       autoDevicesState: (typeof autoDevicesState !== "undefined") ? autoDevicesState : null,
       currentSelectedBearing: (typeof currentSelectedBearing !== "undefined") ? currentSelectedBearing : null,
       currentChainData: (typeof currentChainData !== "undefined") ? currentChainData : null,
       activeCalculationMode: (typeof activeCalculationMode !== "undefined") ? activeCalculationMode : "bearing",
-      photoLibrary: (Array.isArray(photoLibrary) && photoLibrary.length > 0) ? photoLibrary : ((typeof photoLibrary !== "undefined" && Array.isArray(photoLibrary)) ? photoLibrary : [])
+      photoLibrary: currentPhotos
     };
 
     const jsonString = JSON.stringify(exportData, null, 2);
@@ -18928,22 +19024,30 @@ function handleImportFileSelected(event) {
           if (data.general && data.general.machineName) {
             localStorage.setItem('app_field_techMachineInput', data.general.machineName);
             localStorage.setItem('app_field_omTechMachine', data.general.machineName);
+            localStorage.setItem('tech_machine', data.general.machineName);
           }
           if (data.contact) {
             if (data.contact.clientCompany) {
               localStorage.setItem('app_field_clientCompanyInput', data.contact.clientCompany);
               localStorage.setItem('app_field_omClientCompany', data.contact.clientCompany);
+              localStorage.setItem('client_company', data.contact.clientCompany);
             }
             if (data.contact.clientContact) {
               localStorage.setItem('app_field_clientContactInput', data.contact.clientContact);
               localStorage.setItem('app_field_omClientContact', data.contact.clientContact);
+              localStorage.setItem('client_contact', data.contact.clientContact);
             }
             if (data.contact.clientEmail) {
               localStorage.setItem('app_field_clientEmailInput', data.contact.clientEmail);
               localStorage.setItem('app_field_omClientEmail', data.contact.clientEmail);
+              localStorage.setItem('client_email', data.contact.clientEmail);
             }
           }
           if (typeof refreshSurveyBearingsList === 'function') refreshSurveyBearingsList(false);
+          if (typeof loadClientDetails === 'function') loadClientDetails();
+          if (typeof loadOperatorDetails === 'function') loadOperatorDetails();
+          if (typeof loadTechDetails === 'function') loadTechDetails();
+          if (typeof updateOmMetadata === 'function') updateOmMetadata();
           if (typeof restoreFormState === 'function') restoreFormState();
           showToastNotification("Vragenlijst succesvol geladen in de calculator!");
           return;
@@ -18952,7 +19056,7 @@ function handleImportFileSelected(event) {
         }
       }
 
-      if (!data.inputs && !data.localStorage) {
+      if (!data.inputs && !data.localStorage && !data.client && !data.operator) {
         showToastNotification("Ongeldig opbrengstmodelbestand.", true);
         return;
       }
@@ -18975,7 +19079,83 @@ function handleImportFileSelected(event) {
         });
       }
 
-      // STEP 3: Restore global states
+      // STEP 3: Robustly extract and restore Klantgegevens, Interflon contactpersoon, and Technical data
+      const comp = (data.client && data.client.company) ||
+                   data.clientCompany ||
+                   (data.localStorage && data.localStorage["client_company"]) ||
+                   (data.inputs && (data.inputs["clientCompanyInput"] || data.inputs["omClientCompany"] || data.inputs["chainOmClientCompany"])) ||
+                   (data.contact && data.contact.clientCompany) || "";
+
+      const contact = (data.client && data.client.contact) ||
+                     data.clientContact ||
+                     (data.localStorage && data.localStorage["client_contact"]) ||
+                     (data.inputs && (data.inputs["clientContactInput"] || data.inputs["omClientContact"] || data.inputs["chainOmClientContact"])) ||
+                     (data.contact && data.contact.clientContact) || "";
+
+      const phone = (data.client && data.client.phone) ||
+                   (data.localStorage && data.localStorage["client_phone"]) ||
+                   (data.inputs && (data.inputs["clientPhoneInput"] || data.inputs["omClientPhone"] || data.inputs["chainOmClientPhone"])) ||
+                   (data.contact && data.contact.clientPhone) || "";
+
+      const email = (data.client && data.client.email) ||
+                   (data.localStorage && data.localStorage["client_email"]) ||
+                   (data.inputs && (data.inputs["clientEmailInput"] || data.inputs["omClientEmail"] || data.inputs["chainOmClientEmail"])) ||
+                   (data.contact && data.contact.clientEmail) || "";
+
+      localStorage.setItem("client_company", comp);
+      localStorage.setItem("client_contact", contact);
+      localStorage.setItem("client_phone", phone);
+      localStorage.setItem("client_email", email);
+
+      const opName = (data.operator && data.operator.name) ||
+                     (data.localStorage && data.localStorage["operator_name"]) ||
+                     (data.inputs && (data.inputs["opNameInput"] || data.inputs["omOpName"] || data.inputs["chainOmOpName"])) || "";
+
+      const opPhone = (data.operator && data.operator.phone) ||
+                      (data.localStorage && data.localStorage["operator_phone"]) ||
+                      (data.inputs && (data.inputs["opPhoneInput"] || data.inputs["omOpPhone"] || data.inputs["chainOmOpPhone"])) || "";
+
+      const opEmail = (data.operator && data.operator.email) ||
+                      (data.localStorage && data.localStorage["operator_email"]) ||
+                      (data.inputs && (data.inputs["opEmailInput"] || data.inputs["omOpEmail"] || data.inputs["chainOmOpEmail"])) || "";
+
+      localStorage.setItem("operator_name", opName);
+      localStorage.setItem("operator_phone", opPhone);
+      localStorage.setItem("operator_email", opEmail);
+
+      const techMachine = (data.tech && data.tech.machine) ||
+                          (data.localStorage && data.localStorage["tech_machine"]) ||
+                          (data.inputs && (data.inputs["techMachineInput"] || data.inputs["omTechMachine"] || data.inputs["chainOmTechMachine"])) ||
+                          (data.general && data.general.machineName) || "";
+
+      const techApp = (data.tech && data.tech.app) ||
+                      (data.localStorage && data.localStorage["tech_app"]) ||
+                      (data.inputs && (data.inputs["techAppInput"] || data.inputs["omTechApp"] || data.inputs["chainOmTechApp"])) || "";
+
+      const techBrand = (data.tech && data.tech.brand) ||
+                        (data.localStorage && data.localStorage["tech_brand"]) ||
+                        (data.inputs && (data.inputs["techBrandInput"] || data.inputs["omTechBrand"] || data.inputs["chainOmTechBrand"])) || "";
+
+      const techProduct = (data.tech && data.tech.product) ||
+                          (data.localStorage && data.localStorage["tech_product"]) ||
+                          (data.inputs && (data.inputs["techProductInput"] || data.inputs["omTechProduct"] || data.inputs["chainOmTechProduct"])) || "";
+
+      const techInterval = (data.tech && data.tech.interval) ||
+                           (data.localStorage && data.localStorage["tech_interval"]) ||
+                           (data.inputs && (data.inputs["techIntervalInput"] || data.inputs["omTechInterval"] || data.inputs["chainOmTechInterval"])) || "";
+
+      const techPrice = (data.tech && data.tech.price) ||
+                        (data.localStorage && data.localStorage["tech_price"]) ||
+                        (data.inputs && (data.inputs["techPriceInput"] || data.inputs["omTechPrice"] || data.inputs["chainOmTechPrice"] || data.inputs["omProdPrice1"] || data.inputs["chainOmProdPrice1"])) || "";
+
+      localStorage.setItem("tech_machine", techMachine);
+      localStorage.setItem("tech_app", techApp);
+      localStorage.setItem("tech_brand", techBrand);
+      localStorage.setItem("tech_product", techProduct);
+      localStorage.setItem("tech_interval", techInterval);
+      localStorage.setItem("tech_price", techPrice);
+
+      // STEP 4: Restore global states
       if (data.activeCalculationMode) {
         window.activeCalculationMode = data.activeCalculationMode;
         if (typeof selectAppMode === "function") selectAppMode(data.activeCalculationMode);
@@ -18990,8 +19170,9 @@ function handleImportFileSelected(event) {
       if (data.currentChainData) {
         window.currentChainData = data.currentChainData;
       }
+
       // Restore photoLibrary safely with multi-source fallback
-      let importedPhotos = null;
+      let importedPhotos = [];
       if (data.photoLibrary && Array.isArray(data.photoLibrary) && data.photoLibrary.length > 0) {
         importedPhotos = data.photoLibrary;
       } else if (data.photo_library && Array.isArray(data.photo_library) && data.photo_library.length > 0) {
@@ -19006,26 +19187,17 @@ function handleImportFileSelected(event) {
         }
       }
 
-      if (importedPhotos && Array.isArray(importedPhotos)) {
-        photoLibrary = importedPhotos;
-        if (typeof window !== "undefined") window.photoLibrary = importedPhotos;
-        try {
-          const jsonStr = JSON.stringify(importedPhotos);
-          localStorage.setItem("photo_library", jsonStr);
-          localStorage.setItem("photoLibrary", jsonStr);
-        } catch(err) {
-          console.warn("Could not write imported photos to localStorage:", err);
-        }
-      } else if (data.photoLibrary && Array.isArray(data.photoLibrary)) {
-        photoLibrary = [];
-        if (typeof window !== "undefined") window.photoLibrary = [];
-        try {
-          localStorage.setItem("photo_library", JSON.stringify([]));
-          localStorage.setItem("photoLibrary", JSON.stringify([]));
-        } catch(err) {}
+      photoLibrary = importedPhotos;
+      if (typeof window !== "undefined") window.photoLibrary = importedPhotos;
+      try {
+        const jsonStr = JSON.stringify(importedPhotos);
+        localStorage.setItem("photo_library", jsonStr);
+        localStorage.setItem("photoLibrary", jsonStr);
+      } catch(err) {
+        console.warn("Could not write imported photos to localStorage:", err);
       }
 
-      // STEP 4: Restore inputs, sync to localStorage, AND dispatch input/change events
+      // STEP 5: Restore inputs, sync to localStorage, AND dispatch input/change events
       if (data.inputs) {
         Object.keys(data.inputs).forEach(id => {
           const val = data.inputs[id];
@@ -19049,7 +19221,15 @@ function handleImportFileSelected(event) {
         });
       }
 
-      // STEP 5: Re-render UI components & trigger recalculations
+      // STEP 6: Explicitly reload all metadata in modals, topbar badges, and Opbrengstmodel columns
+      if (typeof loadClientDetails === "function") loadClientDetails();
+      if (typeof loadOperatorDetails === "function") loadOperatorDetails();
+      if (typeof loadTechDetails === "function") loadTechDetails();
+      if (typeof updateOmMetadata === "function") updateOmMetadata();
+      if (typeof renderPhotoGrid === "function") renderPhotoGrid();
+      if (typeof updatePhotoBadgeCounter === "function") updatePhotoBadgeCounter();
+
+      // STEP 7: Re-render UI components & trigger recalculations
       if (window.currentSelectedBearing && typeof displayBearingData === "function") {
         displayBearingData(window.currentSelectedBearing);
       }
@@ -19059,11 +19239,9 @@ function handleImportFileSelected(event) {
       if (typeof calculateAutomationLubrication === "function") calculateAutomationLubrication();
       if (typeof updateRoiAutomationPage === "function") updateRoiAutomationPage();
       if (typeof calculateChain === "function") calculateChain();
-      if (typeof renderPhotoGrid === "function") renderPhotoGrid();
-      if (typeof updatePhotoBadgeCounter === "function") updatePhotoBadgeCounter();
-      if (typeof updateHeaderBadges === "function") updateHeaderBadges();
+      if (typeof calculateChainTco === "function") calculateChainTco();
 
-      const compName = data.clientCompany || (data.inputs && data.inputs.clientCompanyInput) || "";
+      const compName = comp || data.clientCompany || (data.inputs && data.inputs.clientCompanyInput) || "";
       const msg = isEnglish
         ? (compName ? `Yield model for ${compName} successfully imported!` : "Yield model successfully imported!")
         : (compName ? `Opbrengstmodel van ${compName} succesvol geïmporteerd!` : "Opbrengstmodel succesvol geïmporteerd!");
