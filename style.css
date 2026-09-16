@@ -2417,3 +2417,40 @@ table {
   0%, 100% { opacity: 1; transform: scale(1); }
   50% { opacity: 0.35; transform: scale(0.85); }
 }
+
+
+/* ==========================================================================
+   EXECUTIVE PROPOSAL & CAPEX GENERATOR STYLES
+   ========================================================================== */
+
+.proposal-tab-btn {
+  background: #ffffff;
+  color: #475569;
+  border: 1px solid #cbd5e1;
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-weight: 700;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+.proposal-tab-btn:hover {
+  background: #f1f5f9;
+  color: #0f172a;
+}
+.proposal-tab-btn.active {
+  background: #059669;
+  border-color: #059669;
+  color: #ffffff;
+  box-shadow: 0 2px 6px rgba(5, 150, 105, 0.25);
+}
+
+.proposal-paper {
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+  padding: 16px 20px;
+  position: relative;
+}
