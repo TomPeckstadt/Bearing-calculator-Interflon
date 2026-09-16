@@ -2036,7 +2036,7 @@
             <button type="button" id="btnDigitalTwinRoi" onclick="openDigitalTwinModal()" style="display: inline-flex; align-items: center; gap: 8px; background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%); border: 1.5px solid #0284c7; color: #ffffff; padding: 10px 16px; border-radius: 10px; font-weight: 700; font-size: 13.5px; cursor: pointer; box-shadow: 0 4px 12px rgba(14,165,233,0.3); transition: all 0.2s ease; margin-right: 10px;" onmouseover="this.style.transform='translateY(-1px)';" onmouseout="this.style.transform='none';" title="Bekijk 3D Live Digital Twin simulatie van het smeerregime">
               <span>🌟 3D Digital Twin</span>
             </button>
-            <button type="button" id="btnExecutiveProposal" onclick="openExecutiveProposalModal()" style="display: inline-flex; align-items: center; gap: 8px; background: #ffffff; border: 1.5px solid #059669; color: #059669; padding: 10px 16px; border-radius: 10px; font-weight: 700; font-size: 13.5px; cursor: pointer; box-shadow: 0 2px 5px rgba(5,150,105,0.12); transition: all 0.2s ease; margin-right: 10px;" onmouseover="this.style.background='#ecfdf5'; this.style.borderColor='#047857'; this.style.transform='translateY(-1px)';" onmouseout="this.style.background='#ffffff'; this.style.borderColor='#059669'; this.style.transform='none';" title="Genereer formele directieaanvraag / Capex investeringsvoorstel">
+            <button type="button" id="btnExecutiveProposal" onclick="openExecutiveProposalModal()" style="display: inline-flex; align-items: center; gap: 8px; background: #ffffff; border: 1.5px solid #059669; color: #059669; padding: 10px 16px; border-radius: 10px; font-weight: 700; font-size: 13.5px; cursor: pointer; box-shadow: 0 2px 5px rgba(5,150,105,0.12); transition: all 0.2s ease; margin-right: 10px;" onmouseover="this.style.background='#ecfdf5'; this.style.borderColor='#047857'; this.style.transform='translateY(-1px)';" onmouseout="this.style.background='#ffffff'; this.style.borderColor='#059669'; this.style.transform='none';" title="Genereer formele directieaanvraag / investeringsvoorstel">
               <span>📄 Directievoorstel</span>
             </button>
             <button type="button" id="btnQrPassport" onclick="openQrPassportModal()" style="display: inline-flex; align-items: center; gap: 8px; background: #ffffff; border: 1.5px solid #0284c7; color: #0284c7; padding: 10px 16px; border-radius: 10px; font-weight: 700; font-size: 13.5px; cursor: pointer; box-shadow: 0 2px 5px rgba(2,132,199,0.12); transition: all 0.2s ease; margin-right: 10px;" onmouseover="this.style.background='#f0f9ff'; this.style.borderColor='#0369a1'; this.style.transform='translateY(-1px)';" onmouseout="this.style.background='#ffffff'; this.style.borderColor='#0284c7'; this.style.transform='none';" title="Genereer QR-smeerpaspoorten en machinestickers">
@@ -3824,7 +3824,7 @@
   </div>
 
   <!-- ==========================================================================
-       AI EXECUTIVE SUMMARY & DIRECTIEVOORSTEL MODAL (CAPEX BUDGET)
+       AI EXECUTIVE SUMMARY & DIRECTIEVOORSTEL MODAL
        ========================================================================== -->
   <div id="executiveProposalModal" class="modal-overlay hidden" style="z-index: 10010;" onclick="if(event.target === this) closeExecutiveProposalModal()">
     <div class="modal-card" style="max-width: 980px; width: 96%; max-height: 96vh; display: flex; flex-direction: column; overflow: hidden; padding: 18px 24px; gap: 12px; background: #ffffff; border-radius: var(--border-radius-lg); box-shadow: 0 25px 50px -12px rgba(5,150,105,0.35); border-top: 4px solid #059669;">
@@ -3837,7 +3837,7 @@
           </div>
           <div>
             <h3 style="font-size: 17px; font-weight: 800; color: #0f172a; margin: 0; font-family: 'Outfit', sans-serif; line-height: 1.2;">
-              Directievoorstel <span style="color: #059669;">• Capex Investeringsaanvraag</span>
+              Directievoorstel <span style="color: #059669;">• Investeringsaanvraag & Business Case</span>
             </h3>
             <p style="font-size: 11.5px; color: #64748b; margin: 2px 0 0 0;">
               Genereer een kant-en-klare, cijfermatig onderbouwde motivatie om budget goed te keuren bij de directie of klant
@@ -3879,7 +3879,7 @@
       <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; flex-shrink: 0;">
         <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
           <button type="button" id="tabPropFormal" class="proposal-tab-btn active" onclick="switchExecutiveProposalTab('formal')">
-            📄 Formeel Directievoorstel (Capex)
+            📄 Formeel Directievoorstel
           </button>
           <button type="button" id="tabPropEmail" class="proposal-tab-btn" onclick="switchExecutiveProposalTab('email')">
             ✉️ Snelle Management E-mail
