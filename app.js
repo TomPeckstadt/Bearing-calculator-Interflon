@@ -15363,8 +15363,8 @@ function getOdooQuoteData() {
 
   // Check if configuration is Single Point or Pulsarlube
   const activeDevState = (typeof autoDevicesState !== "undefined" && Array.isArray(autoDevicesState)) ? autoDevicesState : [];
-  const hasPulsarlube = deviceKey.startsWith("pulsarlube") || activeDevState.some(d => d && d.type && d.type.startsWith("pulsarlube"));
-  const isSinglePoint = (deviceKey === "single_point") && !hasPulsarlube;
+  const hasSpGroups = activeDevState.some(d => d && d.isSinglePointGroup && (d.unitCount > 0 || (d.bearingLetters && d.bearingLetters.length > 0)));
+  const isSinglePoint = (deviceKey === "single_point") || (!deviceKey.startsWith("pulsarlube") && hasSpGroups);
 
   let items = [];
   let totalPoints = 0;
@@ -15374,33 +15374,93 @@ function getOdooQuoteData() {
     // SINGLE POINT CONFIGURATION
     const activeSpGroups = activeDevState.filter(d => d && d.isSinglePointGroup && (d.unitCount > 0 || (d.bearingLetters && d.bearingLetters.length > 0)));
     const isSpMultiGroup = (activeSpGroups.length > 1);
-    
-    let totalSpUnits = 0;
+
+    let spGroupList = [];
     if (isSpMultiGroup) {
-      totalSpUnits = activeSpGroups.reduce((sum, g) => sum + (g.unitCount || (g.bearingLetters ? g.bearingLetters.length : 1)), 0);
+      activeSpGroups.forEach(g => {
+        const devCapEl = document.getElementById("autoCartridgeCap_" + g.id);
+        const devCapVal = devCapEl ? parseInt(devCapEl.value, 10) : 0;
+        const cap = devCapVal || g.cap || 125;
+        const count = g.unitCount || (g.bearingLetters ? g.bearingLetters.length : 1);
+        const bearingText = g.groupBearingsText || (g.bearingLetters ? g.bearingLetters.join(', ') : g.id);
+
+        const domCustomPriceEl = document.getElementById("autoCustomPackPrice_" + g.id);
+        const domCustomVal = domCustomPriceEl ? parseFloat(domCustomPriceEl.value) : 0;
+        const customPrice = (!isNaN(domCustomVal) && domCustomVal > 0) ? domCustomVal : (g.customPackPrice || 0);
+
+        const pInfo = getAutomationPriceInfo("single_point", cap, greaseName, 1, customPrice);
+        spGroupList.push({
+          id: g.id,
+          cap: cap,
+          count: count,
+          bearingText: bearingText,
+          pInfo: pInfo
+        });
+      });
     } else {
-      totalSpUnits = window.spNumBearingsValue || (activeDevState[0] && activeDevState[0].unitCount) || 1;
+      const g0 = (activeSpGroups && activeSpGroups[0]) || (activeDevState && activeDevState[0]) || {};
+      const spCapEl = document.getElementById("autoCartridgeCap_A") || document.getElementById("autoCartridgeCap");
+      const cap = (spCapEl ? parseInt(spCapEl.value, 10) : 0) || g0.cap || 125;
+      const count = window.spNumBearingsValue || g0.unitCount || 1;
+      const bearingText = g0.groupBearingsText || (g0.bearingLetters ? g0.bearingLetters.join(', ') : '');
+      const domCustomPriceEl = document.getElementById("autoCustomPackPrice_A") || document.getElementById("autoCustomPackPrice");
+      const domCustomVal = domCustomPriceEl ? parseFloat(domCustomPriceEl.value) : 0;
+      const customPrice = (!isNaN(domCustomVal) && domCustomVal > 0) ? domCustomVal : (g0.customPackPrice || window.customSinglePointPackPrice || 0);
+
+      const pInfo = getAutomationPriceInfo("single_point", cap, greaseName, 1, customPrice);
+      spGroupList.push({
+        id: g0.id || 'A',
+        cap: cap,
+        count: count,
+        bearingText: bearingText,
+        pInfo: pInfo
+      });
     }
+
+    const totalSpUnits = spGroupList.reduce((sum, g) => sum + g.count, 0);
     totalPoints = totalSpUnits;
-    systemTitle = totalSpUnits > 1 ? `${totalSpUnits}x Interflon Single Point Lubricator` : `Interflon Single Point Lubricator`;
 
-    const spCapEl = document.getElementById("autoCartridgeCap_A") || document.getElementById("autoCartridgeCap");
-    const cap = (spCapEl ? parseInt(spCapEl.value, 10) : 0) || (activeDevState[0] ? activeDevState[0].cap : 0) || 125;
+    // Consolidate groups by artNr and cap
+    const spConsolidated = {};
+    spGroupList.forEach(g => {
+      const art = g.pInfo.artNrServicepack || (g.cap === 60 ? "1071" : (g.cap === 250 ? "1051" : "1061"));
+      const key = `${art}_${g.cap}`;
+      if (!spConsolidated[key]) {
+        spConsolidated[key] = {
+          artNr: art,
+          cap: g.cap,
+          unitPrice: g.pInfo.servicepackPrice || (g.cap === 60 ? 47.50 : (g.cap === 250 ? 69.80 : 54.60)),
+          qty: 0,
+          bearingTexts: []
+        };
+      }
+      spConsolidated[key].qty += g.count;
+      if (g.bearingText && !spConsolidated[key].bearingTexts.includes(g.bearingText)) {
+        spConsolidated[key].bearingTexts.push(g.bearingText);
+      }
+    });
 
-    const pInfo = getAutomationPriceInfo("single_point", cap, greaseName, 1);
-    const unitPrice = pInfo.servicepackPrice || 54.60;
-    const artNr = pInfo.artNrServicepack || "1061";
+    const spConsolidatedArr = Object.values(spConsolidated);
+    if (spConsolidatedArr.length > 1) {
+      systemTitle = spConsolidatedArr.map(sc => `${sc.qty}x Interflon Single Point Lubricator (${sc.cap} ml)`).join(" + ");
+    } else {
+      const singleCap = spConsolidatedArr[0] ? spConsolidatedArr[0].cap : 125;
+      systemTitle = totalSpUnits > 1 ? `${totalSpUnits}x Interflon Single Point Lubricator (${singleCap} ml)` : `Interflon Single Point Lubricator (${singleCap} ml)`;
+    }
 
     // 3) Artikelnummer + benaming + prijs + aantal Single Points
-    items.push({
-      artNr: artNr,
-      name: `Interflon Single Point Lubricator ${cap} ml (${greaseName})`,
-      category: "Single Point Smeerunits (Gevuld)",
-      qty: totalSpUnits,
-      unitPrice: unitPrice,
-      totalPrice: totalSpUnits * unitPrice,
-      isOptional: false,
-      unitLabel: "st"
+    spConsolidatedArr.forEach(sc => {
+      const bLabel = (isSpMultiGroup && sc.bearingTexts.length > 0) ? ` — Lager ${sc.bearingTexts.join(', ')}` : "";
+      items.push({
+        artNr: sc.artNr,
+        name: `Interflon Single Point Lubricator ${sc.cap} ml (${greaseName})${bLabel}`,
+        category: "Single Point Smeerunits (Gevuld)",
+        qty: sc.qty,
+        unitPrice: sc.unitPrice,
+        totalPrice: sc.qty * sc.unitPrice,
+        isOptional: false,
+        unitLabel: "st"
+      });
     });
 
     // 4) Optioneel: Single Point Lubricator Stainless Steel Bracket (artikel 7540) + Single Point Lubricator Impulse Connect (artikel 7213)
