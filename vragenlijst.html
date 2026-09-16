@@ -1746,16 +1746,21 @@
     const DEVICE_TYPES = [
       { id: 'single_point', name: 'Interflon Single Point Lubricator', short: 'Single Point', maxPoints: 1 },
       { id: 'pulsarlube_m2', name: 'Pulsarlube M2', short: 'Pulsarlube M2', maxPoints: 8 },
-      { id: 'pulsarlube_msp', name: 'Pulsarlube MSP', short: 'Pulsarlube MSP', maxPoints: 8 },
+      { id: 'pulsarlube_msp_ac', name: 'Pulsarlube MSP AC', short: 'MSP AC', maxPoints: 8 },
+      { id: 'pulsarlube_msp_dc', name: 'Pulsarlube MSP DC', short: 'MSP DC', maxPoints: 8 },
       { id: 'pulsarlube_plc', name: 'Pulsarlube PLC', short: 'Pulsarlube PLC', maxPoints: 8 }
     ];
 
     function getDeviceTypeName(typeId) {
+      if (typeId === 'pulsarlube_msp_ac') return 'Pulsarlube MSP AC';
+      if (typeId === 'pulsarlube_msp_dc' || typeId === 'pulsarlube_msp') return 'Pulsarlube MSP DC';
       const found = DEVICE_TYPES.find(t => t.id === typeId);
       return found ? found.name : 'Pulsarlube M2';
     }
 
     function getDeviceTypeShort(typeId) {
+      if (typeId === 'pulsarlube_msp_ac') return 'MSP AC';
+      if (typeId === 'pulsarlube_msp_dc' || typeId === 'pulsarlube_msp') return 'MSP DC';
       const found = DEVICE_TYPES.find(t => t.id === typeId);
       return found ? found.short : 'M2';
     }
