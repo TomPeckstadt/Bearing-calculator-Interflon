@@ -186,7 +186,7 @@ window.onDevicePeriodChange = onDevicePeriodChange;
 function getValidDispenseMonths(deviceKey, capMl) {
   const cap = parseInt(capMl, 10) || 0;
   const dev = deviceKey || "";
-  if (dev === "pulsarlube_msp" || dev === "pulsarlube_msp_oil") {
+  if (dev === "pulsarlube_msp" || dev === "pulsarlube_msp_ac" || dev === "pulsarlube_msp_dc" || dev === "pulsarlube_msp_oil") {
     if (cap === 125 || cap === 250) {
       return [1, 2, 3, 6, 12];
     }
@@ -203,7 +203,9 @@ function getValidDispenseMonths(deviceKey, capMl) {
 window.getValidDispenseMonths = getValidDispenseMonths;
 
 function getDeviceTypeName(typeId) {
-  if (typeId === "pulsarlube_msp" || typeId === "pulsarlube_msp_oil") return "Pulsarlube MSP";
+  if (typeId === "pulsarlube_msp_ac") return "Pulsarlube MSP AC";
+  if (typeId === "pulsarlube_msp_dc" || typeId === "pulsarlube_msp") return "Pulsarlube MSP DC";
+  if (typeId === "pulsarlube_msp_oil") return "Pulsarlube MSP Oil";
   if (typeId === "pulsarlube_m2") return "Pulsarlube M2";
   if (typeId === "pulsarlube_plc") return "Pulsarlube PLC";
   if (typeId === "single_point") return "Interflon Single Point Lubricator";
@@ -282,7 +284,7 @@ window.getRecommendedSettingMonths = getRecommendedSettingMonths;
 
 function getOptimalSmartAdvice(totalDailyNeedCm3, deviceKey, greaseName) {
   if (!totalDailyNeedCm3 || totalDailyNeedCm3 <= 0) {
-    const defaultDevMonths = (deviceKey === "pulsarlube_msp") ? 6 : 6;
+    const defaultDevMonths = (deviceKey === "pulsarlube_msp" || deviceKey === "pulsarlube_msp_ac" || deviceKey === "pulsarlube_msp_dc") ? 6 : 6;
     return { cap: 125, months: defaultDevMonths, annualCost: 109.2, cartridgesPerYear: 2, unitPackPrice: 54.60, theoMonths: 5.7, label: "Standaard 125 ml op 6 maanden" };
   }
 
@@ -507,7 +509,13 @@ function loadAutomationStateFromLocalStorage() {
     const savedDeviceKey = localStorage.getItem("auto_device_key");
     if (savedDeviceKey) {
       const deviceSelect = document.getElementById("automationDeviceSelect") || document.getElementById("autoDeviceSelect");
-      if (deviceSelect) deviceSelect.value = savedDeviceKey;
+      if (deviceSelect) {
+        if (savedDeviceKey === "pulsarlube_msp") {
+          deviceSelect.value = "pulsarlube_msp_dc";
+        } else {
+          deviceSelect.value = savedDeviceKey;
+        }
+      }
     }
 
     const savedNumDevices = localStorage.getItem("auto_num_devices");
@@ -526,6 +534,7 @@ function loadAutomationStateFromLocalStorage() {
       const parsed = JSON.parse(savedStateJson);
       if (Array.isArray(parsed) && parsed.length > 0) {
         parsed.forEach((item, index) => {
+          if (item && item.type === "pulsarlube_msp") item.type = "pulsarlube_msp_dc";
           if (autoDevicesState[index]) {
             autoDevicesState[index] = { ...autoDevicesState[index], ...item, unit: "months" };
           } else {
@@ -536,9 +545,10 @@ function loadAutomationStateFromLocalStorage() {
     }
 
     if (savedDeviceKey && savedDeviceKey !== "single_point" && Array.isArray(autoDevicesState)) {
+      const effectiveSavedDevKey = (savedDeviceKey === 'pulsarlube_msp') ? 'pulsarlube_msp_dc' : savedDeviceKey;
       const allM2 = autoDevicesState.every(d => !d.type || d.type === 'pulsarlube_m2');
-      if (allM2 && savedDeviceKey !== 'pulsarlube_m2') {
-        autoDevicesState.forEach(d => { if (d) d.type = savedDeviceKey; });
+      if (allM2 && effectiveSavedDevKey !== 'pulsarlube_m2') {
+        autoDevicesState.forEach(d => { if (d) d.type = effectiveSavedDevKey; });
       }
     }
 
@@ -1158,9 +1168,10 @@ function applySurveyConfig(config) {
 
   // --- CASE B: PULSARLUBE MULTI-POINT ---
   const num = Math.min(4, Math.max(1, config.numDevices || 1));
-  const targetType = (config.devices[0] && config.devices[0].type && config.devices[0].type.startsWith('pulsarlube'))
+  let targetType = (config.devices[0] && config.devices[0].type && config.devices[0].type.startsWith('pulsarlube'))
     ? config.devices[0].type
     : 'pulsarlube_m2';
+  if (targetType === 'pulsarlube_msp') targetType = 'pulsarlube_msp_dc';
 
   if (devSelect) {
     devSelect.value = targetType;
@@ -1280,7 +1291,8 @@ function applySurveyConfig(config) {
       }
 
       // Determine and store device type for THIS specific device
-      const thisDevType = (devCfg.type && devCfg.type.startsWith('pulsarlube')) ? devCfg.type : targetType;
+      let thisDevType = (devCfg.type && devCfg.type.startsWith('pulsarlube')) ? devCfg.type : targetType;
+      if (thisDevType === 'pulsarlube_msp') thisDevType = 'pulsarlube_msp_dc';
       autoDevicesState[i].type = thisDevType;
 
       // Automatically apply optimal smart advice for this specific device
@@ -3755,6 +3767,24 @@ function updateAutomationHeaderImages() {
       border: "#fdba74",
       feature: "Extern gevoed &bull; Synchroon met machine"
     },
+    pulsarlube_msp_ac: {
+      name: "Pulsarlube MSP AC",
+      short: "MSP AC",
+      img: "pulsarlube-msp.png",
+      color: "#ea580c",
+      bg: "#ffedd5",
+      border: "#fdba74",
+      feature: "Extern gevoed (AC) &bull; Synchroon met machine"
+    },
+    pulsarlube_msp_dc: {
+      name: "Pulsarlube MSP DC",
+      short: "MSP DC",
+      img: "pulsarlube-msp.png",
+      color: "#ea580c",
+      bg: "#ffedd5",
+      border: "#fdba74",
+      feature: "Extern gevoed (DC) &bull; Synchroon met machine"
+    },
     pulsarlube_plc: {
       name: "Pulsarlube PLC",
       short: "PLC",
@@ -3942,7 +3972,9 @@ function renderAutoDevicesUI() {
     const validDispenseMonths = getValidDispenseMonths(cardDevType, dev.cap);
     const maxMonths = validDispenseMonths[validDispenseMonths.length - 1];
     let devShortName = "";
-    if (cardDevType === "pulsarlube_msp" || cardDevType === "pulsarlube_msp_oil") devShortName = "MSP";
+    if (cardDevType === "pulsarlube_msp_ac") devShortName = "MSP AC";
+    else if (cardDevType === "pulsarlube_msp_dc" || cardDevType === "pulsarlube_msp") devShortName = "MSP DC";
+    else if (cardDevType === "pulsarlube_msp_oil") devShortName = "MSP";
     else if (cardDevType === "pulsarlube_m2") devShortName = "M2";
     else if (cardDevType === "pulsarlube_plc") devShortName = "PLC";
     const isPulsarlubeSpecial = !!devShortName && [60, 125, 250, 500].includes(dev.cap);
@@ -4030,7 +4062,8 @@ function renderAutoDevicesUI() {
         </label>
         <select id="autoDeviceType_${devId}" class="form-select" style="max-width: 230px; padding: 5px 10px; font-size: 12px; font-weight: 700; border-radius: var(--border-radius-sm); border: 1px solid #cbd5e1; background: #ffffff; color: var(--primary-dark);" onchange="onDeviceTypeChange('${devId}', this.value)">
           <option value="pulsarlube_m2"${cardDevType === 'pulsarlube_m2' ? ' selected' : ''}>Pulsarlube M2 (Batterij)</option>
-          <option value="pulsarlube_msp"${cardDevType === 'pulsarlube_msp' ? ' selected' : ''}>Pulsarlube MSP (Synchroon)</option>
+          <option value="pulsarlube_msp_ac"${cardDevType === 'pulsarlube_msp_ac' ? ' selected' : ''}>Pulsarlube MSP AC (Synchroon)</option>
+          <option value="pulsarlube_msp_dc"${(cardDevType === 'pulsarlube_msp_dc' || cardDevType === 'pulsarlube_msp') ? ' selected' : ''}>Pulsarlube MSP DC (Synchroon)</option>
           <option value="pulsarlube_plc"${cardDevType === 'pulsarlube_plc' ? ' selected' : ''}>Pulsarlube PLC (Extern)</option>
         </select>
       </div>
@@ -4478,7 +4511,8 @@ function renderPdfAutomationExtraPage(doc, autoData, autoDataUrl, autoRatio, wat
 
   let baseDeviceName = "Interflon Single Point Lubricator";
   if (deviceKey === "pulsarlube_m2") baseDeviceName = "Pulsarlube M2";
-  else if (deviceKey === "pulsarlube_msp") baseDeviceName = "Pulsarlube MSP";
+  else if (deviceKey === "pulsarlube_msp_ac") baseDeviceName = "Pulsarlube MSP AC";
+  else if (deviceKey === "pulsarlube_msp_dc" || deviceKey === "pulsarlube_msp") baseDeviceName = "Pulsarlube MSP DC";
   else if (deviceKey === "pulsarlube_plc") baseDeviceName = "Pulsarlube PLC";
 
   const selectGrease = document.getElementById("inputGrease") || document.getElementById("selectGrease");
@@ -4602,8 +4636,8 @@ function renderPdfAutomationExtraPage(doc, autoData, autoDataUrl, autoRatio, wat
       doc.setLineWidth(0.3);
       doc.roundedRect(frameX, frameY, frameW, frameH, 2, 2, "FD");
 
-      const shortName = (t === "pulsarlube_msp" || t === "pulsarlube_msp_oil") ? "MSP" : (t === "pulsarlube_plc" ? "PLC" : (t === "pulsarlube_m2" ? "M2" : "Single Point"));
-      const badgeBg = (t === "pulsarlube_msp") ? [234, 88, 12] : (t === "pulsarlube_plc") ? [2, 132, 199] : [220, 38, 38];
+      const shortName = (t === "pulsarlube_msp_ac") ? "MSP AC" : ((t === "pulsarlube_msp_dc" || t === "pulsarlube_msp") ? "MSP DC" : ((t === "pulsarlube_msp_oil") ? "MSP" : (t === "pulsarlube_plc" ? "PLC" : (t === "pulsarlube_m2" ? "M2" : "Single Point"))));
+      const badgeBg = (t === "pulsarlube_msp_ac" || t === "pulsarlube_msp_dc" || t === "pulsarlube_msp") ? [234, 88, 12] : (t === "pulsarlube_plc") ? [2, 132, 199] : [220, 38, 38];
       doc.setFillColor(badgeBg[0], badgeBg[1], badgeBg[2]);
       const badgeW = 14;
       doc.roundedRect(frameX + (frameW - badgeW) / 2, frameY + 1.2, badgeW, 3.4, 1, 1, "F");
@@ -4647,7 +4681,7 @@ function renderPdfAutomationExtraPage(doc, autoData, autoDataUrl, autoRatio, wat
 
     const thisDevType = isSinglePoint ? "single_point" : ((dev && dev.type) ? dev.type : (deviceKey !== "mixed" ? deviceKey : "pulsarlube_m2"));
     const thisDevTypeName = getDeviceTypeName(thisDevType);
-    const thisDevShort = (thisDevType === "pulsarlube_msp" || thisDevType === "pulsarlube_msp_oil") ? "MSP" : (thisDevType === "pulsarlube_plc" ? "PLC" : (thisDevType === "pulsarlube_m2" ? "M2" : "Single Point"));
+    const thisDevShort = (thisDevType === "pulsarlube_msp_ac") ? "MSP AC" : ((thisDevType === "pulsarlube_msp_dc" || thisDevType === "pulsarlube_msp") ? "MSP DC" : ((thisDevType === "pulsarlube_msp_oil") ? "MSP" : (thisDevType === "pulsarlube_plc" ? "PLC" : (thisDevType === "pulsarlube_m2" ? "M2" : "Single Point"))));
 
     const devName = isSinglePoint
       ? (isSpMultiGroup ? `Single Point: Lager ${dev.groupBearingsText || devId} (${groupUnits}x)` : (groupUnits > 1 ? `${groupUnits}x Single Point` : "Single Point"))
@@ -4956,6 +4990,8 @@ function loadAllAutomationImages(callback) {
   const imageSources = {
     pulsarlube_m2: "pulsarlube-m2.png",
     pulsarlube_msp: "pulsarlube-msp.png",
+    pulsarlube_msp_ac: "pulsarlube-msp.png",
+    pulsarlube_msp_dc: "pulsarlube-msp.png",
     pulsarlube_plc: "pulsarlube-plc.png?v=20260823_1525",
     single_point: "interflon-single-point-lubricator.png"
   };
@@ -5044,6 +5080,8 @@ const TRANSLATIONS = {
     descSinglePoint: "De <strong>Interflon Single Point Lubricator</strong> zorgt voor een continue, geautomatiseerde smering van uw lagers. Dit voorkomt onder- en oversmering en verlengt de levensduur van uw roterende apparatuur significant.",
     descPulsarlubeM2: "De <strong>Pulsarlube M2</strong> is een elektro-mechanische automatische smeerunit die <strong>continu 24u/24u en 7d/7d doorsmeert</strong>, gestuurd door een interne micro-processor en pomp. Dit garandeert een uiterst nauwkeurige en constante vetdosering.",
     descPulsarlubeMsp: "De <strong>Pulsarlube MSP</strong> is een extern gevoede, elektro-mechanische automatische smeerunit. Het toestel werkt synchroon met de machine en doseert enkel smeervet gedurende de actieve bedrijfsuren van de installatie.",
+    descPulsarlubeMspAc: "De <strong>Pulsarlube MSP AC</strong> is een op wisselstroom (AC) extern gevoede, elektro-mechanische automatische smeerunit. Het toestel werkt synchroon met de machine en doseert enkel smeervet gedurende de actieve bedrijfsuren van de installatie.",
+    descPulsarlubeMspDc: "De <strong>Pulsarlube MSP DC</strong> is een op gelijkstroom (DC) extern gevoede, elektro-mechanische automatische smeerunit. Het toestel werkt synchroon met de machine en doseert enkel smeervet gedurende de actieve bedrijfsuren van de installatie.",
     descPulsarlubePlc: "De <strong>Pulsarlube PLC</strong> is een geavanceerde, extern gestuurde elektro-mechanische smeerunit die rechtstreeks wordt aangestuurd door de <strong>PLC-besturing van de machine</strong>. Het toestel doseert uiterst nauwkeurig enkel tijdens actieve machinetijd.",
     roiTitle: "ROI Automatisering",
     roiSyncLabel: "Synchroon met Automatisering",
@@ -5315,6 +5353,8 @@ const TRANSLATIONS = {
     deviceSinglePoint: "Interflon Single Point Lubricator",
     devicePulsarlubeM2: "Pulsarlube M2",
     devicePulsarlube: "Pulsarlube MSP",
+    devicePulsarlubeMspAc: "Pulsarlube MSP (AC)",
+    devicePulsarlubeMspDc: "Pulsarlube MSP (DC)",
     devicePulsarlubePlc: "Pulsarlube PLC",
     automationParamsTitle: "Toestel Parameters & Smeerinstelling",
     automationCalcHeader: "Smeerinterval & Dosering",
@@ -5838,6 +5878,8 @@ const TRANSLATIONS = {
     deviceSinglePoint: "Interflon Single Point Lubricator",
     devicePulsarlubeM2: "Pulsarlube M2",
     devicePulsarlube: "Pulsarlube MSP",
+    devicePulsarlubeMspAc: "Pulsarlube MSP (AC)",
+    devicePulsarlubeMspDc: "Pulsarlube MSP (DC)",
     automationParamsTitle: "Device Parameters & Lubrication Setting",
     automationCalcHeader: "Lubrication Interval & Dosage",
     labelCartridgeCap: "Cartridge Capacity (ml)",
@@ -6360,6 +6402,8 @@ const TRANSLATIONS = {
     deviceSinglePoint: "Interflon Single Point Lubricator",
     devicePulsarlubeM2: "Pulsarlube M2",
     devicePulsarlube: "Pulsarlube MSP",
+    devicePulsarlubeMspAc: "Pulsarlube MSP (AC)",
+    devicePulsarlubeMspDc: "Pulsarlube MSP (DC)",
     automationParamsTitle: "Paramètres de l'Appareil & Réglage",
     automationCalcHeader: "Intervalle & Dosage de Lubrification",
     labelCartridgeCap: "Capacité de la Cartouche (ml)",
@@ -10141,7 +10185,7 @@ function runBearingPdfExport(includeTco, includeRoi, includeRaster = true) {
   let autoImgSrc = "interflon-single-point-lubricator.png";
   if (autoDeviceKey === "pulsarlube_m2") {
     autoImgSrc = "pulsarlube-m2.png";
-  } else if (autoDeviceKey === "pulsarlube_msp") {
+  } else if (autoDeviceKey === "pulsarlube_msp" || autoDeviceKey === "pulsarlube_msp_ac" || autoDeviceKey === "pulsarlube_msp_dc") {
     autoImgSrc = "pulsarlube-msp.png";
   } else if (autoDeviceKey === "pulsarlube_plc") {
     autoImgSrc = "pulsarlube-plc.png?v=20260823_1525";
@@ -11666,6 +11710,18 @@ const DEVICE_CAPACITIES = {
     { value: "250", label: "250 ml" },
     { value: "500", label: "500 ml" }
   ],
+  pulsarlube_msp_ac: [
+    { value: "60", label: "60 ml" },
+    { value: "125", label: "125 ml" },
+    { value: "250", label: "250 ml" },
+    { value: "500", label: "500 ml" }
+  ],
+  pulsarlube_msp_dc: [
+    { value: "60", label: "60 ml" },
+    { value: "125", label: "125 ml" },
+    { value: "250", label: "250 ml" },
+    { value: "500", label: "500 ml" }
+  ],
   pulsarlube_plc: [
     { value: "60", label: "60 ml" },
     { value: "125", label: "125 ml" },
@@ -11720,12 +11776,20 @@ function updateAutomationPage() {
       descEl.innerHTML = langData.descPulsarlubeM2 || "De <strong>Pulsarlube M2</strong> is een elektro-mechanische automatische smeerunit die <strong>continu 24u/24u en 7d/7d doorsmeert</strong>, gestuurd door een interne micro-processor en pomp. Dit garandeert een uiterst nauwkeurige en constante vetdosering.";
     }
     if (toggleWrapper) toggleWrapper.style.display = "block";
-  } else if (device === "pulsarlube_msp") {
-    if (titleEl) titleEl.textContent = "Pulsarlube MSP";
+  } else if (device === "pulsarlube_msp_ac") {
+    if (titleEl) titleEl.textContent = "Pulsarlube MSP (AC)";
     if (imgEl) imgEl.src = "pulsarlube-msp.png";
     const langData = (typeof TRANSLATIONS !== "undefined" && TRANSLATIONS[currentLang || "nl"]) || {};
     if (descEl) {
-      descEl.innerHTML = langData.descPulsarlubeMsp || "De <strong>Pulsarlube MSP</strong> is een extern gevoede, elektro-mechanische automatische smeerunit. Het toestel werkt synchroon met de machine en doseert enkel smeervet gedurende de actieve bedrijfsuren van de installatie.";
+      descEl.innerHTML = langData.descPulsarlubeMspAc || "De <strong>Pulsarlube MSP AC</strong> is een op wisselstroom (AC) extern gevoede, elektro-mechanische automatische smeerunit. Het toestel werkt synchroon met de machine en doseert enkel smeervet gedurende de actieve bedrijfsuren van de installatie.";
+    }
+    if (toggleWrapper) toggleWrapper.style.display = "block";
+  } else if (device === "pulsarlube_msp_dc" || device === "pulsarlube_msp") {
+    if (titleEl) titleEl.textContent = "Pulsarlube MSP (DC)";
+    if (imgEl) imgEl.src = "pulsarlube-msp.png";
+    const langData = (typeof TRANSLATIONS !== "undefined" && TRANSLATIONS[currentLang || "nl"]) || {};
+    if (descEl) {
+      descEl.innerHTML = langData.descPulsarlubeMspDc || "De <strong>Pulsarlube MSP DC</strong> is een op gelijkstroom (DC) extern gevoede, elektro-mechanische automatische smeerunit. Het toestel werkt synchroon met de machine en doseert enkel smeervet gedurende de actieve bedrijfsuren van de installatie.";
     }
     if (toggleWrapper) toggleWrapper.style.display = "block";
   } else if (device === "pulsarlube_plc") {
@@ -14913,8 +14977,9 @@ function getAutomationPriceInfo(deviceKey, capMl, greaseName, numPoints = 1, cus
     };
   } else {
     let modelSearch = "M2";
-    if (deviceKey === "pulsarlube_msp") modelSearch = "MSP DC";
-    if (deviceKey === "pulsarlube_plc") modelSearch = "PLC";
+    if (deviceKey === "pulsarlube_msp_ac") modelSearch = "MSP AC";
+    else if (deviceKey === "pulsarlube_msp_dc" || deviceKey === "pulsarlube_msp") modelSearch = "MSP DC";
+    else if (deviceKey === "pulsarlube_plc") modelSearch = "PLC";
 
     const targetPulsarCap = (capMl === 120) ? 125 : capMl;
     const unitMatch = AUTOMATION_PRICE_DATABASE.pulsarlubeUnits.find(item => item.model.includes(modelSearch) && item.cap === targetPulsarCap) ||
@@ -15053,10 +15118,10 @@ function updateRoiAutomationPage() {
       fullDeviceTitle = titleParts.join(" + ");
     }
 
-    const primaryType = typeOrder.includes("pulsarlube_msp") ? "pulsarlube_msp" : (typeOrder[0] || deviceKey);
+    const primaryType = (typeOrder.find(t => t && t.startsWith("pulsarlube_msp"))) || (typeOrder[0] || deviceKey);
     if (primaryType === "pulsarlube_m2") {
       imgSrc = "pulsarlube-m2.png";
-    } else if (primaryType === "pulsarlube_msp") {
+    } else if (primaryType.startsWith("pulsarlube_msp")) {
       imgSrc = "pulsarlube-msp.png";
     } else if (primaryType === "pulsarlube_plc") {
       imgSrc = "pulsarlube-plc.png?v=20260823_1525";
@@ -16704,7 +16769,8 @@ function getQrPassportsData() {
 
       let devTypeLabel = "Pulsarlube M";
       if (thisType === "pulsarlube_m2") devTypeLabel = "Pulsarlube M2";
-      else if (thisType === "pulsarlube_msp") devTypeLabel = "Pulsarlube MSP";
+      else if (thisType === "pulsarlube_msp_ac") devTypeLabel = "Pulsarlube MSP AC";
+      else if (thisType === "pulsarlube_msp_dc" || thisType === "pulsarlube_msp") devTypeLabel = "Pulsarlube MSP DC";
       else if (thisType === "pulsarlube_plc") devTypeLabel = "Pulsarlube PLC";
       else if (thisType === "pulsarlube_ex") devTypeLabel = "Pulsarlube EX";
       else if (thisType === "pulsarlube_bt") devTypeLabel = "Pulsarlube BT";
@@ -18630,7 +18696,8 @@ function getActiveMachineRasterData() {
     for (let i = 0; i < numDevs; i++) {
       let devName = "Toestel 1 • Pulsarlube M2";
       if (devKey === "single_point") devName = "Interflon Single Point Lubricator";
-      else if (devKey === "pulsarlube_msp") devName = "Toestel 1 • Pulsarlube MSP";
+      else if (devKey === "pulsarlube_msp_ac") devName = "Toestel 1 • Pulsarlube MSP AC";
+      else if (devKey === "pulsarlube_msp_dc" || devKey === "pulsarlube_msp") devName = "Toestel 1 • Pulsarlube MSP DC";
       else if (devKey === "pulsarlube_plc") devName = "Toestel 1 • Pulsarlube PLC";
 
       devices.push({
@@ -18996,7 +19063,8 @@ function generateMachineRasterImageDataUrl(rasterData, customZoom = null) {
       // Label badge underneath
       let devNameText = dev.name || `Toestel ${devIdx+1}`;
       if (dev.type === 'pulsarlube_m2') devNameText += ' • Pulsarlube M2';
-      else if (dev.type === 'pulsarlube_msp') devNameText += ' • Pulsarlube MSP';
+      else if (dev.type === 'pulsarlube_msp_ac') devNameText += ' • Pulsarlube MSP AC';
+      else if (dev.type === 'pulsarlube_msp_dc' || dev.type === 'pulsarlube_msp') devNameText += ' • Pulsarlube MSP DC';
       else if (dev.type === 'pulsarlube_plc') devNameText += ' • Pulsarlube PLC';
       else if (dev.type === 'single_point') devNameText = 'Interflon Single Point';
 
@@ -21596,7 +21664,8 @@ function getExecutiveProposalData() {
       }
       totalPoints = ptsSum > 0 ? ptsSum : numDevs;
 
-      if (deviceKey === "pulsarlube_msp") systemType = "Pulsarlube MSP (extern gevoed / PLC)";
+      if (deviceKey === "pulsarlube_msp_ac") systemType = "Pulsarlube MSP AC (extern gevoed AC / synchroon)";
+      else if (deviceKey === "pulsarlube_msp_dc" || deviceKey === "pulsarlube_msp") systemType = "Pulsarlube MSP DC (extern gevoed DC / synchroon)";
       else if (deviceKey === "pulsarlube_plc") systemType = "Pulsarlube PLC (volledig geïntegreerd)";
       else systemType = "Pulsarlube M2 (elektromechanisch)";
     }
