@@ -16014,6 +16014,521 @@ function copyOdooQuoteToClipboard() {
   }
 }
 
+
+/* ==========================================================================
+   QR-CODE SLIM SMEERPASPOORT & STICKER GENERATOR
+   ========================================================================== */
+
+let currentQrPassportTab = "units"; // "units" | "machine"
+
+function encodeQrPassportPayload(data) {
+  try {
+    const jsonStr = JSON.stringify(data);
+    // URL-safe base64 encoding with UTF-8 support
+    const base64 = btoa(unescape(encodeURIComponent(jsonStr)));
+    return base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  } catch (err) {
+    console.error("Fout bij coderen van smeerpaspoort payload:", err);
+    return "";
+  }
+}
+
+function getQrPassportsData() {
+  // 1. Get Client & Machine info
+  const machineryEl = document.getElementById("machinery") || document.getElementById("application");
+  let machineName = (machineryEl && machineryEl.value ? machineryEl.value.trim() : "") || localStorage.getItem("bearing_calc_machinery") || localStorage.getItem("app_field_machinery") || "Machine / Installatie";
+
+  const companyEl = document.getElementById("company");
+  let clientCompany = (companyEl && companyEl.value ? companyEl.value.trim() : "") || localStorage.getItem("bearing_calc_company") || localStorage.getItem("app_field_company") || "Klantbedrijf";
+
+  let greaseName = "Interflon Grease";
+  if (typeof getGreaseName === "function") {
+    greaseName = getGreaseName() || greaseName;
+  } else {
+    const gEl = document.getElementById("greaseSelect");
+    if (gEl && gEl.value) greaseName = gEl.value;
+  }
+
+  const dateStr = new Date().toLocaleDateString("nl-BE");
+
+  // 2. Check device configuration
+  const deviceSelect = document.getElementById("automationDeviceSelect") || document.getElementById("autoDeviceSelect");
+  const deviceKey = deviceSelect ? deviceSelect.value : (window.selectedAutoDevice || "pulsarlube_m2");
+  const isSinglePoint = deviceKey === "single_point";
+
+  const activeDevState = (typeof autoDevicesState !== "undefined" && Array.isArray(autoDevicesState)) ? autoDevicesState : [];
+
+  let passports = [];
+
+  if (isSinglePoint) {
+    // Single Point configuration
+    const activeSpGroups = activeDevState.filter(d => d && d.isSinglePointGroup && (d.unitCount > 0 || (d.bearingLetters && d.bearingLetters.length > 0)));
+    const isSpMultiGroup = activeSpGroups.length > 0;
+
+    if (isSpMultiGroup) {
+      activeSpGroups.forEach((grp, gIdx) => {
+        const devId = grp.id || String.fromCharCode(65 + gIdx);
+        const capEl = document.getElementById("autoCartridgeCap_" + devId);
+        const cap = (capEl ? parseInt(capEl.value, 10) : 0) || grp.cap || 125;
+
+        const periodEl = document.getElementById("autoDispensePeriod_" + devId);
+        const periodVal = (periodEl ? parseFloat(periodEl.value) : 0) || grp.period || 4;
+
+        const dialValEl = document.getElementById("autoDialValue_" + devId);
+        const settingStr = (dialValEl && dialValEl.textContent) ? dialValEl.textContent.trim() : ("Stand " + periodVal + " (" + periodVal + " mnd)");
+
+        const rateEl = document.getElementById("autoDailyVolumeRes_" + devId);
+        const rateStr = (rateEl && rateEl.textContent) ? rateEl.textContent.trim() : "-";
+
+        let artNr = (cap === 60 ? "1071" : (cap === 250 ? "1051" : "1061"));
+        if (typeof getAutomationPriceInfo === "function") {
+          const pInfo = getAutomationPriceInfo("single_point", cap, greaseName, 1);
+          if (pInfo && pInfo.artNrServicepack) artNr = pInfo.artNrServicepack;
+        }
+
+        const bearingText = grp.groupBearingsText || (grp.bearingLetters ? grp.bearingLetters.join(", ") : "");
+        const unitCount = grp.unitCount || (grp.bearingLetters ? grp.bearingLetters.length : 1);
+
+        for (let u = 1; u <= unitCount; u++) {
+          const bearingSub = (grp.bearingLetters && grp.bearingLetters[u - 1])
+            ? ("Lager " + grp.bearingLetters[u - 1])
+            : (bearingText ? ("" + bearingText) : ("Smeerpunt " + u));
+
+          const unitTitle = unitCount > 1 ? ("Unit " + devId + "-" + u) : ("Unit " + devId);
+          passports.push({
+            m: machineName,
+            c: clientCompany,
+            u: unitTitle,
+            t: "single_point",
+            cap: cap,
+            g: greaseName,
+            art: artNr,
+            p: settingStr,
+            v: rateStr,
+            l: bearingSub,
+            d: dateStr,
+            devTypeLabel: "Single Point " + cap + " ml"
+          });
+        }
+      });
+    } else {
+      // Default single point
+      const g0 = activeDevState[0] || {};
+      const capEl = document.getElementById("autoCartridgeCap_A") || document.getElementById("autoCartridgeCap");
+      const cap = (capEl ? parseInt(capEl.value, 10) : 0) || g0.cap || 125;
+
+      const periodEl = document.getElementById("autoDispensePeriod_A") || document.getElementById("autoDispensePeriod");
+      const periodVal = (periodEl ? parseFloat(periodEl.value) : 0) || g0.period || 4;
+
+      const dialValEl = document.getElementById("autoDialValue_A") || document.getElementById("autoDialValue");
+      const settingStr = (dialValEl && dialValEl.textContent) ? dialValEl.textContent.trim() : ("Stand " + periodVal + " (" + periodVal + " mnd)");
+
+      const rateEl = document.getElementById("autoDailyVolumeRes_A") || document.getElementById("autoDailyVolumeRes");
+      const rateStr = (rateEl && rateEl.textContent) ? rateEl.textContent.trim() : "-";
+
+      let artNr = (cap === 60 ? "1071" : (cap === 250 ? "1051" : "1061"));
+      if (typeof getAutomationPriceInfo === "function") {
+        const pInfo = getAutomationPriceInfo("single_point", cap, greaseName, 1);
+        if (pInfo && pInfo.artNrServicepack) artNr = pInfo.artNrServicepack;
+      }
+
+      const count = window.spNumBearingsValue || g0.unitCount || 1;
+
+      for (let u = 1; u <= count; u++) {
+        passports.push({
+          m: machineName,
+          c: clientCompany,
+          u: count > 1 ? ("Single Point #" + u) : "Single Point",
+          t: "single_point",
+          cap: cap,
+          g: greaseName,
+          art: artNr,
+          p: settingStr,
+          v: rateStr,
+          l: "Smeerpunt " + u,
+          d: dateStr,
+          devTypeLabel: "Single Point " + cap + " ml"
+        });
+      }
+    }
+  } else {
+    // Pulsarlube configuration
+    const numDevices = typeof getActiveNumDevices === "function" ? getActiveNumDevices() : 1;
+    for (let i = 0; i < numDevices; i++) {
+      const d = activeDevState[i] || { id: String.fromCharCode(65 + i), points: 1, cap: 125, type: deviceKey };
+      const pts = (typeof d.points === "number") ? d.points : (parseInt(d.points, 10) || 0);
+      if (pts === 0) continue;
+
+      const devId = d.id || String.fromCharCode(65 + i);
+      const capEl = document.getElementById("autoCartridgeCap_" + devId);
+      const cap = (capEl ? parseInt(capEl.value, 10) : 0) || d.cap || 125;
+
+      const periodEl = document.getElementById("autoDispensePeriod_" + devId);
+      const periodVal = (periodEl ? parseFloat(periodEl.value) : 0) || d.period || 6;
+
+      const dialValEl = document.getElementById("autoDialValue_" + devId);
+      const settingStr = (dialValEl && dialValEl.textContent) ? dialValEl.textContent.trim() : (periodVal + " mnd");
+
+      const rateEl = document.getElementById("autoDailyVolumeTotalRes_" + devId) || document.getElementById("autoDailyVolumeRes_" + devId);
+      const rateStr = (rateEl && rateEl.textContent) ? rateEl.textContent.trim() : "-";
+
+      const thisType = d.type || deviceKey;
+      let artNr = "4401";
+      if (typeof getAutomationPriceInfo === "function") {
+        const pInfo = getAutomationPriceInfo(thisType, cap, greaseName, pts);
+        if (pInfo && pInfo.artNrServicepack) artNr = pInfo.artNrServicepack;
+      }
+
+      let devTypeLabel = "Pulsarlube M";
+      if (thisType === "pulsarlube_m2") devTypeLabel = "Pulsarlube M2";
+      else if (thisType === "pulsarlube_msp") devTypeLabel = "Pulsarlube MSP";
+      else if (thisType === "pulsarlube_plc") devTypeLabel = "Pulsarlube PLC";
+      else if (thisType === "pulsarlube_ex") devTypeLabel = "Pulsarlube EX";
+      else if (thisType === "pulsarlube_bt") devTypeLabel = "Pulsarlube BT";
+
+      const bearingsList = (d.connectedBearings && Array.isArray(d.connectedBearings) && d.connectedBearings.length > 0)
+        ? d.connectedBearings.join(", ")
+        : (pts + " " + (pts === 1 ? 'smeerpunt' : 'smeerpunten'));
+
+      passports.push({
+        m: machineName,
+        c: clientCompany,
+        u: "Toestel " + devId,
+        t: thisType,
+        cap: cap,
+        g: greaseName,
+        art: artNr,
+        p: settingStr,
+        v: rateStr,
+        l: bearingsList,
+        d: dateStr,
+        devTypeLabel: devTypeLabel + " " + cap + " ml"
+      });
+    }
+
+    if (passports.length === 0) {
+      passports.push({
+        m: machineName,
+        c: clientCompany,
+        u: "Toestel A",
+        t: deviceKey,
+        cap: 125,
+        g: greaseName,
+        art: "4401",
+        p: "6 mnd",
+        v: "-",
+        l: "1 smeerpunt",
+        d: dateStr,
+        devTypeLabel: "Pulsarlube 125 ml"
+      });
+    }
+  }
+
+  // Calculate total points across units
+  const totalPoints = passports.reduce((sum, p) => {
+    if (p.t === "single_point") return sum + 1;
+    const match = (p.l || "").match(/(\d+)\s+smeer/);
+    if (match) return sum + parseInt(match[1], 10);
+    const parts = (p.l || "").split(",");
+    return sum + (parts.length > 0 ? parts.length : 1);
+  }, 0);
+
+  // Central Machine Passport
+  const centralPassport = {
+    m: machineName,
+    c: clientCompany,
+    u: "Centraal Smeeroverzicht",
+    t: isSinglePoint ? "single_point" : deviceKey,
+    cap: passports[0] ? passports[0].cap : 125,
+    g: greaseName,
+    art: passports.map(p => p.art).filter((v, i, a) => a.indexOf(v) === i).join(", "),
+    p: passports.map(p => p.p).filter((v, i, a) => a.indexOf(v) === i).join(", "),
+    v: passports.map(p => p.v).join(" + "),
+    l: totalPoints + " smeerpunten (" + passports.length + " smeerunits)",
+    d: dateStr,
+    totalPoints: totalPoints,
+    devTypeLabel: isSinglePoint ? "Single Point Smeersysteem" : "Pulsarlube Automatische Smering",
+    isCentral: true
+  };
+
+  return {
+    machineName,
+    clientCompany,
+    greaseName,
+    dateStr,
+    totalPoints,
+    isSinglePoint,
+    units: passports,
+    central: centralPassport
+  };
+}
+
+function openQrPassportModal() {
+  const modal = document.getElementById("qrPassportModal");
+  if (!modal) return;
+
+  renderQrPassportStickers();
+  modal.classList.remove("hidden");
+  document.body.style.overflow = "hidden";
+}
+
+function closeQrPassportModal() {
+  const modal = document.getElementById("qrPassportModal");
+  if (modal) modal.classList.add("hidden");
+  document.body.style.overflow = "";
+}
+
+function switchQrPassportTab(tabName) {
+  currentQrPassportTab = tabName;
+  const tabUnits = document.getElementById("tabQrUnitStickers");
+  const tabMachine = document.getElementById("tabQrMachineSticker");
+
+  if (tabUnits && tabMachine) {
+    if (tabName === "units") {
+      tabUnits.style.background = "#0284c7";
+      tabUnits.style.color = "#ffffff";
+      tabUnits.style.borderColor = "transparent";
+      tabMachine.style.background = "#ffffff";
+      tabMachine.style.color = "#475569";
+      tabMachine.style.border = "1px solid #cbd5e1";
+    } else {
+      tabMachine.style.background = "#0284c7";
+      tabMachine.style.color = "#ffffff";
+      tabMachine.style.borderColor = "transparent";
+      tabUnits.style.background = "#ffffff";
+      tabUnits.style.color = "#475569";
+      tabUnits.style.border = "1px solid #cbd5e1";
+    }
+  }
+
+  renderQrPassportStickers();
+}
+
+function renderQrPassportStickers() {
+  const container = document.getElementById("qrPrintableStickerSheet");
+  if (!container) return;
+
+  const sizeSelect = document.getElementById("qrStickerSizeSelect");
+  const selectedSize = sizeSelect ? sizeSelect.value : "standard";
+  container.className = "qr-sticker-sheet qr-size-" + selectedSize;
+
+  const urlSelect = document.getElementById("qrStickerUrlSelect");
+  const useOnlineUrl = !urlSelect || urlSelect.value === "online";
+
+  const data = getQrPassportsData();
+  const baseUrl = useOnlineUrl
+    ? "https://TomPeckstadt.github.io/Bearing-calculator-Interflon/paspoort.html#data="
+    : "paspoort.html#data=";
+
+  let html = "";
+
+  if (currentQrPassportTab === "units") {
+    // Render individual unit stickers
+    data.units.forEach((u, idx) => {
+      const payload = encodeQrPassportPayload(u);
+      const fullUrl = baseUrl + payload;
+
+      let qrDataUrl = "";
+      try {
+        if (typeof qrcode === "function") {
+          const qr = qrcode(0, "M");
+          qr.addData(fullUrl);
+          qr.make();
+          qrDataUrl = qr.createDataURL(4, 2);
+        }
+      } catch (err) {
+        console.warn("QR generator fout:", err);
+      }
+
+      html += `
+        <div class="qr-sticker-card">
+          <!-- Top Branding Strip -->
+          <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #E30613; padding-bottom: 4px; margin-bottom: 6px;">
+            <div style="display: flex; align-items: center; gap: 6px;">
+              <span style="font-family: 'Outfit', sans-serif; font-size: 13px; font-weight: 900; color: #E30613; letter-spacing: 0.5px;">INTERFLON</span>
+              <span style="font-size: 9.5px; font-weight: 700; color: #64748b; text-transform: uppercase;">SMEERPASPOORT</span>
+            </div>
+            <div style="background: #0f172a; color: #ffffff; font-size: 10px; font-weight: 800; padding: 2px 7px; border-radius: 4px; text-transform: uppercase; letter-spacing: 0.5px;">
+              ${escapeOdooHtml(u.u)}
+            </div>
+          </div>
+
+          <!-- Body -->
+          <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; flex: 1;">
+            <!-- Specs (Left) -->
+            <div style="flex: 1; min-width: 0; font-size: 10.5px; line-height: 1.35; color: #1e293b;">
+              <div style="font-weight: 800; font-size: 11.5px; color: #0f172a; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${escapeOdooHtml(u.m)}">
+                🏭 ${escapeOdooHtml(u.m)}
+              </div>
+              <div style="font-size: 10px; color: #64748b; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                ${escapeOdooHtml(u.c)} &bull; ${escapeOdooHtml(u.devTypeLabel)}
+              </div>
+
+              <div style="background: #f8fafc; border-left: 3px solid #0284c7; padding: 3px 6px; margin-bottom: 4px; border-radius: 2px;">
+                <div style="font-size: 9px; font-weight: 700; color: #64748b; text-transform: uppercase;">Smeermiddel & Navulling:</div>
+                <div style="font-weight: 800; color: #0f172a; font-size: 10.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${escapeOdooHtml(u.g)}</div>
+                <div style="font-size: 10px; font-weight: 700; color: #0284c7;">Art. ${escapeOdooHtml(u.art)} (${u.cap} ml)</div>
+              </div>
+
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 4px; font-size: 9.5px;">
+                <div>
+                  <span style="color: #64748b; font-weight: 600;">Instelling:</span><br>
+                  <strong style="color: #dc2626; font-size: 10.5px;">${escapeOdooHtml(u.p)}</strong>
+                </div>
+                <div>
+                  <span style="color: #64748b; font-weight: 600;">Afgifte:</span><br>
+                  <strong style="color: #0f172a; font-size: 10.5px;">${escapeOdooHtml(u.v)}</strong>
+                </div>
+              </div>
+
+              <div style="margin-top: 4px; font-size: 9.5px; color: #334155; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                📍 <strong>Punten:</strong> ${escapeOdooHtml(u.l)}
+              </div>
+            </div>
+
+            <!-- QR Code (Right) -->
+            <div class="qr-img-box" style="display: flex; flex-direction: column; align-items: center; justify-content: center; flex-shrink: 0; text-align: center;">
+              <div style="background: #ffffff; padding: 2px; border: 1px solid #cbd5e1; border-radius: 4px; display: flex; align-items: center; justify-content: center; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
+                ${qrDataUrl ? `<img src="${qrDataUrl}" alt="QR Code" style="image-rendering: pixelated; display: block;">` : `<div style="font-size: 10px; color: red;">QR n/a</div>`}
+              </div>
+              <span style="font-size: 7.5px; font-weight: 800; color: #0284c7; margin-top: 3px; letter-spacing: 0.2px; text-transform: uppercase;">
+                📱 Scan paspoort
+              </span>
+            </div>
+          </div>
+
+          <!-- Micro Footer -->
+          <div style="margin-top: 4px; padding-top: 3px; border-top: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: space-between; font-size: 8px; color: #94a3b8;">
+            <span>Datum: ${escapeOdooHtml(u.d)}</span>
+            <span>Interflon Service &bull; www.interflon.com</span>
+          </div>
+        </div>
+      `;
+    });
+
+    const summaryEl = document.getElementById("qrPassportStatusSummary");
+    if (summaryEl) {
+      summaryEl.innerHTML = "<strong>" + data.units.length + "</strong> individuele smeerunit stickers gereed &bull; Formaat: <strong>" + selectedSize + "</strong>";
+    }
+
+  } else {
+    // Render Central Machine Sticker
+    const c = data.central;
+    const payload = encodeQrPassportPayload(c);
+    const fullUrl = baseUrl + payload;
+
+    let qrDataUrl = "";
+    try {
+      if (typeof qrcode === "function") {
+        const qr = qrcode(0, "M");
+        qr.addData(fullUrl);
+        qr.make();
+        qrDataUrl = qr.createDataURL(4, 2);
+      }
+    } catch (err) {
+      console.warn("QR generator fout:", err);
+    }
+
+    let unitRowsHtml = "";
+    data.units.forEach((u, i) => {
+      const bg = i % 2 === 0 ? "#ffffff" : "#f8fafc";
+      unitRowsHtml += `
+        <tr style="background: ${bg}; border-bottom: 1px solid #e2e8f0;">
+          <td style="padding: 4px 8px; font-weight: 700; color: #0f172a;">${escapeOdooHtml(u.u)}</td>
+          <td style="padding: 4px 8px; color: #475569;">${escapeOdooHtml(u.devTypeLabel)}</td>
+          <td style="padding: 4px 8px; color: #0284c7; font-weight: 600;">Art. ${escapeOdooHtml(u.art)}</td>
+          <td style="padding: 4px 8px; font-weight: 700; color: #dc2626;">${escapeOdooHtml(u.p)}</td>
+          <td style="padding: 4px 8px; text-align: right; color: #0f172a;">${escapeOdooHtml(u.v)}</td>
+          <td style="padding: 4px 8px; color: #64748b; font-size: 9.5px;">${escapeOdooHtml(u.l)}</td>
+        </tr>
+      `;
+    });
+
+    html = `
+      <div class="qr-sticker-card" style="grid-column: 1 / -1; max-width: 780px; margin: 0 auto; border: 2px solid #0f172a; padding: 14px 18px;">
+        <!-- Top Banner -->
+        <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 3px solid #E30613; padding-bottom: 6px; margin-bottom: 10px;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span style="font-family: 'Outfit', sans-serif; font-size: 16px; font-weight: 900; color: #E30613; letter-spacing: 0.5px;">INTERFLON</span>
+            <span style="background: #e0f2fe; color: #0369a1; font-size: 10.5px; font-weight: 800; padding: 2px 8px; border-radius: 4px; text-transform: uppercase;">
+              CENTRALE MACHINESTICKER
+            </span>
+          </div>
+          <div style="font-size: 11px; font-weight: 700; color: #64748b;">
+            Datum: ${escapeOdooHtml(c.d)}
+          </div>
+        </div>
+
+        <!-- Body -->
+        <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 16px;">
+          <div style="flex: 1; min-width: 0;">
+            <div style="font-size: 15px; font-weight: 800; color: #0f172a; margin-bottom: 2px;">
+              🏭 ${escapeOdooHtml(c.m)}
+            </div>
+            <div style="font-size: 12px; color: #475569; margin-bottom: 10px;">
+              Klant: <strong>${escapeOdooHtml(c.c)}</strong> &bull; Totaal: <strong>${data.totalPoints} smeerpunten</strong> over <strong>${data.units.length} units</strong>
+            </div>
+
+            <!-- Units Table -->
+            <div style="border: 1px solid #cbd5e1; border-radius: 6px; overflow: hidden; margin-bottom: 8px;">
+              <table style="width: 100%; border-collapse: collapse; font-size: 11px; text-align: left;">
+                <thead style="background: #f1f5f9; border-bottom: 1.5px solid #cbd5e1; color: #475569; font-size: 10px; text-transform: uppercase;">
+                  <tr>
+                    <th style="padding: 4px 8px;">Unit</th>
+                    <th style="padding: 4px 8px;">Systeem</th>
+                    <th style="padding: 4px 8px;">Navulling</th>
+                    <th style="padding: 4px 8px;">Instelling</th>
+                    <th style="padding: 4px 8px; text-align: right;">Afgifte</th>
+                    <th style="padding: 4px 8px;">Smeerpunten</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${unitRowsHtml}
+                </tbody>
+              </table>
+            </div>
+
+            <div style="font-size: 10.5px; color: #64748b; background: #f8fafc; border-left: 3px solid #E30613; padding: 4px 8px; border-radius: 2px;">
+              Smeermiddel: <strong>${escapeOdooHtml(c.g)}</strong> &bull; Systeem: <strong>${escapeOdooHtml(c.devTypeLabel)}</strong>
+            </div>
+          </div>
+
+          <!-- Central QR Code -->
+          <div class="qr-img-box" style="display: flex; flex-direction: column; align-items: center; justify-content: center; flex-shrink: 0; width: 110px; text-align: center;">
+            <div style="background: #ffffff; padding: 3px; border: 1.5px solid #cbd5e1; border-radius: 6px; display: flex; align-items: center; justify-content: center; box-shadow: 0 1px 3px rgba(0,0,0,0.08);">
+              ${qrDataUrl ? `<img src="${qrDataUrl}" alt="Centrale QR Code" style="width: 95px !important; height: 95px !important; image-rendering: pixelated; display: block;">` : `<div style="font-size: 10px; color: red;">QR n/a</div>`}
+            </div>
+            <span style="font-size: 8px; font-weight: 800; color: #0284c7; margin-top: 4px; letter-spacing: 0.2px; text-transform: uppercase;">
+              📱 Scan Machinepaspoort
+            </span>
+          </div>
+        </div>
+
+        <!-- Footer -->
+        <div style="margin-top: 8px; padding-top: 4px; border-top: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: space-between; font-size: 9px; color: #94a3b8;">
+          <span>Interflon Technische Ondersteuning &bull; Betrouwbare Automatische Smering</span>
+          <span>www.interflon.com</span>
+        </div>
+      </div>
+    `;
+
+    const summaryEl = document.getElementById("qrPassportStatusSummary");
+    if (summaryEl) {
+      summaryEl.innerHTML = "Centrale Machinesticker voor <strong>" + escapeOdooHtml(data.machineName) + "</strong> (" + data.units.length + " units, " + data.totalPoints + " smeerpunten)";
+    }
+  }
+
+  container.innerHTML = html;
+}
+
+function printQrPassports() {
+  document.body.classList.add("printing-qr-stickers");
+  window.print();
+  setTimeout(() => {
+    document.body.classList.remove("printing-qr-stickers");
+  }, 1000);
+}
+
 /* ==========================================================================
    INTERACTIVE AI AVATAR SPEECH CONTROLLER (MICPOL - INTERFLON SPECIALIST)
    ========================================================================== */
@@ -19324,6 +19839,13 @@ if (typeof window !== "undefined") {
   window.closeOdooQuoteModal = closeOdooQuoteModal;
   window.copyOdooQuoteToClipboard = copyOdooQuoteToClipboard;
   window.getOdooQuoteData = getOdooQuoteData;
+  window.openQrPassportModal = openQrPassportModal;
+  window.closeQrPassportModal = closeQrPassportModal;
+  window.switchQrPassportTab = switchQrPassportTab;
+  window.renderQrPassportStickers = renderQrPassportStickers;
+  window.printQrPassports = printQrPassports;
+  window.getQrPassportsData = getQrPassportsData;
+  window.encodeQrPassportPayload = encodeQrPassportPayload;
 }
 
 
