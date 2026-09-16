@@ -5146,7 +5146,8 @@
           bearings: bearings,
           totalBearings: bearings.length,
           bearingDataMapSec2: (typeof bearingDataMapSec2 !== "undefined") ? JSON.parse(JSON.stringify(bearingDataMapSec2)) : null,
-          bearingDataMapSec3: (typeof bearingDataMapSec3 !== "undefined") ? JSON.parse(JSON.stringify(bearingDataMapSec3)) : null
+          bearingDataMapSec3: (typeof bearingDataMapSec3 !== "undefined") ? JSON.parse(JSON.stringify(bearingDataMapSec3)) : null,
+          bearingDataMapSec4: (typeof bearingDataMapSec4 !== "undefined") ? JSON.parse(JSON.stringify(bearingDataMapSec4)) : null
         };
 
         window.currentSurveyRasterConfig = configToSave;
@@ -5214,7 +5215,12 @@
             if (!window.__surveySyncBroadcastChannel) {
               window.__surveySyncBroadcastChannel = new BroadcastChannel('interflon_questionnaire_sync');
             }
-            window.__surveySyncBroadcastChannel.postMessage({ type: 'CONFIG_UPDATED', config: configToSave, bearings: bearings });
+            window.__surveySyncBroadcastChannel.postMessage({
+              type: 'CONFIG_UPDATED',
+              config: configToSave,
+              bearings: bearings,
+              fullData: (typeof fullData !== 'undefined' ? fullData : null)
+            });
           }
         } catch (e) {}
 
