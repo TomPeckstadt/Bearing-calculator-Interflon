@@ -16476,17 +16476,19 @@ function renderQrPassportStickers() {
           <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; flex: 1;">
             <!-- Specs (Left) -->
             <div style="flex: 1; min-width: 0; font-size: 10.5px; line-height: 1.35; color: #1e293b;">
-              <!-- Explicit Machine & Client Labels -->
+              <!-- Explicit Machine, Device & Client Labels -->
               <div style="margin-bottom: 4px;">
-                <div style="font-size: 11px; line-height: 1.3; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${escapeOdooHtml(u.m)}">
-                  <span style="font-size: 9.5px; font-weight: 800; color: #64748b; text-transform: uppercase; letter-spacing: 0.3px;">MACHINE:</span>
-                  <strong style="color: #0f172a; font-size: 11.5px; margin-left: 3px;">${escapeOdooHtml(u.m)}</strong>
+                <div style="font-size: 11px; line-height: 1.25; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${escapeOdooHtml(u.m)}">
+                  <span style="font-size: 9px; font-weight: 800; color: #64748b; text-transform: uppercase; letter-spacing: 0.3px;">MACHINE:</span>
+                  <strong style="color: #0f172a; font-size: 11px; margin-left: 3px;">${escapeOdooHtml(u.m)}</strong>
                 </div>
-                <div style="font-size: 10px; color: #475569; line-height: 1.3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                  <span style="font-size: 9px; font-weight: 700; color: #64748b; text-transform: uppercase;">KLANT:</span>
+                <div style="font-size: 10.5px; line-height: 1.25; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${escapeOdooHtml(u.devTypeLabel)}">
+                  <span style="font-size: 9px; font-weight: 800; color: #0284c7; text-transform: uppercase; letter-spacing: 0.3px;">TOESTEL:</span>
+                  <strong style="color: #0284c7; font-size: 10.5px; margin-left: 3px;">${escapeOdooHtml(u.devTypeLabel)}</strong>
+                </div>
+                <div style="font-size: 9.5px; color: #475569; line-height: 1.25; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${escapeOdooHtml(u.c)}">
+                  <span style="font-size: 8.5px; font-weight: 700; color: #64748b; text-transform: uppercase;">KLANT:</span>
                   <span style="font-weight: 600; margin-left: 3px;">${escapeOdooHtml(u.c)}</span>
-                  <span style="color: #94a3b8; margin: 0 4px;">&bull;</span>
-                  <span style="color: #0284c7; font-weight: 700;">${escapeOdooHtml(u.devTypeLabel)}</span>
                 </div>
               </div>
 
