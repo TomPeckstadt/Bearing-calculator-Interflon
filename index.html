@@ -2022,6 +2022,9 @@
 
           <!-- ODOO QUOTE BUTTON (Enkel de knop rechts in het veld) -->
           <div style="display: flex; align-items: center; justify-content: flex-end; margin-left: auto; flex-shrink: 0;">
+            <button type="button" id="btnQrPassport" onclick="openQrPassportModal()" style="display: inline-flex; align-items: center; gap: 8px; background: #ffffff; border: 1.5px solid #0284c7; color: #0284c7; padding: 10px 16px; border-radius: 10px; font-weight: 700; font-size: 13.5px; cursor: pointer; box-shadow: 0 2px 5px rgba(2,132,199,0.12); transition: all 0.2s ease; margin-right: 10px;" onmouseover="this.style.background='#f0f9ff'; this.style.borderColor='#0369a1'; this.style.transform='translateY(-1px)';" onmouseout="this.style.background='#ffffff'; this.style.borderColor='#0284c7'; this.style.transform='none';" title="Genereer QR-smeerpaspoorten en machinestickers">
+              <span>🏷️ Smeerpaspoort & QR</span>
+            </button>
             <button type="button" id="btnOdooQuote" onclick="openOdooQuoteModal()" style="display: inline-flex; align-items: center; gap: 10px; background: #ffffff; border: 1.5px solid #714B67; color: #714B67; padding: 10px 18px; border-radius: 10px; font-weight: 700; font-size: 13.5px; cursor: pointer; box-shadow: 0 2px 5px rgba(113,75,103,0.12); transition: all 0.2s ease;" onmouseover="this.style.background='#fdf4f9'; this.style.borderColor='#58344e'; this.style.transform='translateY(-1px)';" onmouseout="this.style.background='#ffffff'; this.style.borderColor='#714B67'; this.style.transform='none';" title="Genereer offerte specificatie voor Odoo ERP">
               <img src="odoo-logo.jpg" alt="Odoo" style="height: 26px; width: auto; object-fit: contain; border-radius: 4px;">
               <span>Offerte Odoo</span>
@@ -3479,11 +3482,91 @@
     </div>
   </div>
 
+
+  <!-- QR-CODE SLIM SMEERPASPOORT & STICKER MODAL -->
+  <div id="qrPassportModal" class="modal-overlay hidden" style="z-index: 10008;" onclick="if(event.target === this) closeQrPassportModal()">
+    <div class="modal-card" style="max-width: 980px; width: 96%; max-height: 96vh; display: flex; flex-direction: column; overflow: hidden; padding: 18px 24px; gap: 12px; background: #ffffff; border-radius: var(--border-radius-lg); box-shadow: 0 25px 50px -12px rgba(2,132,199,0.35); border-top: 4px solid #0284c7;">
+      <!-- Header -->
+      <div style="display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; padding-bottom: 8px; border-bottom: 1px solid #e2e8f0;">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <div style="width: 36px; height: 36px; border-radius: 8px; background: #e0f2fe; display: flex; align-items: center; justify-content: center; font-size: 20px;">
+            🏷️
+          </div>
+          <div>
+            <h3 style="font-size: 17px; font-weight: 800; color: #0f172a; margin: 0; font-family: 'Outfit', sans-serif; line-height: 1.2;">
+              Slim Smeerpaspoort <span style="color: #0284c7;">• QR-Machinestickers</span>
+            </h3>
+            <p style="font-size: 11.5px; color: #64748b; margin: 2px 0 0 0;">
+              Genereer en print industriële stickers per smeerunit of centrale machinesticker met directe mobiele paspoort-koppeling
+            </p>
+          </div>
+        </div>
+        <button type="button" class="btn-close" onclick="closeQrPassportModal()" style="background: none; border: none; font-size: 26px; cursor: pointer; color: #64748b; line-height: 1; padding: 2px 6px;" title="Sluiten">&times;</button>
+      </div>
+
+      <!-- Toolbar & Options -->
+      <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 8px 14px;">
+        <!-- Left: Tabs -->
+        <div style="display: flex; align-items: center; gap: 6px;">
+          <button type="button" id="tabQrUnitStickers" onclick="switchQrPassportTab('units')" style="background: #0284c7; color: #ffffff; border: none; padding: 6px 14px; border-radius: 6px; font-weight: 700; font-size: 12.5px; cursor: pointer; transition: all 0.2s ease;">
+            🏷️ Toestelstickers (Individueel)
+          </button>
+          <button type="button" id="tabQrMachineSticker" onclick="switchQrPassportTab('machine')" style="background: #ffffff; color: #475569; border: 1px solid #cbd5e1; padding: 6px 14px; border-radius: 6px; font-weight: 700; font-size: 12.5px; cursor: pointer; transition: all 0.2s ease;">
+            📋 Centrale Machinesticker
+          </button>
+        </div>
+
+        <!-- Right: Size & Print Options -->
+        <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+          <div style="display: flex; align-items: center; gap: 6px;">
+            <label for="qrStickerSizeSelect" style="font-size: 11.5px; font-weight: 700; color: #475569;">Formaat:</label>
+            <select id="qrStickerSizeSelect" onchange="renderQrPassportStickers()" style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px; padding: 4px 8px; font-size: 12px; font-weight: 600; color: #0f172a; outline: none;">
+              <option value="standard" selected>Standaard (70 × 38 mm)</option>
+              <option value="compact">Compact (58 × 32 mm)</option>
+              <option value="large">Groot (90 × 50 mm)</option>
+            </select>
+          </div>
+
+          <div style="display: flex; align-items: center; gap: 6px;">
+            <label for="qrStickerUrlSelect" style="font-size: 11.5px; font-weight: 700; color: #475569;">Doel-URL:</label>
+            <select id="qrStickerUrlSelect" onchange="renderQrPassportStickers()" style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px; padding: 4px 8px; font-size: 12px; font-weight: 600; color: #0f172a; outline: none;" title="Kies of de QR-code verwijst naar de online GitHub URL (scanbaar op mobiel) of lokaal">
+              <option value="online" selected>Online (Direct scanbaar)</option>
+              <option value="relative">Relatief (Lokaal/Intranet)</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Preview Sheet Area (Scrollable) -->
+      <div id="qrPassportScrollContainer" style="overflow-y: auto; overflow-x: hidden; border: 1px solid #e2e8f0; border-radius: 8px; background: #f1f5f9; padding: 16px; max-height: calc(96vh - 210px);">
+        <!-- Printable Sticker Sheet (This gets printed) -->
+        <div id="qrPrintableStickerSheet" class="qr-sticker-sheet qr-size-standard">
+          <!-- Populated dynamically by JS -->
+        </div>
+      </div>
+
+      <!-- Footer & Action Buttons -->
+      <div style="display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; flex-wrap: wrap; gap: 10px; padding-top: 4px; border-top: 1px solid #f1f5f9;">
+        <div id="qrPassportStatusSummary" style="font-size: 12.5px; color: #475569; font-weight: 600;">
+          <!-- Populated by JS -->
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <button type="button" onclick="printQrPassports()" style="display: inline-flex; align-items: center; gap: 8px; background: #0284c7; color: #ffffff; border: none; padding: 8px 18px; border-radius: 6px; font-weight: 700; font-size: 13px; cursor: pointer; box-shadow: 0 2px 4px rgba(2,132,199,0.25); transition: all 0.2s ease;" onmouseover="this.style.background='#0369a1'" onmouseout="this.style.background='#0284c7'">
+            <span>🖨️ Afdrukken / PDF Opslaan</span>
+          </button>
+          <button type="button" class="btn btn-secondary" onclick="closeQrPassportModal()" style="padding: 8px 16px; font-size: 13px; font-weight: 600; border-radius: 6px;">Sluiten</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- JavaScript logic imports -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="interflon-data.js?v=20260904_1726"></script>
   <script src="bearings-db.js?v=20260911_0655"></script>
   <script src="chains-db.js?v=20260904_1726"></script>
+  <script src="qrcode.min.js"></script>
   <script src="app_v6.js?v=20260916_0830"></script>
 
   <!-- Interflon Oil Dispenser Information Modal (PowerPoint Viewer) -->
