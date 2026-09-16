@@ -1316,12 +1316,11 @@ function applySurveyConfig(config) {
   // 4. Save state, trigger UI render, recalculations
   saveAutomationStateToLocalStorage();
   renderAutoDevicesUI();
-  calculateAutomationLubrication();
-  saveAutomationStateToLocalStorage();
   if (typeof syncAllQuestionnaireDataToCalculator === 'function') {
     syncAllQuestionnaireDataToCalculator(config);
-  } else if (typeof updateRoiAutomationPage === 'function') {
-    updateRoiAutomationPage();
+  } else {
+    calculateAutomationLubrication();
+    if (typeof updateRoiAutomationPage === 'function') updateRoiAutomationPage();
   }
 
   // 5. Visual confirmation badge
@@ -2625,466 +2624,390 @@ function clearSurveyBearingSelection() {
 window.clearSurveyBearingSelection = clearSurveyBearingSelection;
 
 // =========================================================================
-// UNIFIED QUESTIONNAIRE TO CALCULATOR SYNCHRONIZATION
+// UNIFIED QUESTIONNAIRE TO CALCULATOR SYNCHRONIZATION (LIGHTWEIGHT & SAFE)
 // Garanteert dat ALLE gegevens (bedrijfsuren, vetprijs, interval, levensduur,
 // werktijd per smeerbeurt q24, uurloon q25, downtimekosten q26-q30)
-// overal consistent worden doorgevoerd in Smeercalculatie, Opbrengstmodel en ROI.
+// overal direct worden doorgevoerd in Smeercalculatie, Opbrengstmodel en ROI.
+// Reentrancy-beveiligd en zonder synthetische event-cascades of UI-bevriezingen.
 // =========================================================================
 function syncAllQuestionnaireDataToCalculator(data, explicitTargetLetter) {
-  let fullData = data || window.latestSurveyFullData || null;
-  if (!fullData) {
-    try {
-      const saved = localStorage.getItem('interflon_questionnaire_full_data') || localStorage.getItem('interflon_last_questionnaire_data');
-      if (saved) fullData = JSON.parse(saved);
-    } catch(e) {}
-  }
-  if (!fullData && typeof BroadcastChannel !== 'undefined') {
-    try {
-      const rawCfg = localStorage.getItem('interflon_survey_raster_config');
-      if (rawCfg) fullData = JSON.parse(rawCfg);
-    } catch(e) {}
-  }
-  if (!fullData) return;
-
-  if (fullData.fullData || fullData.questionnaire || fullData.data) {
-    fullData = fullData.fullData || fullData.questionnaire || fullData.data;
-  }
-
-  window.latestSurveyFullData = fullData;
-
-  const targetLetter = explicitTargetLetter || window.currentSurveyBearingLetter || window.currentActiveSurveyBearingLetter ||
-    (fullData.activeBearings && (fullData.activeBearings.sec4 || fullData.activeBearings.sec2)) || 'A';
-  window.currentSurveyBearingLetter = targetLetter;
-  window.currentActiveSurveyBearingLetter = targetLetter;
-
-  const sec2 = (fullData.bearingDataMapSec2 && (fullData.bearingDataMapSec2[targetLetter] || fullData.bearingDataMapSec2['A'])) || {};
-  const sec3 = (fullData.bearingDataMapSec3 && (fullData.bearingDataMapSec3[targetLetter] || fullData.bearingDataMapSec3['A'])) || {};
-  const sec4 = (fullData.bearingDataMapSec4 && (fullData.bearingDataMapSec4[targetLetter] || fullData.bearingDataMapSec4['A'])) || {};
-
-  const allBearings = (Array.isArray(fullData.bearings) && fullData.bearings.length > 0) ? fullData.bearings :
-                      (window.latestSurveyBearings && Array.isArray(window.latestSurveyBearings)) ? window.latestSurveyBearings : [];
-  const bRec = allBearings.find(b => b.letter === targetLetter) ||
-               allBearings[0] || {};
-
-  const parseCleanNum = (val) => {
-    if (val === undefined || val === null) return null;
-    if (typeof val === 'number') return isNaN(val) ? null : val;
-    let s = String(val).trim();
-    if (!s || s === '-') return null;
-    s = s.replace(/[^0-9.,-]/g, '').replace(',', '.');
-    const num = parseFloat(s);
-    return isNaN(num) ? null : num;
-  };
-
-  // 1. Algemene Machine- & Klantgegevens
-  if (fullData.general) {
-    if (fullData.general.machineName) {
-      const mIn = document.getElementById("techMachineInput");
-      if (mIn) mIn.value = fullData.general.machineName;
-      const omM = document.getElementById("omTechMachine");
-      if (omM) omM.value = fullData.general.machineName;
+  if (window.__isSyncingQuestionnaire) return;
+  window.__isSyncingQuestionnaire = true;
+  try {
+    let fullData = data || window.latestSurveyFullData || null;
+    if (!fullData) {
       try {
-        localStorage.setItem("tech_machine", fullData.general.machineName);
-        localStorage.setItem("app_field_techMachineInput", fullData.general.machineName);
-        localStorage.setItem("app_field_omTechMachine", fullData.general.machineName);
+        const saved = localStorage.getItem('interflon_questionnaire_full_data') || localStorage.getItem('interflon_last_questionnaire_data');
+        if (saved) fullData = JSON.parse(saved);
       } catch(e) {}
     }
-    if (fullData.general.machineBrand) {
-      const bIn = document.getElementById("techBrandInput");
-      if (bIn) bIn.value = fullData.general.machineBrand;
-      const omB = document.getElementById("omTechBrand");
-      if (omB) omB.value = fullData.general.machineBrand;
+    if (!fullData && typeof BroadcastChannel !== 'undefined') {
       try {
-        localStorage.setItem("tech_brand", fullData.general.machineBrand);
-        localStorage.setItem("app_field_techBrandInput", fullData.general.machineBrand);
-        localStorage.setItem("app_field_omTechBrand", fullData.general.machineBrand);
+        const rawCfg = localStorage.getItem('interflon_survey_raster_config');
+        if (rawCfg) fullData = JSON.parse(rawCfg);
       } catch(e) {}
     }
-    if (fullData.general.application) {
-      const aIn = document.getElementById("techAppInput");
-      if (aIn) aIn.value = fullData.general.application;
-      const omA = document.getElementById("omTechApp");
-      if (omA) omA.value = fullData.general.application;
-      try {
-        localStorage.setItem("tech_app", fullData.general.application);
-        localStorage.setItem("app_field_techAppInput", fullData.general.application);
-        localStorage.setItem("app_field_omTechApp", fullData.general.application);
-      } catch(e) {}
-    }
-    const rawMachCount = parseCleanNum(fullData.general.machineCount);
-    if (rawMachCount !== null && rawMachCount > 0) {
-      const numMachIn = document.getElementById("omSharedNumMachines");
-      if (numMachIn) numMachIn.value = rawMachCount;
-      const chainNumMachIn = document.getElementById("chainOmSharedNumMachines");
-      if (chainNumMachIn) chainNumMachIn.value = rawMachCount;
-      try {
-        localStorage.setItem("app_field_omSharedNumMachines", rawMachCount);
-        localStorage.setItem("app_field_chainOmSharedNumMachines", rawMachCount);
-      } catch(e) {}
-    }
-  }
+    if (!fullData) return;
 
-  if (fullData.contact) {
-    if (fullData.contact.clientCompany) {
-      const cIn = document.getElementById("clientCompanyInput");
-      if (cIn) cIn.value = fullData.contact.clientCompany;
-      const omC = document.getElementById("omClientCompany");
-      if (omC) omC.value = fullData.contact.clientCompany;
-      try {
-        localStorage.setItem("client_company", fullData.contact.clientCompany);
-        localStorage.setItem("app_field_clientCompanyInput", fullData.contact.clientCompany);
-        localStorage.setItem("app_field_omClientCompany", fullData.contact.clientCompany);
-      } catch(e) {}
+    if (fullData.fullData || fullData.questionnaire || fullData.data) {
+      fullData = fullData.fullData || fullData.questionnaire || fullData.data;
     }
-    if (fullData.contact.clientContact) {
-      const ccIn = document.getElementById("clientContactInput");
-      if (ccIn) ccIn.value = fullData.contact.clientContact;
-      const omCC = document.getElementById("omClientContact");
-      if (omCC) omCC.value = fullData.contact.clientContact;
-      try {
-        localStorage.setItem("client_contact", fullData.contact.clientContact);
-        localStorage.setItem("app_field_clientContactInput", fullData.contact.clientContact);
-        localStorage.setItem("app_field_omClientContact", fullData.contact.clientContact);
-      } catch(e) {}
-    }
-    if (fullData.contact.clientEmail) {
-      const ceIn = document.getElementById("clientEmailInput");
-      if (ceIn) ceIn.value = fullData.contact.clientEmail;
-      const omCE = document.getElementById("omClientEmail");
-      if (omCE) omCE.value = fullData.contact.clientEmail;
-      try {
-        localStorage.setItem("client_email", fullData.contact.clientEmail);
-        localStorage.setItem("app_field_clientEmailInput", fullData.contact.clientEmail);
-        localStorage.setItem("app_field_omClientEmail", fullData.contact.clientEmail);
-      } catch(e) {}
-    }
-  }
 
-  // 2. Sectie 4: Onderhouds- & Downtimekosten (Cruciaal voor TCO & ROI)
-  // --- Punt 20: Tijdsduur per smeerbeurt (minuten) ---
-  const rawWorktime = (sec4.q24 !== undefined && sec4.q24 !== '') ? sec4.q24 : bRec.tijdsduurSmeerbeurt;
-  const worktimeMin = parseCleanNum(rawWorktime);
-  if (worktimeMin !== null && worktimeMin >= 0) {
-    const wtIn = document.getElementById("omSharedWorktime");
-    if (wtIn) {
-      wtIn.value = worktimeMin;
-      wtIn.dispatchEvent(new Event("input", { bubbles: true }));
-      wtIn.dispatchEvent(new Event("change", { bubbles: true }));
-    }
-    const cWtIn = document.getElementById("chainOmSharedWorktime");
-    if (cWtIn) {
-      cWtIn.value = worktimeMin;
-      cWtIn.dispatchEvent(new Event("input", { bubbles: true }));
-      cWtIn.dispatchEvent(new Event("change", { bubbles: true }));
-    }
-    try {
-      localStorage.setItem("app_field_omSharedWorktime", worktimeMin);
-      localStorage.setItem("app_field_chainOmSharedWorktime", worktimeMin);
-    } catch(e) {}
-  }
+    window.latestSurveyFullData = fullData;
 
-  // --- Punt 21: Uurloon onderhoudstechnicus (€/uur) ---
-  const rawWage = (sec4.q25 !== undefined && sec4.q25 !== '') ? sec4.q25 : bRec.uurloon;
-  const laborRate = parseCleanNum(rawWage);
-  if (laborRate !== null && laborRate > 0) {
-    const rateStr = laborRate.toFixed(2);
-    const lrIn = document.getElementById("omSharedLaborRate");
-    if (lrIn) {
-      lrIn.value = rateStr;
-      lrIn.dispatchEvent(new Event("input", { bubbles: true }));
-      lrIn.dispatchEvent(new Event("change", { bubbles: true }));
-    }
-    const cLrIn = document.getElementById("chainOmSharedLaborRate");
-    if (cLrIn) {
-      cLrIn.value = rateStr;
-      cLrIn.dispatchEvent(new Event("input", { bubbles: true }));
-      cLrIn.dispatchEvent(new Event("change", { bubbles: true }));
-    }
-    const tcoRateIn = document.getElementById("tcoHourlyRateInput");
-    if (tcoRateIn) tcoRateIn.value = rateStr;
-    try {
-      localStorage.setItem("app_field_omSharedLaborRate", rateStr);
-      localStorage.setItem("app_field_chainOmSharedLaborRate", rateStr);
-    } catch(e) {}
-  }
+    const targetLetter = explicitTargetLetter || window.currentSurveyBearingLetter || window.currentActiveSurveyBearingLetter ||
+      (fullData.activeBearings && (fullData.activeBearings.sec4 || fullData.activeBearings.sec2)) || 'A';
+    window.currentSurveyBearingLetter = targetLetter;
+    window.currentActiveSurveyBearingLetter = targetLetter;
 
-  // --- Punt 22: Tijdsduur revisie/vervanging lager (uren) ---
-  const rawRepairH = (sec4.q26 !== undefined && sec4.q26 !== '') ? sec4.q26 : bRec.downtimeUur;
-  const repairHours = parseCleanNum(rawRepairH);
-  if (repairHours !== null && repairHours >= 0) {
-    const repHIn = document.getElementById("omSharedRepairH");
-    if (repHIn) {
-      repHIn.value = repairHours;
-      repHIn.dispatchEvent(new Event("input", { bubbles: true }));
-      repHIn.dispatchEvent(new Event("change", { bubbles: true }));
-    }
-    const cRepHIn = document.getElementById("chainOmSharedRepairH");
-    if (cRepHIn) {
-      cRepHIn.value = repairHours;
-      cRepHIn.dispatchEvent(new Event("input", { bubbles: true }));
-    }
-    const dtH1 = document.getElementById("omDowntimeH1");
-    if (dtH1) {
-      dtH1.value = repairHours;
-      dtH1.dispatchEvent(new Event("input", { bubbles: true }));
-    }
-    const dtH2 = document.getElementById("omDowntimeH2");
-    if (dtH2) {
-      dtH2.value = repairHours;
-      dtH2.dispatchEvent(new Event("input", { bubbles: true }));
-    }
-    try {
-      localStorage.setItem("app_field_omSharedRepairH", repairHours);
-      localStorage.setItem("app_field_chainOmSharedRepairH", repairHours);
-      localStorage.setItem("app_field_omDowntimeH1", repairHours);
-      localStorage.setItem("app_field_omDowntimeH2", repairHours);
-    } catch(e) {}
-  }
+    const sec2 = (fullData.bearingDataMapSec2 && (fullData.bearingDataMapSec2[targetLetter] || fullData.bearingDataMapSec2['A'])) || {};
+    const sec3 = (fullData.bearingDataMapSec3 && (fullData.bearingDataMapSec3[targetLetter] || fullData.bearingDataMapSec3['A'])) || {};
+    const sec4 = (fullData.bearingDataMapSec4 && (fullData.bearingDataMapSec4[targetLetter] || fullData.bearingDataMapSec4['A'])) || {};
 
-  // --- Punt 23: Voorbereidingstijd revisie (uren) ---
-  const rawPrepH = (sec4.q27 !== undefined && sec4.q27 !== '') ? sec4.q27 : bRec.voorbereiding;
-  const prepHours = parseCleanNum(rawPrepH);
-  if (prepHours !== null && prepHours >= 0) {
-    const prepHIn = document.getElementById("omSharedPrepH");
-    if (prepHIn) {
-      prepHIn.value = prepHours;
-      prepHIn.dispatchEvent(new Event("input", { bubbles: true }));
-      prepHIn.dispatchEvent(new Event("change", { bubbles: true }));
-    }
-    const cPrepHIn = document.getElementById("chainOmSharedPrepH");
-    if (cPrepHIn) {
-      cPrepHIn.value = prepHours;
-      cPrepHIn.dispatchEvent(new Event("input", { bubbles: true }));
-    }
-    try {
-      localStorage.setItem("app_field_omSharedPrepH", prepHours);
-      localStorage.setItem("app_field_chainOmSharedPrepH", prepHours);
-    } catch(e) {}
-  }
+    const allBearings = (Array.isArray(fullData.bearings) && fullData.bearings.length > 0) ? fullData.bearings :
+                        (window.latestSurveyBearings && Array.isArray(window.latestSurveyBearings)) ? window.latestSurveyBearings : [];
+    const bRec = allBearings.find(b => b.letter === targetLetter) ||
+                 allBearings[0] || {};
 
-  // --- Punt 24: Kostprijs stilstand / downtime (€/uur) ---
-  const rawDtCost = (sec4.q28 !== undefined && sec4.q28 !== '') ? sec4.q28 : bRec.downtimeKost;
-  const dtRate = parseCleanNum(rawDtCost);
-  if (dtRate !== null && dtRate >= 0) {
-    const dtStr = dtRate.toFixed(2);
-    const dtRateIn = document.getElementById("omSharedDowntimeRate");
-    if (dtRateIn) {
-      dtRateIn.value = dtStr;
-      dtRateIn.dispatchEvent(new Event("input", { bubbles: true }));
-      dtRateIn.dispatchEvent(new Event("change", { bubbles: true }));
-    }
-    const cDtRateIn = document.getElementById("chainOmSharedDowntimeRate");
-    if (cDtRateIn) {
-      cDtRateIn.value = dtStr;
-      cDtRateIn.dispatchEvent(new Event("input", { bubbles: true }));
-    }
-    try {
-      localStorage.setItem("app_field_omSharedDowntimeRate", dtStr);
-      localStorage.setItem("app_field_chainOmSharedDowntimeRate", dtStr);
-    } catch(e) {}
-  }
+    const parseCleanNum = (val) => {
+      if (val === undefined || val === null) return null;
+      if (typeof val === 'number') return isNaN(val) ? null : val;
+      let s = String(val).trim();
+      if (!s || s === '-') return null;
+      s = s.replace(/[^0-9.,-]/g, '').replace(',', '.');
+      const num = parseFloat(s);
+      return isNaN(num) ? null : num;
+    };
 
-  // --- Punt 25: Prijs lager + wisselstukken (€) ---
-  const rawPartsCost = (sec4.q30 !== undefined && sec4.q30 !== '') ? sec4.q30 : bRec.prijsWisselstuk;
-  const partsCost = parseCleanNum(rawPartsCost);
-  if (partsCost !== null && partsCost >= 0) {
-    const partsStr = partsCost.toFixed(2);
-    const partsCostIn = document.getElementById("omSharedPartsCost");
-    if (partsCostIn) {
-      partsCostIn.value = partsStr;
-      partsCostIn.dispatchEvent(new Event("input", { bubbles: true }));
-      partsCostIn.dispatchEvent(new Event("change", { bubbles: true }));
-    }
-    const cPartsCostIn = document.getElementById("chainOmSharedPartsCost");
-    if (cPartsCostIn) {
-      cPartsCostIn.value = partsStr;
-      cPartsCostIn.dispatchEvent(new Event("input", { bubbles: true }));
-    }
-    try {
-      localStorage.setItem("app_field_omSharedPartsCost", partsStr);
-      localStorage.setItem("app_field_chainOmSharedPartsCost", partsStr);
-    } catch(e) {}
-  }
-
-  // Aantal lagers per machine
-  const bearingQty = parseCleanNum(bRec.qty || bRec.aantal);
-  if (bearingQty !== null && bearingQty > 0) {
-    const setsIn = document.getElementById("omSharedSetsPerMachine");
-    if (setsIn) {
-      setsIn.value = bearingQty;
-      setsIn.dispatchEvent(new Event("input", { bubbles: true }));
-      setsIn.dispatchEvent(new Event("change", { bubbles: true }));
-    }
-    const cSetsIn = document.getElementById("chainOmSharedSetsPerMachine");
-    if (cSetsIn) {
-      cSetsIn.value = bearingQty;
-      cSetsIn.dispatchEvent(new Event("input", { bubbles: true }));
-    }
-    try {
-      localStorage.setItem("app_field_omSharedSetsPerMachine", bearingQty);
-      localStorage.setItem("app_field_chainOmSharedSetsPerMachine", bearingQty);
-    } catch(e) {}
-  }
-
-  // 3. Sectie 2: Bedrijfsuren, smeermiddel, prijs, frequentie, levensduur
-  const rawHours = (sec2.q13 !== undefined && sec2.q13 !== '') ? sec2.q13 : bRec.urenPerDag;
-  let operHours = parseCleanNum(rawHours);
-  if (operHours !== null && operHours > 0) {
-    operHours = Math.min(24, Math.max(1, operHours));
-    const hInput = document.getElementById("inputHoursPerDay");
-    if (hInput) {
-      hInput.value = operHours;
-      try { localStorage.setItem("app_field_inputHoursPerDay", operHours); } catch(e) {}
-      hInput.dispatchEvent(new Event("input", { bubbles: true }));
-      hInput.dispatchEvent(new Event("change", { bubbles: true }));
-    }
-  }
-
-  const rawDays = (sec2.q14 !== undefined && sec2.q14 !== '') ? sec2.q14 : bRec.dagenPerWeek;
-  let operDays = parseCleanNum(rawDays);
-  if (operDays !== null && operDays > 0) {
-    operDays = Math.min(7, Math.max(1, operDays));
-    const dInput = document.getElementById("inputDaysPerWeek");
-    if (dInput) {
-      dInput.value = operDays;
-      try { localStorage.setItem("app_field_inputDaysPerWeek", operDays); } catch(e) {}
-      dInput.dispatchEvent(new Event("input", { bubbles: true }));
-      dInput.dispatchEvent(new Event("change", { bubbles: true }));
-    }
-  }
-
-  const curLube = (sec2.q11 && sec2.q11.trim() !== '') ? sec2.q11.trim() :
-                  (bRec.smeermiddel && bRec.smeermiddel !== '-' ? bRec.smeermiddel.trim() : '');
-  if (curLube) {
-    const techProdIn = document.getElementById("techProductInput");
-    if (techProdIn) techProdIn.value = curLube;
-    const omTechProd = document.getElementById("omTechProduct");
-    if (omTechProd) omTechProd.value = curLube;
-    const omProdName1 = document.getElementById("omProdName1");
-    if (omProdName1) omProdName1.textContent = curLube;
-    try {
-      localStorage.setItem("tech_product", curLube);
-      localStorage.setItem("app_field_techProductInput", curLube);
-    } catch(e) {}
-  }
-
-  const rawPrice = (sec2.q12_price !== undefined && sec2.q12_price !== '') ? sec2.q12_price : bRec.prijsLiter;
-  const lubePrice = parseCleanNum(rawPrice);
-  if (lubePrice !== null && lubePrice > 0) {
-    const priceStr = lubePrice.toFixed(2);
-    const techPriceIn = document.getElementById("techPriceInput");
-    if (techPriceIn) techPriceIn.value = priceStr;
-    const omTechPrice = document.getElementById("omTechPrice");
-    if (omTechPrice) omTechPrice.value = '€ ' + priceStr.replace('.', ',');
-    const omPrice1 = document.getElementById("omProdPrice1");
-    if (omPrice1) {
-      omPrice1.value = priceStr;
-      omPrice1.dispatchEvent(new Event("input", { bubbles: true }));
-      omPrice1.dispatchEvent(new Event("change", { bubbles: true }));
-    }
-    try {
-      localStorage.setItem("tech_price", priceStr);
-      localStorage.setItem("app_field_techPriceInput", priceStr);
-      localStorage.setItem("app_field_omProdPrice1", priceStr);
-    } catch(e) {}
-  }
-
-  let freqNum = null;
-  let freqUnit = 'Weken';
-  if (sec2.q4_freq_num !== undefined && sec2.q4_freq_num !== '') {
-    freqNum = parseCleanNum(sec2.q4_freq_num);
-    if (sec2.q4_freq_unit) freqUnit = sec2.q4_freq_unit;
-  } else if (bRec.interval && bRec.interval !== '-') {
-    const parts = String(bRec.interval).trim().split(/\s+/);
-    freqNum = parseCleanNum(parts[0]);
-    if (parts.length > 1) freqUnit = parts.slice(1).join(' ');
-  }
-  if (freqNum !== null && freqNum > 0) {
-    const u = freqUnit.toLowerCase();
-    let intervalDays = freqNum;
-    if (u.includes('dag')) intervalDays = freqNum;
-    else if (u.includes('wek')) intervalDays = freqNum * 7;
-    else if (u.includes('mnd') || u.includes('maand')) intervalDays = freqNum * (365 / 12);
-    else if (u.includes('jaar')) intervalDays = freqNum * 365;
-    else intervalDays = freqNum * 7;
-
-    const roundedDays = Math.round(intervalDays * 10) / 10;
-    const techIntIn = document.getElementById("techIntervalInput");
-    if (techIntIn) techIntIn.value = roundedDays;
-    const omTechInt = document.getElementById("omTechInterval");
-    if (omTechInt) omTechInt.value = roundedDays + " dagen";
-    if (intervalDays > 0) {
-      const annualFreq = (365 / intervalDays).toFixed(1);
-      const omFreq1 = document.getElementById("omProdFreq1");
-      if (omFreq1) {
-        omFreq1.value = annualFreq;
-        omFreq1.dispatchEvent(new Event("input", { bubbles: true }));
-        omFreq1.dispatchEvent(new Event("change", { bubbles: true }));
+    // 1. Algemene Machine- & Klantgegevens
+    if (fullData.general) {
+      if (fullData.general.machineName) {
+        const mIn = document.getElementById("techMachineInput");
+        if (mIn) mIn.value = fullData.general.machineName;
+        const omM = document.getElementById("omTechMachine");
+        if (omM) omM.value = fullData.general.machineName;
+        try {
+          localStorage.setItem("tech_machine", fullData.general.machineName);
+          localStorage.setItem("app_field_techMachineInput", fullData.general.machineName);
+          localStorage.setItem("app_field_omTechMachine", fullData.general.machineName);
+        } catch(e) {}
+      }
+      if (fullData.general.machineBrand) {
+        const bIn = document.getElementById("techBrandInput");
+        if (bIn) bIn.value = fullData.general.machineBrand;
+        const omB = document.getElementById("omTechBrand");
+        if (omB) omB.value = fullData.general.machineBrand;
+        try {
+          localStorage.setItem("tech_brand", fullData.general.machineBrand);
+          localStorage.setItem("app_field_techBrandInput", fullData.general.machineBrand);
+          localStorage.setItem("app_field_omTechBrand", fullData.general.machineBrand);
+        } catch(e) {}
+      }
+      if (fullData.general.application) {
+        const aIn = document.getElementById("techAppInput");
+        if (aIn) aIn.value = fullData.general.application;
+        const omA = document.getElementById("omTechApp");
+        if (omA) omA.value = fullData.general.application;
+        try {
+          localStorage.setItem("tech_app", fullData.general.application);
+          localStorage.setItem("app_field_techAppInput", fullData.general.application);
+          localStorage.setItem("app_field_omTechApp", fullData.general.application);
+        } catch(e) {}
+      }
+      const rawMachCount = parseCleanNum(fullData.general.machineCount);
+      if (rawMachCount !== null && rawMachCount > 0) {
+        const numMachIn = document.getElementById("omSharedNumMachines");
+        if (numMachIn) numMachIn.value = rawMachCount;
+        const chainNumMachIn = document.getElementById("chainOmSharedNumMachines");
+        if (chainNumMachIn) chainNumMachIn.value = rawMachCount;
+        try {
+          localStorage.setItem("app_field_omSharedNumMachines", rawMachCount);
+          localStorage.setItem("app_field_chainOmSharedNumMachines", rawMachCount);
+        } catch(e) {}
       }
     }
-  }
 
-  const rawLife = (sec2.q29_life !== undefined && sec2.q29_life !== '') ? sec2.q29_life : bRec.levensduur;
-  const bearingLife = parseCleanNum(rawLife);
-  if (bearingLife !== null && bearingLife > 0) {
-    const omLife1 = document.getElementById("omLifetime1");
-    if (omLife1) {
-      omLife1.value = bearingLife;
-      const omLife2 = document.getElementById("omLifetime2");
-      const factor = (omLife1.value && omLife2 && omLife2.value) ? Math.max(1, parseFloat(omLife2.value) / parseFloat(omLife1.value)) : 4;
-      const newLife2 = Math.round(bearingLife * factor);
-      if (omLife2) {
-        omLife2.value = newLife2;
-        omLife2.dispatchEvent(new Event("input", { bubbles: true }));
+    if (fullData.contact) {
+      if (fullData.contact.clientCompany) {
+        const cIn = document.getElementById("clientCompanyInput");
+        if (cIn) cIn.value = fullData.contact.clientCompany;
+        const omC = document.getElementById("omClientCompany");
+        if (omC) omC.value = fullData.contact.clientCompany;
+        try {
+          localStorage.setItem("client_company", fullData.contact.clientCompany);
+          localStorage.setItem("app_field_clientCompanyInput", fullData.contact.clientCompany);
+          localStorage.setItem("app_field_omClientCompany", fullData.contact.clientCompany);
+        } catch(e) {}
       }
-      const repFreq1 = document.getElementById("omRepairFreq1");
-      if (repFreq1) repFreq1.value = bearingLife;
-      const repFreq2 = document.getElementById("omRepairFreq2");
-      if (repFreq2) repFreq2.value = newLife2;
-      const dtFreq1 = document.getElementById("omDowntimeFreq1");
-      if (dtFreq1) dtFreq1.value = (12 / bearingLife).toFixed(2);
-      const dtFreq2 = document.getElementById("omDowntimeFreq2");
-      if (dtFreq2) dtFreq2.value = (12 / newLife2).toFixed(2);
-      omLife1.dispatchEvent(new Event("input", { bubbles: true }));
-      omLife1.dispatchEvent(new Event("change", { bubbles: true }));
+      if (fullData.contact.clientContact) {
+        const ccIn = document.getElementById("clientContactInput");
+        if (ccIn) ccIn.value = fullData.contact.clientContact;
+        const omCC = document.getElementById("omClientContact");
+        if (omCC) omCC.value = fullData.contact.clientContact;
+        try {
+          localStorage.setItem("client_contact", fullData.contact.clientContact);
+          localStorage.setItem("app_field_clientContactInput", fullData.contact.clientContact);
+          localStorage.setItem("app_field_omClientContact", fullData.contact.clientContact);
+        } catch(e) {}
+      }
+      if (fullData.contact.clientEmail) {
+        const ceIn = document.getElementById("clientEmailInput");
+        if (ceIn) ceIn.value = fullData.contact.clientEmail;
+        const omCE = document.getElementById("omClientEmail");
+        if (omCE) omCE.value = fullData.contact.clientEmail;
+        try {
+          localStorage.setItem("client_email", fullData.contact.clientEmail);
+          localStorage.setItem("app_field_clientEmailInput", fullData.contact.clientEmail);
+          localStorage.setItem("app_field_omClientEmail", fullData.contact.clientEmail);
+        } catch(e) {}
+      }
     }
-  }
 
-  // 4. Sectie 3: Temperatuur
-  const rawTemp = (sec3.q16 !== undefined && sec3.q16 !== '') ? sec3.q16 : bRec.lagertemp;
-  const bearingTemp = parseCleanNum(rawTemp);
-  if (bearingTemp !== null) {
-    const tempIn = document.getElementById("inputTemperature");
-    if (tempIn) {
-      tempIn.value = bearingTemp;
-      tempIn.dispatchEvent(new Event("input", { bubbles: true }));
-      tempIn.dispatchEvent(new Event("change", { bubbles: true }));
+    // 2. Sectie 4: Onderhouds- & Downtimekosten (Cruciaal voor TCO & ROI)
+    // --- Punt 20: Tijdsduur per smeerbeurt (minuten) ---
+    const rawWorktime = (sec4.q24 !== undefined && sec4.q24 !== '') ? sec4.q24 : bRec.tijdsduurSmeerbeurt;
+    const worktimeMin = parseCleanNum(rawWorktime);
+    if (worktimeMin !== null && worktimeMin >= 0) {
+      const wtIn = document.getElementById("omSharedWorktime");
+      if (wtIn) wtIn.value = worktimeMin;
+      const cWtIn = document.getElementById("chainOmSharedWorktime");
+      if (cWtIn) cWtIn.value = worktimeMin;
+      try {
+        localStorage.setItem("app_field_omSharedWorktime", worktimeMin);
+        localStorage.setItem("app_field_chainOmSharedWorktime", worktimeMin);
+      } catch(e) {}
     }
-  }
 
-  // 5. Lagernummer & Toerental
-  const selectedNr = bRec.nr || bRec.lagernummer;
-  if (selectedNr && !selectedNr.startsWith('Lager ')) {
-    const searchInput = document.getElementById("bearingSearchInput");
-    if (searchInput) searchInput.value = selectedNr;
-    if (typeof loadBearingDetails === "function") loadBearingDetails(selectedNr);
-  }
-  const rawRpm = parseCleanNum(bRec.rpm);
-  if (rawRpm !== null && rawRpm > 0) {
-    const speedInput = document.getElementById("inputSpeed") || document.getElementById("rpmInput");
-    if (speedInput) {
-      speedInput.value = rawRpm;
-      speedInput.dispatchEvent(new Event("input", { bubbles: true }));
-      speedInput.dispatchEvent(new Event("change", { bubbles: true }));
+    // --- Punt 21: Uurloon onderhoudstechnicus (€/uur) ---
+    const rawWage = (sec4.q25 !== undefined && sec4.q25 !== '') ? sec4.q25 : bRec.uurloon;
+    const laborRate = parseCleanNum(rawWage);
+    if (laborRate !== null && laborRate > 0) {
+      const rateStr = laborRate.toFixed(2);
+      const lrIn = document.getElementById("omSharedLaborRate");
+      if (lrIn) lrIn.value = rateStr;
+      const cLrIn = document.getElementById("chainOmSharedLaborRate");
+      if (cLrIn) cLrIn.value = rateStr;
+      const tcoRateIn = document.getElementById("tcoHourlyRateInput");
+      if (tcoRateIn) tcoRateIn.value = rateStr;
+      try {
+        localStorage.setItem("app_field_omSharedLaborRate", rateStr);
+        localStorage.setItem("app_field_chainOmSharedLaborRate", rateStr);
+      } catch(e) {}
     }
-  }
 
-  // 6. Automatische herberekening van alle modules
-  if (typeof calculateGrease === "function") calculateGrease();
-  if (typeof updateTcoFrequencies === "function") updateTcoFrequencies();
-  if (typeof calculateTco === "function") calculateTco();
-  if (typeof calculateAutomationLubrication === "function") calculateAutomationLubrication();
-  if (typeof updateRoiAutomationPage === "function") updateRoiAutomationPage();
+    // --- Punt 22: Tijdsduur revisie/vervanging lager (uren) ---
+    const rawRepairH = (sec4.q26 !== undefined && sec4.q26 !== '') ? sec4.q26 : bRec.downtimeUur;
+    const repairHours = parseCleanNum(rawRepairH);
+    if (repairHours !== null && repairHours >= 0) {
+      const repHIn = document.getElementById("omSharedRepairH");
+      if (repHIn) repHIn.value = repairHours;
+      const cRepHIn = document.getElementById("chainOmSharedRepairH");
+      if (cRepHIn) cRepHIn.value = repairHours;
+      const dtH1 = document.getElementById("omDowntimeH1");
+      if (dtH1) dtH1.value = repairHours;
+      const dtH2 = document.getElementById("omDowntimeH2");
+      if (dtH2) dtH2.value = repairHours;
+      try {
+        localStorage.setItem("app_field_omSharedRepairH", repairHours);
+        localStorage.setItem("app_field_chainOmSharedRepairH", repairHours);
+        localStorage.setItem("app_field_omDowntimeH1", repairHours);
+        localStorage.setItem("app_field_omDowntimeH2", repairHours);
+      } catch(e) {}
+    }
+
+    // --- Punt 23: Voorbereidingstijd revisie (uren) ---
+    const rawPrepH = (sec4.q27 !== undefined && sec4.q27 !== '') ? sec4.q27 : bRec.voorbereiding;
+    const prepHours = parseCleanNum(rawPrepH);
+    if (prepHours !== null && prepHours >= 0) {
+      const prepHIn = document.getElementById("omSharedPrepH");
+      if (prepHIn) prepHIn.value = prepHours;
+      const cPrepHIn = document.getElementById("chainOmSharedPrepH");
+      if (cPrepHIn) cPrepHIn.value = prepHours;
+      try {
+        localStorage.setItem("app_field_omSharedPrepH", prepHours);
+        localStorage.setItem("app_field_chainOmSharedPrepH", prepHours);
+      } catch(e) {}
+    }
+
+    // --- Punt 24: Kostprijs stilstand / downtime (€/uur) ---
+    const rawDtCost = (sec4.q28 !== undefined && sec4.q28 !== '') ? sec4.q28 : bRec.downtimeKost;
+    const dtRate = parseCleanNum(rawDtCost);
+    if (dtRate !== null && dtRate >= 0) {
+      const dtStr = dtRate.toFixed(2);
+      const dtRateIn = document.getElementById("omSharedDowntimeRate");
+      if (dtRateIn) dtRateIn.value = dtStr;
+      const cDtRateIn = document.getElementById("chainOmSharedDowntimeRate");
+      if (cDtRateIn) cDtRateIn.value = dtStr;
+      try {
+        localStorage.setItem("app_field_omSharedDowntimeRate", dtStr);
+        localStorage.setItem("app_field_chainOmSharedDowntimeRate", dtStr);
+      } catch(e) {}
+    }
+
+    // --- Punt 25: Prijs lager + wisselstukken (€) ---
+    const rawPartsCost = (sec4.q30 !== undefined && sec4.q30 !== '') ? sec4.q30 : bRec.prijsWisselstuk;
+    const partsCost = parseCleanNum(rawPartsCost);
+    if (partsCost !== null && partsCost >= 0) {
+      const partsStr = partsCost.toFixed(2);
+      const partsCostIn = document.getElementById("omSharedPartsCost");
+      if (partsCostIn) partsCostIn.value = partsStr;
+      const cPartsCostIn = document.getElementById("chainOmSharedPartsCost");
+      if (cPartsCostIn) cPartsCostIn.value = partsStr;
+      try {
+        localStorage.setItem("app_field_omSharedPartsCost", partsStr);
+        localStorage.setItem("app_field_chainOmSharedPartsCost", partsStr);
+      } catch(e) {}
+    }
+
+    // Aantal lagers per machine
+    const bearingQty = parseCleanNum(bRec.qty || bRec.aantal);
+    if (bearingQty !== null && bearingQty > 0) {
+      const setsIn = document.getElementById("omSharedSetsPerMachine");
+      if (setsIn) setsIn.value = bearingQty;
+      const cSetsIn = document.getElementById("chainOmSharedSetsPerMachine");
+      if (cSetsIn) cSetsIn.value = bearingQty;
+      try {
+        localStorage.setItem("app_field_omSharedSetsPerMachine", bearingQty);
+        localStorage.setItem("app_field_chainOmSharedSetsPerMachine", bearingQty);
+      } catch(e) {}
+    }
+
+    // 3. Sectie 2: Bedrijfsuren, smeermiddel, prijs, frequentie, levensduur
+    const rawHours = (sec2.q13 !== undefined && sec2.q13 !== '') ? sec2.q13 : bRec.urenPerDag;
+    let operHours = parseCleanNum(rawHours);
+    if (operHours !== null && operHours > 0) {
+      operHours = Math.min(24, Math.max(1, operHours));
+      const hInput = document.getElementById("inputHoursPerDay");
+      if (hInput) {
+        hInput.value = operHours;
+        try { localStorage.setItem("app_field_inputHoursPerDay", operHours); } catch(e) {}
+      }
+    }
+
+    const rawDays = (sec2.q14 !== undefined && sec2.q14 !== '') ? sec2.q14 : bRec.dagenPerWeek;
+    let operDays = parseCleanNum(rawDays);
+    if (operDays !== null && operDays > 0) {
+      operDays = Math.min(7, Math.max(1, operDays));
+      const dInput = document.getElementById("inputDaysPerWeek");
+      if (dInput) {
+        dInput.value = operDays;
+        try { localStorage.setItem("app_field_inputDaysPerWeek", operDays); } catch(e) {}
+      }
+    }
+
+    const curLube = (sec2.q11 && sec2.q11.trim() !== '') ? sec2.q11.trim() :
+                    (bRec.smeermiddel && bRec.smeermiddel !== '-' ? bRec.smeermiddel.trim() : '');
+    if (curLube) {
+      const techProdIn = document.getElementById("techProductInput");
+      if (techProdIn) techProdIn.value = curLube;
+      const omTechProd = document.getElementById("omTechProduct");
+      if (omTechProd) omTechProd.value = curLube;
+      const omProdName1 = document.getElementById("omProdName1");
+      if (omProdName1) omProdName1.textContent = curLube;
+      try {
+        localStorage.setItem("tech_product", curLube);
+        localStorage.setItem("app_field_techProductInput", curLube);
+      } catch(e) {}
+    }
+
+    const rawPrice = (sec2.q12_price !== undefined && sec2.q12_price !== '') ? sec2.q12_price : bRec.prijsLiter;
+    const lubePrice = parseCleanNum(rawPrice);
+    if (lubePrice !== null && lubePrice > 0) {
+      const priceStr = lubePrice.toFixed(2);
+      const techPriceIn = document.getElementById("techPriceInput");
+      if (techPriceIn) techPriceIn.value = priceStr;
+      const omTechPrice = document.getElementById("omTechPrice");
+      if (omTechPrice) omTechPrice.value = '€ ' + priceStr.replace('.', ',');
+      const omPrice1 = document.getElementById("omProdPrice1");
+      if (omPrice1) omPrice1.value = priceStr;
+      try {
+        localStorage.setItem("tech_price", priceStr);
+        localStorage.setItem("app_field_techPriceInput", priceStr);
+        localStorage.setItem("app_field_omProdPrice1", priceStr);
+      } catch(e) {}
+    }
+
+    let freqNum = null;
+    let freqUnit = 'Weken';
+    if (sec2.q4_freq_num !== undefined && sec2.q4_freq_num !== '') {
+      freqNum = parseCleanNum(sec2.q4_freq_num);
+      if (sec2.q4_freq_unit) freqUnit = sec2.q4_freq_unit;
+    } else if (bRec.interval && bRec.interval !== '-') {
+      const parts = String(bRec.interval).trim().split(/\s+/);
+      freqNum = parseCleanNum(parts[0]);
+      if (parts.length > 1) freqUnit = parts.slice(1).join(' ');
+    }
+    if (freqNum !== null && freqNum > 0) {
+      const u = freqUnit.toLowerCase();
+      let intervalDays = freqNum;
+      if (u.includes('dag')) intervalDays = freqNum;
+      else if (u.includes('wek')) intervalDays = freqNum * 7;
+      else if (u.includes('mnd') || u.includes('maand')) intervalDays = freqNum * (365 / 12);
+      else if (u.includes('jaar')) intervalDays = freqNum * 365;
+      else intervalDays = freqNum * 7;
+
+      const roundedDays = Math.round(intervalDays * 10) / 10;
+      const techIntIn = document.getElementById("techIntervalInput");
+      if (techIntIn) techIntIn.value = roundedDays;
+      const omTechInt = document.getElementById("omTechInterval");
+      if (omTechInt) omTechInt.value = roundedDays + " dagen";
+      if (intervalDays > 0) {
+        const annualFreq = (365 / intervalDays).toFixed(1);
+        const omFreq1 = document.getElementById("omProdFreq1");
+        if (omFreq1) omFreq1.value = annualFreq;
+      }
+    }
+
+    const rawLife = (sec2.q29_life !== undefined && sec2.q29_life !== '') ? sec2.q29_life : bRec.levensduur;
+    const bearingLife = parseCleanNum(rawLife);
+    if (bearingLife !== null && bearingLife > 0) {
+      const omLife1 = document.getElementById("omLifetime1");
+      if (omLife1) {
+        omLife1.value = bearingLife;
+        const omLife2 = document.getElementById("omLifetime2");
+        const factor = (omLife1.value && omLife2 && omLife2.value) ? Math.max(1, parseFloat(omLife2.value) / parseFloat(omLife1.value)) : 4;
+        const newLife2 = Math.round(bearingLife * factor);
+        if (omLife2) omLife2.value = newLife2;
+        const repFreq1 = document.getElementById("omRepairFreq1");
+        if (repFreq1) repFreq1.value = bearingLife;
+        const repFreq2 = document.getElementById("omRepairFreq2");
+        if (repFreq2) repFreq2.value = newLife2;
+        const dtFreq1 = document.getElementById("omDowntimeFreq1");
+        if (dtFreq1) dtFreq1.value = (12 / bearingLife).toFixed(2);
+        const dtFreq2 = document.getElementById("omDowntimeFreq2");
+        if (dtFreq2) dtFreq2.value = (12 / newLife2).toFixed(2);
+      }
+    }
+
+    // 4. Sectie 3: Temperatuur
+    const rawTemp = (sec3.q16 !== undefined && sec3.q16 !== '') ? sec3.q16 : bRec.lagertemp;
+    const bearingTemp = parseCleanNum(rawTemp);
+    if (bearingTemp !== null) {
+      const tempIn = document.getElementById("inputTemperature");
+      if (tempIn) tempIn.value = bearingTemp;
+    }
+
+    // 5. Lagernummer & Toerental
+    const selectedNr = bRec.nr || bRec.lagernummer;
+    if (selectedNr && !selectedNr.startsWith('Lager ')) {
+      const searchInput = document.getElementById("bearingSearchInput");
+      if (searchInput && !searchInput.value) searchInput.value = selectedNr;
+    }
+    const rawRpm = parseCleanNum(bRec.rpm);
+    if (rawRpm !== null && rawRpm > 0) {
+      const speedInput = document.getElementById("inputSpeed") || document.getElementById("rpmInput");
+      if (speedInput) speedInput.value = rawRpm;
+    }
+
+    // 6. Enkele gecontroleerde herberekening van alle modules (geen synthetische events)
+    if (typeof calculateGrease === "function") calculateGrease();
+    if (typeof updateTcoFrequencies === "function") updateTcoFrequencies();
+    if (typeof calculateTco === "function") calculateTco();
+    if (typeof calculateAutomationLubrication === "function") calculateAutomationLubrication();
+    if (typeof updateRoiAutomationPage === "function") updateRoiAutomationPage();
+  } finally {
+    window.__isSyncingQuestionnaire = false;
+  }
 }
 window.syncAllQuestionnaireDataToCalculator = syncAllQuestionnaireDataToCalculator;
 
@@ -3729,22 +3652,21 @@ window.onSurveyBearingSelected = onSurveyBearingSelected;
 window.refreshSurveyBearingsList = refreshSurveyBearingsList;
 window.handleSurveyBearingFileImport = handleSurveyBearingFileImport;
 
-// Live Cross-tab Storage & Focus Synchronisatie met Vragenlijst
+// Live Cross-tab Storage Synchronisatie met Vragenlijst (gedebounced, geen focus loop)
+var __storageSyncTimer = null;
 if (typeof window !== 'undefined') {
   window.addEventListener('storage', function(e) {
-    if (e.key === 'interflon_questionnaire_full_data' || e.key === 'interflon_last_questionnaire_data' || e.key === 'interflon_survey_raster_config') {
-      try {
-        const data = e.newValue ? JSON.parse(e.newValue) : null;
-        if (typeof syncAllQuestionnaireDataToCalculator === 'function') {
-          syncAllQuestionnaireDataToCalculator(data);
-        }
-      } catch(err) {}
-    }
-  });
-
-  window.addEventListener('focus', function() {
-    if (typeof syncAllQuestionnaireDataToCalculator === 'function') {
-      syncAllQuestionnaireDataToCalculator();
+    if (window.__isSyncingQuestionnaire) return;
+    if (e.key === 'interflon_questionnaire_full_data' || e.key === 'interflon_last_questionnaire_data') {
+      clearTimeout(__storageSyncTimer);
+      __storageSyncTimer = setTimeout(function() {
+        try {
+          const data = e.newValue ? JSON.parse(e.newValue) : null;
+          if (typeof syncAllQuestionnaireDataToCalculator === 'function') {
+            syncAllQuestionnaireDataToCalculator(data);
+          }
+        } catch(err) {}
+      }, 200);
     }
   });
 }
@@ -7762,11 +7684,7 @@ function switchPage(pageId) {
       targetSubtitle.setAttribute("data-i18n", "pageRoiAutomationSubtitle");
       targetSubtitle.textContent = "Return on Investment berekening voor automatische smeersystemen.";
     }
-    if (typeof syncAllQuestionnaireDataToCalculator === 'function') {
-      syncAllQuestionnaireDataToCalculator();
-    } else {
-      updateRoiAutomationPage();
-    }
+    updateRoiAutomationPage();
   } else if (pageId === 'info') {
     document.getElementById("pageInfo").classList.add("active");
     document.getElementById("menuInfo").classList.add("active");
@@ -15231,27 +15149,7 @@ function updateRoiAutomationPage() {
     if (!isNaN(pv) && pv > 0) workTimeMinutes = pv;
   }
 
-  // Directe synchronisatie met de ingevulde vragenlijst (Punt 20: Tijdsduur per smeerbeurt)
-  try {
-    const rawFullQ = localStorage.getItem('interflon_questionnaire_full_data') || localStorage.getItem('interflon_last_questionnaire_data');
-    if (rawFullQ) {
-      const parsedFullQ = JSON.parse(rawFullQ);
-      const qData = parsedFullQ.fullData || parsedFullQ.data || parsedFullQ;
-      const targetLtr = window.currentSurveyBearingLetter || window.currentActiveSurveyBearingLetter ||
-        (qData.activeBearings && (qData.activeBearings.sec4 || qData.activeBearings.sec2)) || 'A';
-      const s4 = (qData.bearingDataMapSec4 && (qData.bearingDataMapSec4[targetLtr] || qData.bearingDataMapSec4['A'])) || {};
-      if (s4.q24 !== undefined && s4.q24 !== null && String(s4.q24).trim() !== '' && String(s4.q24).trim() !== '-') {
-        const qVal = parseFloat(String(s4.q24).replace(',', '.'));
-        if (!isNaN(qVal) && qVal >= 0) {
-          workTimeMinutes = qVal;
-          if (workTimeInput && parseFloat(workTimeInput.value) !== qVal) {
-            workTimeInput.value = qVal;
-            try { localStorage.setItem("app_field_omSharedWorktime", qVal); } catch(e) {}
-          }
-        }
-      }
-    }
-  } catch(errQ) {}
+
 
   const hourlyRateInput = document.getElementById("omSharedLaborRate") || document.getElementById("chainOmSharedLaborRate") || document.getElementById("tcoHourlyRateInput");
   let hourlyRate = 50.00;
@@ -15262,27 +15160,7 @@ function updateRoiAutomationPage() {
     if (!isNaN(pv) && pv > 0) hourlyRate = pv;
   }
 
-  // Directe synchronisatie met vragenlijst (Punt 21: Uurloon onderhoudstechnicus)
-  try {
-    const rawFullQ = localStorage.getItem('interflon_questionnaire_full_data') || localStorage.getItem('interflon_last_questionnaire_data');
-    if (rawFullQ) {
-      const parsedFullQ = JSON.parse(rawFullQ);
-      const qData = parsedFullQ.fullData || parsedFullQ.data || parsedFullQ;
-      const targetLtr = window.currentSurveyBearingLetter || window.currentActiveSurveyBearingLetter ||
-        (qData.activeBearings && (qData.activeBearings.sec4 || qData.activeBearings.sec2)) || 'A';
-      const s4 = (qData.bearingDataMapSec4 && (qData.bearingDataMapSec4[targetLtr] || qData.bearingDataMapSec4['A'])) || {};
-      if (s4.q25 !== undefined && s4.q25 !== null && String(s4.q25).trim() !== '' && String(s4.q25).trim() !== '-') {
-        const qWage = parseFloat(String(s4.q25).replace(',', '.'));
-        if (!isNaN(qWage) && qWage > 0) {
-          hourlyRate = qWage;
-          if (hourlyRateInput && parseFloat(hourlyRateInput.value) !== qWage) {
-            hourlyRateInput.value = qWage.toFixed(2);
-            try { localStorage.setItem("app_field_omSharedLaborRate", qWage.toFixed(2)); } catch(e) {}
-          }
-        }
-      }
-    }
-  } catch(errQ2) {}
+
 
   let manualGreasePricePerLiter = greasePricePerLiter;
   let manualBeurtenPerYear = manualBeurtenPerYearInterflon;
@@ -22075,6 +21953,9 @@ document.addEventListener("DOMContentLoaded", function() {
     if (bearings && bearings.length > 0) {
       if (typeof populateSurveyBearingsDropdown === "function") populateSurveyBearingsDropdown(bearings);
       if (typeof populateOmSurveyBearingsDropdown === "function") populateOmSurveyBearingsDropdown(bearings);
+    }
+    if (typeof syncAllQuestionnaireDataToCalculator === "function") {
+      syncAllQuestionnaireDataToCalculator();
     }
   }, 150);
 });
