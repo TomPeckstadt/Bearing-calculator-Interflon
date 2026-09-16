@@ -600,8 +600,19 @@
       document.getElementById('passDate').textContent = currentData.d || new Date().toLocaleDateString('nl-BE');
       document.getElementById('passUnitName').textContent = currentData.u || 'Smeerunit';
       
-      const shortId = (currentData.u || 'A').replace(/[^0-9A-Za-z]/g, '').substring(0, 3) || 'U';
-      document.getElementById('passUnitIcon').textContent = shortId.length > 2 ? shortId.substring(shortId.length - 2) : shortId;
+      // Extract clean unit identifier (e.g. "Toestel B" -> "B", "Unit 1" -> "1")
+      function getUnitShortId(unitName) {
+        if (!unitName) return "U";
+        const str = unitName.trim();
+        const prefixMatch = str.match(/\b(?:toestel|unit|pomp|smeerunit|punt)\s+([A-Za-z0-9]+)$/i);
+        if (prefixMatch && prefixMatch[1]) return prefixMatch[1].toUpperCase();
+        if (str.length <= 3) return str.toUpperCase();
+        const parts = str.split(/\s+/);
+        const last = parts[parts.length - 1];
+        if (last.length <= 3 && /^[A-Za-z0-9]+$/.test(last)) return last.toUpperCase();
+        return str.substring(0, 2).toUpperCase();
+      }
+      document.getElementById('passUnitIcon').textContent = getUnitShortId(currentData.u || 'A');
 
       // System Type
       let sysName = "Smeertoestel";
