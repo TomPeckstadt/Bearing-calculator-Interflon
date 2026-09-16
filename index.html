@@ -14,6 +14,8 @@
     }
   </script>
   <link rel="stylesheet" href="style.css?v=20260912_1255">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 </head>
 <body>
 
@@ -1276,6 +1278,15 @@
                 <span id="thickenerCompatIcon" style="font-size: 14px; font-weight: 800; color: #15803D;">✓</span>
                 <span id="thickenerCompatText" style="font-size: 12.5px; font-weight: 700; color: #15803D; font-family: 'Outfit', sans-serif;">Compatibel</span>
               </div>
+
+              <!-- 3D Live Digital Twin Launch Button -->
+              <div style="margin-top: 14px; width: 100%; max-width: 320px;">
+                <button type="button" id="btnDigitalTwin" onclick="openDigitalTwinModal()" style="width: 100%; display: inline-flex; align-items: center; justify-content: center; gap: 8px; background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%); color: #ffffff; border: none; padding: 10px 16px; border-radius: 8px; font-weight: 700; font-size: 13px; font-family: 'Outfit', sans-serif; cursor: pointer; box-shadow: 0 4px 12px rgba(14,165,233,0.35); transition: all 0.2s ease;" onmouseover="this.style.transform='translateY(-1px)'; this.style.boxShadow='0 6px 16px rgba(14,165,233,0.45)';" onmouseout="this.style.transform='none'; this.style.boxShadow='0 4px 12px rgba(14,165,233,0.35)';" title="Start interactieve 3D Digital Twin simulatie">
+                  <span style="font-size: 16px;">🌟</span>
+                  <span>3D Live Digital Twin</span>
+                  <span style="background: rgba(255,255,255,0.25); padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 800; letter-spacing: 0.5px;">LIVE 3D</span>
+                </button>
+              </div>
             </div>
           </div>
 
@@ -2022,6 +2033,9 @@
 
           <!-- ODOO QUOTE BUTTON (Enkel de knop rechts in het veld) -->
           <div style="display: flex; align-items: center; justify-content: flex-end; margin-left: auto; flex-shrink: 0;">
+            <button type="button" id="btnDigitalTwinRoi" onclick="openDigitalTwinModal()" style="display: inline-flex; align-items: center; gap: 8px; background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%); border: 1.5px solid #0284c7; color: #ffffff; padding: 10px 16px; border-radius: 10px; font-weight: 700; font-size: 13.5px; cursor: pointer; box-shadow: 0 4px 12px rgba(14,165,233,0.3); transition: all 0.2s ease; margin-right: 10px;" onmouseover="this.style.transform='translateY(-1px)';" onmouseout="this.style.transform='none';" title="Bekijk 3D Live Digital Twin simulatie van het smeerregime">
+              <span>🌟 3D Digital Twin</span>
+            </button>
             <button type="button" id="btnQrPassport" onclick="openQrPassportModal()" style="display: inline-flex; align-items: center; gap: 8px; background: #ffffff; border: 1.5px solid #0284c7; color: #0284c7; padding: 10px 16px; border-radius: 10px; font-weight: 700; font-size: 13.5px; cursor: pointer; box-shadow: 0 2px 5px rgba(2,132,199,0.12); transition: all 0.2s ease; margin-right: 10px;" onmouseover="this.style.background='#f0f9ff'; this.style.borderColor='#0369a1'; this.style.transform='translateY(-1px)';" onmouseout="this.style.background='#ffffff'; this.style.borderColor='#0284c7'; this.style.transform='none';" title="Genereer QR-smeerpaspoorten en machinestickers">
               <span>🏷️ Smeerpaspoort & QR</span>
             </button>
@@ -3558,6 +3572,236 @@
           <button type="button" class="btn btn-secondary" onclick="closeQrPassportModal()" style="padding: 8px 16px; font-size: 13px; font-weight: 600; border-radius: 6px;">Sluiten</button>
         </div>
       </div>
+    </div>
+  </div>
+
+  <!-- ==========================================================================
+       3D LIVE DIGITAL TWIN SIMULATIE MODAL (THREE.JS)
+       ========================================================================== -->
+  <div id="digitalTwinModal" class="modal-overlay hidden" style="z-index: 10009;" onclick="if(event.target === this) closeDigitalTwinModal()">
+    <div class="modal-card" style="max-width: 1240px; width: 96%; height: 92vh; max-height: 94vh; display: flex; flex-direction: column; overflow: hidden; padding: 0; background: #0f172a; border-radius: var(--border-radius-lg); box-shadow: 0 25px 60px -12px rgba(0,0,0,0.7), 0 0 30px rgba(14,165,233,0.25); border: 1px solid rgba(56,189,248,0.3);">
+      
+      <!-- Top Header Bar -->
+      <div style="display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; padding: 12px 20px; background: #0b1120; border-bottom: 1px solid rgba(255,255,255,0.08);">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <div style="width: 38px; height: 38px; border-radius: 8px; background: linear-gradient(135deg, rgba(14,165,233,0.2) 0%, rgba(2,132,199,0.3) 100%); border: 1px solid rgba(56,189,248,0.4); display: flex; align-items: center; justify-content: center; font-size: 20px;">
+            🌟
+          </div>
+          <div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <h3 style="font-size: 16px; font-weight: 800; color: #f8fafc; margin: 0; font-family: 'Outfit', sans-serif; letter-spacing: 0.3px;">
+                3D Live Digital Twin <span style="color: #38bdf8;">• Smeerfilm & Slijtagesimulatie</span>
+              </h3>
+              <span style="background: rgba(16,185,129,0.2); color: #34d399; border: 1px solid rgba(16,185,129,0.35); font-size: 10px; font-weight: 800; padding: 2px 7px; border-radius: 9999px; display: inline-flex; align-items: center; gap: 4px;">
+                <span style="width: 6px; height: 6px; border-radius: 50%; background: #10b981; animation: pulseGlow 1.5s infinite;"></span> REALTIME 3D
+              </span>
+            </div>
+            <p style="font-size: 11px; color: #94a3b8; margin: 2px 0 0 0;">
+              Interflon Micpol® EHL smering versus conventionele manuele zaagtand-smering (ISO 15243 & SKF model)
+            </p>
+          </div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <button type="button" onclick="closeDigitalTwinModal()" style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12); color: #cbd5e1; font-size: 20px; border-radius: 8px; width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='rgba(239,68,68,0.2)'; this.style.color='#f87171';" onmouseout="this.style.background='rgba(255,255,255,0.08)'; this.style.color='#cbd5e1';" title="Sluiten">&times;</button>
+        </div>
+      </div>
+
+      <!-- Main Layout Body (Left 3D Viewer + Right Telemetry Panel) -->
+      <div style="display: flex; flex: 1; min-height: 0; overflow: hidden; background: #090d16;">
+        
+        <!-- Left: 3D Viewport & Interactive Cockpit -->
+        <div style="flex: 1; display: flex; flex-direction: column; min-width: 0; position: relative; border-right: 1px solid rgba(255,255,255,0.08);">
+          
+          <!-- Top Floating Camera Controls Overlay -->
+          <div style="position: absolute; top: 12px; left: 12px; right: 12px; z-index: 10; display: flex; justify-content: space-between; align-items: center; pointer-events: none;">
+            <div style="pointer-events: auto; display: flex; align-items: center; gap: 4px; background: rgba(15,23,42,0.85); backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.12); border-radius: 8px; padding: 3px 6px;">
+              <span style="font-size: 10px; font-weight: 700; color: #64748b; margin-right: 4px; padding-left: 2px;">CAMERA:</span>
+              <button type="button" id="btnTwinCam3d" class="twin-view-btn active" onclick="setTwinCameraView('perspective')">3D Hoek</button>
+              <button type="button" id="btnTwinCamFront" class="twin-view-btn" onclick="setTwinCameraView('front')">Front</button>
+              <button type="button" id="btnTwinCamSide" class="twin-view-btn" onclick="setTwinCameraView('side')">Zijkant</button>
+              <button type="button" id="btnTwinCamTop" class="twin-view-btn" onclick="setTwinCameraView('top')">Top</button>
+              <div style="width: 1px; height: 16px; background: rgba(255,255,255,0.12); margin: 0 4px;"></div>
+              <button type="button" id="btnTwinCutout" class="twin-view-btn" onclick="toggleTwinCutout()" style="color: #38bdf8;">✂️ Cutaway (1/4)</button>
+              <button type="button" id="btnTwinResetCam" class="twin-view-btn" onclick="resetTwinCamera()" title="Herstel camerapositie">🔄 Reset</button>
+            </div>
+
+            <!-- Play / Pause & Speed Indicator -->
+            <div style="pointer-events: auto; display: flex; align-items: center; gap: 6px; background: rgba(15,23,42,0.85); backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.12); border-radius: 8px; padding: 3px 8px;">
+              <button type="button" id="btnTwinPlayPause" onclick="toggleTwinPlay()" style="background: transparent; border: none; color: #38bdf8; font-size: 12px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 4px;">
+                <span id="twinPlayPauseIcon">⏸️</span> <span id="twinPlayPauseText">Live</span>
+              </button>
+              <span style="color: rgba(255,255,255,0.2);">|</span>
+              <span id="twinFpsCounter" style="font-size: 10px; font-weight: 700; color: #64748b; font-family: monospace;">60 FPS</span>
+            </div>
+          </div>
+
+          <!-- Canvas Container -->
+          <div id="digitalTwinCanvasContainer" style="flex: 1; width: 100%; height: 100%; position: relative; overflow: hidden; cursor: grab;">
+            <canvas id="digitalTwinCanvas" style="width: 100%; height: 100%; display: block;"></canvas>
+            
+            <!-- In-Canvas HUD / Micpol Film Glow State Badge -->
+            <div style="position: absolute; bottom: 12px; left: 14px; pointer-events: none; z-index: 5;">
+              <div id="twinHudFilmBadge" style="display: inline-flex; align-items: center; gap: 8px; background: rgba(15,23,42,0.9); backdrop-filter: blur(8px); border: 1px solid #059669; border-radius: 8px; padding: 6px 12px; box-shadow: 0 4px 15px rgba(5,150,105,0.3);">
+                <span id="twinHudFilmDot" style="width: 10px; height: 10px; border-radius: 50%; background: #10b981; box-shadow: 0 0 10px #10b981;"></span>
+                <div>
+                  <div id="twinHudFilmTitle" style="font-size: 11px; font-weight: 800; color: #34d399; letter-spacing: 0.3px;">MICPOL® FILM ACTIEF (100%)</div>
+                  <div id="twinHudFilmDesc" style="font-size: 9.5px; color: #94a3b8;">Elastohydrodynamische vloeistofscheiding & lage wrijving</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Dynamic Grease Injection Visual Pulse overlay -->
+            <div id="twinInjectionPulseOverlay" style="position: absolute; inset: 0; pointer-events: none; opacity: 0; transition: opacity 0.3s ease; box-shadow: inset 0 0 60px rgba(16,185,129,0.5);"></div>
+          </div>
+
+          <!-- Bottom Interactive Simulation Control Panel -->
+          <div style="background: #0b1120; border-top: 1px solid rgba(255,255,255,0.08); padding: 12px 18px; display: flex; flex-direction: column; gap: 10px; flex-shrink: 0;">
+            
+            <!-- Row 1: Mode Switches + Direct Injection Button -->
+            <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+              <!-- Regime Selector -->
+              <div style="display: flex; align-items: center; gap: 6px; background: rgba(15,23,42,0.9); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 4px;">
+                <button type="button" id="btnTwinModeAuto" class="twin-mode-btn active" onclick="setDigitalTwinMode('auto')" style="border: none; padding: 6px 14px; border-radius: 6px; font-weight: 800; font-size: 12px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s;">
+                  <span>🟢 Automatisch</span>
+                  <span style="font-size: 10px; opacity: 0.85;">(Micro-dosering)</span>
+                </button>
+                <button type="button" id="btnTwinModeManual" class="twin-mode-btn" onclick="setDigitalTwinMode('manual')" style="border: none; padding: 6px 14px; border-radius: 6px; font-weight: 800; font-size: 12px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s;">
+                  <span>🔴 Manueel</span>
+                  <span style="font-size: 10px; opacity: 0.85;">(Zaagtandregime)</span>
+                </button>
+              </div>
+
+              <!-- Sim Speed Multipliers -->
+              <div style="display: flex; align-items: center; gap: 4px;">
+                <span style="font-size: 11px; font-weight: 700; color: #64748b; margin-right: 4px;">SIMULATIESNELHEID:</span>
+                <button type="button" id="btnTwinSpeed1" class="twin-speed-btn active" onclick="setTwinSimSpeed(1)" style="min-width: 36px;">1x</button>
+                <button type="button" id="btnTwinSpeed5" class="twin-speed-btn" onclick="setTwinSimSpeed(5)" style="min-width: 36px;">5x</button>
+                <button type="button" id="btnTwinSpeed20" class="twin-speed-btn" onclick="setTwinSimSpeed(20)" style="min-width: 42px;">20x</button>
+                <button type="button" id="btnTwinSpeed60" class="twin-speed-btn" onclick="setTwinSimSpeed(60)" style="min-width: 50px;">🚀 Turbo</button>
+              </div>
+
+              <!-- Quick Injection Trigger -->
+              <button type="button" id="btnTwinInjectGrease" onclick="triggerDigitalTwinPulse()" style="background: linear-gradient(135deg, #059669 0%, #10b981 100%); color: #ffffff; border: none; padding: 7px 16px; border-radius: 8px; font-weight: 800; font-size: 12.5px; font-family: 'Outfit', sans-serif; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 12px rgba(16,185,129,0.35); transition: all 0.15s;" onmousedown="this.style.transform='scale(0.96)'" onmouseup="this.style.transform='scale(1)'">
+                <span>💉</span>
+                <span>Geef Vetinjectie</span>
+                <span style="background: rgba(255,255,255,0.25); padding: 1px 5px; border-radius: 4px; font-size: 9.5px; font-weight: 800;">TEST</span>
+              </button>
+            </div>
+
+            <!-- Row 2: RPM Slider & Controls -->
+            <div style="display: flex; align-items: center; justify-content: space-between; gap: 14px; background: rgba(15,23,42,0.6); border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; padding: 6px 14px;">
+              <div style="display: flex; align-items: center; gap: 10px; flex: 1; max-width: 480px;">
+                <label for="twinRpmSlider" style="font-size: 11.5px; font-weight: 700; color: #94a3b8; white-space: nowrap;">⚙️ Lager Toerental:</label>
+                <input type="range" id="twinRpmSlider" min="50" max="6000" step="25" value="1450" oninput="onTwinRpmChange(this.value)" style="flex: 1; accent-color: #38bdf8; cursor: pointer;">
+                <span id="twinRpmDisplay" style="font-size: 12.5px; font-weight: 800; color: #38bdf8; font-family: monospace; min-width: 65px; text-align: right;">1450 RPM</span>
+              </div>
+
+              <!-- Simulation Cycle Timeline Hint -->
+              <div id="twinTimelineHint" style="font-size: 11px; color: #64748b; font-weight: 600;">
+                Modus: <span style="color: #10b981; font-weight: 700;">Continue micro-smering (Pulsarlube)</span>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Right: Realtime Telemetry, Sensor Hub & Economic ROI Ticker -->
+        <div style="width: 380px; flex-shrink: 0; display: flex; flex-direction: column; overflow-y: auto; background: #0f172a; padding: 16px; gap: 12px;">
+          
+          <!-- Bearing & Product Header Card -->
+          <div style="background: #1e293b; border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 12px 14px;">
+            <div style="font-size: 10px; font-weight: 800; color: #38bdf8; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 4px;">GEDETECTEERD LAGER & SMEERMIDDEL</div>
+            <div id="twinBearingInfoTitle" style="font-size: 13.5px; font-weight: 800; color: #f8fafc; font-family: 'Outfit', sans-serif;">Lager 6208 (Groefkogellager)</div>
+            <div id="twinGreaseInfoTitle" style="font-size: 11.5px; color: #94a3b8; margin-top: 3px; display: flex; align-items: center; gap: 6px;">
+              <span>🛢️</span> <span id="twinGreaseNameText">Interflon Grease MP2/3 (Micpol®)</span>
+            </div>
+          </div>
+
+          <!-- Gauge 1: Smeerfilm Dikte & Integriteit (Lambda λ ratio) -->
+          <div style="background: #1e293b; border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 12px 14px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+              <span style="font-size: 11.5px; font-weight: 700; color: #e2e8f0; display: flex; align-items: center; gap: 6px;">
+                <span>🛡️</span> Smeerfilmkwaliteit (EHL / Micpol®)
+              </span>
+              <span id="twinFilmPercent" style="font-size: 13px; font-weight: 900; color: #34d399; font-family: monospace;">98%</span>
+            </div>
+            <!-- Film progress bar -->
+            <div style="width: 100%; height: 10px; background: rgba(15,23,42,0.8); border-radius: 5px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1); margin-bottom: 6px;">
+              <div id="twinFilmBar" style="width: 98%; height: 100%; background: linear-gradient(90deg, #10b981, #34d399); border-radius: 5px; transition: width 0.3s ease, background 0.3s ease;"></div>
+            </div>
+            <div id="twinFilmSubtext" style="font-size: 10.5px; color: #94a3b8; line-height: 1.35;">
+              Volledige filmopbouw. Micpol® deeltjes nivelleren oppervlakteruwheid (geen metaalcontact).
+            </div>
+          </div>
+
+          <!-- Gauge 2 & 3: Wrijving (mu) + Temperatuur (T_op) in 2 columns -->
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+            <!-- Wrijving -->
+            <div style="background: #1e293b; border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 10px 12px;">
+              <div style="font-size: 10.5px; font-weight: 700; color: #94a3b8;">Wrijving (μ)</div>
+              <div id="twinFrictionValue" style="font-size: 20px; font-weight: 900; color: #38bdf8; font-family: monospace; margin: 4px 0 2px 0;">0.003</div>
+              <div id="twinFrictionBadge" style="font-size: 9.5px; font-weight: 700; color: #34d399;">-70% wrijving</div>
+            </div>
+            <!-- Temperatuur -->
+            <div style="background: #1e293b; border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 10px 12px;">
+              <div style="font-size: 10.5px; font-weight: 700; color: #94a3b8;">Bedrijfstemp.</div>
+              <div id="twinTempValue" style="font-size: 20px; font-weight: 900; color: #34d399; font-family: monospace; margin: 4px 0 2px 0;">41.2 °C</div>
+              <div id="twinTempBadge" style="font-size: 9.5px; font-weight: 700; color: #94a3b8;">Stabiel thermisch</div>
+            </div>
+          </div>
+
+          <!-- Gauge 4 & 5: Cumulatieve Slijtage + Levensduurfactor -->
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+            <!-- Slijtage -->
+            <div style="background: #1e293b; border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 10px 12px;">
+              <div style="font-size: 10.5px; font-weight: 700; color: #94a3b8;">Cumul. Slijtage</div>
+              <div id="twinWearValue" style="font-size: 20px; font-weight: 900; color: #34d399; font-family: monospace; margin: 4px 0 2px 0;">0.0 μm</div>
+              <div id="twinWearBadge" style="font-size: 9.5px; font-weight: 700; color: #34d399;">Nul loopbaanslijtage</div>
+            </div>
+            <!-- Levensduurfactor -->
+            <div style="background: #1e293b; border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 10px 12px;">
+              <div style="font-size: 10.5px; font-weight: 700; color: #94a3b8;">Levensduur L10h</div>
+              <div id="twinLifetimeFactor" style="font-size: 20px; font-weight: 900; color: #38bdf8; font-family: monospace; margin: 4px 0 2px 0;">3.8x</div>
+              <div id="twinLifetimeBadge" style="font-size: 9.5px; font-weight: 700; color: #38bdf8;">+280% verlenging</div>
+            </div>
+          </div>
+
+          <!-- Financial Savings Live Ticker Card -->
+          <div style="background: linear-gradient(135deg, rgba(2,132,199,0.15) 0%, rgba(16,185,129,0.15) 100%); border: 1px solid rgba(56,189,248,0.3); border-radius: 10px; padding: 12px 14px;">
+            <div style="display: flex; align-items: center; justify-content: space-between;">
+              <span style="font-size: 11px; font-weight: 800; color: #38bdf8; text-transform: uppercase;">Gerealiseerde Besparing / Jaar</span>
+              <span style="font-size: 14px;">💰</span>
+            </div>
+            <div id="twinSavingsAmount" style="font-size: 22px; font-weight: 900; color: #34d399; font-family: 'Outfit', sans-serif; margin: 6px 0 2px 0;">€ 1.480,00</div>
+            <div id="twinSavingsSubtext" style="font-size: 10px; color: #94a3b8;">
+              Minder stilstand, lagere arbeidstijd, 70% minder vetverspilling en geen ongeplande revisie
+            </div>
+          </div>
+
+          <!-- Explanatory Diagnostic Card: Zaagtand vs Continu -->
+          <div style="background: #1e293b; border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 12px 14px; margin-top: auto;">
+            <div style="font-size: 11px; font-weight: 800; color: #f8fafc; margin-bottom: 6px; display: flex; align-items: center; gap: 6px;">
+              <span>📈</span> <span>Theoretisch Mechanisme:</span>
+            </div>
+            <div id="twinDiagnosisText" style="font-size: 10.5px; color: #94a3b8; line-height: 1.45;">
+              <strong style="color: #34d399;">Automatische Pulsarlube:</strong> Levert exact berekende micro-doseringen (bvb 0,15 ml/dag). De smeerfilm blijft non-stop in de optimale EHL-zone.
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- Footer Bar -->
+      <div style="display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; padding: 10px 20px; background: #0b1120; border-top: 1px solid rgba(255,255,255,0.08);">
+        <div style="display: flex; align-items: center; gap: 8px; font-size: 11.5px; color: #64748b;">
+          <span>💡 <em>Tip: Sleep met de muis om de camera te draaien. Gebruik het scrollwiel om in te zoomen.</em></span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <button type="button" class="btn btn-secondary" onclick="closeDigitalTwinModal()" style="padding: 7px 18px; font-size: 12.5px; font-weight: 700; border-radius: 6px; background: rgba(255,255,255,0.1); color: #f8fafc; border: 1px solid rgba(255,255,255,0.15); cursor: pointer;">Venster Sluiten</button>
+        </div>
+      </div>
+
     </div>
   </div>
 
