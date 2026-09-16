@@ -1134,11 +1134,12 @@
     <!-- Survey Form -->
     <form id="publicSurveyForm" class="survey-body" action="https://formsubmit.co/tom.peckstadt@interflon.com" method="POST" enctype="multipart/form-data" onsubmit="prepareFormSubmission(event)">
       
-      <input type="hidden" name="_subject" value="Nieuwe Smeeranalyse Vragenlijst Ingevuld!">
+      <input type="hidden" name="_subject" id="hiddenFormSubject" value="Nieuwe Smeeranalyse Vragenlijst Ingevuld!">
       <input type="hidden" name="_captcha" value="false">
-      <input type="hidden" name="_next" value="https://www.interflonapps.com/vragenlijst.html?submitted=true">
+      <input type="hidden" name="_next" id="hiddenNextUrl" value="https://www.interflonapps.com/vragenlijst.html?submitted=true">
       <input type="hidden" name="_template" value="table">
       <input type="hidden" name="_replyto" id="hiddenReplyTo" value="">
+      <input type="hidden" name="_cc" id="hiddenCcEmail" value="">
       <input type="file" name="attachment" id="hiddenLayoutImageInput" accept="image/png" style="display: none;">
       <input type="file" name="attachment2" id="hiddenLayoutCsvInput" accept=".csv,text/csv" style="display: none;">
       <input type="file" name="attachment3" id="hiddenLayoutJsonInput" accept=".json,application/json" style="display: none;">
@@ -1690,24 +1691,19 @@
       </div>
 
       <!-- Action Buttons -->
-      <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 10px;">
-        <button type="submit" class="submit-btn">
-          🚀 1. Verstuur Vragenlijst Direct via Mail Service (Voorkeur) →
+      <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 10px;">
+        <button type="submit" class="submit-btn" style="font-size: 1.05rem; padding: 16px 22px; width: 100%; display: flex; align-items: center; justify-content: center; gap: 10px; box-shadow: 0 4px 14px rgba(227, 6, 19, 0.35);">
+          🚀 Verstuur Vragenlijst Direct naar Interflon (1-Klik Verzenden) →
         </button>
-
-        <div class="grid-2">
-          <button type="button" onclick="sendViaGmail()" class="btn-secondary" style="border-color: #ea4335; color: #c5221f;">
-            ✉️ 2. Open in Gmail
-          </button>
-
-          <button type="button" onclick="sendViaOutlookMailto()" class="btn-secondary" style="border-color: #0078d4; color: #005a9e;">
-            📧 3. Open in Outlook
-          </button>
+        <div style="font-size: 0.83rem; color: #64748b; text-align: center; margin-top: -2px; line-height: 1.4;">
+          ✓ Verstuurt alle machinegegevens, lagerspecificaties en bijlagen direct in 1 klik naar uw Interflon adviseur (u ontvangt automatisch een bevestigingskopie).
         </div>
 
-        <button type="button" onclick="copyFullReportText()" class="btn-secondary">
-          📋 4. Kopieer uw antwoorden naar klembord om zelf in een mail te plakken
-        </button>
+        <div style="margin-top: 4px;">
+          <button type="button" onclick="copyFullReportText()" class="btn-secondary" style="width: 100%; padding: 11px 16px;">
+            📋 Kopieer tekstoverzicht naar klembord
+          </button>
+        </div>
 
         <!-- Interflon Medewerkers: Vragenlijst Opslaan & Importeren -->
         <div style="margin-top: 6px; padding: 14px 16px; background: #f8fafc; border: 1.5px dashed #cbd5e1; border-radius: 8px;">
@@ -7204,7 +7200,10 @@
     window.pasteSection4Conditions = pasteSection4Conditions;
 
     function syncReplyTo(val) {
-      document.getElementById('hiddenReplyTo').value = val;
+      const replyTo = document.getElementById('hiddenReplyTo');
+      if (replyTo) replyTo.value = val;
+      const cc = document.getElementById('hiddenCcEmail');
+      if (cc) cc.value = val;
     }
 
     function updateFormSubmitAction(email) {
@@ -7216,6 +7215,34 @@
 
     function prepareFormSubmission(e) {
       const data = collectAllBearingsData();
+
+      // Dynamic Subject, Reply-To, CC and Next URL
+      const companyName = data.client.company || 'Klant';
+      const machineName = data.machine.name || 'Machine';
+
+      const subjectInput = document.getElementById('hiddenFormSubject') || document.querySelector('#publicSurveyForm input[name="_subject"]');
+      if (subjectInput) {
+        subjectInput.value = "Smeeranalyse Vragenlijst - " + companyName + " (" + machineName + ")";
+      }
+      const replyToInput = document.getElementById('hiddenReplyTo');
+      if (replyToInput) {
+        replyToInput.value = data.client.email || '';
+      }
+      const ccInput = document.getElementById('hiddenCcEmail');
+      if (ccInput) {
+        ccInput.value = data.client.email || '';
+      }
+      const nextInput = document.getElementById('hiddenNextUrl') || document.querySelector('#publicSurveyForm input[name="_next"]');
+      if (nextInput) {
+        try {
+          const u = new URL(window.location.href);
+          u.search = '?submitted=true';
+          u.hash = '';
+          nextInput.value = u.toString();
+        } catch(err) {
+          nextInput.value = "https://www.interflonapps.com/vragenlijst.html?submitted=true";
+        }
+      }
 
       // 1. Sync CSV spreadsheet attachment
       updateFormSubmitCsvAttachment();
@@ -7305,9 +7332,13 @@
         addHidden(m.label, combinedVal);
       });
 
-      // --- DEEL C: VISUELE EXCEL MATRIX TABEL TEKST ---
-      const asciiTable = generateAsciiMatrixTable(data);
-      addHidden('📊 VOLLEDIGE EXCEL MATRIX OVERZICHT', '\n' + asciiTable);
+      // --- DEEL C: OVERZICHT PER LAGER ---
+      addHidden('=== OVERZICHT PER LAGER ===', 'Specificaties per meetpunt');
+      data.bearings.forEach(b => {
+        const label = `📌 LAGER ${b.letter}: ${b.aantal}x ${b.lagernummer} (${b.omschrijving})`;
+        const val = `${b.rpm !== '-' ? b.rpm : ''} • As: ${b.asPositie} • Smeermiddel: ${b.smeermiddel} (${b.prijsLiter}) • Interval: ${b.interval} • Levensduur: ${b.levensduur} • Bedrijfsuren: ${b.urenPerDag} (${b.dagenPerWeek}) • Temp: Omgeving ${b.omgevingstemp}, Lager ${b.lagertemp} • Condities: Vocht ${b.waterVocht}/10, Stof ${b.stofZand}/10, Abrasief ${b.abrasief}/10 • Downtime: ${b.downtimeUur} (Loon: ${b.uurloon}, Stilstand: ${b.downtimeKost})`;
+        addHidden(label, val);
+      });
 
       // --- DEEL D: BIJLAGEN INFORMATIE ---
       addHidden('📎 BIJLAGEN IN DEZE E-MAIL', '1x 3D Machine Layout (PNG afbeelding)  +  1x Excel Vergelijkingsbestand (CSV spreadsheet voor Excel)  +  1x Digitaal Importbestand (JSON bestand voor 1-klik import in de app)');
@@ -7347,10 +7378,7 @@
       bodyText += "Aantal Machines in Park: " + data.machine.count + "\n";
       bodyText += "Aantal Geanalyseerde Lagers: " + data.bearings.length + "\n\n";
 
-      bodyText += "--- 2. EXCEL MATRIX OVERZICHT (LAGERS NAAST ELKAAR) ---\n\n";
-      bodyText += generateAsciiMatrixTable(data) + "\n\n";
-
-      bodyText += "--- 3. GEDETAILLEERD OVERZICHT PER LAGER ---\n";
+      bodyText += "--- 2. OVERZICHT GEANALYSEERDE LAGERS ---\n";
       data.bearings.forEach(b => {
         bodyText += "========================================\n";
         bodyText += "📌 [LAGER " + b.letter + "]: " + b.aantal + "x " + b.lagernummer + (b.omschrijving !== '-' ? " - " + b.omschrijving : "") + (b.rpm !== '-' ? " (" + b.rpm + ")" : "") + " - " + b.asPositie + "\n";
@@ -7536,7 +7564,7 @@
       copyTextToClipboard(reportText).then(() => {
         showSurveyNotification(
           "📋 Gekopieerd naar klembord!",
-          "Alle ingevulde antwoorden en de complete vergelijkingstabel zijn gekopieerd naar uw klembord.\n👉 U kunt deze nu direct plakken (Ctrl + V) in uw e-mailbericht of document.",
+          "Het complete overzicht van uw vragenlijst is gekopieerd naar uw klembord.\n👉 U kunt dit direct plakken (Ctrl + V) in een document of e-mail.",
           "📋"
         );
       }).catch(err => {
