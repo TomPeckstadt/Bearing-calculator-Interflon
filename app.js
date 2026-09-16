@@ -21387,41 +21387,83 @@ function fallbackCopyProposal(text) {
   }
 }
 
-function emailExecutiveProposal() {
+function getProposalSubjectAndBody() {
   const textEl = document.getElementById("executiveProposalText");
-  const fullText = textEl ? textEl.value : generateExecutiveProposalText();
+  const fullText = textEl && textEl.value.trim() ? textEl.value : generateExecutiveProposalText();
   const d = getExecutiveProposalData();
 
-  // 1. Kopieer altijd de volledige tekst naar het klembord
-  if (typeof copyExecutiveProposalText === "function") {
-    copyExecutiveProposalText();
-  }
-
-  // 2. Bepaal het onderwerp
+  let subject = "Investeringsvoorstel: Automatisering smering " + (d.machineName || "Machine");
+  let bodyLines = [];
   const lines = fullText.split("\n");
-  let subject = "Investeringsvoorstel: Automatisering smering " + d.machineName;
+  let skippedSubject = false;
+
   for (let l of lines) {
-    if (l.startsWith("BETREFT:") || l.startsWith("ONDERWERP:")) {
+    if (!skippedSubject && (l.startsWith("BETREFT:") || l.startsWith("ONDERWERP:"))) {
       subject = l.replace(/^(BETREFT:|ONDERWERP:)/, "").trim();
-      break;
+      skippedSubject = true;
+    } else {
+      bodyLines.push(l);
     }
   }
 
-  // 3. Open mailto veilig via link element (< 2000 tekens)
-  const mailtoUrl = "mailto:?subject=" + encodeURIComponent(subject) + "&body=" + encodeURIComponent(fullText);
-  const a = document.createElement("a");
-  a.href = mailtoUrl;
-  a.target = "_blank";
-  a.rel = "noopener noreferrer";
-  document.body.appendChild(a);
-  a.click();
-  setTimeout(() => {
-    if (document.body.contains(a)) document.body.removeChild(a);
-  }, 500);
+  while (bodyLines.length > 0 && !bodyLines[0].trim()) {
+    bodyLines.shift();
+  }
+
+  const cleanBody = bodyLines.join("\n").trim();
+  return { subject, body: cleanBody, fullText };
+}
+
+function openProposalInGmail() {
+  const { subject, body, fullText } = getProposalSubjectAndBody();
+
+  // 1. Kopieer de tekst naar het klembord
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(fullText).catch(() => {});
+  }
+
+  // 2. Open Gmail rechtstreeks via de officiële compose link
+  const gmailUrl = "https://mail.google.com/mail/?view=cm&fs=1&su=" + encodeURIComponent(subject) + "&body=" + encodeURIComponent(body);
+  const win = window.open(gmailUrl, "_blank");
+
+  if (!win || win.closed || typeof win.closed === "undefined") {
+    const a = document.createElement("a");
+    a.href = gmailUrl;
+    a.target = "_blank";
+    a.rel = "noopener noreferrer";
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => { if (document.body.contains(a)) document.body.removeChild(a); }, 500);
+  }
 
   if (typeof showToastNotification === "function") {
-    showToastNotification("✓ E-mail geopend & tekst gekopieerd naar klembord!");
+    showToastNotification("✉️ Gmail geopend met directievoorstel!");
   }
+}
+
+function openProposalInOutlook() {
+  const { subject, body, fullText } = getProposalSubjectAndBody();
+
+  // 1. Kopieer de tekst naar het klembord
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(fullText).catch(() => {});
+  }
+
+  // 2. Open Outlook via protocol handler
+  const mailtoUrl = "mailto:?subject=" + encodeURIComponent(subject) + "&body=" + encodeURIComponent(body);
+  const a = document.createElement("a");
+  a.href = mailtoUrl;
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(() => { if (document.body.contains(a)) document.body.removeChild(a); }, 500);
+
+  if (typeof showToastNotification === "function") {
+    showToastNotification("📧 Outlook / E-mail geopend met directievoorstel!");
+  }
+}
+
+function emailExecutiveProposal() {
+  openProposalInGmail();
 }
 
 function downloadExecutiveProposal() {
@@ -21483,6 +21525,8 @@ if (typeof window !== "undefined") {
   window.switchExecutiveProposalTab = switchExecutiveProposalTab;
   window.copyExecutiveProposalText = copyExecutiveProposalText;
   window.emailExecutiveProposal = emailExecutiveProposal;
+  window.openProposalInGmail = openProposalInGmail;
+  window.openProposalInOutlook = openProposalInOutlook;
   window.downloadExecutiveProposal = downloadExecutiveProposal;
 }
 
