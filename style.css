@@ -2346,3 +2346,69 @@ table {
     print-color-adjust: exact !important;
   }
 }
+
+
+/* ==========================================================================
+   3D LIVE DIGITAL TWIN & SIMULATION STYLES
+   ========================================================================== */
+
+.twin-view-btn {
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.twin-view-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+}
+.twin-view-btn.active {
+  background: #0284c7;
+  color: #ffffff;
+}
+
+.twin-mode-btn {
+  background: transparent;
+  color: #94a3b8;
+}
+.twin-mode-btn.active#btnTwinModeAuto {
+  background: #059669;
+  color: #ffffff;
+  box-shadow: 0 0 12px rgba(5, 150, 105, 0.45);
+}
+.twin-mode-btn.active#btnTwinModeManual {
+  background: #dc2626;
+  color: #ffffff;
+  box-shadow: 0 0 12px rgba(220, 38, 38, 0.45);
+}
+
+.twin-speed-btn {
+  background: #0f172a;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #94a3b8;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 6px 2px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.twin-speed-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+}
+.twin-speed-btn.active {
+  background: #0284c7;
+  border-color: #38bdf8;
+  color: #ffffff;
+}
+
+@keyframes pulseGlow {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.35; transform: scale(0.85); }
+}
