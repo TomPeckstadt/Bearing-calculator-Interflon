@@ -2011,18 +2011,18 @@
               <p id="roiDeviceSubtext" style="color: #64748b; font-size: 13.5px; margin: 0;">Patrooninhoud: <strong>125 ml</strong> &bull; Geselecteerd vet: <strong>Interflon Grease MP2/3</strong></p>
             </div>
           </div>
-          <div style="display: flex; align-items: center; gap: 14px; flex-wrap: wrap;">
-            <!-- ODOO QUOTE BUTTON -->
-            <button type="button" id="btnOdooQuote" onclick="openOdooQuoteModal()" style="display: inline-flex; align-items: center; gap: 10px; background: #ffffff; border: 1.5px solid #714B67; color: #714B67; padding: 10px 18px; border-radius: 10px; font-weight: 700; font-size: 13.5px; cursor: pointer; box-shadow: 0 2px 5px rgba(113,75,103,0.12); transition: all 0.2s ease;" onmouseover="this.style.background='#fdf4f9'; this.style.borderColor='#58344e'; this.style.transform='translateY(-1px)';" onmouseout="this.style.background='#ffffff'; this.style.borderColor='#714B67'; this.style.transform='none';" title="Genereer offerte specificatie voor Odoo ERP">
-              <img src="odoo-logo.jpg" alt="Odoo" style="height: 26px; width: auto; object-fit: contain; border-radius: 4px;">
-              <span>Offerte Odoo</span>
-            </button>
-
+          <div style="display: flex; align-items: center; gap: 14px; flex-wrap: wrap; justify-content: flex-end; margin-left: auto;">
             <!-- BEREKEND VETVERBRUIK BADGE -->
             <div style="background: #f8fafc; border: 1px solid #cbd5e1; border-radius: var(--border-radius-md); padding: 12px 18px; text-align: right;">
               <div style="font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;" data-i18n="roiCalculatedGreaseCons">Berekend Vetverbruik</div>
               <div id="roiHeaderYearlyMl" style="font-size: 18px; font-weight: 800; color: var(--primary-dark); margin-top: 2px;">257,1 ml / jaar</div>
             </div>
+
+            <!-- ODOO QUOTE BUTTON (Rechts in het veld geplaatst) -->
+            <button type="button" id="btnOdooQuote" onclick="openOdooQuoteModal()" style="display: inline-flex; align-items: center; gap: 10px; background: #ffffff; border: 1.5px solid #714B67; color: #714B67; padding: 10px 18px; border-radius: 10px; font-weight: 700; font-size: 13.5px; cursor: pointer; box-shadow: 0 2px 5px rgba(113,75,103,0.12); transition: all 0.2s ease;" onmouseover="this.style.background='#fdf4f9'; this.style.borderColor='#58344e'; this.style.transform='translateY(-1px)';" onmouseout="this.style.background='#ffffff'; this.style.borderColor='#714B67'; this.style.transform='none';" title="Genereer offerte specificatie voor Odoo ERP">
+              <img src="odoo-logo.jpg" alt="Odoo" style="height: 26px; width: auto; object-fit: contain; border-radius: 4px;">
+              <span>Offerte Odoo</span>
+            </button>
           </div>
         </div>
 
@@ -3481,7 +3481,7 @@
   <script src="interflon-data.js?v=20260904_1726"></script>
   <script src="bearings-db.js?v=20260911_0655"></script>
   <script src="chains-db.js?v=20260904_1726"></script>
-  <script src="app_v6.js?v=20260916_0735"></script>
+  <script src="app_v6.js?v=20260916_0740"></script>
 
   <!-- Interflon Oil Dispenser Information Modal (PowerPoint Viewer) -->
   <div id="oilDispenserInfoModal" class="modal-overlay hidden" style="z-index: 99999;">
