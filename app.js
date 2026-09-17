@@ -21559,6 +21559,164 @@ function updateTwinSimulationPhysics(simDt) {
   if (diagTextEl) diagTextEl.innerHTML = diagnosisText;
 }
 
+// ==========================================================================
+// DIGITAL TWIN METRICS INFO TOOLTIP & POPOVER LOGIC
+// ==========================================================================
+let twinInfoPinned = null;
+
+const twinMetricExplanations = {
+  friction: {
+    title: "⚡ Wrijving (μ - Wrijvingscoëfficiënt)",
+    content: `
+      <div style="margin-bottom: 8px;">
+        <strong style="color: #38bdf8;">Wat stelt dit voor?</strong><br>
+        <span style="color: #cbd5e1;">μ (mu) is de verhouding tussen de wrijvingsweerstand en de normaalkracht op het lager (<strong>μ = F<sub>wrijving</sub> / F<sub>normaal</sub></strong>).</span>
+      </div>
+      <div style="margin-bottom: 8px;">
+        <strong style="color: #34d399;">Normaalwaarde (Optimaal):</strong><br>
+        <span style="color: #cbd5e1;">Bij een gezonde elastohydrodynamische film (EHL) met Micpol® ligt de wrijving uiterst laag, tussen <strong style="color: #34d399;">0.0028 en 0.0050</strong>.</span>
+      </div>
+      <div style="margin-bottom: 8px;">
+        <strong style="color: #f59e0b;">Bij stijging (Zaagtandregime):</strong><br>
+        <span style="color: #cbd5e1;">Waarden boven <strong>0.020</strong> (+300% of meer) tonen dat de vloeistoffilm gevaarlijk dun is geworden. Het lager draait in <em>grenssmering</em>: microscopische staalpiekjes raken elkaar fysiek.</span>
+      </div>
+      <div>
+        <strong style="color: #ef4444;">Gevolg in de praktijk:</strong><br>
+        <span style="color: #cbd5e1;">Extra warmteontwikkeling, onnodig energieverlies en een direct meetbaar hoger stroomverbruik van de elektromotor.</span>
+      </div>
+    `
+  },
+  temp: {
+    title: "🌡️ Bedrijfstemperatuur (Top in °C)",
+    content: `
+      <div style="margin-bottom: 8px;">
+        <strong style="color: #38bdf8;">Wat stelt dit voor?</strong><br>
+        <span style="color: #cbd5e1;">De berekende actuele bedrijfstemperatuur (<strong>T<sub>op</sub></strong>) van het lager en het lagerhuis in werking.</span>
+      </div>
+      <div style="margin-bottom: 8px;">
+        <strong style="color: #34d399;">Normaalwaarde (Optimaal):</strong><br>
+        <span style="color: #cbd5e1;">Onder normale, gezonde bedrijfsomstandigheden stabiliseert het lager zich meestal rond <strong style="color: #34d399;">40°C à 45°C</strong>.</span>
+      </div>
+      <div style="margin-bottom: 8px;">
+        <strong style="color: #f59e0b;">Thermische vicieuze cirkel:</strong><br>
+        <span style="color: #cbd5e1;">Wrijving wekt directe warmte op (<strong>Q = μ · F · v</strong>). Naarmate het lager warmer wordt (65°C - 85°C), daalt de viscositeit van de olie (viscositeitsval).</span>
+      </div>
+      <div>
+        <strong style="color: #ef4444;">Gevolg in de praktijk:</strong><br>
+        <span style="color: #cbd5e1;">Dunnere olie kan minder draagkracht leveren, waardoor de wrijving nóg verder toeneemt en het vet versneld oxideert en uitdroogt.</span>
+      </div>
+    `
+  },
+  wear: {
+    title: "🔬 Cumulatieve Slijtage (in μm)",
+    content: `
+      <div style="margin-bottom: 8px;">
+        <strong style="color: #38bdf8;">Wat stelt dit voor?</strong><br>
+        <span style="color: #cbd5e1;">De cumulatieve fysieke materiaalafname op de loopbaan en rolelementen in micrometer (<strong>1 μm = 0,001 mm</strong>).</span>
+      </div>
+      <div style="margin-bottom: 8px;">
+        <strong style="color: #34d399;">Normaalwaarde (Optimaal):</strong><br>
+        <span style="color: #cbd5e1;">Zolang er een dragende vloeistoffilm is, treedt er <strong style="color: #34d399;">exact 0.0 μm slijtage</strong> op (geen metaal-op-metaal contact).</span>
+      </div>
+      <div style="margin-bottom: 8px;">
+        <strong style="color: #f59e0b;">Slijtageverloop:</strong><br>
+        <span style="color: #cbd5e1;">Zodra de smeerfilm dunner wordt dan de oppervlakteruwheid (R<sub>a</sub>), ontstaan micro-lassen en breekt staal op microscopisch niveau af.</span>
+      </div>
+      <div>
+        <strong style="color: #ef4444;">Gevolg in de praktijk:</strong><br>
+        <span style="color: #cbd5e1;">In Fase 3 & 4 (droogloop) loopt deze slijtage snel op, leidend tot hoorbare resonantie, trillingen, spoorvorming, pitting en vroegtijdige breuk.</span>
+      </div>
+    `
+  },
+  lifetime: {
+    title: "⏳ Levensduurfactor L10h (ISO 281)",
+    content: `
+      <div style="margin-bottom: 8px;">
+        <strong style="color: #38bdf8;">Wat stelt dit voor?</strong><br>
+        <span style="color: #cbd5e1;">De nominale lagerlevensduur volgens de internationale ISO 281-norm. Dit is het aantal draaiuren dat 90% van de lagers storingsvrij behaalt.</span>
+      </div>
+      <div style="margin-bottom: 8px;">
+        <strong style="color: #38bdf8;">Referentiewaarden:</strong><br>
+        <span style="color: #cbd5e1;">• <strong style="color: #94a3b8;">1.0x</strong>: 100% van de theoretische cataloguslevensduur.<br>
+        • <strong style="color: #34d399;">3.8x (+280%)</strong>: Met continue automatische Pulsarlube smering dankzij optimale filmdikte en vuilafdichting.<br>
+        • <strong style="color: #ef4444;">Onder 1.0x (bvb 0.6x)</strong>: 40% of meer levensduurverlies door grenssmering en oververhitting.</span>
+      </div>
+      <div>
+        <strong style="color: #10b981;">Financieel & operationeel voordeel:</strong><br>
+        <span style="color: #cbd5e1;">Continu behoud van factor 3.8x voorkomt ongeplande machinestops en reduceert reserveonderdelen- en revisiekosten aanzienlijk.</span>
+      </div>
+    `
+  }
+};
+
+function showTwinMetricInfo(metricKey, event) {
+  if (twinInfoPinned && twinInfoPinned !== metricKey) return;
+  const popover = document.getElementById("twinInfoPopover");
+  const titleEl = document.getElementById("twinInfoPopoverTitle");
+  const bodyEl = document.getElementById("twinInfoPopoverBody");
+  if (!popover || !titleEl || !bodyEl) return;
+
+  const data = twinMetricExplanations[metricKey];
+  if (!data) return;
+
+  titleEl.innerHTML = data.title;
+  bodyEl.innerHTML = data.content;
+
+  popover.style.display = "block";
+
+  const btn = event ? (event.currentTarget || event.target) : null;
+  if (btn && btn.getBoundingClientRect) {
+    const rect = btn.getBoundingClientRect();
+    const popoverWidth = 340;
+    
+    let left = rect.left - popoverWidth + 24;
+    if (left < 12) left = 12;
+    if (left + popoverWidth > window.innerWidth - 12) {
+      left = window.innerWidth - popoverWidth - 12;
+    }
+
+    let top = rect.bottom + 8;
+    if (top + 280 > window.innerHeight) {
+      top = Math.max(12, rect.top - 290);
+    }
+
+    popover.style.left = left + "px";
+    popover.style.top = top + "px";
+  }
+}
+
+function hideTwinMetricInfo(metricKey, event, force = false) {
+  if (!force && twinInfoPinned) return;
+  if (force) twinInfoPinned = null;
+  const popover = document.getElementById("twinInfoPopover");
+  if (popover) popover.style.display = "none";
+}
+
+function toggleTwinMetricInfo(metricKey, event) {
+  if (event) {
+    event.stopPropagation();
+    event.preventDefault();
+  }
+  if (twinInfoPinned === metricKey) {
+    twinInfoPinned = null;
+    hideTwinMetricInfo(metricKey, event, true);
+  } else {
+    twinInfoPinned = metricKey;
+    showTwinMetricInfo(metricKey, event);
+  }
+}
+
+// Global click listener to close popover when clicking outside
+document.addEventListener("click", function(e) {
+  const popover = document.getElementById("twinInfoPopover");
+  if (popover && popover.style.display !== "none") {
+    if (!popover.contains(e.target) && !e.target.closest(".twin-info-icon-btn")) {
+      twinInfoPinned = null;
+      popover.style.display = "none";
+    }
+  }
+});
+
 function openDigitalTwinModal() {
   const modal = document.getElementById("digitalTwinModal");
   if (!modal) return;
@@ -21611,6 +21769,7 @@ function openDigitalTwinModal() {
 }
 
 function closeDigitalTwinModal() {
+  hideTwinMetricInfo(null, null, true);
   const modal = document.getElementById("digitalTwinModal");
   if (modal) modal.classList.add("hidden");
   document.body.style.overflow = "";
