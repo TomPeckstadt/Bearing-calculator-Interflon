@@ -3788,14 +3788,28 @@
           <!-- Gauge 2 & 3: Wrijving (mu) + Temperatuur (T_op) in 2 columns -->
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
             <!-- Wrijving -->
-            <div style="background: #1e293b; border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 10px 12px;">
-              <div style="font-size: 10.5px; font-weight: 700; color: #94a3b8;">Wrijving (μ)</div>
+            <div style="background: #1e293b; border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 10px 12px; position: relative;">
+              <div style="display: flex; align-items: center; justify-content: space-between;">
+                <div style="font-size: 10.5px; font-weight: 700; color: #94a3b8;">Wrijving (μ)</div>
+                <button type="button" class="twin-info-icon-btn" onclick="toggleTwinMetricInfo('friction', event)" onmouseenter="showTwinMetricInfo('friction', event)" onmouseleave="hideTwinMetricInfo('friction', event)" title="Toelichting over Wrijving (μ)">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" style="width: 12px; height: 12px;">
+                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a.75.75 0 000 1.5h.253a.25.25 0 01.244.304l-.459 2.066A1.75 1.75 0 0010.747 15H11a.75.75 0 000-1.5h-.253a.25.25 0 01-.244-.304l.459-2.066A1.75 1.75 0 009.253 9H9z" clip-rule="evenodd" />
+                  </svg>
+                </button>
+              </div>
               <div id="twinFrictionValue" style="font-size: 20px; font-weight: 900; color: #38bdf8; font-family: monospace; margin: 4px 0 2px 0;">0.003</div>
               <div id="twinFrictionBadge" style="font-size: 9.5px; font-weight: 700; color: #34d399;">-70% wrijving</div>
             </div>
             <!-- Temperatuur -->
-            <div style="background: #1e293b; border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 10px 12px;">
-              <div style="font-size: 10.5px; font-weight: 700; color: #94a3b8;">Bedrijfstemp.</div>
+            <div style="background: #1e293b; border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 10px 12px; position: relative;">
+              <div style="display: flex; align-items: center; justify-content: space-between;">
+                <div style="font-size: 10.5px; font-weight: 700; color: #94a3b8;">Bedrijfstemp.</div>
+                <button type="button" class="twin-info-icon-btn" onclick="toggleTwinMetricInfo('temp', event)" onmouseenter="showTwinMetricInfo('temp', event)" onmouseleave="hideTwinMetricInfo('temp', event)" title="Toelichting over Bedrijfstemperatuur">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" style="width: 12px; height: 12px;">
+                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a.75.75 0 000 1.5h.253a.25.25 0 01.244.304l-.459 2.066A1.75 1.75 0 0010.747 15H11a.75.75 0 000-1.5h-.253a.25.25 0 01-.244-.304l.459-2.066A1.75 1.75 0 009.253 9H9z" clip-rule="evenodd" />
+                  </svg>
+                </button>
+              </div>
               <div id="twinTempValue" style="font-size: 20px; font-weight: 900; color: #34d399; font-family: monospace; margin: 4px 0 2px 0;">41.2 °C</div>
               <div id="twinTempBadge" style="font-size: 9.5px; font-weight: 700; color: #94a3b8;">Stabiel thermisch</div>
             </div>
@@ -3804,14 +3818,28 @@
           <!-- Gauge 4 & 5: Cumulatieve Slijtage + Levensduurfactor -->
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
             <!-- Slijtage -->
-            <div style="background: #1e293b; border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 10px 12px;">
-              <div style="font-size: 10.5px; font-weight: 700; color: #94a3b8;">Cumul. Slijtage</div>
+            <div style="background: #1e293b; border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 10px 12px; position: relative;">
+              <div style="display: flex; align-items: center; justify-content: space-between;">
+                <div style="font-size: 10.5px; font-weight: 700; color: #94a3b8;">Cumul. Slijtage</div>
+                <button type="button" class="twin-info-icon-btn" onclick="toggleTwinMetricInfo('wear', event)" onmouseenter="showTwinMetricInfo('wear', event)" onmouseleave="hideTwinMetricInfo('wear', event)" title="Toelichting over Cumulatieve Slijtage">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" style="width: 12px; height: 12px;">
+                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a.75.75 0 000 1.5h.253a.25.25 0 01.244.304l-.459 2.066A1.75 1.75 0 0010.747 15H11a.75.75 0 000-1.5h-.253a.25.25 0 01-.244-.304l.459-2.066A1.75 1.75 0 009.253 9H9z" clip-rule="evenodd" />
+                  </svg>
+                </button>
+              </div>
               <div id="twinWearValue" style="font-size: 20px; font-weight: 900; color: #34d399; font-family: monospace; margin: 4px 0 2px 0;">0.0 μm</div>
               <div id="twinWearBadge" style="font-size: 9.5px; font-weight: 700; color: #34d399;">Nul loopbaanslijtage</div>
             </div>
             <!-- Levensduurfactor -->
-            <div style="background: #1e293b; border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 10px 12px;">
-              <div style="font-size: 10.5px; font-weight: 700; color: #94a3b8;">Levensduur L10h</div>
+            <div style="background: #1e293b; border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 10px 12px; position: relative;">
+              <div style="display: flex; align-items: center; justify-content: space-between;">
+                <div style="font-size: 10.5px; font-weight: 700; color: #94a3b8;">Levensduur L10h</div>
+                <button type="button" class="twin-info-icon-btn" onclick="toggleTwinMetricInfo('lifetime', event)" onmouseenter="showTwinMetricInfo('lifetime', event)" onmouseleave="hideTwinMetricInfo('lifetime', event)" title="Toelichting over Levensduur L10h">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" style="width: 12px; height: 12px;">
+                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a.75.75 0 000 1.5h.253a.25.25 0 01.244.304l-.459 2.066A1.75 1.75 0 0010.747 15H11a.75.75 0 000-1.5h-.253a.25.25 0 01-.244-.304l.459-2.066A1.75 1.75 0 009.253 9H9z" clip-rule="evenodd" />
+                  </svg>
+                </button>
+              </div>
               <div id="twinLifetimeFactor" style="font-size: 20px; font-weight: 900; color: #38bdf8; font-family: monospace; margin: 4px 0 2px 0;">3.8x</div>
               <div id="twinLifetimeBadge" style="font-size: 9.5px; font-weight: 700; color: #38bdf8;">+280% verlenging</div>
             </div>
@@ -3851,6 +3879,15 @@
         <div style="display: flex; align-items: center; gap: 10px;">
           <button type="button" class="btn btn-secondary" onclick="closeDigitalTwinModal()" style="padding: 7px 18px; font-size: 12.5px; font-weight: 700; border-radius: 6px; background: rgba(255,255,255,0.1); color: #f8fafc; border: 1px solid rgba(255,255,255,0.15); cursor: pointer;">Venster Sluiten</button>
         </div>
+      </div>
+
+      <!-- Floating Info Tooltip/Popover for the 4 Telemetry Gauges -->
+      <div id="twinInfoPopover" style="display: none; position: fixed; z-index: 100050; width: 340px; max-width: 90vw; background: #0f172a; border: 1.5px solid #38bdf8; border-radius: 10px; padding: 14px 16px; box-shadow: 0 14px 35px rgba(0, 0, 0, 0.75); color: #f1f5f9; pointer-events: auto; backdrop-filter: blur(8px);">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; margin-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.12); padding-bottom: 8px;">
+          <div id="twinInfoPopoverTitle" style="font-size: 13.5px; font-weight: 800; color: #38bdf8; font-family: 'Outfit', sans-serif;"></div>
+          <button type="button" onclick="hideTwinMetricInfo(null, null, true)" style="background: none; border: none; color: #94a3b8; font-size: 18px; line-height: 1; cursor: pointer; padding: 0 2px;" title="Sluiten">✕</button>
+        </div>
+        <div id="twinInfoPopoverBody" style="font-size: 11.5px; line-height: 1.5; color: #cbd5e1;"></div>
       </div>
 
     </div>
