@@ -2551,3 +2551,30 @@ table {
   padding: 16px 20px;
   position: relative;
 }
+
+/* Digital Twin Info Button */
+.twin-info-icon-btn {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #94a3b8;
+  border-radius: 50%;
+  width: 17px;
+  height: 17px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.twin-info-icon-btn:hover,
+.twin-info-icon-btn:focus {
+  background: rgba(56, 189, 248, 0.22);
+  border-color: #38bdf8;
+  color: #38bdf8;
+  transform: scale(1.12);
+}
+
