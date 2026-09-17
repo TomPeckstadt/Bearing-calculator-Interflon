@@ -7572,6 +7572,11 @@ function switchPage(pageId) {
   const mainContent = document.querySelector(".main-content");
   if (mainContent) {
     mainContent.scrollTop = 0;
+    if (pageId === "search" || pageId === "chainSearch") {
+      mainContent.classList.add("page-search-active");
+    } else {
+      mainContent.classList.remove("page-search-active");
+    }
   }
 
   // Verberg alle secties
