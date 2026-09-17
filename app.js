@@ -16823,12 +16823,34 @@ function getQrPassportsData() {
     return sum + (parts.length > 0 ? parts.length : 1);
   }, 0);
 
+  // Group servicepacks / units for central overview
+  const servicepackItems = [];
+  passports.forEach(p => {
+    const existing = servicepackItems.find(item => item.art === p.art && item.cap === p.cap && item.t === p.t);
+    if (existing) {
+      existing.count = (existing.count || 1) + 1;
+      if (p.u && !existing.units.includes(p.u)) existing.units.push(p.u);
+    } else {
+      servicepackItems.push({
+        art: p.art,
+        cap: p.cap,
+        t: p.t,
+        label: p.devTypeLabel,
+        count: 1,
+        units: [p.u]
+      });
+    }
+  });
+
+  const allSameType = passports.length > 0 && passports.every(p => p.t === passports[0].t);
+  const resolvedCentralType = isSinglePoint ? "single_point" : (allSameType ? passports[0].t : (deviceKey === "mixed" ? "mixed" : deviceKey));
+
   // Central Machine Passport
   const centralPassport = {
     m: machineName,
     c: clientCompany,
     u: "Centraal Smeeroverzicht",
-    t: isSinglePoint ? "single_point" : deviceKey,
+    t: resolvedCentralType,
     cap: passports[0] ? passports[0].cap : 125,
     g: greaseName,
     art: passports.map(p => p.art).filter((v, i, a) => a.indexOf(v) === i).join(", "),
@@ -16837,8 +16859,9 @@ function getQrPassportsData() {
     l: totalPoints + " smeerpunten (" + passports.length + " smeerunits)",
     d: dateStr,
     totalPoints: totalPoints,
-    devTypeLabel: isSinglePoint ? "Single Point Smeersysteem" : "Pulsarlube Automatische Smering",
-    isCentral: true
+    devTypeLabel: isSinglePoint ? "Single Point Smeersysteem" : (allSameType && passports[0].devTypeLabel ? passports[0].devTypeLabel.replace(/\s*\d+\s*ml/i, ' Smeersysteem') : "Pulsarlube Automatische Smering"),
+    isCentral: true,
+    sp: servicepackItems
   };
 
   return {
