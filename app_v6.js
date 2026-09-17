@@ -19750,6 +19750,125 @@ function copySurveyLink() {
 }
 
 // ==========================================================================
+// SURVEY EMAIL MODAL LOGIC
+// ==========================================================================
+function openSurveyEmailModal() {
+  const modal = document.getElementById("surveyEmailModal");
+  if (!modal) return;
+  const textarea = document.getElementById("surveyEmailTextarea");
+  
+  let surveyUrl = "";
+  try {
+    if (typeof getSurveyUrl === "function") {
+      surveyUrl = getSurveyUrl({ includeClientData: false });
+    }
+  } catch (e) {}
+  
+  if (!surveyUrl) {
+    const loc = window.location;
+    const basePath = loc.pathname.substring(0, loc.pathname.lastIndexOf('/') + 1);
+    surveyUrl = loc.origin + basePath + "vragenlijst.html?t=" + Date.now();
+  }
+
+  const lang = (typeof currentLang !== "undefined" && currentLang) ? currentLang : "nl";
+  let templateText = "";
+  if (lang === "fr") {
+    templateText = `Cher client,
+
+Faisant suite à notre conversation concernant l'automatisation, je vous transmets comme promis le lien vers le questionnaire :
+${surveyUrl}
+
+Je souhaite vous apporter les précisions suivantes :
+Après avoir complété les roulements dans la section 1) Détails de la machine & Spécifications des roulements, vous constaterez qu'ils apparaissent automatiquement dans la grille de la machine dans la section 3) Positionnement des roulements & Distances.
+Tout ce que vous avez à faire dans la section 3 est de positionner correctement les roulements concernés à l'aide de votre souris, conformément à la situation réelle et aux distances sur la machine.
+Pour le reste, vous n'avez rien à remplir dans la section 3.
+
+Dans les sections 2, 4 et 5, les données doivent être remplies pour chaque roulement séparément, car elles peuvent être différentes. Si des roulements identiques sont présents dans les mêmes conditions, vous pouvez facilement copier un roulement, puis en sélectionner un autre et le coller. Ainsi, vous n'avez pas à tout ressaisir manuellement à chaque fois.
+
+Vous pouvez toujours me joindre par téléphone ou par e-mail pour obtenir de l'aide lors du remplissage.`;
+  } else if (lang === "en") {
+    templateText = `Dear Customer,
+
+Following our conversation regarding automation, I am sending you the link to the questionnaire as promised:
+${surveyUrl}
+
+I would like to provide the following clarification:
+After you have filled in the bearings in section 1) Machine details & Bearing specifications, you will notice that they automatically appear in the machine grid in section 3) Bearing Positioning & Machine Distances.
+All you need to do in section 3 is position the relevant bearings correctly using your mouse according to the actual situation and distances on the machine.
+You do not need to fill in anything else in section 3.
+
+In sections 2, 4, and 5, the data must be filled in for each bearing separately, as these may vary. If there are identical bearings with the same operating conditions, you can simply copy a bearing, then select another bearing and paste. This saves you from having to re-enter everything manually each time.
+
+You can always reach me by phone or email for any assistance with filling it in.`;
+  } else {
+    templateText = `Geachte klant, 
+
+Naar aanleiding van ons gesprek betreffende automatisatie zend ik u zoals beloofd de link naar de vragenlijst:
+${surveyUrl}
+
+Graag geef ik hierbij volgende toelichting:
+Nadat u in sectie 1) Machinedetails & Lagerspecificaties de lagers heeft ingevuld zal u merken dat deze automatisch verschijnen in het machineraster in sectie 3) Positiebepaling Lagers & Afstanden Machine.
+Het enige wat u in sectie 3 hoeft te doen is de betreffende lagers met uw muis juist te positioneren in overeenstemming met de reële situatie en afstanden op de machine.
+Verder hoeft u in sectie 3) Positiebepaling Lagers & Afstanden Machine niets in te vullen. 
+
+In secties 2, 4 en 5 dienen de data voor elk lager apart te worden ingevuld, aangezien deze afwijkend kunnen zijn. Indien er identieke lagers aanwezig zijn met dezelfde omstandigheden, kan u eenvoudig een lager kopiëren, daarna een ander lager selecteren en plakken. Zo hoeft u niet telkens opnieuw alles manueel in te vullen. 
+
+U kan mij steeds telefonisch of via Email bereiken voor hulp bij het invullen.`;
+  }
+
+  if (textarea) {
+    textarea.value = templateText;
+  }
+
+  const statusEl = document.getElementById("surveyEmailCopyStatus");
+  if (statusEl) {
+    statusEl.style.opacity = "0";
+  }
+
+  modal.classList.remove("hidden");
+}
+
+function closeSurveyEmailModal() {
+  const modal = document.getElementById("surveyEmailModal");
+  if (modal) modal.classList.add("hidden");
+}
+
+function copySurveyEmailText() {
+  const textarea = document.getElementById("surveyEmailTextarea");
+  if (!textarea) return;
+
+  const text = textarea.value;
+  textarea.select();
+  textarea.setSelectionRange(0, 99999);
+
+  let success = false;
+  try {
+    success = document.execCommand("copy");
+  } catch (e) {}
+
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(() => {
+      showSurveyEmailCopyFeedback();
+    }).catch(() => {
+      if (success) showSurveyEmailCopyFeedback();
+    });
+  } else if (success) {
+    showSurveyEmailCopyFeedback();
+  }
+}
+
+function showSurveyEmailCopyFeedback() {
+  const statusEl = document.getElementById("surveyEmailCopyStatus");
+  if (statusEl) {
+    statusEl.textContent = "✓ Tekst succesvol gekopieerd naar klembord!";
+    statusEl.style.opacity = "1";
+    setTimeout(() => {
+      if (statusEl) statusEl.style.opacity = "0";
+    }, 3500);
+  }
+}
+
+// ==========================================================================
 // PHOTO LIBRARY LOGIC
 // ==========================================================================
 let photoLibrary = [];
