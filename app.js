@@ -16845,6 +16845,52 @@ function getQrPassportsData() {
   const allSameType = passports.length > 0 && passports.every(p => p.t === passports[0].t);
   const resolvedCentralType = isSinglePoint ? "single_point" : (allSameType ? passports[0].t : (deviceKey === "mixed" ? "mixed" : deviceKey));
 
+  // Capture snapshot of machine raster for interactive schema viewer
+  let rasterSnapshot = null;
+  try {
+    if (typeof getActiveMachineRasterData === "function") {
+      const rd = getActiveMachineRasterData();
+      if (rd) {
+        rasterSnapshot = {
+          rng: rd.machineRangeMeters || 10,
+          v: rd.layoutViewMode || "3d",
+          cp: rd.showCentralPoint !== false ? 1 : 0,
+          bp: {},
+          b: [],
+          d: []
+        };
+        (rd.bearings || []).forEach((b, idx) => {
+          const l = b.letter || String.fromCharCode(65 + idx);
+          rasterSnapshot.b.push([l, b.nr || ""]);
+          const p = (rd.bearingPositions && rd.bearingPositions[l]) || { x: 0, y: 0 };
+          rasterSnapshot.bp[l] = [Math.round((p.x || 0) * 10) / 10, Math.round((p.y || 0) * 10) / 10];
+        });
+        (rd.devices || []).forEach((dev, idx) => {
+          if (dev.active === false) return;
+          rasterSnapshot.d.push({
+            s: dev.short || ("T" + (idx + 1)),
+            n: dev.name || ("Toestel " + (idx + 1)),
+            t: dev.type || "pulsarlube_m2",
+            x: Math.round((dev.x || 0) * 10) / 10,
+            y: Math.round((dev.y || 0) * 10) / 10,
+            b: (dev.assignedBearingLetters && Array.isArray(dev.assignedBearingLetters)) ? dev.assignedBearingLetters : []
+          });
+        });
+
+        try {
+          localStorage.setItem('interflon_last_passport_raster', JSON.stringify({
+            machine: machineName,
+            company: clientCompany,
+            date: dateStr,
+            raster: rasterSnapshot
+          }));
+        } catch (storageErr) {}
+      }
+    }
+  } catch (rasterErr) {
+    console.warn("Fout bij vastleggen raster snapshot:", rasterErr);
+  }
+
   // Central Machine Passport
   const centralPassport = {
     m: machineName,
@@ -16861,7 +16907,8 @@ function getQrPassportsData() {
     totalPoints: totalPoints,
     devTypeLabel: isSinglePoint ? "Single Point Smeersysteem" : (allSameType && passports[0].devTypeLabel ? passports[0].devTypeLabel.replace(/\s*\d+\s*ml/i, ' Smeersysteem') : "Pulsarlube Automatische Smering"),
     isCentral: true,
-    sp: servicepackItems
+    sp: servicepackItems,
+    r: rasterSnapshot
   };
 
   return {
