@@ -493,13 +493,16 @@
     </div>
 
     <!-- 4. Refill / Servicepack Card -->
-    <div class="refill-card">
+    <div class="refill-card" id="passRefillCard">
       <div class="refill-header">
-        <span class="refill-tag">📦 Benodigd Servicepack / Patroon</span>
-        <span class="art-badge" id="passArtNr">Art. 4401</span>
+        <span class="refill-tag" id="passRefillTag">📦 Benodigd Servicepack / Patroon</span>
+        <span class="art-badge" id="passArtBadge"><span id="passArtNr">Art. 4401</span></span>
       </div>
-      <div class="refill-title" id="passRefillTitle">Servicepack Pulsarlube M2 (125 ml)</div>
-      <div class="refill-grease" id="passGreaseName">Interflon Grease MP2/3</div>
+      <div id="passRefillSingleContent">
+        <div class="refill-title" id="passRefillTitle">Servicepack Pulsarlube M2 (125 ml)</div>
+        <div class="refill-grease" id="passGreaseName">Interflon Grease MP2/3</div>
+      </div>
+      <div id="passRefillMultiContent" style="display: none; flex-direction: column; gap: 8px; margin-top: 6px;"></div>
     </div>
 
     <!-- 5. Action Buttons for Maintenance Tech -->
@@ -529,7 +532,7 @@
     </details>
 
     <div class="footer-note">
-      Interflon Benelux • Gecalculeerd met Interflon Calculation Engine
+      Interflon Belgium • Gecalculeerd met Interflon Calculation Engine
     </div>
 
   </div>
@@ -541,6 +544,52 @@
   </div>
 
   <script>
+    // Known standard servicepack & navulunit lookup dictionary
+    const KNOWN_SERVICEPACKS = {
+      // Pulsarlube 250ml
+      "4401": { name: "Servicepack Pulsarlube M2 (250 ml)", cap: 250, model: "Pulsarlube M2", grease: "Interflon Grease MP2/3" },
+      "4415": { name: "Servicepack Pulsarlube M2 (250 ml)", cap: 250, model: "Pulsarlube M2", grease: "Interflon Grease LT2" },
+      "4418": { name: "Servicepack Pulsarlube M2 (250 ml)", cap: 250, model: "Pulsarlube M2", grease: "Interflon Grease HD2" },
+      "4407": { name: "Servicepack Pulsarlube M2 (250 ml)", cap: 250, model: "Pulsarlube M2", grease: "Interflon Grease LS1/2" },
+      "4403": { name: "Servicepack Pulsarlube M2 (250 ml)", cap: 250, model: "Pulsarlube M2", grease: "Interflon Grease LS2" },
+      "4406": { name: "Servicepack Pulsarlube M2 (250 ml)", cap: 250, model: "Pulsarlube M2", grease: "Interflon Grease HTG" },
+
+      // Pulsarlube 125ml / 120ml
+      "4201": { name: "Servicepack Pulsarlube M2 (125 ml)", cap: 125, model: "Pulsarlube M2", grease: "Interflon Grease MP2/3" },
+      "4208": { name: "Servicepack Pulsarlube M2 (125 ml)", cap: 125, model: "Pulsarlube M2", grease: "Interflon Grease LT2" },
+      "4209": { name: "Servicepack Pulsarlube M2 (125 ml)", cap: 125, model: "Pulsarlube M2", grease: "Interflon Grease HD2" },
+      "4207": { name: "Servicepack Pulsarlube M2 (125 ml)", cap: 125, model: "Pulsarlube M2", grease: "Interflon Grease LS1/2" },
+      "4203": { name: "Servicepack Pulsarlube M2 (125 ml)", cap: 125, model: "Pulsarlube M2", grease: "Interflon Grease LS2" },
+      "4206": { name: "Servicepack Pulsarlube M2 (125 ml)", cap: 125, model: "Pulsarlube M2", grease: "Interflon Grease HTG" },
+      "4205": { name: "Servicepack Pulsarlube M2 (125 ml)", cap: 125, model: "Pulsarlube M2", grease: "Interflon Grease EP" },
+      "4202": { name: "Servicepack Pulsarlube M2 (125 ml)", cap: 125, model: "Pulsarlube M2", grease: "Interflon Grease MP00" },
+
+      // Pulsarlube 60ml
+      "4419": { name: "Servicepack Pulsarlube M2 (60 ml)", cap: 60, model: "Pulsarlube M2", grease: "Interflon Grease MP2/3" },
+      "4210": { name: "Servicepack Pulsarlube M2 (60 ml)", cap: 60, model: "Pulsarlube M2", grease: "Interflon Grease LT2" },
+
+      // Pulsarlube 500ml
+      "4408": { name: "Servicepack Pulsarlube M2 (500 ml)", cap: 500, model: "Pulsarlube M2", grease: "Interflon Grease MP2/3" },
+      "4416": { name: "Servicepack Pulsarlube M2 (500 ml)", cap: 500, model: "Pulsarlube M2", grease: "Interflon Grease HD2" },
+      "4412": { name: "Servicepack Pulsarlube M2 (500 ml)", cap: 500, model: "Pulsarlube M2", grease: "Interflon Grease HTG" },
+
+      // Single Point
+      "1061": { name: "Single Point Navulunit (125 ml)", cap: 125, model: "Single Point", grease: "Interflon Grease MP2/3" },
+      "1083": { name: "Single Point Navulunit (125 ml)", cap: 125, model: "Single Point", grease: "Interflon Grease LT2" },
+      "1081": { name: "Single Point Navulunit (125 ml)", cap: 125, model: "Single Point", grease: "Interflon Grease HD2" },
+      "1086": { name: "Single Point Navulunit (125 ml)", cap: 125, model: "Single Point", grease: "Interflon Grease LS1/2" },
+      "1065": { name: "Single Point Navulunit (125 ml)", cap: 125, model: "Single Point", grease: "Interflon Grease EP" },
+      "1071": { name: "Single Point Navulunit (60 ml)", cap: 60, model: "Single Point", grease: "Interflon Grease MP2/3" },
+      "1078": { name: "Single Point Navulunit (60 ml)", cap: 60, model: "Single Point", grease: "Interflon Grease LT2" },
+      "1079": { name: "Single Point Navulunit (60 ml)", cap: 60, model: "Single Point", grease: "Interflon Grease HD2" },
+      "1049": { name: "Single Point Navulunit (60 ml)", cap: 60, model: "Single Point", grease: "Interflon Grease LS1/2" },
+      "1087": { name: "Single Point Navulunit (250 ml)", cap: 250, model: "Single Point", grease: "Interflon Grease MP2/3" },
+      "1051": { name: "Single Point Navulunit (30 ml)", cap: 30, model: "Single Point", grease: "Interflon Grease MP2/3" },
+      "1082": { name: "Single Point Navulunit (15 ml)", cap: 15, model: "Single Point", grease: "Interflon Grease MP2/3" }
+    };
+
+    let currentPacks = [];
+
     // 1. Data Decoder
     let currentData = {
       m: "Machine",
@@ -616,7 +665,9 @@
 
       // System Type
       let sysName = "Smeertoestel";
-      if (currentData.t === 'single_point') {
+      if (currentData.isCentral || currentData.u === "Centraal Smeeroverzicht") {
+        sysName = currentData.devTypeLabel || (currentData.t === 'single_point' ? 'Single Point Smeersysteem' : 'Pulsarlube Automatisch Smeersysteem');
+      } else if (currentData.t === 'single_point') {
         sysName = `Single Point Lubricator (${currentData.cap || 125} ml)`;
       } else if (currentData.t === 'pulsarlube_m2') {
         sysName = `Pulsarlube M2 (${currentData.cap || 125} ml)`;
@@ -626,6 +677,8 @@
         sysName = `Pulsarlube MSP DC (${currentData.cap || 125} ml)`;
       } else if (currentData.t === 'pulsarlube_plc') {
         sysName = `Pulsarlube PLC (${currentData.cap || 125} ml)`;
+      } else if (currentData.t === 'mixed') {
+        sysName = currentData.devTypeLabel || 'Pulsarlube Automatisch Smeersysteem';
       } else {
         sysName = `${currentData.t || 'Pulsarlube'} (${currentData.cap || 125} ml)`;
       }
@@ -651,22 +704,104 @@
       // Delivery Rate
       document.getElementById('passRateVal').textContent = currentData.v || '-';
 
-      // Refill & Article Number Resolution
-      let refillArt = currentData.art;
-      if (!refillArt || refillArt === "Op aanvraag" || refillArt === "Manueel") {
-        const c = parseInt(currentData.cap, 10) || 125;
-        if (currentData.t === "single_point") {
-          refillArt = (c === 60) ? "1071" : ((c === 250) ? "1087" : "1061");
-        } else {
-          refillArt = (c === 250) ? "4401" : ((c === 60) ? "4419" : ((c === 500) ? "4408" : "4201"));
+      // Refill & Servicepack Resolution
+      let packs = [];
+      if (Array.isArray(currentData.sp) && currentData.sp.length > 0) {
+        packs = currentData.sp.map(item => {
+          let art = item.art;
+          let cap = item.cap || 125;
+          let grease = item.g || currentData.g || 'Interflon Grease MP2/3';
+          let title = '';
+          if (item.t === 'single_point') {
+            title = `Single Point Navulunit (${cap} ml)`;
+          } else {
+            let modelName = 'Pulsarlube M2';
+            if (item.t === 'pulsarlube_msp_ac') modelName = 'Pulsarlube MSP AC';
+            else if (item.t === 'pulsarlube_msp_dc' || item.t === 'pulsarlube_msp') modelName = 'Pulsarlube MSP DC';
+            else if (item.t === 'pulsarlube_plc') modelName = 'Pulsarlube PLC';
+            else if (item.label) modelName = item.label.replace(/\s*\d+\s*ml/i, '').trim();
+            title = `Servicepack ${modelName} (${cap} ml)`;
+          }
+          const unitsLabel = (item.units && Array.isArray(item.units) && item.units.length > 0)
+            ? item.units.join(', ')
+            : (item.count ? `${item.count} unit${item.count > 1 ? 's' : ''}` : '');
+          return { art, cap, title, grease, unitsLabel };
+        });
+      } else {
+        const rawArt = String(currentData.art || '').trim();
+        const artList = rawArt ? rawArt.split(',').map(s => s.trim()).filter(Boolean) : [];
+        if (artList.length > 1) {
+          packs = artList.map(art => {
+            const known = KNOWN_SERVICEPACKS[art];
+            let cap = known ? known.cap : ((art === '4401') ? 250 : ((art === '4201') ? 125 : ((art === '4419') ? 60 : ((art === '4408') ? 500 : (currentData.cap || 125)))));
+            let isSp = (currentData.t === 'single_point') || (known && known.model === 'Single Point');
+            let modelName = 'Pulsarlube M2';
+            if (currentData.t === 'pulsarlube_msp_ac') modelName = 'Pulsarlube MSP AC';
+            else if (currentData.t === 'pulsarlube_msp_dc' || currentData.t === 'pulsarlube_msp') modelName = 'Pulsarlube MSP DC';
+            else if (currentData.t === 'pulsarlube_plc') modelName = 'Pulsarlube PLC';
+            else if (known && known.model) modelName = known.model;
+
+            let title = isSp
+              ? `Single Point Navulunit (${cap} ml)`
+              : `Servicepack ${modelName} (${cap} ml)`;
+            let grease = (known && known.grease) ? known.grease : (currentData.g || 'Interflon Grease MP2/3');
+            return { art, cap, title, grease, unitsLabel: '' };
+          });
         }
       }
-      currentData.art = refillArt;
-      document.getElementById('passArtNr').textContent = `Art. ${refillArt}`;
-      document.getElementById('passRefillTitle').textContent = (currentData.t === 'single_point')
-        ? `Single Point Navulunit (${currentData.cap || 125} ml)`
-        : `Servicepack ${sysName}`;
-      document.getElementById('passGreaseName').textContent = currentData.g || 'Interflon Grease MP2/3';
+
+      currentPacks = packs;
+
+      const singleContent = document.getElementById('passRefillSingleContent');
+      const multiContent = document.getElementById('passRefillMultiContent');
+      const tagEl = document.getElementById('passRefillTag');
+      const badgeEl = document.getElementById('passArtBadge');
+      const artNrEl = document.getElementById('passArtNr');
+
+      if (packs.length > 1) {
+        if (tagEl) tagEl.textContent = "Benodigde Servicepacks / Patronen";
+        if (badgeEl) badgeEl.style.display = "none";
+        if (singleContent) singleContent.style.display = "none";
+        if (multiContent) {
+          multiContent.style.display = "flex";
+          multiContent.innerHTML = packs.map(p => `
+            <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px; background: rgba(255, 255, 255, 0.88); border: 1.5px solid #fed7aa; border-radius: 8px; padding: 9px 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
+              <div style="min-width: 0; flex: 1;">
+                <div style="font-size: 13.5px; font-weight: 800; color: #7c2d12; line-height: 1.25;">
+                  ${p.title}
+                </div>
+                <div style="font-size: 11px; color: #9a3412; font-weight: 600; margin-top: 2px;">
+                  ${p.grease}${p.unitsLabel ? ` &bull; <span style="color: #c2410c; font-weight: 700;">${p.unitsLabel}</span>` : ''}
+                </div>
+              </div>
+              <div style="flex-shrink: 0;">
+                <span class="art-badge" style="font-size: 13px; padding: 3px 8px; display: inline-block;">Art. ${p.art}</span>
+              </div>
+            </div>
+          `).join('');
+        }
+      } else {
+        if (tagEl) tagEl.textContent = "Benodigd Servicepack / Patroon";
+        if (badgeEl) badgeEl.style.display = "inline-flex";
+        if (singleContent) singleContent.style.display = "block";
+        if (multiContent) multiContent.style.display = "none";
+
+        let singleArt = currentData.art;
+        if (!singleArt || singleArt === "Op aanvraag" || singleArt === "Manueel") {
+          const c = parseInt(currentData.cap, 10) || 125;
+          if (currentData.t === "single_point") {
+            singleArt = (c === 60) ? "1071" : ((c === 250) ? "1087" : "1061");
+          } else {
+            singleArt = (c === 250) ? "4401" : ((c === 60) ? "4419" : ((c === 500) ? "4408" : "4201"));
+          }
+        }
+        currentData.art = singleArt;
+        if (artNrEl) artNrEl.textContent = `Art. ${singleArt}`;
+        document.getElementById('passRefillTitle').textContent = (currentData.t === 'single_point')
+          ? `Single Point Navulunit (${currentData.cap || 125} ml)`
+          : `Servicepack ${sysName}`;
+        document.getElementById('passGreaseName').textContent = currentData.g || 'Interflon Grease MP2/3';
+      }
 
       document.title = `${currentData.m} • ${currentData.u} • Interflon Paspoort`;
     }
@@ -682,13 +817,23 @@
     }
 
     function copyOrderDetails() {
+      let itemsText = "";
+      if (currentPacks && currentPacks.length > 1) {
+        itemsText = "Benodigde Servicepacks:\n" + currentPacks.map((p, idx) => 
+          `  ${idx + 1}. Art. ${p.art} — ${p.title} (${p.grease})${p.unitsLabel ? ' [' + p.unitsLabel + ']' : ''}`
+        ).join("\n");
+      } else {
+        const title = document.getElementById('passRefillTitle') ? document.getElementById('passRefillTitle').textContent : 'Servicepack';
+        itemsText = `Artikel: Art. ${currentData.art} (${title})\nSmeermiddel: ${currentData.g} (${currentData.cap} ml)`;
+      }
+
       const text = `INTERFLON SMEERPASPOORT BESTELREGEL:
-Gewenste aantal eenheden: 
-Artikel: Art. ${currentData.art} (Servicepack / Patroon voor ${currentData.u})
-Smeermiddel: ${currentData.g} (${currentData.cap} ml)
-Instelling: ${currentData.p}
 Machine: ${currentData.m} (${currentData.c})
-Aangesloten op: ${currentData.l}`;
+Toestel / Systeem: ${currentData.u}
+Aangesloten op: ${currentData.l}
+Instelling: ${currentData.p}
+
+${itemsText}`;
 
       if (navigator.clipboard && navigator.clipboard.writeText) {
         navigator.clipboard.writeText(text).then(() => {
@@ -712,18 +857,30 @@ Aangesloten op: ${currentData.l}`;
     }
 
     function emailRefillRequest() {
-      const subject = encodeURIComponent(`Navulling aanvraag: ${currentData.m} - ${currentData.u} (Art. ${currentData.art})`);
+      let emailItems = "";
+      if (currentPacks && currentPacks.length > 1) {
+        emailItems = currentPacks.map(p => 
+          `- Art. ${p.art}: ${p.title} (${p.grease})${p.unitsLabel ? ' - ' + p.unitsLabel : ''}`
+        ).join("\n");
+      } else {
+        const title = document.getElementById('passRefillTitle') ? document.getElementById('passRefillTitle').textContent : 'Servicepack';
+        emailItems = `- Artikelnummer: Art. ${currentData.art}
+- Type: ${title}
+- Smeermiddel: ${currentData.g} (${currentData.cap} ml)`;
+      }
+
+      const subject = encodeURIComponent(`Navulling aanvraag: ${currentData.m} - ${currentData.u} (${currentData.art})`);
       const body = encodeURIComponent(`Beste,
 
-Graag een bestelling / offerte voor navulling van onderstaand smeertoestel:
+Graag een bestelling / offerte voor navulling van onderstaand smeersysteem:
 
 Gewenste aantal eenheden: 
 
-- Artikelnummer: Art. ${currentData.art}
-- Smeermiddel: ${currentData.g} (${currentData.cap} ml)
+${emailItems}
+
 - Machine: ${currentData.m}
-- Toestel: ${currentData.u} (${currentData.p})
-- Lagers: ${currentData.l}
+- Systeem: ${currentData.u} (${currentData.p})
+- Aangesloten lagers: ${currentData.l}
 - Klant: ${currentData.c}
 
 Met vriendelijke groet,`);
