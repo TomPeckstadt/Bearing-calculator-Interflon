@@ -774,18 +774,229 @@ function saveManualBearingOverride(letter, teVal, taVal) {
 }
 window.saveManualBearingOverride = saveManualBearingOverride;
 
+function updateCorrectionFactorsHint() {
+  const hintEl = document.getElementById("surveyCorrectionFactorsHint");
+  const hintTextEl = document.getElementById("surveyCorrectionFactorsHintText");
+  if (!hintEl || !hintTextEl) return;
+
+  const lang = (typeof currentLang !== 'undefined' && currentLang) ? currentLang : 'nl';
+
+  // 1. Check current active bearing
+  let targetLetter = window.currentActiveSurveyBearingLetter || window.currentSurveyBearingLetter || null;
+  const sel = document.getElementById("surveyBearingSelect");
+  if (!targetLetter && sel && sel.value) {
+    const opt = sel.options[sel.selectedIndex];
+    targetLetter = (opt && opt.dataset && opt.dataset.letter) ? opt.dataset.letter : (sel.value.includes('___') ? sel.value.split('___')[0] : null);
+  }
+  if (!targetLetter && (!sel || sel.value)) {
+    try { targetLetter = localStorage.getItem("interflon_active_survey_letter"); } catch(e) {}
+  }
+
+  // 2. Load questionnaire data if available
+  let fullData = window.latestSurveyFullData || null;
+  if (!fullData) {
+    try {
+      const saved = localStorage.getItem('interflon_questionnaire_full_data') || localStorage.getItem('interflon_last_questionnaire_data');
+      if (saved) fullData = JSON.parse(saved);
+    } catch(e) {}
+  }
+  if (!fullData && typeof BroadcastChannel !== 'undefined') {
+    try {
+      const rawCfg = localStorage.getItem('interflon_survey_raster_config');
+      if (rawCfg) fullData = JSON.parse(rawCfg);
+    } catch(e) {}
+  }
+
+  if (fullData && (fullData.fullData || fullData.questionnaire || fullData.data)) {
+    fullData = fullData.fullData || fullData.questionnaire || fullData.data;
+  }
+
+  if (!targetLetter && fullData && (!sel || sel.value)) {
+    targetLetter = (fullData.activeBearings && (fullData.activeBearings.sec3 || fullData.activeBearings.sec4 || fullData.activeBearings.sec2)) ||
+                   (Array.isArray(fullData.bearings) && fullData.bearings[0] && fullData.bearings[0].letter) || null;
+  }
+
+  const curTe = document.getElementById("inputTe")?.value || '0.8';
+  const curTa = document.getElementById("inputTa")?.value || '0.8';
+  const curTeStr = curTe.replace('.', ',');
+  const curTaStr = curTa.replace('.', ',');
+
+  // 3. Has questionnaire bearing data?
+  if (fullData && targetLetter) {
+    window.currentActiveSurveyBearingLetter = targetLetter;
+    window.currentSurveyBearingLetter = targetLetter;
+    try { localStorage.setItem("interflon_active_survey_letter", targetLetter); } catch(e) {}
+
+    const sec3 = (fullData.bearingDataMapSec3 && (fullData.bearingDataMapSec3[targetLetter] || fullData.bearingDataMapSec3['A'])) || {};
+    const allBearings = (Array.isArray(fullData.bearings) && fullData.bearings.length > 0) ? fullData.bearings :
+                        (window.latestSurveyBearings && Array.isArray(window.latestSurveyBearings)) ? window.latestSurveyBearings : [];
+    const bRec = allBearings.find(b => b.letter === targetLetter) ||
+                 allBearings.find(b => b.letter === 'A') ||
+                 allBearings[0] || {};
+    const asPosVal = sec3.asPositie || (bRec && (bRec.pos || bRec.positie)) || '';
+
+    const corrFactors = (typeof determineBearingCorrectionFactors === 'function')
+      ? determineBearingCorrectionFactors(sec3, asPosVal)
+      : { teOptionValue: '0.8', taOptionValue: '0.8', teReason: 'Normaal', taReason: 'Gemiddeld' };
+
+    const manualOverrides = getManualBearingOverrides();
+    const hasOverride = manualOverrides && manualOverrides[targetLetter];
+
+    const isManuallyOverridden = (curTe !== corrFactors.teOptionValue || curTa !== corrFactors.taOptionValue || (hasOverride && !window.__isProgrammaticFactorUpdate));
+
+    if (isManuallyOverridden) {
+      if (!window.__isProgrammaticFactorUpdate) {
+        saveManualBearingOverride(targetLetter, curTe, curTa);
+      }
+      hintEl.style.background = "#fffbeb";
+      hintEl.style.border = "1px solid #fde68a";
+      hintEl.style.color = "#92400e";
+
+      const titlePart = (lang === 'en')
+        ? `<strong>✏️ Manually adjusted (Bearing ${targetLetter}):</strong> Environmental factor Te (${curTeStr}) &bull; Application factor Ta (${curTaStr})`
+        : ((lang === 'fr')
+          ? `<strong>✏️ Modifié manuellement (Roulement ${targetLetter}):</strong> Facteur d'environnement Te (${curTeStr}) &bull; Facteur d'application Ta (${curTaStr})`
+          : `<strong>✏️ Handmatig aangepast (Lager ${targetLetter}):</strong> Omgevingsfactor Te (${curTeStr}) &bull; Toepassingsfactor Ta (${curTaStr})`);
+
+      const resetText = (lang === 'en') ? 'Reset advice' : (lang === 'fr') ? 'Rétablir le conseil' : 'Herstel advies';
+
+      hintTextEl.innerHTML = `${titlePart} <a href="javascript:void(0)" onclick="resetBearingCorrectionFactorsToAdvice('${targetLetter}')" style="margin-left:8px; color:#0284c7; text-decoration:underline; font-weight:600;">${resetText}</a>`;
+      hintEl.style.display = "block";
+    } else {
+      hintEl.style.background = "#f0f9ff";
+      hintEl.style.border = "1px solid #bae6fd";
+      hintEl.style.color = "#0369a1";
+
+      const autoTitle = (lang === 'en')
+        ? `<strong>💡 Automatically set based on Questionnaire (Bearing ${targetLetter}):</strong>`
+        : ((lang === 'fr')
+          ? `<strong>💡 Défini automatiquement selon le Questionnaire (Roulement ${targetLetter}):</strong>`
+          : `<strong>💡 Automatisch ingesteld o.b.v. Vragenlijst (Lager ${targetLetter}):</strong>`);
+
+      hintTextEl.innerHTML = `${autoTitle} ${corrFactors.teReason} &bull; ${corrFactors.taReason}`;
+      hintEl.style.display = "block";
+    }
+  } else {
+    // Geen vragenlijst koppeling actief: toon handmatige instelling
+    hintEl.style.background = "#f8fafc";
+    hintEl.style.border = "1px solid #e2e8f0";
+    hintEl.style.color = "#334155";
+
+    const manualText = (lang === 'en')
+      ? `<strong>✏️ Manual setting:</strong> Environmental factor Te (${curTeStr}) &bull; Application factor Ta (${curTaStr})`
+      : ((lang === 'fr')
+        ? `<strong>✏️ Configuration manuelle:</strong> Facteur d'environnement Te (${curTeStr}) &bull; Facteur d'application Ta (${curTaStr})`
+        : `<strong>✏️ Handmatige instelling:</strong> Omgevingsfactor Te (${curTeStr}) &bull; Toepassingsfactor Ta (${curTaStr})`);
+
+    hintTextEl.innerHTML = manualText;
+    hintEl.style.display = "block";
+  }
+}
+window.updateCorrectionFactorsHint = updateCorrectionFactorsHint;
+
+function applyCorrectionFactorsForBearing(targetLetter, forceAdviceReset) {
+  if (!targetLetter) return;
+  window.currentActiveSurveyBearingLetter = targetLetter;
+  window.currentSurveyBearingLetter = targetLetter;
+  try { localStorage.setItem("interflon_active_survey_letter", targetLetter); } catch(e) {}
+
+  let fullData = window.latestSurveyFullData || null;
+  if (!fullData) {
+    try {
+      const saved = localStorage.getItem('interflon_questionnaire_full_data') || localStorage.getItem('interflon_last_questionnaire_data');
+      if (saved) fullData = JSON.parse(saved);
+    } catch(e) {}
+  }
+  if (!fullData && typeof BroadcastChannel !== 'undefined') {
+    try {
+      const rawCfg = localStorage.getItem('interflon_survey_raster_config');
+      if (rawCfg) fullData = JSON.parse(rawCfg);
+    } catch(e) {}
+  }
+
+  if (fullData && (fullData.fullData || fullData.questionnaire || fullData.data)) {
+    fullData = fullData.fullData || fullData.questionnaire || fullData.data;
+  }
+
+  if (!fullData) {
+    updateCorrectionFactorsHint();
+    return;
+  }
+
+  const sec3 = (fullData.bearingDataMapSec3 && (fullData.bearingDataMapSec3[targetLetter] || fullData.bearingDataMapSec3['A'])) || {};
+  const allBearings = (Array.isArray(fullData.bearings) && fullData.bearings.length > 0) ? fullData.bearings :
+                      (window.latestSurveyBearings && Array.isArray(window.latestSurveyBearings)) ? window.latestSurveyBearings : [];
+  const bRec = allBearings.find(b => b.letter === targetLetter) ||
+               allBearings.find(b => b.letter === 'A') ||
+               allBearings[0] || {};
+  const asPosVal = sec3.asPositie || (bRec && (bRec.pos || bRec.positie)) || '';
+
+  const corrFactors = (typeof determineBearingCorrectionFactors === 'function')
+    ? determineBearingCorrectionFactors(sec3, asPosVal)
+    : { teOptionValue: '0.8', taOptionValue: '0.8', teReason: 'Normaal', taReason: 'Gemiddeld' };
+
+  if (forceAdviceReset) {
+    const overrides = getManualBearingOverrides();
+    if (overrides && overrides[targetLetter]) {
+      delete overrides[targetLetter];
+      try { localStorage.setItem('interflon_bearing_manual_overrides', JSON.stringify(overrides)); } catch(e) {}
+    }
+  }
+
+  const manualOverrides = getManualBearingOverrides();
+  const hasOverride = manualOverrides && manualOverrides[targetLetter];
+
+  let effectiveTe = corrFactors.teOptionValue;
+  let effectiveTa = corrFactors.taOptionValue;
+  if (hasOverride && !forceAdviceReset) {
+    effectiveTe = hasOverride.Te || effectiveTe;
+    effectiveTa = hasOverride.Ta || effectiveTa;
+  }
+
+  window.__isProgrammaticFactorUpdate = true;
+  const teInput = document.getElementById("inputTe");
+  if (teInput && effectiveTe) {
+    teInput.value = effectiveTe;
+    try { localStorage.setItem("app_field_inputTe", effectiveTe); } catch(e) {}
+    teInput.dispatchEvent(new Event("change", { bubbles: true }));
+  }
+  const taInput = document.getElementById("inputTa");
+  if (taInput && effectiveTa) {
+    taInput.value = effectiveTa;
+    try { localStorage.setItem("app_field_inputTa", effectiveTa); } catch(e) {}
+    taInput.dispatchEvent(new Event("change", { bubbles: true }));
+  }
+  window.__isProgrammaticFactorUpdate = false;
+
+  updateCorrectionFactorsHint();
+}
+window.applyCorrectionFactorsForBearing = applyCorrectionFactorsForBearing;
+
 function resetBearingCorrectionFactorsToAdvice(letter) {
+  const targetLetter = letter || window.currentActiveSurveyBearingLetter || 'A';
   const overrides = getManualBearingOverrides();
-  if (overrides && overrides[letter]) {
-    delete overrides[letter];
+  if (overrides && overrides[targetLetter]) {
+    delete overrides[targetLetter];
     try {
       localStorage.setItem('interflon_bearing_manual_overrides', JSON.stringify(overrides));
     } catch(e) {}
   }
+
+  applyCorrectionFactorsForBearing(targetLetter, true);
+
   const sel = document.getElementById("surveyBearingSelect");
   if (sel) {
-    onSurveyBearingSelected(sel);
+    for (let i = 0; i < sel.options.length; i++) {
+      if (sel.options[i].dataset && sel.options[i].dataset.letter === targetLetter) {
+        sel.selectedIndex = i;
+        break;
+      } else if (sel.options[i].value && sel.options[i].value.startsWith(targetLetter + '___')) {
+        sel.selectedIndex = i;
+        break;
+      }
+    }
   }
+
   if (typeof calculateGrease === "function") {
     calculateGrease();
   }
@@ -2184,48 +2395,8 @@ function onSurveyBearingSelected(selectEl) {
   }
 
   // --- Punten 14 t/m 19 & As Positie: Correctiefactoren Te en Ta (Smeercalculatie) ---
-  const asPosVal = (bRec.pos || bRec.asPositie || pos || '').trim();
-  const corrFactors = determineBearingCorrectionFactors(sec3, asPosVal);
-
-  const manualOverrides = (typeof getManualBearingOverrides === 'function') ? getManualBearingOverrides() : {};
-  const bearingOverride = manualOverrides[targetLetter];
-  const isManuallyOverridden = (bearingOverride && (bearingOverride.Te !== undefined || bearingOverride.Ta !== undefined));
-
-  const effectiveTe = (bearingOverride && bearingOverride.Te !== undefined)
-    ? bearingOverride.Te
-    : corrFactors.teOptionValue;
-  const effectiveTa = (bearingOverride && bearingOverride.Ta !== undefined)
-    ? bearingOverride.Ta
-    : corrFactors.taOptionValue;
-
-  window.__isProgrammaticFactorUpdate = true;
-  const teInput = document.getElementById("inputTe");
-  if (teInput && effectiveTe) {
-    teInput.value = effectiveTe;
-    try { localStorage.setItem("app_field_inputTe", effectiveTe); } catch(e) {}
-    teInput.dispatchEvent(new Event("change", { bubbles: true }));
-  }
-
-  const taInput = document.getElementById("inputTa");
-  if (taInput && effectiveTa) {
-    taInput.value = effectiveTa;
-    try { localStorage.setItem("app_field_inputTa", effectiveTa); } catch(e) {}
-    taInput.dispatchEvent(new Event("change", { bubbles: true }));
-  }
-  window.__isProgrammaticFactorUpdate = false;
-
-  const hintEl = document.getElementById("surveyCorrectionFactorsHint");
-  const hintTextEl = document.getElementById("surveyCorrectionFactorsHintText");
-  if (hintEl && hintTextEl) {
-    if (isManuallyOverridden) {
-      const curTeStr = effectiveTe.replace('.', ',');
-      const curTaStr = effectiveTa.replace('.', ',');
-      hintTextEl.innerHTML = "<strong>✏️ Handmatig aangepast (Lager " + targetLetter + "):</strong> Omgevingsfactor Te (" + curTeStr + ") &bull; Toepassingsfactor Ta (" + curTaStr + ") <a href=\"javascript:void(0)\" onclick=\"resetBearingCorrectionFactorsToAdvice('" + targetLetter + "')\" style=\"margin-left:8px; color:#0284c7; text-decoration:underline; font-weight:600;\">Herstel advies</a>";
-      hintEl.style.display = "block";
-    } else {
-      hintTextEl.innerHTML = "<strong>💡 Automatisch ingesteld o.b.v. Vragenlijst (Lager " + targetLetter + "):</strong> " + corrFactors.teReason + " &bull; " + corrFactors.taReason;
-      hintEl.style.display = "block";
-    }
+  if (typeof applyCorrectionFactorsForBearing === 'function') {
+    applyCorrectionFactorsForBearing(targetLetter);
   }
 
   // Setup override listener if user manually tweaks Te/Ta afterwards
@@ -2235,22 +2406,8 @@ function onSurveyBearingSelected(selectEl) {
       el.__hasManualOverrideListener = true;
       el.addEventListener('change', () => {
         if (window.__isProgrammaticFactorUpdate) return;
-        const curLetter = window.currentActiveSurveyBearingLetter;
-        if (!curLetter) return;
-
-        const curTe = document.getElementById("inputTe")?.value || '0.8';
-        const curTa = document.getElementById("inputTa")?.value || '0.8';
-        if (typeof saveManualBearingOverride === 'function') {
-          saveManualBearingOverride(curLetter, curTe, curTa);
-        }
-
-        const hEl = document.getElementById("surveyCorrectionFactorsHint");
-        const hText = document.getElementById("surveyCorrectionFactorsHintText");
-        if (hEl && hText) {
-          const curTeStr = curTe.replace('.', ',');
-          const curTaStr = curTa.replace('.', ',');
-          hText.innerHTML = "<strong>✏️ Handmatig aangepast (Lager " + curLetter + "):</strong> Omgevingsfactor Te (" + curTeStr + ") &bull; Toepassingsfactor Ta (" + curTaStr + ") <a href=\"javascript:void(0)\" onclick=\"resetBearingCorrectionFactorsToAdvice('" + curLetter + "')\" style=\"margin-left:8px; color:#0284c7; text-decoration:underline; font-weight:600;\">Herstel advies</a>";
-          hEl.style.display = "block";
+        if (typeof updateCorrectionFactorsHint === 'function') {
+          updateCorrectionFactorsHint();
         }
       });
     }
@@ -2625,13 +2782,16 @@ function clearSurveyBearingSelection() {
   if (selectEl) selectEl.value = "";
   const badge = document.getElementById("surveyBearingSelectedBadge");
   if (badge) badge.style.display = "none";
-  const hintEl = document.getElementById("surveyCorrectionFactorsHint");
-  if (hintEl) hintEl.style.display = "none";
   window.currentActiveSurveyBearingLetter = null;
+  window.currentSurveyBearingLetter = null;
+  try { localStorage.removeItem("interflon_active_survey_letter"); } catch(e) {}
   const omSelect = document.getElementById("omSurveyBearingSelect");
   if (omSelect) omSelect.selectedIndex = 0;
   const chainOmSelect = document.getElementById("chainOmSurveyBearingSelect");
   if (chainOmSelect) chainOmSelect.selectedIndex = 0;
+  if (typeof updateCorrectionFactorsHint === "function") {
+    updateCorrectionFactorsHint();
+  }
 }
 window.clearSurveyBearingSelection = clearSurveyBearingSelection;
 
@@ -3009,6 +3169,11 @@ function syncAllQuestionnaireDataToCalculator(data, explicitTargetLetter) {
     if (rawRpm !== null && rawRpm > 0) {
       const speedInput = document.getElementById("inputSpeed") || document.getElementById("rpmInput");
       if (speedInput) speedInput.value = rawRpm;
+    }
+
+    // 5b. Correctiefactoren (Te & Ta) synchroniseren o.b.v. Vragenlijst
+    if (typeof applyCorrectionFactorsForBearing === "function") {
+      applyCorrectionFactorsForBearing(targetLetter);
     }
 
     // 6. Enkele gecontroleerde herberekening van alle modules (geen synthetische events)
@@ -8282,6 +8447,9 @@ function calculateGrease() {
   }
   const Te = TeInput ? parseFloat(TeInput.value) : 0.5;
   const Ta = TaInput ? parseFloat(TaInput.value) : 0.5;
+  if (typeof updateCorrectionFactorsHint === "function") {
+    updateCorrectionFactorsHint();
+  }
   const hoursPerDayInput = document.getElementById("inputHoursPerDay");
   let hoursPerDay = hoursPerDayInput ? parseFloat(hoursPerDayInput.value) : 24;
   if (isNaN(hoursPerDay) || hoursPerDay <= 0 || hoursPerDay > 24) {
@@ -22378,6 +22546,9 @@ document.addEventListener("DOMContentLoaded", function() {
     }
     if (typeof syncAllQuestionnaireDataToCalculator === "function") {
       syncAllQuestionnaireDataToCalculator();
+    }
+    if (typeof updateCorrectionFactorsHint === "function") {
+      updateCorrectionFactorsHint();
     }
   }, 150);
 });
