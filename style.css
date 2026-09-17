@@ -860,6 +860,103 @@ h1, h2, h3, h4, .brand-text {
   text-align: center;
 }
 
+/* ==========================================================================
+   COMPACT 1-PAGE LAYOUT SPECIFICALLY FOR LAGER OPZOEKEN (NO SCROLLING)
+   ========================================================================== */
+.main-content.page-search-active,
+.main-content:has(#pageSearch.active) {
+  padding: 18px 28px;
+  gap: 10px;
+}
+
+.main-content.page-search-active .main-header,
+.main-content:has(#pageSearch.active) .main-header {
+  padding-bottom: 8px;
+}
+
+.main-content.page-search-active .header-title h1,
+.main-content:has(#pageSearch.active) .header-title h1 {
+  font-size: 21px;
+}
+
+.main-content.page-search-active .header-title p,
+.main-content:has(#pageSearch.active) .header-title p {
+  font-size: 12px;
+  margin-top: 1px;
+}
+
+#pageSearch .search-container {
+  margin-bottom: 6px;
+}
+
+#pageSearch .search-input {
+  height: 42px;
+  padding: 8px 16px 8px 42px;
+  font-size: 14px;
+}
+
+#pageSearch .search-icon-inside {
+  left: 14px;
+}
+
+#pageSearch .search-icon-inside svg {
+  width: 18px;
+  height: 18px;
+}
+
+#pageSearch .details-list {
+  gap: 0;
+}
+
+#pageSearch .detail-row {
+  padding: 3px 0;
+  min-height: 25px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+#pageSearch .detail-row:last-child {
+  border-bottom: none;
+}
+
+#pageSearch .detail-label {
+  font-size: 12px;
+  color: var(--text-medium);
+}
+
+#pageSearch .detail-value {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-dark);
+}
+
+#pageSearch .results-grid {
+  display: grid;
+  grid-template-columns: 1fr 1.15fr;
+  gap: 14px;
+  align-items: stretch;
+}
+
+#pageSearch .results-grid > .card {
+  padding: 14px 18px;
+  margin-bottom: 0;
+}
+
+#pageSearch .results-grid .card-title {
+  font-size: 14.5px;
+  margin-bottom: 6px;
+}
+
+#pageSearch .bearing-visual-container {
+  padding: 12px 14px;
+  margin-bottom: 0;
+}
+
+@media (max-width: 960px) {
+  #pageSearch .results-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* Alert/Note styling */
 .alert-note {
   background-color: var(--accent-yellow-light);
