@@ -1,0 +1,1246 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+  <title>Interflon • Machineraster & Opstelling</title>
+  <style>
+    :root {
+      --bg: #090e17;
+      --bg-panel: rgba(15, 23, 42, 0.92);
+      --border: rgba(51, 65, 85, 0.75);
+      --primary: #0284c7;
+      --primary-light: #38bdf8;
+      --accent: #E30613;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background-color: var(--bg);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      color: var(--text);
+      user-select: none;
+      -webkit-user-select: none;
+      touch-action: none;
+    }
+
+    #canvasContainer {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    /* Top Floating Header */
+    .top-bar {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      right: 12px;
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      background: var(--bg-panel);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px 14px;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+      pointer-events: auto;
+    }
+
+    .header-left {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+
+    .header-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 10.5px;
+      font-weight: 800;
+      letter-spacing: 0.6px;
+      text-transform: uppercase;
+      color: var(--primary-light);
+      margin-bottom: 2px;
+    }
+
+    .machine-title {
+      font-size: 15px;
+      font-weight: 800;
+      color: #ffffff;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .company-name {
+      font-size: 11.5px;
+      color: var(--text-muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    .btn-icon {
+      background: rgba(30, 41, 59, 0.9);
+      border: 1px solid var(--border);
+      color: var(--text);
+      border-radius: 8px;
+      padding: 6px 10px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.15s ease;
+      text-decoration: none;
+    }
+    .btn-icon:active {
+      background: var(--primary);
+      color: #ffffff;
+      transform: scale(0.96);
+    }
+
+    /* Floating On-Screen Controls */
+    .controls-panel {
+      position: absolute;
+      right: 14px;
+      bottom: 80px;
+      z-index: 10;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      pointer-events: auto;
+    }
+
+    .ctrl-btn {
+      width: 44px;
+      height: 44px;
+      background: var(--bg-panel);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      color: #ffffff;
+      font-size: 20px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+      transition: all 0.15s ease;
+    }
+    .ctrl-btn:active {
+      background: var(--primary);
+      border-color: var(--primary-light);
+      transform: scale(0.92);
+    }
+    .ctrl-btn-small {
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+    }
+
+    /* Bottom Legend Bar */
+    .legend-bar {
+      position: absolute;
+      bottom: 12px;
+      left: 12px;
+      right: 12px;
+      z-index: 10;
+      background: var(--bg-panel);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 8px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      font-size: 11.5px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+      pointer-events: auto;
+      overflow-x: auto;
+      white-space: nowrap;
+    }
+
+    .legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--text);
+      font-weight: 600;
+    }
+
+    .legend-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .dot-red { background: #E30613; box-shadow: 0 0 6px #E30613; }
+    .dot-blue { background: #38bdf8; box-shadow: 0 0 6px #38bdf8; }
+    .dot-orange { background: #f97316; border-radius: 3px; box-shadow: 0 0 6px #f97316; }
+
+    .zoom-badge {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--primary-light);
+      background: rgba(2, 132, 199, 0.2);
+      padding: 3px 7px;
+      border-radius: 6px;
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      flex-shrink: 0;
+    }
+
+    /* Detail Card Modal when Node is Tapped */
+    #nodeDetailModal {
+      position: absolute;
+      bottom: 68px;
+      left: 14px;
+      right: 14px;
+      max-width: 400px;
+      margin: 0 auto;
+      background: #0f172a;
+      border: 1.5px solid var(--primary-light);
+      border-radius: 14px;
+      padding: 14px 16px;
+      z-index: 20;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+      display: none;
+      animation: slideUp 0.2s ease-out;
+      pointer-events: auto;
+    }
+
+    @keyframes slideUp {
+      from { transform: translateY(20px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+    .modal-title {
+      font-size: 15px;
+      font-weight: 800;
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .modal-close {
+      background: none;
+      border: none;
+      color: #94a3b8;
+      font-size: 18px;
+      cursor: pointer;
+      padding: 2px 6px;
+    }
+    .modal-body {
+      font-size: 12.5px;
+      color: #cbd5e1;
+      line-height: 1.5;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Floating Header -->
+  <header class="top-bar">
+    <div class="header-left">
+      <div class="header-badge">
+        <span>📐 Machineraster</span>
+        <span style="color: #64748b;">&bull;</span>
+        <span id="schemaPointsSummary">Smeerplan</span>
+      </div>
+      <div class="machine-title" id="schemaMachine">Machine</div>
+      <div class="company-name" id="schemaCompany">Klantbedrijf</div>
+    </div>
+    <div class="header-right">
+      <button type="button" class="btn-icon" id="btnToggle3D" onclick="toggleLayoutMode()">
+        <span id="viewModeLabel">3D Raster</span>
+      </button>
+      <button type="button" class="btn-icon" onclick="window.close()" title="Sluit venster">
+        ✕
+      </button>
+    </div>
+  </header>
+
+  <!-- Interactive Canvas Viewport -->
+  <div id="canvasContainer">
+    <canvas id="schemaCanvas"></canvas>
+  </div>
+
+  <!-- On-Screen Controls for Mobile & Quick Interaction -->
+  <div class="controls-panel">
+    <button type="button" class="ctrl-btn" onclick="zoomIn()" title="Inzoomen">+</button>
+    <button type="button" class="ctrl-btn" onclick="zoomOut()" title="Uitzoomen">−</button>
+    <button type="button" class="ctrl-btn ctrl-btn-small" onclick="resetTransform()" title="Centreren & Resetten">⟲</button>
+  </div>
+
+  <!-- Detail Modal on Node Click/Tap -->
+  <div id="nodeDetailModal">
+    <div class="modal-header">
+      <div class="modal-title" id="modalTitle">Lager Info</div>
+      <button type="button" class="modal-close" onclick="closeDetailModal()">✕</button>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+  </div>
+
+  <!-- Bottom Legend Bar -->
+  <footer class="legend-bar">
+    <div class="legend-item">
+      <div class="legend-dot dot-red"></div>
+      <span>Centraal Punt</span>
+    </div>
+    <div class="legend-item">
+      <div class="legend-dot dot-blue"></div>
+      <span>Lagers</span>
+    </div>
+    <div class="legend-item">
+      <div class="legend-dot dot-orange"></div>
+      <span>Smeertoestel</span>
+    </div>
+    <div class="zoom-badge" id="zoomBadge">Zoom: 100%</div>
+  </footer>
+
+  <script>
+    // Palettes for devices & connections
+    const DEVICE_PALETTES = [
+      { color: '#ea580c', line: '#fb923c', tagBg: 'rgba(154, 52, 18, 0.95)' },
+      { color: '#059669', line: '#34d399', tagBg: 'rgba(6, 78, 59, 0.95)' },
+      { color: '#7c3aed', line: '#c084fc', tagBg: 'rgba(91, 33, 182, 0.95)' },
+      { color: '#0d9488', line: '#2dd4bf', tagBg: 'rgba(19, 78, 74, 0.95)' }
+    ];
+
+    // State
+    let rasterData = {
+      machineName: 'Machine',
+      companyName: 'Klantbedrijf',
+      date: new Date().toLocaleDateString('nl-BE'),
+      gridRange: 10,
+      layoutViewMode: '3d', // '3d' or '2d'
+      showCentralPoint: true,
+      bearingPositions: {},
+      bearings: [],
+      devices: []
+    };
+
+    // Pan & Zoom Engine State
+    let transform = {
+      scale: 1.0,
+      basePpm: 40,
+      panX: 0,
+      panY: 0
+    };
+
+    let canvas, ctx;
+    let dpr = 1;
+
+    // Interactive Hit Testing
+    let screenNodes = []; // { type: 'bearing'|'device'|'cp', id, x, y, radius, data }
+
+    // Touch gesture state
+    let activeTouches = [];
+    let initialPinchDistance = 0;
+    let initialPinchScale = 1.0;
+    let isDragging = false;
+    let lastDragPos = { x: 0, y: 0 };
+    let dragDistanceMoved = 0;
+
+    // 1. Data Decoder
+    function decodeRasterPayload() {
+      try {
+        let hash = window.location.hash;
+        if (hash.startsWith('#')) hash = hash.substring(1);
+        if (hash.startsWith('data=')) hash = hash.substring(5);
+
+        let parsed = null;
+        if (hash) {
+          let base64 = hash.replace(/-/g, '+').replace(/_/g, '/');
+          while (base64.length % 4) base64 += '=';
+          const jsonStr = decodeURIComponent(escape(atob(base64)));
+          parsed = JSON.parse(jsonStr);
+        } else {
+          // Check URL search parameters
+          const params = new URLSearchParams(window.location.search);
+          if (params.has('data')) {
+            let b64 = params.get('data').replace(/-/g, '+').replace(/_/g, '/');
+            while (b64.length % 4) b64 += '=';
+            parsed = JSON.parse(decodeURIComponent(escape(atob(b64))));
+          }
+        }
+
+        // Fallback to localStorage if opened locally without hash
+        if (!parsed) {
+          try {
+            const rawStored = localStorage.getItem('interflon_last_passport_raster');
+            if (rawStored) {
+              const storedObj = JSON.parse(rawStored);
+              if (storedObj && storedObj.raster) {
+                parsed = {
+                  m: storedObj.machine,
+                  c: storedObj.company,
+                  d: storedObj.date,
+                  r: storedObj.raster
+                };
+              }
+            }
+          } catch (e) {}
+        }
+
+        // Fallback to survey raster config if still empty
+        if (!parsed) {
+          try {
+            const rawSurvey = localStorage.getItem('interflon_survey_raster_config');
+            if (rawSurvey) {
+              const cfg = JSON.parse(rawSurvey);
+              parsed = {
+                m: cfg.machineName || 'Machine',
+                c: localStorage.getItem('client_company') || 'Klantbedrijf',
+                r: {
+                  rng: cfg.machineRangeMeters || 10,
+                  v: cfg.layoutViewMode || '3d',
+                  cp: cfg.showCentralPoint !== false ? 1 : 0,
+                  bp: cfg.bearingPositions || {},
+                  b: (cfg.bearings || []).map(b => [b.letter, b.nr]),
+                  d: (cfg.devices || []).map(d => ({ s: d.short, n: d.name, t: d.type, x: d.x, y: d.y, b: d.assignedBearingLetters }))
+                }
+              };
+            }
+          } catch (e) {}
+        }
+
+        if (parsed) {
+          rasterData.machineName = parsed.m || rasterData.machineName;
+          rasterData.companyName = parsed.c || rasterData.companyName;
+          rasterData.date = parsed.d || rasterData.date;
+
+          const r = parsed.r || parsed.raster;
+          if (r) {
+            rasterData.gridRange = r.rng || r.machineRangeMeters || 10;
+            rasterData.layoutViewMode = r.v || r.layoutViewMode || '3d';
+            rasterData.showCentralPoint = r.cp !== undefined ? (r.cp === 1 || r.cp === true) : true;
+
+            // Bearings
+            if (Array.isArray(r.b)) {
+              rasterData.bearings = r.b.map((item, idx) => {
+                if (Array.isArray(item)) {
+                  return { letter: item[0], nr: item[1] || '22225', desc: 'Lager ' + item[0] };
+                }
+                return { letter: item.letter || item.l || String.fromCharCode(65 + idx), nr: item.nr || '22225', desc: item.desc || ('Lager ' + (item.letter || '')) };
+              });
+            }
+
+            // Bearing positions
+            if (r.bp) {
+              rasterData.bearingPositions = {};
+              Object.keys(r.bp).forEach(k => {
+                const pos = r.bp[k];
+                if (Array.isArray(pos)) {
+                  rasterData.bearingPositions[k] = { x: pos[0], y: pos[1] };
+                } else if (typeof pos === 'object' && pos !== null) {
+                  rasterData.bearingPositions[k] = { x: pos.x || 0, y: pos.y || 0 };
+                }
+              });
+            }
+
+            // Devices
+            if (Array.isArray(r.d)) {
+              rasterData.devices = r.d.map((dev, idx) => {
+                if (Array.isArray(dev)) {
+                  return {
+                    id: 'dev-' + (idx + 1),
+                    short: dev[0] || ('T' + (idx + 1)),
+                    name: 'Toestel ' + (idx + 1),
+                    type: dev[1] || 'pulsarlube_m2',
+                    x: dev[2] || 0,
+                    y: dev[3] || 0,
+                    assignedBearingLetters: dev[4] || [],
+                    paletteIndex: idx
+                  };
+                }
+                return {
+                  id: dev.id || ('dev-' + (idx + 1)),
+                  short: dev.s || dev.short || ('T' + (idx + 1)),
+                  name: dev.n || dev.name || ('Toestel ' + (idx + 1)),
+                  type: dev.t || dev.type || 'pulsarlube_m2',
+                  x: dev.x || 0,
+                  y: dev.y || 0,
+                  assignedBearingLetters: dev.b || dev.assignedBearingLetters || [],
+                  paletteIndex: idx
+                };
+              });
+            }
+          }
+        }
+
+        // Demo fallback if no bearings exist
+        if (!rasterData.bearings || rasterData.bearings.length === 0) {
+          rasterData.bearings = [
+            { letter: 'A', nr: '22225', desc: 'Lager A' },
+            { letter: 'B', nr: '22225', desc: 'Lager B' },
+            { letter: 'C', nr: '22225', desc: 'Lager C' },
+            { letter: 'D', nr: '22225', desc: 'Lager D' }
+          ];
+          rasterData.bearingPositions = {
+            'A': { x: -2.4, y: 1.8 },
+            'B': { x: 2.4, y: 1.8 },
+            'C': { x: -2.4, y: -1.8 },
+            'D': { x: 2.2, y: -1.8 }
+          };
+          rasterData.devices = [
+            { id: 'dev-1', short: 'T1', name: 'Toestel 1', type: 'pulsarlube_m2', x: -2.0, y: 0, assignedBearingLetters: ['A', 'C'], paletteIndex: 0 },
+            { id: 'dev-2', short: 'T2', name: 'Toestel 2', type: 'pulsarlube_m2', x: 2.0, y: 0, assignedBearingLetters: ['B', 'D'], paletteIndex: 1 }
+          ];
+        }
+
+      } catch (err) {
+        console.error('Fout bij decoderen schema data:', err);
+      }
+    }
+
+    // 2. DOM Updates
+    function updateUIHeader() {
+      document.getElementById('schemaMachine').textContent = rasterData.machineName || 'Machine';
+      document.getElementById('schemaCompany').textContent = rasterData.companyName || 'Klantbedrijf';
+      document.title = rasterData.machineName + ' • Machineraster';
+
+      const numPts = rasterData.bearings ? rasterData.bearings.length : 0;
+      const numDevs = rasterData.devices ? rasterData.devices.length : 0;
+      document.getElementById('schemaPointsSummary').textContent = numPts + ' Lagers • ' + numDevs + ' Toestel' + (numDevs === 1 ? '' : 'len');
+      document.getElementById('viewModeLabel').textContent = rasterData.layoutViewMode === '3d' ? '3D Raster' : '2D Blueprint';
+    }
+
+    // 3. Canvas Setup & Resize
+    function initCanvas() {
+      canvas = document.getElementById('schemaCanvas');
+      ctx = canvas.getContext('2d');
+      resizeCanvas();
+      window.addEventListener('resize', () => {
+        resizeCanvas();
+        render();
+      });
+      setupInteractions();
+    }
+
+    function resizeCanvas() {
+      dpr = window.devicePixelRatio || 1;
+      const w = window.innerWidth;
+      const h = window.innerHeight;
+      canvas.width = Math.round(w * dpr);
+      canvas.height = Math.round(h * dpr);
+      canvas.style.width = w + 'px';
+      canvas.style.height = h + 'px';
+
+      // Re-calculate optimal base pixels per meter to fit screen
+      calculateBasePpm();
+    }
+
+    function calculateBasePpm() {
+      const w = canvas.width / dpr;
+      const h = canvas.height / dpr;
+      const gridRange = rasterData.gridRange || 10;
+      const padY = 90; // account for header and bottom bar
+      const padX = 40;
+      const availH = Math.max(200, h - padY * 2);
+      const availW = Math.max(200, w - padX * 2);
+
+      const is3D = (rasterData.layoutViewMode === '3d');
+      if (is3D) {
+        const ppmH = availH / (2 * gridRange);
+        const ppmW = availW / (3.464 * gridRange);
+        transform.basePpm = Math.min(ppmH, ppmW);
+      } else {
+        transform.basePpm = Math.min(availW, availH) / (2 * gridRange);
+      }
+    }
+
+    function resetTransform() {
+      transform.scale = 1.0;
+      transform.panX = 0;
+      transform.panY = 0;
+      calculateBasePpm();
+      render();
+    }
+
+    function zoomIn() {
+      adjustZoom(1.25, window.innerWidth / 2, window.innerHeight / 2);
+    }
+
+    function zoomOut() {
+      adjustZoom(0.8, window.innerWidth / 2, window.innerHeight / 2);
+    }
+
+    function adjustZoom(factor, centerX, centerY) {
+      const newScale = Math.min(5.0, Math.max(0.4, transform.scale * factor));
+      if (newScale === transform.scale) return;
+
+      // Adjust pan to zoom into centerX, centerY
+      const currentCenterX = centerX - window.innerWidth / 2 - transform.panX;
+      const currentCenterY = centerY - window.innerHeight / 2 - transform.panY;
+      const ratio = newScale / transform.scale;
+
+      transform.panX -= currentCenterX * (ratio - 1);
+      transform.panY -= currentCenterY * (ratio - 1);
+      transform.scale = newScale;
+
+      render();
+    }
+
+    function toggleLayoutMode() {
+      rasterData.layoutViewMode = (rasterData.layoutViewMode === '3d') ? '2d' : '3d';
+      document.getElementById('viewModeLabel').textContent = (rasterData.layoutViewMode === '3d') ? '3D Raster' : '2D Blueprint';
+      calculateBasePpm();
+      render();
+    }
+
+    // 4. World to Screen Coordinate Mapping
+    function worldToScreen(x, y) {
+      const w = canvas.width / dpr;
+      const h = canvas.height / dpr;
+      const cx = (w / 2) + transform.panX;
+      const cy = (h / 2) + transform.panY;
+      const ppm = transform.basePpm * transform.scale;
+
+      const is3D = (rasterData.layoutViewMode === '3d');
+      if (!is3D) {
+        return { u: cx + x * ppm, v: cy - y * ppm };
+      }
+      const cos30 = 0.866;
+      const sin30 = 0.5;
+      const u = cx + (x - y) * cos30 * ppm;
+      const v = cy - (x + y) * sin30 * ppm;
+      return { u, v };
+    }
+
+    // 5. Main Canvas Render Loop
+    function render() {
+      if (!ctx) return;
+      const w = canvas.width / dpr;
+      const h = canvas.height / dpr;
+      screenNodes = [];
+
+      ctx.save();
+      ctx.scale(dpr, dpr);
+
+      // Background
+      ctx.fillStyle = '#090e17';
+      ctx.fillRect(0, 0, w, h);
+
+      const is3D = (rasterData.layoutViewMode === '3d');
+      const gridRange = rasterData.gridRange || 10;
+      const ppm = transform.basePpm * transform.scale;
+      const cx = (w / 2) + transform.panX;
+      const cy = (h / 2) + transform.panY;
+
+      // Machine Floor Grid
+      if (is3D) {
+        const pTop = worldToScreen(gridRange, gridRange);
+        const pRight = worldToScreen(gridRange, -gridRange);
+        const pBottom = worldToScreen(-gridRange, -gridRange);
+        const pLeft = worldToScreen(-gridRange, gridRange);
+
+        ctx.beginPath();
+        ctx.moveTo(pTop.u, pTop.v);
+        ctx.lineTo(pRight.u, pRight.v);
+        ctx.lineTo(pBottom.u, pBottom.v);
+        ctx.lineTo(pLeft.u, pLeft.v);
+        ctx.closePath();
+        ctx.fillStyle = '#0c1322';
+        ctx.fill();
+        ctx.strokeStyle = '#334155';
+        ctx.lineWidth = 2.5;
+        ctx.stroke();
+
+        // Isometric Grid Lines
+        const step = gridRange <= 6 ? 1 : gridRange <= 15 ? 2 : 5;
+        ctx.lineWidth = 1.2;
+        for (let m = -gridRange; m <= gridRange; m += step) {
+          const isCenter = Math.abs(m) < 0.01;
+          ctx.strokeStyle = isCenter ? 'rgba(148, 163, 184, 0.45)' : 'rgba(51, 65, 85, 0.45)';
+
+          const l1 = worldToScreen(-gridRange, m);
+          const l2 = worldToScreen(gridRange, m);
+          ctx.beginPath();
+          ctx.moveTo(l1.u, l1.v);
+          ctx.lineTo(l2.u, l2.v);
+          ctx.stroke();
+
+          const l3 = worldToScreen(m, -gridRange);
+          const l4 = worldToScreen(m, gridRange);
+          ctx.beginPath();
+          ctx.moveTo(l3.u, l3.v);
+          ctx.lineTo(l4.u, l4.v);
+          ctx.stroke();
+        }
+
+        // Concentric Distance Guide Rings with meter tags
+        const ringStep = gridRange <= 6 ? 1 : gridRange <= 12 ? 2 : 4;
+        for (let r = ringStep; r <= gridRange; r += ringStep) {
+          ctx.beginPath();
+          for (let angle = 0; angle <= Math.PI * 2 + 0.1; angle += 0.08) {
+            const rx = Math.cos(angle) * r;
+            const ry = Math.sin(angle) * r;
+            const pt = worldToScreen(rx, ry);
+            if (angle === 0) ctx.moveTo(pt.u, pt.v);
+            else ctx.lineTo(pt.u, pt.v);
+          }
+          ctx.strokeStyle = 'rgba(56, 189, 248, 0.22)';
+          ctx.setLineDash([6, 6]);
+          ctx.stroke();
+          ctx.setLineDash([]);
+
+          const lblPt = worldToScreen(r, 0);
+          ctx.font = 'bold 12px sans-serif';
+          ctx.fillStyle = 'rgba(56, 189, 248, 0.7)';
+          ctx.textAlign = 'left';
+          ctx.textBaseline = 'bottom';
+          ctx.fillText(r + 'm', lblPt.u + 4, lblPt.v - 2);
+        }
+      } else {
+        // 2D Blueprint Grid
+        const minScreen = worldToScreen(-gridRange, gridRange);
+        const maxScreen = worldToScreen(gridRange, -gridRange);
+        const gridW = maxScreen.u - minScreen.u;
+        const gridH = maxScreen.v - minScreen.v;
+
+        ctx.fillStyle = '#0c1322';
+        ctx.fillRect(minScreen.u, minScreen.v, gridW, gridH);
+        ctx.strokeStyle = '#334155';
+        ctx.lineWidth = 2.5;
+        ctx.strokeRect(minScreen.u, minScreen.v, gridW, gridH);
+
+        const step = gridRange <= 6 ? 1 : gridRange <= 15 ? 2 : 5;
+        ctx.lineWidth = 1.2;
+        for (let m = -gridRange; m <= gridRange; m += step) {
+          ctx.strokeStyle = Math.abs(m) < 0.01 ? 'rgba(148, 163, 184, 0.45)' : 'rgba(51, 65, 85, 0.45)';
+          const h1 = worldToScreen(-gridRange, m);
+          const h2 = worldToScreen(gridRange, m);
+          ctx.beginPath();
+          ctx.moveTo(h1.u, h1.v);
+          ctx.lineTo(h2.u, h2.v);
+          ctx.stroke();
+
+          const v1 = worldToScreen(m, -gridRange);
+          const v2 = worldToScreen(m, gridRange);
+          ctx.beginPath();
+          ctx.moveTo(v1.u, v1.v);
+          ctx.lineTo(v2.u, v2.v);
+          ctx.stroke();
+        }
+      }
+
+      // Active Origins (Central Point & Devices)
+      const activeOrigins = [];
+      if (rasterData.showCentralPoint) {
+        activeOrigins.push({
+          id: 'cp',
+          name: 'Centraal Punt',
+          short: 'Centraal',
+          type: 'cp',
+          x: 0,
+          y: 0,
+          lineColor: '#ef4444',
+          tagBg: 'rgba(220, 38, 38, 0.94)',
+          tagBorder: '#ef4444',
+          tagText: '#ffffff'
+        });
+      }
+
+      (rasterData.devices || []).forEach((dev, devIdx) => {
+        const pal = DEVICE_PALETTES[devIdx % DEVICE_PALETTES.length];
+        activeOrigins.push({
+          id: dev.id,
+          name: dev.name || ('Toestel ' + (devIdx + 1)),
+          short: dev.short || ('T' + (devIdx + 1)),
+          type: dev.type,
+          assignedBearingLetters: dev.assignedBearingLetters || null,
+          x: dev.x || 0,
+          y: dev.y || 0,
+          lineColor: pal.line,
+          tagBg: pal.tagBg,
+          tagBorder: pal.line,
+          tagText: '#ffffff'
+        });
+      });
+
+      // Connecting Lines & Distance Badges
+      activeOrigins.forEach((origin, origIdx) => {
+        const isSinglePoint = (origin.type === 'single_point');
+
+        rasterData.bearings.forEach((b, bIdx) => {
+          const letter = b.letter || String.fromCharCode(65 + bIdx);
+          const pos = rasterData.bearingPositions[letter] || { x: 0, y: 0 };
+          const distM = Math.hypot(pos.x - origin.x, pos.y - origin.y);
+
+          if (isSinglePoint && distM < 0.15) return;
+
+          // For multi-device: only connect to assigned bearings
+          if (origin.id !== 'cp' && origin.type !== 'cp') {
+            const activeDevs = (rasterData.devices || []).filter(d => d.active !== false);
+            if (activeDevs.length > 1) {
+              let isAssigned = false;
+              const anyExplicit = activeDevs.some(d => d.assignedBearingLetters && Array.isArray(d.assignedBearingLetters) && d.assignedBearingLetters.length > 0);
+              if (anyExplicit) {
+                isAssigned = (origin.assignedBearingLetters && Array.isArray(origin.assignedBearingLetters) && origin.assignedBearingLetters.includes(letter));
+              } else {
+                let closestDevId = null;
+                let minD = Infinity;
+                activeDevs.forEach(d => {
+                  const dDist = Math.hypot(pos.x - (d.x || 0), pos.y - (d.y || 0));
+                  if (dDist < minD) {
+                    minD = dDist;
+                    closestDevId = d.id;
+                  }
+                });
+                isAssigned = (closestDevId === origin.id);
+              }
+              if (!isAssigned) return;
+            }
+          }
+
+          const origScreen = worldToScreen(origin.x, origin.y);
+          const bScreen = worldToScreen(pos.x, pos.y);
+
+          // Draw dashed connecting line
+          ctx.beginPath();
+          ctx.moveTo(origScreen.u, origScreen.v);
+          ctx.lineTo(bScreen.u, bScreen.v);
+          ctx.strokeStyle = origin.lineColor;
+          ctx.lineWidth = 2.0;
+          ctx.setLineDash([7, 5]);
+          ctx.stroke();
+          ctx.setLineDash([]);
+
+          // Distance Badge along line
+          const offsetRatio = activeOrigins.length > 1 ? (0.44 + (origIdx * 0.14)) : 0.5;
+          const midU = origScreen.u + (bScreen.u - origScreen.u) * offsetRatio;
+          const midV = origScreen.v + (bScreen.v - origScreen.v) * offsetRatio;
+
+          const distStr = (activeOrigins.length > 1 ? (origin.short + ': ') : '') + distM.toFixed(1).replace('.', ',') + ' m';
+
+          ctx.font = 'bold 12px sans-serif';
+          const textWidth = ctx.measureText(distStr).width;
+          const padW = 6;
+          const padH = 3;
+
+          ctx.fillStyle = origin.tagBg;
+          ctx.beginPath();
+          if (ctx.roundRect) {
+            ctx.roundRect(midU - textWidth/2 - padW, midV - 9 - padH, textWidth + padW*2, 18 + padH*2, 4);
+          } else {
+            ctx.rect(midU - textWidth/2 - padW, midV - 9 - padH, textWidth + padW*2, 18 + padH*2);
+          }
+          ctx.fill();
+          ctx.strokeStyle = origin.tagBorder;
+          ctx.lineWidth = 1.2;
+          ctx.stroke();
+
+          ctx.fillStyle = origin.tagText;
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(distStr, midU, midV);
+        });
+      });
+
+      // Central Reference Point (0,0)
+      if (rasterData.showCentralPoint) {
+        const centerScreen = worldToScreen(0, 0);
+
+        ctx.beginPath();
+        ctx.arc(centerScreen.u, centerScreen.v, 18, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(227, 6, 19, 0.25)';
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.arc(centerScreen.u, centerScreen.v, 10, 0, Math.PI * 2);
+        ctx.fillStyle = '#E30613';
+        ctx.fill();
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 2.5;
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.arc(centerScreen.u, centerScreen.v, 3.5, 0, Math.PI * 2);
+        ctx.fillStyle = '#ffffff';
+        ctx.fill();
+
+        ctx.font = 'bold 13px sans-serif';
+        ctx.fillStyle = '#ffffff';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'top';
+        ctx.fillText('Centraal Punt (0,0)', centerScreen.u, centerScreen.v + 14);
+
+        screenNodes.push({
+          type: 'cp',
+          id: 'cp',
+          u: centerScreen.u,
+          v: centerScreen.v,
+          radius: 20,
+          data: { name: 'Centraal Referentiepunt (0,0)' }
+        });
+      }
+
+      // Smeertoestellen (Devices)
+      (rasterData.devices || []).forEach((dev, devIdx) => {
+        const pal = DEVICE_PALETTES[devIdx % DEVICE_PALETTES.length];
+        const dScreen = worldToScreen(dev.x || 0, dev.y || 0);
+        const dSize = 38;
+
+        // Shadow
+        ctx.beginPath();
+        ctx.ellipse(dScreen.u, dScreen.v + 5, dSize * 0.5, dSize * 0.25, 0, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+        ctx.fill();
+
+        // Rounded Box
+        ctx.beginPath();
+        if (ctx.roundRect) {
+          ctx.roundRect(dScreen.u - dSize/2, dScreen.v - dSize/2, dSize, dSize, 8);
+        } else {
+          ctx.rect(dScreen.u - dSize/2, dScreen.v - dSize/2, dSize, dSize);
+        }
+        const grad = ctx.createLinearGradient(dScreen.u - dSize/2, dScreen.v - dSize/2, dScreen.u + dSize/2, dScreen.v + dSize/2);
+        grad.addColorStop(0, pal.line);
+        grad.addColorStop(1, pal.color);
+        ctx.fillStyle = grad;
+        ctx.fill();
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 2.5;
+        ctx.stroke();
+
+        // Label inside
+        ctx.font = 'bold 15px sans-serif';
+        ctx.fillStyle = '#ffffff';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(dev.short || ('T' + (devIdx+1)), dScreen.u, dScreen.v);
+
+        // Badge underneath
+        let devNameText = dev.name || ('Toestel ' + (devIdx+1));
+        if (dev.type === 'pulsarlube_m2') devNameText += ' • M2';
+        else if (dev.type === 'pulsarlube_msp_ac') devNameText += ' • MSP AC';
+        else if (dev.type === 'pulsarlube_msp_dc') devNameText += ' • MSP DC';
+        else if (dev.type === 'pulsarlube_plc') devNameText += ' • PLC';
+        else if (dev.type === 'single_point') devNameText = 'Single Point';
+
+        ctx.font = 'bold 12px sans-serif';
+        const devTagW = ctx.measureText(devNameText).width;
+        const padX = 6;
+        const padY = 3;
+
+        ctx.fillStyle = 'rgba(15, 23, 42, 0.94)';
+        ctx.beginPath();
+        if (ctx.roundRect) {
+          ctx.roundRect(dScreen.u - devTagW/2 - padX, dScreen.v + dSize/2 + 4, devTagW + padX*2, 18 + padY, 4);
+        } else {
+          ctx.rect(dScreen.u - devTagW/2 - padX, dScreen.v + dSize/2 + 4, devTagW + padX*2, 18 + padY);
+        }
+        ctx.fill();
+        ctx.strokeStyle = pal.line;
+        ctx.lineWidth = 1.2;
+        ctx.stroke();
+
+        ctx.fillStyle = '#ffffff';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(devNameText, dScreen.u, dScreen.v + dSize/2 + 14);
+
+        screenNodes.push({
+          type: 'device',
+          id: dev.id,
+          u: dScreen.u,
+          v: dScreen.v,
+          radius: 24,
+          data: dev
+        });
+      });
+
+      // Bearing Nodes (A, B, C, D...)
+      rasterData.bearings.forEach((b, bIdx) => {
+        const letter = b.letter || String.fromCharCode(65 + bIdx);
+        const pos = rasterData.bearingPositions[letter] || { x: 0, y: 0 };
+        const bScreen = worldToScreen(pos.x, pos.y);
+        const radius = 19;
+
+        // Shadow
+        ctx.beginPath();
+        ctx.ellipse(bScreen.u, bScreen.v + 4, radius, radius * 0.5, 0, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.45)';
+        ctx.fill();
+
+        // Node Gradient Circle
+        const grad = ctx.createRadialGradient(
+          bScreen.u - radius * 0.3, bScreen.v - radius * 0.3, radius * 0.1,
+          bScreen.u, bScreen.v, radius
+        );
+        grad.addColorStop(0, '#60a5fa');
+        grad.addColorStop(1, '#1d4ed8');
+
+        ctx.beginPath();
+        ctx.arc(bScreen.u, bScreen.v, radius, 0, Math.PI * 2);
+        ctx.fillStyle = grad;
+        ctx.fill();
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 2.6;
+        ctx.stroke();
+
+        // Node Letter
+        ctx.font = 'bold 16px sans-serif';
+        ctx.fillStyle = '#ffffff';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(letter, bScreen.u, bScreen.v);
+
+        // Label Pill underneath: "Lager A: 22225"
+        const labelText = 'Lager ' + letter + (b.nr ? ': ' + b.nr : '');
+        ctx.font = 'bold 13px sans-serif';
+        const tagWidth = ctx.measureText(labelText).width;
+        const tagPad = 6;
+        const tagHeight = 20;
+
+        ctx.fillStyle = 'rgba(15, 23, 42, 0.92)';
+        ctx.beginPath();
+        if (ctx.roundRect) {
+          ctx.roundRect(bScreen.u - tagWidth/2 - tagPad, bScreen.v + radius + 5, tagWidth + tagPad*2, tagHeight, 4);
+        } else {
+          ctx.rect(bScreen.u - tagWidth/2 - tagPad, bScreen.v + radius + 5, tagWidth + tagPad*2, tagHeight);
+        }
+        ctx.fill();
+        ctx.strokeStyle = '#3b82f6';
+        ctx.lineWidth = 1.2;
+        ctx.stroke();
+
+        ctx.fillStyle = '#f8fafc';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(labelText, bScreen.u, bScreen.v + radius + 15);
+
+        screenNodes.push({
+          type: 'bearing',
+          id: letter,
+          u: bScreen.u,
+          v: bScreen.v,
+          radius: 22,
+          data: { ...b, pos }
+        });
+      });
+
+      ctx.restore();
+
+      // Update Zoom percentage badge
+      const zoomPct = Math.round(transform.scale * 100);
+      const zoomBadgeEl = document.getElementById('zoomBadge');
+      if (zoomBadgeEl) zoomBadgeEl.textContent = 'Zoom: ' + zoomPct + '%';
+    }
+
+    // 6. Touch, Mouse & Pointer Interaction Setup
+    function setupInteractions() {
+      const container = document.getElementById('canvasContainer');
+
+      // Pointer / Mouse Dragging
+      container.addEventListener('pointerdown', (e) => {
+        isDragging = true;
+        dragDistanceMoved = 0;
+        lastDragPos = { x: e.clientX, y: e.clientY };
+        container.setPointerCapture(e.pointerId);
+      });
+
+      container.addEventListener('pointermove', (e) => {
+        if (!isDragging || activeTouches.length >= 2) return;
+        const dx = e.clientX - lastDragPos.x;
+        const dy = e.clientY - lastDragPos.y;
+        dragDistanceMoved += Math.hypot(dx, dy);
+
+        transform.panX += dx;
+        transform.panY += dy;
+        lastDragPos = { x: e.clientX, y: e.clientY };
+        render();
+      });
+
+      container.addEventListener('pointerup', (e) => {
+        isDragging = false;
+        try { container.releasePointerCapture(e.pointerId); } catch(err) {}
+
+        // If it was a clean tap (not drag), handle node selection
+        if (dragDistanceMoved < 6) {
+          handleTap(e.clientX, e.clientY);
+        }
+      });
+
+      container.addEventListener('pointercancel', () => {
+        isDragging = false;
+      });
+
+      // Mouse Wheel Zoom
+      container.addEventListener('wheel', (e) => {
+        e.preventDefault();
+        const factor = e.deltaY < 0 ? 1.15 : 0.87;
+        adjustZoom(factor, e.clientX, e.clientY);
+      }, { passive: false });
+
+      // Multi-Touch Pinch to Zoom on Touchscreens
+      container.addEventListener('touchstart', (e) => {
+        activeTouches = Array.from(e.touches);
+        if (activeTouches.length === 2) {
+          initialPinchDistance = Math.hypot(
+            activeTouches[0].clientX - activeTouches[1].clientX,
+            activeTouches[0].clientY - activeTouches[1].clientY
+          );
+          initialPinchScale = transform.scale;
+        }
+      }, { passive: true });
+
+      container.addEventListener('touchmove', (e) => {
+        activeTouches = Array.from(e.touches);
+        if (activeTouches.length === 2 && initialPinchDistance > 10) {
+          const currentDistance = Math.hypot(
+            activeTouches[0].clientX - activeTouches[1].clientX,
+            activeTouches[0].clientY - activeTouches[1].clientY
+          );
+          const factor = currentDistance / initialPinchDistance;
+          const midX = (activeTouches[0].clientX + activeTouches[1].clientX) / 2;
+          const midY = (activeTouches[0].clientY + activeTouches[1].clientY) / 2;
+
+          const targetScale = Math.min(5.0, Math.max(0.4, initialPinchScale * factor));
+          const zoomRatio = targetScale / transform.scale;
+          adjustZoom(zoomRatio, midX, midY);
+        }
+      }, { passive: true });
+
+      container.addEventListener('touchend', (e) => {
+        activeTouches = Array.from(e.touches);
+      }, { passive: true });
+    }
+
+    // 7. Node Tapping & Details Modal
+    function handleTap(clientX, clientY) {
+      let hitNode = null;
+      for (let i = screenNodes.length - 1; i >= 0; i--) {
+        const node = screenNodes[i];
+        const dist = Math.hypot(clientX - node.u, clientY - node.v);
+        if (dist <= node.radius) {
+          hitNode = node;
+          break;
+        }
+      }
+
+      if (hitNode) {
+        showDetailModal(hitNode);
+      } else {
+        closeDetailModal();
+      }
+    }
+
+    function showDetailModal(node) {
+      const modal = document.getElementById('nodeDetailModal');
+      const titleEl = document.getElementById('modalTitle');
+      const bodyEl = document.getElementById('modalBody');
+
+      if (node.type === 'bearing') {
+        const b = node.data;
+        titleEl.innerHTML = '<span>🔵</span> <strong>Lager ' + b.letter + '</strong>';
+        
+        let connectedDevInfo = "Geen gekoppeld toestel";
+        (rasterData.devices || []).forEach(d => {
+          if (d.assignedBearingLetters && d.assignedBearingLetters.includes(b.letter)) {
+            const dist = Math.hypot(b.pos.x - d.x, b.pos.y - d.y);
+            connectedDevInfo = '<strong>' + (d.name || d.short) + '</strong> (' + dist.toFixed(1).replace('.', ',') + ' m)';
+          }
+        });
+
+        const distCP = Math.hypot(b.pos.x, b.pos.y);
+
+        bodyEl.innerHTML = [
+          '<div><strong>Lager Type:</strong> ' + (b.nr || 'Standaard') + '</div>',
+          '<div><strong>Coördinaten:</strong> X: ' + b.pos.x.toFixed(1).replace('.', ',') + ' m &bull; Y: ' + b.pos.y.toFixed(1).replace('.', ',') + ' m</div>',
+          '<div><strong>Afstand tot Centraal Punt:</strong> ' + distCP.toFixed(1).replace('.', ',') + ' m</div>',
+          '<div style="margin-top: 4px; padding-top: 4px; border-top: 1px solid rgba(255,255,255,0.1); color: #38bdf8;">',
+          '  Aangesloten op: ' + connectedDevInfo,
+          '</div>'
+        ].join('');
+      } else if (node.type === 'device') {
+        const d = node.data;
+        titleEl.innerHTML = '<span>🟠</span> <strong>' + (d.name || d.short) + '</strong>';
+        const bList = (d.assignedBearingLetters && d.assignedBearingLetters.length > 0)
+          ? d.assignedBearingLetters.join(', ')
+          : 'Geen specifieke toewijzing';
+
+        let typeLabel = 'Pulsarlube M2';
+        if (d.type === 'pulsarlube_msp_ac') typeLabel = 'Pulsarlube MSP AC';
+        else if (d.type === 'pulsarlube_msp_dc') typeLabel = 'Pulsarlube MSP DC';
+        else if (d.type === 'pulsarlube_plc') typeLabel = 'Pulsarlube PLC';
+        else if (d.type === 'single_point') typeLabel = 'Interflon Single Point';
+
+        bodyEl.innerHTML = [
+          '<div><strong>Systeemtype:</strong> ' + typeLabel + '</div>',
+          '<div><strong>Positie:</strong> X: ' + (d.x||0).toFixed(1).replace('.', ',') + ' m &bull; Y: ' + (d.y||0).toFixed(1).replace('.', ',') + ' m</div>',
+          '<div style="margin-top: 4px; padding-top: 4px; border-top: 1px solid rgba(255,255,255,0.1); color: #fb923c;">',
+          '  <strong>Gevoede lagers:</strong> ' + bList,
+          '</div>'
+        ].join('');
+      } else if (node.type === 'cp') {
+        titleEl.innerHTML = '<span>🔴</span> <strong>Centraal Punt</strong>';
+        bodyEl.innerHTML = [
+          '<div><strong>Referentie Coördinaten:</strong> (0,0)</div>',
+          '<div>Centrale referentiepositie van de machineopstelling.</div>'
+        ].join('');
+      }
+
+      modal.style.display = 'block';
+    }
+
+    function closeDetailModal() {
+      const modal = document.getElementById('nodeDetailModal');
+      if (modal) modal.style.display = 'none';
+    }
+
+    // 8. Lifecycle
+    window.addEventListener('DOMContentLoaded', () => {
+      decodeRasterPayload();
+      updateUIHeader();
+      initCanvas();
+      render();
+    });
+  </script>
+</body>
+</html>
