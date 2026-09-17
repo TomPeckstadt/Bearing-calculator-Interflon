@@ -360,6 +360,21 @@
       transform: scale(0.98);
     }
 
+    .btn-schema {
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+      color: #38bdf8;
+      border: 1.5px solid #0284c7;
+      box-shadow: 0 4px 14px rgba(2, 132, 199, 0.25);
+    }
+    .btn-schema:hover {
+      background: #1e293b;
+      color: #7dd3fc;
+    }
+    .btn-schema:active {
+      transform: scale(0.98);
+      background: #090e17;
+    }
+
     /* Toast */
     #toast {
       position: fixed;
@@ -507,6 +522,11 @@
 
     <!-- 5. Action Buttons for Maintenance Tech -->
     <div class="action-group">
+      <button type="button" class="btn btn-schema" id="btnOpenSchema" onclick="openMachineSchema()" style="display: none;">
+        <span style="font-size: 18px;">📐</span>
+        <span>Machineraster (Schema) Bekijken</span>
+      </button>
+
       <button type="button" class="btn btn-primary" onclick="copyOrderDetails()">
         <span>📋</span>
         <span>Kopieer Bestelinformatie</span>
@@ -803,7 +823,24 @@
         document.getElementById('passGreaseName').textContent = currentData.g || 'Interflon Grease MP2/3';
       }
 
+      // Schema button visibility for Central Machine Sticker or when raster data exists
+      const btnSchema = document.getElementById('btnOpenSchema');
+      if (btnSchema) {
+        const hasSchema = !!(currentData.isCentral || currentData.u === "Centraal Smeeroverzicht" || currentData.r || currentData.raster);
+        btnSchema.style.display = hasSchema ? 'flex' : 'none';
+      }
+
       document.title = `${currentData.m} • ${currentData.u} • Interflon Paspoort`;
+    }
+
+    function openMachineSchema() {
+      let url = 'schema.html';
+      if (window.location.hash) {
+        url += window.location.hash;
+      } else if (window.location.search) {
+        url += window.location.search;
+      }
+      window.open(url, '_blank');
     }
 
     function showToast(msg) {
