@@ -781,18 +781,43 @@ function updateCorrectionFactorsHint() {
 
   const lang = (typeof currentLang !== 'undefined' && currentLang) ? currentLang : 'nl';
 
-  // 1. Check current active bearing
-  let targetLetter = window.currentActiveSurveyBearingLetter || window.currentSurveyBearingLetter || null;
-  const sel = document.getElementById("surveyBearingSelect");
-  if (!targetLetter && sel && sel.value) {
-    const opt = sel.options[sel.selectedIndex];
-    targetLetter = (opt && opt.dataset && opt.dataset.letter) ? opt.dataset.letter : (sel.value.includes('___') ? sel.value.split('___')[0] : null);
-  }
-  if (!targetLetter && (!sel || sel.value)) {
-    try { targetLetter = localStorage.getItem("interflon_active_survey_letter"); } catch(e) {}
+  // 1. Check if user is in explicit manual mode
+  const activeSource = window.activeTcoBearingSource || localStorage.getItem("active_tco_bearing_source") || "";
+  let targetLetter = null;
+
+  if (activeSource === "manual") {
+    targetLetter = null;
+  } else if (activeSource.startsWith("survey_")) {
+    targetLetter = activeSource.replace("survey_", "");
   }
 
-  // 2. Load questionnaire data if available
+  // 2. Check dropdown in Lager Opzoeken if not determined
+  if (!targetLetter && activeSource !== "manual") {
+    const sel = document.getElementById("surveyBearingSelect");
+    if (sel && sel.value) {
+      const opt = sel.options[sel.selectedIndex];
+      targetLetter = (opt && opt.dataset && opt.dataset.letter) ? opt.dataset.letter : (sel.value.includes('___') ? sel.value.split('___')[0] : null);
+    }
+  }
+
+  // 3. Check Opbrengstmodel dropdown if not determined
+  if (!targetLetter && activeSource !== "manual") {
+    const omSel = document.getElementById("omSurveyBearingSelect");
+    if (omSel && omSel.value && omSel.value !== 'manual' && omSel.value !== '__open_search__') {
+      const opt = omSel.options[omSel.selectedIndex];
+      targetLetter = (opt && opt.dataset && opt.dataset.letter) ? opt.dataset.letter : (omSel.value.startsWith('survey_') ? omSel.value.replace('survey_', '') : omSel.value);
+    }
+  }
+
+  // 4. Memory or localStorage
+  if (!targetLetter && activeSource !== "manual") {
+    targetLetter = window.currentActiveSurveyBearingLetter || window.currentSurveyBearingLetter || null;
+    if (!targetLetter) {
+      try { targetLetter = localStorage.getItem("interflon_active_survey_letter"); } catch(e) {}
+    }
+  }
+
+  // 5. Load questionnaire data if available
   let fullData = window.latestSurveyFullData || null;
   if (!fullData) {
     try {
@@ -811,7 +836,7 @@ function updateCorrectionFactorsHint() {
     fullData = fullData.fullData || fullData.questionnaire || fullData.data;
   }
 
-  if (!targetLetter && fullData && (!sel || sel.value)) {
+  if (!targetLetter && fullData && activeSource !== "manual") {
     targetLetter = (fullData.activeBearings && (fullData.activeBearings.sec3 || fullData.activeBearings.sec4 || fullData.activeBearings.sec2)) ||
                    (Array.isArray(fullData.bearings) && fullData.bearings[0] && fullData.bearings[0].letter) || null;
   }
@@ -821,11 +846,13 @@ function updateCorrectionFactorsHint() {
   const curTeStr = curTe.replace('.', ',');
   const curTaStr = curTa.replace('.', ',');
 
-  // 3. Has questionnaire bearing data?
+  // 6. Has questionnaire bearing data?
   if (fullData && targetLetter) {
     window.currentActiveSurveyBearingLetter = targetLetter;
     window.currentSurveyBearingLetter = targetLetter;
+    window.activeTcoBearingSource = "survey_" + targetLetter;
     try { localStorage.setItem("interflon_active_survey_letter", targetLetter); } catch(e) {}
+    try { localStorage.setItem("active_tco_bearing_source", "survey_" + targetLetter); } catch(e) {}
 
     const sec3 = (fullData.bearingDataMapSec3 && (fullData.bearingDataMapSec3[targetLetter] || fullData.bearingDataMapSec3['A'])) || {};
     const allBearings = (Array.isArray(fullData.bearings) && fullData.bearings.length > 0) ? fullData.bearings :
@@ -877,7 +904,7 @@ function updateCorrectionFactorsHint() {
       hintEl.style.display = "block";
     }
   } else {
-    // Geen vragenlijst koppeling actief: toon handmatige instelling
+    // Geen vragenlijst koppeling actief of handmatige modus: toon handmatige instelling
     hintEl.style.background = "#f8fafc";
     hintEl.style.border = "1px solid #e2e8f0";
     hintEl.style.color = "#334155";
@@ -898,7 +925,9 @@ function applyCorrectionFactorsForBearing(targetLetter, forceAdviceReset) {
   if (!targetLetter) return;
   window.currentActiveSurveyBearingLetter = targetLetter;
   window.currentSurveyBearingLetter = targetLetter;
+  window.activeTcoBearingSource = "survey_" + targetLetter;
   try { localStorage.setItem("interflon_active_survey_letter", targetLetter); } catch(e) {}
+  try { localStorage.setItem("active_tco_bearing_source", "survey_" + targetLetter); } catch(e) {}
 
   let fullData = window.latestSurveyFullData || null;
   if (!fullData) {
@@ -2135,16 +2164,40 @@ function onOmSurveyBearingSelected(selectEl, mode) {
     ? opt.dataset.letter
     : (rawVal.includes('___') ? rawVal.split('___')[0] : rawVal);
 
+  window.currentActiveSurveyBearingLetter = targetLetter;
+  window.currentSurveyBearingLetter = targetLetter;
+  try { localStorage.setItem("interflon_active_survey_letter", targetLetter); } catch(e) {}
+
+  const mainSurveySel = document.getElementById("surveyBearingSelect");
+  if (mainSurveySel) {
+    for (let i = 0; i < mainSurveySel.options.length; i++) {
+      if (mainSurveySel.options[i].dataset && mainSurveySel.options[i].dataset.letter === targetLetter) {
+        mainSurveySel.selectedIndex = i;
+        break;
+      }
+    }
+  }
+
   window.activeTcoBearingSource = "survey_" + targetLetter;
   try { localStorage.setItem("active_tco_bearing_source", "survey_" + targetLetter); } catch(e) {}
 
   importSurveyBearingToOpbrengstmodel(mode, targetLetter);
+  if (typeof applyCorrectionFactorsForBearing === "function") {
+    applyCorrectionFactorsForBearing(targetLetter);
+  }
+  if (typeof updateCorrectionFactorsHint === "function") updateCorrectionFactorsHint();
 }
 window.onOmSurveyBearingSelected = onOmSurveyBearingSelected;
 
 function activateManualSearchedBearingInOm(mode) {
   window.activeTcoBearingSource = "manual";
   try { localStorage.setItem("active_tco_bearing_source", "manual"); } catch(e) {}
+  window.currentActiveSurveyBearingLetter = null;
+  window.currentSurveyBearingLetter = null;
+  try { localStorage.removeItem("interflon_active_survey_letter"); } catch(e) {}
+  const mainSurveySel = document.getElementById("surveyBearingSelect");
+  if (mainSurveySel) mainSurveySel.value = "";
+  if (typeof updateCorrectionFactorsHint === "function") updateCorrectionFactorsHint();
 
   if (mode === 'chain') {
     if (typeof activeChain !== "undefined" && activeChain) {
@@ -2272,8 +2325,12 @@ function onSurveyBearingSelected(selectEl) {
   if (!selectEl) return;
   const rawVal = selectEl.value;
   if (!rawVal) {
-    const badge = document.getElementById("surveyBearingSelectedBadge");
-    if (badge) badge.style.display = "none";
+    if (typeof clearSurveyBearingSelection === "function") {
+      clearSurveyBearingSelection();
+    } else {
+      const badge = document.getElementById("surveyBearingSelectedBadge");
+      if (badge) badge.style.display = "none";
+    }
     return;
   }
 
@@ -2283,6 +2340,32 @@ function onSurveyBearingSelected(selectEl) {
   const desc = (opt && opt.dataset) ? opt.dataset.desc : "";
   const rpm = (opt && opt.dataset) ? opt.dataset.rpm : "";
   const pos = (opt && opt.dataset) ? opt.dataset.pos : "";
+
+  const targetLetter = letter || 'A';
+  window.currentActiveSurveyBearingLetter = targetLetter;
+  window.currentSurveyBearingLetter = targetLetter;
+  window.activeTcoBearingSource = "survey_" + targetLetter;
+  try { localStorage.setItem("interflon_active_survey_letter", targetLetter); } catch(e) {}
+  try { localStorage.setItem("active_tco_bearing_source", "survey_" + targetLetter); } catch(e) {}
+
+  // Synchroniseer Opbrengstmodel dropdown direct
+  const omSelect = document.getElementById("omSurveyBearingSelect");
+  if (omSelect) {
+    for (let i = 0; i < omSelect.options.length; i++) {
+      if (omSelect.options[i].dataset && omSelect.options[i].dataset.letter === targetLetter) {
+        omSelect.selectedIndex = i;
+        break;
+      }
+    }
+  }
+
+  // Voorkom dat tussentijdse event-listeners onterechte handmatige overrides opslaan
+  window.__isProgrammaticFactorUpdate = true;
+
+  // Pas direct de correctiefactoren toe voor dit geselecteerde lager vóór andere triggers lopen
+  if (typeof applyCorrectionFactorsForBearing === 'function') {
+    applyCorrectionFactorsForBearing(targetLetter);
+  }
 
   const searchInput = document.getElementById("bearingSearchInput");
   if (searchInput) {
@@ -2319,9 +2402,6 @@ function onSurveyBearingSelected(selectEl) {
       if (saved) fullData = JSON.parse(saved);
     } catch (e) {}
   }
-
-  const targetLetter = letter || 'A';
-  window.currentActiveSurveyBearingLetter = targetLetter;
 
   const sec2 = (fullData && fullData.bearingDataMapSec2 && fullData.bearingDataMapSec2[targetLetter])
     ? fullData.bearingDataMapSec2[targetLetter]
@@ -2716,6 +2796,8 @@ function onSurveyBearingSelected(selectEl) {
     }
   }
 
+  window.__isProgrammaticFactorUpdate = false;
+
   // =========================================================================
   // BEREKENINGEN & UI UPDATES
   // =========================================================================
@@ -2733,6 +2815,9 @@ function onSurveyBearingSelected(selectEl) {
   }
   if (typeof saveBearingTcoDetails === "function") {
     saveBearingTcoDetails();
+  }
+  if (typeof updateCorrectionFactorsHint === "function") {
+    updateCorrectionFactorsHint();
   }
 
   // Update selected bearing info badge directly under dropdown
@@ -2784,11 +2869,13 @@ function clearSurveyBearingSelection() {
   if (badge) badge.style.display = "none";
   window.currentActiveSurveyBearingLetter = null;
   window.currentSurveyBearingLetter = null;
+  window.activeTcoBearingSource = "manual";
   try { localStorage.removeItem("interflon_active_survey_letter"); } catch(e) {}
+  try { localStorage.setItem("active_tco_bearing_source", "manual"); } catch(e) {}
   const omSelect = document.getElementById("omSurveyBearingSelect");
-  if (omSelect) omSelect.selectedIndex = 0;
+  if (omSelect) omSelect.value = "manual";
   const chainOmSelect = document.getElementById("chainOmSurveyBearingSelect");
-  if (chainOmSelect) chainOmSelect.selectedIndex = 0;
+  if (chainOmSelect) chainOmSelect.value = "manual";
   if (typeof updateCorrectionFactorsHint === "function") {
     updateCorrectionFactorsHint();
   }
@@ -2805,6 +2892,7 @@ window.clearSurveyBearingSelection = clearSurveyBearingSelection;
 function syncAllQuestionnaireDataToCalculator(data, explicitTargetLetter) {
   if (window.__isSyncingQuestionnaire) return;
   window.__isSyncingQuestionnaire = true;
+  window.__isProgrammaticFactorUpdate = true;
   try {
     let fullData = data || window.latestSurveyFullData || null;
     if (!fullData) {
@@ -2827,10 +2915,68 @@ function syncAllQuestionnaireDataToCalculator(data, explicitTargetLetter) {
 
     window.latestSurveyFullData = fullData;
 
-    const targetLetter = explicitTargetLetter || window.currentSurveyBearingLetter || window.currentActiveSurveyBearingLetter ||
-      (fullData.activeBearings && (fullData.activeBearings.sec4 || fullData.activeBearings.sec2)) || 'A';
+    let targetLetter = explicitTargetLetter || null;
+    if (!targetLetter) {
+      const activeSrc = window.activeTcoBearingSource || localStorage.getItem("active_tco_bearing_source") || "";
+      if (activeSrc.startsWith("survey_")) {
+        targetLetter = activeSrc.replace("survey_", "");
+      }
+    }
+    if (!targetLetter) {
+      const mainSel = document.getElementById("surveyBearingSelect");
+      if (mainSel && mainSel.value) {
+        const opt = mainSel.options[mainSel.selectedIndex];
+        targetLetter = (opt && opt.dataset && opt.dataset.letter) ? opt.dataset.letter : (mainSel.value.includes('___') ? mainSel.value.split('___')[0] : null);
+      }
+    }
+    if (!targetLetter) {
+      const omSel = document.getElementById("omSurveyBearingSelect");
+      if (omSel && omSel.value && omSel.value !== 'manual' && omSel.value !== '__open_search__') {
+        const opt = omSel.options[omSel.selectedIndex];
+        targetLetter = (opt && opt.dataset && opt.dataset.letter) ? opt.dataset.letter : (omSel.value.startsWith('survey_') ? omSel.value.replace('survey_', '') : omSel.value);
+      }
+    }
+    if (!targetLetter) {
+      targetLetter = window.currentActiveSurveyBearingLetter || window.currentSurveyBearingLetter || null;
+    }
+    if (!targetLetter) {
+      try { targetLetter = localStorage.getItem("interflon_active_survey_letter"); } catch(e) {}
+    }
+    if (!targetLetter && fullData && fullData.activeBearings) {
+      targetLetter = fullData.activeBearings.sec3 || fullData.activeBearings.sec4 || fullData.activeBearings.sec2 || null;
+    }
+    if (!targetLetter && fullData && Array.isArray(fullData.bearings) && fullData.bearings.length > 0) {
+      targetLetter = fullData.bearings[0].letter || 'A';
+    }
+    if (!targetLetter) targetLetter = 'A';
+
     window.currentSurveyBearingLetter = targetLetter;
     window.currentActiveSurveyBearingLetter = targetLetter;
+    window.activeTcoBearingSource = "survey_" + targetLetter;
+    try { localStorage.setItem("interflon_active_survey_letter", targetLetter); } catch(e) {}
+    try { localStorage.setItem("active_tco_bearing_source", "survey_" + targetLetter); } catch(e) {}
+
+    // Synchroniseer UI dropdowns naar targetLetter
+    const mainSel = document.getElementById("surveyBearingSelect");
+    if (mainSel && mainSel.options && mainSel.options.length > 1) {
+      for (let i = 0; i < mainSel.options.length; i++) {
+        const opt = mainSel.options[i];
+        if ((opt.dataset && opt.dataset.letter === targetLetter) || (opt.value && opt.value.startsWith(targetLetter + '___'))) {
+          mainSel.selectedIndex = i;
+          break;
+        }
+      }
+    }
+    const omSel = document.getElementById("omSurveyBearingSelect");
+    if (omSel && omSel.options && omSel.options.length > 0) {
+      for (let i = 0; i < omSel.options.length; i++) {
+        const opt = omSel.options[i];
+        if (opt.dataset && opt.dataset.letter === targetLetter) {
+          omSel.selectedIndex = i;
+          break;
+        }
+      }
+    }
 
     const sec2 = (fullData.bearingDataMapSec2 && (fullData.bearingDataMapSec2[targetLetter] || fullData.bearingDataMapSec2['A'])) || {};
     const sec3 = (fullData.bearingDataMapSec3 && (fullData.bearingDataMapSec3[targetLetter] || fullData.bearingDataMapSec3['A'])) || {};
@@ -3176,13 +3322,41 @@ function syncAllQuestionnaireDataToCalculator(data, explicitTargetLetter) {
       applyCorrectionFactorsForBearing(targetLetter);
     }
 
+    // Update selected bearing info badge direct onder dropdown
+    const badge = document.getElementById("surveyBearingSelectedBadge");
+    if (badge) {
+      const lEl = document.getElementById("surveyBearingBadgeLetter");
+      const nEl = document.getElementById("surveyBearingBadgeNr");
+      const dEl = document.getElementById("surveyBearingBadgeDesc");
+      const rEl = document.getElementById("surveyBearingBadgeRpm");
+      const pEl = document.getElementById("surveyBearingBadgePos");
+      if (lEl) lEl.textContent = 'LAGER ' + targetLetter;
+      if (nEl) nEl.textContent = bRec.nr || bRec.lagernummer || '-';
+      if (dEl) {
+        dEl.textContent = (bRec.desc || bRec.omschrijving) ? ('- ' + (bRec.desc || bRec.omschrijving)) : '';
+        dEl.style.display = dEl.textContent ? 'inline' : 'none';
+      }
+      if (rEl) {
+        rEl.textContent = bRec.rpm ? `(${bRec.rpm} RPM)` : '';
+        rEl.style.display = rEl.textContent ? 'inline' : 'none';
+      }
+      if (pEl) {
+        const posText = bRec.pos || bRec.positie || sec3.asPositie || '';
+        pEl.textContent = posText ? `• ${posText}` : '';
+        pEl.style.display = pEl.textContent ? 'inline' : 'none';
+      }
+      badge.style.display = "flex";
+    }
+
     // 6. Enkele gecontroleerde herberekening van alle modules (geen synthetische events)
     if (typeof calculateGrease === "function") calculateGrease();
     if (typeof updateTcoFrequencies === "function") updateTcoFrequencies();
     if (typeof calculateTco === "function") calculateTco();
     if (typeof calculateAutomationLubrication === "function") calculateAutomationLubrication();
     if (typeof updateRoiAutomationPage === "function") updateRoiAutomationPage();
+    if (typeof updateCorrectionFactorsHint === "function") updateCorrectionFactorsHint();
   } finally {
+    window.__isProgrammaticFactorUpdate = false;
     window.__isSyncingQuestionnaire = false;
   }
 }
@@ -3270,7 +3444,11 @@ function importSurveyBearingToOpbrengstmodel(mode, explicitLetter) {
     targetLetter = 'A';
   }
   window.currentSurveyBearingLetter = targetLetter;
+  window.currentActiveSurveyBearingLetter = targetLetter;
   window.activeSurveyLetter = targetLetter;
+  window.activeTcoBearingSource = "survey_" + targetLetter;
+  try { localStorage.setItem("interflon_active_survey_letter", targetLetter); } catch(e) {}
+  try { localStorage.setItem("active_tco_bearing_source", "survey_" + targetLetter); } catch(e) {}
 
   const sec2 = (fullData && fullData.bearingDataMapSec2 && fullData.bearingDataMapSec2[targetLetter])
     ? fullData.bearingDataMapSec2[targetLetter]
@@ -3706,12 +3884,18 @@ function importSurveyBearingToOpbrengstmodel(mode, explicitLetter) {
     badge.style.display = "flex";
   }
 
+  // Pas direct de correctiefactoren toe voor dit geselecteerde lager vóór herberekening
+  if (typeof applyCorrectionFactorsForBearing === "function") {
+    applyCorrectionFactorsForBearing(targetLetter);
+  }
+
   // Berekeningen en UI updates uitvoeren
   if (typeof calculateGrease === "function") calculateGrease();
   if (typeof updateTcoFrequencies === "function") updateTcoFrequencies();
   if (typeof calculateTco === "function") calculateTco();
   if (typeof updateOmMetadata === "function") updateOmMetadata();
   if (typeof saveBearingTcoDetails === "function") saveBearingTcoDetails();
+  if (typeof updateCorrectionFactorsHint === "function") updateCorrectionFactorsHint();
 
   // Knop visuele feedback
   const btnIds = ["btnImportSurveyToOm", "btnChainImportSurveyToOm"];
@@ -8088,6 +8272,23 @@ function handleSearchInput() {
 }
 
 function selectBearing(key) {
+  const qBearings = (typeof getQuestionnaireBearings === "function") ? getQuestionnaireBearings() : [];
+  const cleanKey = (key || "").trim().toUpperCase();
+  const matchedB = qBearings.find(b => (b.nr || "").toUpperCase() === cleanKey);
+  if (matchedB && matchedB.letter) {
+    const sel = document.getElementById("surveyBearingSelect");
+    if (sel && sel.options) {
+      for (let i = 0; i < sel.options.length; i++) {
+        if ((sel.options[i].dataset && sel.options[i].dataset.letter === matchedB.letter) || (sel.options[i].value && sel.options[i].value.startsWith(matchedB.letter + "___"))) {
+          sel.selectedIndex = i;
+          sel.value = sel.options[i].value;
+          onSurveyBearingSelected(sel);
+          return;
+        }
+      }
+    }
+  }
+
   const searchInp = document.getElementById("bearingSearchInput");
   if (searchInp) searchInp.value = key;
   const suggestionsBox = document.getElementById("suggestionsBox");
@@ -8097,6 +8298,13 @@ function selectBearing(key) {
   // Activeer dit gezochte lager direct als actieve bron voor TCO / Opbrengstmodel
   window.activeTcoBearingSource = "manual";
   try { localStorage.setItem("active_tco_bearing_source", "manual"); } catch(e) {}
+
+  // Wis survey bearing status zodat de app niet vast blijft staan op een eerder gekozen vragenlijstlager
+  window.currentActiveSurveyBearingLetter = null;
+  window.currentSurveyBearingLetter = null;
+  try { localStorage.removeItem("interflon_active_survey_letter"); } catch(e) {}
+  const mainSurveySel = document.getElementById("surveyBearingSelect");
+  if (mainSurveySel) mainSurveySel.value = "";
 
   // Verberg vragenlijst badge op de zoekpagina zodat duidelijk is dat dit een eigen gezocht lager is
   const badge = document.getElementById("surveyBearingSelectedBadge");
@@ -8123,6 +8331,8 @@ function selectBearing(key) {
   }
   const omSelect = document.getElementById("omSurveyBearingSelect");
   if (omSelect) omSelect.value = "manual";
+
+  if (typeof updateCorrectionFactorsHint === "function") updateCorrectionFactorsHint();
 }
 
 // Sluit suggesties als buiten de zoekbalk wordt geklikt
