@@ -20131,6 +20131,7 @@ function getActiveMachineRasterData() {
     machineRangeMeters,
     layoutViewMode,
     showCentralPoint,
+    showBearingDistances: (surveyConfig && surveyConfig.showBearingDistances) || (qData && qData.raster && qData.raster.showBearingDistances) || false,
     bearingPositions,
     devices,
     bearings,
@@ -20404,6 +20405,91 @@ function generateMachineRasterImageDataUrl(rasterData, customZoom = null) {
       });
     });
 
+    // 4B. Inter-Bearing Distance Lines & Badges (Afstand Lagers)
+    if (rasterData.showBearingDistances && Array.isArray(rasterData.bearings) && rasterData.bearings.length >= 2) {
+      const bList = rasterData.bearings.map((b, idx) => {
+        const letter = b.letter || String.fromCharCode(65 + idx);
+        const pos = (rasterData.bearingPositions && rasterData.bearingPositions[letter]) ? rasterData.bearingPositions[letter] : { x: 0, y: 0 };
+        return { letter, x: pos.x, y: pos.y };
+      });
+
+      const edges = [];
+      const n = bList.length;
+      if (n === 2) {
+        edges.push({ from: bList[0].letter, to: bList[1].letter });
+      } else if (n === 3) {
+        edges.push(
+          { from: bList[0].letter, to: bList[1].letter },
+          { from: bList[1].letter, to: bList[2].letter },
+          { from: bList[0].letter, to: bList[2].letter }
+        );
+      } else {
+        const edgeSet = new Set();
+        const addE = (f, t) => {
+          const k = f < t ? (f + '-' + t) : (t + '-' + f);
+          if (!edgeSet.has(k)) { edgeSet.add(k); edges.push({ from: f, to: t }); }
+        };
+        for (let i = 0; i < n - 1; i++) addE(bList[i].letter, bList[i + 1].letter);
+
+        const allP = [];
+        for (let i = 0; i < n; i++) {
+          for (let j = i + 1; j < n; j++) {
+            allP.push({ i, j, f: bList[i].letter, t: bList[j].letter, d: Math.hypot(bList[i].x - bList[j].x, bList[i].y - bList[j].y) });
+          }
+        }
+        allP.sort((a, b) => a.d - b.d);
+        const parent = Array.from({ length: n }, (_, i) => i);
+        const findR = (x) => parent[x] === x ? x : (parent[x] = findR(parent[x]));
+        for (const p of allP) {
+          const r1 = findR(p.i); const r2 = findR(p.j);
+          if (r1 !== r2) { parent[r1] = r2; addE(p.f, p.t); }
+        }
+      }
+
+      edges.forEach(edge => {
+        const b1 = bList.find(b => b.letter === edge.from);
+        const b2 = bList.find(b => b.letter === edge.to);
+        if (!b1 || !b2) return;
+        const distM = Math.hypot(b2.x - b1.x, b2.y - b1.y);
+        const s1 = worldToScreen(b1.x, b1.y);
+        const s2 = worldToScreen(b2.x, b2.y);
+
+        ctx.beginPath();
+        ctx.moveTo(s1.u, s1.v);
+        ctx.lineTo(s2.u, s2.v);
+        ctx.strokeStyle = '#38bdf8';
+        ctx.lineWidth = 2.4;
+        ctx.setLineDash([8, 6]);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        const midU = (s1.u + s2.u) / 2;
+        const midV = (s1.v + s2.v) / 2;
+        const distStr = edge.from + ' ↔ ' + edge.to + ': ' + distM.toFixed(1).replace('.', ',') + ' m';
+        ctx.font = 'bold 15px sans-serif';
+        const textWidth = ctx.measureText(distStr).width;
+        const padW = 8;
+        const padH = 4;
+
+        ctx.fillStyle = 'rgba(8, 47, 73, 0.94)';
+        ctx.beginPath();
+        if (ctx.roundRect) {
+          ctx.roundRect(midU - textWidth / 2 - padW, midV - 11 - padH, textWidth + padW * 2, 22 + padH * 2, 5);
+        } else {
+          ctx.rect(midU - textWidth / 2 - padW, midV - 11 - padH, textWidth + padW * 2, 22 + padH * 2);
+        }
+        ctx.fill();
+        ctx.strokeStyle = '#38bdf8';
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+
+        ctx.fillStyle = '#e0f2fe';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(distStr, midU, midV);
+      });
+    }
+
     // 5. Central Reference Point (0,0)
     if (rasterData.showCentralPoint) {
       const centerScreen = worldToScreen(0, 0);
@@ -20656,6 +20742,17 @@ function generateMachineRasterImageDataUrl(rasterData, customZoom = null) {
     else ctx.rect(410, height - 44, 12, 12);
     ctx.fill();
     ctx.fillText('Smeertoestel', 430, height - 38);
+
+    // Cyan Legend Bar: Afstand Lagers
+    if (rasterData.showBearingDistances) {
+      ctx.fillStyle = '#38bdf8';
+      ctx.beginPath();
+      if (ctx.roundRect) ctx.roundRect(550, height - 40, 16, 4, 2);
+      else ctx.rect(550, height - 40, 16, 4);
+      ctx.fill();
+      ctx.fillStyle = '#f8fafc';
+      ctx.fillText('Afstand Lagers', 574, height - 38);
+    }
 
     return canvas.toDataURL('image/png');
   } catch (err) {
