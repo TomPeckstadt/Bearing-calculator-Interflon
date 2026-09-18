@@ -3893,8 +3893,17 @@
             }
           }
 
-          // Sort edges so the measured pair is drawn last (on top of other lines and badges)
+          // Sort edges so hovered and measured pairs are drawn last (on top of other lines and badges)
           edges.sort((a, b) => {
+            const aHover = (window.__hoveredInterEdge &&
+              ((window.__hoveredInterEdge.from === a.from && window.__hoveredInterEdge.to === a.to) ||
+               (window.__hoveredInterEdge.from === a.to && window.__hoveredInterEdge.to === a.from)));
+            const bHover = (window.__hoveredInterEdge &&
+              ((window.__hoveredInterEdge.from === b.from && window.__hoveredInterEdge.to === b.to) ||
+               (window.__hoveredInterEdge.from === b.to && window.__hoveredInterEdge.to === b.from)));
+            if (aHover && !bHover) return 1;
+            if (!aHover && bHover) return -1;
+
             const aMeas = (measureB1 && measureB2 && ((a.from === measureB1 && a.to === measureB2) || (a.from === measureB2 && a.to === measureB1)));
             const bMeas = (measureB1 && measureB2 && ((b.from === measureB1 && b.to === measureB2) || (b.from === measureB2 && b.to === measureB1)));
             if (aMeas && !bMeas) return 1;
@@ -3914,9 +3923,16 @@
             const s1 = worldToScreen(b1.x, b1.y, canvas);
             const s2 = worldToScreen(b2.x, b2.y, canvas);
 
-            const isHighlighted = (hoveredBearingLetter === edge.from || hoveredBearingLetter === edge.to ||
-                                   draggedBearingLetter === edge.from || draggedBearingLetter === edge.to ||
-                                   (window.__hoveredMeasurePair && isMeasuredPair));
+            const isHoveredSpecificEdge = (window.__hoveredInterEdge &&
+              ((window.__hoveredInterEdge.from === edge.from && window.__hoveredInterEdge.to === edge.to) ||
+               (window.__hoveredInterEdge.from === edge.to && window.__hoveredInterEdge.to === edge.from)));
+
+            const isHighlighted = isHoveredSpecificEdge ||
+                                  (window.__hoveredMeasurePair && isMeasuredPair) ||
+                                  (!window.__hoveredInterEdge && (
+                                    hoveredBearingLetter === edge.from || hoveredBearingLetter === edge.to ||
+                                    draggedBearingLetter === edge.from || draggedBearingLetter === edge.to
+                                  ));
 
             // Draw connecting dimension line
             ctx.beginPath();
@@ -5061,13 +5077,14 @@
           el.onmouseenter = function() {
             el.style.background = '#e0f2fe';
             el.style.borderColor = '#0284c7';
-            hoveredBearingLetter = fromL;
+            hoveredBearingLetter = null;
+            window.__hoveredInterEdge = { from: fromL, to: toL };
             drawBearingLayout();
           };
           el.onmouseleave = function() {
             el.style.background = 'rgba(255,255,255,0.75)';
             el.style.borderColor = '#e0f2fe';
-            hoveredBearingLetter = null;
+            window.__hoveredInterEdge = null;
             drawBearingLayout();
           };
           el.onclick = function() {
