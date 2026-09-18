@@ -17306,6 +17306,190 @@ function getQrPassportsData() {
   };
 }
 
+// State for Slim Smeerpaspoort Selection & Database
+let isPassportSelectMode = false;
+let selectedPassportIds = new Set();
+let activeDisplayedQrPassports = null; // null = session calculation, Array = custom imported passports
+let passportStorageDirHandle = null;
+let selectedDbPassportKeys = new Set(); // set of "clientKey|||machineKey|||passportId"
+
+function getPassportDatabase() {
+  try {
+    const raw = localStorage.getItem("interflon_passport_database");
+    if (!raw) return { clients: {} };
+    const parsed = JSON.parse(raw);
+    if (!parsed || typeof parsed !== "object" || !parsed.clients) return { clients: {} };
+    return parsed;
+  } catch (e) {
+    console.warn("Fout bij laden paspoort database:", e);
+    return { clients: {} };
+  }
+}
+
+function savePassportDatabase(db) {
+  try {
+    localStorage.setItem("interflon_passport_database", JSON.stringify(db));
+  } catch (e) {
+    console.warn("Fout bij opslaan paspoort database:", e);
+  }
+}
+
+function getStoredPassportDirHandle() {
+  return new Promise((resolve) => {
+    try {
+      if (!window.indexedDB) return resolve(null);
+      const req = indexedDB.open("InterflonPassportStorageDB", 1);
+      req.onupgradeneeded = (e) => {
+        e.target.result.createObjectStore("handles");
+      };
+      req.onsuccess = (e) => {
+        const db = e.target.result;
+        const tx = db.transaction("handles", "readonly");
+        const store = tx.objectStore("handles");
+        const getReq = store.get("rootDirHandle");
+        getReq.onsuccess = () => resolve(getReq.result || null);
+        getReq.onerror = () => resolve(null);
+      };
+      req.onerror = () => resolve(null);
+    } catch (err) {
+      resolve(null);
+    }
+  });
+}
+
+function storePassportDirHandle(handle) {
+  return new Promise((resolve) => {
+    try {
+      if (!window.indexedDB) return resolve(false);
+      const req = indexedDB.open("InterflonPassportStorageDB", 1);
+      req.onupgradeneeded = (e) => {
+        e.target.result.createObjectStore("handles");
+      };
+      req.onsuccess = (e) => {
+        const db = e.target.result;
+        const tx = db.transaction("handles", "readwrite");
+        const store = tx.objectStore("handles");
+        store.put(handle, "rootDirHandle");
+        tx.oncomplete = () => resolve(true);
+        tx.onerror = () => resolve(false);
+      };
+      req.onerror = () => resolve(false);
+    } catch (err) {
+      resolve(false);
+    }
+  });
+}
+
+async function choosePassportRootFolder() {
+  if (!('showDirectoryPicker' in window)) {
+    alert("Uw huidige browser ondersteunt de File System Access API niet rechtstreeks. Paspoorten worden veilig in de browser-database bewaard en kunnen worden gedownload als JSON-bestanden.");
+    return;
+  }
+  try {
+    const handle = await window.showDirectoryPicker({
+      id: "interflon_passports",
+      mode: "readwrite"
+    });
+    if (handle) {
+      passportStorageDirHandle = handle;
+      await storePassportDirHandle(handle);
+      updatePassportPcFolderStatusStrip(handle.name);
+      alert("✅ Hoofdmap succesvol gekoppeld: '" + handle.name + "'!\n\nBij het opslaan van paspoorten worden hierin automatisch de mappen 'Slimme paspoorten [Klantnaam]/[Machinenaam]' aangemaakt met individuele JSON-bestanden.");
+    }
+  } catch (err) {
+    if (err.name !== 'AbortError') {
+      console.warn("Fout bij kiezen hoofdmap:", err);
+    }
+  }
+}
+
+function updatePassportPcFolderStatusStrip(folderName) {
+  const el = document.getElementById("passportPcFolderStatusText");
+  if (el) {
+    if (folderName) {
+      el.innerHTML = "💻 Gekoppelde PC-map: <strong>" + escapeOdooHtml(folderName) + "</strong> &bull; Automatische submappen actief";
+    } else {
+      el.innerHTML = "💻 Lokale database actief &bull; Gekoppeld aan browser storage";
+    }
+  }
+}
+
+async function savePassportToFileSystem(clientName, machineName, passportObj) {
+  const safeClient = (clientName || "Onbekende Klant").replace(/[\\/:*?"<>|]/g, "_").trim();
+  const safeMachine = (machineName || "Machine").replace(/[\\/:*?"<>|]/g, "_").trim();
+  const safeUnit = (passportObj.u || "Toestel").replace(/[\\/:*?"<>|]/g, "_").trim();
+  const safeType = (passportObj.devTypeLabel || passportObj.t || "Pulsarlube").replace(/[\\/:*?"<>|]/g, "_").trim();
+
+  // If File System Access API is supported
+  if ('showDirectoryPicker' in window) {
+    try {
+      if (!passportStorageDirHandle) {
+        passportStorageDirHandle = await getStoredPassportDirHandle();
+      }
+
+      if (passportStorageDirHandle) {
+        const perm = await passportStorageDirHandle.queryPermission({ mode: "readwrite" });
+        if (perm !== "granted") {
+          const reqPerm = await passportStorageDirHandle.requestPermission({ mode: "readwrite" });
+          if (reqPerm !== "granted") {
+            passportStorageDirHandle = null;
+          }
+        }
+      }
+
+      if (!passportStorageDirHandle) {
+        passportStorageDirHandle = await window.showDirectoryPicker({
+          id: "interflon_passports",
+          mode: "readwrite"
+        });
+        if (passportStorageDirHandle) {
+          await storePassportDirHandle(passportStorageDirHandle);
+          updatePassportPcFolderStatusStrip(passportStorageDirHandle.name);
+        }
+      }
+
+      if (passportStorageDirHandle) {
+        // 1. Create / get folder: "Slimme paspoorten " + safeClient
+        const clientFolder = await passportStorageDirHandle.getDirectoryHandle("Slimme paspoorten " + safeClient, { create: true });
+        // 2. Create / get subfolder: safeMachine
+        const machineFolder = await clientFolder.getDirectoryHandle(safeMachine, { create: true });
+        // 3. Create / write JSON file
+        const fileName = safeUnit + " - " + safeType + ".json";
+        const fileHandle = await machineFolder.getFileHandle(fileName, { create: true });
+        const writable = await fileHandle.createWritable();
+        await writable.write(JSON.stringify(passportObj, null, 2));
+        await writable.close();
+
+        return { success: true, method: 'filesystem', path: "Slimme paspoorten " + safeClient + "/" + safeMachine + "/" + fileName };
+      }
+    } catch (err) {
+      if (err.name === 'AbortError') {
+        return { success: false, aborted: true };
+      }
+      console.warn("Fout bij schrijven naar bestandssysteem, downloaden als fallback:", err);
+    }
+  }
+
+  // Fallback if no folder selected or API not available: download JSON file directly
+  downloadPassportJsonFile(safeClient, safeMachine, safeUnit, passportObj);
+  return { success: true, method: 'download' };
+}
+
+function downloadPassportJsonFile(clientName, machineName, unitName, passportObj) {
+  const fileName = "Paspoort - " + clientName + " - " + machineName + " - " + unitName + ".json";
+  const blob = new Blob([JSON.stringify(passportObj, null, 2)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = fileName;
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(() => {
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }, 300);
+}
+
 function openQrPassportModal() {
   const modal = document.getElementById("qrPassportModal");
   if (!modal) return;
@@ -17313,6 +17497,7 @@ function openQrPassportModal() {
   renderQrPassportStickers();
   modal.classList.remove("hidden");
   document.body.style.overflow = "hidden";
+  updatePassportSelectionUI();
 }
 
 function closeQrPassportModal() {
@@ -17347,13 +17532,698 @@ function switchQrPassportTab(tabName) {
   renderQrPassportStickers();
 }
 
+function togglePassportSelectMode() {
+  isPassportSelectMode = !isPassportSelectMode;
+  const sheet = document.getElementById("qrPrintableStickerSheet");
+  const btn = document.getElementById("btnTogglePassportSelect");
+  const quickBar = document.getElementById("passportSelectQuickBar");
+  const icon = document.getElementById("passportSelectIcon");
+  const text = document.getElementById("passportSelectBtnText");
+
+  if (isPassportSelectMode) {
+    if (sheet) sheet.classList.add("passport-select-active");
+    if (btn) {
+      btn.style.background = "#e0f2fe";
+      btn.style.borderColor = "#0284c7";
+      btn.style.color = "#0369a1";
+    }
+    if (icon) icon.textContent = "✓";
+    if (text) text.textContent = "Selecteren actief";
+    if (quickBar) quickBar.style.display = "inline-flex";
+  } else {
+    if (sheet) sheet.classList.remove("passport-select-active");
+    if (btn) {
+      btn.style.background = "#ffffff";
+      btn.style.borderColor = "#cbd5e1";
+      btn.style.color = "#334155";
+    }
+    if (icon) icon.textContent = "🔘";
+    if (text) text.textContent = "Selecteer";
+    if (quickBar) quickBar.style.display = "none";
+  }
+
+  updatePassportSelectionUI();
+}
+
+function selectAllPassports(selectAll) {
+  const cards = document.querySelectorAll(".qr-sticker-card[data-passport-id]");
+  if (selectAll) {
+    cards.forEach(c => {
+      const id = c.getAttribute("data-passport-id");
+      if (id) selectedPassportIds.add(id);
+    });
+  } else {
+    selectedPassportIds.clear();
+  }
+  updatePassportSelectionUI();
+}
+
+function handlePassportCardClick(event, passportId) {
+  if (!isPassportSelectMode) {
+    // If user clicks directly on the selection bubble or circle, activate select mode
+    if (event.target && (event.target.closest(".passport-select-bubble") || event.target.classList.contains("passport-bubble-circle"))) {
+      togglePassportSelectMode();
+    } else {
+      return;
+    }
+  }
+  if (event) event.stopPropagation();
+
+  if (selectedPassportIds.has(passportId)) {
+    selectedPassportIds.delete(passportId);
+  } else {
+    selectedPassportIds.add(passportId);
+  }
+  updatePassportSelectionUI();
+}
+
+function updatePassportSelectionUI() {
+  const cards = document.querySelectorAll(".qr-sticker-card[data-passport-id]");
+  cards.forEach(card => {
+    const id = card.getAttribute("data-passport-id");
+    const isSelected = selectedPassportIds.has(id);
+    if (isSelected) {
+      card.classList.add("is-card-selected");
+    } else {
+      card.classList.remove("is-card-selected");
+    }
+    const bubble = card.querySelector(".passport-select-bubble");
+    if (bubble) {
+      if (isSelected) {
+        bubble.classList.add("selected");
+        const circle = bubble.querySelector(".passport-bubble-circle");
+        if (circle) circle.textContent = "✓";
+      } else {
+        bubble.classList.remove("selected");
+        const circle = bubble.querySelector(".passport-bubble-circle");
+        if (circle) circle.textContent = "";
+      }
+    }
+  });
+
+  const count = selectedPassportIds.size;
+  const saveBtn = document.getElementById("btnSaveToPassportDb");
+  if (saveBtn) {
+    if (count > 0) {
+      saveBtn.innerHTML = "💾 Toevoegen aan database (" + count + ")";
+    } else {
+      saveBtn.innerHTML = "💾 Toevoegen aan database";
+    }
+  }
+}
+
+async function saveSelectedPassportsToDatabase() {
+  let displayedPassports = [];
+  if (currentQrPassportTab === "machine") {
+    const data = getQrPassportsData();
+    if (data && data.central) {
+      displayedPassports = [data.central];
+    }
+  } else {
+    if (activeDisplayedQrPassports && activeDisplayedQrPassports.length > 0) {
+      displayedPassports = activeDisplayedQrPassports;
+    } else {
+      const data = getQrPassportsData();
+      displayedPassports = (data && data.units) ? data.units : [];
+    }
+  }
+
+  if (displayedPassports.length === 0) {
+    alert("Geen paspoorten beschikbaar om op te slaan.");
+    return;
+  }
+
+  let passportsToSave = [];
+  if (selectedPassportIds.size > 0) {
+    passportsToSave = displayedPassports.filter((p, idx) => {
+      const pId = p.id || ("unit_" + idx + "_" + (p.u || "").replace(/\s+/g, '_'));
+      return selectedPassportIds.has(pId);
+    });
+  } else {
+    if (isPassportSelectMode) {
+      alert("Er is nog geen paspoort geselecteerd. Klik op de gewenste paspoorten om ze aan te vinken, of klik op 'Alles'.");
+      return;
+    }
+    const confirmAll = confirm("U heeft de selectiemodus niet ingeschakeld. Wilt u alle " + displayedPassports.length + " getoonde paspoort(en) opslaan in de database?");
+    if (!confirmAll) return;
+    passportsToSave = displayedPassports;
+  }
+
+  if (passportsToSave.length === 0) return;
+
+  const db = getPassportDatabase();
+  let savedCount = 0;
+  let lastClient = "";
+  let lastMachine = "";
+  let savedPaths = [];
+
+  for (let i = 0; i < passportsToSave.length; i++) {
+    const p = passportsToSave[i];
+    const clientName = (p.c || "Onbekende Klant").trim();
+    const machineName = (p.m || "Machine").trim();
+    lastClient = clientName;
+    lastMachine = machineName;
+
+    if (!db.clients[clientName]) {
+      db.clients[clientName] = { machines: {} };
+    }
+    if (!db.clients[clientName].machines[machineName]) {
+      db.clients[clientName].machines[machineName] = { passports: [] };
+    }
+
+    const passportRecord = {
+      id: p.id || ("pas_" + Date.now() + "_" + i),
+      m: machineName,
+      c: clientName,
+      u: p.u || ("Toestel " + (i + 1)),
+      t: p.t || "pulsarlube_m2",
+      cap: p.cap || 125,
+      g: p.g || "Interflon Grease MP2/3",
+      art: p.art || "",
+      p: p.p || "",
+      v: p.v || "",
+      l: p.l || "",
+      d: p.d || new Date().toLocaleDateString("nl-BE"),
+      devTypeLabel: p.devTypeLabel || (p.t + " " + (p.cap || 125) + " ml"),
+      savedAt: new Date().toISOString()
+    };
+
+    const existingIdx = db.clients[clientName].machines[machineName].passports.findIndex(item => item.u === passportRecord.u || item.id === passportRecord.id);
+    if (existingIdx >= 0) {
+      db.clients[clientName].machines[machineName].passports[existingIdx] = passportRecord;
+    } else {
+      db.clients[clientName].machines[machineName].passports.push(passportRecord);
+    }
+
+    const fileRes = await savePassportToFileSystem(clientName, machineName, passportRecord);
+    if (fileRes && fileRes.path) {
+      savedPaths.push(fileRes.path);
+    }
+    savedCount++;
+  }
+
+  savePassportDatabase(db);
+  selectedPassportIds.clear();
+  if (isPassportSelectMode) {
+    togglePassportSelectMode();
+  }
+
+  let msg = "✅ " + savedCount + " paspoort(en) succesvol opgeslagen in de database onder:\n" +
+            "🏢 Klant: " + lastClient + "\n" +
+            "🏭 Machine: " + lastMachine;
+  if (savedPaths.length > 0) {
+    msg += "\n\n📁 Bestand(en) weggeschreven naar:\n" + savedPaths.join("\n");
+  }
+  alert(msg);
+}
+
+function openPassportDatabaseModal() {
+  const modal = document.getElementById("passportDatabaseModal");
+  if (!modal) return;
+
+  getStoredPassportDirHandle().then(handle => {
+    if (handle) {
+      passportStorageDirHandle = handle;
+      updatePassportPcFolderStatusStrip(handle.name);
+    } else {
+      updatePassportPcFolderStatusStrip(null);
+    }
+  });
+
+  populatePassportDbClientFilter();
+  renderPassportDatabaseTree();
+  modal.classList.remove("hidden");
+}
+
+function closePassportDatabaseModal() {
+  const modal = document.getElementById("passportDatabaseModal");
+  if (modal) modal.classList.add("hidden");
+}
+
+function populatePassportDbClientFilter() {
+  const filterSelect = document.getElementById("passportDbClientFilter");
+  if (!filterSelect) return;
+  const db = getPassportDatabase();
+  const clients = Object.keys(db.clients || {}).sort();
+
+  let html = '<option value="all">Alle klanten (' + clients.length + ')</option>';
+  clients.forEach(c => {
+    html += '<option value="' + escapeOdooHtml(c) + '">' + escapeOdooHtml(c) + '</option>';
+  });
+  filterSelect.innerHTML = html;
+}
+
+function renderPassportDatabaseTree() {
+  const container = document.getElementById("passportDatabaseTreeContainer");
+  if (!container) return;
+
+  const db = getPassportDatabase();
+  const clients = Object.keys(db.clients || {});
+
+  const searchInput = document.getElementById("passportDbSearchInput");
+  const filterQuery = searchInput ? searchInput.value.toLowerCase().trim() : "";
+
+  const clientFilterSelect = document.getElementById("passportDbClientFilter");
+  const selectedClientFilter = clientFilterSelect ? clientFilterSelect.value : "all";
+
+  if (clients.length === 0) {
+    container.innerHTML = `
+      <div style="text-align: center; padding: 40px 20px; color: #64748b;">
+        <div style="font-size: 40px; margin-bottom: 10px;">📂</div>
+        <h4 style="font-size: 15px; font-weight: 700; color: #1e293b; margin: 0 0 6px 0;">Geen opgeslagen paspoorten gevonden</h4>
+        <p style="font-size: 12px; margin: 0 auto; max-width: 440px; line-height: 1.5;">
+          U heeft nog geen paspoorten opgeslagen in de database. Ga naar Toestelstickers, klik op <strong>'🔘 Selecteer'</strong> en <strong>'💾 Toevoegen aan database'</strong> om uw eerste toestellen op te slaan.
+        </p>
+      </div>
+    `;
+    updateDbSelectionSummary();
+    return;
+  }
+
+  let html = '<div class="passport-db-tree">';
+  let totalRenderedUnits = 0;
+
+  clients.forEach(clientName => {
+    if (selectedClientFilter !== "all" && selectedClientFilter !== clientName) return;
+
+    const machinesObj = db.clients[clientName].machines || {};
+    const machineNames = Object.keys(machinesObj);
+
+    let clientMatchesSearch = clientName.toLowerCase().includes(filterQuery);
+    let matchedMachines = [];
+
+    machineNames.forEach(mName => {
+      const passports = machinesObj[mName].passports || [];
+      const machineMatches = mName.toLowerCase().includes(filterQuery);
+      const matchingPassports = passports.filter(p => {
+        if (!filterQuery) return true;
+        return clientMatchesSearch || machineMatches ||
+          (p.u && p.u.toLowerCase().includes(filterQuery)) ||
+          (p.devTypeLabel && p.devTypeLabel.toLowerCase().includes(filterQuery)) ||
+          (p.art && p.art.toLowerCase().includes(filterQuery)) ||
+          (p.g && p.g.toLowerCase().includes(filterQuery)) ||
+          (p.l && p.l.toLowerCase().includes(filterQuery));
+      });
+
+      if (matchingPassports.length > 0) {
+        matchedMachines.push({ name: mName, passports: matchingPassports });
+      }
+    });
+
+    if (matchedMachines.length === 0) return;
+
+    const totalClientUnits = matchedMachines.reduce((sum, m) => sum + m.passports.length, 0);
+    totalRenderedUnits += totalClientUnits;
+
+    html += `
+      <div class="passport-db-client-card">
+        <!-- Client Header -->
+        <div class="passport-db-client-header">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span style="font-size: 16px;">🏢</span>
+            <strong style="font-size: 14px; color: #0f172a;">${escapeOdooHtml(clientName)}</strong>
+            <span style="font-size: 11px; background: #e0f2fe; color: #0369a1; padding: 2px 7px; border-radius: 12px; font-weight: 700;">
+              ${matchedMachines.length} machine${matchedMachines.length === 1 ? '' : 's'} &bull; ${totalClientUnits} toestel${totalClientUnits === 1 ? '' : 'len'}
+            </span>
+          </div>
+          <div>
+            <button type="button" onclick="selectAllDbClientPassports('${escapeOdooHtml(clientName)}', true)" style="background: none; border: 1px solid #cbd5e1; padding: 2px 8px; border-radius: 4px; font-size: 10.5px; font-weight: 600; color: #0284c7; cursor: pointer; margin-right: 4px;">Selecteer klant</button>
+            <button type="button" onclick="selectAllDbClientPassports('${escapeOdooHtml(clientName)}', false)" style="background: none; border: 1px solid #cbd5e1; padding: 2px 8px; border-radius: 4px; font-size: 10.5px; font-weight: 600; color: #64748b; cursor: pointer;">Geen</button>
+          </div>
+        </div>
+
+        <!-- Machines -->
+        <div>
+    `;
+
+    matchedMachines.forEach(m => {
+      html += `
+        <div class="passport-db-machine-card">
+          <!-- Machine Header -->
+          <div class="passport-db-machine-header">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span style="font-size: 14px;">🏭</span>
+              <strong style="font-size: 12.5px; color: #1e293b;">${escapeOdooHtml(m.name)}</strong>
+              <span style="font-size: 10.5px; color: #64748b;">(${m.passports.length} unit${m.passports.length === 1 ? '' : 's'})</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 6px;">
+              <button type="button" onclick="selectAllDbMachinePassports('${escapeOdooHtml(clientName)}', '${escapeOdooHtml(m.name)}', true)" style="background: #ffffff; border: 1px solid #cbd5e1; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 600; color: #0284c7; cursor: pointer;">Selecteer machine</button>
+              <button type="button" onclick="deleteMachineFromDb('${escapeOdooHtml(clientName)}', '${escapeOdooHtml(m.name)}')" style="background: none; border: none; font-size: 12px; color: #ef4444; cursor: pointer; padding: 2px 4px;" title="Verwijder deze machine uit database">🗑️</button>
+            </div>
+          </div>
+
+          <!-- Units List -->
+          <div class="passport-db-units-list">
+      `;
+
+      m.passports.forEach(p => {
+        const itemKey = clientName + "|||" + m.name + "|||" + p.id;
+        const isChecked = selectedDbPassportKeys.has(itemKey);
+
+        html += `
+          <div class="passport-db-unit-row">
+            <div style="display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0;">
+              <input type="checkbox" ${isChecked ? 'checked' : ''} onchange="handleDbPassportCheckboxChange('${escapeOdooHtml(itemKey)}', this.checked)" style="width: 16px; height: 16px; cursor: pointer; accent-color: #0284c7;">
+              
+              <div style="flex: 1; min-width: 0;">
+                <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 2px;">
+                  <span style="background: #0f172a; color: #ffffff; font-size: 10px; font-weight: 800; padding: 1px 6px; border-radius: 4px; text-transform: uppercase;">
+                    ${escapeOdooHtml(p.u)}
+                  </span>
+                  <strong style="font-size: 12px; color: #0284c7;">${escapeOdooHtml(p.devTypeLabel || p.t)}</strong>
+                  <span style="font-size: 11px; color: #475569;">&bull; Art. ${escapeOdooHtml(p.art)}</span>
+                </div>
+                <div style="font-size: 11px; color: #64748b; line-height: 1.3;">
+                  Vet: <strong>${escapeOdooHtml(p.g)}</strong> &bull; Instelling: <strong style="color: #dc2626;">${escapeOdooHtml(p.p)}</strong> &bull; Afgifte: <strong>${escapeOdooHtml(p.v)}</strong> &bull; Punten: <strong>${escapeOdooHtml(p.l)}</strong>
+                </div>
+              </div>
+            </div>
+
+            <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
+              <span style="font-size: 10px; color: #94a3b8;">${escapeOdooHtml(p.d || "")}</span>
+              <button type="button" onclick="deleteIndividualDbPassport('${escapeOdooHtml(clientName)}', '${escapeOdooHtml(m.name)}', '${escapeOdooHtml(p.id)}')" style="background: none; border: none; font-size: 13px; color: #94a3b8; cursor: pointer; padding: 2px 4px; transition: color 0.15s ease;" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='#94a3b8'" title="Verwijder paspoort">🗑️</button>
+            </div>
+          </div>
+        `;
+      });
+
+      html += `
+          </div>
+        </div>
+      `;
+    });
+
+    html += `
+        </div>
+      </div>
+    `;
+  });
+
+  html += '</div>';
+
+  if (totalRenderedUnits === 0) {
+    container.innerHTML = `
+      <div style="text-align: center; padding: 30px 20px; color: #64748b;">
+        <p style="font-size: 13px;">Geen paspoorten gevonden die voldoen aan uw zoekopdracht <strong>"${escapeOdooHtml(filterQuery)}"</strong>.</p>
+      </div>
+    `;
+  } else {
+    container.innerHTML = html;
+  }
+
+  updateDbSelectionSummary();
+}
+
+function filterPassportDatabaseTree() {
+  renderPassportDatabaseTree();
+}
+
+function handleDbPassportCheckboxChange(key, isChecked) {
+  if (isChecked) {
+    selectedDbPassportKeys.add(key);
+  } else {
+    selectedDbPassportKeys.delete(key);
+  }
+  updateDbSelectionSummary();
+}
+
+function selectAllDbClientPassports(clientName, selectAll) {
+  const db = getPassportDatabase();
+  const machines = (db.clients[clientName] && db.clients[clientName].machines) || {};
+  Object.keys(machines).forEach(mName => {
+    (machines[mName].passports || []).forEach(p => {
+      const key = clientName + "|||" + mName + "|||" + p.id;
+      if (selectAll) selectedDbPassportKeys.add(key);
+      else selectedDbPassportKeys.delete(key);
+    });
+  });
+  renderPassportDatabaseTree();
+}
+
+function selectAllDbMachinePassports(clientName, machineName, selectAll) {
+  const db = getPassportDatabase();
+  const passports = (db.clients[clientName] && db.clients[clientName].machines[machineName] && db.clients[clientName].machines[machineName].passports) || [];
+  passports.forEach(p => {
+    const key = clientName + "|||" + machineName + "|||" + p.id;
+    if (selectAll) selectedDbPassportKeys.add(key);
+    else selectedDbPassportKeys.delete(key);
+  });
+  renderPassportDatabaseTree();
+}
+
+function updateDbSelectionSummary() {
+  const count = selectedDbPassportKeys.size;
+  const summaryEl = document.getElementById("passportDbSelectionSummary");
+  if (summaryEl) {
+    summaryEl.textContent = count + " toestel" + (count === 1 ? "" : "len") + " geselecteerd";
+  }
+  const deleteBtn = document.getElementById("btnDeleteSelectedDbPassports");
+  if (deleteBtn) {
+    deleteBtn.style.display = count > 0 ? "inline-flex" : "none";
+  }
+}
+
+function importSelectedPassportsToScreen() {
+  if (selectedDbPassportKeys.size === 0) {
+    alert("Vink minimaal 1 toestel aan in de lijst om te importeren naar het stickerscherm.");
+    return;
+  }
+
+  const db = getPassportDatabase();
+  const importedPassports = [];
+
+  selectedDbPassportKeys.forEach(key => {
+    const parts = key.split("|||");
+    if (parts.length === 3) {
+      const clientName = parts[0];
+      const machineName = parts[1];
+      const passportId = parts[2];
+      const clientObj = db.clients[clientName];
+      if (clientObj && clientObj.machines && clientObj.machines[machineName]) {
+        const found = (clientObj.machines[machineName].passports || []).find(p => p.id === passportId);
+        if (found) {
+          importedPassports.push(JSON.parse(JSON.stringify(found)));
+        }
+      }
+    }
+  });
+
+  if (importedPassports.length === 0) {
+    alert("Kon de geselecteerde paspoorten niet ophalen.");
+    return;
+  }
+
+  activeDisplayedQrPassports = importedPassports;
+  closePassportDatabaseModal();
+
+  // Switch to units tab
+  currentQrPassportTab = "units";
+  const tabUnits = document.getElementById("tabQrUnitStickers");
+  const tabMachine = document.getElementById("tabQrMachineSticker");
+  if (tabUnits && tabMachine) {
+    tabUnits.style.background = "#0284c7";
+    tabUnits.style.color = "#ffffff";
+    tabUnits.style.borderColor = "transparent";
+    tabMachine.style.background = "#ffffff";
+    tabMachine.style.color = "#475569";
+    tabMachine.style.border = "1px solid #cbd5e1";
+  }
+
+  renderQrPassportStickers();
+
+  const scrollContainer = document.getElementById("qrPassportScrollContainer");
+  if (scrollContainer) scrollContainer.scrollTop = 0;
+}
+
+function restoreCurrentSessionPassports() {
+  activeDisplayedQrPassports = null;
+  renderQrPassportStickers();
+}
+
+function deleteSelectedDbPassports() {
+  const count = selectedDbPassportKeys.size;
+  if (count === 0) return;
+
+  const confirmDelete = confirm("Weet u zeker dat u de " + count + " geselecteerde paspoort(en) wilt verwijderen uit de database?");
+  if (!confirmDelete) return;
+
+  const db = getPassportDatabase();
+
+  selectedDbPassportKeys.forEach(key => {
+    const parts = key.split("|||");
+    if (parts.length === 3) {
+      const clientName = parts[0];
+      const machineName = parts[1];
+      const passportId = parts[2];
+      if (db.clients[clientName] && db.clients[clientName].machines && db.clients[clientName].machines[machineName]) {
+        db.clients[clientName].machines[machineName].passports =
+          db.clients[clientName].machines[machineName].passports.filter(p => p.id !== passportId);
+        if (db.clients[clientName].machines[machineName].passports.length === 0) {
+          delete db.clients[clientName].machines[machineName];
+        }
+      }
+      if (db.clients[clientName] && Object.keys(db.clients[clientName].machines).length === 0) {
+        delete db.clients[clientName];
+      }
+    }
+  });
+
+  savePassportDatabase(db);
+  selectedDbPassportKeys.clear();
+  populatePassportDbClientFilter();
+  renderPassportDatabaseTree();
+}
+
+function deleteIndividualDbPassport(clientName, machineName, passportId) {
+  const confirmDelete = confirm("Weet u zeker dat u dit paspoort wilt verwijderen uit de database?");
+  if (!confirmDelete) return;
+
+  const db = getPassportDatabase();
+  if (db.clients[clientName] && db.clients[clientName].machines && db.clients[clientName].machines[machineName]) {
+    db.clients[clientName].machines[machineName].passports =
+      db.clients[clientName].machines[machineName].passports.filter(p => p.id !== passportId);
+    if (db.clients[clientName].machines[machineName].passports.length === 0) {
+      delete db.clients[clientName].machines[machineName];
+    }
+    if (Object.keys(db.clients[clientName].machines).length === 0) {
+      delete db.clients[clientName];
+    }
+  }
+
+  savePassportDatabase(db);
+  const key = clientName + "|||" + machineName + "|||" + passportId;
+  selectedDbPassportKeys.delete(key);
+  populatePassportDbClientFilter();
+  renderPassportDatabaseTree();
+}
+
+function deleteMachineFromDb(clientName, machineName) {
+  const confirmDelete = confirm("Weet u zeker dat u machine '" + machineName + "' en alle bijbehorende toestellen wilt verwijderen uit de database?");
+  if (!confirmDelete) return;
+
+  const db = getPassportDatabase();
+  if (db.clients[clientName] && db.clients[clientName].machines && db.clients[clientName].machines[machineName]) {
+    delete db.clients[clientName].machines[machineName];
+    if (Object.keys(db.clients[clientName].machines).length === 0) {
+      delete db.clients[clientName];
+    }
+  }
+
+  savePassportDatabase(db);
+  Array.from(selectedDbPassportKeys).forEach(key => {
+    if (key.startsWith(clientName + "|||" + machineName + "|||")) {
+      selectedDbPassportKeys.delete(key);
+    }
+  });
+  populatePassportDbClientFilter();
+  renderPassportDatabaseTree();
+}
+
+function handlePassportJsonFilesUpload(event) {
+  const files = event.target && event.target.files;
+  if (!files || files.length === 0) return;
+
+  const db = getPassportDatabase();
+  let importedCount = 0;
+  let filesProcessed = 0;
+
+  for (let i = 0; i < files.length; i++) {
+    const file = files[i];
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      try {
+        const parsed = JSON.parse(e.target.result);
+        if (parsed) {
+          if (parsed.clients && typeof parsed.clients === "object") {
+            Object.keys(parsed.clients).forEach(cName => {
+              if (!db.clients[cName]) db.clients[cName] = { machines: {} };
+              const machines = parsed.clients[cName].machines || {};
+              Object.keys(machines).forEach(mName => {
+                if (!db.clients[cName].machines[mName]) db.clients[cName].machines[mName] = { passports: [] };
+                (machines[mName].passports || []).forEach(p => {
+                  const existingIdx = db.clients[cName].machines[mName].passports.findIndex(item => item.id === p.id || item.u === p.u);
+                  if (existingIdx >= 0) {
+                    db.clients[cName].machines[mName].passports[existingIdx] = p;
+                  } else {
+                    db.clients[cName].machines[mName].passports.push(p);
+                  }
+                  importedCount++;
+                });
+              });
+            });
+          } else {
+            const clientName = (parsed.c || parsed.client || parsed.clientCompany || "Geïmporteerde Klant").trim();
+            const machineName = (parsed.m || parsed.machine || parsed.machineName || "Geïmporteerde Machine").trim();
+            if (!db.clients[clientName]) db.clients[clientName] = { machines: {} };
+            if (!db.clients[clientName].machines[machineName]) db.clients[clientName].machines[machineName] = { passports: [] };
+
+            const pRecord = {
+              id: parsed.id || ("pas_" + Date.now() + "_" + Math.random().toString(36).substr(2, 5)),
+              m: machineName,
+              c: clientName,
+              u: parsed.u || parsed.unit || parsed.unitId || "Toestel",
+              t: parsed.t || parsed.deviceType || "pulsarlube_m2",
+              cap: parsed.cap || parsed.capacityMl || 125,
+              g: parsed.g || parsed.grease || "Interflon Grease MP2/3",
+              art: parsed.art || parsed.articleNumber || "",
+              p: parsed.p || parsed.setting || "",
+              v: parsed.v || parsed.dispenseRate || "",
+              l: parsed.l || parsed.points || "",
+              d: parsed.d || parsed.date || new Date().toLocaleDateString("nl-BE"),
+              devTypeLabel: parsed.devTypeLabel || ((parsed.t || "Pulsarlube") + " " + (parsed.cap || 125) + " ml"),
+              savedAt: new Date().toISOString()
+            };
+
+            const existingIdx = db.clients[clientName].machines[machineName].passports.findIndex(item => item.u === pRecord.u || item.id === pRecord.id);
+            if (existingIdx >= 0) {
+              db.clients[clientName].machines[machineName].passports[existingIdx] = pRecord;
+            } else {
+              db.clients[clientName].machines[machineName].passports.push(pRecord);
+            }
+            importedCount++;
+          }
+        }
+      } catch (err) {
+        console.warn("Fout bij inlezen JSON bestand:", file.name, err);
+      }
+
+      filesProcessed++;
+      if (filesProcessed === files.length) {
+        savePassportDatabase(db);
+        populatePassportDbClientFilter();
+        renderPassportDatabaseTree();
+        alert("✅ " + importedCount + " paspoort(en) succesvol ingelezen uit " + files.length + " bestand(en)!");
+      }
+    };
+    reader.readAsText(file);
+  }
+
+  event.target.value = "";
+}
+
+function exportEntirePassportDatabaseJson() {
+  const db = getPassportDatabase();
+  const jsonStr = JSON.stringify(db, null, 2);
+  const blob = new Blob([jsonStr], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "Interflon_Paspoorten_Database_Backup_" + new Date().toISOString().slice(0, 10) + ".json";
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(() => {
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }, 300);
+}
+
 function renderQrPassportStickers() {
   const container = document.getElementById("qrPrintableStickerSheet");
   if (!container) return;
 
   const sizeSelect = document.getElementById("qrStickerSizeSelect");
   const selectedSize = sizeSelect ? sizeSelect.value : "standard";
-  container.className = "qr-sticker-sheet qr-size-" + selectedSize;
+  container.className = "qr-sticker-sheet qr-size-" + selectedSize + (isPassportSelectMode ? " passport-select-active" : "");
 
   const urlSelect = document.getElementById("qrStickerUrlSelect");
   const useOnlineUrl = !urlSelect || urlSelect.value === "online";
@@ -17363,11 +18233,28 @@ function renderQrPassportStickers() {
     ? "https://TomPeckstadt.github.io/Bearing-calculator-Interflon/paspoort.html#data="
     : "paspoort.html#data=";
 
+  // Banner handling for imported passports
+  const bannerEl = document.getElementById("passportImportedBanner");
+  const bannerTextEl = document.getElementById("passportImportedBannerText");
+  if (activeDisplayedQrPassports && activeDisplayedQrPassports.length > 0) {
+    if (bannerEl) bannerEl.style.display = "flex";
+    if (bannerTextEl) {
+      const first = activeDisplayedQrPassports[0];
+      bannerTextEl.innerHTML = "Geïmporteerde paspoorten uit database (<strong>" + escapeOdooHtml(first.c || "") + "</strong> &bull; " + escapeOdooHtml(first.m || "") + " &bull; " + activeDisplayedQrPassports.length + " toestel" + (activeDisplayedQrPassports.length === 1 ? '' : 'len') + ")";
+    }
+  } else {
+    if (bannerEl) bannerEl.style.display = "none";
+  }
+
   let html = "";
 
   if (currentQrPassportTab === "units") {
     // Render individual unit stickers
-    data.units.forEach((u, idx) => {
+    const unitsList = (activeDisplayedQrPassports && activeDisplayedQrPassports.length > 0)
+      ? activeDisplayedQrPassports
+      : data.units;
+
+    unitsList.forEach((u, idx) => {
       const payload = encodeQrPassportPayload(u);
       const fullUrl = baseUrl + payload;
 
@@ -17383,8 +18270,18 @@ function renderQrPassportStickers() {
         console.warn("QR generator fout:", err);
       }
 
+      const passportId = u.id || ("unit_" + idx + "_" + (u.u || "").replace(/\s+/g, '_'));
+      const isSelected = selectedPassportIds.has(passportId);
+
       html += `
-        <div class="qr-sticker-card">
+        <div class="qr-sticker-card ${isSelected ? 'is-card-selected' : ''}" data-passport-id="${passportId}" onclick="handlePassportCardClick(event, '${passportId}')">
+          <!-- Selection Circle Indicator -->
+          <div class="passport-select-bubble ${isSelected ? 'selected' : ''}" onclick="handlePassportCardClick(event, '${passportId}')" title="Selecteer paspoort">
+            <div class="passport-bubble-circle">
+              ${isSelected ? '✓' : ''}
+            </div>
+          </div>
+
           <!-- Top Branding Strip -->
           <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #E30613; padding-bottom: 4px; margin-bottom: 6px;">
             <div style="display: flex; align-items: center; gap: 6px;">
@@ -17460,7 +18357,8 @@ function renderQrPassportStickers() {
 
     const summaryEl = document.getElementById("qrPassportStatusSummary");
     if (summaryEl) {
-      summaryEl.innerHTML = "<strong>" + data.units.length + "</strong> individuele smeerunit stickers gereed &bull; Formaat: <strong>" + selectedSize + "</strong>";
+      const importedPrefix = (activeDisplayedQrPassports && activeDisplayedQrPassports.length > 0) ? "Geïmporteerd: " : "";
+      summaryEl.innerHTML = importedPrefix + "<strong>" + unitsList.length + "</strong> individuele smeerunit stickers gereed &bull; Formaat: <strong>" + selectedSize + "</strong>";
     }
 
   } else {
@@ -17577,6 +18475,7 @@ function renderQrPassportStickers() {
   }
 
   container.innerHTML = html;
+  updatePassportSelectionUI();
 }
 
 function printQrPassports() {
@@ -17586,6 +18485,7 @@ function printQrPassports() {
     document.body.classList.remove("printing-qr-stickers");
   }, 1000);
 }
+
 
 /* ==========================================================================
    INTERACTIVE AI AVATAR SPEECH CONTROLLER (MICPOL - INTERFLON SPECIALIST)
@@ -22709,6 +23609,26 @@ if (typeof window !== "undefined") {
   window.printQrPassports = printQrPassports;
   window.getQrPassportsData = getQrPassportsData;
   window.encodeQrPassportPayload = encodeQrPassportPayload;
+  window.togglePassportSelectMode = togglePassportSelectMode;
+  window.selectAllPassports = selectAllPassports;
+  window.handlePassportCardClick = handlePassportCardClick;
+  window.updatePassportSelectionUI = updatePassportSelectionUI;
+  window.saveSelectedPassportsToDatabase = saveSelectedPassportsToDatabase;
+  window.openPassportDatabaseModal = openPassportDatabaseModal;
+  window.closePassportDatabaseModal = closePassportDatabaseModal;
+  window.renderPassportDatabaseTree = renderPassportDatabaseTree;
+  window.filterPassportDatabaseTree = filterPassportDatabaseTree;
+  window.choosePassportRootFolder = choosePassportRootFolder;
+  window.handlePassportJsonFilesUpload = handlePassportJsonFilesUpload;
+  window.exportEntirePassportDatabaseJson = exportEntirePassportDatabaseJson;
+  window.importSelectedPassportsToScreen = importSelectedPassportsToScreen;
+  window.restoreCurrentSessionPassports = restoreCurrentSessionPassports;
+  window.deleteSelectedDbPassports = deleteSelectedDbPassports;
+  window.deleteIndividualDbPassport = deleteIndividualDbPassport;
+  window.deleteMachineFromDb = deleteMachineFromDb;
+  window.selectAllDbClientPassports = selectAllDbClientPassports;
+  window.selectAllDbMachinePassports = selectAllDbMachinePassports;
+  window.handleDbPassportCheckboxChange = handleDbPassportCheckboxChange;
   window.openDigitalTwinModal = openDigitalTwinModal;
   window.closeDigitalTwinModal = closeDigitalTwinModal;
   window.initDigitalTwin3D = initDigitalTwin3D;
