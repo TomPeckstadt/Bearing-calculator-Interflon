@@ -10,7 +10,8 @@ const BEARING_TYPES = {
   ANGULAR_CONTACT: "Hoekcontactkogellager",
   DOUBLE_ROW_ANGULAR_CONTACT: "Dubbelrijig hoekcontactkogellager",
   SELF_ALIGNING_BALL: "Pendelkogellager",
-  THRUST_BALL: "Axiaalkogellager"
+  THRUST_BALL: "Axiaalkogellager",
+  INSERT_BALL: "Spanlager (Y-lager)"
 };
 
 // Database met exacte fabrieksspecificaties
@@ -204,12 +205,60 @@ const bearingDatabase = {
   "33207": { d: 35, D: 72, B: 28, C: 78.1, C0: 83.0, refSpeed: 6700, limitSpeed: 9500, mass: 0.53, type: BEARING_TYPES.TAPERED_ROLLER },
   "33208": { d: 40, D: 80, B: 32, C: 104.0, C0: 114.0, refSpeed: 6000, limitSpeed: 8500, mass: 0.76, type: BEARING_TYPES.TAPERED_ROLLER },
   "33209": { d: 45, D: 85, B: 32, C: 108.0, C0: 122.0, refSpeed: 5600, limitSpeed: 8000, mass: 0.81, type: BEARING_TYPES.TAPERED_ROLLER },
-  "33210": { d: 50, D: 90, B: 32, C: 112.0, C0: 132.0, refSpeed: 5300, limitSpeed: 7500, mass: 0.87, type: BEARING_TYPES.TAPERED_ROLLER }
+  "33210": { d: 50, D: 90, B: 32, C: 112.0, C0: 132.0, refSpeed: 5300, limitSpeed: 7500, mass: 0.87, type: BEARING_TYPES.TAPERED_ROLLER },
+
+  // --- SPANLAGERS / Y-LAGERS (UC 200 & UC 300 serie) ---
+  // UC 200-serie (Normaal/Licht - Stelschroefbevestiging)
+  "UC 201": { d: 12, D: 47, B: 31.0, C: 12.7, C0: 6.55, refSpeed: 9500, limitSpeed: 7000, mass: 0.21, type: BEARING_TYPES.INSERT_BALL },
+  "UC 202": { d: 15, D: 47, B: 31.0, C: 12.7, C0: 6.55, refSpeed: 9500, limitSpeed: 7000, mass: 0.19, type: BEARING_TYPES.INSERT_BALL },
+  "UC 203": { d: 17, D: 47, B: 31.0, C: 12.7, C0: 6.55, refSpeed: 9500, limitSpeed: 7000, mass: 0.18, type: BEARING_TYPES.INSERT_BALL },
+  "UC 204": { d: 20, D: 47, B: 31.0, C: 12.7, C0: 6.55, refSpeed: 9500, limitSpeed: 7000, mass: 0.16, type: BEARING_TYPES.INSERT_BALL },
+  "UC 205": { d: 25, D: 52, B: 34.1, C: 14.0, C0: 7.85, refSpeed: 8500, limitSpeed: 6300, mass: 0.20, type: BEARING_TYPES.INSERT_BALL },
+  "UC 206": { d: 30, D: 62, B: 38.1, C: 19.5, C0: 11.2, refSpeed: 7500, limitSpeed: 5300, mass: 0.32, type: BEARING_TYPES.INSERT_BALL },
+  "UC 207": { d: 35, D: 72, B: 42.9, C: 25.5, C0: 15.3, refSpeed: 6300, limitSpeed: 4500, mass: 0.48, type: BEARING_TYPES.INSERT_BALL },
+  "UC 208": { d: 40, D: 80, B: 49.2, C: 30.7, C0: 19.0, refSpeed: 5600, limitSpeed: 4000, mass: 0.64, type: BEARING_TYPES.INSERT_BALL },
+  "UC 209": { d: 45, D: 85, B: 49.2, C: 33.2, C0: 21.6, refSpeed: 5000, limitSpeed: 3600, mass: 0.68, type: BEARING_TYPES.INSERT_BALL },
+  "UC 210": { d: 50, D: 90, B: 51.6, C: 35.1, C0: 23.2, refSpeed: 4800, limitSpeed: 3400, mass: 0.80, type: BEARING_TYPES.INSERT_BALL },
+  "UC 211": { d: 55, D: 100, B: 55.6, C: 43.6, C0: 29.0, refSpeed: 4300, limitSpeed: 3000, mass: 1.10, type: BEARING_TYPES.INSERT_BALL },
+  "UC 212": { d: 60, D: 110, B: 65.1, C: 52.7, C0: 36.0, refSpeed: 3800, limitSpeed: 2600, mass: 1.55, type: BEARING_TYPES.INSERT_BALL },
+  "UC 213": { d: 65, D: 120, B: 65.1, C: 57.2, C0: 40.0, refSpeed: 3400, limitSpeed: 2400, mass: 1.85, type: BEARING_TYPES.INSERT_BALL },
+  "UC 214": { d: 70, D: 125, B: 74.6, C: 62.2, C0: 44.0, refSpeed: 3000, limitSpeed: 2000, mass: 2.10, type: BEARING_TYPES.INSERT_BALL },
+  "UC 215": { d: 75, D: 130, B: 77.8, C: 66.3, C0: 49.0, refSpeed: 2800, limitSpeed: 1900, mass: 2.35, type: BEARING_TYPES.INSERT_BALL },
+  "UC 216": { d: 80, D: 140, B: 82.6, C: 72.8, C0: 53.0, refSpeed: 2600, limitSpeed: 1800, mass: 2.85, type: BEARING_TYPES.INSERT_BALL },
+  "UC 217": { d: 85, D: 150, B: 85.7, C: 83.2, C0: 64.0, refSpeed: 2400, limitSpeed: 1600, mass: 3.60, type: BEARING_TYPES.INSERT_BALL },
+  "UC 218": { d: 90, D: 160, B: 96.0, C: 95.6, C0: 71.5, refSpeed: 2200, limitSpeed: 1500, mass: 4.70, type: BEARING_TYPES.INSERT_BALL },
+
+  // UC 300-serie (Middel/Zwaar - Stelschroefbevestiging)
+  "UC 305": { d: 25, D: 62, B: 38.0, C: 21.2, C0: 10.9, refSpeed: 7000, limitSpeed: 5000, mass: 0.38, type: BEARING_TYPES.INSERT_BALL },
+  "UC 306": { d: 30, D: 72, B: 43.0, C: 26.7, C0: 15.0, refSpeed: 6300, limitSpeed: 4300, mass: 0.53, type: BEARING_TYPES.INSERT_BALL },
+  "UC 307": { d: 35, D: 80, B: 48.0, C: 33.4, C0: 19.3, refSpeed: 5600, limitSpeed: 3800, mass: 0.72, type: BEARING_TYPES.INSERT_BALL },
+  "UC 308": { d: 40, D: 90, B: 52.0, C: 40.6, C0: 24.0, refSpeed: 5000, limitSpeed: 3400, mass: 0.98, type: BEARING_TYPES.INSERT_BALL },
+  "UC 309": { d: 45, D: 100, B: 57.0, C: 52.7, C0: 31.8, refSpeed: 4500, limitSpeed: 3000, mass: 1.30, type: BEARING_TYPES.INSERT_BALL },
+  "UC 310": { d: 50, D: 110, B: 61.0, C: 61.8, C0: 38.0, refSpeed: 4000, limitSpeed: 2800, mass: 1.65, type: BEARING_TYPES.INSERT_BALL },
+  "UC 311": { d: 55, D: 120, B: 66.0, C: 71.5, C0: 45.0, refSpeed: 3600, limitSpeed: 2400, mass: 2.10, type: BEARING_TYPES.INSERT_BALL },
+  "UC 312": { d: 60, D: 130, B: 71.0, C: 81.9, C0: 52.0, refSpeed: 3400, limitSpeed: 2200, mass: 2.60, type: BEARING_TYPES.INSERT_BALL },
+  "UC 313": { d: 65, D: 140, B: 75.0, C: 92.7, C0: 60.0, refSpeed: 3000, limitSpeed: 2000, mass: 3.25, type: BEARING_TYPES.INSERT_BALL },
+  "UC 314": { d: 70, D: 150, B: 78.0, C: 104.0, C0: 68.0, refSpeed: 2800, limitSpeed: 1900, mass: 3.90, type: BEARING_TYPES.INSERT_BALL },
+  "UC 315": { d: 75, D: 160, B: 82.0, C: 114.0, C0: 77.0, refSpeed: 2600, limitSpeed: 1800, mass: 4.60, type: BEARING_TYPES.INSERT_BALL },
+  "UC 316": { d: 80, D: 170, B: 86.0, C: 123.0, C0: 86.5, refSpeed: 2400, limitSpeed: 1600, mass: 5.50, type: BEARING_TYPES.INSERT_BALL },
+  "UC 317": { d: 85, D: 180, B: 96.0, C: 133.0, C0: 96.5, refSpeed: 2200, limitSpeed: 1500, mass: 6.65, type: BEARING_TYPES.INSERT_BALL },
+  "UC 318": { d: 90, D: 190, B: 96.0, C: 143.0, C0: 107.0, refSpeed: 2000, limitSpeed: 1400, mass: 7.60, type: BEARING_TYPES.INSERT_BALL },
+  "UC 319": { d: 95, D: 200, B: 103.0, C: 153.0, C0: 119.0, refSpeed: 1900, limitSpeed: 1300, mass: 8.80, type: BEARING_TYPES.INSERT_BALL },
+  "UC 320": { d: 100, D: 215, B: 108.0, C: 173.0, C0: 141.0, refSpeed: 1800, limitSpeed: 1200, mass: 10.70, type: BEARING_TYPES.INSERT_BALL }
 };
 
 // Functie om de aanduiding (designation) te cleanen en te parsen als deze niet in de DB zit
 function parseBearingDesignation(input) {
   if (!input) return null;
+
+  // Directe check op ongewijzigde invoer (bijv. "UC 214")
+  if (bearingDatabase[input]) {
+    return {
+      designation: input,
+      foundInDb: true,
+      ...bearingDatabase[input]
+    };
+  }
 
   // Haal spaties, streepjes en onnodige karakters weg, zet in hoofdletters
   let clean = input.toUpperCase().replace(/[\s-]/g, "");
@@ -224,6 +273,50 @@ function parseBearingDesignation(input) {
     };
   }
 
+  // Controleer met spatie tussen letters en cijfers (bijv. UC214 -> UC 214)
+  const spaced = clean.replace(/^([A-Z]+)(\d+)/, "$1 $2");
+  if (bearingDatabase[spaced]) {
+    const data = bearingDatabase[spaced];
+    return {
+      designation: input,
+      foundInDb: true,
+      ...data
+    };
+  }
+
+  // Probeer ook invoer af te kappen bij scheidingstekens zoals -, /, spaties (bijv. "UC 214-2F", "6204-2RS1")
+  const parts = input.toUpperCase().split(/[\s\-\/]+/).filter(Boolean);
+  if (parts.length > 0) {
+    let candidate = parts[0];
+    if (/^[A-Z]+$/.test(candidate) && parts[1]) {
+      candidate = candidate + " " + parts[1];
+    }
+    const cleanCand = candidate.replace(/[\s-]/g, "");
+    const spacedCand = cleanCand.replace(/^([A-Z]+)(\d+)/, "$1 $2");
+    if (bearingDatabase[candidate]) return { designation: input, foundInDb: true, ...bearingDatabase[candidate] };
+    if (bearingDatabase[cleanCand]) return { designation: input, foundInDb: true, ...bearingDatabase[cleanCand] };
+    if (bearingDatabase[spacedCand]) return { designation: input, foundInDb: true, ...bearingDatabase[spacedCand] };
+  }
+
+  // Strip bekende SKF suffixen zoals 2F, 2RS1, 2RZ, 2Z, ZZ, RS, Z, C3, WT, etc.
+  const knownSuffixRegex = /(2F|2RS1?|2RZ|2Z|ZZ|RS1?|Z|C[1-5]|WT|ECP|EK|K|CC|W33)$/i;
+  const strippedSuffix = clean.replace(knownSuffixRegex, "");
+  if (bearingDatabase[strippedSuffix]) {
+    return {
+      designation: input,
+      foundInDb: true,
+      ...bearingDatabase[strippedSuffix]
+    };
+  }
+  const spacedStripped = strippedSuffix.replace(/^([A-Z]+)(\d+)/, "$1 $2");
+  if (bearingDatabase[spacedStripped]) {
+    return {
+      designation: input,
+      foundInDb: true,
+      ...bearingDatabase[spacedStripped]
+    };
+  }
+
   // Suffixen opschonen (veelvoorkomende SKF suffixen weghalen om de basisserie te vinden)
   let baseStr = clean;
   
@@ -235,6 +328,16 @@ function parseBearingDesignation(input) {
 
   if (bearingDatabase[baseStr]) {
     const data = bearingDatabase[baseStr];
+    return {
+      designation: input,
+      foundInDb: true,
+      ...data
+    };
+  }
+
+  const spacedBase = baseStr.replace(/^([A-Z]+)(\d+)/, "$1 $2");
+  if (bearingDatabase[spacedBase]) {
+    const data = bearingDatabase[spacedBase];
     return {
       designation: input,
       foundInDb: true,
@@ -270,8 +373,25 @@ function parseBearingDesignation(input) {
   let D = null;
   let B = null;
   
+  // Spanlagers / Y-lagers (beginnen met UC, YAR, YAT, YET, YEL)
+  if (baseStr.startsWith("UC") || baseStr.startsWith("YAR") || baseStr.startsWith("YAT") || baseStr.startsWith("YET") || baseStr.startsWith("YEL")) {
+    type = BEARING_TYPES.INSERT_BALL;
+    const numPart = baseStr.replace(/^[A-Z]+/g, "");
+    if (numPart.length >= 3) {
+      const code = parseInt(numPart.slice(-2));
+      d = calculateBoreFromCode(code);
+      const series = numPart.slice(0, 1);
+      if (series === "2") {
+        D = Math.round(d * 1.7 + 10);
+        B = Math.round(d * 0.75 + 20);
+      } else if (series === "3") {
+        D = Math.round(d * 2.0 + 15);
+        B = Math.round(d * 0.85 + 20);
+      }
+    }
+  }
   // Cilinderlagers (beginnen met NU, NJ, NUP, N)
-  if (baseStr.startsWith("NU") || baseStr.startsWith("NJ") || baseStr.startsWith("NUP") || baseStr.startsWith("N")) {
+  else if (baseStr.startsWith("NU") || baseStr.startsWith("NJ") || baseStr.startsWith("NUP") || baseStr.startsWith("N")) {
     type = BEARING_TYPES.CYLINDRICAL_ROLLER;
     const numPart = baseStr.replace(/[A-Z]/g, "");
     if (numPart.length >= 3) {
