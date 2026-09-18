@@ -5902,6 +5902,7 @@ const TRANSLATIONS = {
     "Dubbelrijig hoekcontactkogellager": "Dubbelrijig hoekcontactkogellager",
     "Pendelkogellager": "Pendelkogellager",
     "Axiaalkogellager": "Axiaalkogellager",
+    "Spanlager (Y-lager)": "Spanlager (Y-lager)",
     menuOm: "Opbrengstmodel",
     pageOmTitle: "Opbrengstmodel (TCO)",
     pageOmSubtitle: "Calculatiesheet berekening kostenbesparingen door inzet van Interflon smeermiddelen volgens TCO.",
@@ -6426,6 +6427,7 @@ const TRANSLATIONS = {
     "Dubbelrijig hoekcontactkogellager": "Double row angular contact ball bearing",
     "Pendelkogellager": "Self-aligning ball bearing",
     "Axiaalkogellager": "Thrust ball bearing",
+    "Spanlager (Y-lager)": "Insert ball bearing (Y-bearing)",
     menuOm: "TCO Yield Model",
     pageOmTitle: "TCO Yield Model (TCO)",
     pageOmSubtitle: "Calculation of cost savings through the use of Interflon lubricants according to TCO.",
@@ -6950,6 +6952,7 @@ const TRANSLATIONS = {
     "Dubbelrijig hoekcontactkogellager": "Roulement à billes à contact oblique à deux rangées",
     "Pendelkogellager": "Roulement à rotule sur billes",
     "Axiaalkogellager": "Butée à billes",
+    "Spanlager (Y-lager)": "Roulement pour palier auto-aligneur (roulement Y)",
     menuOm: "Modèle de rendement TCO",
     pageOmTitle: "Modèle TCO",
     pageOmSubtitle: "Calcul des économies de coûts grâce à l'utilisation des lubrifiants Interflon selon le TCO.",
@@ -8206,8 +8209,10 @@ function handleSearchInput() {
   const dbKeys = Object.keys(bearingDatabase);
 
   // If input matches an exact bearing designation in DB, update details instantly!
-  if (cleanInput.length >= 2 && bearingDatabase[cleanInput]) {
-    loadBearingDetails(cleanInput);
+  const spacedInput = cleanInput.replace(/^([A-Z]+)(\d+)/, "$1 $2");
+  const exactMatchKey = bearingDatabase[cleanInput] ? cleanInput : (bearingDatabase[spacedInput] ? spacedInput : null);
+  if (cleanInput.length >= 2 && exactMatchKey) {
+    loadBearingDetails(exactMatchKey);
   }
 
   let matches = [];
@@ -8256,7 +8261,7 @@ function handleSearchInput() {
 
   // Voeg Analyseer optie toe als er geen exacte match is en de gebruiker typt
   if (input.length > 0) {
-    const exactMatchExists = matches.some(key => key.toUpperCase() === cleanInput);
+    const exactMatchExists = matches.some(key => key.toUpperCase().replace(/[\s-]/g, "") === cleanInput);
     if (!exactMatchExists && input.length >= 2) {
       html += `
         <div class="autocomplete-suggestion" style="border-top: 1px dashed var(--accent-yellow-border-soft);" onclick="selectBearing('${input}')">
@@ -8444,6 +8449,8 @@ function updateBearingImage(type) {
     src = "bearing-self-aligning-ball.png";
   } else if (type === "Axiaalkogellager") {
     src = "bearing-thrust-ball.png";
+  } else if (type === "Spanlager (Y-lager)" || (type && (type.includes("Spanlager") || type.includes("Y-lager") || type.includes("Inzetlager") || type.includes("Insert ball")))) {
+    src = "crop-insert-ball.png";
   }
   
   imgEl.src = src + "?v=20260817_1410";
