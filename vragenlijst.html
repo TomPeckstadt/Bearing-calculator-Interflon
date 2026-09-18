@@ -4775,7 +4775,14 @@
         }
       }
 
-      const refill_grams = D * B * coefC;
+      const effW = (typeof getEffectiveLubricationWidth === "function")
+        ? getEffectiveLubricationWidth(bearingType, cleanKey || (b && b.designation) || "", d, D, B)
+        : ((typeof window !== "undefined" && typeof window.getEffectiveLubricationWidth === "function")
+          ? window.getEffectiveLubricationWidth(bearingType, cleanKey || (b && b.designation) || "", d, D, B)
+          : { isAdjusted: false, effectiveB: B });
+      const effectiveB = effW.effectiveB;
+
+      const refill_grams = D * effectiveB * coefC;
       const dailyNeed = (totalCalendarDays > 0) ? (refill_grams / totalCalendarDays) : 0;
 
       return {
