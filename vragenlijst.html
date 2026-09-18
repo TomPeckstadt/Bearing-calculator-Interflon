@@ -4862,6 +4862,25 @@
       if (!container) return;
 
       const rows = document.querySelectorAll('.bearing-row');
+
+      // Preserve existing dropdown selections if already present
+      const existingSel1 = document.getElementById('selInterB1');
+      const existingSel2 = document.getElementById('selInterB2');
+      if (existingSel1 && existingSel2 && (document.activeElement === existingSel1 || document.activeElement === existingSel2)) {
+        // User has one of the dropdowns open or focused: do not wipe the DOM!
+        const valPair = document.getElementById('valInterPairDist');
+        if (valPair) {
+          const l1 = existingSel1.value;
+          const l2 = existingSel2.value;
+          const pos1 = bearingPositions[l1] || { x: 0, y: 0 };
+          const pos2 = bearingPositions[l2] || { x: 0, y: 0 };
+          valPair.textContent = Math.hypot(pos2.x - pos1.x, pos2.y - pos1.y).toFixed(1).replace('.', ',') + ' m';
+        }
+        return;
+      }
+      const savedInterB1 = existingSel1 ? existingSel1.value : (window.__savedInterB1 || null);
+      const savedInterB2 = existingSel2 ? existingSel2.value : (window.__savedInterB2 || null);
+
       container.innerHTML = '';
 
       // Compute need analysis for all bearings to determine color grouping
@@ -4946,14 +4965,21 @@
         interHtml += '</div>';
 
         if (bearingList.length >= 3) {
+          const chosen1 = (savedInterB1 && bearingList.some(b => b.letter === savedInterB1)) ? savedInterB1 : bearingList[0].letter;
+          let chosen2 = (savedInterB2 && bearingList.some(b => b.letter === savedInterB2)) ? savedInterB2 : (bearingList[1] ? bearingList[1].letter : bearingList[0].letter);
+          if (chosen1 === chosen2 && bearingList.length > 1) {
+            const alt = bearingList.find(b => b.letter !== chosen1);
+            if (alt) chosen2 = alt.letter;
+          }
+
           interHtml += '<div style="margin-top: 8px; padding-top: 6px; border-top: 1px dashed #bae6fd; display: flex; align-items: center; justify-content: space-between; gap: 4px; font-size: 11px; color: #475569;">' +
             '<span style="font-weight: 600; white-space: nowrap;">Meet:</span>' +
             '<select id="selInterB1" style="font-size: 11px; font-weight: 700; border: 1px solid #94a3b8; border-radius: 4px; background: #ffffff; padding: 2px 4px; outline: none; cursor: pointer;">' +
-              bearingList.map((b, i) => '<option value="' + b.letter + '"' + (i === 0 ? ' selected' : '') + '>Lager ' + b.letter + '</option>').join('') +
+              bearingList.map(b => '<option value="' + b.letter + '"' + (b.letter === chosen1 ? ' selected' : '') + '>Lager ' + b.letter + '</option>').join('') +
             '</select>' +
             '<span>↔</span>' +
             '<select id="selInterB2" style="font-size: 11px; font-weight: 700; border: 1px solid #94a3b8; border-radius: 4px; background: #ffffff; padding: 2px 4px; outline: none; cursor: pointer;">' +
-              bearingList.map((b, i) => '<option value="' + b.letter + '"' + (i === 1 ? ' selected' : '') + '>Lager ' + b.letter + '</option>').join('') +
+              bearingList.map(b => '<option value="' + b.letter + '"' + (b.letter === chosen2 ? ' selected' : '') + '>Lager ' + b.letter + '</option>').join('') +
             '</select>' +
             '<strong id="valInterPairDist" style="color: #0369a1; font-weight: 800; font-size: 11.5px; white-space: nowrap;">-</strong>' +
           '</div>';
@@ -4981,6 +5007,8 @@
         const valPair = interCard.querySelector('#valInterPairDist');
         if (sel1 && sel2 && valPair) {
           const updatePairDist = () => {
+            window.__savedInterB1 = sel1.value;
+            window.__savedInterB2 = sel2.value;
             const l1 = sel1.value;
             const l2 = sel2.value;
             const pos1 = bearingPositions[l1] || { x: 0, y: 0 };
@@ -4990,6 +5018,10 @@
           };
           sel1.onchange = updatePairDist;
           sel2.onchange = updatePairDist;
+          sel1.onclick = function(e) { e.stopPropagation(); };
+          sel1.onmousedown = function(e) { e.stopPropagation(); };
+          sel2.onclick = function(e) { e.stopPropagation(); };
+          sel2.onmousedown = function(e) { e.stopPropagation(); };
           updatePairDist();
         }
       }
@@ -5972,9 +6004,9 @@
     }
 
     function collectAllBearingsData() {
-      if (typeof saveCurrentSection2Data === "function") saveCurrentSection2Data();
-      if (typeof saveCurrentSection3Data === "function") saveCurrentSection3Data();
-      if (typeof saveCurrentSection4Data === "function") saveCurrentSection4Data();
+      if (typeof saveCurrentSection2Data === "function") saveCurrentSection2Data(true);
+      if (typeof saveCurrentSection3Data === "function") saveCurrentSection3Data(true);
+      if (typeof saveCurrentSection4Data === "function") saveCurrentSection4Data(true);
 
       const client = {
         company: (document.getElementById('clientCompany') ? document.getElementById('clientCompany').value.trim() : '') || '-',
@@ -6238,9 +6270,9 @@
     }
 
     function generateQuestionnaireExportPackage() {
-      if (typeof saveCurrentSection2Data === "function") saveCurrentSection2Data();
-      if (typeof saveCurrentSection3Data === "function") saveCurrentSection3Data();
-      if (typeof saveCurrentSection4Data === "function") saveCurrentSection4Data();
+      if (typeof saveCurrentSection2Data === "function") saveCurrentSection2Data(true);
+      if (typeof saveCurrentSection3Data === "function") saveCurrentSection3Data(true);
+      if (typeof saveCurrentSection4Data === "function") saveCurrentSection4Data(true);
 
       // Collect bearing rows
       const bearingRowsData = [];
@@ -7200,13 +7232,7 @@
         if (typeof saveRasterConfigToLocalStorage === 'function') {
           saveRasterConfigToLocalStorage();
         }
-        if (typeof renderDistancesOverview === 'function') {
-          renderDistancesOverview();
-        }
-        if (typeof updateFormSubmitAttachment === 'function') {
-          updateFormSubmitAttachment();
-        }
-      }, 450);
+      }, 500);
     }
 
     // --- SECTION 2 HANDLERS ---
