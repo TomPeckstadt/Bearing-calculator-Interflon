@@ -3868,45 +3868,93 @@
         if (bearingList.length >= 2) {
           const edges = getInterBearingEdges(bearingList);
 
+          // Get active measurement pair from "Meet:" dropdowns
+          let measureB1 = null;
+          let measureB2 = null;
+          const sel1El = document.getElementById('selInterB1');
+          const sel2El = document.getElementById('selInterB2');
+          if (sel1El && sel2El && sel1El.value && sel2El.value) {
+            measureB1 = sel1El.value;
+            measureB2 = sel2El.value;
+          } else if (window.__savedInterB1 && window.__savedInterB2) {
+            measureB1 = window.__savedInterB1;
+            measureB2 = window.__savedInterB2;
+          }
+
+          if (measureB1 && measureB2 && measureB1 !== measureB2 &&
+              bearingList.some(b => b.letter === measureB1) &&
+              bearingList.some(b => b.letter === measureB2)) {
+            const exists = edges.some(e =>
+              (e.from === measureB1 && e.to === measureB2) ||
+              (e.from === measureB2 && e.to === measureB1)
+            );
+            if (!exists) {
+              edges.push({ from: measureB1, to: measureB2, isCustomMeasure: true });
+            }
+          }
+
+          // Sort edges so the measured pair is drawn last (on top of other lines and badges)
+          edges.sort((a, b) => {
+            const aMeas = (measureB1 && measureB2 && ((a.from === measureB1 && a.to === measureB2) || (a.from === measureB2 && a.to === measureB1)));
+            const bMeas = (measureB1 && measureB2 && ((b.from === measureB1 && b.to === measureB2) || (b.from === measureB2 && b.to === measureB1)));
+            if (aMeas && !bMeas) return 1;
+            if (!aMeas && bMeas) return -1;
+            return 0;
+          });
+
           edges.forEach(edge => {
             const b1 = bearingList.find(b => b.letter === edge.from);
             const b2 = bearingList.find(b => b.letter === edge.to);
             if (!b1 || !b2) return;
+
+            const isMeasuredPair = (measureB1 && measureB2 && measureB1 !== measureB2) &&
+              ((edge.from === measureB1 && edge.to === measureB2) || (edge.from === measureB2 && edge.to === measureB1));
 
             const distM = Math.hypot(b2.x - b1.x, b2.y - b1.y);
             const s1 = worldToScreen(b1.x, b1.y, canvas);
             const s2 = worldToScreen(b2.x, b2.y, canvas);
 
             const isHighlighted = (hoveredBearingLetter === edge.from || hoveredBearingLetter === edge.to ||
-                                   draggedBearingLetter === edge.from || draggedBearingLetter === edge.to);
+                                   draggedBearingLetter === edge.from || draggedBearingLetter === edge.to ||
+                                   (window.__hoveredMeasurePair && isMeasuredPair));
 
             // Draw connecting dimension line
             ctx.beginPath();
             ctx.moveTo(s1.u, s1.v);
             ctx.lineTo(s2.u, s2.v);
-            ctx.strokeStyle = isHighlighted ? '#ffffff' : '#38bdf8';
-            ctx.lineWidth = (isHighlighted ? 2.6 : 1.8) * dpr;
-            ctx.setLineDash([6 * dpr, 4 * dpr]);
+            if (isHighlighted) {
+              ctx.strokeStyle = '#ffffff';
+              ctx.lineWidth = 2.8 * dpr;
+              ctx.setLineDash([6 * dpr, 4 * dpr]);
+            } else if (isMeasuredPair) {
+              ctx.strokeStyle = '#38bdf8';
+              ctx.lineWidth = 2.4 * dpr;
+              ctx.setLineDash([7 * dpr, 4 * dpr]);
+            } else {
+              ctx.strokeStyle = '#38bdf8';
+              ctx.lineWidth = 1.8 * dpr;
+              ctx.setLineDash([6 * dpr, 4 * dpr]);
+            }
             ctx.stroke();
             ctx.setLineDash([]);
 
             // Small endpoint accent circles
             [s1, s2].forEach(pt => {
               ctx.beginPath();
-              ctx.arc(pt.u, pt.v, (isHighlighted ? 3.5 : 2.5) * dpr, 0, Math.PI * 2);
-              ctx.fillStyle = isHighlighted ? '#ffffff' : '#38bdf8';
+              ctx.arc(pt.u, pt.v, (isHighlighted ? 4.0 : (isMeasuredPair ? 3.5 : 2.5)) * dpr, 0, Math.PI * 2);
+              ctx.fillStyle = isHighlighted ? '#ffffff' : (isMeasuredPair ? '#7dd3fc' : '#38bdf8');
               ctx.fill();
             });
 
             // Midpoint Dimension Badge
             const midU = (s1.u + s2.u) / 2;
             const midV = (s1.v + s2.v) / 2;
-            const distStr = edge.from + ' ↔ ' + edge.to + ': ' + distM.toFixed(1).replace('.', ',') + ' m';
+            const distStr = (isMeasuredPair ? '📏 ' : '') + edge.from + ' ↔ ' + edge.to + ': ' + distM.toFixed(1).replace('.', ',') + ' m';
 
-            ctx.font = 'bold ' + Math.round(10.5 * dpr) + 'px sans-serif';
+            ctx.font = 'bold ' + Math.round((isMeasuredPair ? 11 : 10.5) * dpr) + 'px sans-serif';
             const textWidth = ctx.measureText(distStr).width;
-            const padX = 6 * dpr;
-            const padY = 3 * dpr;
+            const padX = (isMeasuredPair ? 8 : 6) * dpr;
+            const padY = (isMeasuredPair ? 4 : 3) * dpr;
             const badgeW = textWidth + padX * 2;
             const badgeH = 16 * dpr + padY;
 
@@ -3916,13 +3964,20 @@
             } else {
               ctx.rect(midU - badgeW / 2, midV - 8 * dpr - padY / 2, badgeW, badgeH);
             }
-            ctx.fillStyle = isHighlighted ? 'rgba(2, 132, 199, 0.96)' : 'rgba(8, 47, 73, 0.94)';
+            if (isHighlighted) {
+              ctx.fillStyle = 'rgba(2, 132, 199, 0.98)';
+            } else if (isMeasuredPair) {
+              ctx.fillStyle = 'rgba(3, 105, 161, 0.96)';
+            } else {
+              ctx.fillStyle = 'rgba(8, 47, 73, 0.94)';
+            }
             ctx.fill();
-            ctx.strokeStyle = isHighlighted ? '#ffffff' : '#38bdf8';
-            ctx.lineWidth = (isHighlighted ? 1.6 : 1.2) * dpr;
+
+            ctx.strokeStyle = isHighlighted ? '#ffffff' : (isMeasuredPair ? '#7dd3fc' : '#38bdf8');
+            ctx.lineWidth = (isHighlighted ? 1.8 : (isMeasuredPair ? 1.5 : 1.2)) * dpr;
             ctx.stroke();
 
-            ctx.fillStyle = isHighlighted ? '#ffffff' : '#e0f2fe';
+            ctx.fillStyle = isHighlighted ? '#ffffff' : (isMeasuredPair ? '#ffffff' : '#e0f2fe');
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
             ctx.fillText(distStr, midU, midV);
@@ -4883,6 +4938,8 @@
           const pos2 = bearingPositions[l2] || { x: 0, y: 0 };
           valPair.textContent = Math.hypot(pos2.x - pos1.x, pos2.y - pos1.y).toFixed(1).replace('.', ',') + ' m';
         }
+        window.__savedInterB1 = existingSel1.value;
+        window.__savedInterB2 = existingSel2.value;
         return;
       }
       const savedInterB1 = existingSel1 ? existingSel1.value : (window.__savedInterB1 || null);
@@ -4971,34 +5028,40 @@
         });
         interHtml += '</div>';
 
-        if (bearingList.length >= 3) {
+        if (bearingList.length >= 2) {
           const chosen1 = (savedInterB1 && bearingList.some(b => b.letter === savedInterB1)) ? savedInterB1 : bearingList[0].letter;
           let chosen2 = (savedInterB2 && bearingList.some(b => b.letter === savedInterB2)) ? savedInterB2 : (bearingList[1] ? bearingList[1].letter : bearingList[0].letter);
           if (chosen1 === chosen2 && bearingList.length > 1) {
             const alt = bearingList.find(b => b.letter !== chosen1);
             if (alt) chosen2 = alt.letter;
           }
+          window.__savedInterB1 = chosen1;
+          window.__savedInterB2 = chosen2;
 
-          interHtml += '<div style="margin-top: 8px; padding-top: 6px; border-top: 1px dashed #bae6fd; display: flex; align-items: center; justify-content: space-between; gap: 4px; font-size: 11px; color: #475569;">' +
-            '<span style="font-weight: 600; white-space: nowrap;">Meet:</span>' +
+          interHtml += '<div id="interBearingCustomMeasureRow" style="margin-top: 8px; padding: 6px 8px; border-top: 1px dashed #bae6fd; background: rgba(224, 242, 254, 0.4); border-radius: 6px; display: flex; align-items: center; justify-content: space-between; gap: 4px; font-size: 11px; color: #475569; transition: all 0.15s;">' +
+            '<span style="font-weight: 700; color: #0369a1; white-space: nowrap; display: inline-flex; align-items: center; gap: 3px;">📏 Meet:</span>' +
             '<select id="selInterB1" style="font-size: 11px; font-weight: 700; border: 1px solid #94a3b8; border-radius: 4px; background: #ffffff; padding: 2px 4px; outline: none; cursor: pointer;">' +
               bearingList.map(b => '<option value="' + b.letter + '"' + (b.letter === chosen1 ? ' selected' : '') + '>Lager ' + b.letter + '</option>').join('') +
             '</select>' +
-            '<span>↔</span>' +
+            '<span style="font-weight: 700; color: #0284c7;">↔</span>' +
             '<select id="selInterB2" style="font-size: 11px; font-weight: 700; border: 1px solid #94a3b8; border-radius: 4px; background: #ffffff; padding: 2px 4px; outline: none; cursor: pointer;">' +
               bearingList.map(b => '<option value="' + b.letter + '"' + (b.letter === chosen2 ? ' selected' : '') + '>Lager ' + b.letter + '</option>').join('') +
             '</select>' +
-            '<strong id="valInterPairDist" style="color: #0369a1; font-weight: 800; font-size: 11.5px; white-space: nowrap;">-</strong>' +
+            '<strong id="valInterPairDist" style="color: #0369a1; font-weight: 800; font-size: 12px; white-space: nowrap; min-width: 42px; text-align: right;">-</strong>' +
           '</div>';
         }
 
         interCard.innerHTML = interHtml;
 
+        let updatePairDist = null;
+
         interCard.querySelectorAll('.inter-bearing-edge-row').forEach(el => {
+          const fromL = el.getAttribute('data-from');
+          const toL = el.getAttribute('data-to');
           el.onmouseenter = function() {
             el.style.background = '#e0f2fe';
             el.style.borderColor = '#0284c7';
-            hoveredBearingLetter = el.getAttribute('data-from');
+            hoveredBearingLetter = fromL;
             drawBearingLayout();
           };
           el.onmouseleave = function() {
@@ -5007,13 +5070,23 @@
             hoveredBearingLetter = null;
             drawBearingLayout();
           };
+          el.onclick = function() {
+            const s1 = interCard.querySelector('#selInterB1');
+            const s2 = interCard.querySelector('#selInterB2');
+            if (s1 && s2 && fromL && toL) {
+              s1.value = fromL;
+              s2.value = toL;
+              if (typeof updatePairDist === 'function') updatePairDist();
+            }
+          };
         });
 
         const sel1 = interCard.querySelector('#selInterB1');
         const sel2 = interCard.querySelector('#selInterB2');
         const valPair = interCard.querySelector('#valInterPairDist');
+        const measureRow = interCard.querySelector('#interBearingCustomMeasureRow');
         if (sel1 && sel2 && valPair) {
-          const updatePairDist = () => {
+          updatePairDist = () => {
             window.__savedInterB1 = sel1.value;
             window.__savedInterB2 = sel2.value;
             const l1 = sel1.value;
@@ -5022,13 +5095,28 @@
             const pos2 = bearingPositions[l2] || { x: 0, y: 0 };
             const dist = Math.hypot(pos2.x - pos1.x, pos2.y - pos1.y);
             valPair.textContent = dist.toFixed(1).replace('.', ',') + ' m';
+            drawBearingLayout();
           };
           sel1.onchange = updatePairDist;
           sel2.onchange = updatePairDist;
+          sel1.oninput = updatePairDist;
+          sel2.oninput = updatePairDist;
           sel1.onclick = function(e) { e.stopPropagation(); };
           sel1.onmousedown = function(e) { e.stopPropagation(); };
           sel2.onclick = function(e) { e.stopPropagation(); };
           sel2.onmousedown = function(e) { e.stopPropagation(); };
+          if (measureRow) {
+            measureRow.onmouseenter = function() {
+              window.__hoveredMeasurePair = true;
+              measureRow.style.background = '#e0f2fe';
+              drawBearingLayout();
+            };
+            measureRow.onmouseleave = function() {
+              window.__hoveredMeasurePair = false;
+              measureRow.style.background = 'rgba(224, 242, 254, 0.4)';
+              drawBearingLayout();
+            };
+          }
           updatePairDist();
         }
       }
