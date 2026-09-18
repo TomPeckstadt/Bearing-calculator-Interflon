@@ -544,13 +544,95 @@ function calculateBoreFromCode(code) {
   return code * 5;
 }
 
+/**
+ * Berekent de effectieve loopbaan-/smeerbreedte voor wentellagers.
+ * Voor spanlagers (UC / Y-lagers) steekt de binnenring (B) aan weerszijden ver uit met stelkragen,
+ * terwijl de eigenlijke loopbaan en de afdichtingen worden begrensd door de buitenring (C).
+ * Om overbevetting en afdichtingsschade te voorkomen, wordt gerekend met de buitenringbreedte C.
+ */
+function getEffectiveLubricationWidth(bearingType, designation, d, D, B) {
+  const bType = (bearingType || "").toString();
+  const desig = (designation || "").toString().trim();
+  
+  const isInsert = (bType === "Spanlager (Y-lager)") ||
+                   (bType.includes("Spanlager") || bType.includes("Y-lager") || bType.includes("Insert") || bType.includes("Inzetlager")) ||
+                   (/^(UC|UCP|UCF|UCFL|UCT|UCFC|YAR|YAT|YET|YEL|SB|CS|SA)\b/i.test(desig));
+  
+  if (!isInsert) {
+    return {
+      effectiveB: B,
+      isAdjusted: false,
+      originalB: B,
+      outerRingWidth: B,
+      note: ""
+    };
+  }
+
+  let cRing = null;
+  let equivDesig = null;
+  let equivMass = null;
+
+  const bDb = (typeof bearingDatabase !== "undefined" && bearingDatabase) ? bearingDatabase :
+              (typeof window !== "undefined" && window.bearingDatabase) ? window.bearingDatabase : null;
+
+  if (bDb) {
+    // 1. Zoek naar overeenkomstig standaard diepgroefkogellager (63xx voor serie 300, 62xx voor serie 200)
+    for (const key in bDb) {
+      const item = bDb[key];
+      if ((key.startsWith("63") || key.startsWith("62")) && item.d === d && item.D === D && item.B) {
+        cRing = item.B;
+        equivDesig = key;
+        equivMass = item.mass || null;
+        break;
+      }
+    }
+
+    // 2. Indien niet direct via d & D gevonden, parse seriecode uit de aanduiding (bijv. UC 320 -> 6320, UC 205 -> 6205)
+    if (!cRing && desig) {
+      const ucMatch = desig.match(/\b(?:UC|UCP|UCF|UCFL|UCT|UCFC|YAR)\s*([23])(\d{2})\b/i);
+      if (ucMatch) {
+        const series = ucMatch[1] === "3" ? "63" : "62";
+        const code = ucMatch[2];
+        const targetStd = series + code;
+        if (bDb[targetStd] && bDb[targetStd].B) {
+          cRing = bDb[targetStd].B;
+          equivDesig = targetStd;
+          equivMass = bDb[targetStd].mass || null;
+        }
+      }
+    }
+  }
+
+  // 3. Fallback: als geen standaard 62xx/63xx gevonden is, is buitenring C typisch ~ 45-50% van B (of 0.35 * (D - d) + 4)
+  if (!cRing || isNaN(cRing)) {
+    cRing = Math.round(Math.min(B * 0.5, (D - d) * 0.35 + 4));
+  }
+
+  // Veiligheidscheck: cRing moet altijd kleiner zijn dan de totale binnenringbreedte B
+  if (cRing >= B) {
+    cRing = Math.round(B * 0.5);
+  }
+
+  return {
+    effectiveB: cRing,
+    isAdjusted: true,
+    originalB: B,
+    outerRingWidth: cRing,
+    equivDesig: equivDesig,
+    equivMass: equivMass,
+    note: `Spanlager (Y-lager): Smeer- en vulvolumes berekend op basis van effectieve loopbaanbreedte C (${cRing} mm) in plaats van binnenring B (${B} mm) ter voorkoming van overbevetting.`
+  };
+}
+
 if (typeof window !== "undefined") {
   window.bearingDatabase = bearingDatabase;
   window.BEARING_TYPES = BEARING_TYPES;
   window.parseBearingDesignation = parseBearingDesignation;
+  window.getEffectiveLubricationWidth = getEffectiveLubricationWidth;
 }
 if (typeof global !== "undefined") {
   global.bearingDatabase = bearingDatabase;
   global.BEARING_TYPES = BEARING_TYPES;
   global.parseBearingDesignation = parseBearingDesignation;
+  global.getEffectiveLubricationWidth = getEffectiveLubricationWidth;
 }
