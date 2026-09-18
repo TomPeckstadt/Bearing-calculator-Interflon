@@ -23151,8 +23151,30 @@ const twinMetricExplanations = {
   }
 };
 
+let twinInfoHoverTimer = null;
+
+function clearTwinInfoHoverTimer() {
+  if (twinInfoHoverTimer) {
+    clearTimeout(twinInfoHoverTimer);
+    twinInfoHoverTimer = null;
+  }
+}
+
+function updateTwinInfoBtnState(activeMetric) {
+  document.querySelectorAll(".twin-info-icon-btn").forEach(btn => {
+    const metric = btn.getAttribute("data-twin-metric");
+    if (activeMetric && metric === activeMetric) {
+      btn.classList.add("active");
+    } else {
+      btn.classList.remove("active");
+    }
+  });
+}
+
 function showTwinMetricInfo(metricKey, event) {
+  clearTwinInfoHoverTimer();
   if (twinInfoPinned && twinInfoPinned !== metricKey) return;
+
   const popover = document.getElementById("twinInfoPopover");
   const titleEl = document.getElementById("twinInfoPopoverTitle");
   const bodyEl = document.getElementById("twinInfoPopoverBody");
@@ -23164,34 +23186,70 @@ function showTwinMetricInfo(metricKey, event) {
   titleEl.innerHTML = data.title;
   bodyEl.innerHTML = data.content;
 
+  // Make visible before measuring to get accurate DOM layout height
   popover.style.display = "block";
 
-  const btn = event ? (event.currentTarget || event.target) : null;
+  let btn = null;
+  if (event && (event.currentTarget || event.target)) {
+    const target = event.currentTarget || event.target;
+    btn = target.closest ? target.closest(".twin-info-icon-btn") : target;
+  }
+  if (!btn) {
+    btn = document.querySelector(`.twin-info-icon-btn[data-twin-metric="${metricKey}"]`);
+  }
+
   if (btn && btn.getBoundingClientRect) {
     const rect = btn.getBoundingClientRect();
-    const popoverWidth = 340;
-    
-    let left = rect.left - popoverWidth + 24;
-    if (left < 12) left = 12;
-    if (left + popoverWidth > window.innerWidth - 12) {
-      left = window.innerWidth - popoverWidth - 12;
+    const popoverWidth = 350;
+    const popoverHeight = popover.offsetHeight || 350;
+
+    // Position popover cleanly to the LEFT of the telemetry sidebar
+    let left = rect.left - popoverWidth - 14;
+    let top = rect.top - 12;
+
+    if (left >= 12) {
+      // Comfortable space in viewport/canvas zone to the left of the button
+      if (top + popoverHeight > window.innerHeight - 16) {
+        top = window.innerHeight - popoverHeight - 16;
+      }
+      if (top < 16) top = 16;
+    } else {
+      // Narrow viewport fallback: place above or below with guaranteed non-overlapping clearance
+      left = Math.max(12, Math.min(window.innerWidth - popoverWidth - 12, rect.right - popoverWidth));
+      if (rect.top - popoverHeight - 14 >= 12) {
+        top = rect.top - popoverHeight - 14;
+      } else {
+        top = rect.bottom + 14;
+      }
     }
 
-    let top = rect.bottom + 8;
-    if (top + 280 > window.innerHeight) {
-      top = Math.max(12, rect.top - 290);
-    }
+    popover.style.left = Math.round(left) + "px";
+    popover.style.top = Math.round(top) + "px";
+  }
 
-    popover.style.left = left + "px";
-    popover.style.top = top + "px";
+  if (twinInfoPinned === metricKey) {
+    updateTwinInfoBtnState(metricKey);
   }
 }
 
 function hideTwinMetricInfo(metricKey, event, force = false) {
-  if (!force && twinInfoPinned) return;
-  if (force) twinInfoPinned = null;
-  const popover = document.getElementById("twinInfoPopover");
-  if (popover) popover.style.display = "none";
+  if (force) {
+    clearTwinInfoHoverTimer();
+    twinInfoPinned = null;
+    updateTwinInfoBtnState(null);
+    const popover = document.getElementById("twinInfoPopover");
+    if (popover) popover.style.display = "none";
+    return;
+  }
+
+  if (twinInfoPinned) return; // Pinned state stays open until explicit unpin/close
+
+  clearTwinInfoHoverTimer();
+  twinInfoHoverTimer = setTimeout(() => {
+    const popover = document.getElementById("twinInfoPopover");
+    if (popover) popover.style.display = "none";
+    updateTwinInfoBtnState(null);
+  }, 150);
 }
 
 function toggleTwinMetricInfo(metricKey, event) {
@@ -23199,12 +23257,16 @@ function toggleTwinMetricInfo(metricKey, event) {
     event.stopPropagation();
     event.preventDefault();
   }
+  clearTwinInfoHoverTimer();
+
   if (twinInfoPinned === metricKey) {
-    twinInfoPinned = null;
+    // Already pinned on this metric -> close and unpin
     hideTwinMetricInfo(metricKey, event, true);
   } else {
+    // Pin this metric
     twinInfoPinned = metricKey;
     showTwinMetricInfo(metricKey, event);
+    updateTwinInfoBtnState(metricKey);
   }
 }
 
@@ -23213,8 +23275,17 @@ document.addEventListener("click", function(e) {
   const popover = document.getElementById("twinInfoPopover");
   if (popover && popover.style.display !== "none") {
     if (!popover.contains(e.target) && !e.target.closest(".twin-info-icon-btn")) {
-      twinInfoPinned = null;
-      popover.style.display = "none";
+      hideTwinMetricInfo(null, null, true);
+    }
+  }
+});
+
+// Global escape key listener to close popover
+document.addEventListener("keydown", function(e) {
+  if (e.key === "Escape") {
+    const popover = document.getElementById("twinInfoPopover");
+    if (popover && popover.style.display !== "none") {
+      hideTwinMetricInfo(null, null, true);
     }
   }
 });
@@ -23222,6 +23293,8 @@ document.addEventListener("click", function(e) {
 function openDigitalTwinModal() {
   const modal = document.getElementById("digitalTwinModal");
   if (!modal) return;
+
+  hideTwinMetricInfo(null, null, true);
 
   // Sync with current bearing data
   const data = getActiveBearingDataForTwin();
@@ -23868,6 +23941,10 @@ if (typeof window !== "undefined") {
   window.setTwinSimSpeed = setTwinSimSpeed;
   window.onTwinRpmChange = onTwinRpmChange;
   window.triggerDigitalTwinPulse = triggerDigitalTwinPulse;
+  window.showTwinMetricInfo = showTwinMetricInfo;
+  window.hideTwinMetricInfo = hideTwinMetricInfo;
+  window.toggleTwinMetricInfo = toggleTwinMetricInfo;
+  window.clearTwinInfoHoverTimer = clearTwinInfoHoverTimer;
   window.getExecutiveProposalData = getExecutiveProposalData;
   window.generateExecutiveProposalText = generateExecutiveProposalText;
   window.openExecutiveProposalModal = openExecutiveProposalModal;
