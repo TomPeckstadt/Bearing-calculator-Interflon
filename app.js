@@ -2241,6 +2241,12 @@ function activateManualSearchedBearingInOm(mode) {
     if (omProdName1) {
       omProdName1.textContent = "SKF " + (bearingObj.designation ? bearingObj.designation.toUpperCase() : "");
     }
+    const omProdName2 = document.getElementById("omProdName2");
+    if (omProdName2) {
+      const greaseSelect = document.getElementById("inputGrease");
+      const activeGrease = (greaseSelect && greaseSelect.value) ? greaseSelect.value : (localStorage.getItem("active_interflon_grease") || "INTERFLON GREASE MP2/3");
+      omProdName2.textContent = activeGrease;
+    }
 
     if (typeof calculateTco === "function") calculateTco();
     if (typeof updateOmMetadata === "function") updateOmMetadata();
@@ -7243,6 +7249,10 @@ document.addEventListener("DOMContentLoaded", () => {
     } else {
       greaseSelect.value = Object.keys(INTERFLON_GREASES)[0];
     }
+    const initialOmProdName2 = document.getElementById("omProdName2");
+    if (initialOmProdName2 && greaseSelect.value) {
+      initialOmProdName2.textContent = greaseSelect.value;
+    }
   }
 
   // Voeg event listeners toe voor automatische herberekening
@@ -8029,7 +8039,19 @@ function switchPage(pageId) {
       targetSubtitle.setAttribute("data-i18n", "pageOmSubtitle");
       targetSubtitle.textContent = "Bereken de financiële en operationele besparing door overstap naar Interflon vetten.";
     }
+    // Set Product Names for Bearing OM
+    const omP2NameEl = document.getElementById("omProdName2");
+    if (omP2NameEl) {
+      const greaseSelect = document.getElementById("inputGrease");
+      const activeGrease = (greaseSelect && greaseSelect.value) ? greaseSelect.value : (localStorage.getItem("active_interflon_grease") || "INTERFLON GREASE MP2/3");
+      omP2NameEl.textContent = activeGrease;
+    }
     loadBearingTcoDetails();
+    if (omP2NameEl) {
+      const greaseSelect = document.getElementById("inputGrease");
+      const activeGrease = (greaseSelect && greaseSelect.value) ? greaseSelect.value : (localStorage.getItem("active_interflon_grease") || "INTERFLON GREASE MP2/3");
+      omP2NameEl.textContent = activeGrease;
+    }
     calculateTco();
     if (typeof refreshOmSurveyBearingsDropdown === "function") refreshOmSurveyBearingsDropdown();
 
@@ -8324,6 +8346,12 @@ function selectBearing(key) {
       ? activeBearing.designation.toUpperCase()
       : key.toUpperCase();
     omProdName1.textContent = "SKF " + desig;
+  }
+  const omProdName2 = document.getElementById("omProdName2");
+  if (omProdName2) {
+    const greaseSelect = document.getElementById("inputGrease");
+    const activeGrease = (greaseSelect && greaseSelect.value) ? greaseSelect.value : (localStorage.getItem("active_interflon_grease") || "INTERFLON GREASE MP2/3");
+    omProdName2.textContent = activeGrease;
   }
 
   if (typeof calculateTco === "function") calculateTco();
@@ -8661,6 +8689,8 @@ function calculateGrease() {
   const greaseName = greaseSelect ? greaseSelect.value : "INTERFLON GREASE MP2/3";
   if (greaseSelect && greaseSelect.value) {
     localStorage.setItem("active_interflon_grease", greaseSelect.value);
+    const omProdName2El = document.getElementById("omProdName2");
+    if (omProdName2El) omProdName2El.textContent = greaseSelect.value;
   }
   const Te = TeInput ? parseFloat(TeInput.value) : 0.5;
   const Ta = TaInput ? parseFloat(TaInput.value) : 0.5;
@@ -9410,7 +9440,8 @@ function updateOmMetadata() {
   setTxt("chainOmProdName1", techProduct || "Conventionele Kettingolie");
 
   const greaseSelect = document.getElementById("inputGrease");
-  if (greaseSelect) setTxt("omProdName2", greaseSelect.value || "Interflon Vet");
+  const activeGrease = (greaseSelect && greaseSelect.value) ? greaseSelect.value : (localStorage.getItem("active_interflon_grease") || "INTERFLON GREASE MP2/3");
+  setTxt("omProdName2", activeGrease);
 
   const chainProductSelect = document.getElementById("chainProductSelect");
   if (chainProductSelect) setTxt("chainOmProdName2", chainProductSelect.value || "Interflon Lube TF");
@@ -10330,8 +10361,8 @@ function renderBearingPdfPage2(doc, opts = {}) {
         drawCell(startX2, 46, 54, 6.5, "OMSTANDIGHEDEN INTERFLON", null, "red-header");
         drawCell(startX3, 46, 60, 6.5, "PROCES INVOER (SHARED)", null, "slate-header2");
 
-        const p1_name = document.getElementById("omProdName1") ? document.getElementById("omProdName1").value : "Huidig Product";
-        const p2_name = document.getElementById("omProdName2") ? document.getElementById("omProdName2").value : "Interflon Product";
+        const p1_name = document.getElementById("omProdName1") ? (document.getElementById("omProdName1").value || document.getElementById("omProdName1").textContent || "Huidig Product") : "Huidig Product";
+        const p2_name = document.getElementById("omProdName2") ? (document.getElementById("omProdName2").value || document.getElementById("omProdName2").textContent || "Interflon Product") : "Interflon Product";
         const p1_cons = document.getElementById("omProdCons1") ? document.getElementById("omProdCons1").value : "0";
         const p2_cons = document.getElementById("omProdCons2") ? document.getElementById("omProdCons2").value : "0";
         const p1_price = document.getElementById("omProdPrice1") ? document.getElementById("omProdPrice1").value : "0";
@@ -11116,6 +11147,15 @@ function loadBearingTcoDetails() {
     TCO_INPUTS.forEach(id => {
       const el = document.getElementById(id);
       if (el && data[id] !== undefined) {
+        // Do not overwrite omProdName2 with stale localStorage value if inputGrease / active_interflon_grease exists
+        if (id === "omProdName2") {
+          const greaseSel = document.getElementById("inputGrease");
+          const activeG = (greaseSel && greaseSel.value) ? greaseSel.value : (localStorage.getItem("active_interflon_grease") || "");
+          if (activeG) {
+            el.textContent = activeG;
+            return;
+          }
+        }
         if (el.tagName === "INPUT" || el.tagName === "SELECT") {
           el.value = data[id];
         } else {
@@ -14183,6 +14223,19 @@ function removeChainOmImage() {
       if (p2El) p2El.textContent = this.value;
       if (typeof calculateChainGrease === "function") calculateChainGrease();
     });
+  }
+
+  const inputGreaseEl = document.getElementById("inputGrease");
+  if (inputGreaseEl) {
+    const syncGreaseToOm = function() {
+      const p2El = document.getElementById("omProdName2");
+      if (p2El) p2El.textContent = this.value;
+      try { localStorage.setItem("active_interflon_grease", this.value); } catch(e) {}
+      if (typeof calculateGrease === "function") calculateGrease();
+      if (typeof saveBearingTcoDetails === "function") saveBearingTcoDetails();
+    };
+    inputGreaseEl.addEventListener("change", syncGreaseToOm);
+    inputGreaseEl.addEventListener("input", syncGreaseToOm);
   }
   
 
