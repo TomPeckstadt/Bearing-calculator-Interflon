@@ -3581,6 +3581,23 @@
           </button>
         </div>
 
+        <!-- Center: Selection & Database Actions -->
+        <div id="passportDatabaseToolbarActions" style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+          <button type="button" id="btnTogglePassportSelect" onclick="togglePassportSelectMode()" style="background: #ffffff; color: #334155; border: 1.5px solid #cbd5e1; padding: 5px 11px; border-radius: 6px; font-weight: 700; font-size: 12px; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; transition: all 0.2s ease;" title="Schakel selectiemodus in om specifieke paspoorten te kiezen via subtiele cirkeltjes">
+            <span id="passportSelectIcon">🔘</span> <span id="passportSelectBtnText">Selecteer</span>
+          </button>
+          <div id="passportSelectQuickBar" style="display: none; align-items: center; gap: 4px;">
+            <button type="button" onclick="selectAllPassports(true)" style="background: #f1f5f9; color: #0284c7; border: 1px solid #cbd5e1; padding: 3px 7px; border-radius: 4px; font-size: 11px; font-weight: 700; cursor: pointer;">Alles</button>
+            <button type="button" onclick="selectAllPassports(false)" style="background: #f1f5f9; color: #64748b; border: 1px solid #cbd5e1; padding: 3px 7px; border-radius: 4px; font-size: 11px; font-weight: 700; cursor: pointer;">Geen</button>
+          </div>
+          <button type="button" id="btnSaveToPassportDb" onclick="saveSelectedPassportsToDatabase()" style="background: #059669; color: #ffffff; border: none; padding: 6px 12px; border-radius: 6px; font-weight: 700; font-size: 12px; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; box-shadow: 0 1px 2px rgba(5,150,105,0.25); transition: all 0.2s ease;" title="Sla geselecteerde paspoorten op in de database en als JSON-bestand per machine">
+            💾 Toevoegen aan database
+          </button>
+          <button type="button" id="btnOpenPassportDb" onclick="openPassportDatabaseModal()" style="background: #0284c7; color: #ffffff; border: none; padding: 6px 12px; border-radius: 6px; font-weight: 700; font-size: 12px; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; box-shadow: 0 1px 2px rgba(2,132,199,0.2); transition: all 0.2s ease;" title="Overzicht van alle opgeslagen machines en toestellen per klant">
+            📂 Importeer uit database
+          </button>
+        </div>
+
         <!-- Right: Size & Print Options -->
         <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
           <div style="display: flex; align-items: center; gap: 6px;">
@@ -3604,6 +3621,17 @@
 
       <!-- Preview Sheet Area (Scrollable) -->
       <div id="qrPassportScrollContainer" style="overflow-y: auto; overflow-x: hidden; border: 1px solid #e2e8f0; border-radius: 8px; background: #f1f5f9; padding: 16px; max-height: calc(96vh - 210px);">
+        <!-- Banner when viewing imported passports from database -->
+        <div id="passportImportedBanner" style="display: none; align-items: center; justify-content: space-between; background: #e0f2fe; border: 1px solid #7dd3fc; color: #0369a1; padding: 8px 12px; border-radius: 6px; margin-bottom: 12px; font-size: 12px;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span style="font-size: 16px;">📂</span>
+            <span id="passportImportedBannerText">Geïmporteerde paspoorten uit database</span>
+          </div>
+          <button type="button" onclick="restoreCurrentSessionPassports()" style="background: #ffffff; color: #0284c7; border: 1px solid #bae6fd; padding: 4px 10px; border-radius: 5px; font-size: 11.5px; font-weight: 700; cursor: pointer; transition: all 0.15s ease;">
+            ↺ Terug naar huidige berekening
+          </button>
+        </div>
+
         <!-- Printable Sticker Sheet (This gets printed) -->
         <div id="qrPrintableStickerSheet" class="qr-sticker-sheet qr-size-standard">
           <!-- Populated dynamically by JS -->
@@ -3621,6 +3649,87 @@
             <span>🖨️ Afdrukken / PDF Opslaan</span>
           </button>
           <button type="button" class="btn btn-secondary" onclick="closeQrPassportModal()" style="padding: 8px 16px; font-size: 13px; font-weight: 600; border-radius: 6px;">Sluiten</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================================================
+       SLIM SMEERPASPOORT DATABASE MODAL (PER KLANT & MACHINE)
+       ========================================================================== -->
+  <div id="passportDatabaseModal" class="modal-overlay hidden" style="z-index: 10010;" onclick="if(event.target === this) closePassportDatabaseModal()">
+    <div class="modal-card" style="max-width: 900px; width: 96%; max-height: 92vh; display: flex; flex-direction: column; overflow: hidden; padding: 18px 22px; gap: 12px; background: #ffffff; border-radius: var(--border-radius-lg); box-shadow: 0 25px 50px -12px rgba(15,23,42,0.35); border-top: 4px solid #0284c7;">
+      
+      <!-- Header -->
+      <div style="display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; padding-bottom: 10px; border-bottom: 1px solid #e2e8f0;">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <div style="width: 38px; height: 38px; border-radius: 8px; background: #e0f2fe; display: flex; align-items: center; justify-content: center; font-size: 20px;">
+            📂
+          </div>
+          <div>
+            <h3 style="font-size: 17px; font-weight: 800; color: #0f172a; margin: 0; font-family: 'Outfit', sans-serif; line-height: 1.2;">
+              Database Slimme Smeerpaspoorten <span style="color: #0284c7;">• Klanten & Machines</span>
+            </h3>
+            <p style="font-size: 11.5px; color: #64748b; margin: 2px 0 0 0;">
+              Beheer alle opgeslagen toestellen per klant en machine &bull; Importeer direct naar stickerviewer
+            </p>
+          </div>
+        </div>
+        <button type="button" class="btn-close" onclick="closePassportDatabaseModal()" style="background: none; border: none; font-size: 26px; cursor: pointer; color: #64748b; line-height: 1; padding: 2px 6px;" title="Sluiten">&times;</button>
+      </div>
+
+      <!-- Toolbar / Filters & Actions -->
+      <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 8px 12px;">
+        <!-- Search & Filter -->
+        <div style="display: flex; align-items: center; gap: 8px; flex: 1; min-width: 260px;">
+          <div style="position: relative; flex: 1;">
+            <input type="text" id="passportDbSearchInput" oninput="filterPassportDatabaseTree()" placeholder="🔍 Zoek op klant, machine of toestel..." style="width: 100%; box-sizing: border-box; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px; padding: 6px 10px 6px 12px; font-size: 12px; outline: none; color: #0f172a;">
+          </div>
+          <select id="passportDbClientFilter" onchange="filterPassportDatabaseTree()" style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px; padding: 6px 10px; font-size: 12px; font-weight: 600; color: #334155; outline: none; max-width: 180px;">
+            <option value="all">Alle klanten</option>
+          </select>
+        </div>
+
+        <!-- Secondary File Actions -->
+        <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+          <button type="button" onclick="choosePassportRootFolder()" style="background: #ffffff; color: #0284c7; border: 1px solid #bae6fd; padding: 5px 10px; border-radius: 6px; font-size: 11.5px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 5px;" title="Kies of wijzig de hoofdmap op uw computer waarin 'Slimme paspoorten' mappen worden gemaakt">
+            📁 Map op PC koppelen
+          </button>
+          <input type="file" id="passportJsonFileInput" accept=".json" multiple onchange="handlePassportJsonFilesUpload(event)" style="display: none;">
+          <button type="button" onclick="document.getElementById('passportJsonFileInput').click()" style="background: #ffffff; color: #475569; border: 1px solid #cbd5e1; padding: 5px 10px; border-radius: 6px; font-size: 11.5px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 5px;" title="Lees losse JSON-paspoortbestanden van uw computer in">
+            ⬆️ JSON importeren
+          </button>
+          <button type="button" onclick="exportEntirePassportDatabaseJson()" style="background: #ffffff; color: #475569; border: 1px solid #cbd5e1; padding: 5px 10px; border-radius: 6px; font-size: 11.5px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 5px;" title="Download complete database als één JSON-backup">
+            ⬇️ Backup export
+          </button>
+        </div>
+      </div>
+
+      <!-- PC Folder Status Info Strip -->
+      <div id="passportPcFolderStatusStrip" style="font-size: 11.5px; color: #64748b; background: #f0fdf4; border: 1px solid #bbf7d0; padding: 6px 12px; border-radius: 6px; display: flex; align-items: center; justify-content: space-between;">
+        <span id="passportPcFolderStatusText">💻 Lokale database actief &bull; Gekoppeld aan browser storage</span>
+        <span style="font-size: 11px; color: #15803d; font-weight: 600;">Automatische submappen per machine</span>
+      </div>
+
+      <!-- Tree / List Container (Scrollable) -->
+      <div id="passportDatabaseTreeContainer" style="overflow-y: auto; overflow-x: hidden; border: 1px solid #e2e8f0; border-radius: 8px; background: #f8fafc; padding: 14px; max-height: calc(92vh - 240px); min-height: 220px;">
+        <!-- Populated dynamically by JS -->
+      </div>
+
+      <!-- Footer & Action Buttons -->
+      <div style="display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; flex-wrap: wrap; gap: 10px; padding-top: 6px; border-top: 1px solid #e2e8f0;">
+        <div id="passportDbSelectionSummary" style="font-size: 12.5px; color: #0284c7; font-weight: 700;">
+          0 toestellen geselecteerd
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <button type="button" id="btnDeleteSelectedDbPassports" onclick="deleteSelectedDbPassports()" style="background: #fee2e2; color: #dc2626; border: 1px solid #fca5a5; padding: 7px 14px; border-radius: 6px; font-weight: 700; font-size: 12.5px; cursor: pointer; display: none;">
+            🗑️ Verwijder selectie
+          </button>
+          <button type="button" id="btnImportSelectedDbPassports" onclick="importSelectedPassportsToScreen()" style="display: inline-flex; align-items: center; gap: 6px; background: #0284c7; color: #ffffff; border: none; padding: 8px 18px; border-radius: 6px; font-weight: 700; font-size: 13px; cursor: pointer; box-shadow: 0 2px 4px rgba(2,132,199,0.25); transition: all 0.2s ease;">
+            📥 Toon geselecteerde op scherm
+          </button>
+          <button type="button" class="btn btn-secondary" onclick="closePassportDatabaseModal()" style="padding: 8px 16px; font-size: 13px; font-weight: 600; border-radius: 6px;">Sluiten</button>
         </div>
       </div>
     </div>
