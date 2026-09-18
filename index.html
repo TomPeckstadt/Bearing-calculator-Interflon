@@ -874,6 +874,10 @@
                   <span class="detail-label" data-i18n="widthB" style="font-size: 12px;">Breedte (B)</span>
                   <span class="detail-value" style="font-size: 13px;"><span id="specWidth">-</span> mm</span>
                 </div>
+                <div id="specOuterWidthRow" class="detail-row hidden" style="padding: 3.5px 0; min-height: 25px; background-color: #f0f9ff; border-radius: 4px; padding-left: 4px; padding-right: 4px;">
+                  <span class="detail-label" style="font-size: 12px; color: #0369a1;">Effectieve loopbaanbreedte (C)</span>
+                  <span class="detail-value" style="font-size: 13px; font-weight: 700; color: #0284c7;"><span id="specOuterWidth">-</span> mm</span>
+                </div>
                 <div class="detail-row" style="padding: 3.5px 0; min-height: 25px;">
                   <span class="detail-label" style="font-size: 12px;">
                     <span data-i18n="dynLoad">Dynamisch draaggetal (C)</span>
@@ -1193,6 +1197,10 @@
                   <span class="detail-label" style="font-weight: 600;" data-i18n="resInitialFillLabel">Initiële vulhoeveelheid</span>
                   <span class="detail-value" style="color: var(--primary-blue); font-size: 16px; font-weight: 700;"><span id="calcInitFillGrams">--</span> <span data-i18n="unitGrams">gram</span> (<span id="calcInitFillCm">--</span> cm³)</span>
                 </div>
+                <div id="insertBearingNoticeFreeVol" class="alert-note hidden" style="margin-top: 8px; margin-bottom: 0; padding: 6px 10px; font-size: 11.5px; background-color: #f0f9ff; border-left: 3px solid #0284c7; color: #0369a1; display: flex; gap: 8px; align-items: flex-start;">
+                  <span style="font-size: 14px; line-height: 1;">💡</span>
+                  <span><strong>Spanlager correctie:</strong> Vrij volume &amp; initiële vulling berekend voor de daadwerkelijke kogelholte (C = <span id="insertNoticeFreeVolC">--</span> mm) i.p.v. de verlengde binnenring.</span>
+                </div>
               </div>
             </div>
 
@@ -1254,12 +1262,16 @@
                 <div class="detail-row" style="background-color: #ECFDF5; padding: 12px 12px; border-radius: var(--border-radius-sm); display: flex; justify-content: space-between; align-items: center;">
                   <div>
                     <div style="font-weight: 700; color: var(--success); font-size: 16px;"><span id="calcQuantity">--</span> <span data-i18n="unitGramsVet">gram vet</span></div>
-                    <div style="font-size: 11px; color: var(--text-medium); margin-top: 2px;" data-i18n="resRefillDesc">Nasmeerhoeveelheid (D x B x C)</div>
+                    <div id="descRefillFormula" style="font-size: 11px; color: var(--text-medium); margin-top: 2px;" data-i18n="resRefillDesc">Nasmeerhoeveelheid (D x B x C)</div>
                   </div>
                   <div style="text-align: right;">
                     <div style="font-weight: 700; color: var(--success); font-size: 16px;"><span id="calcStrokes">--</span> <span data-i18n="unitStrokes">slagen</span></div>
                     <div style="font-size: 11px; color: var(--text-medium); margin-top: 2px;" data-i18n="resStrokesDesc">Vetpomp (2g/slag)</div>
                   </div>
+                </div>
+                <div id="insertBearingNoticeRefill" class="alert-note hidden" style="margin-top: 8px; margin-bottom: 0; padding: 6px 10px; font-size: 11.5px; background-color: #f0f9ff; border-left: 3px solid #0284c7; color: #0369a1; display: flex; gap: 8px; align-items: flex-start;">
+                  <span style="font-size: 14px; line-height: 1;">💡</span>
+                  <span><strong>Spanlager (Y-lager) correctie:</strong> Berekend o.b.v. effectieve loopbaanbreedte (C = <span id="insertNoticeRefillC">--</span> mm) i.p.v. verlengde binnenring (B = <span id="insertNoticeRefillB">--</span> mm) ter voorkoming van overbevetting en afdichtingsschade.</span>
                 </div>
               </div>
             </div>
