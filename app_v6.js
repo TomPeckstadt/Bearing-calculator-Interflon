@@ -16698,12 +16698,12 @@ function getOdooQuoteData() {
       unitLabel: "m"
     });
 
-    // 7) Push-in koppelingen 1/8 (artikel 1453): aantal = smeerpunten + 1
-    const pushInQty = totalPoints + 1;
+    // 7) Push-in koppelingen 1/8 (artikel 1453): aantal = aantal smeerpunten
+    const pushInQty = totalPoints;
     const pushInAcc = AUTOMATION_PRICE_DATABASE.accessories.pushIn18 || { artNr: "1453", name: "Push-in 1/8\"", price: 3.20 };
     items.push({
       artNr: pushInAcc.artNr,
-      name: `${pushInAcc.name} koppeling (aantal smeerpunten + 1)`,
+      name: `${pushInAcc.name} koppeling`,
       category: "Installatiemateriaal",
       qty: pushInQty,
       unitPrice: pushInAcc.price,
