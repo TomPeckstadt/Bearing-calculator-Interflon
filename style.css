@@ -2677,8 +2677,8 @@ table {
   border: 1px solid rgba(255, 255, 255, 0.12);
   color: #94a3b8;
   border-radius: 50%;
-  width: 17px;
-  height: 17px;
+  width: 18px;
+  height: 18px;
   padding: 0;
   display: inline-flex;
   align-items: center;
@@ -2687,13 +2687,30 @@ table {
   transition: all 0.2s ease;
   flex-shrink: 0;
   line-height: 1;
+  user-select: none;
+}
+
+.twin-info-icon-btn svg {
+  pointer-events: none;
 }
 
 .twin-info-icon-btn:hover,
-.twin-info-icon-btn:focus {
-  background: rgba(56, 189, 248, 0.22);
+.twin-info-icon-btn:focus,
+.twin-info-icon-btn.active {
+  background: rgba(56, 189, 248, 0.25);
   border-color: #38bdf8;
   color: #38bdf8;
-  transform: scale(1.12);
+  transform: scale(1.15);
 }
+
+.twin-info-icon-btn.active {
+  box-shadow: 0 0 10px rgba(56, 189, 248, 0.6);
+}
+
+#twinInfoPopover {
+  box-sizing: border-box;
+  transform: translateZ(0);
+  will-change: transform;
+}
+
 
