@@ -1151,7 +1151,14 @@ function calculateSingleBearingDailyNeed(bearingNr, speedRpm, opts = {}) {
     }
   }
 
-  const refill_grams = D * B * coefC;
+  const effW = (typeof getEffectiveLubricationWidth === "function")
+    ? getEffectiveLubricationWidth(bearingType, cleanKey || (b && b.designation) || "", d, D, B)
+    : ((typeof window !== "undefined" && typeof window.getEffectiveLubricationWidth === "function")
+      ? window.getEffectiveLubricationWidth(bearingType, cleanKey || (b && b.designation) || "", d, D, B)
+      : { isAdjusted: false, effectiveB: B });
+  const effectiveB = effW.effectiveB;
+
+  const refill_grams = D * effectiveB * coefC;
   const dailyNeed = (totalCalendarDays > 0) ? (refill_grams / totalCalendarDays) : 0;
 
   return {
@@ -8423,6 +8430,22 @@ function loadBearingDetails(designation) {
   const widthEl = document.getElementById("specWidth");
   if (widthEl) widthEl.textContent = result.B;
 
+  const specOuterWidthRow = document.getElementById("specOuterWidthRow");
+  const specOuterWidthEl = document.getElementById("specOuterWidth");
+  const effW = (typeof getEffectiveLubricationWidth === "function") 
+    ? getEffectiveLubricationWidth(result.type, result.designation, result.d, result.D, result.B)
+    : { isAdjusted: false, effectiveB: result.B };
+  
+  if (specOuterWidthRow && specOuterWidthEl) {
+    if (effW.isAdjusted) {
+      specOuterWidthRow.classList.remove("hidden");
+      specOuterWidthEl.textContent = effW.effectiveB;
+      if (widthEl) widthEl.textContent = `${result.B} (klemkraag)`;
+    } else {
+      specOuterWidthRow.classList.add("hidden");
+    }
+  }
+
   const dynEl = document.getElementById("specDyn");
   if (dynEl) dynEl.textContent = result.C ? result.C : "N/A";
 
@@ -8825,10 +8848,20 @@ function calculateGrease() {
     }
   }
 
+  // Bepaal effectieve loopbaanbreedte (C) voor spanlagers (UC / Y-lagers)
+  const effW = (typeof getEffectiveLubricationWidth === "function")
+    ? getEffectiveLubricationWidth(bearingType, (activeBearing && activeBearing.designation) ? activeBearing.designation : "", d, D, B)
+    : { isAdjusted: false, effectiveB: B, originalB: B };
+  const effectiveB = effW.effectiveB;
+  const isUcAdjusted = effW.isAdjusted;
+
   // 3. Vrije Volume (V)
-  // Formula: V = [π/4 x B x (D² – d²) x 10^-9 – G / 7800] m³
-  const vol_total_m3 = (Math.PI / 4) * B * (D * D - d * d) * 1e-9;
-  const vol_steel_m3 = (isNaN(mass) || mass <= 0) ? (vol_total_m3 * 0.62) : (mass / 7800);
+  // Formula: V = [π/4 x B_eff x (D² – d²) x 10^-9 – G / 7800] m³
+  // Voor spanlagers rekenen we met de effectieve kogelloopbaan C om overbevetting en afdichtingsdruk te voorkomen.
+  const vol_total_m3 = (Math.PI / 4) * effectiveB * (D * D - d * d) * 1e-9;
+  const vol_steel_m3 = (isNaN(mass) || mass <= 0 || isUcAdjusted) 
+    ? (vol_total_m3 * 0.62) 
+    : (mass / 7800);
   let vol_free_m3 = vol_total_m3 - vol_steel_m3;
   if (vol_free_m3 < 0) vol_free_m3 = vol_total_m3 * 0.38; // safety threshold
   const vol_free_cm3 = vol_free_m3 * 1e6;
@@ -8844,6 +8877,17 @@ function calculateGrease() {
   if (fillPercentElement) fillPercentElement.textContent = fillPercent;
   if (initFillCmElement) initFillCmElement.textContent = Math.round(fill_cm3);
   if (initFillGramsElement) initFillGramsElement.textContent = Math.round(fill_grams);
+
+  const noticeFreeVol = document.getElementById("insertBearingNoticeFreeVol");
+  const noticeFreeVolC = document.getElementById("insertNoticeFreeVolC");
+  if (noticeFreeVol && noticeFreeVolC) {
+    if (isUcAdjusted) {
+      noticeFreeVol.classList.remove("hidden");
+      noticeFreeVolC.textContent = effectiveB;
+    } else {
+      noticeFreeVol.classList.add("hidden");
+    }
+  }
 
   const rawRatio = (isNaN(speed) || speed <= 0 || isNaN(limitingSpeed) || limitingSpeed <= 0) 
     ? 0.01 
@@ -8950,11 +8994,34 @@ function calculateGrease() {
   if (!coefC || coefC < 0.001) coefC = 0.00440;
   if (coefCElement) coefCElement.textContent = coefC.toFixed(5);
 
-  const refill_grams = D * B * coefC;
+  const refill_grams = D * effectiveB * coefC;
   if (qElement) qElement.textContent = refill_grams.toFixed(1);
 
   const strokes = refill_grams / 2;
   if (strokesElement) strokesElement.textContent = Math.round(strokes);
+
+  // Update formule omschrijving en notificatie bij spanlagers (UC / Y-lager)
+  const descRefillFormula = document.getElementById("descRefillFormula");
+  if (descRefillFormula) {
+    if (isUcAdjusted) {
+      descRefillFormula.textContent = `Nasmeerhoeveelheid (D x C x c - Loopbaan ${effectiveB} mm)`;
+    } else {
+      descRefillFormula.textContent = "Nasmeerhoeveelheid (D x B x c)";
+    }
+  }
+
+  const noticeRefill = document.getElementById("insertBearingNoticeRefill");
+  const noticeRefillC = document.getElementById("insertNoticeRefillC");
+  const noticeRefillB = document.getElementById("insertNoticeRefillB");
+  if (noticeRefill && noticeRefillC && noticeRefillB) {
+    if (isUcAdjusted) {
+      noticeRefill.classList.remove("hidden");
+      noticeRefillC.textContent = effectiveB;
+      noticeRefillB.textContent = B;
+    } else {
+      noticeRefill.classList.add("hidden");
+    }
+  }
 
   // Automatically update TCO product consumption fields with the calculated quantity in grams
   const omProdCons1El = document.getElementById("omProdCons1");
