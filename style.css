@@ -2447,6 +2447,125 @@ table {
     width: 76px !important;
     height: 76px !important;
   }
+  /* Never print selection bubbles or database toolbar */
+  .passport-select-bubble,
+  #passportDatabaseToolbarActions,
+  #passportImportedBanner {
+    display: none !important;
+  }
+}
+
+/* ==========================================================================
+   SLIM PASPOORT SELECTION MODE & DATABASE STYLES
+   ========================================================================== */
+
+.passport-select-bubble {
+  display: none;
+  position: absolute;
+  top: 7px;
+  left: 7px;
+  z-index: 25;
+  cursor: pointer;
+  user-select: none;
+}
+.passport-select-active .passport-select-bubble {
+  display: block;
+}
+.passport-bubble-circle {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 2px solid #94a3b8;
+  background: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 800;
+  color: #ffffff;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.18);
+  transition: all 0.16s ease;
+}
+.passport-select-bubble:hover .passport-bubble-circle {
+  border-color: #0284c7;
+  transform: scale(1.08);
+}
+.passport-select-bubble.selected .passport-bubble-circle {
+  border-color: #0284c7;
+  background: #0284c7;
+  color: #ffffff;
+  box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.3);
+}
+.passport-select-active .qr-sticker-card {
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+}
+.passport-select-active .qr-sticker-card:hover {
+  border-color: #0284c7;
+  box-shadow: 0 4px 12px rgba(2, 132, 199, 0.18);
+}
+.passport-select-active .qr-sticker-card.is-card-selected {
+  border-color: #0284c7 !important;
+  border-width: 2px !important;
+  box-shadow: 0 0 0 2px rgba(2, 132, 199, 0.4), 0 4px 14px rgba(2, 132, 199, 0.25) !important;
+}
+
+/* Database Tree & Cards */
+.passport-db-tree {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.passport-db-client-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+.passport-db-client-header {
+  background: #f8fafc;
+  padding: 10px 14px;
+  border-bottom: 1px solid #e2e8f0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.passport-db-machine-card {
+  margin: 10px 14px;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  overflow: hidden;
+}
+.passport-db-machine-header {
+  background: #f1f5f9;
+  padding: 8px 12px;
+  border-bottom: 1px solid #e2e8f0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.passport-db-units-list {
+  padding: 6px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.passport-db-unit-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 10px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  gap: 10px;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+.passport-db-unit-row:hover {
+  background: #f0f9ff;
+  border-color: #bae6fd;
 }
 
 
