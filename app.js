@@ -17526,7 +17526,7 @@ async function choosePassportRootFolder() {
       passportStorageDirHandle = handle;
       await storePassportDirHandle(handle);
       updatePassportPcFolderStatusStrip(handle.name);
-      alert("✅ Hoofdmap succesvol gekoppeld: '" + handle.name + "'!\n\nBij het opslaan van paspoorten worden hierin automatisch de mappen 'Slimme paspoorten [Klantnaam]/[Machinenaam]' aangemaakt met individuele JSON-bestanden.");
+      alert("✅ Hoofdmap succesvol gekoppeld: '" + handle.name + "'!\n\nBij het opslaan van paspoorten worden hierin automatisch de mappen 'QR paspoorten klanten/Slimme paspoorten [Klantnaam]/[Machinenaam]' aangemaakt met individuele JSON-bestanden.");
     }
   } catch (err) {
     if (err.name !== 'AbortError') {
@@ -17539,7 +17539,7 @@ function updatePassportPcFolderStatusStrip(folderName) {
   const el = document.getElementById("passportPcFolderStatusText");
   if (el) {
     if (folderName) {
-      el.innerHTML = "💻 Gekoppelde PC-map: <strong>" + escapeOdooHtml(folderName) + "</strong> &bull; Automatische submappen actief";
+      el.innerHTML = "💻 Gekoppelde PC-map: <strong>" + escapeOdooHtml(folderName) + "</strong> &bull; Submappen in 'QR paspoorten klanten'";
     } else {
       el.innerHTML = "💻 Lokale database actief &bull; Gekoppeld aan browser storage";
     }
@@ -17581,18 +17581,25 @@ async function savePassportToFileSystem(clientName, machineName, passportObj) {
       }
 
       if (passportStorageDirHandle) {
-        // 1. Create / get folder: "Slimme paspoorten " + safeClient
-        const clientFolder = await passportStorageDirHandle.getDirectoryHandle("Slimme paspoorten " + safeClient, { create: true });
-        // 2. Create / get subfolder: safeMachine
+        // 1. Zorg dat hoofdmap 'QR paspoorten klanten' bestaat (tenzij de gekoppelde map zelf al zo heet)
+        let baseFolder = passportStorageDirHandle;
+        if (passportStorageDirHandle.name && passportStorageDirHandle.name.toLowerCase().trim() !== "qr paspoorten klanten") {
+          baseFolder = await passportStorageDirHandle.getDirectoryHandle("QR paspoorten klanten", { create: true });
+        }
+
+        // 2. Create / get folder: "Slimme paspoorten " + safeClient inside 'QR paspoorten klanten'
+        const clientFolder = await baseFolder.getDirectoryHandle("Slimme paspoorten " + safeClient, { create: true });
+        // 3. Create / get subfolder: safeMachine
         const machineFolder = await clientFolder.getDirectoryHandle(safeMachine, { create: true });
-        // 3. Create / write JSON file
+        // 4. Create / write JSON file
         const fileName = safeUnit + " - " + safeType + ".json";
         const fileHandle = await machineFolder.getFileHandle(fileName, { create: true });
         const writable = await fileHandle.createWritable();
         await writable.write(JSON.stringify(passportObj, null, 2));
         await writable.close();
 
-        return { success: true, method: 'filesystem', path: "Slimme paspoorten " + safeClient + "/" + safeMachine + "/" + fileName };
+        const prefixPath = (baseFolder === passportStorageDirHandle ? "" : "QR paspoorten klanten/");
+        return { success: true, method: 'filesystem', path: prefixPath + "Slimme paspoorten " + safeClient + "/" + safeMachine + "/" + fileName };
       }
     } catch (err) {
       if (err.name === 'AbortError') {
