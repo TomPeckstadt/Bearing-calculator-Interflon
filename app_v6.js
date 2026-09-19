@@ -6167,7 +6167,7 @@ const TRANSLATIONS = {
     labelDispensePeriod: "Gewenste Looptijd / Leeglooptijd",
     autoDailyVolumeLabel: "Berekend Dagelijks Smeervolume:",
     btnShowDimensions: "Bekijk afmetingen",
-    btnConsultBrochure: "Raadpleeg brochure",
+    btnConsultBrochure: "Raadpleeg brochure Interflon Single Point Lubricators",
     btnShowPhoto: "Bekijk foto toestel",
     selectLanguageLabel: "Selecteer uw taal",
     modeModalTitle: "Welkom bij Interflon Berekeningsmodule",
@@ -6695,7 +6695,7 @@ const TRANSLATIONS = {
     labelDispensePeriod: "Desired Dispensing Period",
     autoDailyVolumeLabel: "Calculated Daily Lubricant Volume:",
     btnShowDimensions: "View dimensions",
-    btnConsultBrochure: "Consult brochure",
+    btnConsultBrochure: "Consult brochure Interflon Single Point Lubricators",
     btnShowPhoto: "View device photo",
     selectLanguageLabel: "Select your language",
     modeModalTitle: "Welcome to Interflon Calculation Module",
@@ -7223,7 +7223,7 @@ const TRANSLATIONS = {
     labelDispensePeriod: "Période de Distribution Souhaitée",
     autoDailyVolumeLabel: "Volume Quotidien de Lubrifiant Calculé:",
     btnShowDimensions: "Voir dimensions",
-    btnConsultBrochure: "Consulter la brochure",
+    btnConsultBrochure: "Consulter la brochure Interflon Single Point Lubricators",
     btnShowPhoto: "Voir photo appareil",
     selectLanguageLabel: "Choisissez votre langue",
     modeModalTitle: "Bienvenue sur le Module de Calcul Interflon",
@@ -12886,7 +12886,7 @@ function updateAutomationPage(isDropdownChange) {
     if (TRANSLATIONS[lang] && TRANSLATIONS[lang][key]) {
       brochureLabel.textContent = TRANSLATIONS[lang][key];
     } else {
-      brochureLabel.textContent = "Raadpleeg brochure";
+      brochureLabel.textContent = "Raadpleeg brochure Interflon Single Point Lubricators";
     }
   }
 
