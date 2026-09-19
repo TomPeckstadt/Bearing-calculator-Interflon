@@ -5673,6 +5673,8 @@
           devices: deviceConfigs,
           bearings: bearings,
           totalBearings: bearings.length,
+          showCentralPoint: (typeof showCentralPoint === 'boolean') ? showCentralPoint : true,
+          showBearingDistances: (typeof showBearingDistances === 'boolean') ? showBearingDistances : false,
           bearingDataMapSec2: (typeof bearingDataMapSec2 !== "undefined") ? JSON.parse(JSON.stringify(bearingDataMapSec2)) : null,
           bearingDataMapSec3: (typeof bearingDataMapSec3 !== "undefined") ? JSON.parse(JSON.stringify(bearingDataMapSec3)) : null,
           bearingDataMapSec4: (typeof bearingDataMapSec4 !== "undefined") ? JSON.parse(JSON.stringify(bearingDataMapSec4)) : null
@@ -5690,6 +5692,8 @@
           const hasUserInput = (q1El && q1El.value.trim() !== '') ||
                                (clientCompEl && clientCompEl.value.trim() !== '') ||
                                hasSec2Input || hasSec3Input || hasSec4Input ||
+                               (showCentralPoint !== true) ||
+                               (showBearingDistances !== false) ||
                                bearings.some(b => (b.nr && !b.nr.startsWith('Lager ')) || b.desc || b.rpm) ||
                                bearings.length > 1;
 
@@ -5725,6 +5729,7 @@
               },
               surveyRasterConfig: configToSave
             };
+            window.__lastSavedExportDate = fullData.exportDate;
             localStorage.setItem('interflon_questionnaire_full_data', JSON.stringify(fullData));
             localStorage.setItem('interflon_last_questionnaire_data', JSON.stringify(fullData));
           }
@@ -6438,6 +6443,7 @@
         machineRangeMeters: (typeof machineRangeMeters !== "undefined") ? machineRangeMeters : 10,
         layoutViewMode: (typeof layoutViewMode !== "undefined") ? layoutViewMode : '3d',
         showCentralPoint: (typeof showCentralPoint !== "undefined") ? showCentralPoint : true,
+        showBearingDistances: (typeof showBearingDistances !== 'undefined') ? showBearingDistances : false,
         bearingPositions: (typeof bearingPositions !== "undefined") ? JSON.parse(JSON.stringify(bearingPositions)) : {},
         devices: (typeof devices !== "undefined") ? JSON.parse(JSON.stringify(devices)) : []
       };
@@ -6824,8 +6830,14 @@
               type: d.type || 'pulsarlube_m2'
             })));
           }
-          // Centraal Punt default altijd AAN bij het openen van een vragenlijst
-          showCentralPoint = true;
+          // Centraal Punt respecteert opgeslagen instelling indien aanwezig, anders default AAN
+          if (typeof data.raster.showCentralPoint === 'boolean') {
+            showCentralPoint = data.raster.showCentralPoint;
+          } else if (data.surveyRasterConfig && typeof data.surveyRasterConfig.showCentralPoint === 'boolean') {
+            showCentralPoint = data.surveyRasterConfig.showCentralPoint;
+          } else {
+            showCentralPoint = true;
+          }
           if (typeof data.raster.showBearingDistances === 'boolean') {
             showBearingDistances = data.raster.showBearingDistances;
           }
@@ -6839,6 +6851,8 @@
           if (data.raster.layoutViewMode) {
             setLayoutViewMode(data.raster.layoutViewMode);
           }
+        } else if (data.surveyRasterConfig && typeof data.surveyRasterConfig.showCentralPoint === 'boolean') {
+          showCentralPoint = data.surveyRasterConfig.showCentralPoint;
         }
 
         // 7. Update dropdowns, load active bearing values, and sync layout
@@ -8247,6 +8261,8 @@
             if (hasBearings || hasGeneral || hasContact || hasMultipleBearings || hasSec2 || hasSec3 || hasSec4 || hasDevices || hasSurveyRasterConfig) {
               console.log("Restoring saved questionnaire from localStorage on page load...");
               window.__questionnaireRestoring = true;
+              window.__lastRestoredExportDate = savedData.exportDate || '';
+              window.__lastSavedExportDate = savedData.exportDate || '';
               restoreQuestionnaireDOM(savedData, false);
               window.__questionnaireRestoring = false;
               restoredFromStorage = true;
@@ -8264,7 +8280,9 @@
       }
 
       // Initialize canvas and raster interactions
-      showCentralPoint = true;
+      if (!restoredFromStorage) {
+        showCentralPoint = true;
+      }
       if (typeof renderDeviceFilterPills === "function") renderDeviceFilterPills();
       if (typeof initCanvasInteractions === "function") initCanvasInteractions();
       if (typeof syncBearingsToLayout === "function") setTimeout(syncBearingsToLayout, 100);
@@ -8428,6 +8446,17 @@
           try {
             const targetData = JSON.parse(e.newValue);
             if (targetData && typeof restoreQuestionnaireDOM === 'function') {
+              // Ignore updates that match our own last saved or restored exportDate to avoid feedback loops
+              if (window.__lastSavedExportDate && targetData.exportDate === window.__lastSavedExportDate) {
+                return;
+              }
+              if (window.__lastRestoredExportDate && targetData.exportDate === window.__lastRestoredExportDate) {
+                return;
+              }
+              // Only restore if targetData is actually a valid questionnaire object
+              if (!targetData.bearings && !targetData.general && !targetData.raster) {
+                return;
+              }
               console.log("Storage event sync: Questionnaire replaced via localStorage update");
               window.__questionnaireRestoring = true;
               window.__lastRestoredExportDate = targetData.exportDate || '';
