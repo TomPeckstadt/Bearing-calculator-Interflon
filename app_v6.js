@@ -6276,7 +6276,8 @@ const TRANSLATIONS = {
     btnImportCalc: "Opbrengstmodel importeren",
     btnImportBearingFromSurvey: "Importeer een lager uit de vragenlijst",
     surveyBearingSelectPlaceholder: "-- Kies een lager uit de vragenlijst --",
-    calcSurveySelectLabel: "Lager:"
+    calcSurveySelectLabel: "Lager:",
+    propAttachmentReminder: "Vergeet niet het PDF-rapport en/of de offerte toe te voegen aan de mail!"
   },
   en: {
     "devicePulsarlubePlc": "Pulsarlube PLC (Central Control)",
@@ -6802,7 +6803,8 @@ const TRANSLATIONS = {
     btnImportCalc: "Import Yield Model",
     btnImportBearingFromSurvey: "Importeer een lager uit de vragenlijst",
     surveyBearingSelectPlaceholder: "-- Choose a bearing from questionnaire --",
-    calcSurveySelectLabel: "Bearing:"
+    calcSurveySelectLabel: "Bearing:",
+    propAttachmentReminder: "Don't forget to attach the PDF report and/or quotation to the email!"
   },
   fr: {
     "devicePulsarlubePlc": "Pulsarlube PLC (Commande Centralisée)",
@@ -7328,7 +7330,8 @@ const TRANSLATIONS = {
     btnImportCalc: "Importer modèle de rentabilité",
     btnImportBearingFromSurvey: "Importer un roulement du questionnaire",
     surveyBearingSelectPlaceholder: "-- Choisir un roulement du questionnaire --",
-    calcSurveySelectLabel: "Roulement:"
+    calcSurveySelectLabel: "Roulement:",
+    propAttachmentReminder: "N'oubliez pas d'ajouter le rapport PDF et/ou le devis à l'e-mail !"
   }
 };
 
@@ -24648,7 +24651,7 @@ function openProposalInGmail() {
   }
 
   if (typeof showToastNotification === "function") {
-    showToastNotification("✉️ Gmail geopend met directievoorstel!");
+    showToastNotification("✉️ Gmail geopend! ⚠️ Vergeet niet het PDF-rapport en/of de offerte toe te voegen.");
   }
 }
 
@@ -24669,7 +24672,7 @@ function openProposalInOutlook() {
   setTimeout(() => { if (document.body.contains(a)) document.body.removeChild(a); }, 500);
 
   if (typeof showToastNotification === "function") {
-    showToastNotification("📧 Outlook / E-mail geopend met directievoorstel!");
+    showToastNotification("📧 Outlook / E-mail geopend! ⚠️ Vergeet niet het PDF-rapport en/of de offerte toe te voegen.");
   }
 }
 
