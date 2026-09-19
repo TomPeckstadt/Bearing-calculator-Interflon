@@ -3094,12 +3094,12 @@ function syncAllQuestionnaireDataToCalculator(data, explicitTargetLetter) {
       fullData = fullData.fullData || fullData.questionnaire || fullData.data;
     }
 
-    // Deep merge sections if fullData is a stripped raster config (ONLY if same machine!)
+    // Deep merge sections if fullData is a stripped raster config (ONLY if same machine and no explicit new data!)
     const mergeSource = savedFull || savedCfg;
-    if (mergeSource && fullData && mergeSource !== fullData) {
+    if (!data && mergeSource && fullData && mergeSource !== fullData) {
       const fullMach = (fullData.general && (fullData.general.machineName || fullData.general.name)) || '';
       const srcMach = (mergeSource.general && (mergeSource.general.machineName || mergeSource.general.name)) || '';
-      const isSameMachine = !fullMach || !srcMach || (fullMach.trim().toLowerCase() === srcMach.trim().toLowerCase());
+      const isSameMachine = fullMach && srcMach && (fullMach.trim().toLowerCase() === srcMach.trim().toLowerCase());
       if (isSameMachine) {
         if (!fullData.general && mergeSource.general) fullData.general = mergeSource.general;
         if (!fullData.contact && mergeSource.contact) fullData.contact = mergeSource.contact;
@@ -22855,9 +22855,176 @@ function handleImportFileSelected(event) {
 
       const isEnglish = (typeof currentLang !== "undefined" && currentLang === "en");
 
-      // 1. Determine master machine and metadata from imported object
+      // CASE 1: User imported a pure questionnaire JSON file directly into the calculator
+      const isQuestionnaireOnly = (data.fileType === 'Interflon_Smeeranalyse_Vragenlijst' || (data.bearings && data.general)) && !data.inputs && !data.localStorage;
+      if (isQuestionnaireOnly) {
+        try {
+          const qJson = JSON.stringify(data);
+          localStorage.setItem('interflon_questionnaire_full_data', qJson);
+          localStorage.setItem('interflon_last_questionnaire_data', qJson);
+          if (data.surveyRasterConfig) {
+            localStorage.setItem('interflon_survey_raster_config', JSON.stringify(data.surveyRasterConfig));
+          }
+          const qMach = (data.general && (data.general.machineName || data.general.name)) ||
+                        (data.machine && (data.machine.name || data.machine.machineName)) ||
+                        data.machineName || "";
+          if (qMach) {
+            localStorage.setItem('app_field_techMachineInput', qMach);
+            localStorage.setItem('app_field_omTechMachine', qMach);
+            localStorage.setItem('app_field_chainOmTechMachine', qMach);
+            localStorage.setItem('tech_machine', qMach);
+            const mIn = document.getElementById('techMachineInput');
+            if (mIn) mIn.value = qMach;
+            const omM = document.getElementById('omTechMachine');
+            if (omM) omM.value = qMach;
+            const chainM = document.getElementById('chainOmTechMachine');
+            if (chainM) chainM.value = qMach;
+          }
+          const qBrand = (data.general && (data.general.machineBrand || data.general.brand)) || (data.machine && data.machine.brand) || "";
+          if (qBrand) {
+            localStorage.setItem('app_field_techBrandInput', qBrand);
+            localStorage.setItem('app_field_omTechBrand', qBrand);
+            localStorage.setItem('app_field_chainOmTechBrand', qBrand);
+            localStorage.setItem('tech_brand', qBrand);
+            const bIn = document.getElementById('techBrandInput');
+            if (bIn) bIn.value = qBrand;
+            const omB = document.getElementById('omTechBrand');
+            if (omB) omB.value = qBrand;
+          }
+          const qApp = (data.general && (data.general.application || data.general.app)) || (data.machine && data.machine.application) || "";
+          if (qApp) {
+            localStorage.setItem('app_field_techAppInput', qApp);
+            localStorage.setItem('app_field_omTechApp', qApp);
+            localStorage.setItem('app_field_chainOmTechApp', qApp);
+            localStorage.setItem('tech_app', qApp);
+            const aIn = document.getElementById('techAppInput');
+            if (aIn) aIn.value = qApp;
+            const omA = document.getElementById('omTechApp');
+            if (omA) omA.value = qApp;
+          }
+          if (data.contact) {
+            if (data.contact.clientCompany) {
+              localStorage.setItem('app_field_clientCompanyInput', data.contact.clientCompany);
+              localStorage.setItem('app_field_omClientCompany', data.contact.clientCompany);
+              localStorage.setItem('app_field_chainOmClientCompany', data.contact.clientCompany);
+              localStorage.setItem('client_company', data.contact.clientCompany);
+              const cIn = document.getElementById('clientCompanyInput');
+              if (cIn) cIn.value = data.contact.clientCompany;
+              const omC = document.getElementById('omClientCompany');
+              if (omC) omC.value = data.contact.clientCompany;
+            }
+            if (data.contact.clientContact) {
+              localStorage.setItem('app_field_clientContactInput', data.contact.clientContact);
+              localStorage.setItem('app_field_omClientContact', data.contact.clientContact);
+              localStorage.setItem('app_field_chainOmClientContact', data.contact.clientContact);
+              localStorage.setItem('client_contact', data.contact.clientContact);
+              const ctIn = document.getElementById('clientContactInput');
+              if (ctIn) ctIn.value = data.contact.clientContact;
+              const omCt = document.getElementById('omClientContact');
+              if (omCt) omCt.value = data.contact.clientContact;
+            }
+            if (data.contact.clientPhone) {
+              localStorage.setItem('app_field_clientPhoneInput', data.contact.clientPhone);
+              localStorage.setItem('app_field_omClientPhone', data.contact.clientPhone);
+              localStorage.setItem('app_field_chainOmClientPhone', data.contact.clientPhone);
+              localStorage.setItem('client_phone', data.contact.clientPhone);
+              const pIn = document.getElementById('clientPhoneInput');
+              if (pIn) pIn.value = data.contact.clientPhone;
+            }
+            if (data.contact.clientEmail) {
+              localStorage.setItem('app_field_clientEmailInput', data.contact.clientEmail);
+              localStorage.setItem('app_field_omClientEmail', data.contact.clientEmail);
+              localStorage.setItem('app_field_chainOmClientEmail', data.contact.clientEmail);
+              localStorage.setItem('client_email', data.contact.clientEmail);
+              const eIn = document.getElementById('clientEmailInput');
+              if (eIn) eIn.value = data.contact.clientEmail;
+              const omE = document.getElementById('omClientEmail');
+              if (omE) omE.value = data.contact.clientEmail;
+            }
+          }
+
+          window.latestSurveyFullData = data;
+          const bList = Array.isArray(data.bearings) ? data.bearings : [];
+          window.latestSurveyBearings = bList;
+          const firstL = (bList.length > 0 && bList[0].letter) ? bList[0].letter : 'A';
+          window.currentActiveSurveyBearingLetter = firstL;
+          window.currentSurveyBearingLetter = firstL;
+          window.activeTcoBearingSource = "survey_" + firstL;
+          try {
+            localStorage.setItem("interflon_active_survey_letter", firstL);
+            localStorage.setItem("active_tco_bearing_source", "survey_" + firstL);
+          } catch(err) {}
+
+          if (typeof populateSurveyBearingsDropdown === 'function') populateSurveyBearingsDropdown(bList);
+          if (typeof populateOmSurveyBearingsDropdown === 'function') populateOmSurveyBearingsDropdown(bList);
+          if (typeof refreshSurveyBearingsList === 'function') refreshSurveyBearingsList(false);
+          if (typeof syncAllQuestionnaireDataToCalculator === 'function') syncAllQuestionnaireDataToCalculator(data, firstL);
+          if (typeof refreshOmSurveyBearingsDropdown === 'function') {
+            refreshOmSurveyBearingsDropdown();
+            refreshOmSurveyBearingsDropdown('chain');
+          }
+          const surveyWrapper = document.getElementById("surveyBearingSelectWrapper");
+          if (surveyWrapper) surveyWrapper.style.display = bList.length > 0 ? "flex" : "none";
+
+          window.__lastDossierImportTime = Date.now();
+          if (typeof BroadcastChannel !== 'undefined') {
+            try {
+              const syncChan = new BroadcastChannel('interflon_questionnaire_sync');
+              syncChan.postMessage({
+                type: 'QUESTIONNAIRE_IMPORTED',
+                data: data,
+                fullData: data,
+                bearings: bList,
+                source: 'calculator_dossier_import'
+              });
+            } catch(e) {}
+          }
+
+          if (typeof loadClientDetails === 'function') loadClientDetails();
+          if (typeof loadOperatorDetails === 'function') loadOperatorDetails();
+          if (typeof loadTechDetails === 'function') loadTechDetails();
+          if (typeof updateClientBadge === 'function') updateClientBadge(data.contact ? data.contact.clientCompany : '', data.contact ? data.contact.clientContact : '');
+          if (typeof updateTechBadge === 'function') updateTechBadge(qMach, qApp);
+          if (typeof updateOmMetadata === 'function') updateOmMetadata();
+          if (typeof calculateGrease === "function") calculateGrease();
+          if (typeof calculateBearing === "function") calculateBearing();
+          if (typeof calculateTco === "function") calculateTco();
+          if (typeof updateOmKpiSummaryCards === "function") updateOmKpiSummaryCards();
+          if (typeof renderAutoDevicesUI === "function") renderAutoDevicesUI();
+          if (typeof calculateAutomationLubrication === "function") calculateAutomationLubrication();
+          if (typeof updateRoiAutomationPage === "function") updateRoiAutomationPage();
+          if (typeof calculateChain === "function") calculateChain();
+          if (typeof calculateChainTco === "function") calculateChainTco();
+
+          showToastNotification(qMach ? `Vragenlijst voor machine '${qMach}' succesvol geladen!` : "Vragenlijst succesvol geladen in de calculator!");
+          return;
+        } catch(e) {
+          console.error("Fout bij laden van vragenlijst:", e);
+        }
+      }
+
+      // CASE 2: Opbrengstmodel / Dossier import
+      // 1. Extract questionnaire object
+      let importedQuestionnaire = null;
+      if (data.questionnaire && typeof data.questionnaire === 'object' && (data.questionnaire.bearings || data.questionnaire.general || data.questionnaire.fileType)) {
+        importedQuestionnaire = data.questionnaire;
+      } else if (data.questionnaireData && typeof data.questionnaireData === 'object') {
+        importedQuestionnaire = data.questionnaireData;
+      } else if (data.fullData && typeof data.fullData === 'object' && (data.fullData.bearings || data.fullData.general)) {
+        importedQuestionnaire = data.fullData;
+      } else if (data.localStorage) {
+        const rawQ = data.localStorage.interflon_questionnaire_full_data || data.localStorage.interflon_last_questionnaire_data;
+        if (rawQ) {
+          try {
+            importedQuestionnaire = (typeof rawQ === 'string') ? JSON.parse(rawQ) : rawQ;
+          } catch(e) {}
+        }
+      }
+
+      // 2. Determine target metadata (prioritizing explicit fields in imported file)
       const targetMachine = (data.tech && data.tech.machine) ||
                             data.techMachine ||
+                            (importedQuestionnaire && importedQuestionnaire.general && (importedQuestionnaire.general.machineName || importedQuestionnaire.general.name)) ||
                             (data.general && (data.general.machineName || data.general.name)) ||
                             (data.machine && (data.machine.name || data.machine.machineName)) ||
                             data.machineName ||
@@ -22865,12 +23032,14 @@ function handleImportFileSelected(event) {
                             (data.localStorage && data.localStorage["tech_machine"]) || "";
 
       const targetBrand = (data.tech && data.tech.brand) ||
+                          (importedQuestionnaire && importedQuestionnaire.general && (importedQuestionnaire.general.machineBrand || importedQuestionnaire.general.brand)) ||
                           (data.general && (data.general.machineBrand || data.general.brand)) ||
                           (data.machine && (data.machine.brand || data.machine.machineBrand)) ||
                           (data.inputs && (data.inputs["techBrandInput"] || data.inputs["omTechBrand"] || data.inputs["chainOmTechBrand"])) ||
                           (data.localStorage && data.localStorage["tech_brand"]) || "";
 
       const targetApp = (data.tech && data.tech.app) ||
+                        (importedQuestionnaire && importedQuestionnaire.general && (importedQuestionnaire.general.application || importedQuestionnaire.general.app)) ||
                         (data.general && (data.general.application || data.general.app)) ||
                         (data.machine && (data.machine.application || data.machine.app)) ||
                         (data.inputs && (data.inputs["techAppInput"] || data.inputs["omTechApp"] || data.inputs["chainOmTechApp"])) ||
@@ -22890,22 +23059,26 @@ function handleImportFileSelected(event) {
 
       const targetCompany = (data.client && data.client.company) ||
                             data.clientCompany ||
+                            (importedQuestionnaire && importedQuestionnaire.contact && importedQuestionnaire.contact.clientCompany) ||
                             (data.contact && data.contact.clientCompany) ||
                             (data.inputs && (data.inputs["clientCompanyInput"] || data.inputs["omClientCompany"] || data.inputs["chainOmClientCompany"])) ||
                             (data.localStorage && data.localStorage["client_company"]) || "";
 
       const targetContact = (data.client && data.client.contact) ||
                             data.clientContact ||
+                            (importedQuestionnaire && importedQuestionnaire.contact && importedQuestionnaire.contact.clientContact) ||
                             (data.contact && data.contact.clientContact) ||
                             (data.inputs && (data.inputs["clientContactInput"] || data.inputs["omClientContact"] || data.inputs["chainOmClientContact"])) ||
                             (data.localStorage && data.localStorage["client_contact"]) || "";
 
       const targetPhone = (data.client && data.client.phone) ||
+                          (importedQuestionnaire && importedQuestionnaire.contact && importedQuestionnaire.contact.clientPhone) ||
                           (data.contact && data.contact.clientPhone) ||
                           (data.inputs && (data.inputs["clientPhoneInput"] || data.inputs["omClientPhone"] || data.inputs["chainOmClientPhone"])) ||
                           (data.localStorage && data.localStorage["client_phone"]) || "";
 
       const targetEmail = (data.client && data.client.email) ||
+                          (importedQuestionnaire && importedQuestionnaire.contact && importedQuestionnaire.contact.clientEmail) ||
                           (data.contact && data.contact.clientEmail) ||
                           (data.inputs && (data.inputs["clientEmailInput"] || data.inputs["omClientEmail"] || data.inputs["chainOmClientEmail"])) ||
                           (data.localStorage && data.localStorage["client_email"]) || "";
@@ -22922,81 +23095,45 @@ function handleImportFileSelected(event) {
                             (data.inputs && (data.inputs["opEmailInput"] || data.inputs["omOpEmail"] || data.inputs["chainOmOpEmail"])) ||
                             (data.localStorage && data.localStorage["operator_email"]) || "";
 
-      // 2. Extract questionnaire object (from file structure, nested fullData, or embedded questionnaire)
-      let importedQuestionnaire = null;
-      if (data.questionnaire && typeof data.questionnaire === 'object' && (data.questionnaire.bearings || data.questionnaire.general || data.questionnaire.fileType)) {
-        importedQuestionnaire = data.questionnaire;
-      } else if (data.questionnaireData && typeof data.questionnaireData === 'object') {
-        importedQuestionnaire = data.questionnaireData;
-      } else if (data.fullData && typeof data.fullData === 'object' && (data.fullData.bearings || data.fullData.general)) {
-        importedQuestionnaire = data.fullData;
-      } else if ((data.fileType === 'Interflon_Smeeranalyse_Vragenlijst' || (data.bearings && data.general)) && !data.inputs) {
-        importedQuestionnaire = data;
-      } else if (data.localStorage) {
-        const rawQ = data.localStorage.interflon_questionnaire_full_data || data.localStorage.interflon_last_questionnaire_data;
-        if (rawQ) {
-          try {
-            importedQuestionnaire = (typeof rawQ === 'string') ? JSON.parse(rawQ) : rawQ;
-          } catch(e) {}
-        }
-      }
-
-      // Synchronize questionnaire metadata to dossier metadata so stale questionnaire names cannot conflict
+      // Align questionnaire metadata if questionnaire exists
       if (importedQuestionnaire && typeof importedQuestionnaire === 'object') {
         if (!importedQuestionnaire.general) importedQuestionnaire.general = {};
-        if (targetMachine) {
+        if (targetMachine && !importedQuestionnaire.general.machineName) {
           importedQuestionnaire.general.machineName = targetMachine;
-          if (importedQuestionnaire.machine) importedQuestionnaire.machine.name = targetMachine;
         }
-        if (targetBrand) {
+        if (targetBrand && !importedQuestionnaire.general.machineBrand) {
           importedQuestionnaire.general.machineBrand = targetBrand;
-          if (importedQuestionnaire.machine) importedQuestionnaire.machine.brand = targetBrand;
         }
-        if (targetApp) {
+        if (targetApp && !importedQuestionnaire.general.application) {
           importedQuestionnaire.general.application = targetApp;
-          if (importedQuestionnaire.machine) importedQuestionnaire.machine.application = targetApp;
         }
         if (!importedQuestionnaire.contact) importedQuestionnaire.contact = {};
-        if (targetCompany) importedQuestionnaire.contact.clientCompany = targetCompany;
-        if (targetContact) importedQuestionnaire.contact.clientContact = targetContact;
-        if (targetPhone) importedQuestionnaire.contact.clientPhone = targetPhone;
-        if (targetEmail) importedQuestionnaire.contact.clientEmail = targetEmail;
+        if (targetCompany && !importedQuestionnaire.contact.clientCompany) importedQuestionnaire.contact.clientCompany = targetCompany;
+        if (targetContact && !importedQuestionnaire.contact.clientContact) importedQuestionnaire.contact.clientContact = targetContact;
+        if (targetPhone && !importedQuestionnaire.contact.clientPhone) importedQuestionnaire.contact.clientPhone = targetPhone;
+        if (targetEmail && !importedQuestionnaire.contact.clientEmail) importedQuestionnaire.contact.clientEmail = targetEmail;
       }
 
-      // 3. COMPLETE PURGE OF PREVIOUS DOSSIER / STALE DATA
+      // STEP 3: Purge existing field storage keys so no stale values linger
+      Object.keys(localStorage).forEach(k => {
+        if (k.startsWith("app_field_") || k.startsWith("bearing_calc_")) {
+          try { localStorage.removeItem(k); } catch(e) {}
+        }
+      });
       const keysToPurge = [
         "tech_machine", "tech_app", "tech_brand", "tech_product", "tech_interval", "tech_price",
         "client_company", "client_contact", "client_phone", "client_email",
         "operator_name", "operator_phone", "operator_email",
-        "interflon_questionnaire_full_data", "interflon_last_questionnaire_data",
-        "interflon_survey_raster_config", "interflon_raster_config",
         "interflon_active_survey_letter", "active_tco_bearing_source",
         "selected_bearing", "currentBearingId", "currentBearingName"
       ];
       keysToPurge.forEach(k => {
         try { localStorage.removeItem(k); } catch(e) {}
       });
-      Object.keys(localStorage).forEach(k => {
-        if (k.startsWith("app_field_") || k.startsWith("bearing_calc_")) {
-          try { localStorage.removeItem(k); } catch(e) {}
-        }
-      });
 
-      // Reset all DOM input fields so no values from previous machine linger
-      document.querySelectorAll("input, textarea").forEach(el => {
-        if (el.id && el.id !== "passwordInput" && el.id !== "importJsonFileInput" && el.id !== "importQuestionnaireFileInput" && el.type !== "file") {
-          if (el.type === "checkbox" || el.type === "radio") {
-            el.checked = false;
-          } else {
-            el.value = "";
-          }
-        }
-      });
-
-      // 4. Restore localStorage safely from file (individual try/catch protects against QuotaExceeded)
+      // STEP 4: Restore localStorage from imported file (with individual try/catch)
       if (data.localStorage && typeof data.localStorage === 'object') {
         Object.keys(data.localStorage).forEach(k => {
-          if (k === 'interflon_questionnaire_full_data' || k === 'interflon_last_questionnaire_data') return;
           if (data.localStorage[k] !== null && data.localStorage[k] !== undefined) {
             try {
               const valToStore = (typeof data.localStorage[k] === "object")
@@ -23008,66 +23145,68 @@ function handleImportFileSelected(event) {
         });
       }
 
-      // 5. Explicitly store target master metadata in localStorage
-      localStorage.setItem("tech_machine", targetMachine);
-      localStorage.setItem("tech_app", targetApp);
-      localStorage.setItem("tech_brand", targetBrand);
-      localStorage.setItem("tech_product", targetProduct);
-      localStorage.setItem("tech_interval", targetInterval);
-      localStorage.setItem("tech_price", targetPrice);
+      // STEP 5: Explicitly store verified metadata in localStorage
+      try {
+        localStorage.setItem("tech_machine", targetMachine);
+        localStorage.setItem("tech_app", targetApp);
+        localStorage.setItem("tech_brand", targetBrand);
+        localStorage.setItem("tech_product", targetProduct);
+        localStorage.setItem("tech_interval", targetInterval);
+        localStorage.setItem("tech_price", targetPrice);
 
-      localStorage.setItem("client_company", targetCompany);
-      localStorage.setItem("client_contact", targetContact);
-      localStorage.setItem("client_phone", targetPhone);
-      localStorage.setItem("client_email", targetEmail);
+        localStorage.setItem("client_company", targetCompany);
+        localStorage.setItem("client_contact", targetContact);
+        localStorage.setItem("client_phone", targetPhone);
+        localStorage.setItem("client_email", targetEmail);
 
-      localStorage.setItem("operator_name", targetOpName);
-      localStorage.setItem("operator_phone", targetOpPhone);
-      localStorage.setItem("operator_email", targetOpEmail);
+        localStorage.setItem("operator_name", targetOpName);
+        localStorage.setItem("operator_phone", targetOpPhone);
+        localStorage.setItem("operator_email", targetOpEmail);
 
-      localStorage.setItem("app_field_techMachineInput", targetMachine);
-      localStorage.setItem("app_field_omTechMachine", targetMachine);
-      localStorage.setItem("app_field_chainOmTechMachine", targetMachine);
-      localStorage.setItem("app_field_techBrandInput", targetBrand);
-      localStorage.setItem("app_field_omTechBrand", targetBrand);
-      localStorage.setItem("app_field_chainOmTechBrand", targetBrand);
-      localStorage.setItem("app_field_techAppInput", targetApp);
-      localStorage.setItem("app_field_omTechApp", targetApp);
-      localStorage.setItem("app_field_chainOmTechApp", targetApp);
-      localStorage.setItem("app_field_techProductInput", targetProduct);
-      localStorage.setItem("app_field_omTechProduct", targetProduct);
-      localStorage.setItem("app_field_chainOmTechProduct", targetProduct);
-      localStorage.setItem("app_field_techIntervalInput", targetInterval);
-      localStorage.setItem("app_field_omTechInterval", targetInterval);
-      localStorage.setItem("app_field_chainOmTechInterval", targetInterval);
-      localStorage.setItem("app_field_techPriceInput", targetPrice);
-      localStorage.setItem("app_field_omTechPrice", targetPrice);
-      localStorage.setItem("app_field_chainOmTechPrice", targetPrice);
+        localStorage.setItem("app_field_techMachineInput", targetMachine);
+        localStorage.setItem("app_field_omTechMachine", targetMachine);
+        localStorage.setItem("app_field_chainOmTechMachine", targetMachine);
+        localStorage.setItem("app_field_techBrandInput", targetBrand);
+        localStorage.setItem("app_field_omTechBrand", targetBrand);
+        localStorage.setItem("app_field_chainOmTechBrand", targetBrand);
+        localStorage.setItem("app_field_techAppInput", targetApp);
+        localStorage.setItem("app_field_omTechApp", targetApp);
+        localStorage.setItem("app_field_chainOmTechApp", targetApp);
+        localStorage.setItem("app_field_techProductInput", targetProduct);
+        localStorage.setItem("app_field_omTechProduct", targetProduct);
+        localStorage.setItem("app_field_chainOmTechProduct", targetProduct);
+        localStorage.setItem("app_field_techIntervalInput", targetInterval);
+        localStorage.setItem("app_field_omTechInterval", targetInterval);
+        localStorage.setItem("app_field_chainOmTechInterval", targetInterval);
+        localStorage.setItem("app_field_techPriceInput", targetPrice);
+        localStorage.setItem("app_field_omTechPrice", targetPrice);
+        localStorage.setItem("app_field_chainOmTechPrice", targetPrice);
 
-      localStorage.setItem("app_field_clientCompanyInput", targetCompany);
-      localStorage.setItem("app_field_omClientCompany", targetCompany);
-      localStorage.setItem("app_field_chainOmClientCompany", targetCompany);
-      localStorage.setItem("app_field_clientContactInput", targetContact);
-      localStorage.setItem("app_field_omClientContact", targetContact);
-      localStorage.setItem("app_field_chainOmClientContact", targetContact);
-      localStorage.setItem("app_field_clientPhoneInput", targetPhone);
-      localStorage.setItem("app_field_omClientPhone", targetPhone);
-      localStorage.setItem("app_field_chainOmClientPhone", targetPhone);
-      localStorage.setItem("app_field_clientEmailInput", targetEmail);
-      localStorage.setItem("app_field_omClientEmail", targetEmail);
-      localStorage.setItem("app_field_chainOmClientEmail", targetEmail);
+        localStorage.setItem("app_field_clientCompanyInput", targetCompany);
+        localStorage.setItem("app_field_omClientCompany", targetCompany);
+        localStorage.setItem("app_field_chainOmClientCompany", targetCompany);
+        localStorage.setItem("app_field_clientContactInput", targetContact);
+        localStorage.setItem("app_field_omClientContact", targetContact);
+        localStorage.setItem("app_field_chainOmClientContact", targetContact);
+        localStorage.setItem("app_field_clientPhoneInput", targetPhone);
+        localStorage.setItem("app_field_omClientPhone", targetPhone);
+        localStorage.setItem("app_field_chainOmClientPhone", targetPhone);
+        localStorage.setItem("app_field_clientEmailInput", targetEmail);
+        localStorage.setItem("app_field_omClientEmail", targetEmail);
+        localStorage.setItem("app_field_chainOmClientEmail", targetEmail);
 
-      localStorage.setItem("app_field_opNameInput", targetOpName);
-      localStorage.setItem("app_field_omOpName", targetOpName);
-      localStorage.setItem("app_field_chainOmOpName", targetOpName);
-      localStorage.setItem("app_field_opPhoneInput", targetOpPhone);
-      localStorage.setItem("app_field_omOpPhone", targetOpPhone);
-      localStorage.setItem("app_field_chainOmOpPhone", targetOpPhone);
-      localStorage.setItem("app_field_opEmailInput", targetOpEmail);
-      localStorage.setItem("app_field_omOpEmail", targetOpEmail);
-      localStorage.setItem("app_field_chainOmOpEmail", targetOpEmail);
+        localStorage.setItem("app_field_opNameInput", targetOpName);
+        localStorage.setItem("app_field_omOpName", targetOpName);
+        localStorage.setItem("app_field_chainOmOpName", targetOpName);
+        localStorage.setItem("app_field_opPhoneInput", targetOpPhone);
+        localStorage.setItem("app_field_omOpPhone", targetOpPhone);
+        localStorage.setItem("app_field_chainOmOpPhone", targetOpPhone);
+        localStorage.setItem("app_field_opEmailInput", targetOpEmail);
+        localStorage.setItem("app_field_omOpEmail", targetOpEmail);
+        localStorage.setItem("app_field_chainOmOpEmail", targetOpEmail);
+      } catch(e) {}
 
-      // 6. Restore global mode without switching the user's active page away from Opbrengstmodel
+      // STEP 6: Restore global states
       if (data.activeCalculationMode) {
         window.activeCalculationMode = data.activeCalculationMode;
         currentAppMode = data.activeCalculationMode;
@@ -23084,7 +23223,7 @@ function handleImportFileSelected(event) {
         window.currentChainData = data.currentChainData;
       }
 
-      // 7. Restore photo folders safely
+      // STEP 7: Restore photo folders safely
       let importedFolders = [];
       if (data.photoFolders && Array.isArray(data.photoFolders) && data.photoFolders.length > 0) {
         importedFolders = data.photoFolders;
@@ -23111,7 +23250,6 @@ function handleImportFileSelected(event) {
             if (Array.isArray(parsed) && parsed.length > 0) legacyPhotos = parsed;
           } catch(e) {}
         }
-
         if (legacyPhotos.length > 0) {
           if (legacyPhotos[0].photos && Array.isArray(legacyPhotos[0].photos)) {
             importedFolders = legacyPhotos;
@@ -23155,7 +23293,7 @@ function handleImportFileSelected(event) {
         console.warn("Could not write imported photo folders to localStorage:", err);
       }
 
-      // 8. Restore inputs into DOM and localStorage
+      // STEP 8: Restore inputs into DOM and localStorage WITH EVENT DISPATCHING
       if (data.inputs && typeof data.inputs === 'object') {
         Object.keys(data.inputs).forEach(id => {
           const val = data.inputs[id];
@@ -23165,16 +23303,26 @@ function handleImportFileSelected(event) {
             if (el.type === "checkbox" || el.type === "radio") {
               el.checked = !!val;
             } else {
-              el.value = val;
+              el.value = (val !== null && val !== undefined) ? val : "";
             }
+            try {
+              el.dispatchEvent(new Event("input", { bubbles: true }));
+              el.dispatchEvent(new Event("change", { bubbles: true }));
+            } catch(e) {}
           }
         });
       }
 
-      // 9. Force metadata DOM elements explicitly so no UI field can remain stuck
+      // STEP 9: Direct DOM assignments for master metadata fields to guarantee consistency
       const setValDirect = (id, val) => {
         const el = document.getElementById(id);
-        if (el) el.value = (val !== null && val !== undefined) ? val : "";
+        if (el) {
+          el.value = (val !== null && val !== undefined) ? val : "";
+          try {
+            el.dispatchEvent(new Event("input", { bubbles: true }));
+            el.dispatchEvent(new Event("change", { bubbles: true }));
+          } catch(e) {}
+        }
       };
       const setTxtDirect = (id, txt) => {
         const el = document.getElementById(id);
@@ -23197,18 +23345,34 @@ function handleImportFileSelected(event) {
       setTxtDirect("chainOmProdName1", targetProduct || "Conventionele Kettingolie");
 
       const suffix = currentLang === "nl" ? " dagen" : currentLang === "fr" ? " jours" : " days";
+      let formattedInterval = "";
+      if (targetInterval !== null && targetInterval !== undefined && targetInterval !== "") {
+        const iClean = String(targetInterval).replace(/[^0-9]/g, '');
+        if (iClean) {
+          formattedInterval = `${iClean}${suffix}`;
+        } else {
+          formattedInterval = String(targetInterval);
+        }
+      }
       setValDirect("techIntervalInput", targetInterval);
-      setValDirect("omTechInterval", targetInterval ? `${targetInterval}${suffix}` : "");
-      setValDirect("chainOmTechInterval", targetInterval ? `${targetInterval}${suffix}` : "");
+      setValDirect("omTechInterval", formattedInterval);
+      setValDirect("chainOmTechInterval", formattedInterval);
 
-      const formattedPrice = targetPrice ? `€ ${parseFloat(targetPrice).toFixed(2)}` : "";
+      let formattedPrice = "";
+      if (targetPrice !== null && targetPrice !== undefined && targetPrice !== "") {
+        const pClean = String(targetPrice).replace(/[^0-9.,]/g, '').replace(',', '.');
+        const pNum = parseFloat(pClean);
+        if (!isNaN(pNum)) {
+          formattedPrice = `€ ${pNum.toFixed(2)}`;
+          setValDirect("omProdPrice1", pNum.toFixed(2));
+          setValDirect("chainOmProdPrice1", pNum.toFixed(2));
+        } else {
+          formattedPrice = String(targetPrice);
+        }
+      }
       setValDirect("techPriceInput", targetPrice);
       setValDirect("omTechPrice", formattedPrice);
       setValDirect("chainOmTechPrice", formattedPrice);
-      if (targetPrice) {
-        setValDirect("omProdPrice1", parseFloat(targetPrice).toFixed(2));
-        setValDirect("chainOmProdPrice1", parseFloat(targetPrice).toFixed(2));
-      }
 
       setValDirect("clientCompanyInput", targetCompany);
       setValDirect("omClientCompany", targetCompany);
@@ -23237,7 +23401,7 @@ function handleImportFileSelected(event) {
       window.__lastDossierImportTime = Date.now();
       window.__isSyncingQuestionnaire = false;
 
-      // 10. Activate questionnaire in calculator, dropdowns, and broadcast cross-tab
+      // STEP 10: Activate questionnaire in calculator, dropdowns, and broadcast cross-tab
       if (importedQuestionnaire) {
         try {
           const qJson = JSON.stringify(importedQuestionnaire);
@@ -23314,7 +23478,7 @@ function handleImportFileSelected(event) {
         }
       }
 
-      // 11. Explicitly reload all metadata in modals, topbar badges, and Opbrengstmodel columns
+      // STEP 11: Explicitly reload all metadata in modals, topbar badges, and Opbrengstmodel columns
       if (typeof loadClientDetails === "function") loadClientDetails();
       if (typeof loadOperatorDetails === "function") loadOperatorDetails();
       if (typeof loadTechDetails === "function") loadTechDetails();
@@ -23326,7 +23490,12 @@ function handleImportFileSelected(event) {
       if (typeof renderPhotoGrid === "function") renderPhotoGrid();
       if (typeof updatePhotoBadgeCounter === "function") updatePhotoBadgeCounter();
 
-      // 12. Trigger all recalculations
+      // STEP 12: Display selected bearing if restored
+      if (window.currentSelectedBearing && typeof displayBearingData === "function") {
+        displayBearingData(window.currentSelectedBearing);
+      }
+
+      // STEP 13: Trigger all recalculations
       if (typeof calculateGrease === "function") calculateGrease();
       if (typeof calculateBearing === "function") calculateBearing();
       if (typeof calculateTco === "function") calculateTco();
