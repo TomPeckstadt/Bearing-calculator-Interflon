@@ -793,16 +793,32 @@ function updateCorrectionFactorsHint() {
   const lang = (typeof currentLang !== 'undefined' && currentLang) ? currentLang : 'nl';
 
   // 1. Check if user is in explicit manual mode
-  const activeSource = window.activeTcoBearingSource || localStorage.getItem("active_tco_bearing_source") || "";
   let targetLetter = null;
-
+  const activeSource = window.activeTcoBearingSource || localStorage.getItem("active_tco_bearing_source") || "";
   if (activeSource === "manual") {
     targetLetter = null;
   } else if (activeSource.startsWith("survey_")) {
     targetLetter = activeSource.replace("survey_", "");
   }
 
-  // 2. Check dropdown in Lager Opzoeken if not determined
+  // 2. Check current active survey letter in memory or localStorage
+  if (!targetLetter && activeSource !== "manual") {
+    targetLetter = window.currentActiveSurveyBearingLetter || window.currentSurveyBearingLetter || null;
+    if (!targetLetter) {
+      try { targetLetter = localStorage.getItem("interflon_active_survey_letter"); } catch(e) {}
+    }
+  }
+
+  // 3. Check dropdown in Smeercalculatie if not determined
+  if (!targetLetter && activeSource !== "manual") {
+    const calcSel = document.getElementById("calcSurveyBearingSelect");
+    if (calcSel && calcSel.value) {
+      const opt = calcSel.options[calcSel.selectedIndex];
+      targetLetter = (opt && opt.dataset && opt.dataset.letter) ? opt.dataset.letter : (calcSel.value.includes('___') ? calcSel.value.split('___')[0] : null);
+    }
+  }
+
+  // 4. Check dropdown in Lager Opzoeken if not determined
   if (!targetLetter && activeSource !== "manual") {
     const sel = document.getElementById("surveyBearingSelect");
     if (sel && sel.value) {
@@ -811,7 +827,7 @@ function updateCorrectionFactorsHint() {
     }
   }
 
-  // 3. Check Opbrengstmodel dropdown if not determined
+  // 5. Check Opbrengstmodel dropdown if not determined
   if (!targetLetter && activeSource !== "manual") {
     const omSel = document.getElementById("omSurveyBearingSelect");
     if (omSel && omSel.value && omSel.value !== 'manual' && omSel.value !== '__open_search__') {
@@ -820,15 +836,7 @@ function updateCorrectionFactorsHint() {
     }
   }
 
-  // 4. Memory or localStorage
-  if (!targetLetter && activeSource !== "manual") {
-    targetLetter = window.currentActiveSurveyBearingLetter || window.currentSurveyBearingLetter || null;
-    if (!targetLetter) {
-      try { targetLetter = localStorage.getItem("interflon_active_survey_letter"); } catch(e) {}
-    }
-  }
-
-  // 5. Load questionnaire data if available
+  // 6. Load questionnaire data if available
   let fullData = window.latestSurveyFullData || null;
   if (!fullData) {
     try {
@@ -1965,7 +1973,18 @@ function populateSurveyBearingsDropdown(bearings) {
         selectEl.appendChild(opt);
       });
 
-      if (currentVal && Array.from(selectEl.options).some(o => o.value === currentVal)) {
+      const activeL = window.currentActiveSurveyBearingLetter || localStorage.getItem("interflon_active_survey_letter") || "";
+      let restored = false;
+      if (activeL) {
+        for (let i = 0; i < selectEl.options.length; i++) {
+          if ((selectEl.options[i].dataset && selectEl.options[i].dataset.letter === activeL) || (selectEl.options[i].value && selectEl.options[i].value.startsWith(activeL + '___'))) {
+            selectEl.selectedIndex = i;
+            restored = true;
+            break;
+          }
+        }
+      }
+      if (!restored && currentVal && Array.from(selectEl.options).some(o => o.value === currentVal)) {
         selectEl.value = currentVal;
       }
     }
@@ -2026,7 +2045,11 @@ function populateOmSurveyBearingsDropdown(bearings) {
     ? bearings
     : ((typeof getQuestionnaireBearings === 'function') ? getQuestionnaireBearings() : []);
 
-  const activeSource = window.activeTcoBearingSource || localStorage.getItem("active_tco_bearing_source") || "";
+  const activeL = window.currentActiveSurveyBearingLetter || window.currentSurveyBearingLetter || localStorage.getItem("interflon_active_survey_letter") || "";
+  let activeSource = window.activeTcoBearingSource || localStorage.getItem("active_tco_bearing_source") || "";
+  if (!activeSource && activeL) {
+    activeSource = "survey_" + activeL;
+  }
 
   configs.forEach(({ el, mode }) => {
     if (!el) return;
@@ -2153,6 +2176,14 @@ function populateOmSurveyBearingsDropdown(bearings) {
           break;
         }
       }
+    } else if (activeL) {
+      for (let i = 0; i < el.options.length; i++) {
+        if (el.options[i].dataset && el.options[i].dataset.letter === activeL) {
+          el.selectedIndex = i;
+          restored = true;
+          break;
+        }
+      }
     } else if (currentSelectedLetter) {
       for (let i = 0; i < el.options.length; i++) {
         if (el.options[i].dataset && el.options[i].dataset.letter === currentSelectedLetter) {
@@ -2263,6 +2294,18 @@ function onOmSurveyBearingSelected(selectEl, mode) {
 
   window.activeTcoBearingSource = "survey_" + targetLetter;
   try { localStorage.setItem("active_tco_bearing_source", "survey_" + targetLetter); } catch(e) {}
+
+  const selectedNr = (opt && opt.dataset && opt.dataset.nr)
+    ? opt.dataset.nr
+    : (rawVal.includes('___') ? rawVal.split('___')[1] : "");
+  if (mode !== 'chain' && selectedNr && typeof loadBearingDetails === "function") {
+    const searchInput = document.getElementById("bearingSearchInput");
+    if (searchInput) {
+      searchInput.value = selectedNr;
+      try { localStorage.setItem("app_field_bearingSearchInput", selectedNr); } catch(e) {}
+    }
+    loadBearingDetails(selectedNr);
+  }
 
   importSurveyBearingToOpbrengstmodel(mode, targetLetter);
   if (typeof applyCorrectionFactorsForBearing === "function") {
@@ -2944,8 +2987,8 @@ function onSurveyBearingSelected(selectEl) {
   if (typeof calculateTco === "function") {
     calculateTco();
   }
-  if (typeof updateOmMetadata === "function") {
-    updateOmMetadata();
+  if (typeof importSurveyBearingToOpbrengstmodel === "function") {
+    importSurveyBearingToOpbrengstmodel("bearing", targetLetter);
   }
   if (typeof saveBearingTcoDetails === "function") {
     saveBearingTcoDetails();
@@ -3065,45 +3108,71 @@ function syncAllQuestionnaireDataToCalculator(data, explicitTargetLetter) {
 
     window.latestSurveyFullData = fullData;
 
+    const allBearings = (Array.isArray(fullData.bearings) && fullData.bearings.length > 0) ? fullData.bearings :
+                        (window.latestSurveyBearings && Array.isArray(window.latestSurveyBearings)) ? window.latestSurveyBearings : [];
+
     let targetLetter = explicitTargetLetter || null;
-    // When fresh questionnaire data is passed, prioritize its active bearing!
-    if (!targetLetter && data && data.activeBearings) {
-      targetLetter = data.activeBearings.sec2 || data.activeBearings.sec3 || data.activeBearings.sec4 || null;
+    // 1. Prioriteer de actieve selectie van de gebruiker in de calculator!
+    if (!targetLetter) {
+      const activeL = window.currentActiveSurveyBearingLetter || window.currentSurveyBearingLetter || null;
+      if (activeL && (!allBearings || allBearings.length === 0 || allBearings.some(b => b.letter === activeL))) {
+        targetLetter = activeL;
+      }
     }
-    if (!targetLetter && fullData && fullData.activeBearings && data) {
-      targetLetter = fullData.activeBearings.sec2 || fullData.activeBearings.sec3 || fullData.activeBearings.sec4 || null;
+    if (!targetLetter) {
+      const savedL = localStorage.getItem("interflon_active_survey_letter");
+      if (savedL && (!allBearings || allBearings.length === 0 || allBearings.some(b => b.letter === savedL))) {
+        targetLetter = savedL;
+      }
     }
     if (!targetLetter) {
       const activeSrc = window.activeTcoBearingSource || localStorage.getItem("active_tco_bearing_source") || "";
       if (activeSrc.startsWith("survey_")) {
-        targetLetter = activeSrc.replace("survey_", "");
+        const srcL = activeSrc.replace("survey_", "");
+        if (!allBearings || allBearings.length === 0 || allBearings.some(b => b.letter === srcL)) {
+          targetLetter = srcL;
+        }
       }
     }
     if (!targetLetter) {
-      const mainSel = document.getElementById("surveyBearingSelect");
-      if (mainSel && mainSel.value) {
-        const opt = mainSel.options[mainSel.selectedIndex];
-        targetLetter = (opt && opt.dataset && opt.dataset.letter) ? opt.dataset.letter : (mainSel.value.includes('___') ? mainSel.value.split('___')[0] : null);
+      const calcSel = document.getElementById("calcSurveyBearingSelect");
+      if (calcSel && calcSel.value) {
+        const opt = calcSel.options[calcSel.selectedIndex];
+        const l = (opt && opt.dataset && opt.dataset.letter) ? opt.dataset.letter : (calcSel.value.includes('___') ? calcSel.value.split('___')[0] : null);
+        if (l && (!allBearings || allBearings.length === 0 || allBearings.some(b => b.letter === l))) {
+          targetLetter = l;
+        }
       }
     }
     if (!targetLetter) {
       const omSel = document.getElementById("omSurveyBearingSelect");
       if (omSel && omSel.value && omSel.value !== 'manual' && omSel.value !== '__open_search__') {
         const opt = omSel.options[omSel.selectedIndex];
-        targetLetter = (opt && opt.dataset && opt.dataset.letter) ? opt.dataset.letter : (omSel.value.startsWith('survey_') ? omSel.value.replace('survey_', '') : omSel.value);
+        const l = (opt && opt.dataset && opt.dataset.letter) ? opt.dataset.letter : (omSel.value.startsWith('survey_') ? omSel.value.replace('survey_', '') : omSel.value);
+        if (l && (!allBearings || allBearings.length === 0 || allBearings.some(b => b.letter === l))) {
+          targetLetter = l;
+        }
       }
     }
     if (!targetLetter) {
-      targetLetter = window.currentActiveSurveyBearingLetter || window.currentSurveyBearingLetter || null;
+      const mainSel = document.getElementById("surveyBearingSelect");
+      if (mainSel && mainSel.value) {
+        const opt = mainSel.options[mainSel.selectedIndex];
+        const l = (opt && opt.dataset && opt.dataset.letter) ? opt.dataset.letter : (mainSel.value.includes('___') ? mainSel.value.split('___')[0] : null);
+        if (l && (!allBearings || allBearings.length === 0 || allBearings.some(b => b.letter === l))) {
+          targetLetter = l;
+        }
+      }
+    }
+    // 2. Pas als er nergens een actieve selectie is, val terug op tab-focus uit vragenlijst
+    if (!targetLetter && data && data.activeBearings) {
+      targetLetter = data.activeBearings.sec2 || data.activeBearings.sec3 || data.activeBearings.sec4 || null;
     }
     if (!targetLetter && fullData && fullData.activeBearings) {
       targetLetter = fullData.activeBearings.sec2 || fullData.activeBearings.sec3 || fullData.activeBearings.sec4 || null;
     }
-    if (!targetLetter) {
-      try { targetLetter = localStorage.getItem("interflon_active_survey_letter"); } catch(e) {}
-    }
-    if (!targetLetter && fullData && Array.isArray(fullData.bearings) && fullData.bearings.length > 0) {
-      targetLetter = fullData.bearings[0].letter || 'A';
+    if (!targetLetter && allBearings && allBearings.length > 0) {
+      targetLetter = allBearings[0].letter || 'A';
     }
     if (!targetLetter) targetLetter = 'A';
 
@@ -3149,8 +3218,6 @@ function syncAllQuestionnaireDataToCalculator(data, explicitTargetLetter) {
     const sec3 = (fullData.bearingDataMapSec3 && (fullData.bearingDataMapSec3[targetLetter] || fullData.bearingDataMapSec3['A'])) || {};
     const sec4 = (fullData.bearingDataMapSec4 && (fullData.bearingDataMapSec4[targetLetter] || fullData.bearingDataMapSec4['A'])) || {};
 
-    const allBearings = (Array.isArray(fullData.bearings) && fullData.bearings.length > 0) ? fullData.bearings :
-                        (window.latestSurveyBearings && Array.isArray(window.latestSurveyBearings)) ? window.latestSurveyBearings : [];
     const bRec = allBearings.find(b => b.letter === targetLetter) ||
                  allBearings[0] || {};
 
@@ -3606,22 +3673,51 @@ function importSurveyBearingToOpbrengstmodel(mode, explicitLetter) {
 
   // Bepaal het actieve lager:
   let targetLetter = explicitLetter || null;
+  const allBearings = (fullData && Array.isArray(fullData.bearings) && fullData.bearings.length > 0) ? fullData.bearings :
+                      (window.latestSurveyBearings && Array.isArray(window.latestSurveyBearings)) ? window.latestSurveyBearings : [];
+
+  // 1. Prioriteer de actieve selectie van de gebruiker in de calculator!
+  if (!targetLetter) {
+    const activeL = window.currentActiveSurveyBearingLetter || window.currentSurveyBearingLetter || null;
+    if (activeL && (!allBearings || allBearings.length === 0 || allBearings.some(b => b.letter === activeL))) {
+      targetLetter = activeL;
+    }
+  }
+  if (!targetLetter) {
+    const savedL = localStorage.getItem("interflon_active_survey_letter");
+    if (savedL && (!allBearings || allBearings.length === 0 || allBearings.some(b => b.letter === savedL))) {
+      targetLetter = savedL;
+    }
+  }
+  if (!targetLetter) {
+    const activeSrc = window.activeTcoBearingSource || localStorage.getItem("active_tco_bearing_source") || "";
+    if (activeSrc.startsWith("survey_")) {
+      const srcL = activeSrc.replace("survey_", "");
+      if (!allBearings || allBearings.length === 0 || allBearings.some(b => b.letter === srcL)) {
+        targetLetter = srcL;
+      }
+    }
+  }
   if (!targetLetter) {
     const omSelect = document.getElementById("omSurveyBearingSelect");
-    if (omSelect && omSelect.value) {
+    if (omSelect && omSelect.value && omSelect.value !== 'manual' && omSelect.value !== '__open_search__') {
       const opt = omSelect.options[omSelect.selectedIndex];
       targetLetter = (opt && opt.dataset && opt.dataset.letter) ? opt.dataset.letter : (omSelect.value.includes('___') ? omSelect.value.split('___')[0] : omSelect.value);
     }
   }
   if (!targetLetter) {
+    const calcSelect = document.getElementById("calcSurveyBearingSelect");
+    if (calcSelect && calcSelect.value) {
+      const opt = calcSelect.options[calcSelect.selectedIndex];
+      targetLetter = (opt && opt.dataset && opt.dataset.letter) ? opt.dataset.letter : (calcSelect.value.includes('___') ? calcSelect.value.split('___')[0] : null);
+    }
+  }
+  if (!targetLetter) {
     const chainOmSelect = document.getElementById("chainOmSurveyBearingSelect");
-    if (chainOmSelect && chainOmSelect.value) {
+    if (chainOmSelect && chainOmSelect.value && chainOmSelect.value !== 'manual' && chainOmSelect.value !== '__open_search__') {
       const opt = chainOmSelect.options[chainOmSelect.selectedIndex];
       targetLetter = (opt && opt.dataset && opt.dataset.letter) ? opt.dataset.letter : (chainOmSelect.value.includes('___') ? chainOmSelect.value.split('___')[0] : chainOmSelect.value);
     }
-  }
-  if (!targetLetter && fullData && fullData.activeBearings && fullData.activeBearings.sec2) {
-    targetLetter = fullData.activeBearings.sec2;
   }
   if (!targetLetter) {
     const selectEl = document.getElementById("surveyBearingSelect");
@@ -3630,14 +3726,18 @@ function importSurveyBearingToOpbrengstmodel(mode, explicitLetter) {
       targetLetter = (opt && opt.dataset && opt.dataset.letter) ? opt.dataset.letter : (selectEl.value.includes('___') ? selectEl.value.split('___')[0] : null);
     }
   }
+  // 2. Pas als er nergens een actieve selectie is, val terug op tab-focus uit vragenlijst
+  if (!targetLetter && fullData && fullData.activeBearings && fullData.activeBearings.sec2) {
+    targetLetter = fullData.activeBearings.sec2;
+  }
   if (!targetLetter && fullData && fullData.activeBearings && fullData.activeBearings.sec3) {
     targetLetter = fullData.activeBearings.sec3;
   }
   if (!targetLetter && fullData && fullData.activeBearings && fullData.activeBearings.sec4) {
     targetLetter = fullData.activeBearings.sec4;
   }
-  if (!targetLetter && fullData && Array.isArray(fullData.bearings) && fullData.bearings.length > 0) {
-    targetLetter = fullData.bearings[0].letter || 'A';
+  if (!targetLetter && allBearings && allBearings.length > 0) {
+    targetLetter = allBearings[0].letter || 'A';
   }
   if (!targetLetter) {
     targetLetter = 'A';
@@ -3659,8 +3759,6 @@ function importSurveyBearingToOpbrengstmodel(mode, explicitLetter) {
     ? fullData.bearingDataMapSec4[targetLetter]
     : ((fullData && fullData.bearingDataMapSec4 && fullData.bearingDataMapSec4['A']) || {});
 
-  const allBearings = (fullData && Array.isArray(fullData.bearings)) ? fullData.bearings :
-                      (window.latestSurveyBearings && Array.isArray(window.latestSurveyBearings)) ? window.latestSurveyBearings : [];
   const bRec = allBearings.find(b => b.letter === targetLetter) ||
                allBearings.find(b => b.letter === 'A') ||
                allBearings[0] || {};
@@ -4296,7 +4394,8 @@ if (typeof window !== 'undefined') {
         try {
           const data = e.newValue ? JSON.parse(e.newValue) : null;
           if (typeof syncAllQuestionnaireDataToCalculator === 'function') {
-            syncAllQuestionnaireDataToCalculator(data);
+            const curL = window.currentActiveSurveyBearingLetter || localStorage.getItem("interflon_active_survey_letter") || null;
+            syncAllQuestionnaireDataToCalculator(data, curL);
           }
         } catch(err) {}
       }, 200);
@@ -4350,7 +4449,8 @@ try {
           applySurveyConfig(incomingData.surveyRasterConfig);
         }
         if (typeof syncAllQuestionnaireDataToCalculator === 'function') {
-          syncAllQuestionnaireDataToCalculator(incomingData);
+          const curL = window.currentActiveSurveyBearingLetter || localStorage.getItem("interflon_active_survey_letter") || null;
+          syncAllQuestionnaireDataToCalculator(incomingData, curL);
         }
       }
     };
@@ -8333,7 +8433,13 @@ function switchPage(pageId) {
       const activeGrease = (greaseSelect && greaseSelect.value) ? greaseSelect.value : (localStorage.getItem("active_interflon_grease") || "INTERFLON GREASE MP2/3");
       omP2NameEl.textContent = activeGrease;
     }
-    loadBearingTcoDetails();
+    const curActiveSurveyL = window.currentActiveSurveyBearingLetter || window.currentSurveyBearingLetter || localStorage.getItem("interflon_active_survey_letter");
+    const activeSrc = window.activeTcoBearingSource || localStorage.getItem("active_tco_bearing_source") || "";
+    if (activeSrc !== "manual" && curActiveSurveyL && typeof importSurveyBearingToOpbrengstmodel === "function") {
+      importSurveyBearingToOpbrengstmodel("bearing", curActiveSurveyL);
+    } else {
+      loadBearingTcoDetails();
+    }
     if (omP2NameEl) {
       const greaseSelect = document.getElementById("inputGrease");
       const activeGrease = (greaseSelect && greaseSelect.value) ? greaseSelect.value : (localStorage.getItem("active_interflon_grease") || "INTERFLON GREASE MP2/3");
@@ -12023,7 +12129,11 @@ function updateOmKpiSummaryCards() {
 
   // Single mode (default)
   if (badgeEl) {
-    const activeBearingLetter = window.currentSurveyBearingLetter || (window.activeSurveyLetter ? window.activeSurveyLetter : null);
+    const isSurvey = (window.activeTcoBearingSource && window.activeTcoBearingSource.startsWith("survey_")) ||
+                     (!window.activeTcoBearingSource && (window.currentActiveSurveyBearingLetter || localStorage.getItem("interflon_active_survey_letter")));
+    const activeBearingLetter = isSurvey
+      ? (window.currentSurveyBearingLetter || window.currentActiveSurveyBearingLetter || window.activeSurveyLetter || localStorage.getItem("interflon_active_survey_letter") || null)
+      : null;
     const activeDesig = window.currentBearingDesignation || (document.getElementById("bearingSearchInput") ? document.getElementById("bearingSearchInput").value : null);
     badgeEl.textContent = activeBearingLetter ? `Lager ${activeBearingLetter}` : (activeDesig ? `Lager ${activeDesig}` : "Geselecteerd Lager");
     badgeEl.classList.remove("badge-full");
