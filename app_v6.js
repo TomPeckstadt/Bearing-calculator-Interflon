@@ -18859,8 +18859,12 @@ function renderQrPassportStickers() {
   if (activeDisplayedQrPassports && activeDisplayedQrPassports.length > 0) {
     if (bannerEl) bannerEl.style.display = "flex";
     if (bannerTextEl) {
-      const first = activeDisplayedQrPassports[0];
-      bannerTextEl.innerHTML = "Geïmporteerde paspoorten uit database (<strong>" + escapeOdooHtml(first.c || "") + "</strong> &bull; " + escapeOdooHtml(first.m || "") + " &bull; " + activeDisplayedQrPassports.length + " toestel" + (activeDisplayedQrPassports.length === 1 ? '' : 'len') + ")";
+      const clientName = (activeDisplayedQrPassports.map(p => p.c).find(c => c && c.trim()) || "").trim();
+      if (clientName) {
+        bannerTextEl.innerHTML = "Geïmporteerde paspoorten uit database (<strong>" + escapeOdooHtml(clientName) + "</strong>)";
+      } else {
+        bannerTextEl.innerHTML = "Geïmporteerde paspoorten uit database";
+      }
     }
   } else {
     if (bannerEl) bannerEl.style.display = "none";
