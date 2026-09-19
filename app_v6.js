@@ -7801,18 +7801,7 @@ document.addEventListener("DOMContentLoaded", () => {
         ctx.drawImage(img, 0, 0, width, height);
 
         const compressedBase64 = canvas.toDataURL("image/jpeg", 0.7);
-        tcoUploadedImageBase64 = compressedBase64;
-
-        const previewImg = document.getElementById("omAppImagePreview");
-        if (previewImg) {
-          previewImg.src = compressedBase64;
-        }
-        
-        const placeholder = document.getElementById("omAppImagePlaceholder");
-        const previewContainer = document.getElementById("omAppImagePreviewContainer");
-        if (placeholder) placeholder.style.display = "none";
-        if (previewContainer) previewContainer.style.display = "flex";
-
+        setBearingTcoImage(compressedBase64);
         saveTcoDetails();
       };
       img.src = eEvent.target.result;
@@ -7831,16 +7820,7 @@ document.addEventListener("DOMContentLoaded", () => {
   if (omAppImageDeleteBtn) {
     omAppImageDeleteBtn.addEventListener("click", function(e) {
       e.stopPropagation();
-      tcoUploadedImageBase64 = "";
-      const previewImg = document.getElementById("omAppImagePreview");
-      if (previewImg) previewImg.src = "";
-      if (omAppImageInput) omAppImageInput.value = "";
-      
-      const placeholder = document.getElementById("omAppImagePlaceholder");
-      const previewContainer = document.getElementById("omAppImagePreviewContainer");
-      if (placeholder) placeholder.style.display = "flex";
-      if (previewContainer) previewContainer.style.display = "none";
-
+      setBearingTcoImage("");
       saveTcoDetails();
     });
   }
@@ -7877,18 +7857,7 @@ document.addEventListener("DOMContentLoaded", () => {
         ctx.drawImage(img, 0, 0, width, height);
 
         const compressedBase64 = canvas.toDataURL("image/jpeg", 0.7);
-        chainTcoUploadedImageBase64 = compressedBase64;
-
-        const previewImg = document.getElementById("chainOmAppImagePreview");
-        if (previewImg) {
-          previewImg.src = compressedBase64;
-        }
-        
-        const placeholder = document.getElementById("chainOmAppImagePlaceholder");
-        const previewContainer = document.getElementById("chainOmAppImagePreviewContainer");
-        if (placeholder) placeholder.style.display = "none";
-        if (previewContainer) previewContainer.style.display = "flex";
-
+        setChainTcoImage(compressedBase64);
         saveTcoDetails();
       };
       img.src = eEvent.target.result;
@@ -7907,16 +7876,7 @@ document.addEventListener("DOMContentLoaded", () => {
   if (chainOmAppImageDeleteBtn) {
     chainOmAppImageDeleteBtn.addEventListener("click", function(e) {
       e.stopPropagation();
-      chainTcoUploadedImageBase64 = "";
-      const previewImg = document.getElementById("chainOmAppImagePreview");
-      if (previewImg) previewImg.src = "";
-      if (chainOmAppImageInput) chainOmAppImageInput.value = "";
-      
-      const placeholder = document.getElementById("chainOmAppImagePlaceholder");
-      const previewContainer = document.getElementById("chainOmAppImagePreviewContainer");
-      if (placeholder) placeholder.style.display = "flex";
-      if (previewContainer) previewContainer.style.display = "none";
-
+      setChainTcoImage("");
       saveTcoDetails();
     });
   }
@@ -11674,9 +11634,72 @@ function saveTcoDetails() {
   saveChainTcoDetails();
 }
 
+function setBearingTcoImage(imgBase64) {
+  tcoUploadedImageBase64 = (imgBase64 && typeof imgBase64 === "string" && imgBase64.startsWith("data:image")) ? imgBase64 : "";
+  const previewImg = document.getElementById("omAppImagePreview");
+  const placeholder = document.getElementById("omAppImagePlaceholder");
+  const previewContainer = document.getElementById("omAppImagePreviewContainer");
+  const input = document.getElementById("omAppImageInput");
+
+  if (tcoUploadedImageBase64) {
+    if (previewImg) previewImg.src = tcoUploadedImageBase64;
+    if (placeholder) placeholder.style.display = "none";
+    if (previewContainer) previewContainer.style.display = "flex";
+  } else {
+    if (previewImg) previewImg.src = "";
+    if (input) input.value = "";
+    if (placeholder) placeholder.style.display = "flex";
+    if (previewContainer) previewContainer.style.display = "none";
+  }
+
+  try {
+    let tcoData = {};
+    const existing = localStorage.getItem("bearing_tco_data");
+    if (existing) {
+      try { tcoData = JSON.parse(existing) || {}; } catch(e) {}
+    }
+    tcoData["omAppImage"] = tcoUploadedImageBase64;
+    localStorage.setItem("bearing_tco_data", JSON.stringify(tcoData));
+  } catch(e) {}
+}
+window.setBearingTcoImage = setBearingTcoImage;
+
+function setChainTcoImage(imgBase64) {
+  chainTcoUploadedImageBase64 = (imgBase64 && typeof imgBase64 === "string" && imgBase64.startsWith("data:image")) ? imgBase64 : "";
+  const previewImg = document.getElementById("chainOmAppImagePreview");
+  const placeholder = document.getElementById("chainOmAppImagePlaceholder");
+  const previewContainer = document.getElementById("chainOmAppImagePreviewContainer");
+  const input = document.getElementById("chainOmAppImageInput");
+
+  if (chainTcoUploadedImageBase64) {
+    if (previewImg) previewImg.src = chainTcoUploadedImageBase64;
+    if (placeholder) placeholder.style.display = "none";
+    if (previewContainer) previewContainer.style.display = "flex";
+  } else {
+    if (previewImg) previewImg.src = "";
+    if (input) input.value = "";
+    if (placeholder) placeholder.style.display = "flex";
+    if (previewContainer) previewContainer.style.display = "none";
+  }
+
+  try {
+    let tcoData = {};
+    const existing = localStorage.getItem("chain_tco_data");
+    if (existing) {
+      try { tcoData = JSON.parse(existing) || {}; } catch(e) {}
+    }
+    tcoData["chainOmAppImage"] = chainTcoUploadedImageBase64;
+    localStorage.setItem("chain_tco_data", JSON.stringify(tcoData));
+  } catch(e) {}
+}
+window.setChainTcoImage = setChainTcoImage;
+
 function loadBearingTcoDetails() {
   const dataStr = localStorage.getItem("bearing_tco_data") || localStorage.getItem("bearing_calc_tco_data");
-  if (!dataStr) return;
+  if (!dataStr) {
+    setBearingTcoImage("");
+    return;
+  }
   try {
     const data = JSON.parse(dataStr);
     TCO_INPUTS.forEach(id => {
@@ -11698,19 +11721,7 @@ function loadBearingTcoDetails() {
         }
       }
     });
-    tcoUploadedImageBase64 = data["omAppImage"] || "";
-    const placeholder = document.getElementById("omAppImagePlaceholder");
-    const previewContainer = document.getElementById("omAppImagePreviewContainer");
-    const previewImg = document.getElementById("omAppImagePreview");
-    if (tcoUploadedImageBase64 && tcoUploadedImageBase64.startsWith("data:image")) {
-      if (previewImg) previewImg.src = tcoUploadedImageBase64;
-      if (placeholder) placeholder.style.display = "none";
-      if (previewContainer) previewContainer.style.display = "flex";
-    } else {
-      if (placeholder) placeholder.style.display = "flex";
-      if (previewContainer) previewContainer.style.display = "none";
-      if (previewImg) previewImg.src = "";
-    }
+    setBearingTcoImage(data["omAppImage"] || "");
   } catch (e) {
     console.error("Fout bij laden Bearing TCO data:", e);
   }
@@ -11718,7 +11729,10 @@ function loadBearingTcoDetails() {
 
 function loadChainTcoDetails() {
   const dataStr = localStorage.getItem("chain_tco_data") || localStorage.getItem("bearing_calc_tco_data");
-  if (!dataStr) return;
+  if (!dataStr) {
+    setChainTcoImage("");
+    return;
+  }
   try {
     const data = JSON.parse(dataStr);
     CHAIN_TCO_INPUTS.forEach(id => {
@@ -11739,19 +11753,7 @@ function loadChainTcoDetails() {
         }
       }
     });
-    chainTcoUploadedImageBase64 = data["chainOmAppImage"] || "";
-    const chainPlaceholder = document.getElementById("chainOmAppImagePlaceholder");
-    const chainPreviewContainer = document.getElementById("chainOmAppImagePreviewContainer");
-    const chainPreviewImg = document.getElementById("chainOmAppImagePreview");
-    if (chainTcoUploadedImageBase64 && chainTcoUploadedImageBase64.startsWith("data:image")) {
-      if (chainPreviewImg) chainPreviewImg.src = chainTcoUploadedImageBase64;
-      if (chainPlaceholder) chainPlaceholder.style.display = "none";
-      if (chainPreviewContainer) chainPreviewContainer.style.display = "flex";
-    } else {
-      if (chainPlaceholder) chainPlaceholder.style.display = "flex";
-      if (chainPreviewContainer) chainPreviewContainer.style.display = "none";
-      if (chainPreviewImg) chainPreviewImg.src = "";
-    }
+    setChainTcoImage(data["chainOmAppImage"] || "");
   } catch (e) {
     console.error("Fout bij laden Chain TCO data:", e);
   }
@@ -14748,16 +14750,7 @@ function handleOmImageUpload(input) {
       ctx.drawImage(img, 0, 0, width, height);
 
       const compressedBase64 = canvas.toDataURL("image/jpeg", 0.7);
-      tcoUploadedImageBase64 = compressedBase64;
-
-      const previewImg = document.getElementById("omAppImagePreview");
-      const placeholder = document.getElementById("omAppImagePlaceholder");
-      const previewContainer = document.getElementById("omAppImagePreviewContainer");
-
-      if (previewImg) previewImg.src = compressedBase64;
-      if (placeholder) placeholder.style.display = "none";
-      if (previewContainer) previewContainer.style.display = "flex";
-
+      setBearingTcoImage(compressedBase64);
       saveBearingTcoDetails();
     };
     img.src = eEvent.target.result;
@@ -14766,17 +14759,7 @@ function handleOmImageUpload(input) {
 }
 
 function removeOmImage() {
-  tcoUploadedImageBase64 = "";
-  const previewImg = document.getElementById("omAppImagePreview");
-  const placeholder = document.getElementById("omAppImagePlaceholder");
-  const previewContainer = document.getElementById("omAppImagePreviewContainer");
-  const input = document.getElementById("omAppImageInput");
-
-  if (previewImg) previewImg.src = "";
-  if (input) input.value = "";
-  if (placeholder) placeholder.style.display = "flex";
-  if (previewContainer) previewContainer.style.display = "none";
-
+  setBearingTcoImage("");
   saveBearingTcoDetails();
 }
 
@@ -14808,16 +14791,7 @@ function handleChainOmImageUpload(input) {
       ctx.drawImage(img, 0, 0, width, height);
 
       const compressedBase64 = canvas.toDataURL("image/jpeg", 0.7);
-      chainTcoUploadedImageBase64 = compressedBase64;
-
-      const previewImg = document.getElementById("chainOmAppImagePreview");
-      const placeholder = document.getElementById("chainOmAppImagePlaceholder");
-      const previewContainer = document.getElementById("chainOmAppImagePreviewContainer");
-
-      if (previewImg) previewImg.src = compressedBase64;
-      if (placeholder) placeholder.style.display = "none";
-      if (previewContainer) previewContainer.style.display = "flex";
-
+      setChainTcoImage(compressedBase64);
       saveChainTcoDetails();
     };
     img.src = eEvent.target.result;
@@ -14826,17 +14800,7 @@ function handleChainOmImageUpload(input) {
 }
 
 function removeChainOmImage() {
-  chainTcoUploadedImageBase64 = "";
-  const previewImg = document.getElementById("chainOmAppImagePreview");
-  const placeholder = document.getElementById("chainOmAppImagePlaceholder");
-  const previewContainer = document.getElementById("chainOmAppImagePreviewContainer");
-  const input = document.getElementById("chainOmAppImageInput");
-
-  if (previewImg) previewImg.src = "";
-  if (input) input.value = "";
-  if (placeholder) placeholder.style.display = "flex";
-  if (previewContainer) previewContainer.style.display = "none";
-
+  setChainTcoImage("");
   saveChainTcoDetails();
 }
 
@@ -22444,12 +22408,14 @@ function clearAllPhotosForNewDossier() {
     window.photoLibrary = photoLibrary;
   }
 
-  // 2. Clear old photo localStorage entries
+  // 2. Clear old photo localStorage entries and TCO application photos
   try {
     localStorage.removeItem("photo_folders");
     localStorage.removeItem("photoFolders");
     localStorage.removeItem("photo_library");
     localStorage.removeItem("photoLibrary");
+    if (typeof setBearingTcoImage === "function") setBearingTcoImage("");
+    if (typeof setChainTcoImage === "function") setChainTcoImage("");
   } catch (e) {
     console.warn("Could not remove photo keys from localStorage:", e);
   }
@@ -22646,6 +22612,10 @@ async function exportCalculationData() {
   try {
     const isEnglish = (typeof currentLang !== "undefined" && currentLang === "en");
 
+    // Ensure TCO details (including application images) are fresh before export
+    if (typeof saveBearingTcoDetails === "function") saveBearingTcoDetails();
+    if (typeof saveChainTcoDetails === "function") saveChainTcoDetails();
+
     // 0. Ensure all metadata between DOM inputs and localStorage are perfectly synced both ways
     const syncFieldToLs = (inputId, lsKey) => {
       const el = document.getElementById(inputId);
@@ -22714,10 +22684,31 @@ async function exportCalculationData() {
     const localStorageData = {};
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i);
-      if (key && (key.startsWith("bearing_calc_") || key.startsWith("app_field_") || key.includes("operator") || key.includes("client") || key.includes("tech") || key === "autoDevicesState" || key === "photoLibrary" || key === "photo_library" || key === "photoFolders" || key === "photo_folders" || key.startsWith("interflon_"))) {
+      if (key && (
+        key.startsWith("bearing_calc_") ||
+        key.startsWith("app_field_") ||
+        key.startsWith("bearing_tco_") ||
+        key.startsWith("chain_tco_") ||
+        key === "bearing_tco_data" ||
+        key === "chain_tco_data" ||
+        key.includes("operator") ||
+        key.includes("client") ||
+        key.includes("tech") ||
+        key === "autoDevicesState" ||
+        key === "photoLibrary" ||
+        key === "photo_library" ||
+        key === "photoFolders" ||
+        key === "photo_folders" ||
+        key.startsWith("interflon_")
+      )) {
         localStorageData[key] = localStorage.getItem(key);
       }
     }
+
+    const curBearingTco = localStorage.getItem("bearing_tco_data");
+    if (curBearingTco) localStorageData["bearing_tco_data"] = curBearingTco;
+    const curChainTco = localStorage.getItem("chain_tco_data");
+    if (curChainTco) localStorageData["chain_tco_data"] = curChainTco;
 
     // Explicitly guarantee all metadata keys exist in localStorage snapshot
     const clientCompVal = localStorage.getItem("client_company") || (document.getElementById("clientCompanyInput") ? document.getElementById("clientCompanyInput").value : "");
@@ -22847,7 +22838,33 @@ async function exportCalculationData() {
       currentChainData: (typeof currentChainData !== "undefined") ? currentChainData : null,
       activeCalculationMode: (typeof activeCalculationMode !== "undefined") ? activeCalculationMode : "bearing",
       photoFolders: currentFolders,
-      photoLibrary: currentPhotos
+      photoLibrary: currentPhotos,
+      omAppImage: tcoUploadedImageBase64 || (function() {
+        try {
+          const raw = localStorage.getItem("bearing_tco_data");
+          const d = raw ? JSON.parse(raw) : null;
+          return (d && d.omAppImage) || "";
+        } catch(e) { return ""; }
+      })(),
+      chainOmAppImage: chainTcoUploadedImageBase64 || (function() {
+        try {
+          const raw = localStorage.getItem("chain_tco_data");
+          const d = raw ? JSON.parse(raw) : null;
+          return (d && d.chainOmAppImage) || "";
+        } catch(e) { return ""; }
+      })(),
+      bearing_tco_data: (function() {
+        try {
+          const raw = localStorage.getItem("bearing_tco_data");
+          return raw ? JSON.parse(raw) : null;
+        } catch(e) { return null; }
+      })(),
+      chain_tco_data: (function() {
+        try {
+          const raw = localStorage.getItem("chain_tco_data");
+          return raw ? JSON.parse(raw) : null;
+        } catch(e) { return null; }
+      })()
     };
 
     const jsonString = JSON.stringify(exportData, null, 2);
@@ -23043,6 +23060,34 @@ function handleImportFileSelected(event) {
           if (typeof loadClientDetails === 'function') loadClientDetails();
           if (typeof loadOperatorDetails === 'function') loadOperatorDetails();
           if (typeof loadTechDetails === 'function') loadTechDetails();
+
+          // TCO Photo: restore if present in questionnaire, otherwise reset cleanly
+          let qOmImage = "";
+          if (data.omAppImage && typeof data.omAppImage === "string") {
+            qOmImage = data.omAppImage;
+          } else if (data.bearing_tco_data && data.bearing_tco_data.omAppImage) {
+            qOmImage = data.bearing_tco_data.omAppImage;
+          }
+          if (typeof setBearingTcoImage === "function") {
+            setBearingTcoImage(qOmImage);
+          } else {
+            tcoUploadedImageBase64 = qOmImage;
+          }
+
+          let qChainOmImage = "";
+          if (data.chainOmAppImage && typeof data.chainOmAppImage === "string") {
+            qChainOmImage = data.chainOmAppImage;
+          } else if (data.chain_tco_data && data.chain_tco_data.chainOmAppImage) {
+            qChainOmImage = data.chain_tco_data.chainOmAppImage;
+          }
+          if (typeof setChainTcoImage === "function") {
+            setChainTcoImage(qChainOmImage);
+          } else {
+            chainTcoUploadedImageBase64 = qChainOmImage;
+          }
+
+          if (typeof loadBearingTcoDetails === "function") loadBearingTcoDetails();
+          if (typeof loadChainTcoDetails === "function") loadChainTcoDetails();
           if (typeof updateClientBadge === 'function') updateClientBadge(data.contact ? data.contact.clientCompany : '', data.contact ? data.contact.clientContact : '');
           if (typeof updateTechBadge === 'function') updateTechBadge(qMach, qApp);
           if (typeof updateOmMetadata === 'function') updateOmMetadata();
@@ -23247,7 +23292,8 @@ function handleImportFileSelected(event) {
         "client_company", "client_contact", "client_phone", "client_email",
         "operator_name", "operator_phone", "operator_email",
         "interflon_active_survey_letter", "active_tco_bearing_source",
-        "selected_bearing", "currentBearingId", "currentBearingName"
+        "selected_bearing", "currentBearingId", "currentBearingName",
+        "bearing_tco_data", "chain_tco_data", "bearing_calc_tco_data"
       ];
       keysToPurge.forEach(k => {
         try { localStorage.removeItem(k); } catch(e) {}
@@ -23265,6 +23311,17 @@ function handleImportFileSelected(event) {
             } catch(err) {}
           }
         });
+      }
+
+      if (data.bearing_tco_data && typeof data.bearing_tco_data === 'object') {
+        try {
+          localStorage.setItem("bearing_tco_data", JSON.stringify(data.bearing_tco_data));
+        } catch(e) {}
+      }
+      if (data.chain_tco_data && typeof data.chain_tco_data === 'object') {
+        try {
+          localStorage.setItem("chain_tco_data", JSON.stringify(data.chain_tco_data));
+        } catch(e) {}
       }
 
       // STEP 5: Explicitly store verified metadata in localStorage
@@ -23420,6 +23477,67 @@ function handleImportFileSelected(event) {
         localStorage.setItem("photoLibrary", pJson);
       } catch(err) {
         console.warn("Could not write imported photo folders to localStorage:", err);
+      }
+
+      // STEP 7b: Restore TCO Machine Photos (Lager & Ketting)
+      let importedOmImage = "";
+      if (data.omAppImage && typeof data.omAppImage === "string") {
+        importedOmImage = data.omAppImage;
+      } else if (data.bearing_tco_data && data.bearing_tco_data.omAppImage) {
+        importedOmImage = data.bearing_tco_data.omAppImage;
+      } else if (data.localStorage && data.localStorage["bearing_tco_data"]) {
+        try {
+          const parsed = typeof data.localStorage["bearing_tco_data"] === "string"
+            ? JSON.parse(data.localStorage["bearing_tco_data"])
+            : data.localStorage["bearing_tco_data"];
+          if (parsed && parsed.omAppImage) importedOmImage = parsed.omAppImage;
+        } catch(e) {}
+      }
+
+      // Safe fallback for legacy files: check photo library for machine photo
+      if (!importedOmImage && Array.isArray(importedFolders)) {
+        for (const f of importedFolders) {
+          if (f.photos && Array.isArray(f.photos)) {
+            const match = f.photos.find(p => {
+              const desc = (p.description || "").toLowerCase();
+              const fn = (p.filename || "").toLowerCase();
+              const fName = (f.name || "").toLowerCase();
+              return fName.includes("machine") || fName.includes("tco") ||
+                     desc.includes("machine") || desc.includes("tco") ||
+                     (targetMachine && (desc.includes(targetMachine.toLowerCase()) || fn.includes(targetMachine.toLowerCase())));
+            });
+            if (match && match.dataUrl) {
+              importedOmImage = match.dataUrl;
+              break;
+            }
+          }
+        }
+      }
+
+      let importedChainOmImage = "";
+      if (data.chainOmAppImage && typeof data.chainOmAppImage === "string") {
+        importedChainOmImage = data.chainOmAppImage;
+      } else if (data.chain_tco_data && data.chain_tco_data.chainOmAppImage) {
+        importedChainOmImage = data.chain_tco_data.chainOmAppImage;
+      } else if (data.localStorage && data.localStorage["chain_tco_data"]) {
+        try {
+          const parsed = typeof data.localStorage["chain_tco_data"] === "string"
+            ? JSON.parse(data.localStorage["chain_tco_data"])
+            : data.localStorage["chain_tco_data"];
+          if (parsed && parsed.chainOmAppImage) importedChainOmImage = parsed.chainOmAppImage;
+        } catch(e) {}
+      }
+
+      if (typeof setBearingTcoImage === "function") {
+        setBearingTcoImage(importedOmImage);
+      } else {
+        tcoUploadedImageBase64 = importedOmImage;
+      }
+
+      if (typeof setChainTcoImage === "function") {
+        setChainTcoImage(importedChainOmImage);
+      } else {
+        chainTcoUploadedImageBase64 = importedChainOmImage;
       }
 
       // STEP 8: Restore inputs into DOM and localStorage WITH EVENT DISPATCHING
@@ -23613,6 +23731,8 @@ function handleImportFileSelected(event) {
       if (typeof loadClientDetails === "function") loadClientDetails();
       if (typeof loadOperatorDetails === "function") loadOperatorDetails();
       if (typeof loadTechDetails === "function") loadTechDetails();
+      if (typeof loadBearingTcoDetails === "function") loadBearingTcoDetails();
+      if (typeof loadChainTcoDetails === "function") loadChainTcoDetails();
       if (typeof updateClientBadge === "function") updateClientBadge(targetCompany, targetContact);
       if (typeof updateTechBadge === "function") updateTechBadge(targetMachine, targetApp);
       if (typeof updateOperatorBadge === "function") updateOperatorBadge(targetOpName);
