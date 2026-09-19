@@ -5642,9 +5642,30 @@
         const machineNameInput = document.getElementById('q1');
         const machineName = machineNameInput && machineNameInput.value ? machineNameInput.value.trim() : 'Machine';
 
+        const generalData = {
+          machineName: machineName,
+          machineBrand: document.getElementById('q2') ? document.getElementById('q2').value : '',
+          application: document.getElementById('q3') ? document.getElementById('q3').value : '',
+          machineCount: document.getElementById('q10') ? document.getElementById('q10').value : '1'
+        };
+        const contactData = {
+          clientCompany: document.getElementById('clientCompany') ? document.getElementById('clientCompany').value : '',
+          clientContact: document.getElementById('clientContact') ? document.getElementById('clientContact').value : '',
+          clientEmail: document.getElementById('clientEmail') ? document.getElementById('clientEmail').value : '',
+          interflonContactEmail: document.getElementById('interflonContactEmail') ? document.getElementById('interflonContactEmail').value : ''
+        };
+        const activeBearingsData = {
+          sec2: (typeof activeBearingSec2 !== 'undefined') ? activeBearingSec2 : 'A',
+          sec3: (typeof activeBearingSec3 !== 'undefined') ? activeBearingSec3 : 'A',
+          sec4: (typeof activeBearingSec4 !== 'undefined') ? activeBearingSec4 : 'A'
+        };
+
         const configToSave = {
           timestamp: Date.now(),
           machineName: machineName,
+          general: generalData,
+          contact: contactData,
+          activeBearings: activeBearingsData,
           isSinglePoint: isSinglePointSetup,
           deviceType: isSinglePointSetup ? 'single_point' : ((activeDevs[0] && activeDevs[0].type) || 'pulsarlube_m2'),
           totalSinglePoints: isSinglePointSetup ? activeDevs.length : 0,
@@ -5675,19 +5696,6 @@
           // Only persist to localStorage if user has entered data and we are not clearing
           if (hasUserInput && !window.__isClearingQuestionnaire) {
             localStorage.setItem('interflon_survey_raster_config', JSON.stringify(configToSave));
-
-            const generalData = {
-              machineName: machineName,
-              machineBrand: document.getElementById('q2') ? document.getElementById('q2').value : '',
-              application: document.getElementById('q3') ? document.getElementById('q3').value : '',
-              machineCount: document.getElementById('q10') ? document.getElementById('q10').value : '1'
-            };
-            const contactData = {
-              clientCompany: document.getElementById('clientCompany') ? document.getElementById('clientCompany').value : '',
-              clientContact: document.getElementById('clientContact') ? document.getElementById('clientContact').value : '',
-              clientEmail: document.getElementById('clientEmail') ? document.getElementById('clientEmail').value : '',
-              interflonContactEmail: document.getElementById('interflonContactEmail') ? document.getElementById('interflonContactEmail').value : ''
-            };
             const fullData = {
               fileType: 'Interflon_Smeeranalyse_Vragenlijst',
               version: '1.0',
