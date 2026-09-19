@@ -6873,9 +6873,9 @@
         if (data.general && data.general.machineName) {
           localStorage.setItem('tech_machine', data.general.machineName);
         }
-        if (typeof BroadcastChannel !== 'undefined') {
+        if (isUserImport && typeof BroadcastChannel !== 'undefined') {
           const channel = new BroadcastChannel('interflon_questionnaire_sync');
-          channel.postMessage({ type: 'QUESTIONNAIRE_IMPORTED', data: data, bearings: data.bearings, fullData: data });
+          channel.postMessage({ type: 'QUESTIONNAIRE_IMPORTED', data: data, bearings: data.bearings, fullData: data, source: 'vragenlijst_user_import' });
         }
       } catch (e) {
         console.warn('Could not persist questionnaire to localStorage', e);
@@ -7019,20 +7019,22 @@
     window.importQuestionnaireFile = importQuestionnaireFile;
     window.exportQuestionnaireFile = exportQuestionnaireFile;
 
-    function resetQuestionnaireFormToBlank(silent) {
+    function resetQuestionnaireFormToBlank(silent, preserveDossierMetadata) {
       window.__isClearingQuestionnaire = true;
       window.__questionnaireRestoring = true;
 
-      // 1. Purge all localStorage items
+      // 1. Purge questionnaire localStorage items
       try {
         localStorage.removeItem('interflon_questionnaire_full_data');
         localStorage.removeItem('interflon_last_questionnaire_data');
         localStorage.removeItem('interflon_survey_raster_config');
         localStorage.removeItem('interflon_raster_config');
-        localStorage.removeItem('client_company');
-        localStorage.removeItem('client_contact');
-        localStorage.removeItem('client_email');
-        localStorage.removeItem('tech_machine');
+        if (!preserveDossierMetadata) {
+          localStorage.removeItem('client_company');
+          localStorage.removeItem('client_contact');
+          localStorage.removeItem('client_email');
+          localStorage.removeItem('tech_machine');
+        }
       } catch (e) {}
 
       // 2. Clear Machine & Contact inputs
@@ -8341,7 +8343,7 @@
 
           if (ev.data.type === 'CLEAR_QUESTIONNAIRE') {
             if (typeof resetQuestionnaireFormToBlank === 'function') {
-              resetQuestionnaireFormToBlank(false);
+              resetQuestionnaireFormToBlank(false, true);
             }
             return;
           }
