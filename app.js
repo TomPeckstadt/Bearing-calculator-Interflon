@@ -7946,6 +7946,11 @@ function switchPage(pageId) {
     } else {
       mainContent.classList.remove("page-search-active");
     }
+    if (pageId === "calc") {
+      mainContent.classList.add("page-calc-active");
+    } else {
+      mainContent.classList.remove("page-calc-active");
+    }
   }
 
   // Verberg alle secties
