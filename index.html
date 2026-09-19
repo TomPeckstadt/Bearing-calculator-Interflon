@@ -216,9 +216,12 @@
         Upload en beheer tot 20 foto's van de machine, lagers of smeerpunten met een optionele beschrijving.
       </p>
 
-      <div style="display: flex; justify-content: space-between; align-items: center; background: #f8fafc; padding: 12px 16px; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 14px; flex-shrink: 0;">
+      <div style="display: flex; justify-content: space-between; align-items: center; background: #f8fafc; padding: 12px 16px; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 10px; flex-shrink: 0;">
         <span id="photoCounterText" style="font-weight: 700; color: #334155; font-size: 14px;">0 / 20 foto's geüpload</span>
-        <div>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <button type="button" id="btnManagePhotoFolders" class="btn btn-secondary" onclick="openPhotoFolderManagerModal()" style="padding: 8px 14px; font-size: 13.5px; border-radius: 6px; cursor: pointer; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; background: #ffffff; border: 1.5px solid #cbd5e1; color: #334155;">
+            <span>📁</span> <span data-i18n="btnPhotoFolders">Mappen</span>
+          </button>
           <input type="file" id="photoFileInput" accept="image/*" multiple style="display: none;" onchange="handlePhotoUpload(event)">
           <button type="button" class="btn btn-primary" onclick="document.getElementById('photoFileInput').click()" style="padding: 8px 16px; font-size: 13.5px; border-radius: 6px; cursor: pointer; font-weight: 700;">
             <span data-i18n="btnAddPhotos">➕ Foto's toevoegen</span>
@@ -226,13 +229,59 @@
         </div>
       </div>
 
+      <!-- Folder Navigation Tabs Strip -->
+      <div id="photoFolderTabsContainer" style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px; overflow-x: auto; padding: 2px 2px 6px 2px; flex-shrink: 0;">
+        <div id="photoFolderTabsList" style="display: flex; align-items: center; gap: 6px; flex-wrap: nowrap;">
+          <!-- Dynamically populated folder tabs -->
+        </div>
+        <button type="button" onclick="promptCreatePhotoFolder()" title="Nieuwe map aanmaken" style="padding: 5px 12px; font-size: 12px; font-weight: 700; background: #f1f5f9; border: 1.5px dashed #94a3b8; border-radius: 20px; color: #475569; cursor: pointer; white-space: nowrap; display: inline-flex; align-items: center; gap: 5px; transition: all 0.2s;" onmouseover="this.style.background='#e2e8f0'" onmouseout="this.style.background='#f1f5f9'">
+          <span>➕</span> <span>Nieuwe map</span>
+        </button>
+      </div>
+
       <!-- Photo Grid Container with natural rows and dedicated vertical scrollbar -->
-      <div id="photoGridContainer" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); align-content: start; gap: 14px; max-height: 52vh; min-height: 180px; overflow-y: auto; overflow-x: hidden; padding: 4px; margin-bottom: 14px; flex: 1 1 auto;">
+      <div id="photoGridContainer" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); align-content: start; gap: 14px; max-height: 48vh; min-height: 180px; overflow-y: auto; overflow-x: hidden; padding: 4px; margin-bottom: 14px; flex: 1 1 auto;">
         <!-- Dynamic photo cards rendered by JS -->
       </div>
 
       <div style="display: flex; justify-content: flex-end; gap: 10px; border-top: 1px solid #cbd5e1; padding-top: 12px; flex-shrink: 0;">
         <button type="button" class="btn btn-secondary" onclick="closePhotoLibraryModal()" style="padding: 10px 20px; font-weight: 700;" data-i18n="btnClose">Sluiten</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================================================
+       PHOTO FOLDER MANAGER MODAL
+       ========================================================================== -->
+  <div id="photoFolderManagerModal" class="modal-overlay hidden" style="z-index: 10001;" onclick="if(event.target===this)closePhotoFolderManagerModal()">
+    <div class="modal-card" style="max-width: 520px; width: 92%; max-height: 85vh; display: flex; flex-direction: column; overflow: hidden; padding: 22px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid #cbd5e1; padding-bottom: 10px; flex-shrink: 0;">
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span style="font-size: 20px;">📁</span>
+          <h3 class="modal-title" style="margin: 0; color: #0f172a; font-size: 17.5px; font-weight: 800;">Mappen beheren</h3>
+        </div>
+        <button type="button" onclick="closePhotoFolderManagerModal()" style="background: none; border: none; font-size: 22px; cursor: pointer; color: #64748b; padding: 2px 6px;">✕</button>
+      </div>
+
+      <p class="modal-subtitle" style="margin-bottom: 14px; font-size: 13px; color: #64748b; flex-shrink: 0; line-height: 1.4;">
+        Maak mappen aan om foto's per onderdeel of type te sorteren. In elke map kunt u tot <strong>20 foto's</strong> plaatsen.
+      </p>
+
+      <!-- Create new folder bar -->
+      <div style="display: flex; gap: 8px; margin-bottom: 14px; flex-shrink: 0;">
+        <input type="text" id="newPhotoFolderNameInput" placeholder="Nieuwe mapnaam (bijv. Lagers, Aandrijving...)" style="flex: 1; padding: 8px 12px; border: 1.5px solid #cbd5e1; border-radius: 6px; font-size: 13px; outline: none;" onkeydown="if(event.key==='Enter'){event.preventDefault();submitNewPhotoFolder();}">
+        <button type="button" class="btn btn-primary" onclick="submitNewPhotoFolder()" style="padding: 8px 14px; font-size: 13px; border-radius: 6px; font-weight: 700; white-space: nowrap; cursor: pointer;">
+          ➕ Aanmaken
+        </button>
+      </div>
+
+      <!-- Folders list container -->
+      <div id="photoFolderManagerList" style="display: flex; flex-direction: column; gap: 8px; max-height: 44vh; overflow-y: auto; padding-right: 4px; margin-bottom: 14px; flex: 1 1 auto;">
+        <!-- Dynamically rendered by JS -->
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 10px; border-top: 1px solid #cbd5e1; padding-top: 12px; flex-shrink: 0;">
+        <button type="button" class="btn btn-secondary" onclick="closePhotoFolderManagerModal()" style="padding: 8px 18px; font-weight: 700; font-size: 13px;">Klaar</button>
       </div>
     </div>
   </div>
