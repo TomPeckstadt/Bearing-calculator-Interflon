@@ -1198,6 +1198,19 @@ window.calculateSingleBearingDailyNeed = calculateSingleBearingDailyNeed;
 function applySurveyConfig(config) {
   if (!config || !config.devices || !Array.isArray(config.devices)) return;
 
+  const currentMachine = (localStorage.getItem('tech_machine') || '').trim().toLowerCase();
+  const cfgMachine = (
+    config.machineName ||
+    (config.general && (config.general.machineName || config.general.name)) ||
+    ''
+  ).trim().toLowerCase();
+
+  // If calculator has an active machine and config specifies a DIFFERENT machine, NEVER apply it!
+  if (currentMachine && cfgMachine && currentMachine !== cfgMachine) {
+    console.warn(`applySurveyConfig rejected config for '${cfgMachine}' because active machine is '${currentMachine}'`);
+    return;
+  }
+
   const devSelect = document.getElementById('automationDeviceSelect') || document.getElementById('autoDeviceSelect');
 
   // Also read full questionnaire data if available to ensure we have all bearings & section 2/3 maps
@@ -2223,16 +2236,23 @@ function populateOmSurveyBearingsDropdown(bearings) {
 window.populateOmSurveyBearingsDropdown = populateOmSurveyBearingsDropdown;
 
 function refreshOmSurveyBearingsDropdown(mode) {
+  if (window.__lastDossierImportTime && (Date.now() - window.__lastDossierImportTime < 15000)) {
+    const b = (typeof getQuestionnaireBearings === 'function') ? getQuestionnaireBearings() : (window.latestSurveyBearings || []);
+    populateOmSurveyBearingsDropdown(b, mode);
+    return;
+  }
   try {
     if (typeof BroadcastChannel !== 'undefined') {
-      const surveyChannel = new BroadcastChannel('interflon_questionnaire_sync');
-      surveyChannel.postMessage({ type: 'REQUEST_SURVEY_BEARINGS' });
-      surveyChannel.postMessage({ type: 'REQUEST_LATEST_CONFIG' });
+      if (!window.__surveySyncBroadcastChannel) {
+        window.__surveySyncBroadcastChannel = new BroadcastChannel('interflon_questionnaire_sync');
+      }
+      window.__surveySyncBroadcastChannel.postMessage({ type: 'REQUEST_SURVEY_BEARINGS' });
+      window.__surveySyncBroadcastChannel.postMessage({ type: 'REQUEST_LATEST_CONFIG' });
     }
   } catch (e) {}
 
   const bearings = (typeof getQuestionnaireBearings === 'function') ? getQuestionnaireBearings() : [];
-  populateOmSurveyBearingsDropdown(bearings);
+  populateOmSurveyBearingsDropdown(bearings, mode);
 }
 window.refreshOmSurveyBearingsDropdown = refreshOmSurveyBearingsDropdown;
 
@@ -4399,10 +4419,25 @@ if (typeof window !== 'undefined') {
   window.addEventListener('storage', function(e) {
     if (window.__isSyncingQuestionnaire) return;
     if (e.key === 'interflon_questionnaire_full_data' || e.key === 'interflon_last_questionnaire_data') {
+      if (window.__lastDossierImportTime && (Date.now() - window.__lastDossierImportTime < 15000)) {
+        return;
+      }
       clearTimeout(__storageSyncTimer);
       __storageSyncTimer = setTimeout(function() {
         try {
           const data = e.newValue ? JSON.parse(e.newValue) : null;
+          if (!data) return;
+          const currentMachine = (localStorage.getItem('tech_machine') || '').trim().toLowerCase();
+          const incMachine = (
+            (data.general && (data.general.machineName || data.general.name)) ||
+            data.machineName ||
+            (data.surveyRasterConfig && data.surveyRasterConfig.machineName) ||
+            ''
+          ).trim().toLowerCase();
+          if (currentMachine && incMachine && currentMachine !== incMachine) {
+            console.warn(`Ignoring storage update for '${incMachine}' because active calculator machine is '${currentMachine}'`);
+            return;
+          }
           if (typeof syncAllQuestionnaireDataToCalculator === 'function') {
             const curL = window.currentActiveSurveyBearingLetter || localStorage.getItem("interflon_active_survey_letter") || null;
             syncAllQuestionnaireDataToCalculator(data, curL);
@@ -4416,22 +4451,38 @@ if (typeof window !== 'undefined') {
 // Cross-tab BroadcastChannel listener for questionnaire synchronization
 try {
   if (typeof BroadcastChannel !== 'undefined') {
-    const surveyChannel = new BroadcastChannel('interflon_questionnaire_sync');
+    if (!window.__surveySyncBroadcastChannel) {
+      window.__surveySyncBroadcastChannel = new BroadcastChannel('interflon_questionnaire_sync');
+    }
+    const surveyChannel = window.__surveySyncBroadcastChannel;
     surveyChannel.onmessage = function(ev) {
       if (!ev.data) return;
       // Ignore own broadcast echo from calculator import
       if (ev.data.source === 'calculator_dossier_import') return;
-      // If we recently imported a dossier (within 6 seconds), ignore incoming cross-tab messages to protect imported data
-      if (window.__lastDossierImportTime && (Date.now() - window.__lastDossierImportTime < 6000)) {
-        console.log("Ignoring cross-tab survey message right after dossier import to protect imported data");
-        return;
-      }
+
       const incomingData = ev.data.fullData || ev.data.data || ev.data.config;
-      const currentMachine = localStorage.getItem('tech_machine') || '';
-      const incMachine = (incomingData && incomingData.general && (incomingData.general.machineName || incomingData.general.name)) || '';
-      if (currentMachine && incMachine && currentMachine.trim().toLowerCase() !== incMachine.trim().toLowerCase()) {
+      const currentMachine = (localStorage.getItem('tech_machine') || '').trim().toLowerCase();
+      const incMachine = (
+        (incomingData && incomingData.general && (incomingData.general.machineName || incomingData.general.name)) ||
+        (incomingData && incomingData.machineName) ||
+        (ev.data.config && ev.data.config.machineName) ||
+        (ev.data.config && ev.data.config.general && (ev.data.config.general.machineName || ev.data.config.general.name)) ||
+        (ev.data.data && ev.data.data.general && (ev.data.data.general.machineName || ev.data.data.general.name)) ||
+        ''
+      ).trim().toLowerCase();
+
+      // Strict rejection: if calculator machine is known and incoming message has a different machine name, drop it!
+      if (currentMachine && incMachine && currentMachine !== incMachine) {
         console.warn(`Ignoring incoming cross-tab survey for '${incMachine}' because active calculator machine is '${currentMachine}'`);
         return;
+      }
+
+      // If we recently imported a dossier (within 15 seconds), ignore incoming cross-tab messages to protect imported data
+      if (window.__lastDossierImportTime && (Date.now() - window.__lastDossierImportTime < 15000)) {
+        if (ev.data.source !== 'vragenlijst_user_import') {
+          console.log("Ignoring cross-tab survey message right after dossier import to protect imported data");
+          return;
+        }
       }
       if (ev.data.type === 'SURVEY_BEARINGS_RESPONSE' || ev.data.type === 'QUESTIONNAIRE_IMPORTED' || ev.data.type === 'CONFIG_UPDATED') {
         console.log("Vragenlijst update ontvangen:", ev.data.type);
@@ -22964,9 +23015,9 @@ function handleImportFileSelected(event) {
           if (typeof populateOmSurveyBearingsDropdown === 'function') populateOmSurveyBearingsDropdown(bList);
           if (typeof refreshSurveyBearingsList === 'function') refreshSurveyBearingsList(false);
           if (typeof syncAllQuestionnaireDataToCalculator === 'function') syncAllQuestionnaireDataToCalculator(data, firstL);
-          if (typeof refreshOmSurveyBearingsDropdown === 'function') {
-            refreshOmSurveyBearingsDropdown();
-            refreshOmSurveyBearingsDropdown('chain');
+          if (typeof populateOmSurveyBearingsDropdown === 'function') {
+            populateOmSurveyBearingsDropdown(bList);
+            populateOmSurveyBearingsDropdown(bList, 'chain');
           }
           const surveyWrapper = document.getElementById("surveyBearingSelectWrapper");
           if (surveyWrapper) surveyWrapper.style.display = bList.length > 0 ? "flex" : "none";
@@ -22974,8 +23025,10 @@ function handleImportFileSelected(event) {
           window.__lastDossierImportTime = Date.now();
           if (typeof BroadcastChannel !== 'undefined') {
             try {
-              const syncChan = new BroadcastChannel('interflon_questionnaire_sync');
-              syncChan.postMessage({
+              if (!window.__surveySyncBroadcastChannel) {
+                window.__surveySyncBroadcastChannel = new BroadcastChannel('interflon_questionnaire_sync');
+              }
+              window.__surveySyncBroadcastChannel.postMessage({
                 type: 'QUESTIONNAIRE_IMPORTED',
                 data: data,
                 fullData: data,
@@ -23501,9 +23554,9 @@ function handleImportFileSelected(event) {
         if (typeof syncAllQuestionnaireDataToCalculator === "function") {
           syncAllQuestionnaireDataToCalculator(importedQuestionnaire, firstL);
         }
-        if (typeof refreshOmSurveyBearingsDropdown === "function") {
-          refreshOmSurveyBearingsDropdown();
-          refreshOmSurveyBearingsDropdown('chain');
+        if (typeof populateOmSurveyBearingsDropdown === "function") {
+          populateOmSurveyBearingsDropdown(bList);
+          populateOmSurveyBearingsDropdown(bList, 'chain');
         }
 
         const surveyWrapper = document.getElementById("surveyBearingSelectWrapper");
@@ -23511,8 +23564,10 @@ function handleImportFileSelected(event) {
 
         if (typeof BroadcastChannel !== "undefined") {
           try {
-            const syncChan = new BroadcastChannel('interflon_questionnaire_sync');
-            syncChan.postMessage({
+            if (!window.__surveySyncBroadcastChannel) {
+              window.__surveySyncBroadcastChannel = new BroadcastChannel('interflon_questionnaire_sync');
+            }
+            window.__surveySyncBroadcastChannel.postMessage({
               type: 'QUESTIONNAIRE_IMPORTED',
               data: importedQuestionnaire,
               fullData: importedQuestionnaire,
