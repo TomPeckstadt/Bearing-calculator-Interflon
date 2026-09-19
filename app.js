@@ -17408,6 +17408,7 @@ function getQrPassportsData() {
 
   // Central Machine Passport
   const centralPassport = {
+    id: "machine_" + (machineName || "machine").replace(/[\\/:*?"<>|\s]/g, '_'),
     m: machineName,
     c: clientCompany,
     u: "Centraal Smeeroverzicht",
@@ -17647,6 +17648,7 @@ function closeQrPassportModal() {
 
 function switchQrPassportTab(tabName) {
   currentQrPassportTab = tabName;
+  selectedPassportIds.clear();
   const tabUnits = document.getElementById("tabQrUnitStickers");
   const tabMachine = document.getElementById("tabQrMachineSticker");
 
@@ -17776,6 +17778,9 @@ async function saveSelectedPassportsToDatabase() {
   if (currentQrPassportTab === "machine") {
     const data = getQrPassportsData();
     if (data && data.central) {
+      if (!data.central.id) {
+        data.central.id = "machine_" + (data.central.m || "machine").replace(/[\\/:*?"<>|\s]/g, '_');
+      }
       displayedPassports = [data.central];
     }
   } else {
@@ -17795,7 +17800,7 @@ async function saveSelectedPassportsToDatabase() {
   let passportsToSave = [];
   if (selectedPassportIds.size > 0) {
     passportsToSave = displayedPassports.filter((p, idx) => {
-      const pId = p.id || ("unit_" + idx + "_" + (p.u || "").replace(/\s+/g, '_'));
+      const pId = p.id || (p.isCentral ? ("machine_" + (p.m || "machine").replace(/[\\/:*?"<>|\s]/g, '_')) : ("unit_" + idx + "_" + (p.u || "").replace(/\s+/g, '_')));
       return selectedPassportIds.has(pId);
     });
   } else {
@@ -17831,10 +17836,10 @@ async function saveSelectedPassportsToDatabase() {
     }
 
     const passportRecord = {
-      id: p.id || ("pas_" + Date.now() + "_" + i),
+      id: p.id || (p.isCentral ? ("machine_" + machineName.replace(/[\\/:*?"<>|\s]/g, '_')) : ("pas_" + Date.now() + "_" + i)),
       m: machineName,
       c: clientName,
-      u: p.u || ("Toestel " + (i + 1)),
+      u: p.u || (p.isCentral ? "Centraal Smeeroverzicht" : ("Toestel " + (i + 1))),
       t: p.t || "pulsarlube_m2",
       cap: p.cap || 125,
       g: p.g || "Interflon Grease MP2/3",
@@ -17843,7 +17848,11 @@ async function saveSelectedPassportsToDatabase() {
       v: p.v || "",
       l: p.l || "",
       d: p.d || new Date().toLocaleDateString("nl-BE"),
-      devTypeLabel: p.devTypeLabel || (p.t + " " + (p.cap || 125) + " ml"),
+      devTypeLabel: p.devTypeLabel || (p.isCentral ? "Centrale Machinesticker" : (p.t + " " + (p.cap || 125) + " ml")),
+      isCentral: p.isCentral || false,
+      sp: p.sp || null,
+      r: p.r || null,
+      totalPoints: p.totalPoints || null,
       savedAt: new Date().toISOString()
     };
 
@@ -18502,7 +18511,13 @@ function renderQrPassportStickers() {
 
   } else {
     // Render Central Machine Sticker
-    const c = data.central;
+    let c = data.central;
+    if (activeDisplayedQrPassports && activeDisplayedQrPassports.length > 0) {
+      const centralFromImport = activeDisplayedQrPassports.find(p => p.isCentral);
+      if (centralFromImport) {
+        c = centralFromImport;
+      }
+    }
     const payload = encodeQrPassportPayload(c);
     const fullUrl = baseUrl + payload;
 
@@ -18517,6 +18532,10 @@ function renderQrPassportStickers() {
     } catch (err) {
       console.warn("QR generator fout:", err);
     }
+
+    const passportId = c.id || ("machine_" + (c.m || "machine").replace(/[\\/:*?"<>|\s]/g, '_'));
+    c.id = passportId;
+    const isSelected = selectedPassportIds.has(passportId);
 
     let unitRowsHtml = "";
     data.units.forEach((u, i) => {
@@ -18534,9 +18553,16 @@ function renderQrPassportStickers() {
     });
 
     html = `
-      <div class="qr-sticker-card" style="grid-column: 1 / -1; max-width: 780px; margin: 0 auto; border: 2px solid #0f172a; padding: 14px 18px;">
+      <div class="qr-sticker-card ${isSelected ? 'is-card-selected' : ''}" data-passport-id="${passportId}" onclick="handlePassportCardClick(event, '${passportId}')" style="grid-column: 1 / -1; max-width: 780px; margin: 0 auto; border: 2px solid #0f172a; padding: 14px 18px; position: relative;">
+        <!-- Selection Circle Indicator -->
+        <div class="passport-select-bubble ${isSelected ? 'selected' : ''}" onclick="handlePassportCardClick(event, '${passportId}')" title="Selecteer machinesticker" style="top: 10px; left: 12px;">
+          <div class="passport-bubble-circle">
+            ${isSelected ? '✓' : ''}
+          </div>
+        </div>
+
         <!-- Top Banner -->
-        <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 3px solid #E30613; padding-bottom: 6px; margin-bottom: 10px;">
+        <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 3px solid #E30613; padding-bottom: 6px; margin-bottom: 10px; padding-left: 26px;">
           <div style="display: flex; align-items: center; gap: 8px;">
             <span style="font-family: 'Outfit', sans-serif; font-size: 16px; font-weight: 900; color: #E30613; letter-spacing: 0.5px;">INTERFLON</span>
             <span style="background: #e0f2fe; color: #0369a1; font-size: 10.5px; font-weight: 800; padding: 2px 8px; border-radius: 4px; text-transform: uppercase;">
