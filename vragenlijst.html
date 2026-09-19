@@ -8293,18 +8293,26 @@
       if (document.visibilityState === 'visible') {
         // Tab became visible: check if an opbrengstmodel was imported while this tab was in the background
         try {
-          const rawStorage = localStorage.getItem('interflon_questionnaire_full_data');
+          let data = null;
+          const rawStorage = localStorage.getItem('interflon_questionnaire_full_data') || localStorage.getItem('interflon_last_questionnaire_data');
           if (rawStorage) {
-            const parsed = JSON.parse(rawStorage);
+            try { data = JSON.parse(rawStorage); } catch(e) {}
+          }
+          if (!data && typeof extractQuestionnaireData === 'function') {
+            data = extractQuestionnaireData(localStorage);
+          }
+          if (data) {
             const curMachine = document.getElementById('q1') ? document.getElementById('q1').value.trim() : '';
-            const newMachine = (parsed.general && (parsed.general.machineName || parsed.general.name)) || '';
-            const newExportDate = parsed.exportDate || '';
-            if (newMachine !== curMachine || (window.__lastRestoredExportDate && newExportDate && newExportDate !== window.__lastRestoredExportDate)) {
+            const newMachine = (data.general && (data.general.machineName || data.general.name)) || '';
+            const newExportDate = data.exportDate || '';
+            const curBearingCount = document.querySelectorAll('.bearing-row').length;
+            const newBearingCount = Array.isArray(data.bearings) ? data.bearings.length : 0;
+            if ((newMachine && newMachine !== curMachine) || (newBearingCount > 0 && newBearingCount !== curBearingCount) || (window.__lastRestoredExportDate && newExportDate && newExportDate !== window.__lastRestoredExportDate)) {
               console.log("Tab became visible: synchronizing questionnaire from imported dossier");
               window.__questionnaireRestoring = true;
               window.__lastRestoredExportDate = newExportDate;
               if (typeof restoreQuestionnaireDOM === 'function') {
-                restoreQuestionnaireDOM(parsed, false);
+                restoreQuestionnaireDOM(data, false);
               }
             }
           }
