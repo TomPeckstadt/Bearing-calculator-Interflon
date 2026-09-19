@@ -1939,16 +1939,16 @@ function formatSurveyBearingOptionText(b) {
 }
 
 function populateSurveyBearingsDropdown(bearings) {
+  const lang = (typeof currentLang !== 'undefined' && currentLang) ? currentLang : 'nl';
+  const count = (bearings && bearings.length) ? bearings.length : 0;
+  const placeholderText = (lang === 'en')
+    ? (count > 0 ? `-- Choose a bearing from questionnaire (${count}) --` : '-- No bearings in questionnaire --')
+    : ((lang === 'fr')
+      ? (count > 0 ? `-- Choisir un roulement du questionnaire (${count}) --` : '-- Aucun roulement dans le questionnaire --')
+      : (count > 0 ? `-- Kies een lager uit de vragenlijst (${count}) --` : '-- Geen lagers in vragenlijst --'));
+
   const selectEl = document.getElementById("surveyBearingSelect");
   if (selectEl) {
-    const lang = (typeof currentLang !== 'undefined' && currentLang) ? currentLang : 'nl';
-    const count = (bearings && bearings.length) ? bearings.length : 0;
-    const placeholderText = (lang === 'en')
-      ? (count > 0 ? `-- Choose a bearing from questionnaire (${count}) --` : '-- No bearings in questionnaire --')
-      : ((lang === 'fr')
-        ? (count > 0 ? `-- Choisir un roulement du questionnaire (${count}) --` : '-- Aucun roulement dans le questionnaire --')
-        : (count > 0 ? `-- Kies een lager uit de vragenlijst (${count}) --` : '-- Geen lagers in vragenlijst --'));
-
     const currentVal = selectEl.value;
     selectEl.innerHTML = `<option value="">${placeholderText}</option>`;
 
@@ -1968,6 +1968,46 @@ function populateSurveyBearingsDropdown(bearings) {
       if (currentVal && Array.from(selectEl.options).some(o => o.value === currentVal)) {
         selectEl.value = currentVal;
       }
+    }
+  }
+
+  // Smeercalculatie banner dropdown
+  const calcSelectEl = document.getElementById("calcSurveyBearingSelect");
+  const calcWrapper = document.getElementById("calcSurveyBearingSelectWrapper");
+  if (calcSelectEl) {
+    const currentCalcVal = calcSelectEl.value;
+    calcSelectEl.innerHTML = `<option value="">${placeholderText}</option>`;
+
+    if (bearings && bearings.length > 0) {
+      if (calcWrapper) calcWrapper.style.display = "flex";
+      bearings.forEach(b => {
+        const opt = document.createElement("option");
+        opt.value = (b.letter ? (b.letter + '___') : '') + b.nr;
+        opt.textContent = formatSurveyBearingOptionText(b);
+        opt.dataset.letter = b.letter || "";
+        opt.dataset.nr = b.nr;
+        opt.dataset.desc = b.desc || "";
+        opt.dataset.rpm = b.rpm || "";
+        opt.dataset.pos = b.pos || "";
+        calcSelectEl.appendChild(opt);
+      });
+
+      const activeL = window.currentActiveSurveyBearingLetter || localStorage.getItem("interflon_active_survey_letter") || "";
+      let restored = false;
+      if (activeL) {
+        for (let i = 0; i < calcSelectEl.options.length; i++) {
+          if ((calcSelectEl.options[i].dataset && calcSelectEl.options[i].dataset.letter === activeL) || (calcSelectEl.options[i].value && calcSelectEl.options[i].value.startsWith(activeL + '___'))) {
+            calcSelectEl.selectedIndex = i;
+            restored = true;
+            break;
+          }
+        }
+      }
+      if (!restored && currentCalcVal && Array.from(calcSelectEl.options).some(o => o.value === currentCalcVal)) {
+        calcSelectEl.value = currentCalcVal;
+      }
+    } else {
+      if (calcWrapper) calcWrapper.style.display = "none";
     }
   }
 
@@ -2211,6 +2251,16 @@ function onOmSurveyBearingSelected(selectEl, mode) {
     }
   }
 
+  const calcSurveySel = document.getElementById("calcSurveyBearingSelect");
+  if (calcSurveySel) {
+    for (let i = 0; i < calcSurveySel.options.length; i++) {
+      if ((calcSurveySel.options[i].dataset && calcSurveySel.options[i].dataset.letter === targetLetter) || (calcSurveySel.options[i].value && calcSurveySel.options[i].value.startsWith(targetLetter + '___'))) {
+        calcSurveySel.selectedIndex = i;
+        break;
+      }
+    }
+  }
+
   window.activeTcoBearingSource = "survey_" + targetLetter;
   try { localStorage.setItem("active_tco_bearing_source", "survey_" + targetLetter); } catch(e) {}
 
@@ -2222,6 +2272,27 @@ function onOmSurveyBearingSelected(selectEl, mode) {
 }
 window.onOmSurveyBearingSelected = onOmSurveyBearingSelected;
 
+function onCalcSurveyBearingSelected(selectEl) {
+  if (!selectEl) return;
+  const rawVal = selectEl.value;
+  if (!rawVal) {
+    if (typeof clearSurveyBearingSelection === "function") {
+      clearSurveyBearingSelection();
+    }
+    return;
+  }
+
+  // Synchroniseer Lager Opzoeken dropdown
+  const mainSurveySel = document.getElementById("surveyBearingSelect");
+  if (mainSurveySel) {
+    mainSurveySel.value = rawVal;
+  }
+
+  // Voer centrale selectielogica uit
+  onSurveyBearingSelected(selectEl);
+}
+window.onCalcSurveyBearingSelected = onCalcSurveyBearingSelected;
+
 function activateManualSearchedBearingInOm(mode) {
   window.activeTcoBearingSource = "manual";
   try { localStorage.setItem("active_tco_bearing_source", "manual"); } catch(e) {}
@@ -2230,6 +2301,8 @@ function activateManualSearchedBearingInOm(mode) {
   try { localStorage.removeItem("interflon_active_survey_letter"); } catch(e) {}
   const mainSurveySel = document.getElementById("surveyBearingSelect");
   if (mainSurveySel) mainSurveySel.value = "";
+  const calcSurveySel = document.getElementById("calcSurveyBearingSelect");
+  if (calcSurveySel) calcSurveySel.value = "";
   if (typeof updateCorrectionFactorsHint === "function") updateCorrectionFactorsHint();
 
   if (mode === 'chain') {
@@ -2393,6 +2466,28 @@ function onSurveyBearingSelected(selectEl) {
     for (let i = 0; i < omSelect.options.length; i++) {
       if (omSelect.options[i].dataset && omSelect.options[i].dataset.letter === targetLetter) {
         omSelect.selectedIndex = i;
+        break;
+      }
+    }
+  }
+
+  // Synchroniseer Smeercalculatie dropdown als selectEl een ander element was
+  const calcSelect = document.getElementById("calcSurveyBearingSelect");
+  if (calcSelect && calcSelect !== selectEl) {
+    for (let i = 0; i < calcSelect.options.length; i++) {
+      if ((calcSelect.options[i].dataset && calcSelect.options[i].dataset.letter === targetLetter) || (calcSelect.options[i].value && calcSelect.options[i].value.startsWith(targetLetter + '___'))) {
+        calcSelect.selectedIndex = i;
+        break;
+      }
+    }
+  }
+
+  // Synchroniseer Zoekpagina dropdown als selectEl een ander element was
+  const mainSelect = document.getElementById("surveyBearingSelect");
+  if (mainSelect && mainSelect !== selectEl) {
+    for (let i = 0; i < mainSelect.options.length; i++) {
+      if ((mainSelect.options[i].dataset && mainSelect.options[i].dataset.letter === targetLetter) || (mainSelect.options[i].value && mainSelect.options[i].value.startsWith(targetLetter + '___'))) {
+        mainSelect.selectedIndex = i;
         break;
       }
     }
@@ -2904,6 +2999,8 @@ function onSurveyBearingSelected(selectEl) {
 function clearSurveyBearingSelection() {
   const selectEl = document.getElementById("surveyBearingSelect");
   if (selectEl) selectEl.value = "";
+  const calcSelectEl = document.getElementById("calcSurveyBearingSelect");
+  if (calcSelectEl) calcSelectEl.value = "";
   const badge = document.getElementById("surveyBearingSelectedBadge");
   if (badge) badge.style.display = "none";
   window.currentActiveSurveyBearingLetter = null;
@@ -3027,6 +3124,16 @@ function syncAllQuestionnaireDataToCalculator(data, explicitTargetLetter) {
         }
       }
     }
+    const calcSel = document.getElementById("calcSurveyBearingSelect");
+    if (calcSel && calcSel.options && calcSel.options.length > 1) {
+      for (let i = 0; i < calcSel.options.length; i++) {
+        const opt = calcSel.options[i];
+        if ((opt.dataset && opt.dataset.letter === targetLetter) || (opt.value && opt.value.startsWith(targetLetter + '___'))) {
+          calcSel.selectedIndex = i;
+          break;
+        }
+      }
+    }
     const omSel = document.getElementById("omSurveyBearingSelect");
     if (omSel && omSel.options && omSel.options.length > 0) {
       for (let i = 0; i < omSel.options.length; i++) {
@@ -3052,6 +3159,8 @@ function syncAllQuestionnaireDataToCalculator(data, explicitTargetLetter) {
       if (typeof populateOmSurveyBearingsDropdown === "function") populateOmSurveyBearingsDropdown(allBearings);
       const wrapper = document.getElementById("surveyBearingSelectWrapper");
       if (wrapper) wrapper.style.display = "flex";
+      const calcWrapper = document.getElementById("calcSurveyBearingSelectWrapper");
+      if (calcWrapper) calcWrapper.style.display = "flex";
     }
 
     const parseCleanNum = (val) => {
@@ -3969,6 +4078,19 @@ function importSurveyBearingToOpbrengstmodel(mode, explicitLetter) {
     for (let i = 0; i < selectEl.options.length; i++) {
       if (selectEl.options[i].dataset && selectEl.options[i].dataset.letter === targetLetter) {
         selectEl.selectedIndex = i;
+        break;
+      }
+    }
+  }
+
+  const calcSelectEl = document.getElementById("calcSurveyBearingSelect");
+  if (calcSelectEl) {
+    if (calcSelectEl.options.length <= 1 && allBearings.length > 0 && typeof populateSurveyBearingsDropdown === "function") {
+      populateSurveyBearingsDropdown(allBearings);
+    }
+    for (let i = 0; i < calcSelectEl.options.length; i++) {
+      if ((calcSelectEl.options[i].dataset && calcSelectEl.options[i].dataset.letter === targetLetter) || (calcSelectEl.options[i].value && calcSelectEl.options[i].value.startsWith(targetLetter + '___'))) {
+        calcSelectEl.selectedIndex = i;
         break;
       }
     }
@@ -6153,7 +6275,8 @@ const TRANSLATIONS = {
     btnSaveCalc: "Opbrengstmodel opslaan",
     btnImportCalc: "Opbrengstmodel importeren",
     btnImportBearingFromSurvey: "Importeer een lager uit de vragenlijst",
-    surveyBearingSelectPlaceholder: "-- Kies een lager uit de vragenlijst --"
+    surveyBearingSelectPlaceholder: "-- Kies een lager uit de vragenlijst --",
+    calcSurveySelectLabel: "Lager:"
   },
   en: {
     "devicePulsarlubePlc": "Pulsarlube PLC (Central Control)",
@@ -6677,8 +6800,9 @@ const TRANSLATIONS = {
     btnLagertypes: "Bearing Types",
     btnSaveCalc: "Save Yield Model",
     btnImportCalc: "Import Yield Model",
-    btnImportBearingFromSurvey: "Import a bearing from questionnaire",
-    surveyBearingSelectPlaceholder: "-- Choose a bearing from questionnaire --"
+    btnImportBearingFromSurvey: "Importeer een lager uit de vragenlijst",
+    surveyBearingSelectPlaceholder: "-- Choose a bearing from questionnaire --",
+    calcSurveySelectLabel: "Bearing:"
   },
   fr: {
     "devicePulsarlubePlc": "Pulsarlube PLC (Commande Centralisée)",
@@ -7203,7 +7327,8 @@ const TRANSLATIONS = {
     btnSaveCalc: "Enregistrer modèle de rentabilité",
     btnImportCalc: "Importer modèle de rentabilité",
     btnImportBearingFromSurvey: "Importer un roulement du questionnaire",
-    surveyBearingSelectPlaceholder: "-- Choisir un roulement du questionnaire --"
+    surveyBearingSelectPlaceholder: "-- Choisir un roulement du questionnaire --",
+    calcSurveySelectLabel: "Roulement:"
   }
 };
 
@@ -8487,6 +8612,8 @@ function selectBearing(key) {
   try { localStorage.removeItem("interflon_active_survey_letter"); } catch(e) {}
   const mainSurveySel = document.getElementById("surveyBearingSelect");
   if (mainSurveySel) mainSurveySel.value = "";
+  const calcSurveySel = document.getElementById("calcSurveyBearingSelect");
+  if (calcSurveySel) calcSurveySel.value = "";
 
   // Verberg vragenlijst badge op de zoekpagina zodat duidelijk is dat dit een eigen gezocht lager is
   const badge = document.getElementById("surveyBearingSelectedBadge");
@@ -11686,20 +11813,42 @@ function calculateFullSurveyTcoSavings() {
     return isNaN(v) ? 0 : v;
   };
 
-  const shared_labor_rate = val("SharedLaborRate") || 50;
-  const shared_repair_h = val("SharedRepairH") || 4;
-  const shared_prep_h = val("SharedPrepH") || 1;
-  const shared_worktime = val("SharedWorktime") || 5;
+  const shared_labor_rate = val("SharedLaborRate");
+  const shared_repair_h = val("SharedRepairH");
+  const shared_prep_h = val("SharedPrepH");
+  const shared_worktime = val("SharedWorktime");
   const shared_worktime_hours = shared_worktime / 60;
-  const shared_parts_cost = val("SharedPartsCost") || 250;
-  const shared_downtime_rate = val("SharedDowntimeRate") || 150;
-  const shared_num_machines = val("SharedNumMachines") || 1;
+  const shared_parts_cost = val("SharedPartsCost");
+  const shared_downtime_rate = val("SharedDowntimeRate");
+  const shared_num_machines = val("SharedNumMachines");
   const tco_years = val("TcoYears") || 5;
+
+  const table_p1_price = val("ProdPrice1");
+  const table_p2_price = val("ProdPrice2");
+  const table_p1_downtime_h = val("DowntimeH1");
+  const table_p2_downtime_h = val("DowntimeH2");
+  const table_p1_downtime_freq = val("DowntimeFreq1");
+  const table_p2_downtime_freq = val("DowntimeFreq2");
+
+  const table_p1_cons = val("ProdCons1");
+  const table_p2_cons = val("ProdCons2");
+  const table_p1_freq = val("ProdFreq1");
+  const table_p2_freq = val("ProdFreq2");
+  const table_p1_life = val("Lifetime1");
+  const table_p2_life = val("Lifetime2");
 
   let density = 0.92;
   const selectedGrease = document.getElementById("inputGrease") ? document.getElementById("inputGrease").value : "";
   const grease = (typeof INTERFLON_GREASES !== "undefined" && INTERFLON_GREASES[selectedGrease]) ? INTERFLON_GREASES[selectedGrease] : { density: 0.92 };
   density = grease.density || 0.92;
+
+  const activeBearingLetter = window.currentActiveSurveyBearingLetter ||
+    (window.activeTcoBearingSource && window.activeTcoBearingSource.startsWith('survey_')
+      ? window.activeTcoBearingSource.replace('survey_', '')
+      : (bearings[0] ? (bearings[0].letter || 'A') : 'A'));
+
+  const activeBearingObj = bearings.find(b => b.letter === activeBearingLetter) || bearings[0] || {};
+  const activeNr = (activeBearingObj.nr || activeBearingObj.lagernummer || '').trim().toUpperCase();
 
   let totalP1AnnPark = 0;
   let totalP2AnnPark = 0;
@@ -11713,47 +11862,105 @@ function calculateFullSurveyTcoSavings() {
     const sec3 = (fullData && fullData.bearingDataMapSec3 && fullData.bearingDataMapSec3[letter]) ? fullData.bearingDataMapSec3[letter] : {};
     const sec4 = (fullData && fullData.bearingDataMapSec4 && fullData.bearingDataMapSec4[letter]) ? fullData.bearingDataMapSec4[letter] : {};
 
-    const num_bearings = b.aantal || b.points || 1;
+    const thisNr = (b.nr || b.lagernummer || '').trim().toUpperCase();
+    const isThisActiveBearing = (letter === activeBearingLetter);
+    const isSameBearingType = (thisNr !== '' && thisNr === activeNr);
 
-    let p1_cons = parseFloat(sec2.q13 || sec2.gq_manual || b.vetVerbruik || val("ProdCons1")) || 50;
-    let p2_cons = parseFloat(sec3.interflonCons || val("ProdCons2")) || p1_cons;
-    let p1_price = parseFloat(sec2.q12_price || b.prijsLiter || val("ProdPrice1")) || 15;
-    let p2_price = parseFloat(val("ProdPrice2")) || 70.50;
+    const num_bearings = b.aantal || b.points || b.qty || (isThisActiveBearing ? (val("SharedSetsPerMachine") || 1) : 1);
 
-    let p1_freq = parseFloat(sec2.q4_freq_num || (b.intervalDagen ? (365 / (b.intervalDagen || 7)) : val("ProdFreq1"))) || 52;
-    let p2_freq = parseFloat(sec3.interflonFreq || (p1_freq > 2 ? (p1_freq / 2) : p1_freq)) || (p1_freq / 2);
+    let p1_cons = table_p1_cons;
+    let p2_cons = table_p2_cons;
+    let p1_price = table_p1_price;
+    let p2_price = table_p2_price;
+    let p1_freq = table_p1_freq;
+    let p2_freq = table_p2_freq;
+    let p1_lifetime = table_p1_life;
+    let p2_lifetime = table_p2_life;
+    let p1_downtime_h = table_p1_downtime_h;
+    let p2_downtime_h = table_p2_downtime_h;
+    let p1_downtime_freq = table_p1_life > 0 ? (12 / table_p1_life) : table_p1_downtime_freq;
+    let p2_downtime_freq = table_p2_downtime_freq;
 
-    let p1_lifetime = parseFloat(sec2.q29_life || b.levensduur || val("Lifetime1")) || 12;
-    let p2_lifetime = parseFloat(sec4.targetLifetime || (p1_lifetime * 2) || val("Lifetime2")) || (p1_lifetime * 2);
-    if (p1_lifetime <= 0) p1_lifetime = 12;
-    if (p2_lifetime <= 0) p2_lifetime = p1_lifetime * 2;
+    // Als het niet het actieve lager is, maar wel afwijkende eigenschappen heeft:
+    if (!isThisActiveBearing && !isSameBearingType) {
+      if (thisNr && typeof parseBearingDesignation === "function") {
+        const parsed = parseBearingDesignation(thisNr);
+        if (parsed && parsed.dimensions) {
+          const d = parsed.dimensions.d || 0;
+          const D = parsed.dimensions.D || 0;
+          const B = parsed.dimensions.B || 0;
+          const refill = D * B * 0.005;
+          if (refill > 0) {
+            p1_cons = refill;
+            p2_cons = refill;
+          }
+        }
+      }
 
-    let p1_downtime_h = parseFloat(val("DowntimeH1")) || 2;
-    let p2_downtime_h = parseFloat(val("DowntimeH2")) || 1;
+      if (sec2.q29_life || b.levensduur) {
+        const rawL = parseFloat(sec2.q29_life || b.levensduur);
+        if (!isNaN(rawL) && rawL > 0) {
+          p1_lifetime = rawL;
+          const lifeFactor = (table_p1_life > 0) ? (table_p2_life / table_p1_life) : 4;
+          p2_lifetime = Math.round(p1_lifetime * (lifeFactor >= 1 ? lifeFactor : 4));
+        }
+      }
 
-    const p1_cons_L = p1_cons / (density * 1000);
-    const p2_cons_L = p2_cons / (density * 1000);
+      if (sec2.q4_freq_num || b.interval) {
+        let fNum = parseFloat(sec2.q4_freq_num);
+        let fUnit = sec2.q4_freq_unit || 'Weken';
+        if (isNaN(fNum) && b.interval) {
+          const parts = String(b.interval).trim().split(/\s+/);
+          fNum = parseFloat(parts[0]);
+          if (parts.length > 1) fUnit = parts.slice(1).join(' ');
+        }
+        if (!isNaN(fNum) && fNum > 0) {
+          const u = fUnit.toLowerCase();
+          let days = fNum;
+          if (u.includes('wek') || u.includes('week') || u.includes('sem')) days = fNum * 7;
+          else if (u.includes('mnd') || u.includes('maand') || u.includes('month')) days = fNum * (365 / 12);
+          else if (u.includes('jaar') || u.includes('year')) days = fNum * 365;
+          else if (u.includes('uur') || u.includes('hour')) days = fNum / 24;
+          if (days > 0) {
+            p1_freq = 365 / days;
+            const freqFactor = (table_p1_freq > 0) ? (table_p2_freq / table_p1_freq) : 0.25;
+            p2_freq = p1_freq * freqFactor;
+          }
+        }
+      }
 
-    const b_p1_prod = p1_cons_L * p1_price * p1_freq * num_bearings;
-    const b_p2_prod = p2_cons_L * p2_price * p2_freq * num_bearings;
+      p1_downtime_freq = p1_lifetime > 0 ? (12 / p1_lifetime) : table_p1_downtime_freq;
+    }
+
+    const p1_repair_freq = p1_lifetime;
+    const p2_repair_freq = p2_lifetime;
+
+    const p1_cons_Liters = p1_cons / (density * 1000);
+    const p2_cons_Liters = p2_cons / (density * 1000);
+
+    const b_p1_prod = p1_cons_Liters * p1_price * p1_freq * num_bearings;
+    const b_p2_prod = p2_cons_Liters * p2_price * p2_freq * num_bearings;
 
     const b_p1_labor = (p1_freq * shared_worktime_hours * num_bearings * shared_labor_rate) +
-      ((12 / p1_lifetime) * (shared_repair_h + shared_prep_h) * num_bearings * shared_labor_rate);
+      (p1_repair_freq === 0 ? 0 : (12 / p1_repair_freq) * (shared_repair_h + shared_prep_h) * num_bearings * shared_labor_rate);
     const b_p2_labor = (p2_freq * shared_worktime_hours * num_bearings * shared_labor_rate) +
-      ((12 / p2_lifetime) * (shared_repair_h + shared_prep_h) * num_bearings * shared_labor_rate);
+      (p2_repair_freq === 0 ? 0 : (12 / p2_repair_freq) * (shared_repair_h + shared_prep_h) * num_bearings * shared_labor_rate);
 
-    const b_p1_mat = shared_parts_cost * num_bearings * (12 / p1_lifetime);
-    const b_p2_mat = shared_parts_cost * num_bearings * (12 / p2_lifetime);
+    const b_p1_mat = p1_lifetime === 0 ? 0 : shared_parts_cost * num_bearings * (12 / p1_lifetime);
+    const b_p2_mat = p2_lifetime === 0 ? 0 : shared_parts_cost * num_bearings * (12 / p2_lifetime);
 
-    const b_p1_down = (12 / p1_lifetime) * p1_downtime_h * shared_downtime_rate;
-    const b_p2_down = (12 / p2_lifetime) * p2_downtime_h * shared_downtime_rate;
+    const b_p1_down = p1_downtime_h * p1_downtime_freq * shared_downtime_rate * num_bearings;
+    const b_p2_down = p2_downtime_h * p2_downtime_freq * shared_downtime_rate * num_bearings;
 
     const b_p1_total_mach = b_p1_prod + b_p1_labor + b_p1_mat + b_p1_down;
     const b_p2_total_mach = b_p2_prod + b_p2_labor + b_p2_mat + b_p2_down;
 
-    totalP1AnnPark += b_p1_total_mach * shared_num_machines;
-    totalP2AnnPark += b_p2_total_mach * shared_num_machines;
-    totalP2AnnProdCost += (b_p2_prod * shared_num_machines);
+    const b_p1_total_park = shared_num_machines === 0 ? b_p1_total_mach : b_p1_total_mach * shared_num_machines;
+    const b_p2_total_park = shared_num_machines === 0 ? b_p2_total_mach : b_p2_total_mach * shared_num_machines;
+
+    totalP1AnnPark += b_p1_total_park;
+    totalP2AnnPark += b_p2_total_park;
+    totalP2AnnProdCost += (shared_num_machines === 0 ? b_p2_prod : b_p2_prod * shared_num_machines);
   });
 
   const totalAnnSavings = totalP1AnnPark - totalP2AnnPark;
