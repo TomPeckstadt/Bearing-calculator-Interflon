@@ -1042,6 +1042,46 @@ h1, h2, h3, h4, .brand-text {
   border-radius: 6px;
 }
 
+/* Bovenste 3 velden in Smeercalculatie blijven de standaard lichte tint */
+#pageCalc #inputGrease,
+#pageCalc #thickenerSelect,
+#pageCalc #inputMicPolFactor {
+  background-color: var(--bg-main);
+}
+
+/* Alle grijze invoervelden eronder: iets donkerder tint grijs (niet te donker) */
+#pageCalc #inputHoursPerDay,
+#pageCalc #inputDaysPerWeek,
+#pageCalc #inputTemperature,
+#pageCalc #inputSpeed,
+#pageCalc #inputLimitingSpeed,
+#pageCalc #inputBoreManual,
+#pageCalc #inputOuterManual,
+#pageCalc #inputWidthManual,
+#pageCalc #inputMassManual,
+#pageCalc #inputTe,
+#pageCalc #inputTa {
+  background-color: #e2e8f0;
+  border: 1px solid #cbd5e1;
+  color: #0f172a;
+}
+
+#pageCalc #inputHoursPerDay:focus,
+#pageCalc #inputDaysPerWeek:focus,
+#pageCalc #inputTemperature:focus,
+#pageCalc #inputSpeed:focus,
+#pageCalc #inputLimitingSpeed:focus,
+#pageCalc #inputBoreManual:focus,
+#pageCalc #inputOuterManual:focus,
+#pageCalc #inputWidthManual:focus,
+#pageCalc #inputMassManual:focus,
+#pageCalc #inputTe:focus,
+#pageCalc #inputTa:focus {
+  background-color: #f1f5f9;
+  border-color: var(--primary-red, #E30613);
+  box-shadow: 0 0 0 3px rgba(227, 6, 19, 0.12);
+}
+
 #pageCalc .input-label-description {
   font-size: 10px;
   margin-top: 2px;
