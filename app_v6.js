@@ -8279,6 +8279,10 @@ function switchPage(pageId) {
       targetSubtitle.setAttribute("data-i18n", "pageCalcSubtitle");
       targetSubtitle.textContent = "Bereken de optimale smeerbehoefte en nasmeer-intervallen voor uw lager.";
     }
+    const bBearings = (typeof getQuestionnaireBearings === 'function') ? getQuestionnaireBearings() : [];
+    if (bBearings && bBearings.length > 0 && typeof populateSurveyBearingsDropdown === 'function') {
+      populateSurveyBearingsDropdown(bBearings);
+    }
     updateCalculatorFields();
 
     // Trigger zoom pulse animation when the instruction badge becomes visible on scroll
