@@ -5780,6 +5780,7 @@ const TRANSLATIONS = {
     photoLibraryBadge: "Foto bibliotheek",
     photoLibraryTitle: "📷 Foto bibliotheek",
     photoLibrarySubtitle: "Upload en beheer tot 20 foto's van de machine, lagers of smeerpunten met een optionele beschrijving.",
+    btnClearAllPhotos: "Wis alle foto's voor nieuw dossier",
     btnPhotoFolders: "Mappen",
     btnAddPhotos: "➕ Foto's toevoegen",
     btnClose: "Sluiten",
@@ -6397,6 +6398,7 @@ const TRANSLATIONS = {
     "btnPdfReport": "PDF Report",
     "btnSaveCalc": "Save Yield Model",
     "btnImportCalc": "Import Yield Model",
+    "btnClearAllPhotos": "Clear all photos for new dossier",
     "btnLogout": "Log Out",
     "welcomeModalTitle": "Welcome to Interflon Calculation Module",
     "welcomeModalSubtitle": "Make your choice to open the desired application:",
@@ -6924,6 +6926,7 @@ const TRANSLATIONS = {
     "btnPdfReport": "Rapport PDF",
     "btnSaveCalc": "Enregistrer modèle de rentabilité",
     "btnImportCalc": "Importer modèle de rentabilité",
+    "btnClearAllPhotos": "Effacer toutes les photos pour nouveau dossier",
     "btnLogout": "Déconnexion",
     "welcomeModalTitle": "Bienvenue dans le Module de Calcul Interflon",
     "welcomeModalSubtitle": "Faites votre choix pour ouvrir l'application souhaitée:",
@@ -22324,6 +22327,67 @@ function deletePhoto(id) {
   savePhotoLibraryToStorage();
 }
 
+function clearAllPhotosForNewDossier() {
+  const lang = (typeof currentLang !== "undefined" && currentLang) ? currentLang : "nl";
+  let confirmMsg = "Weet u zeker dat u alle foto's en mappen wilt wissen om een nieuwe fotobibliotheek te starten voor een nieuw dossier?\n\n(Foto's van reeds opgeslagen dossiers op uw computer blijven veilig bewaard in hun dossierbestand.)";
+  if (lang === "fr") {
+    confirmMsg = "Êtes-vous sûr de vouloir effacer toutes les photos et tous les dossiers pour démarrer une nouvelle bibliothèque de photos pour un nouveau dossier ?\n\n(Les photos des dossiers déjà enregistrés sur votre ordinateur restent conservées en toute sécurité dans leur fichier de dossier.)";
+  } else if (lang === "en") {
+    confirmMsg = "Are you sure you want to clear all photos and folders to start a new photo library for a new file?\n\n(Photos from already saved files on your computer remain safely preserved in their file.)";
+  }
+
+  if (!confirm(confirmMsg)) {
+    return;
+  }
+
+  // 1. Reset memory state to initial clean default folder
+  photoFolders = [
+    { id: "folder_default", name: "Algemeen", photos: [] }
+  ];
+  activePhotoFolderId = "folder_default";
+  photoLibrary = [];
+
+  if (typeof window !== "undefined") {
+    window.photoFolders = photoFolders;
+    window.activePhotoFolderId = activePhotoFolderId;
+    window.photoLibrary = photoLibrary;
+  }
+
+  // 2. Clear old photo localStorage entries
+  try {
+    localStorage.removeItem("photo_folders");
+    localStorage.removeItem("photoFolders");
+    localStorage.removeItem("photo_library");
+    localStorage.removeItem("photoLibrary");
+  } catch (e) {
+    console.warn("Could not remove photo keys from localStorage:", e);
+  }
+
+  // 3. Persist the clean initial state
+  savePhotoLibraryToStorage();
+
+  // 4. Reset file input if present
+  const fileInput = document.getElementById("photoFileInput");
+  if (fileInput) fileInput.value = "";
+
+  // 5. Update UI components
+  if (typeof renderPhotoFolderTabs === "function") renderPhotoFolderTabs();
+  if (typeof renderPhotoGrid === "function") renderPhotoGrid();
+  if (typeof updatePhotoBadgeCounter === "function") updatePhotoBadgeCounter();
+  if (typeof renderPhotoFolderManagerList === "function") renderPhotoFolderManagerList();
+
+  // 6. Show friendly confirmation toast
+  const toastMsg = (lang === "fr")
+    ? "🗑️ La bibliothèque de photos a été vidée pour un nouveau dossier."
+    : (lang === "en"
+        ? "🗑️ The photo library has been cleared for a new dossier."
+        : "🗑️ De fotobibliotheek is leeggemaakt voor een nieuw dossier.");
+
+  if (typeof showToastNotification === "function") {
+    showToastNotification(toastMsg);
+  }
+}
+
 function renderPhotoGrid() {
   const container = document.getElementById("photoGridContainer");
   const counterText = document.getElementById("photoCounterText");
@@ -22432,6 +22496,7 @@ if (typeof window !== "undefined") {
   window.handlePhotoUpload = handlePhotoUpload;
   window.updatePhotoDescription = updatePhotoDescription;
   window.deletePhoto = deletePhoto;
+  window.clearAllPhotosForNewDossier = clearAllPhotosForNewDossier;
   window.openPhotoLightbox = openPhotoLightbox;
   window.closePhotoLightboxModal = closePhotoLightboxModal;
   window.renderPhotoGrid = renderPhotoGrid;
