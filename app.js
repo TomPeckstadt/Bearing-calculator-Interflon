@@ -21739,14 +21739,23 @@ function getSurveyUrl(options = {}) {
 
 function openSurveyLink(e) {
   if (e) e.preventDefault();
-  const url = getSurveyUrl({ includeClientData: false });
-  window.open(url, '_blank');
+  // Open active questionnaire for current dossier (without wiping/blanking params!)
+  const isLocal = window.location.protocol === 'file:' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+  let targetUrl = isLocal ? 'vragenlijst.html' : 'https://www.interflonapps.com/vragenlijst.html';
+  if (typeof currentLang !== "undefined" && currentLang) {
+    targetUrl += '?lang=' + encodeURIComponent(currentLang);
+  }
+  window.open(targetUrl, '_blank');
 }
 
 
 function printSurveyPage() {
-  const url = getSurveyUrl({ includeClientData: false }) + "&autoprint=true";
-  window.open(url, '_blank');
+  const isLocal = window.location.protocol === 'file:' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+  let targetUrl = (isLocal ? 'vragenlijst.html' : 'https://www.interflonapps.com/vragenlijst.html') + '?autoprint=true';
+  if (typeof currentLang !== "undefined" && currentLang) {
+    targetUrl += '&lang=' + encodeURIComponent(currentLang);
+  }
+  window.open(targetUrl, '_blank');
 }
 
 function copySurveyLink() {
@@ -22734,6 +22743,15 @@ async function exportCalculationData() {
       },
       inputs: inputsData,
       localStorage: localStorageData,
+      questionnaire: (function() {
+        let q = null;
+        try {
+          const raw = localStorage.getItem('interflon_questionnaire_full_data') || localStorage.getItem('interflon_last_questionnaire_data');
+          if (raw) q = (typeof raw === 'string') ? JSON.parse(raw) : raw;
+        } catch(e) {}
+        if (!q && window.latestSurveyFullData) q = window.latestSurveyFullData;
+        return q;
+      })(),
       autoDevicesState: (typeof autoDevicesState !== "undefined") ? autoDevicesState : null,
       currentSelectedBearing: (typeof currentSelectedBearing !== "undefined") ? currentSelectedBearing : null,
       currentChainData: (typeof currentChainData !== "undefined") ? currentChainData : null,
@@ -22895,9 +22913,58 @@ function handleImportFileSelected(event) {
       if (data.localStorage) {
         Object.keys(data.localStorage).forEach(k => {
           if (data.localStorage[k] !== null && data.localStorage[k] !== undefined) {
-            localStorage.setItem(k, data.localStorage[k]);
+            const valToStore = (typeof data.localStorage[k] === "object")
+              ? JSON.stringify(data.localStorage[k])
+              : String(data.localStorage[k]);
+            localStorage.setItem(k, valToStore);
           }
         });
+      }
+
+      // STEP 2B: Robustly extract, restore, and replace the active questionnaire
+      let importedQuestionnaire = null;
+
+      if (data.questionnaire && typeof data.questionnaire === 'object' && (data.questionnaire.bearings || data.questionnaire.general || data.questionnaire.fileType)) {
+        importedQuestionnaire = data.questionnaire;
+      } else if (data.questionnaireData && typeof data.questionnaireData === 'object') {
+        importedQuestionnaire = data.questionnaireData;
+      } else if (data.fullData && typeof data.fullData === 'object' && (data.fullData.bearings || data.fullData.general)) {
+        importedQuestionnaire = data.fullData;
+      } else if (data.localStorage) {
+        const rawQ = data.localStorage.interflon_questionnaire_full_data || data.localStorage.interflon_last_questionnaire_data;
+        if (rawQ) {
+          try {
+            importedQuestionnaire = (typeof rawQ === 'string') ? JSON.parse(rawQ) : rawQ;
+          } catch(e) {}
+        }
+      }
+
+      if (importedQuestionnaire) {
+        try {
+          const qJson = JSON.stringify(importedQuestionnaire);
+          localStorage.setItem('interflon_questionnaire_full_data', qJson);
+          localStorage.setItem('interflon_last_questionnaire_data', qJson);
+          if (importedQuestionnaire.surveyRasterConfig) {
+            localStorage.setItem('interflon_survey_raster_config', JSON.stringify(importedQuestionnaire.surveyRasterConfig));
+          } else if (data.localStorage && data.localStorage.interflon_survey_raster_config) {
+            const rawCfg = data.localStorage.interflon_survey_raster_config;
+            localStorage.setItem('interflon_survey_raster_config', (typeof rawCfg === 'string') ? rawCfg : JSON.stringify(rawCfg));
+          }
+        } catch(e) {}
+        window.latestSurveyFullData = importedQuestionnaire;
+        if (Array.isArray(importedQuestionnaire.bearings) && importedQuestionnaire.bearings.length > 0) {
+          window.latestSurveyBearings = importedQuestionnaire.bearings;
+        }
+      } else {
+        // If imported dossier has no questionnaire, clear previous client questionnaire so it never lingers
+        try {
+          localStorage.removeItem('interflon_questionnaire_full_data');
+          localStorage.removeItem('interflon_last_questionnaire_data');
+          localStorage.removeItem('interflon_survey_raster_config');
+          localStorage.removeItem('interflon_raster_config');
+        } catch(e) {}
+        window.latestSurveyFullData = null;
+        window.latestSurveyBearings = [];
       }
 
       // STEP 3: Robustly extract and restore Klantgegevens, Interflon contactpersoon, and Technical data
@@ -23097,6 +23164,55 @@ function handleImportFileSelected(event) {
       if (typeof renderPhotoFolderTabs === "function") renderPhotoFolderTabs();
       if (typeof renderPhotoGrid === "function") renderPhotoGrid();
       if (typeof updatePhotoBadgeCounter === "function") updatePhotoBadgeCounter();
+
+      // STEP 6B: Activate questionnaire in calculator, dropdowns, and broadcast cross-tab
+      if (importedQuestionnaire) {
+        if (typeof populateSurveyBearingsDropdown === "function") {
+          populateSurveyBearingsDropdown(importedQuestionnaire.bearings || []);
+        }
+        if (typeof refreshSurveyBearingsList === "function") {
+          refreshSurveyBearingsList(false);
+        }
+        if (typeof syncAllQuestionnaireDataToCalculator === "function") {
+          syncAllQuestionnaireDataToCalculator(importedQuestionnaire);
+        }
+        if (typeof refreshOmSurveyBearingsDropdown === "function") {
+          refreshOmSurveyBearingsDropdown();
+          refreshOmSurveyBearingsDropdown('chain');
+        }
+        const surveyWrapper = document.getElementById("surveyBearingSelectWrapper");
+        if (surveyWrapper) {
+          const bCount = (importedQuestionnaire.bearings && Array.isArray(importedQuestionnaire.bearings)) ? importedQuestionnaire.bearings.length : 0;
+          surveyWrapper.style.display = bCount > 0 ? "flex" : "none";
+        }
+        if (typeof BroadcastChannel !== "undefined") {
+          try {
+            const syncChan = new BroadcastChannel('interflon_questionnaire_sync');
+            syncChan.postMessage({
+              type: 'QUESTIONNAIRE_IMPORTED',
+              data: importedQuestionnaire,
+              fullData: importedQuestionnaire,
+              bearings: importedQuestionnaire.bearings || [],
+              source: 'calculator_dossier_import'
+            });
+          } catch(e) {}
+        }
+      } else {
+        if (typeof populateSurveyBearingsDropdown === "function") {
+          populateSurveyBearingsDropdown([]);
+        }
+        if (typeof refreshSurveyBearingsList === "function") {
+          refreshSurveyBearingsList(false);
+        }
+        const surveyWrapper = document.getElementById("surveyBearingSelectWrapper");
+        if (surveyWrapper) surveyWrapper.style.display = "none";
+        if (typeof BroadcastChannel !== "undefined") {
+          try {
+            const syncChan = new BroadcastChannel('interflon_questionnaire_sync');
+            syncChan.postMessage({ type: 'CLEAR_QUESTIONNAIRE', source: 'calculator_dossier_import' });
+          } catch(e) {}
+        }
+      }
 
       // STEP 7: Re-render UI components & trigger recalculations
       if (window.currentSelectedBearing && typeof displayBearingData === "function") {
