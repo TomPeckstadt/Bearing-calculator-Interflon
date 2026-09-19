@@ -503,8 +503,8 @@ function saveAutomationStateToLocalStorage() {
   }
 }
 
-function loadAutomationStateFromLocalStorage() {
-  if (isAutomationStateLoaded) return;
+function loadAutomationStateFromLocalStorage(force) {
+  if (isAutomationStateLoaded && !force) return;
   try {
     const savedDeviceKey = localStorage.getItem("auto_device_key");
     if (savedDeviceKey) {
@@ -524,23 +524,33 @@ function loadAutomationStateFromLocalStorage() {
       if (numDevicesSelect) numDevicesSelect.value = savedNumDevices;
     }
 
-    const savedSpBearings = localStorage.getItem("single_point_num_bearings");
-    if (savedSpBearings) {
-      window.spNumBearingsValue = parseInt(savedSpBearings, 10) || 1;
-    }
-
     const savedStateJson = localStorage.getItem("auto_devices_state");
     if (savedStateJson) {
       const parsed = JSON.parse(savedStateJson);
       if (Array.isArray(parsed) && parsed.length > 0) {
-        parsed.forEach((item, index) => {
+        autoDevicesState = parsed.map((item, index) => {
           if (item && item.type === "pulsarlube_msp") item.type = "pulsarlube_msp_dc";
-          if (autoDevicesState[index]) {
-            autoDevicesState[index] = { ...autoDevicesState[index], ...item, unit: "months" };
-          } else {
-            autoDevicesState[index] = { ...item, unit: "months" };
-          }
+          return { ...item, unit: "months" };
         });
+        window.autoDevicesState = autoDevicesState;
+      }
+    }
+
+    // Determine total single point bearings across all groups
+    if (Array.isArray(autoDevicesState)) {
+      const spGroups = autoDevicesState.filter(d => d && d.isSinglePointGroup && (d.unitCount > 0 || (d.bearingLetters && d.bearingLetters.length > 0)));
+      if (spGroups.length > 0) {
+        const totalSp = spGroups.reduce((acc, d) => acc + (d.unitCount || (d.bearingLetters ? d.bearingLetters.length : 1)), 0);
+        window.spNumBearingsValue = totalSp;
+        const spInput = document.getElementById("singlePointNumBearingsInput");
+        if (spInput) spInput.value = totalSp;
+      } else {
+        const savedSpBearings = localStorage.getItem("single_point_num_bearings");
+        if (savedSpBearings) {
+          window.spNumBearingsValue = parseInt(savedSpBearings, 10) || 1;
+          const spInput = document.getElementById("singlePointNumBearingsInput");
+          if (spInput) spInput.value = window.spNumBearingsValue;
+        }
       }
     }
 
@@ -567,7 +577,7 @@ function loadAutomationStateFromLocalStorage() {
 // ==========================================
 // IMPORT CONFIGURATION FROM QUESTIONNAIRE
 // ==========================================
-function importConfigFromSurvey(customData) {
+function importConfigFromSurvey(customData, isSilent) {
   let config = customData;
   if (!config) {
     const saved = localStorage.getItem('interflon_survey_raster_config');
@@ -599,6 +609,7 @@ function importConfigFromSurvey(customData) {
 
   // If no active config found in app memory, ask user first instead of popping Verkenner automatically
   if (!config || !config.numDevices || !Array.isArray(config.devices) || config.devices.length === 0) {
+    if (isSilent) return;
     const lang = (typeof currentLang !== 'undefined' && currentLang) ? currentLang : 'nl';
     const msg = (lang === 'en')
       ? 'No active questionnaire configuration found in the app.\n\nPlease open the Questionnaire first (via the top menu) and fill it in or import your questionnaire file under "Configuratiebeheer".\n\nWould you like to select a saved questionnaire JSON file from your computer now?'
@@ -1189,11 +1200,12 @@ function applySurveyConfig(config) {
   } catch(e) {}
 
   const allBearings = (config.bearings && config.bearings.length > 0) ? config.bearings :
+                      (window.latestSurveyFullData && window.latestSurveyFullData.bearings && window.latestSurveyFullData.bearings.length > 0) ? window.latestSurveyFullData.bearings :
                       (fullData && fullData.bearings && fullData.bearings.length > 0) ? fullData.bearings :
                       (window.latestSurveyBearings && window.latestSurveyBearings.length > 0) ? window.latestSurveyBearings : [];
 
-  const sec2Map = config.bearingDataMapSec2 || (fullData && fullData.bearingDataMapSec2) || {};
-  const sec3Map = config.bearingDataMapSec3 || (fullData && fullData.bearingDataMapSec3) || {};
+  const sec2Map = config.bearingDataMapSec2 || (window.latestSurveyFullData && window.latestSurveyFullData.bearingDataMapSec2) || (fullData && fullData.bearingDataMapSec2) || {};
+  const sec3Map = config.bearingDataMapSec3 || (window.latestSurveyFullData && window.latestSurveyFullData.bearingDataMapSec3) || (fullData && fullData.bearingDataMapSec3) || {};
 
   // Check if configuration is for Single Point Lubricators
   const isSinglePoint = (config.isSinglePoint === true) ||
@@ -1263,7 +1275,7 @@ function applySurveyConfig(config) {
 
     const groups = Array.from(groupsMap.values());
     const totalUnits = (groups.length > 0 ? groups.reduce((sum, g) => sum + g.totalQty, 0) : 0) ||
-                       config.totalSinglePoints || config.devices.length || (config.bearings && config.bearings.length) || config.numDevices || 1;
+                       config.totalSinglePoints || (Array.isArray(config.devices) ? config.devices.reduce((acc, d) => acc + (d.unitCount || (d.bearingLetters ? d.bearingLetters.length : 1)), 0) : 0) || (config.bearings && config.bearings.length) || config.numDevices || 1;
     window.spNumBearingsValue = totalUnits;
 
     // 3. Reset all autoDevicesState entries to clean state (remove any stale multi-point Pulsarlube data)
@@ -1366,12 +1378,10 @@ function applySurveyConfig(config) {
     // 4. Switch device type dropdown to single_point
     if (devSelect) {
       devSelect.value = 'single_point';
-      if (typeof updateAutomationPage === 'function') {
-        updateAutomationPage();
-      }
     }
 
-    // 5. Update DOM input element if rendered
+    // 5. Update DOM input element and window state
+    window.spNumBearingsValue = totalUnits;
     const spInput = document.getElementById('singlePointNumBearingsInput');
     if (spInput) {
       spInput.value = totalUnits;
@@ -1384,6 +1394,9 @@ function applySurveyConfig(config) {
     saveAutomationStateToLocalStorage();
     if (typeof updateRoiAutomationPage === 'function') {
       updateRoiAutomationPage();
+    }
+    if (typeof syncAllQuestionnaireDataToCalculator === 'function') {
+      syncAllQuestionnaireDataToCalculator(config);
     }
 
     // 7. Visual confirmation badge
@@ -1639,16 +1652,25 @@ function handleSurveyConfigFile(event) {
           } catch(e) {}
         }
       }
+      window.latestSurveyFullData = data;
+      try {
+        localStorage.setItem('interflon_questionnaire_full_data', JSON.stringify(data));
+        localStorage.setItem('interflon_last_questionnaire_data', JSON.stringify(data));
+        localStorage.setItem('auto_config_source', 'survey');
+      } catch (errLs) {}
+
       if (data.surveyRasterConfig) {
         if ((!data.surveyRasterConfig.bearings || data.surveyRasterConfig.bearings.length === 0) && data.bearings) {
           data.surveyRasterConfig.bearings = data.bearings;
         }
-        applySurveyConfig(data.surveyRasterConfig);
+        if (!data.surveyRasterConfig.general && data.general) data.surveyRasterConfig.general = data.general;
+        if (!data.surveyRasterConfig.contact && data.contact) data.surveyRasterConfig.contact = data.contact;
+        if (!data.surveyRasterConfig.bearingDataMapSec4 && data.bearingDataMapSec4) data.surveyRasterConfig.bearingDataMapSec4 = data.bearingDataMapSec4;
+        if (!data.surveyRasterConfig.activeBearings && data.activeBearings) data.surveyRasterConfig.activeBearings = data.activeBearings;
         try {
           localStorage.setItem('interflon_survey_raster_config', JSON.stringify(data.surveyRasterConfig));
-          localStorage.setItem('interflon_questionnaire_full_data', JSON.stringify(data));
-          localStorage.setItem('interflon_last_questionnaire_data', JSON.stringify(data));
         } catch (errLs) {}
+        applySurveyConfig(data.surveyRasterConfig);
         if (typeof refreshSurveyBearingsList === 'function') refreshSurveyBearingsList(false);
         return;
       }
@@ -1656,24 +1678,24 @@ function handleSurveyConfigFile(event) {
         if ((!data.interflon_survey_raster_config.bearings || data.interflon_survey_raster_config.bearings.length === 0) && data.bearings) {
           data.interflon_survey_raster_config.bearings = data.bearings;
         }
-        applySurveyConfig(data.interflon_survey_raster_config);
+        if (!data.interflon_survey_raster_config.general && data.general) data.interflon_survey_raster_config.general = data.general;
+        if (!data.interflon_survey_raster_config.contact && data.contact) data.interflon_survey_raster_config.contact = data.contact;
+        if (!data.interflon_survey_raster_config.bearingDataMapSec4 && data.bearingDataMapSec4) data.interflon_survey_raster_config.bearingDataMapSec4 = data.bearingDataMapSec4;
+        if (!data.interflon_survey_raster_config.activeBearings && data.activeBearings) data.interflon_survey_raster_config.activeBearings = data.activeBearings;
         try {
           localStorage.setItem('interflon_survey_raster_config', JSON.stringify(data.interflon_survey_raster_config));
-          localStorage.setItem('interflon_questionnaire_full_data', JSON.stringify(data));
-          localStorage.setItem('interflon_last_questionnaire_data', JSON.stringify(data));
         } catch (errLs) {}
+        applySurveyConfig(data.interflon_survey_raster_config);
         if (typeof refreshSurveyBearingsList === 'function') refreshSurveyBearingsList(false);
         return;
       }
       if (data.bearings || (data.raster && data.raster.devices)) {
         const parsed = parseSurveyPackageToConfig(data);
         if (parsed) {
-          applySurveyConfig(parsed);
           try {
             localStorage.setItem('interflon_survey_raster_config', JSON.stringify(parsed));
-            localStorage.setItem('interflon_questionnaire_full_data', JSON.stringify(data));
-            localStorage.setItem('interflon_last_questionnaire_data', JSON.stringify(data));
           } catch (errLs) {}
+          applySurveyConfig(parsed);
           if (typeof refreshSurveyBearingsList === 'function') refreshSurveyBearingsList(false);
           return;
         }
@@ -1801,7 +1823,11 @@ function parseSurveyPackageToConfig(data) {
       bearings: bearings,
       totalBearings: bearings.length,
       bearingDataMapSec2: data.bearingDataMapSec2 || null,
-      bearingDataMapSec3: data.bearingDataMapSec3 || null
+      bearingDataMapSec3: data.bearingDataMapSec3 || null,
+      bearingDataMapSec4: data.bearingDataMapSec4 || null,
+      general: data.general || null,
+      contact: data.contact || null,
+      activeBearings: data.activeBearings || null
     };
   } catch (err) {
     console.warn('parseSurveyPackageToConfig error:', err);
@@ -2908,17 +2934,19 @@ function syncAllQuestionnaireDataToCalculator(data, explicitTargetLetter) {
   window.__isProgrammaticFactorUpdate = true;
   try {
     let fullData = data || window.latestSurveyFullData || null;
+    let savedFull = null;
+    try {
+      const saved = localStorage.getItem('interflon_questionnaire_full_data') || localStorage.getItem('interflon_last_questionnaire_data');
+      if (saved) savedFull = JSON.parse(saved);
+    } catch(e) {}
+    let savedCfg = null;
+    try {
+      const rawCfg = localStorage.getItem('interflon_survey_raster_config');
+      if (rawCfg) savedCfg = JSON.parse(rawCfg);
+    } catch(e) {}
+
     if (!fullData) {
-      try {
-        const saved = localStorage.getItem('interflon_questionnaire_full_data') || localStorage.getItem('interflon_last_questionnaire_data');
-        if (saved) fullData = JSON.parse(saved);
-      } catch(e) {}
-    }
-    if (!fullData && typeof BroadcastChannel !== 'undefined') {
-      try {
-        const rawCfg = localStorage.getItem('interflon_survey_raster_config');
-        if (rawCfg) fullData = JSON.parse(rawCfg);
-      } catch(e) {}
+      fullData = savedFull || savedCfg;
     }
     if (!fullData) return;
 
@@ -2926,9 +2954,28 @@ function syncAllQuestionnaireDataToCalculator(data, explicitTargetLetter) {
       fullData = fullData.fullData || fullData.questionnaire || fullData.data;
     }
 
+    // Deep merge sections if fullData is a stripped raster config
+    const mergeSource = savedFull || savedCfg;
+    if (mergeSource && fullData) {
+      if (!fullData.general && mergeSource.general) fullData.general = mergeSource.general;
+      if (!fullData.contact && mergeSource.contact) fullData.contact = mergeSource.contact;
+      if (!fullData.bearingDataMapSec4 && mergeSource.bearingDataMapSec4) fullData.bearingDataMapSec4 = mergeSource.bearingDataMapSec4;
+      if (!fullData.bearingDataMapSec3 && mergeSource.bearingDataMapSec3) fullData.bearingDataMapSec3 = mergeSource.bearingDataMapSec3;
+      if (!fullData.bearingDataMapSec2 && mergeSource.bearingDataMapSec2) fullData.bearingDataMapSec2 = mergeSource.bearingDataMapSec2;
+      if (!fullData.activeBearings && mergeSource.activeBearings) fullData.activeBearings = mergeSource.activeBearings;
+      if ((!fullData.bearings || fullData.bearings.length === 0) && mergeSource.bearings) fullData.bearings = mergeSource.bearings;
+    }
+
     window.latestSurveyFullData = fullData;
 
     let targetLetter = explicitTargetLetter || null;
+    // When fresh questionnaire data is passed, prioritize its active bearing!
+    if (!targetLetter && data && data.activeBearings) {
+      targetLetter = data.activeBearings.sec2 || data.activeBearings.sec3 || data.activeBearings.sec4 || null;
+    }
+    if (!targetLetter && fullData && fullData.activeBearings && data) {
+      targetLetter = fullData.activeBearings.sec2 || fullData.activeBearings.sec3 || fullData.activeBearings.sec4 || null;
+    }
     if (!targetLetter) {
       const activeSrc = window.activeTcoBearingSource || localStorage.getItem("active_tco_bearing_source") || "";
       if (activeSrc.startsWith("survey_")) {
@@ -2952,11 +2999,11 @@ function syncAllQuestionnaireDataToCalculator(data, explicitTargetLetter) {
     if (!targetLetter) {
       targetLetter = window.currentActiveSurveyBearingLetter || window.currentSurveyBearingLetter || null;
     }
+    if (!targetLetter && fullData && fullData.activeBearings) {
+      targetLetter = fullData.activeBearings.sec2 || fullData.activeBearings.sec3 || fullData.activeBearings.sec4 || null;
+    }
     if (!targetLetter) {
       try { targetLetter = localStorage.getItem("interflon_active_survey_letter"); } catch(e) {}
-    }
-    if (!targetLetter && fullData && fullData.activeBearings) {
-      targetLetter = fullData.activeBearings.sec3 || fullData.activeBearings.sec4 || fullData.activeBearings.sec2 || null;
     }
     if (!targetLetter && fullData && Array.isArray(fullData.bearings) && fullData.bearings.length > 0) {
       targetLetter = fullData.bearings[0].letter || 'A';
@@ -3000,6 +3047,13 @@ function syncAllQuestionnaireDataToCalculator(data, explicitTargetLetter) {
     const bRec = allBearings.find(b => b.letter === targetLetter) ||
                  allBearings[0] || {};
 
+    if (allBearings && allBearings.length > 0) {
+      if (typeof populateSurveyBearingsDropdown === "function") populateSurveyBearingsDropdown(allBearings);
+      if (typeof populateOmSurveyBearingsDropdown === "function") populateOmSurveyBearingsDropdown(allBearings);
+      const wrapper = document.getElementById("surveyBearingSelectWrapper");
+      if (wrapper) wrapper.style.display = "flex";
+    }
+
     const parseCleanNum = (val) => {
       if (val === undefined || val === null) return null;
       if (typeof val === 'number') return isNaN(val) ? null : val;
@@ -3011,41 +3065,42 @@ function syncAllQuestionnaireDataToCalculator(data, explicitTargetLetter) {
     };
 
     // 1. Algemene Machine- & Klantgegevens
-    if (fullData.general) {
-      if (fullData.general.machineName) {
+    const genData = fullData.general || fullData;
+    if (genData) {
+      if (genData.machineName) {
         const mIn = document.getElementById("techMachineInput");
-        if (mIn) mIn.value = fullData.general.machineName;
+        if (mIn) mIn.value = genData.machineName;
         const omM = document.getElementById("omTechMachine");
-        if (omM) omM.value = fullData.general.machineName;
+        if (omM) omM.value = genData.machineName;
         try {
-          localStorage.setItem("tech_machine", fullData.general.machineName);
-          localStorage.setItem("app_field_techMachineInput", fullData.general.machineName);
-          localStorage.setItem("app_field_omTechMachine", fullData.general.machineName);
+          localStorage.setItem("tech_machine", genData.machineName);
+          localStorage.setItem("app_field_techMachineInput", genData.machineName);
+          localStorage.setItem("app_field_omTechMachine", genData.machineName);
         } catch(e) {}
       }
-      if (fullData.general.machineBrand) {
+      if (genData.machineBrand) {
         const bIn = document.getElementById("techBrandInput");
-        if (bIn) bIn.value = fullData.general.machineBrand;
+        if (bIn) bIn.value = genData.machineBrand;
         const omB = document.getElementById("omTechBrand");
-        if (omB) omB.value = fullData.general.machineBrand;
+        if (omB) omB.value = genData.machineBrand;
         try {
-          localStorage.setItem("tech_brand", fullData.general.machineBrand);
-          localStorage.setItem("app_field_techBrandInput", fullData.general.machineBrand);
-          localStorage.setItem("app_field_omTechBrand", fullData.general.machineBrand);
+          localStorage.setItem("tech_brand", genData.machineBrand);
+          localStorage.setItem("app_field_techBrandInput", genData.machineBrand);
+          localStorage.setItem("app_field_omTechBrand", genData.machineBrand);
         } catch(e) {}
       }
-      if (fullData.general.application) {
+      if (genData.application) {
         const aIn = document.getElementById("techAppInput");
-        if (aIn) aIn.value = fullData.general.application;
+        if (aIn) aIn.value = genData.application;
         const omA = document.getElementById("omTechApp");
-        if (omA) omA.value = fullData.general.application;
+        if (omA) omA.value = genData.application;
         try {
-          localStorage.setItem("tech_app", fullData.general.application);
-          localStorage.setItem("app_field_techAppInput", fullData.general.application);
-          localStorage.setItem("app_field_omTechApp", fullData.general.application);
+          localStorage.setItem("tech_app", genData.application);
+          localStorage.setItem("app_field_techAppInput", genData.application);
+          localStorage.setItem("app_field_omTechApp", genData.application);
         } catch(e) {}
       }
-      const rawMachCount = parseCleanNum(fullData.general.machineCount);
+      const rawMachCount = parseCleanNum(genData.machineCount);
       if (rawMachCount !== null && rawMachCount > 0) {
         const numMachIn = document.getElementById("omSharedNumMachines");
         if (numMachIn) numMachIn.value = rawMachCount;
@@ -3058,38 +3113,39 @@ function syncAllQuestionnaireDataToCalculator(data, explicitTargetLetter) {
       }
     }
 
-    if (fullData.contact) {
-      if (fullData.contact.clientCompany) {
+    const contactData = fullData.contact || fullData;
+    if (contactData) {
+      if (contactData.clientCompany) {
         const cIn = document.getElementById("clientCompanyInput");
-        if (cIn) cIn.value = fullData.contact.clientCompany;
+        if (cIn) cIn.value = contactData.clientCompany;
         const omC = document.getElementById("omClientCompany");
-        if (omC) omC.value = fullData.contact.clientCompany;
+        if (omC) omC.value = contactData.clientCompany;
         try {
-          localStorage.setItem("client_company", fullData.contact.clientCompany);
-          localStorage.setItem("app_field_clientCompanyInput", fullData.contact.clientCompany);
-          localStorage.setItem("app_field_omClientCompany", fullData.contact.clientCompany);
+          localStorage.setItem("client_company", contactData.clientCompany);
+          localStorage.setItem("app_field_clientCompanyInput", contactData.clientCompany);
+          localStorage.setItem("app_field_omClientCompany", contactData.clientCompany);
         } catch(e) {}
       }
-      if (fullData.contact.clientContact) {
+      if (contactData.clientContact) {
         const ccIn = document.getElementById("clientContactInput");
-        if (ccIn) ccIn.value = fullData.contact.clientContact;
+        if (ccIn) ccIn.value = contactData.clientContact;
         const omCC = document.getElementById("omClientContact");
-        if (omCC) omCC.value = fullData.contact.clientContact;
+        if (omCC) omCC.value = contactData.clientContact;
         try {
-          localStorage.setItem("client_contact", fullData.contact.clientContact);
-          localStorage.setItem("app_field_clientContactInput", fullData.contact.clientContact);
-          localStorage.setItem("app_field_omClientContact", fullData.contact.clientContact);
+          localStorage.setItem("client_contact", contactData.clientContact);
+          localStorage.setItem("app_field_clientContactInput", contactData.clientContact);
+          localStorage.setItem("app_field_omClientContact", contactData.clientContact);
         } catch(e) {}
       }
-      if (fullData.contact.clientEmail) {
+      if (contactData.clientEmail) {
         const ceIn = document.getElementById("clientEmailInput");
-        if (ceIn) ceIn.value = fullData.contact.clientEmail;
+        if (ceIn) ceIn.value = contactData.clientEmail;
         const omCE = document.getElementById("omClientEmail");
-        if (omCE) omCE.value = fullData.contact.clientEmail;
+        if (omCE) omCE.value = contactData.clientEmail;
         try {
-          localStorage.setItem("client_email", fullData.contact.clientEmail);
-          localStorage.setItem("app_field_clientEmailInput", fullData.contact.clientEmail);
-          localStorage.setItem("app_field_omClientEmail", fullData.contact.clientEmail);
+          localStorage.setItem("client_email", contactData.clientEmail);
+          localStorage.setItem("app_field_clientEmailInput", contactData.clientEmail);
+          localStorage.setItem("app_field_omClientEmail", contactData.clientEmail);
         } catch(e) {}
       }
     }
@@ -3271,11 +3327,20 @@ function syncAllQuestionnaireDataToCalculator(data, explicitTargetLetter) {
     if (freqNum !== null && freqNum > 0) {
       const u = freqUnit.toLowerCase();
       let intervalDays = freqNum;
-      if (u.includes('dag')) intervalDays = freqNum;
-      else if (u.includes('wek')) intervalDays = freqNum * 7;
-      else if (u.includes('mnd') || u.includes('maand')) intervalDays = freqNum * (365 / 12);
-      else if (u.includes('jaar')) intervalDays = freqNum * 365;
-      else intervalDays = freqNum * 7;
+      if (u.includes('dag') || u.includes('day') || u.includes('jour')) {
+        intervalDays = freqNum;
+      } else if (u.includes('wek') || u.includes('week') || u.includes('sem')) {
+        intervalDays = freqNum * 7;
+      } else if (u.includes('mnd') || u.includes('maand') || u.includes('month') || u.includes('mois')) {
+        intervalDays = freqNum * (365 / 12);
+      } else if (u.includes('jaar') || u.includes('jaren') || u.includes('year') || u.includes('an')) {
+        intervalDays = freqNum * 365;
+      } else if (u.includes('uur') || u.includes('uren') || u.includes('hour') || u.includes('hr') || u.includes('heur')) {
+        const operHoursPerCalDay = ((operHours || 24) * (operDays || 7)) / 7;
+        intervalDays = freqNum / (operHoursPerCalDay > 0 ? operHoursPerCalDay : 24);
+      } else {
+        intervalDays = freqNum * 7;
+      }
 
       const roundedDays = Math.round(intervalDays * 10) / 10;
       const techIntIn = document.getElementById("techIntervalInput");
@@ -3408,6 +3473,18 @@ function importSurveyBearingToOpbrengstmodel(mode, explicitLetter) {
       if (parsedCfg.bearingDataMapSec3) {
         fullData.bearingDataMapSec3 = { ...(fullData.bearingDataMapSec3 || {}), ...parsedCfg.bearingDataMapSec3 };
       }
+      if (parsedCfg.bearingDataMapSec4) {
+        fullData.bearingDataMapSec4 = { ...(fullData.bearingDataMapSec4 || {}), ...parsedCfg.bearingDataMapSec4 };
+      }
+      if (parsedCfg.general && !fullData.general) {
+        fullData.general = parsedCfg.general;
+      }
+      if (parsedCfg.contact && !fullData.contact) {
+        fullData.contact = parsedCfg.contact;
+      }
+      if (parsedCfg.activeBearings && !fullData.activeBearings) {
+        fullData.activeBearings = parsedCfg.activeBearings;
+      }
       if (parsedCfg.bearings && (!fullData.bearings || fullData.bearings.length === 0)) {
         fullData.bearings = parsedCfg.bearings;
       }
@@ -3508,6 +3585,66 @@ function importSurveyBearingToOpbrengstmodel(mode, explicitLetter) {
     const num = parseFloat(s);
     return isNaN(num) ? null : num;
   };
+
+  // --- Algemene gegevens (Machine & Klant) ---
+  const genData = (fullData && (fullData.general || fullData)) || {};
+  if (genData.machineName) {
+    const tmIn = document.getElementById("techMachineInput");
+    if (tmIn) tmIn.value = genData.machineName;
+    const omM = document.getElementById("omTechMachine");
+    if (omM) omM.value = genData.machineName;
+    const cM = document.getElementById("chainOmTechMachine");
+    if (cM) cM.value = genData.machineName;
+  }
+  if (genData.machineBrand) {
+    const tbIn = document.getElementById("techBrandInput");
+    if (tbIn) tbIn.value = genData.machineBrand;
+    const omB = document.getElementById("omTechBrand");
+    if (omB) omB.value = genData.machineBrand;
+    const cB = document.getElementById("chainOmTechBrand");
+    if (cB) cB.value = genData.machineBrand;
+  }
+  if (genData.application) {
+    const taIn = document.getElementById("techAppInput");
+    if (taIn) taIn.value = genData.application;
+    const omA = document.getElementById("omTechApp");
+    if (omA) omA.value = genData.application;
+    const cA = document.getElementById("chainOmTechApp");
+    if (cA) cA.value = genData.application;
+  }
+  const rawMachCount = parseCleanNum(genData.machineCount);
+  if (rawMachCount !== null && rawMachCount > 0) {
+    const numMachIn = document.getElementById("omSharedNumMachines");
+    if (numMachIn) {
+      numMachIn.value = rawMachCount;
+      try { localStorage.setItem("app_field_omSharedNumMachines", rawMachCount); } catch(e) {}
+    }
+    const chainNumMachIn = document.getElementById("chainOmSharedNumMachines");
+    if (chainNumMachIn) {
+      chainNumMachIn.value = rawMachCount;
+      try { localStorage.setItem("app_field_chainOmSharedNumMachines", rawMachCount); } catch(e) {}
+    }
+  }
+
+  const contactData = (fullData && (fullData.contact || fullData)) || {};
+  if (contactData.clientCompany) {
+    const cIn = document.getElementById("clientCompanyInput");
+    if (cIn) cIn.value = contactData.clientCompany;
+    const omC = document.getElementById("omClientCompany");
+    if (omC) omC.value = contactData.clientCompany;
+  }
+  if (contactData.clientContact) {
+    const ccIn = document.getElementById("clientContactInput");
+    if (ccIn) ccIn.value = contactData.clientContact;
+    const omCC = document.getElementById("omClientContact");
+    if (omCC) omCC.value = contactData.clientContact;
+  }
+  if (contactData.clientEmail) {
+    const ceIn = document.getElementById("clientEmailInput");
+    if (ceIn) ceIn.value = contactData.clientEmail;
+    const omCE = document.getElementById("omClientEmail");
+    if (omCE) omCE.value = contactData.clientEmail;
+  }
 
   // --- Punt 10: Operationele uren per dag ---
   const rawHours = (sec2.q13 !== undefined && sec2.q13 !== '') ? sec2.q13 : bRec.urenPerDag;
@@ -4084,6 +4221,11 @@ try {
           populateSurveyBearingsDropdown(bearings);
         } else if (typeof refreshSurveyBearingsList === 'function') {
           refreshSurveyBearingsList(false);
+        }
+        if (ev.data.config && typeof applySurveyConfig === 'function') {
+          applySurveyConfig(ev.data.config);
+        } else if (incomingData && incomingData.surveyRasterConfig && typeof applySurveyConfig === 'function') {
+          applySurveyConfig(incomingData.surveyRasterConfig);
         }
         if (typeof syncAllQuestionnaireDataToCalculator === 'function') {
           syncAllQuestionnaireDataToCalculator(incomingData);
@@ -12234,6 +12376,9 @@ const DEVICE_CAPACITIES = {
 };
 
 function updateAutomationPage() {
+  if (typeof loadAutomationStateFromLocalStorage === "function") {
+    loadAutomationStateFromLocalStorage();
+  }
   setTimeout(() => { if (typeof updateRoiAutomationPage === "function") updateRoiAutomationPage(); }, 0);
   const select = document.getElementById("automationDeviceSelect");
   if (!select) return;
@@ -12348,25 +12493,27 @@ function updateAutomationPage() {
         if (device === "single_point") {
           d.type = "single_point";
           d.points = 1;
-          d.userEditedPeriod = false;
           const dailyNeed = (d.dailyNeedCm3 && d.dailyNeedCm3 > 0)
             ? d.dailyNeedCm3
             : (window.currentDailyNeedCm3 || 0.704);
-          const smartAdv = getOptimalSmartAdvice(dailyNeed, "single_point", greaseName);
-          if (smartAdv) {
-            d.cap = smartAdv.cap;
-            d.period = smartAdv.months;
+          if (!d.userEditedPeriod) {
+            const smartAdv = getOptimalSmartAdvice(dailyNeed, "single_point", greaseName);
+            if (smartAdv) {
+              d.cap = smartAdv.cap;
+              d.period = smartAdv.months;
+            }
           }
         } else {
           d.type = device;
-          d.userEditedPeriod = false;
           const totalNeed = (d.totalDailyNeed && d.totalDailyNeed > 0)
             ? d.totalDailyNeed
             : ((window.currentDailyNeedCm3 || 0.704) * (d.points || 1));
-          const smartAdv = getOptimalSmartAdvice(totalNeed, device, greaseName);
-          if (smartAdv) {
-            d.cap = smartAdv.cap;
-            d.period = smartAdv.months;
+          if (!d.userEditedPeriod) {
+            const smartAdv = getOptimalSmartAdvice(totalNeed, device, greaseName);
+            if (smartAdv) {
+              d.cap = smartAdv.cap;
+              d.period = smartAdv.months;
+            }
           }
         }
       }
@@ -24413,6 +24560,9 @@ document.addEventListener("DOMContentLoaded", function() {
   if (typeof loadPhotoLibrary === "function") {
     loadPhotoLibrary();
   }
+  if (typeof loadAutomationStateFromLocalStorage === "function") {
+    loadAutomationStateFromLocalStorage();
+  }
   setTimeout(function() {
     if (typeof CHAINS_DB !== "undefined" && Array.isArray(CHAINS_DB) && CHAINS_DB.length > 0 && !activeChain) {
       activeChain = CHAINS_DB[3] || CHAINS_DB[0];
@@ -24425,6 +24575,31 @@ document.addEventListener("DOMContentLoaded", function() {
       if (typeof populateSurveyBearingsDropdown === "function") populateSurveyBearingsDropdown(bearings);
       if (typeof populateOmSurveyBearingsDropdown === "function") populateOmSurveyBearingsDropdown(bearings);
     }
+
+    // Herstel actieve vragenlijst- of rasterconfiguratie in Automatisering indien aanwezig in localStorage
+    const hasSurveyRaster = localStorage.getItem('interflon_survey_raster_config');
+    const hasSurveyFull = localStorage.getItem('interflon_questionnaire_full_data') || localStorage.getItem('interflon_last_questionnaire_data');
+    if (hasSurveyRaster || hasSurveyFull) {
+      try {
+        let cfg = null;
+        if (hasSurveyRaster) cfg = JSON.parse(hasSurveyRaster);
+        if ((!cfg || !cfg.devices || cfg.devices.length === 0) && hasSurveyFull) {
+          const fd = JSON.parse(hasSurveyFull);
+          if (fd && fd.surveyRasterConfig && fd.surveyRasterConfig.devices) cfg = fd.surveyRasterConfig;
+          else if (fd) cfg = parseSurveyPackageToConfig(fd);
+        }
+        if (cfg && cfg.devices && cfg.devices.length > 0) {
+          const isSurveySource = localStorage.getItem('auto_config_source') === 'survey';
+          const hasSurveyBearings = Array.isArray(autoDevicesState) && autoDevicesState.some(d => (d.connectedBearings && d.connectedBearings.length > 0) || d.isSinglePointGroup);
+          if (!hasSurveyBearings || isSurveySource) {
+            applySurveyConfig(cfg);
+          }
+        }
+      } catch (eSurveyRestore) {
+        console.warn("Could not restore survey config on init", eSurveyRestore);
+      }
+    }
+
     if (typeof syncAllQuestionnaireDataToCalculator === "function") {
       syncAllQuestionnaireDataToCalculator();
     }
