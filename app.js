@@ -21758,14 +21758,20 @@ function getSurveyUrl(options = {}) {
     if (clientEmail) params.set("client_email", clientEmail);
   }
 
-  return "https://www.interflonapps.com/vragenlijst.html?" + params.toString();
+  let baseUrl = "https://www.interflonapps.com/vragenlijst.html";
+  try {
+    if (typeof window !== "undefined" && window.location && window.location.href) {
+      baseUrl = new URL("vragenlijst.html", window.location.href).href;
+    }
+  } catch(e) {}
+
+  return baseUrl + "?" + params.toString();
 }
 
 function openSurveyLink(e) {
   if (e) e.preventDefault();
-  // Open active questionnaire for current dossier (without wiping/blanking params!)
-  const isLocal = window.location.protocol === 'file:' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-  let targetUrl = isLocal ? 'vragenlijst.html' : 'https://www.interflonapps.com/vragenlijst.html';
+  // Open active questionnaire for current dossier on same origin/path
+  let targetUrl = 'vragenlijst.html';
   if (typeof currentLang !== "undefined" && currentLang) {
     targetUrl += '?lang=' + encodeURIComponent(currentLang);
   }
@@ -21774,8 +21780,7 @@ function openSurveyLink(e) {
 
 
 function printSurveyPage() {
-  const isLocal = window.location.protocol === 'file:' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-  let targetUrl = (isLocal ? 'vragenlijst.html' : 'https://www.interflonapps.com/vragenlijst.html') + '?autoprint=true';
+  let targetUrl = 'vragenlijst.html?autoprint=true';
   if (typeof currentLang !== "undefined" && currentLang) {
     targetUrl += '&lang=' + encodeURIComponent(currentLang);
   }
@@ -23095,6 +23100,68 @@ function handleImportFileSelected(event) {
                             (data.inputs && (data.inputs["opEmailInput"] || data.inputs["omOpEmail"] || data.inputs["chainOmOpEmail"])) ||
                             (data.localStorage && data.localStorage["operator_email"]) || "";
 
+      // 2b. Reconstruct questionnaire from survey raster config or bearings if missing from top-level keys
+      if (!importedQuestionnaire && (data.surveyRasterConfig || (data.localStorage && (data.localStorage.interflon_survey_raster_config || data.localStorage.interflon_raster_config)) || data.raster)) {
+        const rawCfg = data.surveyRasterConfig || (data.localStorage && (data.localStorage.interflon_survey_raster_config || data.localStorage.interflon_raster_config));
+        let cfg = null;
+        if (rawCfg) {
+          try {
+            cfg = (typeof rawCfg === 'string') ? JSON.parse(rawCfg) : rawCfg;
+          } catch(e) {}
+        }
+        if (cfg && (cfg.bearings || cfg.devices || cfg.machineName)) {
+          importedQuestionnaire = {
+            fileType: 'Interflon_Smeeranalyse_Vragenlijst',
+            version: '1.0',
+            exportDate: new Date().toISOString(),
+            general: cfg.general || {
+              machineName: cfg.machineName || targetMachine,
+              machineBrand: targetBrand,
+              application: targetApp,
+              machineCount: (data.inputs && data.inputs.omSharedNumMachines) || '1'
+            },
+            contact: cfg.contact || {
+              clientCompany: targetCompany,
+              clientContact: targetContact,
+              clientPhone: targetPhone,
+              clientEmail: targetEmail
+            },
+            bearings: cfg.bearings || [],
+            bearingDataMapSec2: cfg.bearingDataMapSec2 || {},
+            bearingDataMapSec3: cfg.bearingDataMapSec3 || {},
+            bearingDataMapSec4: cfg.bearingDataMapSec4 || {},
+            activeBearings: cfg.activeBearings || {},
+            raster: data.raster || cfg.raster || undefined,
+            surveyRasterConfig: cfg
+          };
+        }
+      }
+
+      if (!importedQuestionnaire && data.bearings && Array.isArray(data.bearings) && data.bearings.length > 0) {
+        importedQuestionnaire = {
+          fileType: 'Interflon_Smeeranalyse_Vragenlijst',
+          version: '1.0',
+          exportDate: new Date().toISOString(),
+          general: {
+            machineName: targetMachine,
+            machineBrand: targetBrand,
+            application: targetApp,
+            machineCount: (data.inputs && data.inputs.omSharedNumMachines) || '1'
+          },
+          contact: {
+            clientCompany: targetCompany,
+            clientContact: targetContact,
+            clientPhone: targetPhone,
+            clientEmail: targetEmail
+          },
+          bearings: data.bearings,
+          bearingDataMapSec2: data.bearingDataMapSec2 || {},
+          bearingDataMapSec3: data.bearingDataMapSec3 || {},
+          bearingDataMapSec4: data.bearingDataMapSec4 || {},
+          activeBearings: data.activeBearings || {}
+        };
+      }
+
       // Align questionnaire metadata if questionnaire exists
       if (importedQuestionnaire && typeof importedQuestionnaire === 'object') {
         if (!importedQuestionnaire.general) importedQuestionnaire.general = {};
@@ -23515,6 +23582,12 @@ function handleImportFileSelected(event) {
     } catch (err) {
       console.error("Import error:", err);
       showToastNotification("Fout bij inlezen van bestand.", true);
+    } finally {
+      try {
+        if (event && event.target) {
+          event.target.value = "";
+        }
+      } catch(e) {}
     }
   };
   reader.readAsText(file);
