@@ -22098,7 +22098,19 @@ async function exportCalculationData() {
     const opPhoneVal = localStorage.getItem("operator_phone") || (document.getElementById("opPhoneInput") ? document.getElementById("opPhoneInput").value : "");
     const opEmailVal = localStorage.getItem("operator_email") || (document.getElementById("opEmailInput") ? document.getElementById("opEmailInput").value : "");
 
-    const techMachineVal = localStorage.getItem("tech_machine") || (document.getElementById("techMachineInput") ? document.getElementById("techMachineInput").value : "");
+    const techMachineVal = (document.getElementById("techMachineInput") && document.getElementById("techMachineInput").value.trim()) ||
+                           (document.getElementById("omTechMachine") && document.getElementById("omTechMachine").value.trim()) ||
+                           (document.getElementById("chainOmTechMachine") && document.getElementById("chainOmTechMachine").value.trim()) ||
+                           localStorage.getItem("tech_machine") ||
+                           localStorage.getItem("app_field_techMachineInput") ||
+                           localStorage.getItem("app_field_omTechMachine") ||
+                           localStorage.getItem("app_field_chainOmTechMachine") ||
+                           (function() {
+                             try {
+                               const qData = JSON.parse(localStorage.getItem('interflon_questionnaire_full_data') || localStorage.getItem('interflon_last_questionnaire_data') || '{}');
+                               return (qData.general && (qData.general.machineName || qData.general.name)) || (qData.machine && (qData.machine.name || qData.machine.machineName)) || '';
+                             } catch(e) { return ''; }
+                           })() || "";
     const techAppVal = localStorage.getItem("tech_app") || (document.getElementById("techAppInput") ? document.getElementById("techAppInput").value : "");
     const techBrandVal = localStorage.getItem("tech_brand") || (document.getElementById("techBrandInput") ? document.getElementById("techBrandInput").value : "");
     const techProductVal = localStorage.getItem("tech_product") || (document.getElementById("techProductInput") ? document.getElementById("techProductInput").value : "");
@@ -22134,16 +22146,21 @@ async function exportCalculationData() {
       localStorageData["photoLibrary"] = photosJson;
     }
 
-    // 3. Gather client details for filename
+    // 3. Gather client & machine details for filename (e.g. Klant_Machine_Datum.json)
     const cleanComp = sanitizeFilename(clientCompVal);
+    const cleanMachine = sanitizeFilename(techMachineVal);
     const cleanContact = sanitizeFilename(clientContactVal);
     const dateStr = new Date().toISOString().split("T")[0];
 
     let filename = "";
-    if (cleanComp && cleanContact) {
+    if (cleanComp && cleanMachine) {
+      filename = `${cleanComp}_${cleanMachine}_${dateStr}.json`;
+    } else if (cleanComp && cleanContact) {
       filename = `${cleanComp}_${cleanContact}_${dateStr}.json`;
     } else if (cleanComp) {
       filename = `${cleanComp}_${dateStr}.json`;
+    } else if (cleanMachine) {
+      filename = `${cleanMachine}_${dateStr}.json`;
     } else if (cleanContact) {
       filename = `${cleanContact}_${dateStr}.json`;
     } else {
@@ -22254,10 +22271,40 @@ function handleImportFileSelected(event) {
           if (data.surveyRasterConfig) {
             localStorage.setItem('interflon_survey_raster_config', JSON.stringify(data.surveyRasterConfig));
           }
-          if (data.general && data.general.machineName) {
-            localStorage.setItem('app_field_techMachineInput', data.general.machineName);
-            localStorage.setItem('app_field_omTechMachine', data.general.machineName);
-            localStorage.setItem('tech_machine', data.general.machineName);
+          const qMach = (data.general && (data.general.machineName || data.general.name)) ||
+                        (data.machine && (data.machine.name || data.machine.machineName)) ||
+                        data.machineName || "";
+          if (qMach) {
+            localStorage.setItem('app_field_techMachineInput', qMach);
+            localStorage.setItem('app_field_omTechMachine', qMach);
+            localStorage.setItem('app_field_chainOmTechMachine', qMach);
+            localStorage.setItem('tech_machine', qMach);
+            const mIn = document.getElementById('techMachineInput');
+            if (mIn) mIn.value = qMach;
+            const omM = document.getElementById('omTechMachine');
+            if (omM) omM.value = qMach;
+            const chainM = document.getElementById('chainOmTechMachine');
+            if (chainM) chainM.value = qMach;
+          }
+          const qBrand = (data.general && (data.general.machineBrand || data.general.brand)) || (data.machine && data.machine.brand) || "";
+          if (qBrand) {
+            localStorage.setItem('app_field_techBrandInput', qBrand);
+            localStorage.setItem('app_field_omTechBrand', qBrand);
+            localStorage.setItem('tech_brand', qBrand);
+            const bIn = document.getElementById('techBrandInput');
+            if (bIn) bIn.value = qBrand;
+            const omB = document.getElementById('omTechBrand');
+            if (omB) omB.value = qBrand;
+          }
+          const qApp = (data.general && (data.general.application || data.general.app)) || (data.machine && data.machine.application) || "";
+          if (qApp) {
+            localStorage.setItem('app_field_techAppInput', qApp);
+            localStorage.setItem('app_field_omTechApp', qApp);
+            localStorage.setItem('tech_app', qApp);
+            const aIn = document.getElementById('techAppInput');
+            if (aIn) aIn.value = qApp;
+            const omA = document.getElementById('omTechApp');
+            if (omA) omA.value = qApp;
           }
           if (data.contact) {
             if (data.contact.clientCompany) {
@@ -22283,7 +22330,7 @@ function handleImportFileSelected(event) {
           if (typeof loadTechDetails === 'function') loadTechDetails();
           if (typeof updateOmMetadata === 'function') updateOmMetadata();
           if (typeof restoreFormState === 'function') restoreFormState();
-          showToastNotification("Vragenlijst succesvol geladen in de calculator!");
+          showToastNotification(qMach ? `Vragenlijst voor machine '${qMach}' succesvol geladen!` : "Vragenlijst succesvol geladen in de calculator!");
           return;
         } catch (e) {
           console.warn("Fout bij laden van vragenlijst:", e);
