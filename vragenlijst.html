@@ -5434,7 +5434,7 @@
     window.drawBearingLayout = drawBearingLayout;
 
     // --- SAVE RASTER CONFIGURATION FOR AUTOMATION IMPORT ---
-    function saveRasterConfigToLocalStorage() {
+    function saveRasterConfigToLocalStorage(skipBroadcast) {
       if (window.__isSavingRasterConfig) return null;
       if (window.__isClearingQuestionnaire || window.__questionnaireRestoring) {
         return null;
@@ -5693,8 +5693,12 @@
                                bearings.some(b => (b.nr && !b.nr.startsWith('Lager ')) || b.desc || b.rpm) ||
                                bearings.length > 1;
 
-          // Only persist to localStorage if user has entered data and we are not clearing
-          if (hasUserInput && !window.__isClearingQuestionnaire) {
+          // Only persist to localStorage if user has entered data and we are not restoring or clearing
+          const activeCalcMachine = (localStorage.getItem('tech_machine') || '').trim().toLowerCase();
+          const currentFormMachine = (machineName || '').trim().toLowerCase();
+          const hasMachineMismatch = activeCalcMachine && currentFormMachine && (activeCalcMachine !== currentFormMachine);
+
+          if (hasUserInput && !window.__isClearingQuestionnaire && !window.__questionnaireRestoring && !hasMachineMismatch) {
             localStorage.setItem('interflon_survey_raster_config', JSON.stringify(configToSave));
             const fullData = {
               fileType: 'Interflon_Smeeranalyse_Vragenlijst',
@@ -5726,19 +5730,21 @@
           }
         } catch (errFull) {}
 
-        try {
-          if (typeof BroadcastChannel !== 'undefined') {
-            if (!window.__surveySyncBroadcastChannel) {
-              window.__surveySyncBroadcastChannel = new BroadcastChannel('interflon_questionnaire_sync');
+        if (!skipBroadcast && !window.__questionnaireRestoring) {
+          try {
+            if (typeof BroadcastChannel !== 'undefined') {
+              if (!window.__surveySyncBroadcastChannel) {
+                window.__surveySyncBroadcastChannel = new BroadcastChannel('interflon_questionnaire_sync');
+              }
+              window.__surveySyncBroadcastChannel.postMessage({
+                type: 'CONFIG_UPDATED',
+                config: configToSave,
+                bearings: bearings,
+                fullData: (typeof fullData !== 'undefined' ? fullData : null)
+              });
             }
-            window.__surveySyncBroadcastChannel.postMessage({
-              type: 'CONFIG_UPDATED',
-              config: configToSave,
-              bearings: bearings,
-              fullData: (typeof fullData !== 'undefined' ? fullData : null)
-            });
-          }
-        } catch (e) {}
+          } catch (e) {}
+        }
 
         return configToSave;
       } catch (e) {
@@ -6855,12 +6861,12 @@
         renderDistancesOverview();
         updateFormSubmitAttachment();
       } finally {
-        window.__questionnaireRestoring = false;
+        // Keep window.__questionnaireRestoring = true until after local persist finishes
       }
 
-      // 9. Persist configuration immediately to localStorage so Automatisering has it instantly
+      // 9. Persist configuration immediately to localStorage so Automatisering has it instantly (skipBroadcast = true)
       if (typeof saveRasterConfigToLocalStorage === 'function') {
-        saveRasterConfigToLocalStorage();
+        saveRasterConfigToLocalStorage(true);
       }
       try {
         localStorage.setItem('interflon_questionnaire_full_data', JSON.stringify(data));
@@ -6874,11 +6880,15 @@
           localStorage.setItem('tech_machine', data.general.machineName);
         }
         if (isUserImport && typeof BroadcastChannel !== 'undefined') {
-          const channel = new BroadcastChannel('interflon_questionnaire_sync');
-          channel.postMessage({ type: 'QUESTIONNAIRE_IMPORTED', data: data, bearings: data.bearings, fullData: data, source: 'vragenlijst_user_import' });
+          if (!window.__surveySyncBroadcastChannel) {
+            window.__surveySyncBroadcastChannel = new BroadcastChannel('interflon_questionnaire_sync');
+          }
+          window.__surveySyncBroadcastChannel.postMessage({ type: 'QUESTIONNAIRE_IMPORTED', data: data, bearings: data.bearings, fullData: data, source: 'vragenlijst_user_import' });
         }
       } catch (e) {
         console.warn('Could not persist questionnaire to localStorage', e);
+      } finally {
+        window.__questionnaireRestoring = false;
       }
 
       if (isUserImport) {
@@ -8317,14 +8327,25 @@
             }
           }
         } catch(e) {}
-      } else if (document.visibilityState === 'hidden' && typeof saveRasterConfigToLocalStorage === 'function') {
-        saveRasterConfigToLocalStorage();
+      } else if (document.visibilityState === 'hidden') {
+        if (window.__questionnaireRestoring || window.__isClearingQuestionnaire) return;
+        const curDomMachine = (document.getElementById('q1') ? document.getElementById('q1').value.trim() : '').toLowerCase();
+        const activeCalcMachine = (localStorage.getItem('tech_machine') || '').trim().toLowerCase();
+        if (!activeCalcMachine || !curDomMachine || activeCalcMachine === curDomMachine) {
+          if (typeof saveRasterConfigToLocalStorage === 'function') {
+            saveRasterConfigToLocalStorage();
+          }
+        }
       }
     });
     window.addEventListener('beforeunload', function() {
       if (window.__isClearingQuestionnaire || window.__questionnaireRestoring) return;
-      if (typeof saveRasterConfigToLocalStorage === 'function') {
-        saveRasterConfigToLocalStorage();
+      const curDomMachine = (document.getElementById('q1') ? document.getElementById('q1').value.trim() : '').toLowerCase();
+      const activeCalcMachine = (localStorage.getItem('tech_machine') || '').trim().toLowerCase();
+      if (!activeCalcMachine || !curDomMachine || activeCalcMachine === curDomMachine) {
+        if (typeof saveRasterConfigToLocalStorage === 'function') {
+          saveRasterConfigToLocalStorage();
+        }
       }
     });
 
@@ -8357,7 +8378,14 @@
           }
 
           if (ev.data.type === 'REQUEST_LATEST_CONFIG' || ev.data.type === 'REQUEST_SURVEY_BEARINGS') {
-            const cfg = (typeof saveRasterConfigToLocalStorage === 'function') ? saveRasterConfigToLocalStorage() : null;
+            if (window.__questionnaireRestoring || window.__isClearingQuestionnaire) return;
+            const curDomMachine = (document.getElementById('q1') ? document.getElementById('q1').value.trim() : '').toLowerCase();
+            const activeCalcMachine = (localStorage.getItem('tech_machine') || '').trim().toLowerCase();
+            if (activeCalcMachine && curDomMachine && activeCalcMachine !== curDomMachine) {
+              console.warn(`Ignoring REQUEST_LATEST_CONFIG because DOM is '${curDomMachine}' while calculator is '${activeCalcMachine}'`);
+              return;
+            }
+            const cfg = (typeof saveRasterConfigToLocalStorage === 'function') ? saveRasterConfigToLocalStorage(true) : null;
             const rows = document.querySelectorAll('.bearing-row');
             const bearings = [];
             rows.forEach((r, idx) => {
