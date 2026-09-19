@@ -5416,6 +5416,7 @@ const TRANSLATIONS = {
     photoLibraryBadge: "Foto bibliotheek",
     photoLibraryTitle: "📷 Foto bibliotheek",
     photoLibrarySubtitle: "Upload en beheer tot 20 foto's van de machine, lagers of smeerpunten met een optionele beschrijving.",
+    btnPhotoFolders: "Mappen",
     btnAddPhotos: "➕ Foto's toevoegen",
     btnClose: "Sluiten",
     noPhotosYet: "Nog geen foto's aanwezig.",
@@ -21409,9 +21410,39 @@ function showSurveyEmailCopyFeedback() {
 }
 
 // ==========================================================================
-// PHOTO LIBRARY LOGIC
+// PHOTO LIBRARY & FOLDERS LOGIC
 // ==========================================================================
-let photoLibrary = [];
+let photoFolders = [
+  { id: "folder_default", name: "Algemeen", photos: [] }
+];
+let activePhotoFolderId = "folder_default";
+let photoLibrary = []; // Maintained for backwards compatibility with active folder
+
+function getCurrentPhotoFolder() {
+  if (!photoFolders || !Array.isArray(photoFolders) || photoFolders.length === 0) {
+    photoFolders = [{ id: "folder_default", name: "Algemeen", photos: [] }];
+  }
+  let cur = photoFolders.find(f => f.id === activePhotoFolderId);
+  if (!cur) {
+    activePhotoFolderId = photoFolders[0].id;
+    cur = photoFolders[0];
+  }
+  if (!cur.photos || !Array.isArray(cur.photos)) {
+    cur.photos = [];
+  }
+  return cur;
+}
+
+function getAllPhotosFlat() {
+  if (!photoFolders || !Array.isArray(photoFolders)) return [];
+  const all = [];
+  photoFolders.forEach(f => {
+    if (f.photos && Array.isArray(f.photos)) {
+      all.push(...f.photos);
+    }
+  });
+  return all;
+}
 
 function updatePhotoBadgeCounter() {
   const badgeText = document.getElementById("photoLibraryBadgeText");
@@ -21421,8 +21452,12 @@ function updatePhotoBadgeCounter() {
   if (lang === "fr") baseText = "Photothèque";
   if (lang === "en") baseText = "Photo library";
 
-  if (photoLibrary && Array.isArray(photoLibrary) && photoLibrary.length > 0) {
-    badgeText.innerText = `${baseText} (${photoLibrary.length})`;
+  const totalPhotos = (photoFolders && Array.isArray(photoFolders))
+    ? photoFolders.reduce((sum, f) => sum + ((f.photos && Array.isArray(f.photos)) ? f.photos.length : 0), 0)
+    : 0;
+
+  if (totalPhotos > 0) {
+    badgeText.innerText = `${baseText} (${totalPhotos})`;
   } else {
     badgeText.innerText = baseText;
   }
@@ -21430,32 +21465,279 @@ function updatePhotoBadgeCounter() {
 
 function loadPhotoLibrary() {
   try {
-    const saved = localStorage.getItem("photo_library") || localStorage.getItem("photoLibrary");
-    photoLibrary = saved ? JSON.parse(saved) : [];
-    if (!Array.isArray(photoLibrary)) photoLibrary = [];
+    const savedFolders = localStorage.getItem("photo_folders") || localStorage.getItem("photoFolders");
+    if (savedFolders) {
+      const parsed = JSON.parse(savedFolders);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        photoFolders = parsed;
+      }
+    } else {
+      // Legacy fallback from flat photo_library
+      const savedLegacy = localStorage.getItem("photo_library") || localStorage.getItem("photoLibrary");
+      if (savedLegacy) {
+        const parsedLegacy = JSON.parse(savedLegacy);
+        if (Array.isArray(parsedLegacy) && parsedLegacy.length > 0) {
+          if (parsedLegacy[0].photos && Array.isArray(parsedLegacy[0].photos)) {
+            photoFolders = parsedLegacy;
+          } else {
+            photoFolders = [
+              { id: "folder_default", name: "Algemeen", photos: parsedLegacy }
+            ];
+          }
+        }
+      }
+    }
   } catch (e) {
-    photoLibrary = [];
+    console.warn("Could not load photo folders from storage:", e);
   }
+
+  if (!photoFolders || !Array.isArray(photoFolders) || photoFolders.length === 0) {
+    photoFolders = [{ id: "folder_default", name: "Algemeen", photos: [] }];
+  }
+
+  // Ensure each folder has a valid photos array
+  photoFolders.forEach(f => {
+    if (!f.photos || !Array.isArray(f.photos)) f.photos = [];
+  });
+
+  if (!photoFolders.some(f => f.id === activePhotoFolderId)) {
+    activePhotoFolderId = photoFolders[0].id;
+  }
+
+  photoLibrary = getCurrentPhotoFolder().photos;
+
   if (typeof window !== "undefined") {
+    window.photoFolders = photoFolders;
+    window.activePhotoFolderId = activePhotoFolderId;
     window.photoLibrary = photoLibrary;
   }
+
+  renderPhotoFolderTabs();
   renderPhotoGrid();
   updatePhotoBadgeCounter();
 }
 
 function savePhotoLibraryToStorage() {
   try {
-    const jsonStr = JSON.stringify(photoLibrary);
-    localStorage.setItem("photo_library", jsonStr);
-    localStorage.setItem("photoLibrary", jsonStr);
+    const foldersJson = JSON.stringify(photoFolders);
+    localStorage.setItem("photo_folders", foldersJson);
+    localStorage.setItem("photoFolders", foldersJson);
+
+    // Save flat array for backwards compatibility
+    const flatPhotos = getAllPhotosFlat();
+    const flatJson = JSON.stringify(flatPhotos);
+    localStorage.setItem("photo_library", flatJson);
+    localStorage.setItem("photoLibrary", flatJson);
   } catch (e) {
     console.warn("Storage quota exceeded when saving photo library:", e);
   }
+
+  photoLibrary = getCurrentPhotoFolder().photos;
+
   if (typeof window !== "undefined") {
+    window.photoFolders = photoFolders;
+    window.activePhotoFolderId = activePhotoFolderId;
     window.photoLibrary = photoLibrary;
   }
+
+  renderPhotoFolderTabs();
   renderPhotoGrid();
   updatePhotoBadgeCounter();
+}
+
+function renderPhotoFolderTabs() {
+  const tabsList = document.getElementById("photoFolderTabsList");
+  if (!tabsList) return;
+  tabsList.innerHTML = "";
+
+  if (!photoFolders || !Array.isArray(photoFolders) || photoFolders.length === 0) {
+    photoFolders = [{ id: "folder_default", name: "Algemeen", photos: [] }];
+  }
+
+  photoFolders.forEach(f => {
+    const isActive = f.id === activePhotoFolderId;
+    const count = (f.photos && Array.isArray(f.photos)) ? f.photos.length : 0;
+    const tabBtn = document.createElement("button");
+    tabBtn.type = "button";
+    tabBtn.style.cssText = `
+      padding: 6px 14px;
+      font-size: 12.5px;
+      border-radius: 20px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+      transition: all 0.2s ease;
+      ${isActive
+        ? "background: #E30613; color: #ffffff; border: 1.5px solid #E30613; font-weight: 700; box-shadow: 0 2px 4px rgba(227,6,19,0.25);"
+        : "background: #ffffff; color: #334155; border: 1.5px solid #cbd5e1; font-weight: 600;"}
+    `;
+
+    tabBtn.innerHTML = `
+      <span>📁</span>
+      <span>${f.name}</span>
+      <span style="font-size: 11px; padding: 1px 6px; border-radius: 10px; ${isActive ? 'background: rgba(255,255,255,0.25); color: #fff;' : 'background: #f1f5f9; color: #64748b;'}">${count}/20</span>
+    `;
+
+    tabBtn.onclick = () => switchPhotoFolder(f.id);
+    tabsList.appendChild(tabBtn);
+  });
+}
+
+function switchPhotoFolder(folderId) {
+  if (photoFolders.some(f => f.id === folderId)) {
+    activePhotoFolderId = folderId;
+    photoLibrary = getCurrentPhotoFolder().photos;
+    if (typeof window !== "undefined") {
+      window.activePhotoFolderId = activePhotoFolderId;
+      window.photoLibrary = photoLibrary;
+    }
+    renderPhotoFolderTabs();
+    renderPhotoGrid();
+    renderPhotoFolderManagerList();
+  }
+}
+
+function promptCreatePhotoFolder() {
+  const name = prompt("Geef een naam op voor de nieuwe map (bijv. Lagers, Aandrijving, Inspectie):");
+  if (name && name.trim()) {
+    createPhotoFolder(name.trim());
+  }
+}
+
+function createPhotoFolder(name) {
+  if (!name || !name.trim()) return;
+  const newFolder = {
+    id: "folder_" + Date.now() + "_" + Math.random().toString(36).substr(2, 5),
+    name: name.trim(),
+    photos: []
+  };
+  photoFolders.push(newFolder);
+  activePhotoFolderId = newFolder.id;
+  savePhotoLibraryToStorage();
+  renderPhotoFolderManagerList();
+}
+
+function submitNewPhotoFolder() {
+  const input = document.getElementById("newPhotoFolderNameInput");
+  if (!input) return;
+  const name = input.value ? input.value.trim() : "";
+  if (!name) {
+    alert("Vul a.u.b. een mapnaam in.");
+    input.focus();
+    return;
+  }
+  createPhotoFolder(name);
+  input.value = "";
+}
+
+function renamePhotoFolder(folderId) {
+  const folder = photoFolders.find(f => f.id === folderId);
+  if (!folder) return;
+  const newName = prompt("Voer de nieuwe naam in voor map '" + folder.name + "':", folder.name);
+  if (newName && newName.trim() && newName.trim() !== folder.name) {
+    folder.name = newName.trim();
+    savePhotoLibraryToStorage();
+    renderPhotoFolderManagerList();
+  }
+}
+
+function deletePhotoFolder(folderId) {
+  if (photoFolders.length <= 1) {
+    alert("U kunt de enige resterende map niet verwijderen.");
+    return;
+  }
+  const folder = photoFolders.find(f => f.id === folderId);
+  if (!folder) return;
+  const count = (folder.photos && Array.isArray(folder.photos)) ? folder.photos.length : 0;
+  const msg = count > 0
+    ? `Weet u zeker dat u de map "${folder.name}" inclusief ${count} foto('s) wilt verwijderen?`
+    : `Weet u zeker dat u de lege map "${folder.name}" wilt verwijderen?`;
+
+  if (!confirm(msg)) return;
+
+  photoFolders = photoFolders.filter(f => f.id !== folderId);
+  if (activePhotoFolderId === folderId) {
+    activePhotoFolderId = photoFolders[0].id;
+  }
+  savePhotoLibraryToStorage();
+  renderPhotoFolderManagerList();
+}
+
+function openPhotoFolderManagerModal() {
+  renderPhotoFolderManagerList();
+  const modal = document.getElementById("photoFolderManagerModal");
+  if (modal) modal.classList.remove("hidden");
+  setTimeout(() => {
+    const input = document.getElementById("newPhotoFolderNameInput");
+    if (input) input.focus();
+  }, 100);
+}
+
+function closePhotoFolderManagerModal() {
+  const modal = document.getElementById("photoFolderManagerModal");
+  if (modal) modal.classList.add("hidden");
+}
+
+function renderPhotoFolderManagerList() {
+  const container = document.getElementById("photoFolderManagerList");
+  if (!container) return;
+  container.innerHTML = "";
+
+  if (!photoFolders || photoFolders.length === 0) {
+    container.innerHTML = `<p style="color: #94a3b8; font-size: 13px; text-align: center; margin: 20px 0;">Geen mappen gevonden.</p>`;
+    return;
+  }
+
+  photoFolders.forEach(f => {
+    const isActive = f.id === activePhotoFolderId;
+    const count = (f.photos && Array.isArray(f.photos)) ? f.photos.length : 0;
+
+    const row = document.createElement("div");
+    row.style.cssText = `
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: ${isActive ? '#fef2f2' : '#ffffff'};
+      border: 1.5px solid ${isActive ? '#fca5a5' : '#e2e8f0'};
+      border-radius: 8px;
+      padding: 10px 14px;
+      gap: 10px;
+    `;
+
+    row.innerHTML = `
+      <div style="display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0;">
+        <span style="font-size: 18px;">📁</span>
+        <div style="min-width: 0; flex: 1;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <strong style="color: #0f172a; font-size: 13.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${f.name}</strong>
+            ${isActive ? '<span style="background: #16a34a; color: #fff; font-size: 10.5px; font-weight: 700; padding: 1px 7px; border-radius: 10px;">Actief</span>' : ''}
+          </div>
+          <div style="font-size: 12px; color: #64748b; margin-top: 2px;">
+            ${count} / 20 foto's
+          </div>
+        </div>
+      </div>
+      <div style="display: flex; align-items: center; gap: 6px; flex-shrink: 0;">
+        ${!isActive ? `
+          <button type="button" class="btn btn-secondary" onclick="switchPhotoFolder('${f.id}'); closePhotoFolderManagerModal();" style="padding: 5px 10px; font-size: 12px; font-weight: 700; border-radius: 6px;">
+            Openen
+          </button>
+        ` : ''}
+        <button type="button" class="btn btn-secondary" onclick="renamePhotoFolder('${f.id}')" title="Hernoemen" style="padding: 5px 9px; font-size: 12px; border-radius: 6px;">
+          ✏️
+        </button>
+        ${photoFolders.length > 1 ? `
+          <button type="button" class="btn btn-secondary" onclick="deletePhotoFolder('${f.id}')" title="Map verwijderen" style="padding: 5px 9px; font-size: 12px; border-radius: 6px; color: #e11d48; border-color: #fecdd3;">
+            🗑️
+          </button>
+        ` : ''}
+      </div>
+    `;
+
+    container.appendChild(row);
+  });
 }
 
 function openPhotoLibraryModal() {
@@ -21473,9 +21755,10 @@ function handlePhotoUpload(event) {
   const files = event.target.files;
   if (!files || files.length === 0) return;
 
-  const remainingSlots = 20 - photoLibrary.length;
+  const curFolder = getCurrentPhotoFolder();
+  const remainingSlots = 20 - (curFolder.photos ? curFolder.photos.length : 0);
   if (remainingSlots <= 0) {
-    alert("U heeft het maximale aantal van 20 foto's bereikt.");
+    alert(`U heeft het maximale aantal van 20 foto's bereikt voor map "${curFolder.name}". Maak een nieuwe map aan via de knop 'Mappen' om meer foto's toe te voegen.`);
     event.target.value = "";
     return;
   }
@@ -21510,7 +21793,7 @@ function handlePhotoUpload(event) {
 
         const compressedDataUrl = canvas.toDataURL("image/jpeg", 0.8);
 
-        photoLibrary.push({
+        curFolder.photos.push({
           id: Date.now() + "_" + Math.random().toString(36).substr(2, 5),
           dataUrl: compressedDataUrl,
           description: "",
@@ -21530,19 +21813,39 @@ function handlePhotoUpload(event) {
 }
 
 function updatePhotoDescription(id, text) {
-  const item = photoLibrary.find(p => p.id === id);
-  if (item) {
-    item.description = text;
+  if (!photoFolders || !Array.isArray(photoFolders)) return;
+  let found = false;
+  for (const f of photoFolders) {
+    if (f.photos && Array.isArray(f.photos)) {
+      const item = f.photos.find(p => p.id === id);
+      if (item) {
+        item.description = text;
+        found = true;
+        break;
+      }
+    }
+  }
+  if (found) {
     try {
-      const jsonStr = JSON.stringify(photoLibrary);
-      localStorage.setItem("photo_library", jsonStr);
-      localStorage.setItem("photoLibrary", jsonStr);
+      const foldersJson = JSON.stringify(photoFolders);
+      localStorage.setItem("photo_folders", foldersJson);
+      localStorage.setItem("photoFolders", foldersJson);
+
+      const flatPhotos = getAllPhotosFlat();
+      const flatJson = JSON.stringify(flatPhotos);
+      localStorage.setItem("photo_library", flatJson);
+      localStorage.setItem("photoLibrary", flatJson);
     } catch (e) {}
   }
 }
 
 function deletePhoto(id) {
-  photoLibrary = photoLibrary.filter(p => p.id !== id);
+  if (!photoFolders || !Array.isArray(photoFolders)) return;
+  for (const f of photoFolders) {
+    if (f.photos && Array.isArray(f.photos)) {
+      f.photos = f.photos.filter(p => p.id !== id);
+    }
+  }
   savePhotoLibraryToStorage();
 }
 
@@ -21552,26 +21855,30 @@ function renderPhotoGrid() {
   var lang = (typeof currentLang !== "undefined" && currentLang) ? currentLang : "nl";
   const t = (typeof TRANSLATIONS !== "undefined" && TRANSLATIONS[lang]) ? TRANSLATIONS[lang] : (typeof TRANSLATIONS !== "undefined" && TRANSLATIONS["nl"] ? TRANSLATIONS["nl"] : {});
 
+  const curFolder = getCurrentPhotoFolder();
+  const photos = curFolder.photos || [];
+  photoLibrary = photos;
+
   if (counterText) {
     const uploadedSuffix = lang === "fr" ? "photos téléchargées" : (lang === "en" ? "photos uploaded" : "foto's geüpload");
-    counterText.innerText = photoLibrary.length + " / 20 " + uploadedSuffix;
+    counterText.innerText = `${curFolder.name}: ${photos.length} / 20 ${uploadedSuffix}`;
   }
 
   if (!container) return;
   container.innerHTML = "";
 
-  if (photoLibrary.length === 0) {
+  if (photos.length === 0) {
     container.innerHTML = `
       <div style="grid-column: 1 / -1; text-align: center; color: #94a3b8; padding: 40px 10px; background: #f8fafc; border-radius: 10px; border: 1.5px dashed #cbd5e1;">
         <span style="font-size: 32px; display: block; margin-bottom: 8px;">📷</span>
-        <p style="margin: 0; font-size: 14px; font-weight: 600;">${t.noPhotosYet || "Nog geen foto's aanwezig."}</p>
+        <p style="margin: 0; font-size: 14px; font-weight: 600;">Nog geen foto's in map "${curFolder.name}".</p>
         <p style="margin: 4px 0 0 0; font-size: 12.5px;">${t.noPhotosHint || "Klik hierboven op '➕ Foto's toevoegen' om tot 20 foto's toe te voegen."}</p>
       </div>
     `;
     return;
   }
 
-  photoLibrary.forEach((photo, idx) => {
+  photos.forEach((photo, idx) => {
     const card = document.createElement("div");
     card.style.cssText = "background: #ffffff; border: 1px solid #cbd5e1; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 6px rgba(0,0,0,0.04); display: flex; flex-direction: column; min-height: 205px; height: auto;";
     const photoBadge = (t.photoLabel || "Foto") + " " + (idx + 1);
@@ -21595,9 +21902,9 @@ function renderPhotoGrid() {
   });
 }
 
-
 function openPhotoLightbox(id) {
-  const item = photoLibrary.find(p => p.id === id);
+  const allPhotos = getAllPhotosFlat();
+  const item = allPhotos.find(p => p.id === id);
   if (!item) return;
 
   const modal = document.getElementById("photoLightboxModal");
@@ -21654,6 +21961,18 @@ if (typeof window !== "undefined") {
   window.closePhotoLightboxModal = closePhotoLightboxModal;
   window.renderPhotoGrid = renderPhotoGrid;
   window.updatePhotoBadgeCounter = updatePhotoBadgeCounter;
+  window.getCurrentPhotoFolder = getCurrentPhotoFolder;
+  window.getAllPhotosFlat = getAllPhotosFlat;
+  window.renderPhotoFolderTabs = renderPhotoFolderTabs;
+  window.switchPhotoFolder = switchPhotoFolder;
+  window.promptCreatePhotoFolder = promptCreatePhotoFolder;
+  window.createPhotoFolder = createPhotoFolder;
+  window.submitNewPhotoFolder = submitNewPhotoFolder;
+  window.renamePhotoFolder = renamePhotoFolder;
+  window.deletePhotoFolder = deletePhotoFolder;
+  window.openPhotoFolderManagerModal = openPhotoFolderManagerModal;
+  window.closePhotoFolderManagerModal = closePhotoFolderManagerModal;
+  window.renderPhotoFolderManagerList = renderPhotoFolderManagerList;
 }
 
 
@@ -21743,18 +22062,9 @@ async function exportCalculationData() {
     syncLsToField("techIntervalInput", "tech_interval");
     syncLsToField("techPriceInput", "tech_price");
 
-    // Ensure photoLibrary is synchronized from storage if currently empty in memory
-    if (!photoLibrary || !Array.isArray(photoLibrary) || photoLibrary.length === 0) {
-      try {
-        const rawPhotos = localStorage.getItem("photo_library") || localStorage.getItem("photoLibrary");
-        if (rawPhotos) {
-          const parsed = JSON.parse(rawPhotos);
-          if (Array.isArray(parsed) && parsed.length > 0) {
-            photoLibrary = parsed;
-            if (typeof window !== "undefined") window.photoLibrary = parsed;
-          }
-        }
-      } catch (e) {}
+    // Ensure photoFolders is synchronized from storage if currently empty in memory
+    if (!photoFolders || !Array.isArray(photoFolders) || photoFolders.length === 0) {
+      if (typeof loadPhotoLibrary === "function") loadPhotoLibrary();
     }
 
     // 1. Gather all inputs across all tabs
@@ -21773,7 +22083,7 @@ async function exportCalculationData() {
     const localStorageData = {};
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i);
-      if (key && (key.startsWith("bearing_calc_") || key.startsWith("app_field_") || key.includes("operator") || key.includes("client") || key.includes("tech") || key === "autoDevicesState" || key === "photoLibrary" || key === "photo_library" || key.startsWith("interflon_"))) {
+      if (key && (key.startsWith("bearing_calc_") || key.startsWith("app_field_") || key.includes("operator") || key.includes("client") || key.includes("tech") || key === "autoDevicesState" || key === "photoLibrary" || key === "photo_library" || key === "photoFolders" || key === "photo_folders" || key.startsWith("interflon_"))) {
         localStorageData[key] = localStorage.getItem(key);
       }
     }
@@ -21811,7 +22121,13 @@ async function exportCalculationData() {
     localStorageData["tech_interval"] = techIntervalVal;
     localStorageData["tech_price"] = techPriceVal;
 
-    const currentPhotos = (Array.isArray(photoLibrary) && photoLibrary.length > 0) ? photoLibrary : ((typeof window !== "undefined" && Array.isArray(window.photoLibrary)) ? window.photoLibrary : []);
+    const currentFolders = (Array.isArray(photoFolders) && photoFolders.length > 0) ? photoFolders : ((typeof window !== "undefined" && Array.isArray(window.photoFolders)) ? window.photoFolders : [{ id: "folder_default", name: "Algemeen", photos: [] }]);
+    const currentPhotos = (typeof getAllPhotosFlat === "function") ? getAllPhotosFlat() : ((Array.isArray(photoLibrary) && photoLibrary.length > 0) ? photoLibrary : []);
+    if (currentFolders.length > 0) {
+      const foldersJson = JSON.stringify(currentFolders);
+      localStorageData["photo_folders"] = foldersJson;
+      localStorageData["photoFolders"] = foldersJson;
+    }
     if (currentPhotos.length > 0) {
       const photosJson = JSON.stringify(currentPhotos);
       localStorageData["photo_library"] = photosJson;
@@ -21865,6 +22181,7 @@ async function exportCalculationData() {
       currentSelectedBearing: (typeof currentSelectedBearing !== "undefined") ? currentSelectedBearing : null,
       currentChainData: (typeof currentChainData !== "undefined") ? currentChainData : null,
       activeCalculationMode: (typeof activeCalculationMode !== "undefined") ? activeCalculationMode : "bearing",
+      photoFolders: currentFolders,
       photoLibrary: currentPhotos
     };
 
@@ -22088,30 +22405,77 @@ function handleImportFileSelected(event) {
         window.currentChainData = data.currentChainData;
       }
 
-      // Restore photoLibrary safely with multi-source fallback
-      let importedPhotos = [];
-      if (data.photoLibrary && Array.isArray(data.photoLibrary) && data.photoLibrary.length > 0) {
-        importedPhotos = data.photoLibrary;
-      } else if (data.photo_library && Array.isArray(data.photo_library) && data.photo_library.length > 0) {
-        importedPhotos = data.photo_library;
-      } else if (data.localStorage) {
-        const rawFromLs = data.localStorage["photo_library"] || data.localStorage["photoLibrary"];
-        if (rawFromLs) {
+      // Restore photoFolders & photoLibrary safely with multi-source fallback
+      let importedFolders = [];
+      if (data.photoFolders && Array.isArray(data.photoFolders) && data.photoFolders.length > 0) {
+        importedFolders = data.photoFolders;
+      } else if (data.photo_folders && Array.isArray(data.photo_folders) && data.photo_folders.length > 0) {
+        importedFolders = data.photo_folders;
+      } else if (data.localStorage && (data.localStorage["photo_folders"] || data.localStorage["photoFolders"])) {
+        try {
+          const rawF = data.localStorage["photo_folders"] || data.localStorage["photoFolders"];
+          const parsed = JSON.parse(rawF);
+          if (Array.isArray(parsed) && parsed.length > 0) importedFolders = parsed;
+        } catch(e) {}
+      }
+
+      // If no folders found, check legacy photoLibrary (flat array)
+      if (importedFolders.length === 0) {
+        let legacyPhotos = [];
+        if (data.photoLibrary && Array.isArray(data.photoLibrary) && data.photoLibrary.length > 0) {
+          legacyPhotos = data.photoLibrary;
+        } else if (data.photo_library && Array.isArray(data.photo_library) && data.photo_library.length > 0) {
+          legacyPhotos = data.photo_library;
+        } else if (data.localStorage && (data.localStorage["photo_library"] || data.localStorage["photoLibrary"])) {
           try {
-            const parsed = JSON.parse(rawFromLs);
-            if (Array.isArray(parsed) && parsed.length > 0) importedPhotos = parsed;
+            const rawP = data.localStorage["photo_library"] || data.localStorage["photoLibrary"];
+            const parsed = JSON.parse(rawP);
+            if (Array.isArray(parsed) && parsed.length > 0) legacyPhotos = parsed;
           } catch(e) {}
+        }
+
+        if (legacyPhotos.length > 0) {
+          if (legacyPhotos[0].photos && Array.isArray(legacyPhotos[0].photos)) {
+            importedFolders = legacyPhotos;
+          } else {
+            importedFolders = [
+              { id: "folder_default", name: "Algemeen", photos: legacyPhotos }
+            ];
+          }
         }
       }
 
-      photoLibrary = importedPhotos;
-      if (typeof window !== "undefined") window.photoLibrary = importedPhotos;
+      if (importedFolders.length === 0) {
+        importedFolders = [
+          { id: "folder_default", name: "Algemeen", photos: [] }
+        ];
+      }
+
+      photoFolders = importedFolders;
+      // Ensure each folder has a valid photos array
+      photoFolders.forEach(f => {
+        if (!f.photos || !Array.isArray(f.photos)) f.photos = [];
+      });
+      activePhotoFolderId = photoFolders[0].id;
+      photoLibrary = getCurrentPhotoFolder().photos;
+
+      if (typeof window !== "undefined") {
+        window.photoFolders = photoFolders;
+        window.activePhotoFolderId = activePhotoFolderId;
+        window.photoLibrary = photoLibrary;
+      }
+
       try {
-        const jsonStr = JSON.stringify(importedPhotos);
-        localStorage.setItem("photo_library", jsonStr);
-        localStorage.setItem("photoLibrary", jsonStr);
+        const fJson = JSON.stringify(photoFolders);
+        localStorage.setItem("photo_folders", fJson);
+        localStorage.setItem("photoFolders", fJson);
+
+        const flatPhotos = getAllPhotosFlat();
+        const pJson = JSON.stringify(flatPhotos);
+        localStorage.setItem("photo_library", pJson);
+        localStorage.setItem("photoLibrary", pJson);
       } catch(err) {
-        console.warn("Could not write imported photos to localStorage:", err);
+        console.warn("Could not write imported photo folders to localStorage:", err);
       }
 
       // STEP 5: Restore inputs, sync to localStorage, AND dispatch input/change events
@@ -22143,6 +22507,7 @@ function handleImportFileSelected(event) {
       if (typeof loadOperatorDetails === "function") loadOperatorDetails();
       if (typeof loadTechDetails === "function") loadTechDetails();
       if (typeof updateOmMetadata === "function") updateOmMetadata();
+      if (typeof renderPhotoFolderTabs === "function") renderPhotoFolderTabs();
       if (typeof renderPhotoGrid === "function") renderPhotoGrid();
       if (typeof updatePhotoBadgeCounter === "function") updatePhotoBadgeCounter();
 
