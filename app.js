@@ -481,6 +481,7 @@ function applyAutoRecommendationForDevice(devId) {
 let isAutomationStateLoaded = false;
 
 function saveAutomationStateToLocalStorage() {
+  if (!isAutomationStateLoaded) return;
   try {
     const deviceSelect = document.getElementById("automationDeviceSelect") || document.getElementById("autoDeviceSelect");
     if (deviceSelect) localStorage.setItem("auto_device_key", deviceSelect.value);
@@ -2247,7 +2248,6 @@ function refreshOmSurveyBearingsDropdown(mode) {
         window.__surveySyncBroadcastChannel = new BroadcastChannel('interflon_questionnaire_sync');
       }
       window.__surveySyncBroadcastChannel.postMessage({ type: 'REQUEST_SURVEY_BEARINGS' });
-      window.__surveySyncBroadcastChannel.postMessage({ type: 'REQUEST_LATEST_CONFIG' });
     }
   } catch (e) {}
 
@@ -2442,7 +2442,6 @@ function handleImportBearingFromSurveyClick() {
     if (typeof BroadcastChannel !== 'undefined') {
       const surveyChannel = new BroadcastChannel('interflon_questionnaire_sync');
       surveyChannel.postMessage({ type: 'REQUEST_SURVEY_BEARINGS' });
-      surveyChannel.postMessage({ type: 'REQUEST_LATEST_CONFIG' });
     }
   } catch (e) {}
 
@@ -3651,7 +3650,6 @@ function importSurveyBearingToOpbrengstmodel(mode, explicitLetter) {
     if (typeof BroadcastChannel !== 'undefined') {
       const surveyChannel = new BroadcastChannel('interflon_questionnaire_sync');
       surveyChannel.postMessage({ type: 'REQUEST_SURVEY_BEARINGS' });
-      surveyChannel.postMessage({ type: 'REQUEST_LATEST_CONFIG' });
     }
   } catch (e) {}
 
@@ -4518,10 +4516,13 @@ try {
         } else if (typeof refreshSurveyBearingsList === 'function') {
           refreshSurveyBearingsList(false);
         }
-        if (ev.data.config && typeof applySurveyConfig === 'function') {
-          applySurveyConfig(ev.data.config);
-        } else if (incomingData && incomingData.surveyRasterConfig && typeof applySurveyConfig === 'function') {
-          applySurveyConfig(incomingData.surveyRasterConfig);
+        // Cache latest survey raster config in localStorage without automatically applying it to Automatisering.
+        // Automatisering import must ONLY occur when the user explicitly clicks the import button.
+        const latestConfig = ev.data.config || (incomingData && incomingData.surveyRasterConfig);
+        if (latestConfig) {
+          try {
+            localStorage.setItem('interflon_survey_raster_config', JSON.stringify(latestConfig));
+          } catch(e) {}
         }
         if (typeof syncAllQuestionnaireDataToCalculator === 'function') {
           const curL = window.currentActiveSurveyBearingLetter || localStorage.getItem("interflon_active_survey_letter") || null;
@@ -5193,6 +5194,7 @@ function initUniversalInputPersistence() {
     if (typeof calculateBearingRelubrication === "function") calculateBearingRelubrication();
     if (typeof recalculateTcoModel === "function") recalculateTcoModel();
     if (typeof recalculateChainTcoModel === "function") recalculateChainTcoModel();
+    if (typeof loadAutomationStateFromLocalStorage === "function") loadAutomationStateFromLocalStorage();
     if (typeof calculateAutomationLubrication === "function") calculateAutomationLubrication();
     if (typeof calculateChainGrease === "function") calculateChainGrease();
 
@@ -8564,7 +8566,7 @@ function switchPage(pageId) {
       targetSubtitle.setAttribute("data-i18n", "pageAutomationSubtitle");
       targetSubtitle.textContent = "Bereken de instellingen en standtijd voor uw automatische Interflon smeerpotten.";
     }
-    updateAutomationPage();
+    updateAutomationPage(false);
   } else if (pageId === 'roi-automation') {
     const pageSec = document.getElementById("pageRoiAutomation");
     const menuBtn = document.getElementById("menuRoiAutomation");
@@ -12777,7 +12779,7 @@ const DEVICE_CAPACITIES = {
   ]
 };
 
-function updateAutomationPage() {
+function updateAutomationPage(isDropdownChange) {
   if (typeof loadAutomationStateFromLocalStorage === "function") {
     loadAutomationStateFromLocalStorage();
   }
@@ -12886,8 +12888,8 @@ function updateAutomationPage() {
     }
   }
 
-  // Synchroniseer alle actieve toestellen met de gekozen toestel dropdown
-  if (Array.isArray(autoDevicesState)) {
+  // Synchroniseer alle actieve toestellen met de gekozen toestel dropdown UITSLUITEND wanneer de gebruiker de dropdown bewust wijzigt
+  if (isDropdownChange && Array.isArray(autoDevicesState)) {
     const selectGrease = document.getElementById("inputGrease") || document.getElementById("selectGrease");
     const greaseName = selectGrease ? selectGrease.value : "Interflon Grease MP2/3";
     autoDevicesState.forEach(d => {
@@ -23334,7 +23336,14 @@ function handleImportFileSelected(event) {
       }
       if (data.autoDevicesState && Array.isArray(data.autoDevicesState)) {
         window.autoDevicesState = data.autoDevicesState;
-        try { localStorage.setItem("autoDevicesState", JSON.stringify(data.autoDevicesState)); } catch(err){}
+        autoDevicesState = data.autoDevicesState;
+        try {
+          localStorage.setItem("autoDevicesState", JSON.stringify(data.autoDevicesState));
+          localStorage.setItem("auto_devices_state", JSON.stringify(data.autoDevicesState));
+        } catch(err){}
+        if (typeof loadAutomationStateFromLocalStorage === "function") {
+          loadAutomationStateFromLocalStorage(true);
+        }
       }
       if (data.currentSelectedBearing) {
         window.currentSelectedBearing = data.currentSelectedBearing;
@@ -25493,29 +25502,10 @@ document.addEventListener("DOMContentLoaded", function() {
       if (typeof populateOmSurveyBearingsDropdown === "function") populateOmSurveyBearingsDropdown(bearings);
     }
 
-    // Herstel actieve vragenlijst- of rasterconfiguratie in Automatisering indien aanwezig in localStorage
-    const hasSurveyRaster = localStorage.getItem('interflon_survey_raster_config');
-    const hasSurveyFull = localStorage.getItem('interflon_questionnaire_full_data') || localStorage.getItem('interflon_last_questionnaire_data');
-    if (hasSurveyRaster || hasSurveyFull) {
-      try {
-        let cfg = null;
-        if (hasSurveyRaster) cfg = JSON.parse(hasSurveyRaster);
-        if ((!cfg || !cfg.devices || cfg.devices.length === 0) && hasSurveyFull) {
-          const fd = JSON.parse(hasSurveyFull);
-          if (fd && fd.surveyRasterConfig && fd.surveyRasterConfig.devices) cfg = fd.surveyRasterConfig;
-          else if (fd) cfg = parseSurveyPackageToConfig(fd);
-        }
-        if (cfg && cfg.devices && cfg.devices.length > 0) {
-          const isSurveySource = localStorage.getItem('auto_config_source') === 'survey';
-          const hasSurveyBearings = Array.isArray(autoDevicesState) && autoDevicesState.some(d => (d.connectedBearings && d.connectedBearings.length > 0) || d.isSinglePointGroup);
-          if (!hasSurveyBearings || isSurveySource) {
-            applySurveyConfig(cfg);
-          }
-        }
-      } catch (eSurveyRestore) {
-        console.warn("Could not restore survey config on init", eSurveyRestore);
-      }
-    }
+    // Automatisering state is al betrouwbaar hersteld uit localStorage via loadAutomationStateFromLocalStorage().
+    // We renderen en berekenen de herstelde status direct, zonder een automatische her-import uit de vragenlijst te forceren.
+    if (typeof renderAutoDevicesUI === "function") renderAutoDevicesUI();
+    if (typeof calculateAutomationLubrication === "function") calculateAutomationLubrication();
 
     if (typeof syncAllQuestionnaireDataToCalculator === "function") {
       syncAllQuestionnaireDataToCalculator();
