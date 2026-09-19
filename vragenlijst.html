@@ -8285,15 +8285,34 @@
       }
     });
 
-    // Auto-save whenever user switches tabs or navigates away
+    // Auto-save or reload on tab visibility change
     document.addEventListener('visibilitychange', function() {
-      if (window.__isClearingQuestionnaire) return;
-      if (document.visibilityState === 'hidden' && typeof saveRasterConfigToLocalStorage === 'function') {
+      if (window.__isClearingQuestionnaire || window.__questionnaireRestoring) return;
+      if (document.visibilityState === 'visible') {
+        // Tab became visible: check if an opbrengstmodel was imported while this tab was in the background
+        try {
+          const rawStorage = localStorage.getItem('interflon_questionnaire_full_data');
+          if (rawStorage) {
+            const parsed = JSON.parse(rawStorage);
+            const curMachine = document.getElementById('q1') ? document.getElementById('q1').value.trim() : '';
+            const newMachine = (parsed.general && (parsed.general.machineName || parsed.general.name)) || '';
+            const newExportDate = parsed.exportDate || '';
+            if (newMachine !== curMachine || (window.__lastRestoredExportDate && newExportDate && newExportDate !== window.__lastRestoredExportDate)) {
+              console.log("Tab became visible: synchronizing questionnaire from imported dossier");
+              window.__questionnaireRestoring = true;
+              window.__lastRestoredExportDate = newExportDate;
+              if (typeof restoreQuestionnaireDOM === 'function') {
+                restoreQuestionnaireDOM(parsed, false);
+              }
+            }
+          }
+        } catch(e) {}
+      } else if (document.visibilityState === 'hidden' && typeof saveRasterConfigToLocalStorage === 'function') {
         saveRasterConfigToLocalStorage();
       }
     });
     window.addEventListener('beforeunload', function() {
-      if (window.__isClearingQuestionnaire) return;
+      if (window.__isClearingQuestionnaire || window.__questionnaireRestoring) return;
       if (typeof saveRasterConfigToLocalStorage === 'function') {
         saveRasterConfigToLocalStorage();
       }
@@ -8307,7 +8326,27 @@
         }
         const surveyChannel = window.__surveySyncBroadcastChannel;
         surveyChannel.onmessage = function(ev) {
-          if (ev.data && (ev.data.type === 'REQUEST_LATEST_CONFIG' || ev.data.type === 'REQUEST_SURVEY_BEARINGS')) {
+          if (!ev.data) return;
+
+          if (ev.data.type === 'QUESTIONNAIRE_IMPORTED' || ev.data.type === 'DOSSIER_IMPORTED' || ev.data.type === 'REPLACE_QUESTIONNAIRE') {
+            const targetData = ev.data.fullData || ev.data.data;
+            if (targetData && typeof restoreQuestionnaireDOM === 'function') {
+              console.log("Cross-tab sync: Questionnaire replaced via opbrengstmodel import");
+              window.__questionnaireRestoring = true;
+              window.__lastRestoredExportDate = targetData.exportDate || '';
+              restoreQuestionnaireDOM(targetData, false);
+            }
+            return;
+          }
+
+          if (ev.data.type === 'CLEAR_QUESTIONNAIRE') {
+            if (typeof resetQuestionnaireFormToBlank === 'function') {
+              resetQuestionnaireFormToBlank(false);
+            }
+            return;
+          }
+
+          if (ev.data.type === 'REQUEST_LATEST_CONFIG' || ev.data.type === 'REQUEST_SURVEY_BEARINGS') {
             const cfg = (typeof saveRasterConfigToLocalStorage === 'function') ? saveRasterConfigToLocalStorage() : null;
             const rows = document.querySelectorAll('.bearing-row');
             const bearings = [];
@@ -8343,6 +8382,27 @@
         };
       }
     } catch (e) {}
+
+    // Cross-tab storage event listener
+    window.addEventListener('storage', function(e) {
+      if (e.key === 'interflon_questionnaire_full_data') {
+        if (e.newValue) {
+          try {
+            const targetData = JSON.parse(e.newValue);
+            if (targetData && typeof restoreQuestionnaireDOM === 'function') {
+              console.log("Storage event sync: Questionnaire replaced via localStorage update");
+              window.__questionnaireRestoring = true;
+              window.__lastRestoredExportDate = targetData.exportDate || '';
+              restoreQuestionnaireDOM(targetData, false);
+            }
+          } catch(err) {}
+        } else if (e.newValue === null) {
+          if (typeof resetQuestionnaireFormToBlank === 'function') {
+            resetQuestionnaireFormToBlank(false);
+          }
+        }
+      }
+    });
 
 </script>
 </body>
