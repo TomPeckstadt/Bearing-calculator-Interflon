@@ -5281,8 +5281,8 @@ function renderPdfAutomationExtraPage(doc, autoData, autoDataUrl, autoRatio, wat
   doc.setFontSize(13);
   doc.setTextColor(227, 6, 19);
   const mainTitle = isChain 
-    ? (langData.pdfAutoChainExtraTitle || "INTERFLON AUTOMATISCHE KETTINGSMEERING")
-    : (langData.pdfAutoBearingExtraTitle || "INTERFLON AUTOMATISCHE LAGERSMEERING");
+    ? (langData.pdfAutoChainExtraTitle || "INTERFLON AUTOMATISCHE KETTINGSMERING")
+    : (langData.pdfAutoBearingExtraTitle || "INTERFLON AUTOMATISCHE LAGERSMERING");
   doc.text(mainTitle, 20, 21);
 
   doc.setFont("helvetica", "normal");
@@ -14334,7 +14334,7 @@ function runChainPdfExport(includeTco, includeRoi) {
         doc.text("INTERFLON - A WORLD WITHOUT FRICTION", 20, 282);
 
         // ==========================================================================
-        // PAGE 2: OPBRENGSTMODEL KETTINGSMEERING (TCO CALCULATIE)
+        // PAGE 2: OPBRENGSTMODEL KETTINGSMERING (TCO CALCULATIE)
         // ==========================================================================
         if (includeTco) {
           doc.addPage();
@@ -14353,7 +14353,7 @@ function runChainPdfExport(includeTco, includeRoi) {
           doc.setFont("helvetica", "bold");
           doc.setFontSize(18);
           doc.setTextColor(227, 6, 19);
-          doc.text("OPBRENGSTMODEL KETTINGSMEERING (TCO)", 20, 31);
+          doc.text("OPBRENGSTMODEL KETTINGSMERING (TCO)", 20, 31);
 
           doc.setFont("helvetica", "normal");
           doc.setFontSize(8.5);
