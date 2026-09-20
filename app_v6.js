@@ -20842,9 +20842,8 @@ function calculateOptimalRasterZoom(bearingPositions, devices, showCentralPoint,
   const rangeNeeded = Math.max(rangeNeededX, rangeNeededY, 2.2);
 
   let optimalZoom = (machineRangeMeters || 10) / rangeNeeded;
-
-  // Begrens zoom tussen 1.20 en 3.00 zodat labels nooit overlappen en altijd scherp leesbaar zijn
-  optimalZoom = Math.max(1.2, Math.min(3.0, Math.round(optimalZoom * 20) / 20));
+  const minZoom = (machineRangeMeters && machineRangeMeters >= 50) ? 1.0 : 1.2;
+  optimalZoom = Math.max(minZoom, Math.min(3.0, Math.round(optimalZoom * 20) / 20));
 
   return optimalZoom;
 }
@@ -21062,7 +21061,7 @@ function generateMachineRasterImageDataUrl(rasterData, customZoom = null) {
       ctx.stroke();
 
       // Isometric Grid Lines
-      const step = gridRange <= 6 ? 1 : gridRange <= 15 ? 2 : 5;
+      const step = gridRange <= 6 ? 1 : gridRange <= 15 ? 2 : gridRange <= 30 ? 5 : gridRange <= 60 ? 10 : 20;
       ctx.lineWidth = 1.2;
       for (let m = -gridRange; m <= gridRange; m += step) {
         const isCenter = Math.abs(m) < 0.01;
@@ -21084,7 +21083,7 @@ function generateMachineRasterImageDataUrl(rasterData, customZoom = null) {
       }
 
       // Concentric distance guide rings with meter tags
-      const ringStep = gridRange <= 6 ? 1 : gridRange <= 12 ? 2 : 4;
+      const ringStep = gridRange <= 6 ? 1 : gridRange <= 12 ? 2 : gridRange <= 20 ? 4 : gridRange <= 30 ? 5 : gridRange <= 60 ? 10 : 20;
       for (let r = ringStep; r <= gridRange; r += ringStep) {
         ctx.beginPath();
         for (let angle = 0; angle <= Math.PI * 2 + 0.1; angle += 0.08) {
@@ -21114,7 +21113,7 @@ function generateMachineRasterImageDataUrl(rasterData, customZoom = null) {
       ctx.lineWidth = 2.5;
       ctx.strokeRect(cx - gridRange * ppm, cy - gridRange * ppm, gridRange * 2 * ppm, gridRange * 2 * ppm);
 
-      const step = gridRange <= 6 ? 1 : gridRange <= 15 ? 2 : 5;
+      const step = gridRange <= 6 ? 1 : gridRange <= 15 ? 2 : gridRange <= 30 ? 5 : gridRange <= 60 ? 10 : 20;
       ctx.lineWidth = 1.2;
       for (let m = -gridRange; m <= gridRange; m += step) {
         ctx.strokeStyle = Math.abs(m) < 0.01 ? 'rgba(148, 163, 184, 0.45)' : 'rgba(51, 65, 85, 0.45)';
