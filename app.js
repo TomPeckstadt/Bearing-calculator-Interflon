@@ -2338,6 +2338,9 @@ function onOmSurveyBearingSelected(selectEl, mode) {
       try { localStorage.setItem("app_field_bearingSearchInput", selectedNr); } catch(e) {}
     }
     loadBearingDetails(selectedNr);
+    if (typeof updateCalculatorFields === "function") {
+      updateCalculatorFields();
+    }
   }
 
   importSurveyBearingToOpbrengstmodel(mode, targetLetter);
@@ -3605,7 +3608,9 @@ function syncAllQuestionnaireDataToCalculator(data, explicitTargetLetter) {
     const selectedNr = bRec.nr || bRec.lagernummer;
     if (selectedNr && !selectedNr.startsWith('Lager ')) {
       const searchInput = document.getElementById("bearingSearchInput");
-      if (searchInput && !searchInput.value) searchInput.value = selectedNr;
+      if (searchInput) searchInput.value = selectedNr;
+      if (typeof loadBearingDetails === "function") loadBearingDetails(selectedNr);
+      if (typeof updateCalculatorFields === "function") updateCalculatorFields();
     }
     const rawRpm = parseCleanNum(bRec.rpm);
     if (rawRpm !== null && rawRpm > 0) {
@@ -3823,15 +3828,17 @@ function importSurveyBearingToOpbrengstmodel(mode, explicitLetter) {
   try { localStorage.setItem("interflon_active_survey_letter", targetLetter); } catch(e) {}
   try { localStorage.setItem("active_tco_bearing_source", "survey_" + targetLetter); } catch(e) {}
 
-  const sec2 = (fullData && fullData.bearingDataMapSec2 && fullData.bearingDataMapSec2[targetLetter])
-    ? fullData.bearingDataMapSec2[targetLetter]
-    : ((fullData && fullData.bearingDataMapSec2 && fullData.bearingDataMapSec2['A']) || {});
-  const sec3 = (fullData && fullData.bearingDataMapSec3 && fullData.bearingDataMapSec3[targetLetter])
-    ? fullData.bearingDataMapSec3[targetLetter]
-    : ((fullData && fullData.bearingDataMapSec3 && fullData.bearingDataMapSec3['A']) || {});
-  const sec4 = (fullData && fullData.bearingDataMapSec4 && fullData.bearingDataMapSec4[targetLetter])
-    ? fullData.bearingDataMapSec4[targetLetter]
-    : ((fullData && fullData.bearingDataMapSec4 && fullData.bearingDataMapSec4['A']) || {});
+  const sec2A = (fullData && fullData.bearingDataMapSec2 && fullData.bearingDataMapSec2['A']) || {};
+  const sec2Target = (fullData && fullData.bearingDataMapSec2 && fullData.bearingDataMapSec2[targetLetter]) || {};
+  const sec2 = { ...sec2A, ...Object.fromEntries(Object.entries(sec2Target).filter(([k, v]) => v !== undefined && v !== null && (typeof v === 'boolean' || String(v).trim() !== ''))) };
+
+  const sec3A = (fullData && fullData.bearingDataMapSec3 && fullData.bearingDataMapSec3['A']) || {};
+  const sec3Target = (fullData && fullData.bearingDataMapSec3 && fullData.bearingDataMapSec3[targetLetter]) || {};
+  const sec3 = { ...sec3A, ...Object.fromEntries(Object.entries(sec3Target).filter(([k, v]) => v !== undefined && v !== null && (typeof v === 'boolean' || String(v).trim() !== ''))) };
+
+  const sec4A = (fullData && fullData.bearingDataMapSec4 && fullData.bearingDataMapSec4['A']) || {};
+  const sec4Target = (fullData && fullData.bearingDataMapSec4 && fullData.bearingDataMapSec4[targetLetter]) || {};
+  const sec4 = { ...sec4A, ...Object.fromEntries(Object.entries(sec4Target).filter(([k, v]) => v !== undefined && v !== null && (typeof v === 'boolean' || String(v).trim() !== ''))) };
 
   const bRec = allBearings.find(b => b.letter === targetLetter) ||
                allBearings.find(b => b.letter === 'A') ||
@@ -4229,7 +4236,7 @@ function importSurveyBearingToOpbrengstmodel(mode, explicitLetter) {
   }
 
   // --- Aantal lagers per machine ---
-  const rawQty = (bRec && bRec.qty !== undefined) ? bRec.qty : null;
+  const rawQty = (bRec && (bRec.qty !== undefined ? bRec.qty : bRec.aantal)) !== undefined ? (bRec.qty !== undefined ? bRec.qty : bRec.aantal) : null;
   const bearingQty = parseCleanNum(rawQty);
   if (bearingQty !== null && bearingQty > 0) {
     const qtyInput = document.getElementById("omSharedSetsPerMachine");
@@ -4303,6 +4310,9 @@ function importSurveyBearingToOpbrengstmodel(mode, explicitLetter) {
     if (typeof loadBearingDetails === "function") {
       loadBearingDetails(bRec.nr);
     }
+    if (typeof updateCalculatorFields === "function") {
+      updateCalculatorFields();
+    }
   }
 
   if (bRec && bRec.rpm) {
@@ -4326,6 +4336,41 @@ function importSurveyBearingToOpbrengstmodel(mode, explicitLetter) {
     if (nEl) nEl.textContent = bRec.nr || ('Lager ' + targetLetter);
     if (dEl) dEl.textContent = bRec.desc ? ('— ' + bRec.desc) : '';
     badge.style.display = "flex";
+  }
+
+  // SNL-behuizing synchronisatie o.b.v. Vragenlijst / Lager data
+  const chkSnl = document.getElementById("chkSnlHousing");
+  const selSnlType = document.getElementById("selSnlType");
+  const selSnlFill = document.getElementById("selSnlFillPercent");
+  const selSnlRelub = document.getElementById("selSnlRelubPosition");
+  const snlContainer = document.getElementById("snlOptionsContainer");
+
+  if (chkSnl) {
+    const isSnlInSurvey = !!(sec2.isSnl || sec2.is_snl || bRec.isSnl || bRec.is_snl);
+    chkSnl.checked = isSnlInSurvey;
+    if (snlContainer) {
+      if (isSnlInSurvey) {
+        snlContainer.classList.remove("hidden");
+      } else {
+        snlContainer.classList.add("hidden");
+      }
+    }
+    if (isSnlInSurvey) {
+      const surveySnlType = sec2.snlType || sec2.snl_type || bRec.snlType || bRec.snl_type;
+      if (surveySnlType && selSnlType) {
+        selSnlType.value = surveySnlType;
+      }
+      const surveySnlFill = sec2.snlFill || sec2.snl_fill || bRec.snlFill || bRec.snl_fill;
+      if (surveySnlFill && selSnlFill) {
+        selSnlFill.value = surveySnlFill;
+      }
+      const surveySnlRelub = sec2.snlRelub || sec2.snl_relub || bRec.snlRelub || bRec.snl_relub;
+      if (surveySnlRelub && selSnlRelub) {
+        selSnlRelub.value = surveySnlRelub;
+      }
+    }
+    if (typeof onSnlParamsChanged === "function") onSnlParamsChanged();
+    else if (typeof onSnlHousingToggle === "function") onSnlHousingToggle();
   }
 
   // Pas direct de correctiefactoren toe voor dit geselecteerde lager vóór herberekening
@@ -10479,34 +10524,126 @@ function confirmPdfExport() {
 
 function applySurveyBearingToCalculator(b) {
   if (!b) return;
-  // 1. If importSurveyBearingToOpbrengstmodel is available, run it with b.letter:
-  if (typeof importSurveyBearingToOpbrengstmodel === "function") {
-    importSurveyBearingToOpbrengstmodel("bearing", b.letter);
+  const targetLetter = b.letter || 'A';
+  window.currentActiveSurveyBearingLetter = targetLetter;
+  window.currentSurveyBearingLetter = targetLetter;
+  window.activeSurveyLetter = targetLetter;
+  window.activeTcoBearingSource = "survey_" + targetLetter;
+
+  let fullData = window.latestSurveyFullData || null;
+  if (!fullData) {
+    try {
+      const saved = localStorage.getItem('interflon_questionnaire_full_data') || localStorage.getItem('interflon_last_questionnaire_data');
+      if (saved) fullData = JSON.parse(saved);
+    } catch(e) {}
   }
-  
-  // 2. Explicitly ensure bearing details are loaded for b.nr
-  if (b.nr) {
+  if (!fullData) {
+    try {
+      const rawCfg = localStorage.getItem('interflon_survey_raster_config');
+      if (rawCfg) fullData = JSON.parse(rawCfg);
+    } catch(e) {}
+  }
+  if (fullData && (fullData.fullData || fullData.questionnaire || fullData.data)) {
+    fullData = fullData.fullData || fullData.questionnaire || fullData.data;
+  }
+
+  const allBearings = (fullData && Array.isArray(fullData.bearings) && fullData.bearings.length > 0)
+    ? fullData.bearings
+    : ((window.latestSurveyBearings && Array.isArray(window.latestSurveyBearings)) ? window.latestSurveyBearings : []);
+
+  const bRec = allBearings.find(x => x.letter === targetLetter) || b || {};
+
+  // 1. Load bearing details & update calculator fields so d, D, B are updated
+  const bNr = bRec.nr || b.nr || '';
+  if (bNr) {
     const searchInput = document.getElementById("bearingSearchInput");
-    if (searchInput) searchInput.value = b.nr;
+    if (searchInput) searchInput.value = bNr;
     if (typeof loadBearingDetails === "function") {
-      loadBearingDetails(b.nr);
+      loadBearingDetails(bNr);
+    }
+    if (typeof updateCalculatorFields === "function") {
+      updateCalculatorFields();
     }
   }
 
-  // 3. Explicitly ensure RPM is applied if provided
-  if (b.rpm) {
-    const rpmVal = parseFloat(b.rpm);
+  // 2. RPM
+  const rpmVal = parseFloat(bRec.rpm || b.rpm);
+  if (!isNaN(rpmVal) && rpmVal > 0) {
     const speedInput = document.getElementById("inputSpeed") || document.getElementById("rpmInput");
-    if (speedInput && !isNaN(rpmVal) && rpmVal > 0) {
-      speedInput.value = rpmVal;
-    }
+    if (speedInput) speedInput.value = rpmVal;
   }
 
-  // 4. Run calculations
+  // 3. Import full survey / questionnaire data to opbrengstmodel and TCO
+  if (typeof importSurveyBearingToOpbrengstmodel === "function") {
+    importSurveyBearingToOpbrengstmodel("bearing", targetLetter);
+  }
+
+  // 4. Operating temperature
+  const parseCleanNum = (val) => {
+    if (val === undefined || val === null) return null;
+    if (typeof val === 'number') return isNaN(val) ? null : val;
+    let s = String(val).trim();
+    if (!s || s === '-') return null;
+    s = s.replace(/[^0-9.,-]/g, '').replace(',', '.');
+    const num = parseFloat(s);
+    return isNaN(num) ? null : num;
+  };
+  const sec3Map = (fullData && fullData.bearingDataMapSec3) || {};
+  const sec3 = sec3Map[targetLetter] || sec3Map['A'] || {};
+  const rawTemp = sec3.q16 !== undefined && sec3.q16 !== '' ? sec3.q16 : (bRec.lagertemp || bRec.temp);
+  const bearingTemp = parseCleanNum(rawTemp);
+  if (bearingTemp !== null) {
+    const tempIn = document.getElementById("inputTemperature");
+    if (tempIn) tempIn.value = bearingTemp;
+  }
+
+  // 5. SNL Housing synchronization
+  const sec2Map = (fullData && fullData.bearingDataMapSec2) || {};
+  const sec2 = sec2Map[targetLetter] || sec2Map['A'] || {};
+  const chkSnl = document.getElementById("chkSnlHousing");
+  const selSnlType = document.getElementById("selSnlType");
+  const selSnlFill = document.getElementById("selSnlFillPercent");
+  const selSnlRelub = document.getElementById("selSnlRelubPosition");
+  const snlContainer = document.getElementById("snlOptionsContainer");
+
+  const isSnlInSurvey = !!(bRec.isSnl || bRec.is_snl || b.isSnl || b.is_snl || sec2.isSnl || sec2.is_snl);
+  if (chkSnl) {
+    chkSnl.checked = isSnlInSurvey;
+    if (snlContainer) {
+      if (isSnlInSurvey) snlContainer.classList.remove("hidden");
+      else snlContainer.classList.add("hidden");
+    }
+    if (isSnlInSurvey) {
+      const surveySnlType = bRec.snlType || bRec.snl_type || b.snlType || b.snl_type || sec2.snlType || sec2.snl_type;
+      if (surveySnlType && selSnlType) selSnlType.value = surveySnlType;
+      const surveySnlFill = bRec.snlFill || bRec.snl_fill || b.snlFill || b.snl_fill || sec2.snlFill || sec2.snl_fill;
+      if (surveySnlFill && selSnlFill) selSnlFill.value = surveySnlFill;
+      const surveySnlRelub = bRec.snlRelub || bRec.snl_relub || b.snlRelub || b.snl_relub || sec2.snlRelub || sec2.snl_relub;
+      if (surveySnlRelub && selSnlRelub) selSnlRelub.value = surveySnlRelub;
+    }
+    if (typeof onSnlParamsChanged === "function") onSnlParamsChanged();
+    else if (typeof onSnlHousingToggle === "function") onSnlHousingToggle();
+  }
+
+  // 6. Correction factors (Te & Ta)
+  if (typeof applyCorrectionFactorsForBearing === "function") {
+    applyCorrectionFactorsForBearing(targetLetter);
+  }
+
+  // 7. Quantity per machine
+  const rawQty = bRec.qty !== undefined ? bRec.qty : (bRec.aantal !== undefined ? bRec.aantal : bRec.points);
+  const qtyVal = parseCleanNum(rawQty);
+  if (qtyVal !== null && qtyVal > 0) {
+    const qtyInput = document.getElementById("omSharedSetsPerMachine");
+    if (qtyInput) qtyInput.value = qtyVal;
+  }
+
+  // 8. Run calculations & updates
   if (typeof calculateGrease === "function") calculateGrease();
   if (typeof updateTcoFrequencies === "function") updateTcoFrequencies();
   if (typeof calculateTco === "function") calculateTco();
   if (typeof updateOmMetadata === "function") updateOmMetadata();
+  if (typeof saveBearingTcoDetails === "function") saveBearingTcoDetails();
 }
 
 function renderBearingPdfPage1(doc, opts = {}) {
@@ -11370,13 +11507,18 @@ function runBearingPdfExport(includeTco, includeRoi, includeRaster = true) {
       omProdPrice1: document.getElementById("omProdPrice1") ? document.getElementById("omProdPrice1").value : "",
       omProdFreq1: document.getElementById("omProdFreq1") ? document.getElementById("omProdFreq1").value : "",
       surveySelIdx: document.getElementById("surveyBearingSelect") ? document.getElementById("surveyBearingSelect").selectedIndex : -1,
-      omSurveySelIdx: document.getElementById("omSurveyBearingSelect") ? document.getElementById("omSurveyBearingSelect").selectedIndex : -1
+      omSurveySelIdx: document.getElementById("omSurveyBearingSelect") ? document.getElementById("omSurveyBearingSelect").selectedIndex : -1,
+      snlChecked: document.getElementById("chkSnlHousing") ? document.getElementById("chkSnlHousing").checked : false,
+      snlType: document.getElementById("selSnlType") ? document.getElementById("selSnlType").value : "",
+      snlFill: document.getElementById("selSnlFillPercent") ? document.getElementById("selSnlFillPercent").value : "",
+      snlRelub: document.getElementById("selSnlRelubPosition") ? document.getElementById("selSnlRelubPosition").value : ""
     };
 
     restoreState = () => {
       try {
         if (stateSnapshot.activeBearingDesig) {
           if (typeof loadBearingDetails === "function") loadBearingDetails(stateSnapshot.activeBearingDesig);
+          if (typeof updateCalculatorFields === "function") updateCalculatorFields();
         }
         if (document.getElementById("bearingSearchInput")) document.getElementById("bearingSearchInput").value = stateSnapshot.searchVal;
         if (document.getElementById("inputSpeed")) document.getElementById("inputSpeed").value = stateSnapshot.speed;
@@ -11406,6 +11548,22 @@ function runBearingPdfExport(includeTco, includeRoi, includeRaster = true) {
         }
         if (stateSnapshot.omSurveySelIdx >= 0 && document.getElementById("omSurveyBearingSelect")) {
           document.getElementById("omSurveyBearingSelect").selectedIndex = stateSnapshot.omSurveySelIdx;
+        }
+        const chkSnl = document.getElementById("chkSnlHousing");
+        const selSnlType = document.getElementById("selSnlType");
+        const selSnlFill = document.getElementById("selSnlFillPercent");
+        const selSnlRelub = document.getElementById("selSnlRelubPosition");
+        const snlContainer = document.getElementById("snlOptionsContainer");
+        if (chkSnl) {
+          chkSnl.checked = !!stateSnapshot.snlChecked;
+          if (snlContainer) {
+            if (stateSnapshot.snlChecked) snlContainer.classList.remove("hidden");
+            else snlContainer.classList.add("hidden");
+          }
+          if (selSnlType && stateSnapshot.snlType) selSnlType.value = stateSnapshot.snlType;
+          if (selSnlFill && stateSnapshot.snlFill) selSnlFill.value = stateSnapshot.snlFill;
+          if (selSnlRelub && stateSnapshot.snlRelub) selSnlRelub.value = stateSnapshot.snlRelub;
+          if (typeof onSnlParamsChanged === "function") onSnlParamsChanged();
         }
         window.activeTcoBearingSource = stateSnapshot.activeSource;
         if (typeof calculateGrease === "function") calculateGrease();
@@ -11616,13 +11774,18 @@ function runAllBearingsNoAutoPdfExport(includeTco = true) {
     omProdPrice1: document.getElementById("omProdPrice1") ? document.getElementById("omProdPrice1").value : "",
     omProdFreq1: document.getElementById("omProdFreq1") ? document.getElementById("omProdFreq1").value : "",
     surveySelIdx: document.getElementById("surveyBearingSelect") ? document.getElementById("surveyBearingSelect").selectedIndex : -1,
-    omSurveySelIdx: document.getElementById("omSurveyBearingSelect") ? document.getElementById("omSurveyBearingSelect").selectedIndex : -1
+    omSurveySelIdx: document.getElementById("omSurveyBearingSelect") ? document.getElementById("omSurveyBearingSelect").selectedIndex : -1,
+    snlChecked: document.getElementById("chkSnlHousing") ? document.getElementById("chkSnlHousing").checked : false,
+    snlType: document.getElementById("selSnlType") ? document.getElementById("selSnlType").value : "",
+    snlFill: document.getElementById("selSnlFillPercent") ? document.getElementById("selSnlFillPercent").value : "",
+    snlRelub: document.getElementById("selSnlRelubPosition") ? document.getElementById("selSnlRelubPosition").value : ""
   };
 
   const restoreState = () => {
     try {
       if (stateSnapshot.activeBearingDesig) {
         if (typeof loadBearingDetails === "function") loadBearingDetails(stateSnapshot.activeBearingDesig);
+        if (typeof updateCalculatorFields === "function") updateCalculatorFields();
       }
       if (document.getElementById("bearingSearchInput")) document.getElementById("bearingSearchInput").value = stateSnapshot.searchVal;
       if (document.getElementById("inputSpeed")) document.getElementById("inputSpeed").value = stateSnapshot.speed;
@@ -11652,6 +11815,22 @@ function runAllBearingsNoAutoPdfExport(includeTco = true) {
       }
       if (stateSnapshot.omSurveySelIdx >= 0 && document.getElementById("omSurveyBearingSelect")) {
         document.getElementById("omSurveyBearingSelect").selectedIndex = stateSnapshot.omSurveySelIdx;
+      }
+      const chkSnl = document.getElementById("chkSnlHousing");
+      const selSnlType = document.getElementById("selSnlType");
+      const selSnlFill = document.getElementById("selSnlFillPercent");
+      const selSnlRelub = document.getElementById("selSnlRelubPosition");
+      const snlContainer = document.getElementById("snlOptionsContainer");
+      if (chkSnl) {
+        chkSnl.checked = !!stateSnapshot.snlChecked;
+        if (snlContainer) {
+          if (stateSnapshot.snlChecked) snlContainer.classList.remove("hidden");
+          else snlContainer.classList.add("hidden");
+        }
+        if (selSnlType && stateSnapshot.snlType) selSnlType.value = stateSnapshot.snlType;
+        if (selSnlFill && stateSnapshot.snlFill) selSnlFill.value = stateSnapshot.snlFill;
+        if (selSnlRelub && stateSnapshot.snlRelub) selSnlRelub.value = stateSnapshot.snlRelub;
+        if (typeof onSnlParamsChanged === "function") onSnlParamsChanged();
       }
       window.activeTcoBearingSource = stateSnapshot.activeSource;
       if (typeof calculateGrease === "function") calculateGrease();
