@@ -1178,7 +1178,10 @@ function calculateSingleBearingDailyNeed(bearingNr, speedRpm, opts = {}) {
       : { isAdjusted: false, effectiveB: B });
   const effectiveB = effW.effectiveB;
 
-  const refill_grams = D * effectiveB * coefC;
+  let refill_grams = D * effectiveB * coefC;
+  if (opts && opts.isSnl && opts.snlRelub === "side") {
+    refill_grams = refill_grams * 1.60;
+  }
   const dailyNeed = (totalCalendarDays > 0) ? (refill_grams / totalCalendarDays) : 0;
 
   return {
@@ -1256,12 +1259,17 @@ function applySurveyConfig(config) {
       const effTe = (bOverride && bOverride.Te !== undefined) ? parseFloat(bOverride.Te) : corr.Te;
       const effTa = (bOverride && bOverride.Ta !== undefined) ? parseFloat(bOverride.Ta) : corr.Ta;
 
+      const isSnl = (b.isSnl !== undefined) ? !!b.isSnl : !!d2.isSnl;
+      const snlRelub = b.snlRelub || d2.snlRelub || 'w33';
+
       const need = calculateSingleBearingDailyNeed(b.nr, rpm, {
         hoursPerDay: hDay,
         daysPerWeek: dWeek,
         temp: temp,
         Te: effTe,
-        Ta: effTa
+        Ta: effTa,
+        isSnl: isSnl,
+        snlRelub: snlRelub
       });
       return {
         letter: b.letter,
@@ -1523,12 +1531,17 @@ function applySurveyConfig(config) {
       const effTe = (bOverride && bOverride.Te !== undefined) ? parseFloat(bOverride.Te) : corr.Te;
       const effTa = (bOverride && bOverride.Ta !== undefined) ? parseFloat(bOverride.Ta) : corr.Ta;
 
+      const isSnl = (bObj.isSnl !== undefined) ? !!bObj.isSnl : !!d2.isSnl;
+      const snlRelub = bObj.snlRelub || d2.snlRelub || 'w33';
+
       const need = calculateSingleBearingDailyNeed(bObj.nr, rpm, {
         hoursPerDay: hDay,
         daysPerWeek: dWeek,
         temp: temp,
         Te: effTe,
-        Ta: effTa
+        Ta: effTa,
+        isSnl: isSnl,
+        snlRelub: snlRelub
       });
 
       devTotalDailyNeed += (need.dailyNeed * bQty);
