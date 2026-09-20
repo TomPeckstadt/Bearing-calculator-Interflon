@@ -1407,6 +1407,8 @@
                   <option value="15">Tot 15 m (Middel)</option>
                   <option value="20">Tot 20 m (Groot)</option>
                   <option value="30">Tot 30 m (Transportlijn)</option>
+                  <option value="50">Tot 50 m (Fabriekshal)</option>
+                  <option value="100">Tot 100 m (100 meter / Industrie)</option>
                 </select>
               </div>
             </div>
@@ -3712,7 +3714,8 @@
       const rangeNeeded = Math.max(rangeNeededX, rangeNeededY, 2.2);
 
       let optimalZoom = (gridRange || 10) / rangeNeeded;
-      optimalZoom = Math.max(1.2, Math.min(3.0, Math.round(optimalZoom * 20) / 20));
+      const minZoom = (gridRange && gridRange >= 50) ? 1.0 : 1.2;
+      optimalZoom = Math.max(minZoom, Math.min(3.0, Math.round(optimalZoom * 20) / 20));
       return optimalZoom;
     }
 
@@ -3864,7 +3867,7 @@
         ctx.stroke();
 
         // Isometric Grid Lines
-        const step = machineRangeMeters <= 6 ? 1 : machineRangeMeters <= 15 ? 2 : 5;
+        const step = machineRangeMeters <= 6 ? 1 : machineRangeMeters <= 15 ? 2 : machineRangeMeters <= 30 ? 5 : machineRangeMeters <= 60 ? 10 : 20;
         ctx.lineWidth = 0.8 * dpr;
 
         for (let m = -gridRange; m <= gridRange; m += step) {
@@ -3887,7 +3890,7 @@
         }
 
         // Concentric distance guide rings with meter tags
-        const ringStep = machineRangeMeters <= 6 ? 1 : machineRangeMeters <= 12 ? 2 : machineRangeMeters <= 20 ? 4 : 5;
+        const ringStep = machineRangeMeters <= 6 ? 1 : machineRangeMeters <= 12 ? 2 : machineRangeMeters <= 20 ? 4 : machineRangeMeters <= 30 ? 5 : machineRangeMeters <= 60 ? 10 : 20;
         for (let r = ringStep; r <= gridRange; r += ringStep) {
           ctx.beginPath();
           for (let angle = 0; angle <= Math.PI * 2 + 0.1; angle += 0.08) {
@@ -3912,7 +3915,7 @@
 
       } else {
         // 2D Blueprint Grid
-        const step = machineRangeMeters <= 6 ? 1 : machineRangeMeters <= 15 ? 2 : 5;
+        const step = machineRangeMeters <= 6 ? 1 : machineRangeMeters <= 15 ? 2 : machineRangeMeters <= 30 ? 5 : machineRangeMeters <= 60 ? 10 : 20;
         ctx.lineWidth = 0.8 * dpr;
 
         for (let m = -gridRange; m <= gridRange; m += step) {
@@ -3934,7 +3937,7 @@
           ctx.stroke();
         }
 
-        const ringStep = machineRangeMeters <= 6 ? 1 : machineRangeMeters <= 12 ? 2 : machineRangeMeters <= 20 ? 4 : 5;
+        const ringStep = machineRangeMeters <= 6 ? 1 : machineRangeMeters <= 12 ? 2 : machineRangeMeters <= 20 ? 4 : machineRangeMeters <= 30 ? 5 : machineRangeMeters <= 60 ? 10 : 20;
         for (let r = ringStep; r <= gridRange; r += ringStep) {
           ctx.beginPath();
           ctx.arc(cx, cy, r * ppm, 0, Math.PI * 2);
