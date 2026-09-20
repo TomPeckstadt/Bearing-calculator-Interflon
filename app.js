@@ -1260,7 +1260,7 @@ function applySurveyConfig(config) {
       const effTa = (bOverride && bOverride.Ta !== undefined) ? parseFloat(bOverride.Ta) : corr.Ta;
 
       const isSnl = (b.isSnl !== undefined) ? !!b.isSnl : !!d2.isSnl;
-      const snlRelub = b.snlRelub || d2.snlRelub || 'w33';
+      const snlRelub = b.snlRelub || d2.snlRelub || 'side';
 
       const need = calculateSingleBearingDailyNeed(b.nr, rpm, {
         hoursPerDay: hDay,
@@ -1532,7 +1532,7 @@ function applySurveyConfig(config) {
       const effTa = (bOverride && bOverride.Ta !== undefined) ? parseFloat(bOverride.Ta) : corr.Ta;
 
       const isSnl = (bObj.isSnl !== undefined) ? !!bObj.isSnl : !!d2.isSnl;
-      const snlRelub = bObj.snlRelub || d2.snlRelub || 'w33';
+      const snlRelub = bObj.snlRelub || d2.snlRelub || 'side';
 
       const need = calculateSingleBearingDailyNeed(bObj.nr, rpm, {
         hoursPerDay: hDay,
