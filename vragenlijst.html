@@ -1346,8 +1346,8 @@
               <div class="form-group" style="margin-bottom: 0;">
                 <label for="q_snl_relub" style="font-size: 12px; font-weight: 600;">Nasmeerpositie</label>
                 <select id="q_snl_relub" class="form-control" onchange="saveCurrentSection2Data()" style="font-size: 12.5px;">
-                  <option value="w33" selected>Centraal (W33 groef lager)</option>
-                  <option value="side">Zijkant behuizing (+60% toeslag)</option>
+                  <option value="side" selected>Zijkant behuizing (+60% toeslag)</option>
+                  <option value="w33">Centraal (W33 groef lager)</option>
                 </select>
               </div>
             </div>
@@ -4893,8 +4893,10 @@
           ? window.getEffectiveLubricationWidth(bearingType, cleanKey || (b && b.designation) || "", d, D, B)
           : { isAdjusted: false, effectiveB: B });
       const effectiveB = effW.effectiveB;
-
-      const refill_grams = D * effectiveB * coefC;
+      let refill_grams = D * effectiveB * coefC;
+      if (opts && opts.isSnl && opts.snlRelub === 'side') {
+        refill_grams = refill_grams * 1.60;
+      }
       const dailyNeed = (totalCalendarDays > 0) ? (refill_grams / totalCalendarDays) : 0;
 
       return {
@@ -4933,7 +4935,9 @@
           daysPerWeek,
           temp,
           Te: corr.Te,
-          Ta: corr.Ta
+          Ta: corr.Ta,
+          isSnl: !!d2.isSnl,
+          snlRelub: d2.snlRelub || 'side'
         });
 
         const dailyNeed = needRes.dailyNeed;
@@ -5524,7 +5528,7 @@
             isSnl: !!d2.isSnl,
             snlType: d2.snlType || '',
             snlFill: d2.snlFill || '40',
-            snlRelub: d2.snlRelub || 'w33'
+            snlRelub: d2.snlRelub || 'side'
           });
         });
 
@@ -7288,7 +7292,7 @@
         if (posIn) posIn.name = 'Lager ' + letter + ' - As Positie';
 
         // Ensure state entries exist
-        if (!bearingDataMapSec2[letter]) bearingDataMapSec2[letter] = { q11: '', q12_price: '', q4_freq_num: '', q4_freq_unit: 'Weken', q29_life: '', q13: '16', q14: '5', isSnl: false, snlType: '', snlFill: '40', snlRelub: 'w33' };
+        if (!bearingDataMapSec2[letter]) bearingDataMapSec2[letter] = { q11: '', q12_price: '', q4_freq_num: '', q4_freq_unit: 'Weken', q29_life: '', q13: '16', q14: '5', isSnl: false, snlType: '', snlFill: '40', snlRelub: 'side' };
         if (!bearingDataMapSec3[letter]) bearingDataMapSec3[letter] = { q15: '', q16: '', q17: '3', q18: '4', q19: '2', q20: '3', q21: '3', q22: '2' };
         if (!bearingDataMapSec4[letter]) bearingDataMapSec4[letter] = { q24: '', q25: '', q26: '', q27: '', q28: '', q30: '' };
 
@@ -7377,7 +7381,7 @@
       `;
       container.appendChild(row);
 
-      bearingDataMapSec2[letter] = { q11: '', q12_price: '', q4_freq_num: '', q4_freq_unit: 'Weken', q29_life: '', q13: '16', q14: '5', isSnl: false, snlType: '', snlFill: '40', snlRelub: 'w33' };
+      bearingDataMapSec2[letter] = { q11: '', q12_price: '', q4_freq_num: '', q4_freq_unit: 'Weken', q29_life: '', q13: '16', q14: '5', isSnl: false, snlType: '', snlFill: '40', snlRelub: 'side' };
       bearingDataMapSec3[letter] = { q15: '', q16: '', q17: '3', q18: '4', q19: '2', q20: '3', q21: '3', q22: '2' };
       bearingDataMapSec4[letter] = { q24: '', q25: '', q26: '', q27: '', q28: '', q30: '' };
 
@@ -7505,12 +7509,17 @@
       if (qSnlType) bearingDataMapSec2[activeBearingSec2].snlType = qSnlType.value;
       if (qSnlFill) bearingDataMapSec2[activeBearingSec2].snlFill = qSnlFill.value;
       if (qSnlRelub) bearingDataMapSec2[activeBearingSec2].snlRelub = qSnlRelub.value;
-
       if (!skipAutoSave) triggerSurveyAutoSave();
+      if (typeof renderDistancesOverview === 'function') renderDistancesOverview();
+      if (typeof drawBearingLayout === 'function') drawBearingLayout();
     }
 
     function loadSection2DataForBearing(letter) {
-      const data = bearingDataMapSec2[letter] || { q11: '', q12_price: '', q4_freq_num: '', q4_freq_unit: 'Weken', q29_life: '', q13: '16', q14: '5', isSnl: false, snlType: '', snlFill: '40', snlRelub: 'w33' };
+      activeBearingSec2 = letter;
+      const sec2Sel = document.getElementById('bearingSelectorSection2');
+      if (sec2Sel && sec2Sel.value !== letter) sec2Sel.value = letter;
+
+      const data = bearingDataMapSec2[letter] || { q11: '', q12_price: '', q4_freq_num: '', q4_freq_unit: 'Weken', q29_life: '', q13: '16', q14: '5', isSnl: false, snlType: '', snlFill: '40', snlRelub: 'side' };
       document.getElementById('q11').value = data.q11 || '';
       document.getElementById('q12_price').value = data.q12_price || '';
       document.getElementById('q4_freq_num').value = data.q4_freq_num || '';
@@ -7553,7 +7562,7 @@
       const qSnlFill = document.getElementById('q_snl_fill');
       if (qSnlFill) qSnlFill.value = data.snlFill || '40';
       const qSnlRelub = document.getElementById('q_snl_relub');
-      if (qSnlRelub) qSnlRelub.value = data.snlRelub || 'w33';
+      if (qSnlRelub) qSnlRelub.value = data.snlRelub || 'side';
     }
 
     function switchSection2Bearing(newLetter) {
