@@ -1215,6 +1215,44 @@
                   <span id="surveyCorrectionFactorsHintText">💡 Automatisch ingesteld o.b.v. Vragenlijst</span>
                 </div>
               </div>
+
+              <!-- SNL Lagerhuis Opties (Split Plummer Block Housing) -->
+              <div style="border-top: 1px solid var(--accent-yellow-border-soft); padding-top: 10px; margin-top: 10px;">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
+                  <label for="chkSnlHousing" style="font-size: 12.5px; font-weight: 700; color: var(--primary-blue); cursor: pointer; display: flex; align-items: center; gap: 8px; margin: 0;">
+                    <input type="checkbox" id="chkSnlHousing" onchange="onSnlHousingToggle()" style="width: 16px; height: 16px; cursor: pointer;">
+                    <span data-i18n="snlHousingTitle">Gemonteerd in SNL-behuizing (staand lagerhuis)</span>
+                  </label>
+                  <span id="badgeSnlDetected" class="hidden" style="font-size: 10px; background: #E0F2FE; color: #0284C7; font-weight: 700; padding: 2px 6px; border-radius: 4px;">SNL Aanbevolen</span>
+                </div>
+
+                <div id="snlOptionsContainer" class="hidden" style="background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 6px; padding: 10px; margin-top: 8px; display: flex; flex-direction: column; gap: 8px;">
+                  <div class="form-group" style="margin-bottom: 0;">
+                    <label for="selSnlType" style="font-size: 11.5px; font-weight: 600; color: var(--text-dark);" data-i18n="snlTypeLabel">Type SNL-lagerhuis</label>
+                    <select id="selSnlType" class="form-control" onchange="onSnlParamsChanged()" style="font-size: 12px; padding: 5px 10px; height: 32px;">
+                      <!-- Populated dynamically from SNL_HOUSING_DATABASE -->
+                    </select>
+                  </div>
+
+                  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                    <div class="form-group" style="margin-bottom: 0;">
+                      <label for="selSnlFillPercent" style="font-size: 11.5px; font-weight: 600; color: var(--text-dark);" data-i18n="snlFillLabel">Eerste vulling huis</label>
+                      <select id="selSnlFillPercent" class="form-control" onchange="onSnlParamsChanged()" style="font-size: 12px; padding: 5px 10px; height: 32px;">
+                        <option value="40" selected data-i18n="snlFill40">40% - 50% (standaard)</option>
+                        <option value="100" data-i18n="snlFill100">90% - 100% (traag / vuil barrière)</option>
+                      </select>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 0;">
+                      <label for="selSnlRelubPosition" style="font-size: 11.5px; font-weight: 600; color: var(--text-dark);" data-i18n="snlRelubLabel">Nasmeerpositie</label>
+                      <select id="selSnlRelubPosition" class="form-control" onchange="onSnlParamsChanged()" style="font-size: 12px; padding: 5px 10px; height: 32px;">
+                        <option value="w33" selected data-i18n="snlRelubW33">Centraal (W33 groef lager)</option>
+                        <option value="side" data-i18n="snlRelubSide">Zijkant behuizing (+60%)</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </form>
           </div>
 
@@ -1262,6 +1300,10 @@
                 <div id="insertBearingNoticeFreeVol" class="alert-note hidden" style="margin-top: 6px; margin-bottom: 0; padding: 4px 8px; font-size: 11px; background-color: #f0f9ff; border-left: 3px solid #0284c7; color: #0369a1; display: flex; gap: 6px; align-items: flex-start;">
                   <span style="font-size: 13px; line-height: 1;">💡</span>
                   <span><strong>Spanlager correctie:</strong> Vrij volume &amp; initiële vulling berekend voor de daadwerkelijke kogelholte (C = <span id="insertNoticeFreeVolC">--</span> mm) i.p.v. de verlengde binnenring.</span>
+                </div>
+                <div id="snlNoticeInitialFill" class="alert-note hidden" style="margin-top: 6px; margin-bottom: 0; padding: 6px 10px; font-size: 11.5px; background-color: #EFF6FF; border-left: 3px solid #3B82F6; color: #1E40AF; display: flex; gap: 6px; align-items: flex-start;">
+                  <span style="font-size: 14px; line-height: 1.2;">📦</span>
+                  <span><strong>SNL Eerste Vulling (Montage):</strong> Behuizing vereist vóór ingebruikname een handmatige startvulling van <strong id="snlTotalInitGrams">-- g</strong> (<span id="snlBearingInitGrams">-- g</span> lager + <span id="snlHousingInitGrams">-- g</span> in lagerhuis bij <span id="snlFillPercentDisplay">40-50%</span> vulling). <br><em style="font-size: 10.5px; color: #3b82f6;">Let op: dit is een eenmalige montagedosering en telt niet mee in de periodieke TCO-smeerkosten.</em></span>
                 </div>
               </div>
             </div>
@@ -1334,6 +1376,10 @@
                 <div id="insertBearingNoticeRefill" class="alert-note hidden" style="margin-top: 6px; margin-bottom: 0; padding: 4px 8px; font-size: 11px; background-color: #f0f9ff; border-left: 3px solid #0284c7; color: #0369a1; display: flex; gap: 6px; align-items: flex-start;">
                   <span style="font-size: 13px; line-height: 1;">💡</span>
                   <span><strong>Spanlager (Y-lager) correctie:</strong> Berekend o.b.v. effectieve loopbaanbreedte (C = <span id="insertNoticeRefillC">--</span> mm) i.p.v. verlengde binnenring (B = <span id="insertNoticeRefillB">--</span> mm) ter voorkoming van overbevetting en afdichtingsschade.</span>
+                </div>
+                <div id="snlNoticeRelubSide" class="alert-note hidden" style="margin-top: 6px; margin-bottom: 0; padding: 6px 10px; font-size: 11px; background-color: #FFFBEB; border-left: 3px solid #F59E0B; color: #B45309; display: flex; gap: 6px; align-items: flex-start;">
+                  <span style="font-size: 13px; line-height: 1.2;">⚠️</span>
+                  <span><strong>Zijsmering toeslag (+60%):</strong> Omdat de nasmering via de zijkant van het SNL-huis plaatsvindt i.p.v. centraal via de W33-smeergroef van het lager, is de navulhoeveelheid met 60% verhoogd om de zijdelingse holte te overbruggen en vers vet effectief in de loopbaan te stuwen.</span>
                 </div>
               </div>
             </div>
@@ -1962,6 +2008,12 @@
 
               <!-- Smeercalculatie Source Summary Badge -->
               <div id="autoBearingNeedBadge"></div>
+
+              <!-- SNL Mounting Notice for Automation -->
+              <div id="autoSnlNotice" class="alert-note hidden" style="margin-bottom: 14px; font-size: 11.5px; background-color: #EFF6FF; border-left: 3px solid #3B82F6; color: #1E40AF; padding: 6px 10px; display: flex; gap: 6px; align-items: flex-start;">
+                <span style="font-size: 14px; line-height: 1.2;">📦</span>
+                <span><strong>SNL Montage-instructie:</strong> Het lagerhuis vereist vóór aansluiting van de automatische smeerunit een handmatige eerste vulling van <strong id="autoSnlInitFillGrams">-- g</strong>. De automatische smeerunit verzorgt uitsluitend de periodieke nasmering.</span>
+              </div>
 
               <!-- Highlighted Recommended Period Card for Bearing Automation -->
               <div id="autoRecCard" style="background: #FEF2F2; border: 2px solid var(--primary-red); border-radius: var(--border-radius-sm); padding: 14px; margin-bottom: 16px; box-shadow: 0 2px 6px rgba(227, 6, 19, 0.08);">
