@@ -3605,6 +3605,39 @@ function syncAllQuestionnaireDataToCalculator(data, explicitTargetLetter) {
       applyCorrectionFactorsForBearing(targetLetter);
     }
 
+    // 5c. SNL-behuizing synchronisatie o.b.v. Vragenlijst Sectie 2
+    const chkSnl = document.getElementById("chkSnlHousing");
+    const selSnlType = document.getElementById("selSnlType");
+    const selSnlFill = document.getElementById("selSnlFillPercent");
+    const selSnlRelub = document.getElementById("selSnlRelubPosition");
+    const snlContainer = document.getElementById("snlOptionsContainer");
+
+    if (chkSnl) {
+      const isSnlInSurvey = !!(sec2.isSnl || sec2.is_snl || bRec.isSnl || bRec.is_snl);
+      chkSnl.checked = isSnlInSurvey;
+      if (snlContainer) {
+        if (isSnlInSurvey) {
+          snlContainer.classList.remove("hidden");
+        } else {
+          snlContainer.classList.add("hidden");
+        }
+      }
+      if (isSnlInSurvey) {
+        const surveySnlType = sec2.snlType || sec2.snl_type || bRec.snlType || bRec.snl_type;
+        if (surveySnlType && selSnlType) {
+          selSnlType.value = surveySnlType;
+        }
+        const surveySnlFill = sec2.snlFill || sec2.snl_fill || bRec.snlFill || bRec.snl_fill;
+        if (surveySnlFill && selSnlFill) {
+          selSnlFill.value = surveySnlFill;
+        }
+        const surveySnlRelub = sec2.snlRelub || sec2.snl_relub || bRec.snlRelub || bRec.snl_relub;
+        if (surveySnlRelub && selSnlRelub) {
+          selSnlRelub.value = surveySnlRelub;
+        }
+      }
+    }
+
     // Update selected bearing info badge direct onder dropdown
     const badge = document.getElementById("surveyBearingSelectedBadge");
     if (badge) {
@@ -6242,6 +6275,14 @@ const TRANSLATIONS = {
     cardResults: "Berekende Resultaten",
     resFreeVol: "Vrij Volume Lager (V)",
     resInitialFill: "Eerste Smeervulling (40%)",
+    snlHousingTitle: "Gemonteerd in SNL-behuizing (staand lagerhuis)",
+    snlTypeLabel: "Type SNL-lagerhuis",
+    snlFillLabel: "Eerste vulling huis",
+    snlRelubLabel: "Nasmeerpositie",
+    snlFill40: "40% - 50% (standaard)",
+    snlFill100: "90% - 100% (traag / vuil barrière)",
+    snlRelubW33: "Centraal (W33 groef lager)",
+    snlRelubSide: "Zijkant behuizing (+60%)",
     resInterval: "Gecorrigeerd Smeerinterval met conventioneel smeermiddel (FC)",
     resRefillQty: "Nasmeerhoeveelheid",
     resStrokes: "Aantal Slagen Vetpomp",
@@ -6770,6 +6811,14 @@ const TRANSLATIONS = {
     cardResults: "Calculated Results",
     resFreeVol: "Bearing Free Volume (V)",
     resInitialFill: "Initial Grease Fill (40%)",
+    snlHousingTitle: "Mounted in SNL housing (split plummer block)",
+    snlTypeLabel: "SNL Housing Type",
+    snlFillLabel: "Initial housing fill",
+    snlRelubLabel: "Relubrication position",
+    snlFill40: "40% - 50% (standard)",
+    snlFill100: "90% - 100% (slow / dirt barrier)",
+    snlRelubW33: "Central (W33 bearing groove)",
+    snlRelubSide: "Housing side (+60%)",
     resInterval: "Corrected Lubrication Interval (FC)",
     resRefillQty: "Relubrication Quantity",
     resStrokes: "Grease Gun Strokes",
@@ -7298,6 +7347,14 @@ const TRANSLATIONS = {
     cardResults: "Résultats Calculés",
     resFreeVol: "Volume Libre du Roulement (V)",
     resInitialFill: "Premier Remplissage de Graisse (40%)",
+    snlHousingTitle: "Monté dans un palier SNL (palier à semelle)",
+    snlTypeLabel: "Type de palier SNL",
+    snlFillLabel: "Remplissage initial du corps",
+    snlRelubLabel: "Position de relubrification",
+    snlFill40: "40% - 50% (standard)",
+    snlFill100: "90% - 100% (lent / barrière saleté)",
+    snlRelubW33: "Central (rainure W33 du roulement)",
+    snlRelubSide: "Côté du palier (+60%)",
     resInterval: "Intervalle de Lubrification Corrigé (FC)",
     resRefillQty: "Quantité de Relubrification",
     resStrokes: "Coups de Pompe à Graisse",
@@ -7713,11 +7770,17 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  // Initialiseer SNL-lagerhuizen dropdown
+  if (typeof initSnlDropdown === "function") {
+    initSnlDropdown();
+  }
+
   // Voeg event listeners toe voor automatische herberekening
   const inputs = [
     "inputGrease", "thickenerSelect", "inputTemperature", "inputSpeed", "inputLimitingSpeed",
     "inputBoreManual", "inputOuterManual", "inputWidthManual", "inputMassManual",
-    "inputTe", "inputTa", "inputHoursPerDay", "inputDaysPerWeek", "inputMicPolFactor"
+    "inputTe", "inputTa", "inputHoursPerDay", "inputDaysPerWeek", "inputMicPolFactor",
+    "selSnlType", "selSnlFillPercent", "selSnlRelubPosition"
   ];
   inputs.forEach(id => {
     const el = document.getElementById(id);
@@ -8837,6 +8900,9 @@ function loadBearingDetails(designation) {
 
   activeBearing = result;
   localStorage.setItem("active_bearing_designation", designation);
+  if (typeof autoSelectSnlHousingForBearing === "function") {
+    autoSelectSnlHousingForBearing(designation);
+  }
   
   // Update Specs weergave
   emptyState.style.display = "none";
@@ -9042,6 +9108,67 @@ function updateBearingSvg(d, D, B) {
 }
 
 // ==========================================================================
+// SNL LAGERBEHUIZINGEN LOGICA (Split Plummer Block Housings)
+// ==========================================================================
+
+function initSnlDropdown() {
+  const sel = document.getElementById("selSnlType");
+  if (!sel) return;
+  if (typeof SNL_HOUSING_DATABASE === "undefined") return;
+  
+  const currentVal = sel.value;
+  sel.innerHTML = Object.keys(SNL_HOUSING_DATABASE).map(key => {
+    const item = SNL_HOUSING_DATABASE[key];
+    return `<option value="${key}">${item.name} (${item.fill40}g / ${item.fill100}g)</option>`;
+  }).join("");
+  
+  if (currentVal && SNL_HOUSING_DATABASE[currentVal]) {
+    sel.value = currentVal;
+  }
+}
+
+function onSnlHousingToggle() {
+  const chk = document.getElementById("chkSnlHousing");
+  const container = document.getElementById("snlOptionsContainer");
+  if (chk && container) {
+    if (chk.checked) {
+      container.classList.remove("hidden");
+    } else {
+      container.classList.add("hidden");
+    }
+  }
+  calculateGrease();
+}
+
+function onSnlParamsChanged() {
+  calculateGrease();
+}
+
+function autoSelectSnlHousingForBearing(designation) {
+  const badge = document.getElementById("badgeSnlDetected");
+  const sel = document.getElementById("selSnlType");
+  if (!designation || typeof getSnlHousingForBearing !== "function") {
+    if (badge) badge.classList.add("hidden");
+    return;
+  }
+  const detectedHousing = getSnlHousingForBearing(designation);
+  if (detectedHousing) {
+    if (sel) sel.value = detectedHousing;
+    if (badge) {
+      badge.textContent = `${detectedHousing} Aanbevolen`;
+      badge.classList.remove("hidden");
+    }
+  } else {
+    if (badge) badge.classList.add("hidden");
+  }
+}
+
+window.initSnlDropdown = initSnlDropdown;
+window.onSnlHousingToggle = onSnlHousingToggle;
+window.onSnlParamsChanged = onSnlParamsChanged;
+window.autoSelectSnlHousingForBearing = autoSelectSnlHousingForBearing;
+
+// ==========================================================================
 // CALCULATOR SCHERM LOGICA
 // ==========================================================================
 
@@ -9078,6 +9205,10 @@ function updateCalculatorFields() {
     widthInput.value = activeBearing.B;
     if (massInput) massInput.value = activeBearing.mass || "";
     if (limitInput && activeBearing.limitSpeed) limitInput.value = activeBearing.limitSpeed;
+
+    if (activeBearing.designation) {
+      autoSelectSnlHousingForBearing(activeBearing.designation);
+    }
   } else {
     // Geen lager geladen. We behouden de waarden uit het HTML formulier als standaard voorbeeld
     bannerTitle.textContent = langData.searchEmptyTitle || "Geen lager geselecteerd";
@@ -9297,14 +9428,62 @@ function calculateGrease() {
   if (freeVolM3Element) freeVolM3Element.textContent = vol_free_m3.toFixed(6);
   if (freeVolCmElement) freeVolCmElement.textContent = Math.round(vol_free_cm3);
 
-  // 4. Initiële vulhoeveelheid (40% van vrije volume)
+  // 4. Initiële vulhoeveelheid (40% van vrije volume voor standaard lager, of 100% lager + SNL-huis)
+  const chkSnlEl = document.getElementById("chkSnlHousing");
+  const isSnlActive = !!(chkSnlEl && chkSnlEl.checked);
+  const selSnlTypeEl = document.getElementById("selSnlType");
+  const selSnlFillEl = document.getElementById("selSnlFillPercent");
+  const selSnlRelubEl = document.getElementById("selSnlRelubPosition");
+
+  const snlTypeVal = selSnlTypeEl ? selSnlTypeEl.value : "";
+  const snlFillPct = selSnlFillEl ? selSnlFillEl.value : "40";
+  const snlRelubPos = selSnlRelubEl ? selSnlRelubEl.value : "w33";
+  const snlData = (typeof getSnlHousingData === "function") ? getSnlHousingData(snlTypeVal) : null;
+
   const fillPercent = 40;
   const fill_cm3 = vol_free_cm3 * (fillPercent / 100);
   const fill_grams = fill_cm3 * density;
 
-  if (fillPercentElement) fillPercentElement.textContent = fillPercent;
-  if (initFillCmElement) initFillCmElement.textContent = Math.round(fill_cm3);
-  if (initFillGramsElement) initFillGramsElement.textContent = Math.round(fill_grams);
+  if (isSnlActive) {
+    const bearingFullGrams = Math.round(vol_free_cm3 * density);
+    const housingGrams = (snlFillPct === "100") ? (snlData ? snlData.fill100 : 0) : (snlData ? snlData.fill40 : 0);
+    const totalInitGrams = bearingFullGrams + housingGrams;
+    const totalInitCm3 = Math.round(totalInitGrams / density);
+
+    if (fillPercentElement) fillPercentElement.textContent = (snlFillPct === "100" ? "90-100% (Huis) + 100% (Lager)" : "40-50% (Huis) + 100% (Lager)");
+    if (initFillCmElement) initFillCmElement.textContent = totalInitCm3;
+    if (initFillGramsElement) initFillGramsElement.textContent = totalInitGrams;
+
+    const snlNoticeInit = document.getElementById("snlNoticeInitialFill");
+    if (snlNoticeInit) {
+      snlNoticeInit.classList.remove("hidden");
+      const totEl = document.getElementById("snlTotalInitGrams");
+      const bEl = document.getElementById("snlBearingInitGrams");
+      const hEl = document.getElementById("snlHousingInitGrams");
+      const pctEl = document.getElementById("snlFillPercentDisplay");
+      if (totEl) totEl.textContent = totalInitGrams + " g";
+      if (bEl) bEl.textContent = bearingFullGrams + " g";
+      if (hEl) hEl.textContent = housingGrams + " g";
+      if (pctEl) pctEl.textContent = (snlFillPct === "100" ? "90-100%" : "40-50%");
+    }
+
+    const autoSnlNoticeEl = document.getElementById("autoSnlNotice");
+    const autoSnlGramsEl = document.getElementById("autoSnlInitFillGrams");
+    if (autoSnlNoticeEl) {
+      autoSnlNoticeEl.classList.remove("hidden");
+      if (autoSnlGramsEl) autoSnlGramsEl.textContent = totalInitGrams + " g";
+    }
+  } else {
+    if (fillPercentElement) fillPercentElement.textContent = fillPercent;
+    if (initFillCmElement) initFillCmElement.textContent = Math.round(fill_cm3);
+    if (initFillGramsElement) initFillGramsElement.textContent = Math.round(fill_grams);
+
+    const snlNoticeInit = document.getElementById("snlNoticeInitialFill");
+    if (snlNoticeInit) snlNoticeInit.classList.add("hidden");
+
+    const autoSnlNoticeEl = document.getElementById("autoSnlNotice");
+    if (autoSnlNoticeEl) autoSnlNoticeEl.classList.add("hidden");
+  }
 
   const noticeFreeVol = document.getElementById("insertBearingNoticeFreeVol");
   const noticeFreeVolC = document.getElementById("insertNoticeFreeVolC");
@@ -9422,19 +9601,33 @@ function calculateGrease() {
   if (!coefC || coefC < 0.001) coefC = 0.00440;
   if (coefCElement) coefCElement.textContent = coefC.toFixed(5);
 
-  const refill_grams = D * effectiveB * coefC;
+  let refill_grams = D * effectiveB * coefC;
+  if (isSnlActive && snlRelubPos === "side") {
+    refill_grams = refill_grams * 1.60;
+  }
   if (qElement) qElement.textContent = refill_grams.toFixed(1);
 
   const strokes = refill_grams / 2;
   if (strokesElement) strokesElement.textContent = Math.round(strokes);
 
-  // Update formule omschrijving en notificatie bij spanlagers (UC / Y-lager)
+  // Update formule omschrijving en notificatie bij spanlagers (UC / Y-lager) en SNL
   const descRefillFormula = document.getElementById("descRefillFormula");
   if (descRefillFormula) {
-    if (isUcAdjusted) {
+    if (isSnlActive && snlRelubPos === "side") {
+      descRefillFormula.textContent = `Nasmeerhoeveelheid (D x ${isUcAdjusted ? 'C' : 'B'} x c x 1,60 - Zijkant SNL)`;
+    } else if (isUcAdjusted) {
       descRefillFormula.textContent = `Nasmeerhoeveelheid (D x C x c - Loopbaan ${effectiveB} mm)`;
     } else {
       descRefillFormula.textContent = "Nasmeerhoeveelheid (D x B x c)";
+    }
+  }
+
+  const snlNoticeRelub = document.getElementById("snlNoticeRelubSide");
+  if (snlNoticeRelub) {
+    if (isSnlActive && snlRelubPos === "side") {
+      snlNoticeRelub.classList.remove("hidden");
+    } else {
+      snlNoticeRelub.classList.add("hidden");
     }
   }
 
@@ -10534,6 +10727,11 @@ function renderBearingPdfPage1(doc, opts = {}) {
       const daysPerWeekLabel = currentLang === "nl" ? "Operationele dagen/week" : currentLang === "en" ? "Operational days/week" : "Jours opérationnels/semaine";
       const daysPerWeekSuffix = currentLang === "nl" ? " dagen/week" : currentLang === "en" ? " days/week" : " jours/semaine";
 
+      const isSnlChecked = document.getElementById("chkSnlHousing") && document.getElementById("chkSnlHousing").checked;
+      const snlTypeVal = document.getElementById("selSnlType") ? document.getElementById("selSnlType").value : "";
+      const snlFillVal = document.getElementById("selSnlFillPercent") ? document.getElementById("selSnlFillPercent").value : "40";
+      const snlRelubVal = document.getElementById("selSnlRelubPosition") ? document.getElementById("selSnlRelubPosition").value : "w33";
+
       const params = [
         [langData.inputGreaseLabel, greaseName],
         [langData.pdfMicPolFactorLabel || "Convertiefactor naar Interflon MicPol®", micPolFactorVal + "x"],
@@ -10546,10 +10744,21 @@ function renderBearingPdfPage1(doc, opts = {}) {
         [daysPerWeekLabel, daysPerWeekVal + daysPerWeekSuffix]
       ];
 
+      if (isSnlChecked) {
+        params.push([
+          currentLang === "nl" ? "SNL Behuizing" : currentLang === "en" ? "SNL Housing" : "Palier SNL",
+          `${snlTypeVal} (${snlFillVal === "100" ? "90-100% vulling" : "40-50% vulling"})`
+        ]);
+        params.push([
+          currentLang === "nl" ? "Nasmeerpositie" : currentLang === "en" ? "Relubrication position" : "Position de relubrification",
+          snlRelubVal === "side" ? (currentLang === "nl" ? "Zijkant behuizing (+60%)" : "Housing side (+60%)") : (currentLang === "nl" ? "Centraal (W33 groef)" : "Central (W33 groove)")
+        ]);
+      }
+
       doc.setFont("helvetica", "normal");
       let currentY = 120;
       params.forEach((p, idx) => {
-        currentY += 4.0;
+        currentY += 3.8;
         doc.setTextColor(72, 84, 96);
         doc.text(p[0], 24, currentY);
         doc.setTextColor(11, 19, 43);
@@ -10559,7 +10768,7 @@ function renderBearingPdfPage1(doc, opts = {}) {
       doc.line(20, currentY + 2.5, 190, currentY + 2.5);
 
       // 5. Tabel: Calculatieresultaten
-      currentY += 7;
+      currentY += 6.5;
       doc.setFont("helvetica", "bold");
       doc.setFontSize(11);
       doc.setTextColor(11, 19, 43);
@@ -10606,10 +10815,13 @@ function renderBearingPdfPage1(doc, opts = {}) {
       const baseConvertedLabel = currentLang === "nl" ? "Basisfrequentie omgerekend" : currentLang === "en" ? "Base frequency converted" : "Fréquence de base convertie";
       const coefCLabel = currentLang === "nl" ? "Coëfficiënt C" : currentLang === "en" ? "Coefficient C" : "Coefficient C";
 
+      const initFillLabelText = isSnlChecked ? (langData.resInitialFill + " (Lager + Huis)") : langData.resInitialFill;
+      const refillLabelText = (isSnlChecked && snlRelubVal === "side") ? (langData.resRefillQty + " (+60% SNL)") : langData.resRefillQty;
+
       const results = [
         [langData.resDnFactor, bearingDN + " (" + dnLimitLabel + greaseDN + ")"],
         [langData.resFreeVol, freeVol + " cm³"],
-        [langData.resInitialFill, fillGrams + " " + langData.unitGrams + " (" + fillCm + " cm³)"],
+        [initFillLabelText, fillGrams + " " + langData.unitGrams + " (" + fillCm + " cm³)"],
         [langData.resBaseInterval, baseFreq + " " + langData.unitHours],
         [baseConvertedLabel, fbDays + " " + langData.unitDays + " / " + fbWeeks + " " + langData.unitWeeks + " / " + fbMonths + " " + langData.unitMonths],
         [langData.resTempFactor, ttFactor],
@@ -10618,7 +10830,7 @@ function renderBearingPdfPage1(doc, opts = {}) {
         [langData.pdfIntervalMicPol || "Smeerinterval met Interflon MicPol®", fcMicPolVal + " " + langData.unitHours],
         [convertedLabel + " (MicPol)", mDays + " " + langData.unitDays + " / " + mWeeks + " " + langData.unitWeeks + " / " + mMonths + " " + langData.unitMonths],
         [coefCLabel, coefC],
-        [langData.resRefillQty, quantity + " " + langData.unitGrams],
+        [refillLabelText, quantity + " " + langData.unitGrams],
         [langData.resStrokes, strokes + " " + langData.unitStrokes]
       ];
 
