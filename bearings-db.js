@@ -624,15 +624,68 @@ function getEffectiveLubricationWidth(bearingType, designation, d, D, B) {
   };
 }
 
+// --- SNL LAGERHUIZEN DATABASE (Tweedelige staande lagerblokken / Split Plummer Block Housings) ---
+// Gebaseerd op officiële SKF montagerichtlijnen en industriestandaarden (SE / SNL 500-600 serie)
+// Bevat nominale vetvolumes voor de eerste vulling:
+// - fill40: 40% tot 50% van de vrije ruimte in het lagerhuis (standaard bij normale toerentallen, voorkomt oververhitting/churning)
+// - fill100: 90% tot 100% van de vrije ruimte (bij zeer trage toerentallen, extreme vervuiling, water en stof als afdichtingsbarrière)
+const SNL_HOUSING_DATABASE = {
+  "SNL 505": { name: "SNL 505", fill40: 25, fill100: 50, bearings: ["22205", "1205", "2205"] },
+  "SNL 506-605": { name: "SNL 506-605", fill40: 40, fill100: 80, bearings: ["22206", "22305", "1206", "2206", "1305", "2305"] },
+  "SNL 507-606": { name: "SNL 507-606", fill40: 50, fill100: 100, bearings: ["22207", "22306", "1207", "2207", "1306", "2306"] },
+  "SNL 508-607": { name: "SNL 508-607", fill40: 65, fill100: 130, bearings: ["22208", "22307", "1208", "2208", "1307", "2307"] },
+  "SNL 509": { name: "SNL 509", fill40: 80, fill100: 160, bearings: ["22209", "1209", "2209"] },
+  "SNL 510-608": { name: "SNL 510-608", fill40: 100, fill100: 200, bearings: ["22210", "22308", "1210", "2210", "1308", "2308"] },
+  "SNL 511-609": { name: "SNL 511-609", fill40: 150, fill100: 300, bearings: ["22211", "22309", "1211", "2211", "1309", "2309"] },
+  "SNL 512-610": { name: "SNL 512-610", fill40: 180, fill100: 360, bearings: ["22212", "22310", "1212", "2212", "1310", "2310"] },
+  "SNL 513-611": { name: "SNL 513-611", fill40: 210, fill100: 420, bearings: ["22213", "22311", "1213", "2213", "1311", "2311"] },
+  "SNL 515-612": { name: "SNL 515-612", fill40: 250, fill100: 500, bearings: ["22215", "22312", "1215", "2215", "1312", "2312"] },
+  "SNL 516-613": { name: "SNL 516-613", fill40: 300, fill100: 600, bearings: ["22216", "22313", "1216", "2216", "1313", "2313"] },
+  "SNL 517": { name: "SNL 517", fill40: 370, fill100: 740, bearings: ["22217", "1217", "2217"] },
+  "SNL 518-615": { name: "SNL 518-615", fill40: 450, fill100: 900, bearings: ["22218", "22315", "1218", "2218", "1315", "2315"] },
+  "SNL 519-616": { name: "SNL 519-616", fill40: 550, fill100: 1100, bearings: ["22219", "22316", "1219", "2219", "1316", "2316"] },
+  "SNL 520-617": { name: "SNL 520-617", fill40: 650, fill100: 1300, bearings: ["22220", "22317", "1220", "2220", "1317", "2317"] },
+  "SNL 522-619": { name: "SNL 522-619", fill40: 850, fill100: 1700, bearings: ["22222", "22319", "1222", "2222", "1319", "2319"] },
+  "SNL 524-620": { name: "SNL 524-620", fill40: 1000, fill100: 2000, bearings: ["22224", "22320", "1224", "2224", "1320", "2320"] },
+  "SNL 526": { name: "SNL 526", fill40: 1150, fill100: 2300, bearings: ["22226"] },
+  "SNL 528": { name: "SNL 528", fill40: 1400, fill100: 2800, bearings: ["22228"] },
+  "SNL 530": { name: "SNL 530", fill40: 1650, fill100: 3300, bearings: ["22230"] },
+  "SNL 532": { name: "SNL 532", fill40: 1900, fill100: 3800, bearings: ["22232"] }
+};
+
+function getSnlHousingForBearing(designation) {
+  if (!designation || typeof designation !== "string") return null;
+  const clean = designation.trim().toUpperCase().replace(/[^A-Z0-9]/g, "");
+  for (const [snlKey, snlData] of Object.entries(SNL_HOUSING_DATABASE)) {
+    for (const bPrefix of snlData.bearings) {
+      if (clean.startsWith(bPrefix)) {
+        return snlKey;
+      }
+    }
+  }
+  return null;
+}
+
+function getSnlHousingData(housingKey) {
+  if (!housingKey) return null;
+  return SNL_HOUSING_DATABASE[housingKey] || null;
+}
+
 if (typeof window !== "undefined") {
   window.bearingDatabase = bearingDatabase;
   window.BEARING_TYPES = BEARING_TYPES;
   window.parseBearingDesignation = parseBearingDesignation;
   window.getEffectiveLubricationWidth = getEffectiveLubricationWidth;
+  window.SNL_HOUSING_DATABASE = SNL_HOUSING_DATABASE;
+  window.getSnlHousingForBearing = getSnlHousingForBearing;
+  window.getSnlHousingData = getSnlHousingData;
 }
 if (typeof global !== "undefined") {
   global.bearingDatabase = bearingDatabase;
   global.BEARING_TYPES = BEARING_TYPES;
   global.parseBearingDesignation = parseBearingDesignation;
   global.getEffectiveLubricationWidth = getEffectiveLubricationWidth;
+  global.SNL_HOUSING_DATABASE = SNL_HOUSING_DATABASE;
+  global.getSnlHousingForBearing = getSnlHousingForBearing;
+  global.getSnlHousingData = getSnlHousingData;
 }
