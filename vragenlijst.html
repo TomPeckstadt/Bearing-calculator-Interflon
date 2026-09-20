@@ -1543,6 +1543,9 @@
                   💡 Gelijke kleur bolletje = gelijke vetbehoefte
                 </span>
               </div>
+              <div id="rasterDosageConflictWarning" style="display: none; background: #fffbeb; border: 1.5px solid #fde68a; border-radius: 6px; padding: 7px 10px; margin-top: 8px; font-size: 10.5px; color: #92400e; align-items: flex-start; gap: 6px; line-height: 1.4;">
+                <!-- Dynamically populated when multi-point device connects mixed grease demands -->
+              </div>
             </div>
 
           </div>
@@ -2303,6 +2306,12 @@
       if (K === 1) {
         if (N > maxCapacity) return null; // Exceeds capacity
         const center = findMinimaxCenter(bearings);
+        const clNeeds = bearings.map(b => (b.dailyNeed !== undefined && b.dailyNeed !== null) ? parseFloat(b.dailyNeed) : null).filter(n => n && n > 0);
+        const clNeedMin = clNeeds.length > 0 ? Math.min(...clNeeds) : null;
+        const clNeedMax = clNeeds.length > 0 ? Math.max(...clNeeds) : null;
+        const clNeedRatio = (clNeedMin && clNeedMax && clNeedMin > 0) ? (clNeedMax / clNeedMin) : 1.0;
+        const clHasNeedMismatch = (clNeedRatio > 1.15);
+        const clAvgNeed = clNeeds.length > 0 ? (clNeeds.reduce((a, b) => a + b, 0) / clNeeds.length) : null;
         return {
           K: 1,
           devices: [{
@@ -2313,11 +2322,20 @@
             x: center.x,
             y: center.y,
             bearings: bearings.map(b => ({ ...b, dist: Math.round(Math.hypot(b.x - center.x, b.y - center.y) * 10) / 10 })),
-            maxDist: center.maxDist
+            maxDist: center.maxDist,
+            hasNeedMismatch: clHasNeedMismatch,
+            needMin: clNeedMin,
+            needMax: clNeedMax,
+            needRatio: clNeedRatio,
+            avgNeed: clAvgNeed
           }],
           maxDist: center.maxDist,
           avgDist: Math.round((bearings.reduce((s, b) => s + Math.hypot(b.x - center.x, b.y - center.y), 0) / N) * 10) / 10,
-          hasRpmSeparation: false
+          hasRpmSeparation: false,
+          hasNeedSeparation: !clHasNeedMismatch,
+          hasNeedMismatch: clHasNeedMismatch,
+          diffNeedCount: clHasNeedMismatch ? 1 : 0,
+          maxNeedRatio: clNeedRatio
         };
       }
 
@@ -2334,6 +2352,8 @@
           let totalDist = 0;
           let penalty = 0;
           let diffRpmCount = 0;
+          let diffNeedCount = 0;
+          let maxNeedRatioInPartition = 1.0;
 
           // Cluster size balance penalty (favors balanced distribution, e.g. 2-2-1 over 3-1-1)
           const avgKSize = N / K;
@@ -2383,6 +2403,19 @@
                   }
                 }
 
+                // Grease demand (vetbehoefte) difference penalty (CRITICAL: multi-point progressive divider dispenses equal volume per outlet!)
+                const n1 = (b1.dailyNeed !== undefined && b1.dailyNeed !== null) ? parseFloat(b1.dailyNeed) : null;
+                const n2 = (b2.dailyNeed !== undefined && b2.dailyNeed !== null) ? parseFloat(b2.dailyNeed) : null;
+                if (n1 && n2 && n1 > 0 && n2 > 0) {
+                  const needRatio = Math.max(n1, n2) / Math.min(n1, n2);
+                  if (needRatio > 1.15) {
+                    diffNeedCount++;
+                    if (needRatio > maxNeedRatioInPartition) maxNeedRatioInPartition = needRatio;
+                    // Heavy penalty so progressive dividers do not mix incompatible grease demands!
+                    penalty += 75.0 + (needRatio - 1.0) * 50.0;
+                  }
+                }
+
                 // Bearing model mismatch
                 const nr1 = (b1.nr || '').trim().toLowerCase();
                 const nr2 = (b2.nr || '').trim().toLowerCase();
@@ -2412,12 +2445,24 @@
               return { ...b, dist: d };
             });
 
+            const clNeeds = cl.map(b => (b.dailyNeed !== undefined && b.dailyNeed !== null) ? parseFloat(b.dailyNeed) : null).filter(n => n && n > 0);
+            const clNeedMin = clNeeds.length > 0 ? Math.min(...clNeeds) : null;
+            const clNeedMax = clNeeds.length > 0 ? Math.max(...clNeeds) : null;
+            const clNeedRatio = (clNeedMin && clNeedMax && clNeedMin > 0) ? (clNeedMax / clNeedMin) : 1.0;
+            const clHasNeedMismatch = (clNeedRatio > 1.15);
+            const clAvgNeed = clNeeds.length > 0 ? (clNeeds.reduce((a, b) => a + b, 0) / clNeeds.length) : null;
+
             return {
               deviceIndex: idx,
               x: mc.x,
               y: mc.y,
               bearings: bDetails,
-              maxDist: mc.maxDist
+              maxDist: mc.maxDist,
+              hasNeedMismatch: clHasNeedMismatch,
+              needMin: clNeedMin,
+              needMax: clNeedMax,
+              needRatio: clNeedRatio,
+              avgNeed: clAvgNeed
             };
           });
 
@@ -2431,7 +2476,11 @@
               maxDist,
               avgDist: Math.round((totalDist / N) * 10) / 10,
               score,
-              hasRpmSeparation: (diffRpmCount === 0)
+              hasRpmSeparation: (diffRpmCount === 0),
+              hasNeedSeparation: (diffNeedCount === 0),
+              hasNeedMismatch: (diffNeedCount > 0),
+              diffNeedCount,
+              maxNeedRatio: maxNeedRatioInPartition
             };
           }
         });
@@ -2489,6 +2538,16 @@
                   const ratio = Math.max(r1, r2) / Math.min(r1, r2);
                   if (ratio > 1.05) costExtra += 50.0 + Math.log(ratio) * 20.0;
                 }
+
+                const n1 = (b.dailyNeed !== undefined && b.dailyNeed !== null) ? parseFloat(b.dailyNeed) : null;
+                const n2 = (existing.dailyNeed !== undefined && existing.dailyNeed !== null) ? parseFloat(existing.dailyNeed) : null;
+                if (n1 && n2 && n1 > 0 && n2 > 0) {
+                  const needRatio = Math.max(n1, n2) / Math.min(n1, n2);
+                  if (needRatio > 1.15) {
+                    costExtra += 75.0 + (needRatio - 1.0) * 50.0;
+                  }
+                }
+
                 const nr1 = (b.nr || '').trim().toLowerCase();
                 const nr2 = (existing.nr || '').trim().toLowerCase();
                 if (nr1 && nr2 && nr1 !== nr2) costExtra += 1.0;
@@ -2554,6 +2613,8 @@
 
         let penalty = 0;
         let diffRpmCount = 0;
+        let diffNeedCount = 0;
+        let maxNeedRatioInPartition = 1.0;
         clusters.forEach(cl => {
           let minX = Infinity, maxX = -Infinity;
           let minY = Infinity, maxY = -Infinity;
@@ -2577,6 +2638,17 @@
                 const ratio = Math.max(r1, r2) / Math.min(r1, r2);
                 if (ratio > 1.05) penalty += 50.0 + Math.log(ratio) * 20.0;
               }
+
+              const n1 = (cl[i].dailyNeed !== undefined && cl[i].dailyNeed !== null) ? parseFloat(cl[i].dailyNeed) : null;
+              const n2 = (cl[j].dailyNeed !== undefined && cl[j].dailyNeed !== null) ? parseFloat(cl[j].dailyNeed) : null;
+              if (n1 && n2 && n1 > 0 && n2 > 0) {
+                const needRatio = Math.max(n1, n2) / Math.min(n1, n2);
+                if (needRatio > 1.15) {
+                  diffNeedCount++;
+                  if (needRatio > maxNeedRatioInPartition) maxNeedRatioInPartition = needRatio;
+                  penalty += 75.0 + (needRatio - 1.0) * 50.0;
+                }
+              }
             }
           }
         });
@@ -2587,12 +2659,25 @@
             ...b,
             dist: Math.round(Math.hypot(b.x - mc.x, b.y - mc.y) * 10) / 10
           }));
+
+          const clNeeds = cl.map(b => (b.dailyNeed !== undefined && b.dailyNeed !== null) ? parseFloat(b.dailyNeed) : null).filter(n => n && n > 0);
+          const clNeedMin = clNeeds.length > 0 ? Math.min(...clNeeds) : null;
+          const clNeedMax = clNeeds.length > 0 ? Math.max(...clNeeds) : null;
+          const clNeedRatio = (clNeedMin && clNeedMax && clNeedMin > 0) ? (clNeedMax / clNeedMin) : 1.0;
+          const clHasNeedMismatch = (clNeedRatio > 1.15);
+          const clAvgNeed = clNeeds.length > 0 ? (clNeeds.reduce((a, b) => a + b, 0) / clNeeds.length) : null;
+
           return {
             deviceIndex: idx,
             x: mc.x,
             y: mc.y,
             bearings: bDetails,
-            maxDist: mc.maxDist
+            maxDist: mc.maxDist,
+            hasNeedMismatch: clHasNeedMismatch,
+            needMin: clNeedMin,
+            needMax: clNeedMax,
+            needRatio: clNeedRatio,
+            avgNeed: clAvgNeed
           };
         });
 
@@ -2608,7 +2693,11 @@
           maxDist,
           avgDist,
           score,
-          hasRpmSeparation: (diffRpmCount === 0)
+          hasRpmSeparation: (diffRpmCount === 0),
+          hasNeedSeparation: (diffNeedCount === 0),
+          hasNeedMismatch: (diffNeedCount > 0),
+          diffNeedCount,
+          maxNeedRatio: maxNeedRatioInPartition
         };
 
         if (!bestSolution || score < (bestSolution.score ?? Infinity)) {
@@ -2680,7 +2769,18 @@
       // Check if there are distinct RPM groups
       const rpmSet = new Set(bearings.map(b => b.rpm ? parseFloat(b.rpm) : null).filter(r => r && r > 0));
       const hasDistinctRpms = (rpmSet.size >= 2);
-      const solCleanRpm = solutions.find(s => s.K >= 2 && s.hasRpmSeparation && s.maxDist <= 3.0);
+
+      // Check if there are distinct daily grease demand groups (> 15% difference between min and max)
+      const validNeeds = bearings.map(b => (b.dailyNeed !== undefined && b.dailyNeed !== null) ? parseFloat(b.dailyNeed) : null).filter(n => n && n > 0);
+      const minNeed = validNeeds.length > 0 ? Math.min(...validNeeds) : null;
+      const maxNeed = validNeeds.length > 0 ? Math.max(...validNeeds) : null;
+      const maxNeedRatio = (minNeed && maxNeed && minNeed > 0) ? (maxNeed / minNeed) : 1.0;
+      const hasDistinctNeeds = (maxNeedRatio > 1.15);
+
+      // Solutions with clean separation
+      const solCleanNeedAndRpm = solutions.find(s => s.hasNeedSeparation && s.hasRpmSeparation && s.maxDist <= 3.5);
+      const solCleanNeed = solutions.find(s => s.hasNeedSeparation && s.maxDist <= 3.5);
+      const solCleanRpm = solutions.find(s => s.K >= 2 && s.hasRpmSeparation && s.maxDist <= 3.5);
       const solCap = solutionsMap[K_cap] || solutions[0];
       const solExtra = solutionsMap[K_cap + 1] || null;
 
@@ -2690,26 +2790,34 @@
       let reasonType = 'capacity_ok';
       let explanation = '';
 
-      if (currentDeviceCount >= 1 && solutionsMap[currentDeviceCount]) {
+      if (hasDistinctNeeds && (solCleanNeedAndRpm || solCleanNeed)) {
+        recommended = solCleanNeedAndRpm || solCleanNeed;
+        reasonType = 'need_separated_ideal';
+        const distNote = recommended.maxDist <= 3.0 ? `(ruim binnen de veilige zone van 3,0 m)` : `(maximale leidingafstand)`;
+        explanation = `Advies: ${recommended.K} Pulsarlube toestellen voor een optimale en veilige dosering. Omdat een multi-point verdeelblok een gelijk volume per uitgang doseert, zijn lagers gegroepeerd per gelijke vetbehoefte en toerental. Zo voorkomt u over- of ondersmering. Alle leidingafstanden bedragen maximaal ${recommended.maxDist.toFixed(1).replace('.', ',')} m ${distNote}.`;
+      } else if (currentDeviceCount >= 1 && solutionsMap[currentDeviceCount] && !solutionsMap[currentDeviceCount].hasNeedMismatch) {
         recommended = solutionsMap[currentDeviceCount];
         reasonType = 'user_configured';
-        if (recommended.hasRpmSeparation) {
-          explanation = `Met ${recommended.K} Pulsarlube toestellen zijn de lagers perfect gescheiden op basis van identiek type en toerental (lagers met afwijkend toerental aangesloten op een eigen unit). Alle leidingafstanden bedragen maximaal ${recommended.maxDist.toFixed(1).replace('.', ',')} m (ruim binnen de veilige zone van 3 m).`;
+        const distNote = recommended.maxDist <= 3.0 ? `(ruim binnen de veilige zone van 3,0 m)` : `(let op: langer dan de aanbevolen richtlijn van 3,0 m)`;
+        if (recommended.hasNeedSeparation && recommended.hasRpmSeparation) {
+          explanation = `Met ${recommended.K} Pulsarlube toestellen zijn de lagers perfect gescheiden op basis van gelijke vetbehoefte en toerental. Alle leidingafstanden bedragen maximaal ${recommended.maxDist.toFixed(1).replace('.', ',')} m ${distNote}.`;
         } else {
-          explanation = `Optimale opstelling berekend voor de ${recommended.K} aanwezige Pulsarlube toestellen. Maximale leidingafstand is ${recommended.maxDist.toFixed(1).replace('.', ',')} m.`;
+          explanation = `Optimale opstelling berekend voor de ${recommended.K} aanwezige Pulsarlube toestellen. Maximale leidingafstand is ${recommended.maxDist.toFixed(1).replace('.', ',')} m ${distNote}.`;
         }
       } else if (hasDistinctRpms && solCleanRpm && solCleanRpm.K > K_cap) {
         recommended = solCleanRpm;
         reasonType = 'rpm_separated_ideal';
-        explanation = `Advies: ${recommended.K} Pulsarlube toestellen. Lagers met een identiek type en toerental worden gegroepeerd (bijv. Lagers C en D), terwijl lagers met een afwijkend toerental (Lager E) op een apart toestel worden aangesloten voor een optimale dosering. Alle leidingafstanden blijven binnen ${recommended.maxDist.toFixed(1).replace('.', ',')} m.`;
+        const distNote = recommended.maxDist <= 3.0 ? `(ruim binnen de veilige zone van 3,0 m)` : ``;
+        explanation = `Advies: ${recommended.K} Pulsarlube toestellen. Lagers met een identiek type en toerental worden gegroepeerd, terwijl lagers met een afwijkend toerental op een apart toestel worden aangesloten voor een optimale dosering. Alle leidingafstanden blijven binnen ${recommended.maxDist.toFixed(1).replace('.', ',')} m ${distNote}.`;
       } else if (solExtra && (solCap.maxDist > 3.5 || (solCap.maxDist > 3.0 && solExtra.maxDist <= 3.0))) {
         recommended = solExtra;
         reasonType = 'split_distance_warning';
-        explanation = `Hoewel ${K_cap} toestel qua capaciteit volstaat (≤ 8 punten), loopt de maximale leidingafstand op tot ${solCap.maxDist.toFixed(1).replace('.', ',')} m. We adviseren daarom ${solExtra.K} toestellen, waardoor alle leidingen maximaal ${solExtra.maxDist.toFixed(1).replace('.', ',')} m worden (ruim binnen de veilige zone van 3 m).`;
-      } else if (solCap.maxDist <= 3.0) {
+        const distNote = solExtra.maxDist <= 3.0 ? `(ruim binnen de veilige zone van 3,0 m)` : ``;
+        explanation = `Hoewel ${K_cap} toestel qua capaciteit volstaat (≤ 8 punten), loopt de maximale leidingafstand op tot ${solCap.maxDist.toFixed(1).replace('.', ',')} m. We adviseren daarom ${solExtra.K} toestellen, waardoor alle leidingen maximaal ${solExtra.maxDist.toFixed(1).replace('.', ',')} m worden ${distNote}.`;
+      } else if (solCap.maxDist <= 3.0 && !solCap.hasNeedMismatch) {
         recommended = solCap;
         reasonType = 'ideal_single';
-        explanation = `Met ${K_cap} toestel(len) blijven alle ${N} smeerpunten binnen de ideale leidingafstand (max. ${solCap.maxDist.toFixed(1).replace('.', ',')} m ≤ 3 m).`;
+        explanation = `Met ${K_cap} toestel(len) blijven alle ${N} smeerpunten binnen de ideale leidingafstand (max. ${solCap.maxDist.toFixed(1).replace('.', ',')} m ≤ 3 m) en is de vetbehoefte uniform.`;
       } else {
         recommended = solExtra || solCap;
         reasonType = 'acceptable';
@@ -2727,7 +2835,8 @@
           solExtra,
           recommended,
           reasonType,
-          explanation
+          explanation,
+          hasDistinctNeeds
         },
         // Top-level fallbacks for backwards compatibility
         K_cap,
@@ -2753,6 +2862,8 @@
         }
       } catch(e) {}
 
+      const needAnalysis = (typeof getSurveyBearingsNeedAnalysis === 'function') ? getSurveyBearingsNeedAnalysis() : null;
+
       rows.forEach((r, idx) => {
         const letter = r.getAttribute('data-letter') || (LETTERS[idx] || ('L' + (idx+1)));
         const pos = bearingPositions[letter] || { x: 0, y: 0 };
@@ -2776,7 +2887,27 @@
           const matchedSaved = savedBearingsData.find(sb => sb.letter === letter);
           if (matchedSaved && matchedSaved.rpm) rpm = parseFloat(matchedSaved.rpm);
         }
-        bearings.push({ letter, nr, desc, rpm, x: pos.x, y: pos.y });
+
+        const bNeed = (needAnalysis && needAnalysis.bearingMap && needAnalysis.bearingMap[letter]) ? needAnalysis.bearingMap[letter] : null;
+        const dailyNeed = bNeed ? bNeed.dailyNeed : null;
+        const roundedNeed = bNeed ? bNeed.roundedNeed : null;
+        const formattedNeed = bNeed ? bNeed.formattedNeed : (dailyNeed ? dailyNeed.toFixed(2).replace('.', ',') : null);
+        const needGroupIndex = bNeed ? bNeed.groupIndex : 0;
+        const needPalette = bNeed ? bNeed.palette : null;
+
+        bearings.push({
+          letter,
+          nr,
+          desc,
+          rpm,
+          x: pos.x,
+          y: pos.y,
+          dailyNeed,
+          roundedNeed,
+          formattedNeed,
+          needGroupIndex,
+          needPalette
+        });
       });
 
       if (bearings.length === 0) {
@@ -2802,11 +2933,10 @@
       if (currentAdviceSystemMode === 'single_point') {
         currentChosenK = advice.N;
       } else {
-        // If user already had N devices (e.g. clicked +Toestel so currentDevCount = 3), preserve that choice!
-        if (currentDevCount >= 1 && advice.pulsarlube.solutionsMap && advice.pulsarlube.solutionsMap[currentDevCount]) {
-          currentChosenK = currentDevCount;
-        } else if (advice.pulsarlube.recommended) {
+        if (advice.pulsarlube && advice.pulsarlube.recommended) {
           currentChosenK = advice.pulsarlube.recommended.K;
+        } else if (currentDevCount >= 1 && advice.pulsarlube.solutionsMap && advice.pulsarlube.solutionsMap[currentDevCount]) {
+          currentChosenK = currentDevCount;
         } else {
           currentChosenK = advice.pulsarlube.K_cap;
         }
@@ -2829,13 +2959,15 @@
         if (mode === 'single_point') {
           currentChosenK = currentAdviceData.N;
         } else {
-          const currentDevCount = (devices && Array.isArray(devices)) ? devices.length : 0;
-          if (currentDevCount >= 1 && currentAdviceData.pulsarlube.solutionsMap && currentAdviceData.pulsarlube.solutionsMap[currentDevCount]) {
-            currentChosenK = currentDevCount;
-          } else if (currentAdviceData.pulsarlube && currentAdviceData.pulsarlube.recommended) {
+          if (currentAdviceData.pulsarlube && currentAdviceData.pulsarlube.recommended) {
             currentChosenK = currentAdviceData.pulsarlube.recommended.K;
           } else {
-            currentChosenK = currentAdviceData.pulsarlube.K_cap;
+            const currentDevCount = (devices && Array.isArray(devices)) ? devices.length : 0;
+            if (currentDevCount >= 1 && currentAdviceData.pulsarlube.solutionsMap && currentAdviceData.pulsarlube.solutionsMap[currentDevCount]) {
+              currentChosenK = currentDevCount;
+            } else {
+              currentChosenK = currentAdviceData.pulsarlube.K_cap;
+            }
           }
         }
         renderDeviceAdviceContent(currentAdviceData, currentChosenK);
@@ -2943,13 +3075,15 @@
         let devCardsHtml = '<div style="display: flex; flex-direction: column; gap: 8px; max-height: 280px; overflow-y: auto; padding-right: 4px;">';
         sol.devices.forEach((dev, idx) => {
           const pal = DEVICE_PALETTES[idx % DEVICE_PALETTES.length];
+          const b = dev.bearings[0];
+          const needTxt = b.formattedNeed ? ` • ${b.formattedNeed} ml/d` : '';
           devCardsHtml += `
             <div style="background: #ffffff; border: 1.5px solid #e2e8f0; border-left: 4px solid #16a34a; border-radius: 8px; padding: 10px 14px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
               <div style="display: flex; align-items: center; gap: 10px;">
                 <span style="background: #dcfce7; color: #15803d; font-weight: 800; font-size: 12px; padding: 3px 8px; border-radius: 5px;">T${idx + 1}</span>
                 <div>
                   <strong style="font-size: 13px; color: #0f172a;">Lager ${dev.targetBearingLetter}</strong>
-                  <span style="font-size: 11.5px; color: #64748b; margin-left: 6px;">(${dev.bearings[0].nr}${dev.bearings[0].desc ? ' • ' + dev.bearings[0].desc : ''})</span>
+                  <span style="font-size: 11.5px; color: #64748b; margin-left: 6px;">(${b.nr}${b.desc ? ' • ' + b.desc : ''}${needTxt})</span>
                 </div>
               </div>
               <div style="display: flex; align-items: center; gap: 12px;">
@@ -2990,7 +3124,19 @@
       let bannerBorder = '#bfdbfe';
       let bannerText = '#1e3a8a';
 
-      if (sol.hasRpmSeparation && chosenK >= 2) {
+      if (sol.hasNeedSeparation && sol.hasRpmSeparation && chosenK >= 2) {
+        bannerIcon = '✨';
+        bannerTitle = `Optimaal Plan (${chosenK} Toestellen) • Perfecte dosering & toerental-afstemming`;
+        bannerBg = '#f0fdf4';
+        bannerBorder = '#86efac';
+        bannerText = '#14532d';
+      } else if (sol.hasNeedMismatch) {
+        bannerIcon = '⚠️';
+        bannerTitle = `Opstelling met ${chosenK} Toestel${chosenK > 1 ? 'len' : ''} • Aandachtspunt: Afwijkende vetbehoefte`;
+        bannerBg = '#fffbeb';
+        bannerBorder = '#fde68a';
+        bannerText = '#78350f';
+      } else if (sol.hasRpmSeparation && chosenK >= 2) {
         bannerIcon = '✨';
         bannerTitle = `Optimaal Plan (${chosenK} Toestellen) • Perfecte toerental-afstemming`;
         bannerBg = '#f0fdf4';
@@ -3010,6 +3156,42 @@
         bannerText = '#78350f';
       }
 
+      // Warning box for dosage mismatch
+      let warningBoxHtml = '';
+      if (sol.hasNeedMismatch) {
+        const mismatchedDevices = sol.devices.filter(d => d.hasNeedMismatch);
+        let mismatchDetails = '';
+        if (mismatchedDevices.length > 0) {
+          mismatchDetails = mismatchedDevices.map(d => {
+            const bSummaries = d.bearings.map(b => `Lager ${b.letter} (${b.formattedNeed || (b.dailyNeed ? b.dailyNeed.toFixed(2).replace('.', ',') : '')} ml/d)`).join(' en ');
+            return `<strong>${d.name || ('Toestel ' + (d.deviceIndex + 1))}</strong> verbindt ${bSummaries}`;
+          }).join('; ');
+        }
+
+        const cleanOption = pl.solutions.find(s => s.hasNeedSeparation && s.K > chosenK);
+        const cleanAdviceText = cleanOption 
+          ? `Kies hierboven <strong>${cleanOption.K} Toestellen</strong> om lagers per gelijke vetbehoefte te scheiden op een eigen unit (max. leiding slechts ${cleanOption.maxDist.toFixed(1).replace('.', ',')} m).`
+          : `Kies een hoger aantal toestellen om lagers per gelijke vetbehoefte te scheiden.`;
+
+        warningBoxHtml = `
+          <div id="deviceAdviceDosageWarning" style="background: #fffbeb; border: 1.5px solid #f59e0b; border-radius: 9px; padding: 12px 14px; margin-bottom: 12px; display: flex; gap: 10px; align-items: flex-start; box-shadow: 0 1px 4px rgba(245,158,11,0.08);">
+            <span style="font-size: 22px; line-height: 1; flex-shrink: 0;">⚠️</span>
+            <div style="font-size: 12px; color: #78350f; line-height: 1.45;">
+              <strong style="color: #92400e; font-size: 13px; display: block; margin-bottom: 4px;">
+                Doseringswaarschuwing: Afwijkende vetbehoefte op hetzelfde verdeelblok
+              </strong>
+              <div>
+                ${mismatchDetails ? (mismatchDetails + '. ') : ''}Een Pulsarlube multi-point verdeelblok doseert een <em>gelijk volume per aangesloten leiding</em>. Bij lagers met een verschillende vetbehoefte op hetzelfde toestel raakt het lager met de hogere vetbehoefte ondergesmeerd, of het lager met de lagere behoefte overgesmeerd.
+              </div>
+              <div style="margin-top: 8px; padding: 8px 10px; background: rgba(245, 158, 11, 0.12); border-radius: 6px; font-weight: 600; color: #92400e; display: flex; flex-direction: column; gap: 4px;">
+                <div>💡 <strong>Geadviseerde oplossing 1:</strong> ${cleanAdviceText}</div>
+                <div>💡 <strong>Geadviseerde oplossing 2:</strong> Schakel over naar <strong>Interflon Single Point</strong> (tabblad hierboven) om elk lager met een eigen lubricator direct op maat te smeren zonder leidingwerk.</div>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
       let tabsHtml = '';
       if (pl.solutions && Array.isArray(pl.solutions) && pl.solutions.length > 0) {
         tabsHtml = '<div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px;">';
@@ -3020,14 +3202,22 @@
           let badgeText = isRec ? '✨ Aanbevolen' : (s.K === pl.K_cap ? 'Minimaal' : `${s.K} Units`);
           let badgeBg = isRec ? '#dcfce7' : '#f1f5f9';
           let badgeColor = isRec ? '#166534' : '#475569';
-          if (s.hasRpmSeparation && s.K >= 2) {
+          if (s.hasNeedMismatch) {
+            badgeText = '⚠️ Vetbehoefte verschilt';
+            badgeBg = '#fef3c7';
+            badgeColor = '#92400e';
+          } else if (s.hasNeedSeparation && s.hasRpmSeparation && s.K >= 2) {
+            badgeText = isRec ? '✨ Perfecte dosering' : '⚡ Gelijke vetbehoefte';
+            badgeBg = isRec ? '#dcfce7' : '#e0e7ff';
+            badgeColor = isRec ? '#166534' : '#3730a3';
+          } else if (s.hasRpmSeparation && s.K >= 2) {
             badgeText = '⚡ Toerentallen gescheiden';
             badgeBg = '#e0e7ff';
             badgeColor = '#3730a3';
           }
 
           tabsHtml += `
-            <button type="button" onclick="selectAdviceOption(${s.K})" style="flex: 1; min-width: 170px; padding: 10px 14px; border-radius: 8px; font-family: 'Outfit', sans-serif; cursor: pointer; text-align: left; transition: all 0.2s; ${isActive ? 'background: #eff6ff; border: 2px solid #2563EB; box-shadow: 0 2px 8px rgba(37,99,235,0.2);' : 'background: #ffffff; border: 1.5px solid #cbd5e1;'}">
+            <button type="button" class="advice-opt-tab" onclick="selectAdviceOption(${s.K})" style="flex: 1; min-width: 170px; padding: 10px 14px; border-radius: 8px; font-family: 'Outfit', sans-serif; cursor: pointer; text-align: left; transition: all 0.2s; ${isActive ? 'background: #eff6ff; border: 2px solid #2563EB; box-shadow: 0 2px 8px rgba(37,99,235,0.2);' : 'background: #ffffff; border: 1.5px solid #cbd5e1;'}">
               <div style="display: flex; align-items: center; justify-content: space-between; gap: 6px;">
                 <span style="font-weight: 800; font-size: 13px; color: ${isActive ? '#1d4ed8' : '#334155'};">
                   ${s.K} Toestel${s.K > 1 ? 'len' : ''}
@@ -3081,10 +3271,18 @@
           const color = b.dist <= 3.0 ? '#166534' : b.dist <= 4.0 ? '#92400e' : '#991b1b';
           const bg = b.dist <= 3.0 ? '#dcfce7' : b.dist <= 4.0 ? '#fef3c7' : '#fee2e2';
           const rpmTxt = (b.rpm && b.rpm > 0) ? ` • ${b.rpm} rpm` : '';
+          const needTxt = b.formattedNeed ? ` • ${b.formattedNeed} ml/d` : (b.dailyNeed ? ` • ${b.dailyNeed.toFixed(2).replace('.', ',')} ml/d` : '');
           return `<span style="background: ${bg}; color: ${color}; padding: 2px 7px; border-radius: 5px; font-size: 11px; font-weight: 700; display: inline-flex; align-items: center; gap: 4px;">
-            <strong>Lager ${b.letter}</strong>: ${b.dist.toFixed(1).replace('.', ',')} m${rpmTxt}
+            <strong>Lager ${b.letter}</strong>: ${b.dist.toFixed(1).replace('.', ',')} m${needTxt}${rpmTxt}
           </span>`;
         }).join('');
+
+        let devNeedBadge = '';
+        if (dev.hasNeedMismatch && dev.needMin && dev.needMax) {
+          devNeedBadge = `<span style="background: #fef3c7; color: #92400e; border: 1px solid #fde68a; font-weight: 700; font-size: 10.5px; padding: 1.5px 7px; border-radius: 4px;" title="Verschillende vetbehoefte op dit toestel">⚠️ Afwijkende dosering (${dev.needMin.toFixed(2).replace('.', ',')} - ${dev.needMax.toFixed(2).replace('.', ',')} ml/d)</span>`;
+        } else if (dev.needMin) {
+          devNeedBadge = `<span style="background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; font-weight: 700; font-size: 10.5px; padding: 1.5px 7px; border-radius: 4px;">✓ Gelijke vetbehoefte (${dev.needMin.toFixed(2).replace('.', ',')} ml/d)</span>`;
+        }
 
         devCardsHtml += `
           <div style="background: #ffffff; border: 1.5px solid #e2e8f0; border-left: 4px solid ${pal.color}; border-radius: 8px; padding: 12px 14px; box-shadow: 0 1px 3px rgba(0,0,0,0.03);">
@@ -3092,6 +3290,7 @@
               <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
                 <span style="background: ${pal.badgeBg}; color: ${pal.badgeText}; font-weight: 800; font-size: 12px; padding: 2px 8px; border-radius: 5px;">Toestel ${dev.deviceIndex + 1} (T${dev.deviceIndex + 1})</span>
                 <span style="background: #f1f5f9; color: #475569; font-weight: 600; font-size: 11px; padding: 2px 7px; border-radius: 4px;">${plTypeName}</span>
+                ${devNeedBadge}
                 <span style="font-size: 11.5px; color: #64748b; font-family: monospace;">Positie: X: ${dev.x >= 0 ? '+' : ''}${dev.x}m, Y: ${dev.y >= 0 ? '+' : ''}${dev.y}m</span>
               </div>
               <span style="font-size: 11.5px; font-weight: 700; color: #475569;">
@@ -3122,6 +3321,7 @@
             ${pl.explanation}
           </p>
         </div>
+        ${warningBoxHtml}
         ${tabsHtml}
         ${kpiHtml}
         ${devCardsHtml}
@@ -5027,9 +5227,10 @@
           getDist: (bx, by) => Math.hypot(bx, by)
         });
       }
-      devices.forEach(dev => {
+      devices.forEach((dev, devIdx) => {
         if (dev.active) {
-          const pal = DEVICE_PALETTES[dev.paletteIndex % DEVICE_PALETTES.length];
+          const pIdx = (typeof dev.paletteIndex === 'number') ? dev.paletteIndex : (devIdx % DEVICE_PALETTES.length);
+          const pal = DEVICE_PALETTES[pIdx % DEVICE_PALETTES.length] || DEVICE_PALETTES[0];
           const typeShort = getDeviceTypeShort(dev.type);
           activeOrigins.push({
             id: dev.id,
@@ -5221,6 +5422,7 @@
       let overallMaxDist = 0;
       let totalDistSum = 0;
       let distCount = 0;
+      const deviceAssignedBearings = {};
 
       rows.forEach((r, idx) => {
         const letter = r.getAttribute('data-letter') || (LETTERS[idx] || ('L' + (idx+1)));
@@ -5335,6 +5537,21 @@
           groupIndex: 0
         };
         const needPal = needInfo.palette || BEARING_NEED_PALETTES[0];
+
+        if (assignedOriginId && assignedDistObj && assignedDistObj.origin && assignedDistObj.origin.type !== 'cp' && assignedDistObj.origin.type !== 'single_point') {
+          if (!deviceAssignedBearings[assignedOriginId]) {
+            deviceAssignedBearings[assignedOriginId] = {
+              origin: assignedDistObj.origin,
+              bearings: []
+            };
+          }
+          deviceAssignedBearings[assignedOriginId].bearings.push({
+            letter: letter,
+            nrVal: nrVal,
+            descVal: descVal,
+            needInfo: needInfo
+          });
+        }
 
         // Subtle colored dot next to bearing name (bearings with identical grease requirement have the exact same color)
         const dotHtml = '<span style="display: inline-block; width: 8.5px; height: 8.5px; border-radius: 50%; background-color: ' + needPal.color + '; box-shadow: 0 0 0 1.5px #ffffff, 0 0 0 2.5px ' + needPal.color + '88; margin-right: 5px; flex-shrink: 0; vertical-align: middle;" title="Vetbehoefte: ' + needInfo.formattedNeed + ' ml/dag (Lagers met dezelfde kleur hebben een gelijke vetbehoefte)"></span>';
@@ -5470,6 +5687,66 @@
               '<span style="color: #475569; font-weight: 600; font-size: 10px;">Vetbehoefte:</span>' +
               '<div style="display: flex; gap: 4px; flex-wrap: wrap;">' + legendChips + '</div>' +
             '</div>';
+        }
+      }
+
+      // Check for dosage conflicts across multi-point devices on raster
+      const conflictBox = document.getElementById('rasterDosageConflictWarning');
+      if (conflictBox) {
+        const conflictDevices = [];
+        for (const devId in deviceAssignedBearings) {
+          const item = deviceAssignedBearings[devId];
+          if (!item.origin || item.origin.type === 'single_point' || item.origin.type === 'cp') continue;
+          const brgs = item.bearings;
+          if (brgs.length > 1) {
+            const dailyNeeds = brgs.map(b => (b.needInfo && b.needInfo.dailyNeed !== undefined && b.needInfo.dailyNeed !== null) ? parseFloat(b.needInfo.dailyNeed) : null).filter(n => n && n > 0);
+            if (dailyNeeds.length > 1) {
+              const minN = Math.min(...dailyNeeds);
+              const maxN = Math.max(...dailyNeeds);
+              if (minN > 0 && (maxN / minN) > 1.15) {
+                conflictDevices.push({
+                  dev: item.origin,
+                  bearings: brgs,
+                  minNeed: minN,
+                  maxNeed: maxN,
+                  ratio: maxN / minN
+                });
+              }
+            }
+          }
+        }
+
+        if (conflictDevices.length > 0) {
+          conflictBox.style.display = 'flex';
+          const conflictListHtml = conflictDevices.map(cd => {
+            const bPills = cd.bearings.map(b => {
+              const p = b.needInfo.palette || BEARING_NEED_PALETTES[0];
+              return '<span style="display: inline-flex; align-items: center; gap: 3.5px; background: ' + p.bg + '; border: 1px solid ' + p.border + '; color: ' + p.text + '; padding: 1px 5.5px; border-radius: 4px; font-weight: 700; font-size: 9.5px;">' +
+                '<span style="width: 5px; height: 5px; border-radius: 50%; background: ' + p.color + ';"></span>' +
+                'Lager ' + b.letter + ': ' + b.needInfo.formattedNeed + ' ml/d</span>';
+            }).join(' ');
+            return '<div style="margin-top: 3px; display: flex; align-items: center; gap: 5px; flex-wrap: wrap;">' +
+              '<strong>' + (cd.dev.name || cd.dev.short) + ':</strong> ' + bPills +
+            '</div>';
+          }).join('');
+
+          conflictBox.innerHTML = 
+            '<span style="font-size: 16px; line-height: 1; flex-shrink: 0; margin-top: 1px;">⚠️</span>' +
+            '<div style="flex: 1; min-width: 0;">' +
+              '<div style="font-weight: 700; color: #92400e; margin-bottom: 2px;">Doseringsconflict op hetzelfde verdeelblok gedetecteerd!</div>' +
+              '<div style="font-size: 10px; color: #78350f; margin-bottom: 3px;">' +
+                'Een Pulsarlube verdeelblok doseert een vaste, gelijke hoeveelheid per uitgang. Lagers met verschillende vetbehoefte op hetzelfde toestel aansluiten leidt tot over- of ondersmering.' +
+              '</div>' +
+              conflictListHtml +
+              '<div style="margin-top: 6px;">' +
+                '<button type="button" onclick="openDeviceAdviceModal()" style="background: #d97706; color: white; border: none; padding: 3px 9px; border-radius: 4px; font-weight: 700; font-size: 9.5px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;">' +
+                  '💡 Bekijk Slim Toesteladvies voor een optimale opstelling' +
+                '</button>' +
+              '</div>' +
+            '</div>';
+        } else {
+          conflictBox.style.display = 'none';
+          conflictBox.innerHTML = '';
         }
       }
 
