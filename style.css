@@ -1060,7 +1060,10 @@ h1, h2, h3, h4, .brand-text {
 #pageCalc #inputWidthManual,
 #pageCalc #inputMassManual,
 #pageCalc #inputTe,
-#pageCalc #inputTa {
+#pageCalc #inputTa,
+#pageCalc #selSnlType,
+#pageCalc #selSnlFillPercent,
+#pageCalc #selSnlRelubPosition {
   background-color: #e2e8f0;
   border: 1px solid #cbd5e1;
   color: #0f172a;
@@ -1076,7 +1079,10 @@ h1, h2, h3, h4, .brand-text {
 #pageCalc #inputWidthManual:focus,
 #pageCalc #inputMassManual:focus,
 #pageCalc #inputTe:focus,
-#pageCalc #inputTa:focus {
+#pageCalc #inputTa:focus,
+#pageCalc #selSnlType:focus,
+#pageCalc #selSnlFillPercent:focus,
+#pageCalc #selSnlRelubPosition:focus {
   background-color: #f1f5f9;
   border-color: var(--primary-red, #E30613);
   box-shadow: 0 0 0 3px rgba(227, 6, 19, 0.12);
