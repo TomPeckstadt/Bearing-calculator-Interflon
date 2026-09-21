@@ -9183,6 +9183,10 @@ function initSnlDropdown() {
   if (currentVal && SNL_HOUSING_DATABASE[currentVal]) {
     sel.value = currentVal;
   }
+
+  if (typeof initSnlRelubPreview === "function") {
+    initSnlRelubPreview();
+  }
 }
 
 function onSnlHousingToggle() {
@@ -9221,10 +9225,278 @@ function autoSelectSnlHousingForBearing(designation) {
   }
 }
 
+// ==========================================================================
+// SNL RELUBRICATION PREVIEW POPOVER (CENTRAAL W33 vs. ZIJKANT BEHUIZING)
+// ==========================================================================
+let currentSnlActiveTrigger = null;
+let snlPopoverCloseTimeout = null;
+let isSnlPopoverPinned = false;
+let currentSnlSelectGetter = null;
+let currentSnlChangeCb = null;
+
+function getOrCreateSnlRelubPopover() {
+  let popover = document.getElementById("snlRelubPopover");
+  if (popover) return popover;
+
+  popover = document.createElement("div");
+  popover.id = "snlRelubPopover";
+  popover.className = "snl-relub-popover";
+  popover.setAttribute("role", "tooltip");
+  popover.innerHTML = `
+    <div class="snl-popover-header">
+      <div class="snl-popover-title-row">
+        <span style="font-size: 14px;">🔍</span>
+        <div>
+          <div class="snl-popover-title">SNL Nasmeerposities & Smeerpaden</div>
+          <div class="snl-popover-subtitle">Centraal via W33-groef vs. Zijkant behuizing</div>
+        </div>
+      </div>
+      <button type="button" class="snl-popover-close" id="snlPopoverCloseBtn" aria-label="Sluiten" title="Sluiten">✕</button>
+    </div>
+    <div class="snl-popover-body">
+      <div class="snl-image-container">
+        <img src="snl-relub-positions.jpg" alt="SNL Nasmeerposities visualisatie" draggable="false">
+        
+        <!-- Linkerhelft: Centraal (W33 groef) -->
+        <div class="snl-zone-overlay snl-zone-left" id="snlZoneLeft" data-pos="w33" title="Centraal via W33-groef (standaard) - Klik om te selecteren">
+          <div class="snl-zone-badge-top">
+            <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:#0284c7;"></span>
+            <span>Centraal (W33 groef)</span>
+          </div>
+          <div class="snl-check-badge" id="snlCheckBadgeW33">
+            <span style="font-size: 13px; line-height: 1;">✓</span>
+            <span>Geselecteerd</span>
+          </div>
+          <div class="snl-zone-tag-bottom">100% basisdosering</div>
+        </div>
+
+        <!-- Rechterhelft: Zijkant behuizing (+60%) -->
+        <div class="snl-zone-overlay snl-zone-right" id="snlZoneRight" data-pos="side" title="Zijkant behuizing (+60% toeslag) - Klik om te selecteren">
+          <div class="snl-zone-badge-top">
+            <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:#dc2626;"></span>
+            <span>Zijkant behuizing</span>
+          </div>
+          <div class="snl-check-badge" id="snlCheckBadgeSide">
+            <span style="font-size: 13px; line-height: 1;">✓</span>
+            <span>Geselecteerd (+60%)</span>
+          </div>
+          <div class="snl-zone-tag-bottom">+60% navultoeslag</div>
+        </div>
+      </div>
+    </div>
+    <div class="snl-popover-footer">
+      <div class="snl-footer-hint-item">
+        <span class="snl-hint-dot blue"></span>
+        <span><strong>Centraal (W33):</strong> Vet direct in het lager via ringgroef en smeergaatjes (blauw).</span>
+      </div>
+      <div class="snl-footer-hint-item">
+        <span class="snl-hint-dot red"></span>
+        <span><strong>Zijkant:</strong> Vet vult eerst de zijholte van het lagerhuis (+60% toeslag, rood).</span>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(popover);
+
+  const closeBtn = popover.querySelector("#snlPopoverCloseBtn");
+  if (closeBtn) {
+    closeBtn.addEventListener("click", function(e) {
+      e.stopPropagation();
+      hideSnlRelubPopover(true);
+    });
+  }
+
+  const zoneLeft = popover.querySelector("#snlZoneLeft");
+  const zoneRight = popover.querySelector("#snlZoneRight");
+
+  function onZoneClick(targetVal) {
+    const selEl = typeof currentSnlSelectGetter === "function" ? currentSnlSelectGetter() : (typeof currentSnlSelectGetter === "string" ? document.getElementById(currentSnlSelectGetter) : currentSnlSelectGetter);
+    if (selEl) {
+      selEl.value = targetVal;
+      if (typeof currentSnlChangeCb === "function") {
+        currentSnlChangeCb(targetVal);
+      } else {
+        selEl.dispatchEvent(new Event("change", { bubbles: true }));
+      }
+    }
+    updateSnlPopoverSelection(targetVal);
+  }
+
+  if (zoneLeft) {
+    zoneLeft.addEventListener("click", function(e) {
+      e.stopPropagation();
+      onZoneClick("w33");
+    });
+  }
+  if (zoneRight) {
+    zoneRight.addEventListener("click", function(e) {
+      e.stopPropagation();
+      onZoneClick("side");
+    });
+  }
+
+  popover.addEventListener("mouseenter", function() {
+    clearTimeout(snlPopoverCloseTimeout);
+  });
+
+  popover.addEventListener("mouseleave", function() {
+    if (!isSnlPopoverPinned) {
+      snlPopoverCloseTimeout = setTimeout(function() {
+        hideSnlRelubPopover(false);
+      }, 250);
+    }
+  });
+
+  return popover;
+}
+
+function updateSnlPopoverSelection(val) {
+  const popover = document.getElementById("snlRelubPopover");
+  if (!popover) return;
+  const isSide = (val === "side");
+  const zoneLeft = popover.querySelector("#snlZoneLeft");
+  const zoneRight = popover.querySelector("#snlZoneRight");
+
+  if (zoneLeft) zoneLeft.classList.toggle("selected", !isSide);
+  if (zoneRight) zoneRight.classList.toggle("selected", isSide);
+}
+
+function positionSnlPopover(triggerEl) {
+  const popover = getOrCreateSnlRelubPopover();
+  const rect = triggerEl.getBoundingClientRect();
+  const popWidth = Math.min(580, window.innerWidth - 24);
+  popover.style.width = popWidth + "px";
+
+  let left = rect.left + (rect.width / 2) - (popWidth / 2);
+  if (left < 12) left = 12;
+  if (left + popWidth > window.innerWidth - 12) left = window.innerWidth - popWidth - 12;
+
+  const popHeight = Math.round(popWidth * (416 / 1024)) + 105;
+  let top = rect.bottom + 8;
+  if (top + popHeight > window.innerHeight - 12) {
+    const topAbove = rect.top - popHeight - 8;
+    if (topAbove >= 12 || (rect.top > (window.innerHeight - rect.bottom))) {
+      top = Math.max(12, topAbove);
+    }
+  }
+
+  if (window.innerWidth < 600) {
+    left = 12;
+    top = Math.max(15, (window.innerHeight - popHeight) / 2);
+  }
+
+  popover.style.left = Math.round(left) + "px";
+  popover.style.top = Math.round(top) + "px";
+}
+
+function showSnlRelubPopover(triggerEl, selectGetter, changeCb, pinned = false) {
+  clearTimeout(snlPopoverCloseTimeout);
+  const popover = getOrCreateSnlRelubPopover();
+  currentSnlActiveTrigger = triggerEl;
+  currentSnlSelectGetter = selectGetter;
+  currentSnlChangeCb = changeCb;
+  if (pinned) isSnlPopoverPinned = true;
+
+  triggerEl.classList.add("active");
+
+  const selEl = typeof selectGetter === "function" ? selectGetter() : (typeof selectGetter === "string" ? document.getElementById(selectGetter) : selectGetter);
+  const currentVal = selEl ? selEl.value : "w33";
+  updateSnlPopoverSelection(currentVal);
+
+  positionSnlPopover(triggerEl);
+  popover.classList.add("visible");
+}
+
+function hideSnlRelubPopover(immediate = false) {
+  if (isSnlPopoverPinned && !immediate) return;
+  const popover = document.getElementById("snlRelubPopover");
+  if (popover) {
+    popover.classList.remove("visible");
+  }
+  if (currentSnlActiveTrigger) {
+    currentSnlActiveTrigger.classList.remove("active");
+  }
+  isSnlPopoverPinned = false;
+  currentSnlActiveTrigger = null;
+}
+
+function attachSnlEyeTrigger(btn, selectGetter, changeCb) {
+  if (!btn) return;
+  btn._snlSelectGetter = selectGetter;
+  btn._snlChangeCb = changeCb;
+  if (btn._snlTriggerAttached) return;
+  btn._snlTriggerAttached = true;
+
+  btn.addEventListener("mouseenter", function() {
+    clearTimeout(snlPopoverCloseTimeout);
+    showSnlRelubPopover(btn, btn._snlSelectGetter, btn._snlChangeCb, false);
+  });
+
+  btn.addEventListener("mouseleave", function() {
+    if (!isSnlPopoverPinned) {
+      snlPopoverCloseTimeout = setTimeout(function() {
+        hideSnlRelubPopover(false);
+      }, 250);
+    }
+  });
+
+  btn.addEventListener("click", function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    const pop = document.getElementById("snlRelubPopover");
+    const isCurrentlyVisible = pop && pop.classList.contains("visible");
+    if (isCurrentlyVisible && isSnlPopoverPinned && currentSnlActiveTrigger === btn) {
+      hideSnlRelubPopover(true);
+    } else {
+      showSnlRelubPopover(btn, btn._snlSelectGetter, btn._snlChangeCb, true);
+    }
+  });
+}
+
+document.addEventListener("click", function(e) {
+  const pop = document.getElementById("snlRelubPopover");
+  if (!pop || !pop.classList.contains("visible")) return;
+  if (!pop.contains(e.target) && (!currentSnlActiveTrigger || !currentSnlActiveTrigger.contains(e.target))) {
+    hideSnlRelubPopover(true);
+  }
+});
+
+document.addEventListener("keydown", function(e) {
+  if (e.key === "Escape") {
+    hideSnlRelubPopover(true);
+  }
+});
+
+function initSnlRelubPreview() {
+  const btnCalc = document.getElementById("btnSnlRelubEye");
+  if (btnCalc) {
+    attachSnlEyeTrigger(btnCalc, "selSnlRelubPosition", function(val) {
+      if (typeof onSnlParamsChanged === "function") onSnlParamsChanged();
+    });
+  }
+
+  const selCalc = document.getElementById("selSnlRelubPosition");
+  if (selCalc && !selCalc._snlChangeAttached) {
+    selCalc._snlChangeAttached = true;
+    selCalc.addEventListener("change", function() {
+      updateSnlPopoverSelection(this.value);
+    });
+  }
+}
+
+// Attach auto init on DOM load if document ready
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", initSnlRelubPreview);
+} else {
+  initSnlRelubPreview();
+}
+
 window.initSnlDropdown = initSnlDropdown;
 window.onSnlHousingToggle = onSnlHousingToggle;
 window.onSnlParamsChanged = onSnlParamsChanged;
 window.autoSelectSnlHousingForBearing = autoSelectSnlHousingForBearing;
+window.initSnlRelubPreview = initSnlRelubPreview;
+window.showSnlRelubPopover = showSnlRelubPopover;
+window.hideSnlRelubPopover = hideSnlRelubPopover;
 
 // ==========================================================================
 // CALCULATOR SCHERM LOGICA
