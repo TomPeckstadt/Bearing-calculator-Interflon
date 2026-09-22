@@ -2920,9 +2920,10 @@ table {
   z-index: 10005;
   width: 580px;
   max-width: calc(100vw - 24px);
+  max-height: calc(100vh - 24px);
   background: #ffffff;
   border-radius: 12px;
-  box-shadow: 0 20px 35px -5px rgba(15, 23, 42, 0.22), 0 0 1px 1px rgba(15, 23, 42, 0.08);
+  box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.35), 0 0 0 1px rgba(15, 23, 42, 0.1);
   border: 1px solid #cbd5e1;
   overflow: hidden;
   opacity: 0;
