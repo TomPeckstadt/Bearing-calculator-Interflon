@@ -11657,12 +11657,12 @@ function renderBearingPdfPage2(doc, opts = {}) {
 
         curY = 168;
         drawCell(startX1, curY, 54, 6.5, "Totale kostprijs / machine", p1_ann_total, "pink-total");
-        drawCell(startX2, curY, 54, 6.5, "Totale kostprijs / machine", p2_ann_total, "pink-total");
+        drawCell(startX2, curY, 54, 6.5, "Totale kostprijs / machine", p2_ann_total, "green-total");
         drawCell(startX3, curY, 60, 6.5, "Kostenbesparing / machine", savings_mach, "green-total");
 
         curY += 6.5;
         drawCell(startX1, curY, 54, 6.5, "Totale kostprijs / park", p1_park_total, "pink-total");
-        drawCell(startX2, curY, 54, 6.5, "Totale kostprijs / park", p2_park_total, "pink-total");
+        drawCell(startX2, curY, 54, 6.5, "Totale kostprijs / park", p2_park_total, "green-total");
         drawCell(startX3, curY, 60, 6.5, "Kostenbesparing / park", savings_park, "green-total");
 
         curY += 6.5;
@@ -11676,7 +11676,7 @@ function renderBearingPdfPage2(doc, opts = {}) {
         const totalCostY2El = document.getElementById("omTotalCostYears2");
         const savingsMachYEl = document.getElementById("omSavingsMachineYears");
         drawCell(startX1, curY, 54, 6.5, `Kostprijs / machine na ${tco_yrs} jaar`, totalCostY1El ? totalCostY1El.textContent : "€ 0,00", "pink-total");
-        drawCell(startX2, curY, 54, 6.5, `Kostprijs / machine na ${tco_yrs} jaar`, totalCostY2El ? totalCostY2El.textContent : "€ 0,00", "pink-total");
+        drawCell(startX2, curY, 54, 6.5, `Kostprijs / machine na ${tco_yrs} jaar`, totalCostY2El ? totalCostY2El.textContent : "€ 0,00", "green-total");
         drawCell(startX3, curY, 60, 6.5, `Kostenbesparing / machine na ${tco_yrs} jaar`, savingsMachYEl ? savingsMachYEl.textContent : "€ 0,00", "green-total");
 
         curY += 6.5;
@@ -11684,7 +11684,7 @@ function renderBearingPdfPage2(doc, opts = {}) {
         const totalParkY2El = document.getElementById("omTotalParkCostYears2");
         const totalSavYEl = document.getElementById("omTotalSavingsYears");
         drawCell(startX1, curY, 54, 6.5, `Kostprijs / park na ${tco_yrs} jaar`, totalParkY1El ? totalParkY1El.textContent : "€ 0,00", "pink-total");
-        drawCell(startX2, curY, 54, 6.5, `Kostprijs / park na ${tco_yrs} jaar`, totalParkY2El ? totalParkY2El.textContent : "€ 0,00", "pink-total");
+        drawCell(startX2, curY, 54, 6.5, `Kostprijs / park na ${tco_yrs} jaar`, totalParkY2El ? totalParkY2El.textContent : "€ 0,00", "green-total");
         drawCell(startX3, curY, 60, 6.5, `Kostenbesparing / park na ${tco_yrs} jaar`, totalSavYEl ? totalSavYEl.textContent : "€ 0,00", "green-total");
 
         // Page 2 Footer
