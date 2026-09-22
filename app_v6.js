@@ -4949,11 +4949,11 @@ function renderAutoDevicesUI() {
 
       ${!isSinglePoint ? `
       <!-- Device Type Selector per Device -->
-      <div class="auto-device-type-wrapper" style="margin-bottom: 14px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: var(--border-radius-sm); padding: 8px 12px; display: flex; align-items: center; justify-content: space-between; gap: 10px;">
-        <label for="autoDeviceType_${devId}" style="font-size: 12px; font-weight: 700; color: #475569; margin: 0; white-space: nowrap;">
+      <div class="auto-device-type-wrapper" style="margin-bottom: 14px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: var(--border-radius-sm); padding: 10px 12px; display: flex; flex-direction: column; gap: 6px; box-sizing: border-box;">
+        <label for="autoDeviceType_${devId}" style="font-size: 12px; font-weight: 700; color: #475569; margin: 0; display: flex; align-items: center; gap: 6px;">
           🏷️ Model Toestel ${devId}:
         </label>
-        <select id="autoDeviceType_${devId}" class="form-select" style="max-width: 230px; padding: 5px 10px; font-size: 12px; font-weight: 700; border-radius: var(--border-radius-sm); border: 1px solid #cbd5e1; background: #ffffff; color: var(--primary-dark);" onchange="onDeviceTypeChange('${devId}', this.value)">
+        <select id="autoDeviceType_${devId}" class="form-select" style="width: 100%; max-width: 100%; padding: 7px 10px; font-size: 12px; font-weight: 700; border-radius: var(--border-radius-sm); border: 1px solid #cbd5e1; background: #ffffff; color: var(--primary-dark); box-sizing: border-box;" onchange="onDeviceTypeChange('${devId}', this.value)">
           <option value="pulsarlube_m2"${cardDevType === 'pulsarlube_m2' ? ' selected' : ''}>Pulsarlube M2 (Batterij)</option>
           <option value="pulsarlube_msp_ac"${cardDevType === 'pulsarlube_msp_ac' ? ' selected' : ''}>Pulsarlube MSP AC (Synchroon)</option>
           <option value="pulsarlube_msp_dc"${(cardDevType === 'pulsarlube_msp_dc' || cardDevType === 'pulsarlube_msp') ? ' selected' : ''}>Pulsarlube MSP DC (Synchroon)</option>
@@ -5194,6 +5194,9 @@ function syncAutomationDeviceCardHeights() {
         });
       }
     };
+
+    // 0. Harmonize device type wrappers
+    syncGroup('.auto-device-type-wrapper');
 
     // 1. Equalize blue connected bearings badges across all cards
     syncGroup('.auto-connected-bearings-badge', 68);
