@@ -9362,31 +9362,40 @@ function updateSnlPopoverSelection(val) {
 
 function positionSnlPopover(triggerEl) {
   const popover = getOrCreateSnlRelubPopover();
-  const rect = triggerEl.getBoundingClientRect();
-  const popWidth = Math.min(580, window.innerWidth - 24);
+  
+  // Safe viewport margins
+  const maxAvailW = window.innerWidth - 32;
+  const maxAvailH = window.innerHeight - 32;
+  
+  // Image aspect ratio: 1376 / 768 = 1.7917
+  // Header + Footer chrome = ~106px
+  const chromeHeight = 106;
+  const maxImgHeight = Math.max(140, maxAvailH - chromeHeight);
+  const maxWFromHeight = Math.round(maxImgHeight * (1376 / 768));
+  
+  let popWidth = Math.min(580, maxAvailW, maxWFromHeight);
+  if (popWidth < 280) popWidth = Math.min(280, maxAvailW);
   popover.style.width = popWidth + "px";
 
-  let left = rect.left + (rect.width / 2) - (popWidth / 2);
-  if (left < 12) left = 12;
-  if (left + popWidth > window.innerWidth - 12) left = window.innerWidth - popWidth - 12;
+  const popHeight = Math.round(popWidth * (768 / 1376)) + chromeHeight;
 
-  const popHeight = Math.round(popWidth * (768 / 1376)) + 105;
-  let top = rect.bottom + 8;
-  if (top + popHeight > window.innerHeight - 12) {
-    const topAbove = rect.top - popHeight - 8;
-    if (topAbove >= 12 || (rect.top > (window.innerHeight - rect.bottom))) {
-      top = Math.max(12, topAbove);
-    }
-  }
+  // Always center in the viewport: guaranteed 100% visible on any resolution, scaling or scroll position
+  let left = Math.round((window.innerWidth - popWidth) / 2);
+  let top = Math.round((window.innerHeight - popHeight) / 2);
 
-  if (window.innerWidth < 600) {
-    left = 12;
-    top = Math.max(15, (window.innerHeight - popHeight) / 2);
-  }
+  if (left < 16) left = 16;
+  if (top < 16) top = 16;
 
-  popover.style.left = Math.round(left) + "px";
-  popover.style.top = Math.round(top) + "px";
+  popover.style.left = left + "px";
+  popover.style.top = top + "px";
 }
+
+window.addEventListener("resize", function() {
+  const pop = document.getElementById("snlRelubPopover");
+  if (pop && pop.classList.contains("visible") && currentSnlActiveTrigger) {
+    positionSnlPopover(currentSnlActiveTrigger);
+  }
+});
 
 function showSnlRelubPopover(triggerEl, selectGetter, changeCb, pinned = false) {
   clearTimeout(snlPopoverCloseTimeout);
