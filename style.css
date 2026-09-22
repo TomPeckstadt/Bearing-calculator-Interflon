@@ -1499,17 +1499,17 @@ h1, h2, h3, h4, .brand-text {
 .om-spreadsheet-table th, 
 .om-spreadsheet-table td {
   border: 1px solid #E2E8F0;
-  padding: 8px 12px;
+  padding: 5px 6px;
   vertical-align: middle;
 }
 
 .om-spreadsheet-table th.column-group-header {
   font-family: 'Outfit', sans-serif;
   font-weight: 700;
-  font-size: 14px;
+  font-size: 12.5px;
   color: #FFFFFF;
   text-align: center;
-  padding: 10px;
+  padding: 6px 4px;
 }
 
 .om-spreadsheet-table th.current-group {
@@ -1555,10 +1555,10 @@ h1, h2, h3, h4, .brand-text {
 .om-spreadsheet-table .section-label-row td {
   font-family: 'Outfit', sans-serif;
   font-weight: 700;
-  font-size: 12px;
+  font-size: 11px;
   color: var(--text-dark);
   background-color: #F8FAFC;
-  padding: 6px 12px;
+  padding: 4px 6px;
   letter-spacing: 0.5px;
 }
 
@@ -1578,14 +1578,16 @@ h1, h2, h3, h4, .brand-text {
   font-weight: 500;
   color: var(--text-medium);
   background-color: #FFFFFF;
-  width: 25%;
-  min-width: 140px;
+  width: 20%;
+  min-width: 75px;
+  font-size: 11px;
+  line-height: 1.25;
 }
 
 .om-spreadsheet-table .cell-input-wrapper {
   padding: 0;
-  width: 15%;
-  min-width: 150px;
+  width: 13.3%;
+  min-width: 48px;
   height: 1px; /* Stretch input height to 100% of row height */
   background-color: #F3F4F6; /* Grey input cells by default */
 }
@@ -1601,11 +1603,11 @@ h1, h2, h3, h4, .brand-text {
 
 .om-cell-input-div {
   width: 100%;
-  min-height: 38px;
-  padding: 8px 12px;
+  min-height: 28px;
+  padding: 4px 6px;
   background-color: transparent; /* Transparent so parent td background is used */
   color: var(--text-dark);
-  font-size: 13px;
+  font-size: 11.5px;
   font-family: inherit;
   font-weight: 500;
   display: flex;
@@ -1620,10 +1622,10 @@ h1, h2, h3, h4, .brand-text {
   width: 100%;
   height: 100%;
   border: none;
-  padding: 8px 12px;
+  padding: 4px 6px;
   background-color: #F3F4F6; /* "Vul de grijze cellen in" */
   color: var(--text-dark);
-  font-size: 13px;
+  font-size: 11.5px;
   font-family: inherit;
   font-weight: 500;
   transition: all var(--transition-fast);
@@ -1657,8 +1659,9 @@ h1, h2, h3, h4, .brand-text {
   text-align: right;
   background-color: #FFFFFF;
   color: var(--text-dark);
-  width: 15%;
-  min-width: 110px;
+  width: 13.3%;
+  min-width: 55px;
+  font-size: 11.5px;
 }
 
 .om-spreadsheet-table .empty-cell {
@@ -2175,6 +2178,15 @@ table {
     flex-wrap: wrap !important;
     justify-content: flex-end !important;
     max-width: 100% !important;
+  }
+
+  /* Scoped padding for Opbrengstmodel tabs so the 6-column table always fits comfortably */
+  .main-content:has(#pageOm.active),
+  .main-content:has(#pageChainOm.active),
+  .main-content.page-om-active,
+  .main-content.page-chain-om-active {
+    padding: 16px 20px 24px !important;
+    gap: 14px !important;
   }
 }
 
