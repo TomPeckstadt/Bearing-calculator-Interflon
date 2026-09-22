@@ -3157,5 +3157,38 @@ table {
 .snl-hint-dot.blue { background: #0284c7; }
 .snl-hint-dot.red { background: #dc2626; }
 
+/* Scoped styling voor Toestel Model selector in Automatisering Device Cards */
+.auto-device-type-wrapper {
+  margin-bottom: 14px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: var(--border-radius-sm);
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  box-sizing: border-box;
+}
 
+.auto-device-type-wrapper label {
+  font-size: 12px;
+  font-weight: 700;
+  color: #475569;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
 
+.auto-device-type-wrapper select.form-select {
+  width: 100% !important;
+  max-width: 100% !important;
+  padding: 7px 10px;
+  font-size: 12px;
+  font-weight: 700;
+  border-radius: var(--border-radius-sm);
+  border: 1px solid #cbd5e1;
+  background: #ffffff;
+  color: var(--primary-dark);
+  box-sizing: border-box;
+}
