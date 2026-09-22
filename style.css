@@ -1681,8 +1681,9 @@ h1, h2, h3, h4, .brand-text {
   background-color: #FFF5F5;
 }
 
-.om-spreadsheet-table .highlighted-tco-row .text-success {
-  background-color: #F0FDF4; /* Green highlight for savings values */
+.om-spreadsheet-table .highlighted-tco-row .text-success,
+.om-spreadsheet-table .highlighted-tco-row .cell-value.text-success {
+  background-color: #F0FDF4; /* Green highlight for savings and Interflon total costs */
 }
 
 /* Make table responsive on small viewports */
