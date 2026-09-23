@@ -22568,9 +22568,9 @@ Naar aanleiding van ons gesprek betreffende automatisatie zend ik u zoals beloof
 ${surveyUrl}
 
 Graag geef ik hierbij volgende toelichting:
-Nadat u in sectie 1) Machinedetails & Lagerspecificaties de lagers heeft ingevuld zal u merken dat deze automatisch verschijnen in het machineraster in sectie 3) Positiebepaling Lagers & Afstanden Machine.
+Nadat u in sectie "1) Machinedetails & Lagerspecificaties" de lagers heeft ingevuld zal u merken dat deze automatisch verschijnen in het machineraster in sectie "3) Positiebepaling Lagers & Afstanden Machine".
 Het enige wat u in sectie 3 hoeft te doen is de betreffende lagers met uw muis juist te positioneren in overeenstemming met de reële situatie en afstanden op de machine. Deze positionering hoeft absoluut niet perfect afgemeten te zijn.
-Verder hoeft u in sectie 3) Positiebepaling Lagers & Afstanden Machine niets in te vullen. 
+Verder hoeft u in sectie "3) Positiebepaling Lagers & Afstanden Machine" niets in te vullen. 
 
 In secties 2, 4 en 5 dienen de data voor elk lager apart te worden ingevuld, aangezien deze afwijkend kunnen zijn. Indien er identieke lagers aanwezig zijn met dezelfde omstandigheden, kan u eenvoudig een lager kopiëren, daarna een ander lager selecteren en plakken. Zo hoeft u niet telkens opnieuw alles manueel in te vullen. 
 
@@ -24508,6 +24508,9 @@ let twinFallbackPointer = {
 let twinSimState = {
   isOpen: false,
   isPlaying: true,
+  viewMode: 'split', // 'split' | '3d' | 'graph'
+  graphFilter: 'all', // 'all' | 'friction' | 'temp' | 'wear' | 'film'
+  graphHoverDay: null,
   mode: 'auto', // 'auto' | 'manual'
   simSpeed: 1,  // 1, 5, 20, 60
   cutaway: true, // Cutaway 1/4 view
@@ -25131,9 +25134,14 @@ function animateDigitalTwin() {
     twinControls.update();
   }
 
-  // Render
-  if (twinRenderer && twinScene && twinCamera) {
+  // Render 3D Scene
+  if (twinRenderer && twinScene && twinCamera && twinSimState.viewMode !== "graph") {
     twinRenderer.render(twinScene, twinCamera);
+  }
+
+  // Render 2D Telemetry Graph
+  if (twinSimState.viewMode !== "3d") {
+    renderTwinTelemetryGraph();
   }
 
   twinAnimFrameId = requestAnimationFrame(animateDigitalTwin);
@@ -25659,15 +25667,20 @@ function openDigitalTwinModal() {
   twinSimState.isPlaying = true;
 
   // Initialize Three.js if first time
+  // Initialize Three.js and Graph
   if (!twinInitialized) {
     setTimeout(function() {
       initDigitalTwin3D();
+      initDigitalTwinGraph();
       onTwinWindowResize();
+      renderTwinTelemetryGraph();
       if (!twinAnimFrameId) animateDigitalTwin();
     }, 50);
   } else {
     setTimeout(function() {
+      initDigitalTwinGraph();
       onTwinWindowResize();
+      renderTwinTelemetryGraph();
       if (!twinAnimFrameId) animateDigitalTwin();
     }, 50);
   }
@@ -25687,15 +25700,540 @@ function closeDigitalTwinModal() {
 }
 
 function onTwinWindowResize() {
-  if (!twinRenderer || !twinCamera) return;
-  const container = document.getElementById("digitalTwinCanvasContainer");
-  if (!container) return;
-  const width = container.clientWidth || 800;
-  const height = container.clientHeight || 500;
+  if (twinRenderer && twinCamera) {
+    const container = document.getElementById("digitalTwinCanvasContainer");
+    if (container && container.offsetParent !== null) {
+      const width = container.clientWidth || 800;
+      const height = container.clientHeight || 500;
+      twinCamera.aspect = width / height;
+      twinCamera.updateProjectionMatrix();
+      twinRenderer.setSize(width, height, false);
+    }
+  }
+  renderTwinTelemetryGraph();
+}
 
-  twinCamera.aspect = width / height;
-  twinCamera.updateProjectionMatrix();
-  twinRenderer.setSize(width, height, false);
+function setTwinViewMode(mode) {
+  twinSimState.viewMode = mode;
+  const btnSplit = document.getElementById("btnTwinViewSplit");
+  const btn3D = document.getElementById("btnTwinView3D");
+  const btnGraph = document.getElementById("btnTwinViewGraph");
+  [btnSplit, btn3D, btnGraph].forEach(b => { if (b) b.classList.remove("active"); });
+  if (mode === "split" && btnSplit) btnSplit.classList.add("active");
+  if (mode === "3d" && btn3D) btn3D.classList.add("active");
+  if (mode === "graph" && btnGraph) btnGraph.classList.add("active");
+
+  const canvasBox = document.getElementById("digitalTwinCanvasContainer");
+  const graphBox = document.getElementById("digitalTwinGraphContainer");
+  const divider = document.getElementById("twinStageDivider");
+
+  if (mode === "split") {
+    if (canvasBox) { canvasBox.style.display = "block"; canvasBox.style.flex = "1 1 50%"; }
+    if (graphBox) { graphBox.style.display = "flex"; graphBox.style.flex = "1 1 50%"; }
+    if (divider) divider.style.display = "block";
+  } else if (mode === "3d") {
+    if (canvasBox) { canvasBox.style.display = "block"; canvasBox.style.flex = "1 1 100%"; }
+    if (graphBox) { graphBox.style.display = "none"; }
+    if (divider) divider.style.display = "none";
+  } else if (mode === "graph") {
+    if (canvasBox) { canvasBox.style.display = "none"; }
+    if (graphBox) { graphBox.style.display = "flex"; graphBox.style.flex = "1 1 100%"; }
+    if (divider) divider.style.display = "none";
+  }
+
+  setTimeout(function() {
+    onTwinWindowResize();
+    renderTwinTelemetryGraph();
+  }, 40);
+}
+
+function setTwinGraphFilter(filterKey) {
+  twinSimState.graphFilter = filterKey;
+  const filterIds = {
+    all: "btnGraphFilterAll",
+    friction: "btnGraphFilterFriction",
+    temp: "btnGraphFilterTemp",
+    wear: "btnGraphFilterWear",
+    film: "btnGraphFilterFilm"
+  };
+  Object.keys(filterIds).forEach(k => {
+    const el = document.getElementById(filterIds[k]);
+    if (el) {
+      if (k === filterKey) el.classList.add("active");
+      else el.classList.remove("active");
+    }
+  });
+  renderTwinTelemetryGraph();
+}
+
+let twinGraphInitialized = false;
+
+function initDigitalTwinGraph() {
+  const wrap = document.getElementById("digitalTwinGraphCanvasWrap");
+  const canvas = document.getElementById("digitalTwinGraphCanvas");
+  if (!wrap || !canvas) return;
+
+  if (twinGraphInitialized) return;
+  twinGraphInitialized = true;
+
+  let isDragging = false;
+
+  function handleScrub(e) {
+    const rect = canvas.getBoundingClientRect();
+    const padL = 48;
+    const padR = 24;
+    const plotW = rect.width - padL - padR;
+    if (plotW <= 0) return;
+    const clientX = e.clientX !== undefined ? e.clientX : (e.touches && e.touches[0] && e.touches[0].clientX);
+    if (clientX === undefined) return;
+    const x = clientX - rect.left - padL;
+    const day = Math.max(0, Math.min(60, (x / plotW) * 60));
+
+    if (twinSimState.mode === "manual") {
+      const cycleDuration = 30;
+      twinSimState.simTime = (day / 60) * cycleDuration;
+    }
+    renderTwinTelemetryGraph();
+  }
+
+  function handleHover(e) {
+    const tooltip = document.getElementById("twinGraphTooltip");
+    if (!tooltip) return;
+    const rect = canvas.getBoundingClientRect();
+    const padL = 48;
+    const padR = 24;
+    const padT = 32;
+    const padB = 26;
+    const plotW = rect.width - padL - padR;
+    const plotH = rect.height - padT - padB;
+    if (plotW <= 0) return;
+
+    const mouseX = e.clientX - rect.left;
+    const mouseY = e.clientY - rect.top;
+
+    if (mouseX < padL || mouseX > rect.width - padR || mouseY < padT || mouseY > rect.height - padB) {
+      tooltip.style.display = "none";
+      twinSimState.graphHoverDay = null;
+      return;
+    }
+
+    const day = Math.max(0, Math.min(60, ((mouseX - padL) / plotW) * 60));
+    twinSimState.graphHoverDay = day;
+
+    let phaseName = "Fase 1: Overvulling";
+    let phaseColor = "#a3e635";
+    if (day > 42) {
+      phaseName = "Fase 4: Droogloop / Alarm";
+      phaseColor = "#ef4444";
+    } else if (day > 22) {
+      phaseName = "Fase 3: Grenssmering";
+      phaseColor = "#f59e0b";
+    } else if (day > 4) {
+      phaseName = "Fase 2: Optimaal venster";
+      phaseColor = "#34d399";
+    }
+
+    const m = getTwinMetricsAtDay(day);
+
+    tooltip.style.display = "block";
+    tooltip.style.left = mouseX + "px";
+    tooltip.style.top = Math.max(10, mouseY - 8) + "px";
+    tooltip.innerHTML = `
+      <div style="font-weight: 800; color: ${phaseColor}; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 3px; margin-bottom: 4px;">
+        Dag ${Math.round(day)} • ${phaseName}
+      </div>
+      <div style="display: grid; grid-template-columns: auto auto; gap: 3px 10px; font-size: 10px;">
+        <span style="color: #38bdf8;">⚡ Wrijving (μ):</span><strong style="text-align: right; color: #fff;">${m.friction.toFixed(4)}</strong>
+        <span style="color: #f59e0b;">🌡️ Bedrijfstemp.:</span><strong style="text-align: right; color: #fff;">${m.temp.toFixed(1)} °C</strong>
+        <span style="color: #ef4444;">⚙️ Slijtage:</span><strong style="text-align: right; color: #fff;">${m.wear.toFixed(1)} μm</strong>
+        <span style="color: #10b981;">🛡️ Smeerfilm:</span><strong style="text-align: right; color: #fff;">${Math.round(m.film * 100)}%</strong>
+      </div>
+      <div style="font-size: 9px; color: #94a3b8; margin-top: 4px; text-align: center;"><em>Klik om hierheen te springen</em></div>
+    `;
+  }
+
+  wrap.addEventListener("mousedown", function(e) {
+    isDragging = true;
+    handleScrub(e);
+  });
+  window.addEventListener("mousemove", function(e) {
+    if (isDragging) handleScrub(e);
+  });
+  window.addEventListener("mouseup", function() {
+    isDragging = false;
+  });
+  wrap.addEventListener("mousemove", handleHover);
+  wrap.addEventListener("mouseleave", function() {
+    const tooltip = document.getElementById("twinGraphTooltip");
+    if (tooltip) tooltip.style.display = "none";
+    twinSimState.graphHoverDay = null;
+  });
+
+  wrap.addEventListener("touchstart", function(e) {
+    isDragging = true;
+    handleScrub(e);
+  }, { passive: true });
+  window.addEventListener("touchmove", function(e) {
+    if (isDragging) handleScrub(e);
+  }, { passive: true });
+  window.addEventListener("touchend", function() {
+    isDragging = false;
+  });
+}
+
+function getTwinMetricsAtDay(day) {
+  let friction, temp, wear, film, life;
+  if (day <= 4) {
+    friction = 0.022;
+    temp = 68.0 + (4 - Math.abs(day - 2)) * 1.4;
+    wear = 0.0;
+    film = 1.0;
+    life = 1.0;
+  } else if (day <= 22) {
+    const t = (day - 4) / 18;
+    friction = 0.006 + t * 0.005;
+    temp = 48.0 + t * 3.0;
+    wear = 0.0;
+    film = 0.95 - t * 0.15;
+    life = 1.2 - t * 0.2;
+  } else if (day <= 42) {
+    const t = (day - 22) / 20;
+    friction = 0.011 + t * 0.030;
+    temp = 51.0 + t * 16.0;
+    wear = t * 0.4;
+    film = 0.80 - t * 0.55;
+    life = Math.max(0.6, 1.0 - t * 0.4);
+  } else {
+    const t = (day - 42) / 18;
+    friction = 0.041 + t * 0.045;
+    temp = 67.0 + t * 20.0;
+    wear = 0.4 + t * 1.6;
+    film = Math.max(0.04, 0.25 - t * 0.21);
+    life = Math.max(0.35, 0.6 - t * 0.25);
+  }
+  return { friction, temp, wear, film, life };
+}
+
+function renderTwinTelemetryGraph() {
+  const canvas = document.getElementById("digitalTwinGraphCanvas");
+  if (!canvas || !twinSimState.isOpen) return;
+
+  const rect = canvas.getBoundingClientRect();
+  const w = rect.width;
+  const h = rect.height;
+  if (w <= 0 || h <= 0) return;
+
+  const dpr = window.devicePixelRatio || 1;
+  if (canvas.width !== Math.round(w * dpr) || canvas.height !== Math.round(h * dpr)) {
+    canvas.width = Math.round(w * dpr);
+    canvas.height = Math.round(h * dpr);
+  }
+
+  const ctx = canvas.getContext("2d");
+  ctx.save();
+  ctx.scale(dpr, dpr);
+
+  // Clear Background
+  ctx.fillStyle = "#080d1a";
+  ctx.fillRect(0, 0, w, h);
+
+  const padL = 48;
+  const padR = 24;
+  const padT = 32;
+  const padB = 26;
+  const plotW = Math.max(10, w - padL - padR);
+  const plotH = Math.max(10, h - padT - padB);
+
+  function getX(day) {
+    return padL + (day / 60) * plotW;
+  }
+
+  // Current simulation day
+  const cycleDuration = 30;
+  const cycleTime = (twinSimState.simTime) % cycleDuration;
+  const currentDay = (twinSimState.mode === "manual") ? (cycleTime / cycleDuration) * 60 : 0;
+
+  // 1. Phase Background Bands
+  const phases = [
+    { start: 0, end: 4, color: "rgba(132, 204, 22, 0.09)", stroke: "rgba(132, 204, 22, 0.3)", title: "F1: Overvulling", textColor: "#a3e635" },
+    { start: 4, end: 22, color: "rgba(16, 185, 129, 0.08)", stroke: "rgba(16, 185, 129, 0.3)", title: "F2: Optimaal venster", textColor: "#34d399" },
+    { start: 22, end: 42, color: "rgba(245, 158, 11, 0.08)", stroke: "rgba(245, 158, 11, 0.3)", title: "F3: Grenssmering", textColor: "#fbbf24" },
+    { start: 42, end: 60, color: "rgba(239, 68, 68, 0.11)", stroke: "rgba(239, 68, 68, 0.3)", title: "F4: Droogloop / Slijtage", textColor: "#f87171" }
+  ];
+
+  phases.forEach(p => {
+    const x1 = getX(p.start);
+    const x2 = getX(p.end);
+    const pw = x2 - x1;
+
+    ctx.fillStyle = p.color;
+    ctx.fillRect(x1, padT, pw, plotH);
+
+    if (p.end < 60) {
+      ctx.beginPath();
+      ctx.setLineDash([3, 3]);
+      ctx.strokeStyle = p.stroke;
+      ctx.lineWidth = 1;
+      ctx.moveTo(x2, padT);
+      ctx.lineTo(x2, padT + plotH);
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+
+    ctx.font = "800 9.5px 'Outfit', sans-serif";
+    ctx.fillStyle = p.textColor;
+    ctx.textAlign = "center";
+    ctx.fillText(p.title, x1 + pw / 2, padT - 8);
+  });
+
+  // 2. Horizontal Grid & Y-Axis Labels
+  ctx.setLineDash([2, 4]);
+  ctx.strokeStyle = "rgba(255, 255, 255, 0.08)";
+  ctx.lineWidth = 1;
+  const yTicks = [0, 0.25, 0.5, 0.75, 1.0];
+  yTicks.forEach(val => {
+    const y = padT + plotH * (1 - val);
+    ctx.beginPath();
+    ctx.moveTo(padL, y);
+    ctx.lineTo(padL + plotW, y);
+    ctx.stroke();
+
+    ctx.font = "700 8.5px monospace";
+    ctx.fillStyle = "rgba(148, 163, 184, 0.7)";
+    ctx.textAlign = "right";
+
+    if (twinSimState.graphFilter === "friction") {
+      const uVal = 0.002 + val * (0.090 - 0.002);
+      ctx.fillText(uVal.toFixed(3) + "μ", padL - 5, y + 3);
+    } else if (twinSimState.graphFilter === "temp") {
+      const tVal = 35 + val * 55;
+      ctx.fillText(Math.round(tVal) + "°C", padL - 5, y + 3);
+    } else if (twinSimState.graphFilter === "wear") {
+      const wVal = val * 2.0;
+      ctx.fillText(wVal.toFixed(1) + "μm", padL - 5, y + 3);
+    } else if (twinSimState.graphFilter === "film") {
+      ctx.fillText(Math.round(val * 100) + "%", padL - 5, y + 3);
+    } else {
+      ctx.fillText(Math.round(val * 100) + "%", padL - 5, y + 3);
+    }
+  });
+  ctx.setLineDash([]);
+
+  // 3. Time Grid (X-Axis)
+  for (let d = 0; d <= 60; d += 10) {
+    const x = getX(d);
+    ctx.beginPath();
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.06)";
+    ctx.moveTo(x, padT);
+    ctx.lineTo(x, padT + plotH);
+    ctx.stroke();
+
+    ctx.font = "700 9px monospace";
+    ctx.fillStyle = "#64748b";
+    ctx.textAlign = "center";
+    ctx.fillText(d + "d", x, padT + plotH + 15);
+  }
+
+  // 4. Draw Curves
+  const numSteps = 120;
+  const stepSize = 60 / numSteps;
+
+  function getY(norm) {
+    const clamped = Math.max(0, Math.min(1, norm));
+    return padT + plotH * (1 - clamped);
+  }
+
+  function normFriction(u) { return (u - 0.002) / (0.090 - 0.002); }
+  function normTemp(t) { return (t - 35) / 55; }
+  function normWear(w) { return w / 2.0; }
+  function normFilm(f) { return f; }
+
+  const showAll = twinSimState.graphFilter === "all";
+  const isAuto = twinSimState.mode === "auto";
+
+  if (isAuto) {
+    // Reference dashed manual curve for comparison
+    ctx.beginPath();
+    ctx.setLineDash([4, 4]);
+    ctx.strokeStyle = "rgba(239, 68, 68, 0.4)";
+    ctx.lineWidth = 1.5;
+    for (let i = 0; i <= numSteps; i++) {
+      const d = i * stepSize;
+      const m = getTwinMetricsAtDay(d);
+      const x = getX(d);
+      const y = getY(normFriction(m.friction));
+      if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Solid steady Green Micpol® Line
+    const autoY = getY(normFilm(0.98));
+    ctx.shadowColor = "#10b981";
+    ctx.shadowBlur = 10;
+    ctx.beginPath();
+    ctx.strokeStyle = "#10b981";
+    ctx.lineWidth = 3;
+    ctx.moveTo(padL, autoY);
+    ctx.lineTo(padL + plotW, autoY);
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+
+    ctx.font = "800 10.5px 'Outfit', sans-serif";
+    ctx.fillStyle = "#34d399";
+    ctx.textAlign = "left";
+    ctx.fillText("✨ Pulsarlube Micro-dosering: Continu 100% EHL Smeerfilm, 0 Slijtage", padL + 12, autoY - 10);
+
+  } else {
+    // MANUAL MODE: Draw 4 Curves
+    const curvesToDraw = [];
+
+    if (showAll || twinSimState.graphFilter === "film") {
+      curvesToDraw.push({
+        key: "film",
+        color: "#10b981",
+        normFn: m => normFilm(m.film),
+        label: "🛡️ Film & L10h",
+        valFn: m => Math.round(m.film * 100) + "%"
+      });
+    }
+    if (showAll || twinSimState.graphFilter === "friction") {
+      curvesToDraw.push({
+        key: "friction",
+        color: "#38bdf8",
+        normFn: m => normFriction(m.friction),
+        label: "⚡ Wrijving",
+        valFn: m => m.friction.toFixed(3) + "μ"
+      });
+    }
+    if (showAll || twinSimState.graphFilter === "temp") {
+      curvesToDraw.push({
+        key: "temp",
+        color: "#f59e0b",
+        normFn: m => normTemp(m.temp),
+        label: "🌡️ Temp",
+        valFn: m => Math.round(m.temp) + "°C"
+      });
+    }
+    if (showAll || twinSimState.graphFilter === "wear") {
+      curvesToDraw.push({
+        key: "wear",
+        color: "#ef4444",
+        normFn: m => normWear(m.wear),
+        label: "⚙️ Slijtage",
+        valFn: m => m.wear.toFixed(1) + "μm"
+      });
+    }
+
+    curvesToDraw.forEach(curve => {
+      ctx.beginPath();
+      for (let i = 0; i <= numSteps; i++) {
+        const d = i * stepSize;
+        const m = getTwinMetricsAtDay(d);
+        const x = getX(d);
+        const y = getY(curve.normFn(m));
+        if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+      }
+
+      ctx.shadowColor = curve.color;
+      ctx.shadowBlur = showAll ? 6 : 12;
+      ctx.strokeStyle = curve.color;
+      ctx.lineWidth = showAll ? 2.2 : 3.2;
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+
+      if (!showAll) {
+        ctx.lineTo(getX(60), padT + plotH);
+        ctx.lineTo(getX(0), padT + plotH);
+        ctx.closePath();
+        const grad = ctx.createLinearGradient(0, padT, 0, padT + plotH);
+        grad.addColorStop(0, curve.color.replace(")", ", 0.25)").replace("rgb", "rgba"));
+        grad.addColorStop(1, "rgba(0,0,0,0)");
+        ctx.fillStyle = grad;
+        ctx.fill();
+      }
+    });
+
+    // 5. MOVING TIME TRACKER LINE & ARROW ("bewegende lijn of pijl")
+    const curX = getX(currentDay);
+    const curMetrics = getTwinMetricsAtDay(currentDay);
+
+    // Glowing vertical needle
+    ctx.shadowColor = "#38bdf8";
+    ctx.shadowBlur = 12;
+    ctx.beginPath();
+    ctx.strokeStyle = "#38bdf8";
+    ctx.lineWidth = 2.2;
+    ctx.moveTo(curX, padT - 4);
+    ctx.lineTo(curX, padT + plotH);
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+
+    // Needle top arrow head & badge
+    const badgeW = 60;
+    const badgeH = 18;
+    const badgeX = Math.max(padL, Math.min(padL + plotW - badgeW, curX - badgeW / 2));
+    const badgeY = padT - 22;
+
+    ctx.beginPath();
+    ctx.fillStyle = "#0284c7";
+    ctx.moveTo(curX - 5, badgeY + badgeH);
+    ctx.lineTo(curX + 5, badgeY + badgeH);
+    ctx.lineTo(curX, badgeY + badgeH + 5);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.fillStyle = "#0369a1";
+    ctx.strokeStyle = "#38bdf8";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.roundRect ? ctx.roundRect(badgeX, badgeY, badgeW, badgeH, 4) : ctx.rect(badgeX, badgeY, badgeW, badgeH);
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.font = "800 10px 'Outfit', sans-serif";
+    ctx.fillStyle = "#ffffff";
+    ctx.textAlign = "center";
+    ctx.fillText("Dag " + Math.round(currentDay), badgeX + badgeW / 2, badgeY + 12);
+
+    // Intersection dots on active curves
+    curvesToDraw.forEach(curve => {
+      const dotY = getY(curve.normFn(curMetrics));
+
+      ctx.beginPath();
+      ctx.arc(curX, dotY, 4.5, 0, Math.PI * 2);
+      ctx.fillStyle = curve.color;
+      ctx.shadowColor = curve.color;
+      ctx.shadowBlur = 8;
+      ctx.fill();
+      ctx.shadowBlur = 0;
+
+      ctx.beginPath();
+      ctx.arc(curX, dotY, 2, 0, Math.PI * 2);
+      ctx.fillStyle = "#ffffff";
+      ctx.fill();
+
+      if (!showAll) {
+        ctx.font = "800 10.5px monospace";
+        ctx.fillStyle = curve.color;
+        ctx.textAlign = (curX > padL + plotW - 70) ? "right" : "left";
+        const tagX = (curX > padL + plotW - 70) ? curX - 10 : curX + 10;
+        ctx.fillText(curve.valFn(curMetrics), tagX, dotY + 4);
+      }
+    });
+  }
+
+  // Update day indicator in footer
+  const dayIndEl = document.getElementById("twinGraphDayIndicator");
+  if (dayIndEl) {
+    if (isAuto) {
+      dayIndEl.innerHTML = "<span style='color: #10b981;'>Continu Micro (100% film)</span>";
+    } else {
+      dayIndEl.innerHTML = "Dag " + Math.round(currentDay) + " / 60";
+    }
+  }
+
+  ctx.restore();
 }
 
 function setTwinCameraView(viewName) {
@@ -26265,6 +26803,10 @@ if (typeof window !== "undefined") {
   window.updateTwinSimulationPhysics = updateTwinSimulationPhysics;
   window.setTwinCameraView = setTwinCameraView;
   window.resetTwinCamera = resetTwinCamera;
+  window.setTwinViewMode = setTwinViewMode;
+  window.setTwinGraphFilter = setTwinGraphFilter;
+  window.initDigitalTwinGraph = initDigitalTwinGraph;
+  window.renderTwinTelemetryGraph = renderTwinTelemetryGraph;
   window.toggleTwinCutout = toggleTwinCutout;
   window.toggleTwinPlay = toggleTwinPlay;
   window.setDigitalTwinMode = setDigitalTwinMode;
