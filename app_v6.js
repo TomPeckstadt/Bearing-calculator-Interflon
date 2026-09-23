@@ -25170,9 +25170,11 @@ function updateTwinSimulationPhysics(simDt) {
 
   if (twinSimState.mode === "auto") {
     // AUTOMATIC MODE: Stable optimal regime with micro-dispenses
+    const curRpm = (twinSimState && twinSimState.rpm) ? twinSimState.rpm : 1450;
+    const speedRatio = Math.max(0.1, Math.min(4.5, curRpm / 1450));
     twinSimState.filmHealth = Math.min(1.0, Math.max(0.96, 0.98 + Math.sin(twinSimState.simTime * 1.5) * 0.02));
-    twinSimState.friction = 0.0028 + (1.0 - twinSimState.filmHealth) * 0.01;
-    twinSimState.temperature = 41.0 + (twinSimState.rpm / 2200) * 1.2 + Math.sin(twinSimState.simTime) * 0.15;
+    twinSimState.friction = 0.0028 * Math.pow(speedRatio, 0.12) + (1.0 - twinSimState.filmHealth) * 0.005;
+    twinSimState.temperature = 39.0 + (speedRatio - 1.0) * 10.0 + Math.sin(twinSimState.simTime) * 0.15;
     twinSimState.wearUm = 0.0;
     twinSimState.lifetimeFactor = 3.8;
 
@@ -25180,7 +25182,16 @@ function updateTwinSimulationPhysics(simDt) {
     filmEmissiveHex = 0x059669;
     dotColor = "#10b981";
     filmBarBg = "linear-gradient(90deg, #10b981, #34d399)";
-    timelineHint = "Modus: <span style='color: #10b981; font-weight: 700;'>Continue micro-smering (Pulsarlube)</span>";
+    timelineHint = "Modus: <span style='color: #10b981; font-weight: 700;'>Continue micro-smering (Pulsarlube Micro-dosering)</span>";
+    frictionBadgeText = "-70% wrijving (Micpol®)";
+    frictionBadgeColor = "#34d399";
+    tempBadgeText = "Stabiel thermisch (" + Math.round(twinSimState.temperature) + "°C)";
+    tempBadgeColor = "#94a3b8";
+    wearBadgeText = "Nul loopbaanslijtage";
+    wearBadgeColor = "#34d399";
+    lifetimeBadgeText = "+280% verlenging (3.8x)";
+    lifetimeBadgeColor = "#38bdf8";
+    diagnosisText = `<strong style='color: #34d399;'>Automatische Pulsarlube:</strong> Levert non-stop exact berekende micro-doseringen afgestemd op ${curRpm} RPM. De Micpol® smeerfilm blijft continu 100% intact zonder schadelijke oververhitting of droogloop.`;
 
     if (twinCavityLight) {
       twinCavityLight.color.setHex(0x10b981);
@@ -25195,13 +25206,18 @@ function updateTwinSimulationPhysics(simDt) {
 
     timelineHint = "Modus: <span style='color: #ef4444; font-weight: 700;'>Manueel Zaagtandregime (Dag " + Math.round(day) + " / 60)</span>";
 
-    if (day <= 4) {
-      // Phase 1: Overfill / Churning
-      twinSimState.filmHealth = 1.0;
-      twinSimState.friction = 0.022 + Math.sin(now * 0.01) * 0.003;
-      twinSimState.temperature = 68.0 + (4 - Math.abs(day - 2)) * 1.4;
-      twinSimState.lifetimeFactor = 1.0;
+    const curRpm = (twinSimState && twinSimState.rpm) ? twinSimState.rpm : 1450;
+    const m = getTwinMetricsAtDay(day, curRpm);
+    const pb = m.phaseBoundaries || { p1End: 4, p2End: 22, p3End: 42 };
 
+    twinSimState.filmHealth = m.film;
+    twinSimState.friction = m.friction;
+    twinSimState.temperature = m.temp;
+    twinSimState.wearUm = m.wear;
+    twinSimState.lifetimeFactor = m.life;
+
+    if (day <= pb.p1End) {
+      // Phase 1: Overfill / Churning
       filmColorHex = 0x84cc16;
       filmEmissiveHex = 0x4d7c0f;
       dotColor = "#84cc16";
@@ -25211,23 +25227,21 @@ function updateTwinSimulationPhysics(simDt) {
       filmSubtext = "Lager holte is overvol. Rollende elementen moeten zich door overmaat vet ploegen (churning heat).";
       frictionBadgeText = "Hoge weerstand (churning)";
       frictionBadgeColor = "#f59e0b";
-      tempBadgeText = "⚠️ Heet (>68°C)";
+      tempBadgeText = (twinSimState.temperature > 75 ? "⚠️ Extreem Heet (>75°C)" : "⚠️ Heet (>65°C)");
       tempBadgeColor = "#f59e0b";
-      diagnosisText = "<strong style='color: #f59e0b;'>Fase 1 (Dag 1-4) - Overvulling & Churning:</strong> Na manuele vetsmering met de vetspuit zit het lager overvol. De kogels ondervinden zware ploegweerstand, waardoor de temperatuur piekt boven 70°C en het vet sneller oxideert.";
+      wearBadgeText = "Nul slijtage";
+      wearBadgeColor = "#34d399";
+      lifetimeBadgeText = "Normaal (1.0x)";
+      lifetimeBadgeColor = "#94a3b8";
+      diagnosisText = `<strong style='color: #f59e0b;'>Fase 1 (Dag 0-${Math.round(pb.p1End)}) - Overvulling & Churning:</strong> Na manuele vetsmering met de vetspuit zit het lager overvol. Bij ${curRpm} RPM ondervinden de kogels zware ploegweerstand, waardoor de temperatuur piekt naar ${Math.round(twinSimState.temperature)}°C en het vet sneller oxideert.`;
 
       if (twinCavityLight) {
         twinCavityLight.color.setHex(0x84cc16);
         twinCavityLight.intensity = 2.0;
       }
 
-    } else if (day <= 22) {
+    } else if (day <= pb.p2End) {
       // Phase 2: Brief optimal window
-      const t = (day - 4) / 18;
-      twinSimState.filmHealth = 0.95 - t * 0.15;
-      twinSimState.friction = 0.006 + t * 0.005;
-      twinSimState.temperature = 48.0 + t * 3.0;
-      twinSimState.lifetimeFactor = 1.2 - t * 0.2;
-
       filmColorHex = 0x10b981;
       filmEmissiveHex = 0x059669;
       dotColor = "#10b981";
@@ -25237,24 +25251,21 @@ function updateTwinSimulationPhysics(simDt) {
       filmSubtext = "Overtollig vet is weggeperst. Stabiele vloeistofscheiding.";
       frictionBadgeText = "Normale wrijving";
       frictionBadgeColor = "#34d399";
-      tempBadgeText = "Normaal";
+      tempBadgeText = "Normaal (" + Math.round(twinSimState.temperature) + "°C)";
       tempBadgeColor = "#94a3b8";
-      diagnosisText = "<strong style='color: #34d399;'>Fase 2 (Dag 4-22) - Kortstondig optimaal:</strong> Het overmatige vet is weggeperst en het lager draait tijdelijk in zijn ideale bereik. Dit gunstige venster duurt echter minder dan een derde van het totale smeerinterval.";
+      wearBadgeText = "Nul slijtage";
+      wearBadgeColor = "#34d399";
+      lifetimeBadgeText = twinSimState.lifetimeFactor.toFixed(1) + "x";
+      lifetimeBadgeColor = "#38bdf8";
+      diagnosisText = `<strong style='color: #34d399;'>Fase 2 (Dag ${Math.round(pb.p1End)}-${Math.round(pb.p2End)}) - Kortstondig optimaal:</strong> Het overmatige vet is weggeperst en het lager draait tijdelijk in zijn ideale bereik. Bij ${curRpm} RPM duurt dit gunstige venster echter slechts tot dag ${Math.round(pb.p2End)}.`;
 
       if (twinCavityLight) {
         twinCavityLight.color.setHex(0x10b981);
         twinCavityLight.intensity = 2.2;
       }
 
-    } else if (day <= 42) {
+    } else if (day <= pb.p3End) {
       // Phase 3: Degradation & Boundary Lubrication
-      const t = (day - 22) / 20;
-      twinSimState.filmHealth = 0.80 - t * 0.55;
-      twinSimState.friction = 0.011 + t * 0.030;
-      twinSimState.temperature = 51.0 + t * 16.0;
-      twinSimState.wearUm += 0.005 * simDt;
-      twinSimState.lifetimeFactor = Math.max(0.6, 1.0 - t * 0.4);
-
       filmColorHex = 0xf59e0b;
       filmEmissiveHex = 0xb45309;
       dotColor = "#f59e0b";
@@ -25266,11 +25277,11 @@ function updateTwinSimulationPhysics(simDt) {
       frictionBadgeColor = "#f59e0b";
       tempBadgeText = "Oplopend (" + Math.round(twinSimState.temperature) + "°C)";
       tempBadgeColor = "#f59e0b";
-      wearBadgeText = "Beginnende slijtage";
+      wearBadgeText = "Beginnende slijtage (" + twinSimState.wearUm.toFixed(1) + " μm)";
       wearBadgeColor = "#f59e0b";
-      lifetimeBadgeText = "-40% verkorting";
+      lifetimeBadgeText = twinSimState.lifetimeFactor.toFixed(1) + "x verkorting";
       lifetimeBadgeColor = "#f59e0b";
-      diagnosisText = "<strong style='color: #f59e0b;'>Fase 3 (Dag 22-42) - Filmverdunning & Grenssmering:</strong> De basisolie vloeit weg of verdampt en de verdikker droogt uit. De vloeistoffilm verdwijnt, waardoor microscopische oneffenheden elkaar beginnen te raken.";
+      diagnosisText = `<strong style='color: #f59e0b;'>Fase 3 (Dag ${Math.round(pb.p2End)}-${Math.round(pb.p3End)}) - Filmverdunning & Grenssmering:</strong> De basisolie vloeit weg of verdampt en de verdikker droogt uit. De vloeistoffilm verdwijnt, waardoor microscopische oneffenheden elkaar beginnen te raken bij ${curRpm} RPM.`;
 
       if (twinCavityLight) {
         twinCavityLight.color.setHex(0xf59e0b);
@@ -25279,13 +25290,6 @@ function updateTwinSimulationPhysics(simDt) {
 
     } else {
       // Phase 4: Dry Run / Starvation / Metal Contact
-      const t = (day - 42) / 18;
-      twinSimState.filmHealth = Math.max(0.04, 0.25 - t * 0.21);
-      twinSimState.friction = 0.041 + t * 0.045 + (Math.sin(now * 0.05) > 0.6 ? 0.015 : 0);
-      twinSimState.temperature = 67.0 + t * 20.0 + Math.random() * 2.0;
-      twinSimState.wearUm += 0.07 * simDt;
-      twinSimState.lifetimeFactor = Math.max(0.35, 0.6 - t * 0.25);
-
       filmColorHex = 0xef4444;
       filmEmissiveHex = 0xdc2626;
       dotColor = "#ef4444";
@@ -25293,15 +25297,15 @@ function updateTwinSimulationPhysics(simDt) {
       hudTitle = "🚨 DROOGLOOP & METAALCONTACT (" + Math.round(twinSimState.filmHealth * 100) + "%)";
       hudDesc = "Vloeistoffilm verbroken! Wrijvingspieken, pitting en zware slijtage";
       filmSubtext = "Direct metaal-op-metaal contact. Spoorvorming, adhesieve slijtage en risico op vastlopen.";
-      frictionBadgeText = "🚨 Extreem hoog (+800%)";
+      frictionBadgeText = "🚨 Extreem hoog";
       frictionBadgeColor = "#ef4444";
-      tempBadgeText = "🚨 Alarm (>85°C)";
+      tempBadgeText = "🚨 Alarm (" + Math.round(twinSimState.temperature) + "°C)";
       tempBadgeColor = "#ef4444";
-      wearBadgeText = "Zware spoorvorming";
+      wearBadgeText = "Zware spoorvorming (" + twinSimState.wearUm.toFixed(1) + " μm)";
       wearBadgeColor = "#ef4444";
-      lifetimeBadgeText = "-65% levensduurverlies";
+      lifetimeBadgeText = twinSimState.lifetimeFactor.toFixed(1) + "x verlies";
       lifetimeBadgeColor = "#ef4444";
-      diagnosisText = "<strong style='color: #ef4444;'>Fase 4 (Dag 42-60) - DROOGLOOP & CATASTROFALE SLIJTAGE:</strong> De smeerfilm is volledig verbroken. Metaal-op-metaal contact veroorzaakt micro-lassen en pitting. Dit is de hoofdoorzaak van 54% van alle ongeplande lagerschades!";
+      diagnosisText = `<strong style='color: #ef4444;'>Fase 4 (Dag ${Math.round(pb.p3End)}-60) - DROOGLOOP & CATASTROFALE SLIJTAGE:</strong> De smeerfilm is volledig verbroken. Bij ${curRpm} RPM veroorzaakt direct metaal-op-metaal contact zware slijtage (${twinSimState.wearUm.toFixed(1)} μm) en micro-lassen. Dit is de hoofdoorzaak van 54% van alle ongeplande lagerschades!`;
 
       if (twinCavityLight) {
         twinCavityLight.color.setHex(0xef4444);
@@ -25820,20 +25824,22 @@ function initDigitalTwinGraph() {
     const day = Math.max(0, Math.min(60, ((mouseX - padL) / plotW) * 60));
     twinSimState.graphHoverDay = day;
 
+    const curRpm = (twinSimState && twinSimState.rpm) ? twinSimState.rpm : 1450;
+    const m = getTwinMetricsAtDay(day, curRpm);
+    const pb = m.phaseBoundaries || { p1End: 4, p2End: 22, p3End: 42 };
+
     let phaseName = "Fase 1: Overvulling";
     let phaseColor = "#a3e635";
-    if (day > 42) {
+    if (day > pb.p3End) {
       phaseName = "Fase 4: Droogloop / Alarm";
       phaseColor = "#ef4444";
-    } else if (day > 22) {
+    } else if (day > pb.p2End) {
       phaseName = "Fase 3: Grenssmering";
       phaseColor = "#f59e0b";
-    } else if (day > 4) {
+    } else if (day > pb.p1End) {
       phaseName = "Fase 2: Optimaal venster";
       phaseColor = "#34d399";
     }
-
-    const m = getTwinMetricsAtDay(day);
 
     tooltip.style.display = "block";
     tooltip.style.left = mouseX + "px";
@@ -25881,37 +25887,69 @@ function initDigitalTwinGraph() {
   });
 }
 
-function getTwinMetricsAtDay(day) {
+function getTwinMetricsAtDay(day, customRpm) {
+  const rpm = (typeof customRpm === "number" && customRpm > 0)
+    ? customRpm
+    : (typeof twinSimState !== "undefined" && twinSimState.rpm ? twinSimState.rpm : 1450);
+
+  // Snelheidsverhouding t.o.v. standaard industriële referentie (1450 RPM)
+  const speedRatio = Math.max(0.1, Math.min(4.5, rpm / 1450));
+
+  // SKF Vetlevensduur & degradatiefactor: hogere toerentallen verkorten het effectieve vetinterval (tf ~ 1/n)
+  // Bij 3000 RPM (speedRatio ~ 2.07) treedt uitdroging veel sneller op.
+  // Bij 500 RPM (speedRatio ~ 0.34) blijft de film veel langer behouden.
+  const phaseScale = Math.pow(1 / speedRatio, 0.55);
+
+  // Dynamische fasegrenzen in dagen (op 1450 RPM: 4d, 22d, 42d, 60d)
+  const p1End = Math.max(1.5, Math.min(8.0, 4.0 * Math.pow(speedRatio, 0.3)));
+  const p2End = Math.max(p1End + 3.0, Math.min(50.0, p1End + 18.0 * phaseScale));
+  const p3End = Math.max(p2End + 4.0, Math.min(58.0, p2End + 20.0 * phaseScale));
+
+  // Thermische basisschaal: bij hoger toerental levert schuifwrijving meer warmte op
+  const tempOffset = (speedRatio - 1.0) * 16.0;
+
   let friction, temp, wear, film, life;
-  if (day <= 4) {
-    friction = 0.022;
-    temp = 68.0 + (4 - Math.abs(day - 2)) * 1.4;
+
+  if (day <= p1End) {
+    // Fase 1: Overvulling / Churning
+    const churnFric = 0.022 * Math.pow(speedRatio, 0.35);
+    friction = churnFric;
+    const peakOffset = (p1End - Math.abs(day - (p1End * 0.5))) * 1.5;
+    temp = Math.max(40.0, 68.0 + tempOffset * 1.15 + peakOffset);
     wear = 0.0;
     film = 1.0;
     life = 1.0;
-  } else if (day <= 22) {
-    const t = (day - 4) / 18;
-    friction = 0.006 + t * 0.005;
-    temp = 48.0 + t * 3.0;
+  } else if (day <= p2End) {
+    // Fase 2: Optimaal venster
+    const t = (day - p1End) / Math.max(0.1, (p2End - p1End));
+    friction = (0.006 + t * 0.005) * Math.pow(speedRatio, 0.15);
+    temp = Math.max(32.0, 48.0 + tempOffset + t * 3.0);
     wear = 0.0;
     film = 0.95 - t * 0.15;
-    life = 1.2 - t * 0.2;
-  } else if (day <= 42) {
-    const t = (day - 22) / 20;
-    friction = 0.011 + t * 0.030;
-    temp = 51.0 + t * 16.0;
-    wear = t * 0.4;
+    life = (1.2 - t * 0.2) * Math.pow(phaseScale, 0.3);
+  } else if (day <= p3End) {
+    // Fase 3: Grenssmering / Filmverdunning
+    const t = (day - p2End) / Math.max(0.1, (p3End - p2End));
+    friction = (0.011 + t * 0.030) * Math.pow(speedRatio, 0.22);
+    temp = Math.max(38.0, (48.0 + tempOffset + 3.0) + t * (16.0 + (speedRatio - 1.0) * 5.0));
+    // Slijtage volgens Archard (cumulatief aantal omwentelingen)
+    wear = t * 0.4 * speedRatio;
     film = 0.80 - t * 0.55;
-    life = Math.max(0.6, 1.0 - t * 0.4);
+    life = Math.max(0.4, (1.0 - t * 0.4) * Math.pow(phaseScale, 0.4));
   } else {
-    const t = (day - 42) / 18;
-    friction = 0.041 + t * 0.045;
-    temp = 67.0 + t * 20.0;
-    wear = 0.4 + t * 1.6;
-    film = Math.max(0.04, 0.25 - t * 0.21);
-    life = Math.max(0.35, 0.6 - t * 0.25);
+    // Fase 4: Droogloop & Metaalcontact
+    const t = (day - p3End) / Math.max(0.1, (60.0 - p3End));
+    friction = (0.041 + t * 0.045) * Math.pow(speedRatio, 0.25);
+    temp = Math.max(45.0, (67.0 + tempOffset * 1.25) + t * (20.0 + (speedRatio - 1.0) * 8.0));
+    // Exponentiële cumulatieve slijtage bij droogloop
+    const baseWear = 0.4 * speedRatio;
+    const dryRunWear = (t * 1.6 + Math.pow(t, 2) * 1.2) * Math.pow(speedRatio, 1.25);
+    wear = baseWear + dryRunWear;
+    film = Math.max(0.02, (0.25 - t * 0.22));
+    life = Math.max(0.2, (0.6 - t * 0.3) * Math.pow(phaseScale, 0.5));
   }
-  return { friction, temp, wear, film, life };
+
+  return { friction, temp, wear, film, life, phaseBoundaries: { p1End, p2End, p3End } };
 }
 
 function renderTwinTelemetryGraph() {
@@ -25948,17 +25986,23 @@ function renderTwinTelemetryGraph() {
     return padL + (day / 60) * plotW;
   }
 
+  const curRpm = (twinSimState && twinSimState.rpm) ? twinSimState.rpm : 1450;
+  const speedRatio = Math.max(0.1, Math.min(4.5, curRpm / 1450));
+
   // Current simulation day
   const cycleDuration = 30;
   const cycleTime = (twinSimState.simTime) % cycleDuration;
   const currentDay = (twinSimState.mode === "manual") ? (cycleTime / cycleDuration) * 60 : 0;
 
-  // 1. Phase Background Bands
+  const curMetricsNow = getTwinMetricsAtDay(currentDay, curRpm);
+  const pb = curMetricsNow.phaseBoundaries || { p1End: 4, p2End: 22, p3End: 42 };
+
+  // 1. Phase Background Bands (dynamisch meeschalend met RPM)
   const phases = [
-    { start: 0, end: 4, color: "rgba(132, 204, 22, 0.09)", stroke: "rgba(132, 204, 22, 0.3)", title: "F1: Overvulling", textColor: "#a3e635" },
-    { start: 4, end: 22, color: "rgba(16, 185, 129, 0.08)", stroke: "rgba(16, 185, 129, 0.3)", title: "F2: Optimaal venster", textColor: "#34d399" },
-    { start: 22, end: 42, color: "rgba(245, 158, 11, 0.08)", stroke: "rgba(245, 158, 11, 0.3)", title: "F3: Grenssmering", textColor: "#fbbf24" },
-    { start: 42, end: 60, color: "rgba(239, 68, 68, 0.11)", stroke: "rgba(239, 68, 68, 0.3)", title: "F4: Droogloop / Slijtage", textColor: "#f87171" }
+    { start: 0, end: pb.p1End, color: "rgba(132, 204, 22, 0.09)", stroke: "rgba(132, 204, 22, 0.3)", title: "F1: Overvulling", shortTitle: "F1", textColor: "#a3e635" },
+    { start: pb.p1End, end: pb.p2End, color: "rgba(16, 185, 129, 0.08)", stroke: "rgba(16, 185, 129, 0.3)", title: "F2: Optimaal venster", shortTitle: "F2", textColor: "#34d399" },
+    { start: pb.p2End, end: pb.p3End, color: "rgba(245, 158, 11, 0.08)", stroke: "rgba(245, 158, 11, 0.3)", title: "F3: Grenssmering", shortTitle: "F3", textColor: "#fbbf24" },
+    { start: pb.p3End, end: 60, color: "rgba(239, 68, 68, 0.11)", stroke: "rgba(239, 68, 68, 0.3)", title: "F4: Droogloop / Slijtage", shortTitle: "F4", textColor: "#f87171" }
   ];
 
   phases.forEach(p => {
@@ -25980,10 +26024,13 @@ function renderTwinTelemetryGraph() {
       ctx.setLineDash([]);
     }
 
-    ctx.font = "800 9.5px 'Outfit', sans-serif";
-    ctx.fillStyle = p.textColor;
-    ctx.textAlign = "center";
-    ctx.fillText(p.title, x1 + pw / 2, padT - 8);
+    const label = (pw > 70 ? p.title : (pw > 30 ? p.shortTitle : ""));
+    if (label) {
+      ctx.font = "800 9.5px 'Outfit', sans-serif";
+      ctx.fillStyle = p.textColor;
+      ctx.textAlign = "center";
+      ctx.fillText(label, x1 + pw / 2, padT - 8);
+    }
   });
 
   // 2. Horizontal Grid & Y-Axis Labels
@@ -26003,13 +26050,13 @@ function renderTwinTelemetryGraph() {
     ctx.textAlign = "right";
 
     if (twinSimState.graphFilter === "friction") {
-      const uVal = 0.002 + val * (0.090 - 0.002);
+      const uVal = 0.002 + val * (0.100 - 0.002);
       ctx.fillText(uVal.toFixed(3) + "μ", padL - 5, y + 3);
     } else if (twinSimState.graphFilter === "temp") {
-      const tVal = 35 + val * 55;
+      const tVal = 25 + val * 95;
       ctx.fillText(Math.round(tVal) + "°C", padL - 5, y + 3);
     } else if (twinSimState.graphFilter === "wear") {
-      const wVal = val * 2.0;
+      const wVal = val * 6.0;
       ctx.fillText(wVal.toFixed(1) + "μm", padL - 5, y + 3);
     } else if (twinSimState.graphFilter === "film") {
       ctx.fillText(Math.round(val * 100) + "%", padL - 5, y + 3);
@@ -26043,9 +26090,9 @@ function renderTwinTelemetryGraph() {
     return padT + plotH * (1 - clamped);
   }
 
-  function normFriction(u) { return (u - 0.002) / (0.090 - 0.002); }
-  function normTemp(t) { return (t - 35) / 55; }
-  function normWear(w) { return w / 2.0; }
+  function normFriction(u) { return (u - 0.002) / (0.100 - 0.002); }
+  function normTemp(t) { return (t - 25) / 95; }
+  function normWear(w) { return w / 6.0; }
   function normFilm(f) { return f; }
 
   const showAll = twinSimState.graphFilter === "all";
@@ -26059,7 +26106,7 @@ function renderTwinTelemetryGraph() {
     ctx.lineWidth = 1.5;
     for (let i = 0; i <= numSteps; i++) {
       const d = i * stepSize;
-      const m = getTwinMetricsAtDay(d);
+      const m = getTwinMetricsAtDay(d, curRpm);
       const x = getX(d);
       const y = getY(normFriction(m.friction));
       if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
@@ -26068,7 +26115,21 @@ function renderTwinTelemetryGraph() {
     ctx.setLineDash([]);
 
     // Solid steady Green Micpol® Line
-    const autoY = getY(normFilm(0.98));
+    let autoNorm = normFilm(0.98);
+    let autoLabel = "✨ Pulsarlube Micro-dosering: Continu 100% EHL Smeerfilm, 0 Slijtage";
+    if (twinSimState.graphFilter === "temp") {
+      const autoTemp = 39.0 + (speedRatio - 1.0) * 10.0;
+      autoNorm = normTemp(autoTemp);
+      autoLabel = `✨ Pulsarlube Micro-dosering: Stabiel ${Math.round(autoTemp)}°C bij ${Math.round(curRpm)} RPM (Geen oververhitting)`;
+    } else if (twinSimState.graphFilter === "wear") {
+      autoNorm = normWear(0.0);
+      autoLabel = `✨ Pulsarlube Micro-dosering: Continu 0,0 μm Slijtage bij ${Math.round(curRpm)} RPM`;
+    } else if (twinSimState.graphFilter === "friction") {
+      const autoFric = 0.0028 * Math.pow(speedRatio, 0.12);
+      autoNorm = normFriction(autoFric);
+      autoLabel = `✨ Pulsarlube Micro-dosering: Minimale wrijving (${autoFric.toFixed(4)}μ)`;
+    }
+    const autoY = getY(autoNorm);
     ctx.shadowColor = "#10b981";
     ctx.shadowBlur = 10;
     ctx.beginPath();
@@ -26082,7 +26143,7 @@ function renderTwinTelemetryGraph() {
     ctx.font = "800 10.5px 'Outfit', sans-serif";
     ctx.fillStyle = "#34d399";
     ctx.textAlign = "left";
-    ctx.fillText("✨ Pulsarlube Micro-dosering: Continu 100% EHL Smeerfilm, 0 Slijtage", padL + 12, autoY - 10);
+    ctx.fillText(autoLabel, padL + 12, autoY - 10);
 
   } else {
     // MANUAL MODE: Draw 4 Curves
@@ -26129,7 +26190,7 @@ function renderTwinTelemetryGraph() {
       ctx.beginPath();
       for (let i = 0; i <= numSteps; i++) {
         const d = i * stepSize;
-        const m = getTwinMetricsAtDay(d);
+        const m = getTwinMetricsAtDay(d, curRpm);
         const x = getX(d);
         const y = getY(curve.normFn(m));
         if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
@@ -26156,7 +26217,7 @@ function renderTwinTelemetryGraph() {
 
     // 5. MOVING TIME TRACKER LINE & ARROW ("bewegende lijn of pijl")
     const curX = getX(currentDay);
-    const curMetrics = getTwinMetricsAtDay(currentDay);
+    const curMetrics = getTwinMetricsAtDay(currentDay, curRpm);
 
     // Glowing vertical needle
     ctx.shadowColor = "#38bdf8";
@@ -26227,7 +26288,7 @@ function renderTwinTelemetryGraph() {
   const dayIndEl = document.getElementById("twinGraphDayIndicator");
   if (dayIndEl) {
     if (isAuto) {
-      dayIndEl.innerHTML = "<span style='color: #10b981;'>Continu Micro (100% film)</span>";
+      dayIndEl.innerHTML = `<span style='color: #10b981;'>Continu Micro (100% film • ${Math.round(curRpm)} RPM)</span>`;
     } else {
       dayIndEl.innerHTML = "Dag " + Math.round(currentDay) + " / 60";
     }
@@ -26349,6 +26410,16 @@ function onTwinRpmChange(val) {
     if (/\(\d+\s*RPM\)/i.test(titleEl.textContent)) {
       titleEl.textContent = titleEl.textContent.replace(/\(\d+\s*RPM\)/i, `(${rpm} RPM)`);
     }
+  }
+
+  // Update de fysica en telemetrie direct voor het huidige frame zodat de badges live mee veranderen
+  if (typeof updateTwinSimulationPhysics === "function") {
+    updateTwinSimulationPhysics(0);
+  }
+
+  // Herteken de grafiek onmiddellijk zodat de curven en fasen live vloeiend meebewegen
+  if (typeof renderTwinTelemetryGraph === "function") {
+    renderTwinTelemetryGraph();
   }
 }
 
