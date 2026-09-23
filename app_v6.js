@@ -25988,11 +25988,13 @@ function renderTwinTelemetryGraph() {
 
   const curRpm = (twinSimState && twinSimState.rpm) ? twinSimState.rpm : 1450;
   const speedRatio = Math.max(0.1, Math.min(4.5, curRpm / 1450));
+  const isAuto = (twinSimState && twinSimState.mode === "auto");
+  const showAll = (twinSimState && twinSimState.graphFilter === "all");
 
   // Current simulation day
   const cycleDuration = 30;
   const cycleTime = (twinSimState.simTime) % cycleDuration;
-  const currentDay = (twinSimState.mode === "manual") ? (cycleTime / cycleDuration) * 60 : 0;
+  const currentDay = (!isAuto) ? (cycleTime / cycleDuration) * 60 : 0;
 
   const curMetricsNow = getTwinMetricsAtDay(currentDay, curRpm);
   const pb = curMetricsNow.phaseBoundaries || { p1End: 4, p2End: 22, p3End: 42 };
@@ -26024,12 +26026,15 @@ function renderTwinTelemetryGraph() {
       ctx.setLineDash([]);
     }
 
-    const label = (pw > 70 ? p.title : (pw > 30 ? p.shortTitle : ""));
-    if (label) {
-      ctx.font = "800 9.5px 'Outfit', sans-serif";
-      ctx.fillStyle = p.textColor;
-      ctx.textAlign = "center";
-      ctx.fillText(label, x1 + pw / 2, padT - 8);
+    // Phase header labels are ONLY shown in manual mode (in automatic mode, there are no degradation phases!)
+    if (!isAuto) {
+      const label = (pw > 70 ? p.title : (pw > 30 ? p.shortTitle : ""));
+      if (label) {
+        ctx.font = "800 9.5px 'Outfit', sans-serif";
+        ctx.fillStyle = p.textColor;
+        ctx.textAlign = "center";
+        ctx.fillText(label, x1 + pw / 2, padT - 8);
+      }
     }
   });
 
@@ -26095,11 +26100,34 @@ function renderTwinTelemetryGraph() {
   function normWear(w) { return w / 6.0; }
   function normFilm(f) { return f; }
 
-  const showAll = twinSimState.graphFilter === "all";
-  const isAuto = twinSimState.mode === "auto";
-
   if (isAuto) {
+    let autoNorm = normFilm(0.98);
+    let autoLabel = "✨ Continu 100% EHL Smeerfilm • 0 Slijtage";
+    if (twinSimState.graphFilter === "temp") {
+      const autoTemp = 39.0 + (speedRatio - 1.0) * 10.0;
+      autoNorm = normTemp(autoTemp);
+      autoLabel = `✨ Continu stabiel ${Math.round(autoTemp)}°C (Geen oververhitting)`;
+    } else if (twinSimState.graphFilter === "wear") {
+      autoNorm = normWear(0.0);
+      autoLabel = "✨ Continu 0,0 μm Slijtage (Geen slijtage)";
+    } else if (twinSimState.graphFilter === "friction") {
+      const autoFric = 0.0028 * Math.pow(speedRatio, 0.12);
+      autoNorm = normFriction(autoFric);
+      autoLabel = `✨ Minimale wrijving (${autoFric.toFixed(4)}μ)`;
+    }
+
+    // Top header label in automatische modus (boven de grafiek waar in manuele modus de fasekoppen staan)
+    ctx.font = "800 10.5px 'Outfit', sans-serif";
+    ctx.fillStyle = "#34d399";
+    ctx.textAlign = "left";
+    ctx.fillText(autoLabel, padL + 6, padT - 8);
+
     // Reference dashed manual curve for comparison
+    let refNormFn = m => normFilm(m.film);
+    if (twinSimState.graphFilter === "temp") refNormFn = m => normTemp(m.temp);
+    else if (twinSimState.graphFilter === "wear") refNormFn = m => normWear(m.wear);
+    else if (twinSimState.graphFilter === "friction") refNormFn = m => normFriction(m.friction);
+
     ctx.beginPath();
     ctx.setLineDash([4, 4]);
     ctx.strokeStyle = "rgba(239, 68, 68, 0.4)";
@@ -26108,27 +26136,13 @@ function renderTwinTelemetryGraph() {
       const d = i * stepSize;
       const m = getTwinMetricsAtDay(d, curRpm);
       const x = getX(d);
-      const y = getY(normFriction(m.friction));
+      const y = getY(refNormFn(m));
       if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
     }
     ctx.stroke();
     ctx.setLineDash([]);
 
     // Solid steady Green Micpol® Line
-    let autoNorm = normFilm(0.98);
-    let autoLabel = "✨ Pulsarlube Micro-dosering: Continu 100% EHL Smeerfilm, 0 Slijtage";
-    if (twinSimState.graphFilter === "temp") {
-      const autoTemp = 39.0 + (speedRatio - 1.0) * 10.0;
-      autoNorm = normTemp(autoTemp);
-      autoLabel = `✨ Pulsarlube Micro-dosering: Stabiel ${Math.round(autoTemp)}°C bij ${Math.round(curRpm)} RPM (Geen oververhitting)`;
-    } else if (twinSimState.graphFilter === "wear") {
-      autoNorm = normWear(0.0);
-      autoLabel = `✨ Pulsarlube Micro-dosering: Continu 0,0 μm Slijtage bij ${Math.round(curRpm)} RPM`;
-    } else if (twinSimState.graphFilter === "friction") {
-      const autoFric = 0.0028 * Math.pow(speedRatio, 0.12);
-      autoNorm = normFriction(autoFric);
-      autoLabel = `✨ Pulsarlube Micro-dosering: Minimale wrijving (${autoFric.toFixed(4)}μ)`;
-    }
     const autoY = getY(autoNorm);
     ctx.shadowColor = "#10b981";
     ctx.shadowBlur = 10;
@@ -26139,11 +26153,6 @@ function renderTwinTelemetryGraph() {
     ctx.lineTo(padL + plotW, autoY);
     ctx.stroke();
     ctx.shadowBlur = 0;
-
-    ctx.font = "800 10.5px 'Outfit', sans-serif";
-    ctx.fillStyle = "#34d399";
-    ctx.textAlign = "left";
-    ctx.fillText(autoLabel, padL + 12, autoY - 10);
 
   } else {
     // MANUAL MODE: Draw 4 Curves
@@ -26286,12 +26295,13 @@ function renderTwinTelemetryGraph() {
 
   // Update day indicator in footer
   const dayIndEl = document.getElementById("twinGraphDayIndicator");
-  if (dayIndEl) {
-    if (isAuto) {
-      dayIndEl.innerHTML = `<span style='color: #10b981;'>Continu Micro (100% film • ${Math.round(curRpm)} RPM)</span>`;
-    } else {
-      dayIndEl.innerHTML = "Dag " + Math.round(currentDay) + " / 60";
-    }
+  const footerHintEl = document.getElementById("twinGraphFooterHint");
+  if (isAuto) {
+    if (dayIndEl) dayIndEl.innerHTML = "<span style='color: #10b981;'>Continu 100%</span>";
+    if (footerHintEl) footerHintEl.innerHTML = "✨ <em style='color: #34d399;'>Continu micro-gedoseerd • Geen zaagtandverval</em>";
+  } else {
+    if (dayIndEl) dayIndEl.innerHTML = "Dag " + Math.round(currentDay) + " / 60";
+    if (footerHintEl) footerHintEl.innerHTML = "💡 <em>Klik of sleep op de tijdlijn om direct naar een dag te springen</em>";
   }
 
   ctx.restore();
