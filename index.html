@@ -3980,10 +3980,10 @@
 
               <!-- Graph Footer Bar -->
               <div style="display: flex; align-items: center; justify-content: space-between; padding: 5px 12px; font-size: 10px; color: #64748b; background: rgba(11,17,32,0.9); border-top: 1px solid rgba(255,255,255,0.05);">
-                <div style="display: flex; align-items: center; gap: 8px;">
-                  <span>💡 <em>Klik of sleep op de tijdlijn om direct naar een dag te springen</em></span>
+                <div style="display: flex; align-items: center; gap: 8px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                  <span id="twinGraphFooterHint">💡 <em>Klik of sleep op de tijdlijn om direct naar een dag te springen</em></span>
                 </div>
-                <div id="twinGraphDayIndicator" style="font-weight: 800; color: #38bdf8; font-family: monospace; font-size: 11px;">
+                <div id="twinGraphDayIndicator" style="font-weight: 800; color: #38bdf8; font-family: monospace; font-size: 11px; white-space: nowrap; margin-left: 8px;">
                   Dag 0 / 60
                 </div>
               </div>
