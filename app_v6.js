@@ -8133,7 +8133,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 function handleLogin(event) {
   if (event) event.preventDefault();
-  return processLogin(true);
+  return processLogin(false);
 }
 
 function handleLoginDirect(event) {
@@ -8143,7 +8143,7 @@ function handleLoginDirect(event) {
 
 function handleLoginWithIntro(event) {
   if (event) event.preventDefault();
-  return processLogin(true);
+  return processLogin(false);
 }
 
 function processLogin(includeIntro = false) {
