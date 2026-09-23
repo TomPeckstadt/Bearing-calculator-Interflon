@@ -917,20 +917,41 @@
     }
 
     #rasterInteractiveWrapper.raster-modal-fullscreen #devicesFilterBarContainer {
-      overflow-x: auto !important;
-      overflow-y: hidden !important;
-      scrollbar-width: thin !important;
-      scrollbar-color: rgba(255,255,255,0.2) transparent !important;
-      padding-bottom: 1px !important;
+      display: flex !important;
+      align-items: center !important;
+      gap: 6px !important;
+      width: 100% !important;
+      min-width: 0 !important;
+      flex-wrap: nowrap !important;
+      overflow: visible !important;
+      padding-bottom: 0 !important;
     }
 
-    #rasterInteractiveWrapper.raster-modal-fullscreen #devicesFilterBarContainer > div:first-child {
-      flex-wrap: nowrap !important;
-      width: auto !important;
-      gap: 6px !important;
+    #rasterInteractiveWrapper.raster-modal-fullscreen #deviceFilterPillsContainer {
+      display: flex !important;
+      align-items: center !important;
+      gap: 4px !important;
+      overflow-x: auto !important;
+      overflow-y: hidden !important;
+      min-width: 0 !important;
+      flex: 0 1 auto !important;
+      max-width: 100% !important;
+      scrollbar-width: thin !important;
+      scrollbar-color: rgba(255,255,255,0.2) transparent !important;
+      padding-bottom: 2px !important;
+    }
+
+    #deviceFilterPillsContainer::-webkit-scrollbar {
+      height: 3px;
+    }
+    #deviceFilterPillsContainer::-webkit-scrollbar-thumb {
+      background: rgba(255,255,255,0.25);
+      border-radius: 3px;
     }
 
     #rasterInteractiveWrapper.raster-modal-fullscreen #deviceFilterPills {
+      display: inline-flex !important;
+      align-items: center !important;
       flex-wrap: nowrap !important;
       gap: 4px !important;
     }
@@ -1733,7 +1754,7 @@
         <div class="raster-toolbar-panel" id="rasterToolbarPanel">
           <!-- Tier 1: Weergave, Bereik en Snelle Acties -->
           <div class="raster-toolbar-row" id="rasterControlsRow">
-            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+            <div style="display: flex; align-items: center; gap: 6px; flex-wrap: nowrap;">
               <div class="raster-toggle-group">
                 <button type="button" id="btnView3D" class="raster-toggle-btn active" onclick="setLayoutViewMode('3d')" title="3D Isometrisch perspectief">
                   🧊 3D
@@ -1745,20 +1766,29 @@
 
               <div class="raster-select-group">
                 <label for="layoutScaleSelect">Bereik:</label>
-                <select id="layoutScaleSelect" onchange="onLayoutScaleChange(this.value)">
+                <select id="layoutScaleSelect" onchange="onLayoutScaleChange(this.value)" style="max-width: 125px;">
                   <option value="4">Tot 4 m (Compact)</option>
                   <option value="6">Tot 6 m (Klein)</option>
-                  <option value="10" selected>10 × 10 m (Standaard)</option>
+                  <option value="10" selected>10 × 10 m</option>
                   <option value="15">Tot 15 m (Middel)</option>
                   <option value="20">Tot 20 m (Groot)</option>
-                  <option value="30">Tot 30 m (Transportlijn)</option>
-                  <option value="50">Tot 50 m (Fabriekshal)</option>
-                  <option value="100">Tot 100 m (100 meter / Industrie)</option>
+                  <option value="30">Tot 30 m (Transport)</option>
+                  <option value="50">Tot 50 m (Fabriek)</option>
+                  <option value="100">Tot 100 m (Industrie)</option>
                 </select>
               </div>
+
+              <button type="button" onclick="openDeviceAdviceModal()" class="raster-btn raster-btn-advice" title="Automatisch advies voor het optimale aantal en de beste posities van smeertoestellen">
+                💡 Advies & Auto-Plaatsing
+              </button>
+              <button type="button" id="btnToggleBearingDistances" onclick="toggleBearingDistances()" class="raster-btn raster-btn-bearing-distances" title="Toon of verberg onderlinge afstanden tussen de lagers (AAN / UIT)">
+                <span style="font-size: 13px; line-height: 1;">📏</span>
+                <span>Afstand lagers</span>
+                <span id="bearingDistancesBadge" style="font-size: 9.5px; font-weight: 700; padding: 1px 5px; border-radius: 4px; background: #e2e8f0; color: #64748b;">UIT</span>
+              </button>
             </div>
 
-            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+            <div style="display: flex; align-items: center; gap: 6px; flex-wrap: nowrap;">
               <button type="button" id="btnUndoRaster" onclick="undoLastRasterAction()" class="raster-btn raster-btn-secondary raster-btn-undo" title="Geen wijzigingen in het raster om ongedaan te maken" disabled>
                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M9 14L4 9l5-5"/>
@@ -1781,26 +1811,18 @@
           <div class="raster-toolbar-divider"></div>
 
           <!-- Tier 2: Meetpunten & Smeertoestellen Selectie -->
-          <div class="raster-toolbar-row" id="devicesFilterBarContainer">
-            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap; width: 100%;">
-              <span class="filter-bar-label" style="font-size: 12px; font-weight: 700; color: #475569; display: inline-flex; align-items: center; gap: 5px; white-space: nowrap;">
-                <span>📍 Meten vanaf:</span>
-              </span>
-              <div id="deviceFilterPills" style="display: inline-flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+          <div class="raster-toolbar-row" id="devicesFilterBarContainer" style="display: flex; align-items: center; gap: 6px; width: 100%; min-width: 0; flex-wrap: nowrap;">
+            <span class="filter-bar-label" style="font-size: 12px; font-weight: 700; color: #475569; display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; flex-shrink: 0;">
+              <span>📍 Meten vanaf:</span>
+            </span>
+            <div id="deviceFilterPillsContainer" style="display: flex; align-items: center; gap: 5px; overflow-x: auto; min-width: 0; flex: 0 1 auto; max-width: 100%; scrollbar-width: thin;">
+              <div id="deviceFilterPills" style="display: inline-flex; align-items: center; gap: 5px; flex-wrap: nowrap;">
                 <!-- Rendered dynamically by renderDeviceFilterPills() -->
               </div>
-              <button type="button" onclick="addNewDevice()" class="raster-btn raster-btn-add" title="Voeg een extra meetpunt of smeertoestel toe">
-                ➕ Toestel
-              </button>
-              <button type="button" onclick="openDeviceAdviceModal()" class="raster-btn raster-btn-advice" title="Automatisch advies voor het optimale aantal en de beste posities van smeertoestellen">
-                💡 Advies & Auto-Plaatsing
-              </button>
-              <button type="button" id="btnToggleBearingDistances" onclick="toggleBearingDistances()" class="raster-btn raster-btn-bearing-distances" title="Toon of verberg onderlinge afstanden tussen de lagers (AAN / UIT)">
-                <span style="font-size: 13px; line-height: 1;">📏</span>
-                <span>Afstand lagers</span>
-                <span id="bearingDistancesBadge" style="font-size: 9.5px; font-weight: 700; padding: 1px 5px; border-radius: 4px; background: #e2e8f0; color: #64748b;">UIT</span>
-              </button>
             </div>
+            <button type="button" onclick="addNewDevice()" class="raster-btn raster-btn-add" style="flex-shrink: 0;" title="Voeg een extra meetpunt of smeertoestel toe">
+              ➕ Toestel
+            </button>
           </div>
         </div>
 
