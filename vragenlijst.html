@@ -310,7 +310,7 @@
       max-height: 100vh !important;
       z-index: 999999 !important;
       background: #090e17 !important;
-      padding: 12px 20px 16px 20px !important;
+      padding: 6px 12px 8px 12px !important;
       box-sizing: border-box !important;
       display: flex !important;
       flex-direction: column !important;
@@ -322,19 +322,24 @@
     #rasterInteractiveWrapper.raster-modal-fullscreen #rasterFullscreenHeader {
       display: flex !important;
       flex-shrink: 0 !important;
+      align-items: center !important;
+      justify-content: space-between !important;
+      margin-bottom: 4px !important;
+      padding-bottom: 4px !important;
+      border-bottom: 1px solid rgba(226,232,240,0.12) !important;
     }
 
     /* Soft, elegant Close & Save button for fullscreen modal */
     .raster-btn-close-soft {
       display: inline-flex;
       align-items: center;
-      gap: 8px;
+      gap: 6px;
       background: rgba(255, 255, 255, 0.08);
       border: 1px solid rgba(255, 255, 255, 0.22);
       color: #f1f5f9;
-      border-radius: 8px;
-      padding: 6px 14px;
-      font-size: 12px;
+      border-radius: 6px;
+      padding: 3px 10px;
+      font-size: 11.5px;
       font-weight: 600;
       cursor: pointer;
       backdrop-filter: blur(8px);
@@ -806,17 +811,25 @@
 
     /* FULLSCREEN DARK THEME OVERRIDES FOR UNIFIED TOOLBAR */
     #rasterInteractiveWrapper.raster-modal-fullscreen .raster-toolbar-panel {
-      background: rgba(15, 23, 42, 0.8) !important;
+      background: rgba(15, 23, 42, 0.85) !important;
       border: 1px solid rgba(255, 255, 255, 0.12) !important;
-      padding: 6px 12px !important;
-      margin-bottom: 8px !important;
-      gap: 6px !important;
+      padding: 3px 8px !important;
+      margin-bottom: 5px !important;
+      gap: 3px !important;
       box-shadow: none !important;
       flex-shrink: 0 !important;
     }
 
     #rasterInteractiveWrapper.raster-modal-fullscreen .raster-toolbar-divider {
       background: rgba(255, 255, 255, 0.08) !important;
+      margin: 0 !important;
+    }
+
+    #rasterInteractiveWrapper.raster-modal-fullscreen .raster-btn {
+      height: 26px !important;
+      padding: 0 8px !important;
+      font-size: 11px !important;
+      border-radius: 6px !important;
     }
 
     #rasterInteractiveWrapper.raster-modal-fullscreen .raster-btn-secondary {
@@ -869,9 +882,13 @@
     #rasterInteractiveWrapper.raster-modal-fullscreen .raster-toggle-group {
       background: rgba(15, 23, 42, 0.9) !important;
       border: 1px solid rgba(255, 255, 255, 0.15) !important;
+      height: 26px !important;
     }
     #rasterInteractiveWrapper.raster-modal-fullscreen .raster-toggle-btn {
       color: #94a3b8 !important;
+      height: 24px !important;
+      padding: 0 8px !important;
+      font-size: 11px !important;
     }
     #rasterInteractiveWrapper.raster-modal-fullscreen .raster-toggle-btn.active {
       background: #2563EB !important;
@@ -883,20 +900,75 @@
       background: rgba(15, 23, 42, 0.9) !important;
       border: 1px solid rgba(255, 255, 255, 0.15) !important;
       box-shadow: none !important;
+      height: 26px !important;
+      padding: 0 6px !important;
     }
     #rasterInteractiveWrapper.raster-modal-fullscreen .raster-select-group label {
       color: #94a3b8 !important;
+      font-size: 11px !important;
     }
     #rasterInteractiveWrapper.raster-modal-fullscreen .raster-select-group select {
       color: #f1f5f9 !important;
+      font-size: 11px !important;
     }
     #rasterInteractiveWrapper.raster-modal-fullscreen .raster-select-group select option {
       background: #0f172a !important;
       color: #f1f5f9 !important;
     }
 
+    #rasterInteractiveWrapper.raster-modal-fullscreen #devicesFilterBarContainer {
+      overflow-x: auto !important;
+      overflow-y: hidden !important;
+      scrollbar-width: thin !important;
+      scrollbar-color: rgba(255,255,255,0.2) transparent !important;
+      padding-bottom: 1px !important;
+    }
+
+    #rasterInteractiveWrapper.raster-modal-fullscreen #devicesFilterBarContainer > div:first-child {
+      flex-wrap: nowrap !important;
+      width: auto !important;
+      gap: 6px !important;
+    }
+
+    #rasterInteractiveWrapper.raster-modal-fullscreen #deviceFilterPills {
+      flex-wrap: nowrap !important;
+      gap: 4px !important;
+    }
+
+    #rasterInteractiveWrapper.raster-modal-fullscreen .device-filter-pill {
+      height: 25px !important;
+      border-radius: 6px !important;
+    }
+
+    #rasterInteractiveWrapper.raster-modal-fullscreen .device-pill-toggle-btn {
+      height: 23px !important;
+      padding: 0 6px !important;
+      font-size: 11px !important;
+      gap: 4px !important;
+    }
+
+    #rasterInteractiveWrapper.raster-modal-fullscreen .device-pill-type-wrapper {
+      padding: 0 3px 0 4px !important;
+    }
+
+    #rasterInteractiveWrapper.raster-modal-fullscreen .device-pill-type-wrapper span {
+      font-size: 9.5px !important;
+    }
+
+    #rasterInteractiveWrapper.raster-modal-fullscreen .device-pill-type-select {
+      font-size: 10px !important;
+      max-width: 110px !important;
+      padding: 0 12px 0 2px !important;
+    }
+
+    #rasterInteractiveWrapper.raster-modal-fullscreen .device-pill-del-btn {
+      padding: 0 5px !important;
+      font-size: 12px !important;
+    }
+
     #rasterInteractiveWrapper.raster-modal-fullscreen .filter-bar-label {
       color: #cbd5e1 !important;
+      font-size: 11px !important;
     }
     #rasterInteractiveWrapper.raster-modal-fullscreen #btnOpenFullscreen {
       display: none !important;
@@ -904,17 +976,32 @@
     #rasterInteractiveWrapper.raster-modal-fullscreen #btnHeaderVergroot {
       display: none !important;
     }
+    #rasterInteractiveWrapper.raster-modal-fullscreen #btnToggleFullscreenSidebar {
+      display: inline-flex !important;
+    }
+    #rasterInteractiveWrapper.raster-modal-fullscreen .raster-sidebar-close-btn {
+      display: inline-flex !important;
+    }
 
     #rasterInteractiveWrapper.raster-modal-fullscreen #layoutGridContainer {
       flex: 1 1 0% !important;
       height: auto !important;
       max-height: none !important;
       min-height: 0 !important;
-      grid-template-columns: minmax(0, 1fr) 330px !important;
+      grid-template-columns: minmax(0, 1fr) 280px !important;
       grid-template-rows: 100% !important;
-      gap: 12px !important;
-      margin-top: 2px !important;
+      gap: 8px !important;
+      margin-top: 0 !important;
       overflow: hidden !important;
+      transition: grid-template-columns 0.2s ease !important;
+    }
+
+    #rasterInteractiveWrapper.raster-modal-fullscreen.sidebar-collapsed #layoutGridContainer {
+      grid-template-columns: 1fr !important;
+    }
+
+    #rasterInteractiveWrapper.raster-modal-fullscreen.sidebar-collapsed #rightOverviewCard {
+      display: none !important;
     }
 
     #rasterInteractiveWrapper.raster-modal-fullscreen #leftCanvasCard {
@@ -923,13 +1010,19 @@
       min-height: 0 !important;
       display: flex !important;
       flex-direction: column !important;
-      padding: 10px 12px !important;
+      padding: 6px 8px !important;
       overflow: hidden !important;
       box-sizing: border-box !important;
     }
 
     #rasterInteractiveWrapper.raster-modal-fullscreen #leftCanvasCard > div:first-child {
       flex-shrink: 0 !important;
+    }
+
+    #rasterInteractiveWrapper.raster-modal-fullscreen .canvas-header-bar {
+      margin-bottom: 4px !important;
+      min-height: 22px !important;
+      gap: 4px !important;
     }
 
     #rasterInteractiveWrapper.raster-modal-fullscreen #canvasWrapper {
@@ -957,7 +1050,7 @@
       display: flex !important;
       flex-direction: column !important;
       justify-content: space-between !important;
-      padding: 12px 14px !important;
+      padding: 10px 12px !important;
       overflow: hidden !important;
       box-sizing: border-box !important;
     }
@@ -1731,6 +1824,10 @@
                   <button type="button" onclick="autoFitRasterZoom()" class="canvas-zoom-reset" style="background: rgba(56, 189, 248, 0.15); color: #38bdf8; border-color: rgba(56, 189, 248, 0.3);" title="Automatisch inzoomen voor optimale leesbaarheid (Auto-Fit)">🔍 Auto-Fit</button>
                   <button type="button" onclick="resetRasterZoom()" class="canvas-zoom-reset" title="Herstel zoom naar passend en centreer">↺ Reset</button>
                 </div>
+                <button type="button" id="btnToggleFullscreenSidebar" onclick="toggleRasterSidebar()" class="canvas-header-expand-btn" title="Toon of verberg het afstandenpaneel voor maximale schetsweergave" style="display: none;">
+                  <span id="sidebarToggleIcon">◀</span>
+                  <span id="sidebarToggleText">Afstanden</span>
+                </button>
                 <button type="button" id="btnHeaderVergroot" onclick="toggleRasterFullscreen()" class="canvas-header-expand-btn" title="Vergroot naar volledig scherm">
                   ⛶ Vergroot
                 </button>
@@ -1768,7 +1865,10 @@
                 <h3 style="font-size: 14px; font-weight: 800; color: #0f172a; margin: 0; display: flex; align-items: center; gap: 6px;">
                   📏 Afstanden Overzicht
                 </h3>
-                <span id="totalBearingsBadge" style="background: #eff6ff; color: #1e40af; border: 1px solid #bfdbfe; font-size: 11px; font-weight: 800; padding: 2px 8px; border-radius: 12px; white-space: nowrap; flex-shrink: 0;">1 Lager</span>
+                <div style="display: flex; align-items: center; gap: 6px;">
+                  <span id="totalBearingsBadge" style="background: #eff6ff; color: #1e40af; border: 1px solid #bfdbfe; font-size: 11px; font-weight: 800; padding: 2px 8px; border-radius: 12px; white-space: nowrap; flex-shrink: 0;">1 Lager</span>
+                  <button type="button" onclick="toggleRasterSidebar()" class="raster-sidebar-close-btn" title="Verberg paneel (raster vult 100% schermbreedte)" style="display: none; background: none; border: none; cursor: pointer; color: #94a3b8; font-size: 14px; font-weight: 700; padding: 2px 6px; border-radius: 4px;">✕</button>
+                </div>
               </div>
 
               <p style="font-size: 11.5px; color: #64748b; margin-top: 0; margin-bottom: 12px; line-height: 1.35;">
@@ -3847,8 +3947,8 @@
         // In 3D isometric projection, the entire machine floor square [-gridRange, gridRange]^2 has:
         // Screen height = 2 * gridRange * ppm
         // Screen width  = 2 * cos(30°) * 2 * gridRange * ppm = 3.464 * gridRange * ppm
-        const padY = (isRasterFullscreen ? 35 : 25) * dpr;
-        const padX = (isRasterFullscreen ? 40 : 25) * dpr;
+        const padY = (isRasterFullscreen ? 12 : 25) * dpr;
+        const padX = (isRasterFullscreen ? 16 : 25) * dpr;
         const availH = Math.max(100, canvas.height - padY * 2);
         const availW = Math.max(100, canvas.width - padX * 2);
 
@@ -3857,7 +3957,7 @@
         basePpm = Math.min(ppmH, ppmW);
       } else {
         // 2D top-down view: 2 * gridRange in both dimensions
-        const pad = (isRasterFullscreen ? 35 : 25) * dpr;
+        const pad = (isRasterFullscreen ? 12 : 25) * dpr;
         const avail = Math.max(100, Math.min(canvas.width, canvas.height) - pad * 2);
         basePpm = avail / (2 * gridRange);
       }
@@ -7153,15 +7253,20 @@
       if (isRasterFullscreen) {
         wrapper.classList.add('raster-modal-fullscreen');
         document.body.style.overflow = 'hidden';
-        rasterZoom = 1.4; // Generous 140% scale in enlarged modal for clear spacing
+        rasterZoom = 1.0; // 100% scale fills the enlarged modal edge-to-edge
         rasterPanX = 0;
         rasterPanY = 0;
       } else {
         wrapper.classList.remove('raster-modal-fullscreen');
+        wrapper.classList.remove('sidebar-collapsed');
         document.body.style.overflow = '';
         rasterZoom = 1.0;
         rasterPanX = 0;
         rasterPanY = 0;
+        const icon = document.getElementById('sidebarToggleIcon');
+        const text = document.getElementById('sidebarToggleText');
+        if (icon) icon.textContent = '◀';
+        if (text) text.textContent = 'Afstanden';
       }
       const zoomLbl = document.getElementById('rasterZoomLabel');
       if (zoomLbl) zoomLbl.textContent = Math.round(rasterZoom * 100) + '%';
@@ -7173,6 +7278,23 @@
       setTimeout(function() {
         drawBearingLayout();
         renderDistancesOverview();
+      }, 50);
+      setTimeout(function() {
+        drawBearingLayout();
+      }, 200);
+    }
+
+    function toggleRasterSidebar() {
+      const wrapper = document.getElementById('rasterInteractiveWrapper');
+      if (!wrapper) return;
+      wrapper.classList.toggle('sidebar-collapsed');
+      const isCollapsed = wrapper.classList.contains('sidebar-collapsed');
+      const icon = document.getElementById('sidebarToggleIcon');
+      const text = document.getElementById('sidebarToggleText');
+      if (icon) icon.textContent = isCollapsed ? '▶' : '◀';
+      if (text) text.textContent = isCollapsed ? 'Toon Afstanden' : 'Afstanden';
+      setTimeout(function() {
+        drawBearingLayout();
       }, 50);
       setTimeout(function() {
         drawBearingLayout();
