@@ -20419,7 +20419,7 @@ function generateAutomationSpeechScript() {
         }
       });
 
-      script += `Indien u een andere configuratie of looptijd wenst, kunt u deze eenvoudig aanpassen in sectie 3 van de vragenlijst.`;
+      script += `Indien u een andere configuratie of looptijd wenst, kunt u deze eenvoudig aanpassen in sectie 3 van de vragenlijst of hieronder op deze pagina.`;
       return script;
     } else if (lang === "fr") {
       let script = `Avec la sélection actuelle, vous équipez ${totalUnits} roulements d'une lubrification automatique directe avec ${totalUnits} appareils Single Point Lubricator montés directement sur les points de graissage. `;
@@ -20428,7 +20428,7 @@ function generateAutomationSpeechScript() {
         const bText = g.groupBearingsText ? `Roulements ${g.groupBearingsText}` : `ces ${uCount} roulements`;
         script += `Pour ${bText} : ${uCount} appareils de ${g.cap || 125} ml réglés sur ${g.period || 6} mois. `;
       });
-      script += `Si vous préférez une configuration différente, vous pouvez la modifier dans la section 3 du questionnaire.`;
+      script += `Si vous préférez une configuration différente, vous pouvez la modifier dans la section 3 du questionnaire ou ci-dessous sur cette page.`;
       return script;
     } else {
       let script = `With the current selection, you provide ${totalUnits} bearings with direct automated lubrication using a total of ${totalUnits} Single Point Lubricators mounted directly on the lubrication points. `;
@@ -20437,7 +20437,7 @@ function generateAutomationSpeechScript() {
         const bText = g.groupBearingsText ? `Bearings ${g.groupBearingsText}` : `these ${uCount} bearings`;
         script += `For ${bText}: ${uCount} units of ${g.cap || 125} ml set to a ${g.period || 6}-month dial setting. `;
       });
-      script += `If you prefer a different configuration, you can adjust it in section 3 of the questionnaire.`;
+      script += `If you prefer a different configuration, you can adjust it in section 3 of the questionnaire or below on this page.`;
       return script;
     }
   }
@@ -20522,7 +20522,7 @@ function generateAutomationSpeechScript() {
       }
     }
 
-    script += `Indien u een andere configuratie verkiest, kunt u deze eenvoudig manueel aanpassen in sectie 3 van de vragenlijst.`;
+    script += `Indien u een andere configuratie verkiest, kunt u deze eenvoudig manueel aanpassen in sectie 3 van de vragenlijst of hieronder op deze pagina.`;
   } else if (lang === "fr") {
     const devTypeName = getDeviceTypeName(deviceKey);
     script += `Avec la sélection actuelle, vous répartissez ${totalPoints} points de lubrification sur ${numCards} appareils ${devTypeName}. `;
@@ -20534,7 +20534,7 @@ function generateAutomationSpeechScript() {
       const devPeriod = d.period || 6;
       script += `Pour l'Appareil ${devId}, avec un réglage de ${devPeriod} mois pour ${devPts} roulement${devPts > 1 ? 's' : ''}, le dosage assure une protection optimale parfaitement adaptée. `;
     }
-    script += `Si vous préférez une configuration différente, vous pouvez la modifier manuellement dans la section 3 du questionnaire.`;
+    script += `Si vous préférez une configuration différente, vous pouvez la modifier manuellement dans la section 3 du questionnaire ou ci-dessous sur cette page.`;
   } else {
     const devTypeName = getDeviceTypeName(deviceKey);
     script += `With the current selection, you distribute ${totalPoints} lubrication points across ${numCards} ${devTypeName} units. `;
@@ -20546,7 +20546,7 @@ function generateAutomationSpeechScript() {
       const devPeriod = d.period || 6;
       script += `For Unit ${devId}, with a setting of ${devPeriod} months for ${devPts} bearing${devPts > 1 ? 's' : ''}, the unit delivers an optimal dose matching the calculated need. `;
     }
-    script += `If you prefer a different configuration, you can easily adjust it manually in section 3 of the questionnaire.`;
+    script += `If you prefer a different configuration, you can easily adjust it manually in section 3 of the questionnaire or below on this page.`;
   }
 
   return script;
