@@ -24819,12 +24819,6 @@ function buildBearingAssembly() {
     side: THREE.DoubleSide
   });
 
-  const shaftSteelMat = new THREE.MeshStandardMaterial({
-    color: 0x334155,
-    metalness: 0.82,
-    roughness: 0.4
-  });
-
   // Dynamic Micpol Film Materials
   twinFilmMaterial = new THREE.MeshStandardMaterial({
     color: 0x10b981,
@@ -24893,11 +24887,8 @@ function buildBearingAssembly() {
   twinInnerRing.castShadow = true;
   twinBearingGroup.add(twinInnerRing);
 
-  // 3. Central Shaft
-  const shaftGeo = new THREE.CylinderGeometry(Rii * 0.99, Rii * 0.99, 3.6, 40);
-  twinShaft = new THREE.Mesh(shaftGeo, shaftSteelMat);
-  twinShaft.castShadow = true;
-  twinBearingGroup.add(twinShaft);
+  // 3. Central Shaft - weggelaten zodat de binnenring hol/leeg blijft (conform gebruikerswens)
+  twinShaft = null;
 
   // 4. Balls & Micpol Film Coatings
   const ballGeo = new THREE.SphereGeometry(rb, 32, 24);
