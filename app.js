@@ -779,7 +779,30 @@ function getManualBearingOverrides() {
 }
 window.getManualBearingOverrides = getManualBearingOverrides;
 
-function saveManualBearingOverride(letter, teVal, taVal) {
+function hasManualBearingFactorOverride(letter) {
+  if (!letter) return false;
+  const overrides = getManualBearingOverrides();
+  const bOverride = overrides[letter];
+  if (!bOverride) return false;
+  return (bOverride.Te !== undefined && bOverride.Te !== null && bOverride.Te !== '') ||
+         (bOverride.Ta !== undefined && bOverride.Ta !== null && bOverride.Ta !== '');
+}
+window.hasManualBearingFactorOverride = hasManualBearingFactorOverride;
+
+function getManualBearingFactorOverride(letter) {
+  if (!letter) return null;
+  const overrides = getManualBearingOverrides();
+  const bOverride = overrides[letter];
+  if (!bOverride) return null;
+  if ((bOverride.Te !== undefined && bOverride.Te !== null && bOverride.Te !== '') ||
+      (bOverride.Ta !== undefined && bOverride.Ta !== null && bOverride.Ta !== '')) {
+    return { Te: bOverride.Te, Ta: bOverride.Ta };
+  }
+  return null;
+}
+window.getManualBearingFactorOverride = getManualBearingFactorOverride;
+
+function saveManualBearingFactorOverride(letter, teVal, taVal) {
   if (!letter) return;
   const overrides = getManualBearingOverrides();
   if (!overrides[letter]) overrides[letter] = {};
@@ -789,6 +812,28 @@ function saveManualBearingOverride(letter, teVal, taVal) {
   try {
     localStorage.setItem('interflon_bearing_manual_overrides', JSON.stringify(overrides));
   } catch(e) {}
+}
+window.saveManualBearingFactorOverride = saveManualBearingFactorOverride;
+
+function removeManualBearingFactorOverride(letter) {
+  if (!letter) return;
+  const overrides = getManualBearingOverrides();
+  if (overrides && overrides[letter]) {
+    delete overrides[letter].Te;
+    delete overrides[letter].Ta;
+    const remainingKeys = Object.keys(overrides[letter]).filter(k => k !== 'timestamp');
+    if (remainingKeys.length === 0) {
+      delete overrides[letter];
+    }
+    try {
+      localStorage.setItem('interflon_bearing_manual_overrides', JSON.stringify(overrides));
+    } catch(e) {}
+  }
+}
+window.removeManualBearingFactorOverride = removeManualBearingFactorOverride;
+
+function saveManualBearingOverride(letter, teVal, taVal) {
+  return saveManualBearingFactorOverride(letter, teVal, taVal);
 }
 window.saveManualBearingOverride = saveManualBearingOverride;
 
@@ -907,24 +952,26 @@ function updateCorrectionFactorsHint() {
       ? determineBearingCorrectionFactors(sec3, asPosVal)
       : { teOptionValue: '0.8', taOptionValue: '0.8', teReason: 'Normaal', taReason: 'Gemiddeld' };
 
-    const manualOverrides = getManualBearingOverrides();
-    const hasOverride = manualOverrides && manualOverrides[targetLetter];
+    const factorOverride = getManualBearingFactorOverride(targetLetter);
+    const hasFactorOverride = !!factorOverride;
 
-    const isManuallyOverridden = (curTe !== corrFactors.teOptionValue || curTa !== corrFactors.taOptionValue || (hasOverride && !window.__isProgrammaticFactorUpdate));
+    const isManuallyOverridden = hasFactorOverride && (factorOverride.Te !== corrFactors.teOptionValue || factorOverride.Ta !== corrFactors.taOptionValue);
+
+    const dispTe = (isManuallyOverridden && factorOverride && factorOverride.Te) ? factorOverride.Te : curTe;
+    const dispTa = (isManuallyOverridden && factorOverride && factorOverride.Ta) ? factorOverride.Ta : curTa;
+    const dispTeStr = dispTe.replace('.', ',');
+    const dispTaStr = dispTa.replace('.', ',');
 
     if (isManuallyOverridden) {
-      if (!window.__isProgrammaticFactorUpdate) {
-        saveManualBearingOverride(targetLetter, curTe, curTa);
-      }
       hintEl.style.background = "#fffbeb";
       hintEl.style.border = "1px solid #fde68a";
       hintEl.style.color = "#92400e";
 
       const titlePart = (lang === 'en')
-        ? `<strong>✏️ Manually adjusted (Bearing ${targetLetter}):</strong> Environmental factor Te (${curTeStr}) &bull; Application factor Ta (${curTaStr})`
+        ? `<strong>✏️ Manually adjusted (Bearing ${targetLetter}):</strong> Environmental factor Te (${dispTeStr}) &bull; Application factor Ta (${dispTaStr})`
         : ((lang === 'fr')
-          ? `<strong>✏️ Modifié manuellement (Roulement ${targetLetter}):</strong> Facteur d'environnement Te (${curTeStr}) &bull; Facteur d'application Ta (${curTaStr})`
-          : `<strong>✏️ Handmatig aangepast (Lager ${targetLetter}):</strong> Omgevingsfactor Te (${curTeStr}) &bull; Toepassingsfactor Ta (${curTaStr})`);
+          ? `<strong>✏️ Modifié manuellement (Roulement ${targetLetter}):</strong> Facteur d'environnement Te (${dispTeStr}) &bull; Facteur d'application Ta (${dispTaStr})`
+          : `<strong>✏️ Handmatig aangepast (Lager ${targetLetter}):</strong> Omgevingsfactor Te (${dispTeStr}) &bull; Toepassingsfactor Ta (${dispTaStr})`);
 
       const resetText = (lang === 'en') ? 'Reset advice' : (lang === 'fr') ? 'Rétablir le conseil' : 'Herstel advies';
 
@@ -1006,34 +1053,36 @@ function applyCorrectionFactorsForBearing(targetLetter, forceAdviceReset) {
     : { teOptionValue: '0.8', taOptionValue: '0.8', teReason: 'Normaal', taReason: 'Gemiddeld' };
 
   if (forceAdviceReset) {
-    const overrides = getManualBearingOverrides();
-    if (overrides && overrides[targetLetter]) {
-      delete overrides[targetLetter];
-      try { localStorage.setItem('interflon_bearing_manual_overrides', JSON.stringify(overrides)); } catch(e) {}
-    }
+    removeManualBearingFactorOverride(targetLetter);
   }
 
-  const manualOverrides = getManualBearingOverrides();
-  const hasOverride = manualOverrides && manualOverrides[targetLetter];
+  const factorOverride = forceAdviceReset ? null : getManualBearingFactorOverride(targetLetter);
+
+  // Zelfreiniging: als een opgeslagen override exact gelijk is aan het advies, ruim deze op
+  if (factorOverride && factorOverride.Te === corrFactors.teOptionValue && factorOverride.Ta === corrFactors.taOptionValue) {
+    removeManualBearingFactorOverride(targetLetter);
+  }
 
   let effectiveTe = corrFactors.teOptionValue;
   let effectiveTa = corrFactors.taOptionValue;
-  if (hasOverride && !forceAdviceReset) {
-    effectiveTe = hasOverride.Te || effectiveTe;
-    effectiveTa = hasOverride.Ta || effectiveTa;
+  if (factorOverride && !forceAdviceReset) {
+    if (factorOverride.Te !== undefined && factorOverride.Te !== null && factorOverride.Te !== '') {
+      effectiveTe = factorOverride.Te;
+    }
+    if (factorOverride.Ta !== undefined && factorOverride.Ta !== null && factorOverride.Ta !== '') {
+      effectiveTa = factorOverride.Ta;
+    }
   }
 
   window.__isProgrammaticFactorUpdate = true;
   const teInput = document.getElementById("inputTe");
   if (teInput && effectiveTe) {
     teInput.value = effectiveTe;
-    try { localStorage.setItem("app_field_inputTe", effectiveTe); } catch(e) {}
     teInput.dispatchEvent(new Event("change", { bubbles: true }));
   }
   const taInput = document.getElementById("inputTa");
   if (taInput && effectiveTa) {
     taInput.value = effectiveTa;
-    try { localStorage.setItem("app_field_inputTa", effectiveTa); } catch(e) {}
     taInput.dispatchEvent(new Event("change", { bubbles: true }));
   }
   window.__isProgrammaticFactorUpdate = false;
@@ -1044,18 +1093,7 @@ window.applyCorrectionFactorsForBearing = applyCorrectionFactorsForBearing;
 
 function resetBearingCorrectionFactorsToAdvice(letter) {
   const targetLetter = letter || window.currentActiveSurveyBearingLetter || 'A';
-  const overrides = getManualBearingOverrides();
-  if (overrides && overrides[targetLetter]) {
-    delete overrides[targetLetter].Te;
-    delete overrides[targetLetter].Ta;
-    if (Object.keys(overrides[targetLetter]).length === 0) {
-      delete overrides[targetLetter];
-    }
-    try {
-      localStorage.setItem('interflon_bearing_manual_overrides', JSON.stringify(overrides));
-    } catch(e) {}
-  }
-
+  removeManualBearingFactorOverride(targetLetter);
   applyCorrectionFactorsForBearing(targetLetter, true);
 
   const sel = document.getElementById("surveyBearingSelect");
@@ -1076,6 +1114,65 @@ function resetBearingCorrectionFactorsToAdvice(letter) {
   }
 }
 window.resetBearingCorrectionFactorsToAdvice = resetBearingCorrectionFactorsToAdvice;
+
+function handleUserCorrectionFactorChange(event) {
+  if (window.__isProgrammaticFactorUpdate) return;
+
+  const targetLetter = window.currentActiveSurveyBearingLetter || window.currentSurveyBearingLetter || localStorage.getItem("interflon_active_survey_letter") || null;
+  const activeSource = window.activeTcoBearingSource || localStorage.getItem("active_tco_bearing_source") || "";
+
+  if (!targetLetter || activeSource === "manual") {
+    updateCorrectionFactorsHint();
+    if (typeof calculateGrease === "function") calculateGrease();
+    return;
+  }
+
+  let fullData = window.latestSurveyFullData || null;
+  if (!fullData) {
+    try {
+      const saved = localStorage.getItem('interflon_questionnaire_full_data') || localStorage.getItem('interflon_last_questionnaire_data');
+      if (saved) fullData = JSON.parse(saved);
+    } catch(e) {}
+  }
+  if (!fullData && typeof BroadcastChannel !== 'undefined') {
+    try {
+      const rawCfg = localStorage.getItem('interflon_survey_raster_config');
+      if (rawCfg) fullData = JSON.parse(rawCfg);
+    } catch(e) {}
+  }
+  if (fullData && (fullData.fullData || fullData.questionnaire || fullData.data)) {
+    fullData = fullData.fullData || fullData.questionnaire || fullData.data;
+  }
+
+  const sec3 = (fullData && fullData.bearingDataMapSec3 && (fullData.bearingDataMapSec3[targetLetter] || fullData.bearingDataMapSec3['A'])) || {};
+  const allBearings = (fullData && Array.isArray(fullData.bearings) && fullData.bearings.length > 0) ? fullData.bearings : (window.latestSurveyBearings || []);
+  const bRec = allBearings.find(b => b.letter === targetLetter) || allBearings[0] || {};
+  const asPosVal = sec3.asPositie || (bRec && (bRec.pos || bRec.positie)) || '';
+
+  const corrFactors = (typeof determineBearingCorrectionFactors === 'function')
+    ? determineBearingCorrectionFactors(sec3, asPosVal)
+    : { teOptionValue: '0.8', taOptionValue: '0.8' };
+
+  const teInput = document.getElementById("inputTe");
+  const taInput = document.getElementById("inputTa");
+  const curTe = teInput ? teInput.value : '0.8';
+  const curTa = taInput ? taInput.value : '0.8';
+
+  // Als de door de gebruiker gekozen waarden exact gelijk zijn aan het advies:
+  if (curTe === corrFactors.teOptionValue && curTa === corrFactors.taOptionValue) {
+    removeManualBearingFactorOverride(targetLetter);
+  } else {
+    // Gebruiker kiest bewust een afwijkende waarde: sla expliciete handmatige override op
+    saveManualBearingFactorOverride(targetLetter, curTe, curTa);
+  }
+
+  updateCorrectionFactorsHint();
+  if (typeof calculateGrease === "function") calculateGrease();
+  if (typeof calculateAutomationLubrication === "function") calculateAutomationLubrication();
+  if (typeof updateRoiAutomationPage === "function") updateRoiAutomationPage();
+  if (typeof calculateTco === "function") calculateTco();
+}
+window.handleUserCorrectionFactorChange = handleUserCorrectionFactorChange;
 
 // ==========================================================================
 // CALCULATE LUBRICATION DEMAND FOR A SINGLE BEARING (FROM SURVEY / DB)
@@ -1250,12 +1347,13 @@ function applySurveyConfig(config) {
   } catch(e) {}
 
   const allBearings = (config.bearings && config.bearings.length > 0) ? config.bearings :
+                      (config.allBearings && config.allBearings.length > 0) ? config.allBearings :
                       (window.latestSurveyFullData && window.latestSurveyFullData.bearings && window.latestSurveyFullData.bearings.length > 0) ? window.latestSurveyFullData.bearings :
                       (fullData && fullData.bearings && fullData.bearings.length > 0) ? fullData.bearings :
                       (window.latestSurveyBearings && window.latestSurveyBearings.length > 0) ? window.latestSurveyBearings : [];
 
-  const sec2Map = config.bearingDataMapSec2 || (window.latestSurveyFullData && window.latestSurveyFullData.bearingDataMapSec2) || (fullData && fullData.bearingDataMapSec2) || {};
-  const sec3Map = config.bearingDataMapSec3 || (window.latestSurveyFullData && window.latestSurveyFullData.bearingDataMapSec3) || (fullData && fullData.bearingDataMapSec3) || {};
+  const sec2Map = config.bearingDataMapSec2 || config.sec2Map || (window.latestSurveyFullData && window.latestSurveyFullData.bearingDataMapSec2) || (fullData && fullData.bearingDataMapSec2) || {};
+  const sec3Map = config.bearingDataMapSec3 || config.sec3Map || (window.latestSurveyFullData && window.latestSurveyFullData.bearingDataMapSec3) || (fullData && fullData.bearingDataMapSec3) || {};
 
   // Check if configuration is for Single Point Lubricators
   const isSinglePoint = (config.isSinglePoint === true) ||
@@ -1285,10 +1383,21 @@ function applySurveyConfig(config) {
       const effTa = (bOverride && bOverride.Ta !== undefined) ? parseFloat(bOverride.Ta) : corr.Ta;
 
       const savedSnlForLetter = localStorage.getItem("app_field_chkSnlHousing_" + b.letter);
-      const isSnl = (savedSnlForLetter !== null)
-        ? (savedSnlForLetter === "true")
-        : ((bOverride.isSnl !== undefined) ? !!bOverride.isSnl : ((b.isSnl !== undefined) ? !!b.isSnl : !!d2.isSnl));
-      const snlRelub = localStorage.getItem("app_field_selSnlRelubPosition_" + b.letter) || bOverride.snlRelub || b.snlRelub || d2.snlRelub || 'side';
+      const hasSurveySnl = (b.isSnl !== undefined || b.is_snl !== undefined || d2.isSnl !== undefined || d2.is_snl !== undefined);
+      const isSnl = hasSurveySnl
+        ? !!(b.isSnl || b.is_snl || d2.isSnl || d2.is_snl)
+        : ((savedSnlForLetter !== null)
+            ? (savedSnlForLetter === "true")
+            : ((bOverride.isSnl !== undefined) ? !!bOverride.isSnl : false));
+      try { localStorage.setItem("app_field_chkSnlHousing_" + b.letter, isSnl ? "true" : "false"); } catch(e) {}
+
+      const hasSurveyRelub = (b.snlRelub || b.snl_relub || d2.snlRelub || d2.snl_relub);
+      const snlRelub = hasSurveyRelub
+        ? (b.snlRelub || b.snl_relub || d2.snlRelub || d2.snl_relub)
+        : (localStorage.getItem("app_field_selSnlRelubPosition_" + b.letter) || bOverride.snlRelub || 'side');
+      if (hasSurveyRelub) {
+        try { localStorage.setItem("app_field_selSnlRelubPosition_" + b.letter, snlRelub); } catch(e) {}
+      }
 
       const need = calculateSingleBearingDailyNeed(b.nr, rpm, {
         hoursPerDay: hDay,
@@ -1340,6 +1449,7 @@ function applySurveyConfig(config) {
     if (typeof autoDevicesState !== 'undefined' && Array.isArray(autoDevicesState)) {
       autoDevicesState.forEach(d => {
         if (d) {
+          d.type = 'single_point';
           d.bearingSummary = '';
           d.bearingDetailsSummary = '';
           d.bearingLetters = [];
@@ -1368,6 +1478,7 @@ function applySurveyConfig(config) {
           autoDevicesState[0] = { id: 'A', points: 1, cap: smartAdv.cap, period: smartAdv.months, unit: 'months' };
         }
         autoDevicesState[0].id = 'A';
+        autoDevicesState[0].type = 'single_point';
         autoDevicesState[0].name = 'Interflon Single Point Lubricator';
         autoDevicesState[0].points = 1;
         autoDevicesState[0].isSinglePointGroup = true;
@@ -1387,6 +1498,7 @@ function applySurveyConfig(config) {
 
         for (let k = 1; k < autoDevicesState.length; k++) {
           if (autoDevicesState[k]) {
+            autoDevicesState[k].type = 'single_point';
             autoDevicesState[k].isSinglePointGroup = false;
             autoDevicesState[k].unitCount = 0;
             autoDevicesState[k].totalDailyNeed = 0;
@@ -1405,6 +1517,7 @@ function applySurveyConfig(config) {
             autoDevicesState[idx] = { id: devId, points: 1, cap: smartAdv.cap, period: smartAdv.months, unit: 'months' };
           }
           autoDevicesState[idx].id = devId;
+          autoDevicesState[idx].type = 'single_point';
           autoDevicesState[idx].name = `Single Point (Lager ${letterStr})`;
           autoDevicesState[idx].points = 1;
           autoDevicesState[idx].isSinglePointGroup = true;
@@ -1425,6 +1538,7 @@ function applySurveyConfig(config) {
 
         for (let k = groups.length; k < autoDevicesState.length; k++) {
           if (autoDevicesState[k]) {
+            autoDevicesState[k].type = 'single_point';
             autoDevicesState[k].isSinglePointGroup = false;
             autoDevicesState[k].unitCount = 0;
             autoDevicesState[k].totalDailyNeed = 0;
@@ -1560,10 +1674,21 @@ function applySurveyConfig(config) {
       const effTa = (bOverride && bOverride.Ta !== undefined) ? parseFloat(bOverride.Ta) : corr.Ta;
 
       const savedSnlForLetter = localStorage.getItem("app_field_chkSnlHousing_" + letter);
-      const isSnl = (savedSnlForLetter !== null)
-        ? (savedSnlForLetter === "true")
-        : ((bOverride.isSnl !== undefined) ? !!bOverride.isSnl : ((bObj.isSnl !== undefined) ? !!bObj.isSnl : !!d2.isSnl));
-      const snlRelub = localStorage.getItem("app_field_selSnlRelubPosition_" + letter) || bOverride.snlRelub || bObj.snlRelub || d2.snlRelub || 'side';
+      const hasSurveySnl = (bObj.isSnl !== undefined || bObj.is_snl !== undefined || d2.isSnl !== undefined || d2.is_snl !== undefined);
+      const isSnl = hasSurveySnl
+        ? !!(bObj.isSnl || bObj.is_snl || d2.isSnl || d2.is_snl)
+        : ((savedSnlForLetter !== null)
+            ? (savedSnlForLetter === "true")
+            : ((bOverride.isSnl !== undefined) ? !!bOverride.isSnl : false));
+      try { localStorage.setItem("app_field_chkSnlHousing_" + letter, isSnl ? "true" : "false"); } catch(e) {}
+
+      const hasSurveyRelub = (bObj.snlRelub || bObj.snl_relub || d2.snlRelub || d2.snl_relub);
+      const snlRelub = hasSurveyRelub
+        ? (bObj.snlRelub || bObj.snl_relub || d2.snlRelub || d2.snl_relub)
+        : (localStorage.getItem("app_field_selSnlRelubPosition_" + letter) || bOverride.snlRelub || 'side');
+      if (hasSurveyRelub) {
+        try { localStorage.setItem("app_field_selSnlRelubPosition_" + letter, snlRelub); } catch(e) {}
+      }
 
       const need = calculateSingleBearingDailyNeed(bObj.nr, rpm, {
         hoursPerDay: hDay,
@@ -2727,9 +2852,11 @@ function onSurveyBearingSelected(selectEl) {
     const el = document.getElementById(id);
     if (el && typeof el.addEventListener === 'function' && !el.__hasManualOverrideListener) {
       el.__hasManualOverrideListener = true;
-      el.addEventListener('change', () => {
+      el.addEventListener('change', (e) => {
         if (window.__isProgrammaticFactorUpdate) return;
-        if (typeof updateCorrectionFactorsHint === 'function') {
+        if (typeof handleUserCorrectionFactorChange === 'function') {
+          handleUserCorrectionFactorChange(e);
+        } else if (typeof updateCorrectionFactorsHint === 'function') {
           updateCorrectionFactorsHint();
         }
       });
@@ -4427,13 +4554,14 @@ function importSurveyBearingToOpbrengstmodel(mode, explicitLetter) {
     const savedSnlLetter = localStorage.getItem("app_field_chkSnlHousing_" + targetLetter);
     const savedSnlGlobal = localStorage.getItem("app_field_chkSnlHousing");
 
+    const hasSurveySnl = (sec2 && (sec2.isSnl !== undefined || sec2.is_snl !== undefined)) || (bRec && (bRec.isSnl !== undefined || bRec.is_snl !== undefined));
     let isSnlInSurvey = false;
-    if (savedSnlLetter !== null) {
+    if (hasSurveySnl) {
+      isSnlInSurvey = !!((sec2 && (sec2.isSnl || sec2.is_snl)) || (bRec && (bRec.isSnl || bRec.is_snl)));
+    } else if (savedSnlLetter !== null) {
       isSnlInSurvey = (savedSnlLetter === "true");
     } else if (bOverride.isSnl !== undefined) {
       isSnlInSurvey = !!bOverride.isSnl;
-    } else if (sec2.isSnl !== undefined || sec2.is_snl !== undefined || bRec.isSnl !== undefined || bRec.is_snl !== undefined) {
-      isSnlInSurvey = !!(sec2.isSnl || sec2.is_snl || bRec.isSnl || bRec.is_snl);
     } else if (savedSnlGlobal !== null) {
       isSnlInSurvey = (savedSnlGlobal === "true");
     }
@@ -5331,9 +5459,14 @@ function initUniversalInputPersistence() {
     }
   
   try {
+    try {
+      localStorage.removeItem("app_field_inputTe");
+      localStorage.removeItem("app_field_inputTa");
+    } catch (_) {}
+
     const allInputs = document.querySelectorAll("input[id], select[id]");
     allInputs.forEach(el => {
-      if (el.id === "passwordInput" || el.id === "langSelect" || el.type === "hidden" || el.type === "file") return;
+      if (el.id === "passwordInput" || el.id === "langSelect" || el.id === "inputTe" || el.id === "inputTa" || el.type === "hidden" || el.type === "file") return;
 
       const savedVal = localStorage.getItem("app_field_" + el.id);
       if (savedVal !== null && savedVal !== "") {
@@ -5356,6 +5489,26 @@ function initUniversalInputPersistence() {
       el.addEventListener("input", saveHandler);
       el.addEventListener("change", saveHandler);
     });
+
+    ["inputTe", "inputTa"].forEach(id => {
+      const el = document.getElementById(id);
+      if (el && typeof el.addEventListener === 'function' && !el.__hasManualOverrideListener) {
+        el.__hasManualOverrideListener = true;
+        el.addEventListener('change', (e) => {
+          if (window.__isProgrammaticFactorUpdate) return;
+          if (typeof handleUserCorrectionFactorChange === 'function') {
+            handleUserCorrectionFactorChange(e);
+          } else if (typeof updateCorrectionFactorsHint === 'function') {
+            updateCorrectionFactorsHint();
+          }
+        });
+      }
+    });
+
+    const activeSurveyLetter = localStorage.getItem("interflon_active_survey_letter") || "A";
+    if (typeof applyCorrectionFactorsForBearing === "function") {
+      applyCorrectionFactorsForBearing(activeSurveyLetter);
+    }
 
     const customOmLife2Init = localStorage.getItem("custom_omLifetime2");
     if (customOmLife2Init && !isNaN(parseFloat(customOmLife2Init)) && parseFloat(customOmLife2Init) > 0) {
@@ -5514,11 +5667,17 @@ function renderPdfAutomationExtraPage(doc, autoData, autoDataUrl, autoRatio, wat
   const deviceSelect = document.getElementById("automationDeviceSelect") || document.getElementById("autoDeviceSelect");
   let deviceKey = deviceSelect ? deviceSelect.value : "single_point";
 
+  const isSpConfig = (deviceKey === "single_point") || (Array.isArray(autoDevicesState) && autoDevicesState.some(d => d && (d.isSinglePointGroup || d.type === 'single_point')));
+  const isSinglePoint = isChain ? false : isSpConfig;
+  if (isSinglePoint) {
+    deviceKey = "single_point";
+    if (Array.isArray(autoDevicesState)) {
+      autoDevicesState.forEach(d => { if (d) d.type = 'single_point'; });
+    }
+  }
+
   const rawNumDevices = (typeof getActiveNumDevices === "function" ? getActiveNumDevices() : 1);
   const activeDevicesList = (Array.isArray(autoDevicesState) ? autoDevicesState.slice(0, rawNumDevices) : []);
-  const hasPulsarInState = activeDevicesList.some(d => d && d.type && d.type.startsWith("pulsarlube"));
-
-  const isSinglePoint = isChain ? false : ((deviceKey === "single_point") && !hasPulsarInState);
   const activeSpGroups = (isSinglePoint && Array.isArray(autoDevicesState))
     ? autoDevicesState.filter(d => d && d.isSinglePointGroup && (d.unitCount > 0 || (d.bearingLetters && d.bearingLetters.length > 0)))
     : [];
@@ -11168,13 +11327,14 @@ function applySurveyBearingToCalculator(b) {
   const savedSnlLetter = localStorage.getItem("app_field_chkSnlHousing_" + targetLetter);
   const savedSnlGlobal = localStorage.getItem("app_field_chkSnlHousing");
 
+  const hasSurveySnl = (bRec && (bRec.isSnl !== undefined || bRec.is_snl !== undefined)) || (b && (b.isSnl !== undefined || b.is_snl !== undefined)) || (sec2 && (sec2.isSnl !== undefined || sec2.is_snl !== undefined));
   let isSnlInSurvey = false;
-  if (savedSnlLetter !== null) {
+  if (hasSurveySnl) {
+    isSnlInSurvey = !!((bRec && (bRec.isSnl || bRec.is_snl)) || (b && (b.isSnl || b.is_snl)) || (sec2 && (sec2.isSnl || sec2.is_snl)));
+  } else if (savedSnlLetter !== null) {
     isSnlInSurvey = (savedSnlLetter === "true");
   } else if (bOverride.isSnl !== undefined) {
     isSnlInSurvey = !!bOverride.isSnl;
-  } else if (bRec.isSnl !== undefined || bRec.is_snl !== undefined || b.isSnl !== undefined || b.is_snl !== undefined || sec2.isSnl !== undefined || sec2.is_snl !== undefined) {
-    isSnlInSurvey = !!(bRec.isSnl || bRec.is_snl || b.isSnl || b.is_snl || sec2.isSnl || sec2.is_snl);
   } else if (savedSnlGlobal !== null) {
     isSnlInSurvey = (savedSnlGlobal === "true");
   }
@@ -12035,12 +12195,16 @@ function runBearingPdfExport(includeTco, includeRoi, includeRaster = true) {
   const autoDeviceSelectEl = document.getElementById("automationDeviceSelect") || document.getElementById("autoDeviceSelect");
   let autoDeviceKey = autoDeviceSelectEl ? autoDeviceSelectEl.value : "single_point";
 
+  const isSinglePointMode = (autoDeviceKey === "single_point") || (Array.isArray(autoDevicesState) && autoDevicesState.some(d => d && (d.isSinglePointGroup || d.type === 'single_point')));
+  if (isSinglePointMode) {
+    autoDeviceKey = "single_point";
+    if (Array.isArray(autoDevicesState)) {
+      autoDevicesState.forEach(d => { if (d) d.type = 'single_point'; });
+    }
+  }
+
   const rawNumDevs = (typeof getActiveNumDevices === "function" ? getActiveNumDevices() : 1);
   const activeDevList = (Array.isArray(autoDevicesState) ? autoDevicesState.slice(0, rawNumDevs) : []);
-  const hasPulsarDev = activeDevList.some(d => d && d.type && d.type.startsWith("pulsarlube"));
-  if (autoDeviceKey === "single_point" && hasPulsarDev) {
-    autoDeviceKey = (activeDevList[0] && activeDevList[0].type) || "pulsarlube_m2";
-  }
 
   let autoImgSrc = "interflon-single-point-lubricator.png";
   if (autoDeviceKey === "pulsarlube_m2") {
@@ -17346,10 +17510,7 @@ function updateRoiAutomationPage() {
     roiManLifetimeValEl.style.color = (manualMode === "huidig") ? "#0284c7" : "#dc2626";
   }
   if (roiAutoLifetimeValEl) {
-    const extText = lifetimeFactorPct > 0 
-      ? ` (+${lifetimeFactorPct}% ${lang === "fr" ? "prolongation" : (lang === "en" ? "extension" : "verlenging")})` 
-      : "";
-    roiAutoLifetimeValEl.textContent = `${autoBearingLifetime} ${mndFullStr}${extText}`;
+    roiAutoLifetimeValEl.textContent = `${autoBearingLifetime} ${mndFullStr}`;
   }
 
   let autoRepairCost = (p2_lifetime > 0 ? ((12 / p2_lifetime) * (shared_repair_h + shared_prep_h) * numBearingsForTco * hourlyRate) : 0) / lifetimeMult;
@@ -21052,10 +21213,17 @@ function addRoiPdfPage(doc, dateString, watermarkDataUrl, aspectRatio, autoDataU
   const deviceSelect = document.getElementById("automationDeviceSelect") || document.getElementById("autoDeviceSelect");
   let deviceKey = deviceSelect ? deviceSelect.value : "single_point";
 
+  const isSinglePointMode = (deviceKey === "single_point") || (Array.isArray(autoDevicesState) && autoDevicesState.some(d => d && (d.isSinglePointGroup || d.type === 'single_point')));
+  const isSinglePoint = isSinglePointMode;
+  if (isSinglePoint) {
+    deviceKey = "single_point";
+    if (Array.isArray(autoDevicesState)) {
+      autoDevicesState.forEach(d => { if (d) d.type = 'single_point'; });
+    }
+  }
+
   const numDevices = typeof getActiveNumDevices === "function" ? getActiveNumDevices() : 1;
   const activeDevList = (Array.isArray(autoDevicesState) ? autoDevicesState.slice(0, numDevices) : []);
-  const hasPulsarInState = activeDevList.some(d => d && d.type && d.type.startsWith("pulsarlube"));
-  const isSinglePoint = (deviceKey === "single_point") && !hasPulsarInState;
 
   const selectGrease = document.getElementById("inputGrease") || document.getElementById("selectGrease");
   const greaseName = selectGrease ? selectGrease.value : "Interflon Grease MP2/3";
