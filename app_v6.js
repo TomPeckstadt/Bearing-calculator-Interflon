@@ -786,6 +786,21 @@ function saveManualBearingOverride(letter, teVal, taVal) {
 }
 window.saveManualBearingOverride = saveManualBearingOverride;
 
+function saveManualBearingSnlOverride(letter, isSnl, snlType, snlFill, snlRelub) {
+  if (!letter) return;
+  const overrides = getManualBearingOverrides();
+  if (!overrides[letter]) overrides[letter] = {};
+  if (isSnl !== undefined && isSnl !== null) overrides[letter].isSnl = !!isSnl;
+  if (snlType !== undefined && snlType !== null) overrides[letter].snlType = snlType;
+  if (snlFill !== undefined && snlFill !== null) overrides[letter].snlFill = snlFill;
+  if (snlRelub !== undefined && snlRelub !== null) overrides[letter].snlRelub = snlRelub;
+  overrides[letter].timestamp = Date.now();
+  try {
+    localStorage.setItem('interflon_bearing_manual_overrides', JSON.stringify(overrides));
+  } catch(e) {}
+}
+window.saveManualBearingSnlOverride = saveManualBearingSnlOverride;
+
 function updateCorrectionFactorsHint() {
   const hintEl = document.getElementById("surveyCorrectionFactorsHint");
   const hintTextEl = document.getElementById("surveyCorrectionFactorsHintText");
@@ -1025,7 +1040,11 @@ function resetBearingCorrectionFactorsToAdvice(letter) {
   const targetLetter = letter || window.currentActiveSurveyBearingLetter || 'A';
   const overrides = getManualBearingOverrides();
   if (overrides && overrides[targetLetter]) {
-    delete overrides[targetLetter];
+    delete overrides[targetLetter].Te;
+    delete overrides[targetLetter].Ta;
+    if (Object.keys(overrides[targetLetter]).length === 0) {
+      delete overrides[targetLetter];
+    }
     try {
       localStorage.setItem('interflon_bearing_manual_overrides', JSON.stringify(overrides));
     } catch(e) {}
@@ -1255,12 +1274,15 @@ function applySurveyConfig(config) {
       const bPos = b.asPositie || b.pos || '';
       const corr = determineBearingCorrectionFactors(d3, bPos);
       const manualOverrides = (typeof getManualBearingOverrides === 'function') ? getManualBearingOverrides() : {};
-      const bOverride = manualOverrides[b.letter];
+      const bOverride = manualOverrides[b.letter] || {};
       const effTe = (bOverride && bOverride.Te !== undefined) ? parseFloat(bOverride.Te) : corr.Te;
       const effTa = (bOverride && bOverride.Ta !== undefined) ? parseFloat(bOverride.Ta) : corr.Ta;
 
-      const isSnl = (b.isSnl !== undefined) ? !!b.isSnl : !!d2.isSnl;
-      const snlRelub = b.snlRelub || d2.snlRelub || 'side';
+      const savedSnlForLetter = localStorage.getItem("app_field_chkSnlHousing_" + b.letter);
+      const isSnl = (savedSnlForLetter !== null)
+        ? (savedSnlForLetter === "true")
+        : ((bOverride.isSnl !== undefined) ? !!bOverride.isSnl : ((b.isSnl !== undefined) ? !!b.isSnl : !!d2.isSnl));
+      const snlRelub = localStorage.getItem("app_field_selSnlRelubPosition_" + b.letter) || bOverride.snlRelub || b.snlRelub || d2.snlRelub || 'side';
 
       const need = calculateSingleBearingDailyNeed(b.nr, rpm, {
         hoursPerDay: hDay,
@@ -1527,12 +1549,15 @@ function applySurveyConfig(config) {
       const bPos = bObj.asPositie || bObj.pos || '';
       const corr = determineBearingCorrectionFactors(d3, bPos);
       const manualOverrides = (typeof getManualBearingOverrides === 'function') ? getManualBearingOverrides() : {};
-      const bOverride = manualOverrides[letter];
+      const bOverride = manualOverrides[letter] || {};
       const effTe = (bOverride && bOverride.Te !== undefined) ? parseFloat(bOverride.Te) : corr.Te;
       const effTa = (bOverride && bOverride.Ta !== undefined) ? parseFloat(bOverride.Ta) : corr.Ta;
 
-      const isSnl = (bObj.isSnl !== undefined) ? !!bObj.isSnl : !!d2.isSnl;
-      const snlRelub = bObj.snlRelub || d2.snlRelub || 'side';
+      const savedSnlForLetter = localStorage.getItem("app_field_chkSnlHousing_" + letter);
+      const isSnl = (savedSnlForLetter !== null)
+        ? (savedSnlForLetter === "true")
+        : ((bOverride.isSnl !== undefined) ? !!bOverride.isSnl : ((bObj.isSnl !== undefined) ? !!bObj.isSnl : !!d2.isSnl));
+      const snlRelub = localStorage.getItem("app_field_selSnlRelubPosition_" + letter) || bOverride.snlRelub || bObj.snlRelub || d2.snlRelub || 'side';
 
       const need = calculateSingleBearingDailyNeed(bObj.nr, rpm, {
         hoursPerDay: hDay,
@@ -3631,7 +3656,24 @@ function syncAllQuestionnaireDataToCalculator(data, explicitTargetLetter) {
     const snlContainer = document.getElementById("snlOptionsContainer");
 
     if (chkSnl) {
-      const isSnlInSurvey = !!(sec2.isSnl || sec2.is_snl || bRec.isSnl || bRec.is_snl);
+      const overrides = (typeof getManualBearingOverrides === 'function') ? getManualBearingOverrides() : {};
+      const bOverride = overrides[targetLetter] || {};
+      const savedSnlLetter = localStorage.getItem("app_field_chkSnlHousing_" + targetLetter);
+      const savedSnlGlobal = localStorage.getItem("app_field_chkSnlHousing");
+
+      let isSnlInSurvey = false;
+      if (data && (sec2.isSnl !== undefined || sec2.is_snl !== undefined || bRec.isSnl !== undefined || bRec.is_snl !== undefined)) {
+        isSnlInSurvey = !!(sec2.isSnl || sec2.is_snl || bRec.isSnl || bRec.is_snl);
+      } else if (savedSnlLetter !== null) {
+        isSnlInSurvey = (savedSnlLetter === "true");
+      } else if (bOverride.isSnl !== undefined) {
+        isSnlInSurvey = !!bOverride.isSnl;
+      } else if (sec2.isSnl !== undefined || sec2.is_snl !== undefined || bRec.isSnl !== undefined || bRec.is_snl !== undefined) {
+        isSnlInSurvey = !!(sec2.isSnl || sec2.is_snl || bRec.isSnl || bRec.is_snl);
+      } else if (savedSnlGlobal !== null) {
+        isSnlInSurvey = (savedSnlGlobal === "true");
+      }
+
       chkSnl.checked = isSnlInSurvey;
       if (snlContainer) {
         if (isSnlInSurvey) {
@@ -3640,19 +3682,23 @@ function syncAllQuestionnaireDataToCalculator(data, explicitTargetLetter) {
           snlContainer.classList.add("hidden");
         }
       }
-      if (isSnlInSurvey) {
-        const surveySnlType = sec2.snlType || sec2.snl_type || bRec.snlType || bRec.snl_type;
-        if (surveySnlType && selSnlType) {
-          selSnlType.value = surveySnlType;
-        }
-        const surveySnlFill = sec2.snlFill || sec2.snl_fill || bRec.snlFill || bRec.snl_fill;
-        if (surveySnlFill && selSnlFill) {
-          selSnlFill.value = surveySnlFill;
-        }
-        const surveySnlRelub = sec2.snlRelub || sec2.snl_relub || bRec.snlRelub || bRec.snl_relub;
-        if (surveySnlRelub && selSnlRelub) {
-          selSnlRelub.value = surveySnlRelub;
-        }
+      const surveySnlType = (data && (sec2.snlType || sec2.snl_type || bRec.snlType || bRec.snl_type))
+        ? (sec2.snlType || sec2.snl_type || bRec.snlType || bRec.snl_type)
+        : (localStorage.getItem("app_field_selSnlType_" + targetLetter) || (bOverride && bOverride.snlType) || sec2.snlType || sec2.snl_type || bRec.snlType || bRec.snl_type || localStorage.getItem("app_field_selSnlType"));
+      if (surveySnlType && selSnlType) {
+        selSnlType.value = surveySnlType;
+      }
+      const surveySnlFill = (data && (sec2.snlFill || sec2.snl_fill || bRec.snlFill || bRec.snl_fill))
+        ? (sec2.snlFill || sec2.snl_fill || bRec.snlFill || bRec.snl_fill)
+        : (localStorage.getItem("app_field_selSnlFillPercent_" + targetLetter) || (bOverride && bOverride.snlFill) || sec2.snlFill || sec2.snl_fill || bRec.snlFill || bRec.snl_fill || localStorage.getItem("app_field_selSnlFillPercent"));
+      if (surveySnlFill && selSnlFill) {
+        selSnlFill.value = surveySnlFill;
+      }
+      const surveySnlRelub = (data && (sec2.snlRelub || sec2.snl_relub || bRec.snlRelub || bRec.snl_relub))
+        ? (sec2.snlRelub || sec2.snl_relub || bRec.snlRelub || bRec.snl_relub)
+        : (localStorage.getItem("app_field_selSnlRelubPosition_" + targetLetter) || (bOverride && bOverride.snlRelub) || sec2.snlRelub || sec2.snl_relub || bRec.snlRelub || bRec.snl_relub || localStorage.getItem("app_field_selSnlRelubPosition"));
+      if (surveySnlRelub && selSnlRelub) {
+        selSnlRelub.value = surveySnlRelub;
       }
     }
 
@@ -4346,7 +4392,22 @@ function importSurveyBearingToOpbrengstmodel(mode, explicitLetter) {
   const snlContainer = document.getElementById("snlOptionsContainer");
 
   if (chkSnl) {
-    const isSnlInSurvey = !!(sec2.isSnl || sec2.is_snl || bRec.isSnl || bRec.is_snl);
+    const overrides = (typeof getManualBearingOverrides === 'function') ? getManualBearingOverrides() : {};
+    const bOverride = overrides[targetLetter] || {};
+    const savedSnlLetter = localStorage.getItem("app_field_chkSnlHousing_" + targetLetter);
+    const savedSnlGlobal = localStorage.getItem("app_field_chkSnlHousing");
+
+    let isSnlInSurvey = false;
+    if (savedSnlLetter !== null) {
+      isSnlInSurvey = (savedSnlLetter === "true");
+    } else if (bOverride.isSnl !== undefined) {
+      isSnlInSurvey = !!bOverride.isSnl;
+    } else if (sec2.isSnl !== undefined || sec2.is_snl !== undefined || bRec.isSnl !== undefined || bRec.is_snl !== undefined) {
+      isSnlInSurvey = !!(sec2.isSnl || sec2.is_snl || bRec.isSnl || bRec.is_snl);
+    } else if (savedSnlGlobal !== null) {
+      isSnlInSurvey = (savedSnlGlobal === "true");
+    }
+
     chkSnl.checked = isSnlInSurvey;
     if (snlContainer) {
       if (isSnlInSurvey) {
@@ -4355,22 +4416,24 @@ function importSurveyBearingToOpbrengstmodel(mode, explicitLetter) {
         snlContainer.classList.add("hidden");
       }
     }
-    if (isSnlInSurvey) {
-      const surveySnlType = sec2.snlType || sec2.snl_type || bRec.snlType || bRec.snl_type;
-      if (surveySnlType && selSnlType) {
-        selSnlType.value = surveySnlType;
-      }
-      const surveySnlFill = sec2.snlFill || sec2.snl_fill || bRec.snlFill || bRec.snl_fill;
-      if (surveySnlFill && selSnlFill) {
-        selSnlFill.value = surveySnlFill;
-      }
-      const surveySnlRelub = sec2.snlRelub || sec2.snl_relub || bRec.snlRelub || bRec.snl_relub;
-      if (surveySnlRelub && selSnlRelub) {
-        selSnlRelub.value = surveySnlRelub;
-      }
+    const surveySnlType = (sec2.snlType || sec2.snl_type || bRec.snlType || bRec.snl_type)
+      ? (sec2.snlType || sec2.snl_type || bRec.snlType || bRec.snl_type)
+      : (localStorage.getItem("app_field_selSnlType_" + targetLetter) || (bOverride && bOverride.snlType) || localStorage.getItem("app_field_selSnlType"));
+    if (surveySnlType && selSnlType) {
+      selSnlType.value = surveySnlType;
     }
-    if (typeof onSnlParamsChanged === "function") onSnlParamsChanged();
-    else if (typeof onSnlHousingToggle === "function") onSnlHousingToggle();
+    const surveySnlFill = (sec2.snlFill || sec2.snl_fill || bRec.snlFill || bRec.snl_fill)
+      ? (sec2.snlFill || sec2.snl_fill || bRec.snlFill || bRec.snl_fill)
+      : (localStorage.getItem("app_field_selSnlFillPercent_" + targetLetter) || (bOverride && bOverride.snlFill) || localStorage.getItem("app_field_selSnlFillPercent"));
+    if (surveySnlFill && selSnlFill) {
+      selSnlFill.value = surveySnlFill;
+    }
+    const surveySnlRelub = (sec2.snlRelub || sec2.snl_relub || bRec.snlRelub || bRec.snl_relub)
+      ? (sec2.snlRelub || sec2.snl_relub || bRec.snlRelub || bRec.snl_relub)
+      : (localStorage.getItem("app_field_selSnlRelubPosition_" + targetLetter) || (bOverride && bOverride.snlRelub) || localStorage.getItem("app_field_selSnlRelubPosition"));
+    if (surveySnlRelub && selSnlRelub) {
+      selSnlRelub.value = surveySnlRelub;
+    }
   }
 
   // Pas direct de correctiefactoren toe voor dit geselecteerde lager vóór herberekening
@@ -5244,12 +5307,17 @@ function initUniversalInputPersistence() {
 
       const savedVal = localStorage.getItem("app_field_" + el.id);
       if (savedVal !== null && savedVal !== "") {
-        el.value = savedVal;
+        if (el.type === "checkbox" || el.type === "radio") {
+          el.checked = (savedVal === "true" || savedVal === true);
+        } else {
+          el.value = savedVal;
+        }
       }
 
       const saveHandler = (e) => {
         try {
-          localStorage.setItem("app_field_" + el.id, e.target.value);
+          const valToSave = (el.type === "checkbox" || el.type === "radio") ? el.checked.toString() : e.target.value;
+          localStorage.setItem("app_field_" + el.id, valToSave);
         } catch (err) {
           console.warn("Could not save field to localStorage:", el.id, err);
         }
@@ -5258,6 +5326,16 @@ function initUniversalInputPersistence() {
       el.addEventListener("input", saveHandler);
       el.addEventListener("change", saveHandler);
     });
+
+    const chkSnlInit = document.getElementById("chkSnlHousing");
+    const snlContainerInit = document.getElementById("snlOptionsContainer");
+    if (chkSnlInit && snlContainerInit) {
+      if (chkSnlInit.checked) {
+        snlContainerInit.classList.remove("hidden");
+      } else {
+        snlContainerInit.classList.add("hidden");
+      }
+    }
 
     // Also sync legacy metadata keys if set
     const metaSyncMap = [
@@ -9201,12 +9279,116 @@ function onSnlHousingToggle() {
     } else {
       container.classList.add("hidden");
     }
+    if (window.__isSyncingQuestionnaire) return;
+    const isChecked = !!chk.checked;
+    try {
+      localStorage.setItem("app_field_chkSnlHousing", isChecked ? "true" : "false");
+    } catch(e) {}
+
+    const letter = window.currentActiveSurveyBearingLetter || window.currentSurveyBearingLetter || localStorage.getItem("interflon_active_survey_letter");
+    if (letter) {
+      try {
+        localStorage.setItem("app_field_chkSnlHousing_" + letter, isChecked ? "true" : "false");
+
+        if (typeof saveManualBearingSnlOverride === "function") {
+          saveManualBearingSnlOverride(letter, isChecked);
+        }
+
+        if (window.latestSurveyFullData) {
+          const fd = window.latestSurveyFullData;
+          if (fd.bearingDataMapSec2 && fd.bearingDataMapSec2[letter]) {
+            fd.bearingDataMapSec2[letter].isSnl = isChecked;
+          }
+          if (Array.isArray(fd.bearings)) {
+            const bItem = fd.bearings.find(x => x.letter === letter);
+            if (bItem) bItem.isSnl = isChecked;
+          }
+        }
+        updateStoredQuestionnaireSnl(letter, isChecked);
+      } catch(e) {}
+    }
   }
   calculateGrease();
 }
 
 function onSnlParamsChanged() {
+  if (window.__isSyncingQuestionnaire) return;
+  const selType = document.getElementById("selSnlType");
+  const selFill = document.getElementById("selSnlFillPercent");
+  const selRelub = document.getElementById("selSnlRelubPosition");
+  const letter = window.currentActiveSurveyBearingLetter || window.currentSurveyBearingLetter || localStorage.getItem("interflon_active_survey_letter");
+
+  if (selType) try { localStorage.setItem("app_field_selSnlType", selType.value); } catch(e) {}
+  if (selFill) try { localStorage.setItem("app_field_selSnlFillPercent", selFill.value); } catch(e) {}
+  if (selRelub) try { localStorage.setItem("app_field_selSnlRelubPosition", selRelub.value); } catch(e) {}
+
+  if (letter) {
+    try {
+      const typeVal = selType ? selType.value : undefined;
+      const fillVal = selFill ? selFill.value : undefined;
+      const relubVal = selRelub ? selRelub.value : undefined;
+
+      if (typeVal !== undefined) localStorage.setItem("app_field_selSnlType_" + letter, typeVal);
+      if (fillVal !== undefined) localStorage.setItem("app_field_selSnlFillPercent_" + letter, fillVal);
+      if (relubVal !== undefined) localStorage.setItem("app_field_selSnlRelubPosition_" + letter, relubVal);
+
+      if (typeof saveManualBearingSnlOverride === "function") {
+        saveManualBearingSnlOverride(letter, undefined, typeVal, fillVal, relubVal);
+      }
+
+      if (window.latestSurveyFullData) {
+        const fd = window.latestSurveyFullData;
+        if (fd.bearingDataMapSec2 && fd.bearingDataMapSec2[letter]) {
+          if (typeVal !== undefined) fd.bearingDataMapSec2[letter].snlType = typeVal;
+          if (fillVal !== undefined) fd.bearingDataMapSec2[letter].snlFill = fillVal;
+          if (relubVal !== undefined) fd.bearingDataMapSec2[letter].snlRelub = relubVal;
+        }
+        if (Array.isArray(fd.bearings)) {
+          const bItem = fd.bearings.find(x => x.letter === letter);
+          if (bItem) {
+            if (typeVal !== undefined) bItem.snlType = typeVal;
+            if (fillVal !== undefined) bItem.snlFill = fillVal;
+            if (relubVal !== undefined) bItem.snlRelub = relubVal;
+          }
+        }
+      }
+      updateStoredQuestionnaireSnl(letter, undefined, typeVal, fillVal, relubVal);
+    } catch(e) {}
+  }
   calculateGrease();
+}
+
+function updateStoredQuestionnaireSnl(letter, isChecked, snlType, snlFill, snlRelub) {
+  if (!letter) return;
+  try {
+    const keys = ['interflon_questionnaire_full_data', 'interflon_last_questionnaire_data', 'interflon_survey_raster_config'];
+    keys.forEach(key => {
+      const raw = localStorage.getItem(key);
+      if (raw) {
+        let qData = JSON.parse(raw);
+        let target = qData.fullData || qData.questionnaire || qData.data || qData;
+        if (target) {
+          if (target.bearingDataMapSec2) {
+            if (!target.bearingDataMapSec2[letter]) target.bearingDataMapSec2[letter] = {};
+            if (isChecked !== undefined) target.bearingDataMapSec2[letter].isSnl = isChecked;
+            if (snlType !== undefined) target.bearingDataMapSec2[letter].snlType = snlType;
+            if (snlFill !== undefined) target.bearingDataMapSec2[letter].snlFill = snlFill;
+            if (snlRelub !== undefined) target.bearingDataMapSec2[letter].snlRelub = snlRelub;
+          }
+          if (Array.isArray(target.bearings)) {
+            const b = target.bearings.find(x => x.letter === letter);
+            if (b) {
+              if (isChecked !== undefined) b.isSnl = isChecked;
+              if (snlType !== undefined) b.snlType = snlType;
+              if (snlFill !== undefined) b.snlFill = snlFill;
+              if (snlRelub !== undefined) b.snlRelub = snlRelub;
+            }
+          }
+          localStorage.setItem(key, JSON.stringify(qData));
+        }
+      }
+    });
+  } catch(e) {}
 }
 
 function autoSelectSnlHousingForBearing(designation) {
@@ -10890,23 +11072,40 @@ function applySurveyBearingToCalculator(b) {
   const selSnlRelub = document.getElementById("selSnlRelubPosition");
   const snlContainer = document.getElementById("snlOptionsContainer");
 
-  const isSnlInSurvey = !!(bRec.isSnl || bRec.is_snl || b.isSnl || b.is_snl || sec2.isSnl || sec2.is_snl);
+  const overrides = (typeof getManualBearingOverrides === 'function') ? getManualBearingOverrides() : {};
+  const bOverride = overrides[targetLetter] || {};
+  const savedSnlLetter = localStorage.getItem("app_field_chkSnlHousing_" + targetLetter);
+  const savedSnlGlobal = localStorage.getItem("app_field_chkSnlHousing");
+
+  let isSnlInSurvey = false;
+  if (savedSnlLetter !== null) {
+    isSnlInSurvey = (savedSnlLetter === "true");
+  } else if (bOverride.isSnl !== undefined) {
+    isSnlInSurvey = !!bOverride.isSnl;
+  } else if (bRec.isSnl !== undefined || bRec.is_snl !== undefined || b.isSnl !== undefined || b.is_snl !== undefined || sec2.isSnl !== undefined || sec2.is_snl !== undefined) {
+    isSnlInSurvey = !!(bRec.isSnl || bRec.is_snl || b.isSnl || b.is_snl || sec2.isSnl || sec2.is_snl);
+  } else if (savedSnlGlobal !== null) {
+    isSnlInSurvey = (savedSnlGlobal === "true");
+  }
+
   if (chkSnl) {
     chkSnl.checked = isSnlInSurvey;
     if (snlContainer) {
       if (isSnlInSurvey) snlContainer.classList.remove("hidden");
       else snlContainer.classList.add("hidden");
     }
-    if (isSnlInSurvey) {
-      const surveySnlType = bRec.snlType || bRec.snl_type || b.snlType || b.snl_type || sec2.snlType || sec2.snl_type;
-      if (surveySnlType && selSnlType) selSnlType.value = surveySnlType;
-      const surveySnlFill = bRec.snlFill || bRec.snl_fill || b.snlFill || b.snl_fill || sec2.snlFill || sec2.snl_fill;
-      if (surveySnlFill && selSnlFill) selSnlFill.value = surveySnlFill;
-      const surveySnlRelub = bRec.snlRelub || bRec.snl_relub || b.snlRelub || b.snl_relub || sec2.snlRelub || sec2.snl_relub;
-      if (surveySnlRelub && selSnlRelub) selSnlRelub.value = surveySnlRelub;
-    }
-    if (typeof onSnlParamsChanged === "function") onSnlParamsChanged();
-    else if (typeof onSnlHousingToggle === "function") onSnlHousingToggle();
+    const surveySnlType = (bRec.snlType || bRec.snl_type || b.snlType || b.snl_type || sec2.snlType || sec2.snl_type)
+      ? (bRec.snlType || bRec.snl_type || b.snlType || b.snl_type || sec2.snlType || sec2.snl_type)
+      : (localStorage.getItem("app_field_selSnlType_" + targetLetter) || (bOverride && bOverride.snlType) || localStorage.getItem("app_field_selSnlType"));
+    if (surveySnlType && selSnlType) selSnlType.value = surveySnlType;
+    const surveySnlFill = (bRec.snlFill || bRec.snl_fill || b.snlFill || b.snl_fill || sec2.snlFill || sec2.snl_fill)
+      ? (bRec.snlFill || bRec.snl_fill || b.snlFill || b.snl_fill || sec2.snlFill || sec2.snl_fill)
+      : (localStorage.getItem("app_field_selSnlFillPercent_" + targetLetter) || (bOverride && bOverride.snlFill) || localStorage.getItem("app_field_selSnlFillPercent"));
+    if (surveySnlFill && selSnlFill) selSnlFill.value = surveySnlFill;
+    const surveySnlRelub = (bRec.snlRelub || bRec.snl_relub || b.snlRelub || b.snl_relub || sec2.snlRelub || sec2.snl_relub)
+      ? (bRec.snlRelub || bRec.snl_relub || b.snlRelub || b.snl_relub || sec2.snlRelub || sec2.snl_relub)
+      : (localStorage.getItem("app_field_selSnlRelubPosition_" + targetLetter) || (bOverride && bOverride.snlRelub) || localStorage.getItem("app_field_selSnlRelubPosition"));
+    if (surveySnlRelub && selSnlRelub) selSnlRelub.value = surveySnlRelub;
   }
 
   // 6. Correction factors (Te & Ta)
