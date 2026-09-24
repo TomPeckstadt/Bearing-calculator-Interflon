@@ -525,6 +525,12 @@ function loadAutomationStateFromLocalStorage(force) {
       if (numDevicesSelect) numDevicesSelect.value = savedNumDevices;
     }
 
+    const savedLifetimeFactor = localStorage.getItem("app_field_roiLifetimeFactorSelect") || localStorage.getItem("roi_lifetime_factor");
+    if (savedLifetimeFactor) {
+      const lfEl = document.getElementById("roiLifetimeFactorSelect");
+      if (lfEl) lfEl.value = savedLifetimeFactor;
+    }
+
     const savedStateJson = localStorage.getItem("auto_devices_state");
     if (savedStateJson) {
       const parsed = JSON.parse(savedStateJson);
@@ -2845,9 +2851,15 @@ function onSurveyBearingSelected(selectEl) {
       try { localStorage.setItem("app_field_omLifetime1", bearingLife); } catch(e) {}
 
       const omLife2 = document.getElementById("omLifetime2");
-      const currentFactor = (omLife1.value && omLife2 && omLife2.value) ? (parseFloat(omLife2.value) / parseFloat(omLife1.value)) : 4;
-      const factor = (!isNaN(currentFactor) && currentFactor >= 1) ? currentFactor : 4;
-      const newLife2 = Math.round(bearingLife * factor);
+      const customOmLife2 = localStorage.getItem("custom_omLifetime2");
+      let newLife2;
+      if (customOmLife2 && !isNaN(parseFloat(customOmLife2)) && parseFloat(customOmLife2) > 0) {
+        newLife2 = parseFloat(customOmLife2);
+      } else {
+        const currentFactor = (omLife1.value && omLife2 && omLife2.value) ? (parseFloat(omLife2.value) / parseFloat(omLife1.value)) : 4;
+        const factor = (!isNaN(currentFactor) && currentFactor >= 1) ? currentFactor : 4;
+        newLife2 = Math.round(bearingLife * factor);
+      }
       if (omLife2) {
         omLife2.value = newLife2;
         try { localStorage.setItem("app_field_omLifetime2", newLife2); } catch(e) {}
@@ -3607,8 +3619,14 @@ function syncAllQuestionnaireDataToCalculator(data, explicitTargetLetter) {
       if (omLife1) {
         omLife1.value = bearingLife;
         const omLife2 = document.getElementById("omLifetime2");
-        const factor = (omLife1.value && omLife2 && omLife2.value) ? Math.max(1, parseFloat(omLife2.value) / parseFloat(omLife1.value)) : 4;
-        const newLife2 = Math.round(bearingLife * factor);
+        const customOmLife2 = localStorage.getItem("custom_omLifetime2");
+        let newLife2;
+        if (customOmLife2 && !isNaN(parseFloat(customOmLife2)) && parseFloat(customOmLife2) > 0) {
+          newLife2 = parseFloat(customOmLife2);
+        } else {
+          const factor = (omLife1.value && omLife2 && omLife2.value) ? Math.max(1, parseFloat(omLife2.value) / parseFloat(omLife1.value)) : 4;
+          newLife2 = Math.round(bearingLife * factor);
+        }
         if (omLife2) omLife2.value = newLife2;
         const repFreq1 = document.getElementById("omRepairFreq1");
         if (repFreq1) repFreq1.value = bearingLife;
@@ -4134,9 +4152,15 @@ function importSurveyBearingToOpbrengstmodel(mode, explicitLetter) {
       try { localStorage.setItem("app_field_omLifetime1", bearingLife); } catch(e) {}
 
       const omLife2 = document.getElementById("omLifetime2");
-      const currentFactor = (omLife1.value && omLife2 && omLife2.value) ? (parseFloat(omLife2.value) / parseFloat(omLife1.value)) : 4;
-      const factor = (!isNaN(currentFactor) && currentFactor >= 1) ? currentFactor : 4;
-      const newLife2 = Math.round(bearingLife * factor);
+      const customOmLife2 = localStorage.getItem("custom_omLifetime2");
+      let newLife2;
+      if (customOmLife2 && !isNaN(parseFloat(customOmLife2)) && parseFloat(customOmLife2) > 0) {
+        newLife2 = parseFloat(customOmLife2);
+      } else {
+        const currentFactor = (omLife1.value && omLife2 && omLife2.value) ? (parseFloat(omLife2.value) / parseFloat(omLife1.value)) : 4;
+        const factor = (!isNaN(currentFactor) && currentFactor >= 1) ? currentFactor : 4;
+        newLife2 = Math.round(bearingLife * factor);
+      }
       if (omLife2) {
         omLife2.value = newLife2;
         try { localStorage.setItem("app_field_omLifetime2", newLife2); } catch(e) {}
@@ -4162,20 +4186,26 @@ function importSurveyBearingToOpbrengstmodel(mode, explicitLetter) {
       chainOmLife1.value = bearingLife;
       try { localStorage.setItem("app_field_chainOmLifetime1", bearingLife); } catch(e) {}
       const chainOmLife2 = document.getElementById("chainOmLifetime2");
-      const newLife2 = Math.round(bearingLife * 4);
+      const customChainLife2 = localStorage.getItem("custom_chainOmLifetime2");
+      let newLife2Chain;
+      if (customChainLife2 && !isNaN(parseFloat(customChainLife2)) && parseFloat(customChainLife2) > 0) {
+        newLife2Chain = parseFloat(customChainLife2);
+      } else {
+        newLife2Chain = Math.round(bearingLife * 4);
+      }
       if (chainOmLife2) {
-        chainOmLife2.value = newLife2;
-        try { localStorage.setItem("app_field_chainOmLifetime2", newLife2); } catch(e) {}
+        chainOmLife2.value = newLife2Chain;
+        try { localStorage.setItem("app_field_chainOmLifetime2", newLife2Chain); } catch(e) {}
         chainOmLife2.dispatchEvent(new Event("input", { bubbles: true }));
       }
       const cRep1 = document.getElementById("chainOmRepairFreq1");
       if (cRep1) cRep1.value = bearingLife;
       const cRep2 = document.getElementById("chainOmRepairFreq2");
-      if (cRep2) cRep2.value = newLife2;
+      if (cRep2) cRep2.value = newLife2Chain;
       const cDt1 = document.getElementById("chainOmDowntimeFreq1");
       if (cDt1) cDt1.value = (12 / bearingLife).toFixed(2);
       const cDt2 = document.getElementById("chainOmDowntimeFreq2");
-      if (cDt2) cDt2.value = (12 / newLife2).toFixed(2);
+      if (cDt2) cDt2.value = (12 / newLife2Chain).toFixed(2);
       chainOmLife1.dispatchEvent(new Event("input", { bubbles: true }));
       chainOmLife1.dispatchEvent(new Event("change", { bubbles: true }));
     }
@@ -5327,6 +5357,17 @@ function initUniversalInputPersistence() {
       el.addEventListener("change", saveHandler);
     });
 
+    const customOmLife2Init = localStorage.getItem("custom_omLifetime2");
+    if (customOmLife2Init && !isNaN(parseFloat(customOmLife2Init)) && parseFloat(customOmLife2Init) > 0) {
+      const omLife2El = document.getElementById("omLifetime2");
+      if (omLife2El) omLife2El.value = customOmLife2Init;
+    }
+    const customChainLife2Init = localStorage.getItem("custom_chainOmLifetime2");
+    if (customChainLife2Init && !isNaN(parseFloat(customChainLife2Init)) && parseFloat(customChainLife2Init) > 0) {
+      const chainOmLife2El = document.getElementById("chainOmLifetime2");
+      if (chainOmLife2El) chainOmLife2El.value = customChainLife2Init;
+    }
+
     const chkSnlInit = document.getElementById("chkSnlHousing");
     const snlContainerInit = document.getElementById("snlOptionsContainer");
     if (chkSnlInit && snlContainerInit) {
@@ -6078,6 +6119,8 @@ const TRANSLATIONS = {
     roiLabelTimePerBeurt: "Tijd per smeerbeurt (minuten):",
     roiLabelHourlyRate: "Uurloon technieker:",
     roiLabelYearlyLaborCost: "Jaarlijkse arbeidskost:",
+    roiLabelManualLifetime: "Levensduur lager:",
+    roiLabelAutoLifetime: "Levensduur lager (automaat):",
     roiLabelRepairTime: "Tijdsbesteding revisie (jaar):",
     roiLabelPartsCost: "Materiaalkost onderdelen (jaar):",
     roiLabelDowntimeCost: "Downtime kost (jaar):",
@@ -6638,6 +6681,8 @@ const TRANSLATIONS = {
     propAttachmentReminder: "Vergeet niet het PDF-rapport en/of de offerte toe te voegen aan de mail!"
   },
   en: {
+    roiLabelManualLifetime: "Bearing lifetime:",
+    roiLabelAutoLifetime: "Bearing lifetime (automatic):",
     "devicePulsarlubePlc": "Pulsarlube PLC (Central Control)",
     "unitBedrijfsuren": "operating hours / year",
     "techBrandLabel": "Machine brand / manufacturer",
@@ -7174,6 +7219,8 @@ const TRANSLATIONS = {
     propAttachmentReminder: "Don't forget to attach the PDF report and/or quotation to the email!"
   },
   fr: {
+    roiLabelManualLifetime: "Durée de vie roulement :",
+    roiLabelAutoLifetime: "Durée de vie roulement (automatique) :",
     "devicePulsarlubePlc": "Pulsarlube PLC (Commande Centralisée)",
     "unitBedrijfsuren": "heures de fonctionnement / an",
     "techBrandLabel": "Marque / Fabricant de la machine",
@@ -8103,25 +8150,44 @@ document.addEventListener("DOMContentLoaded", () => {
   const omLifetime1El = document.getElementById("omLifetime1");
   const omLifetime2El = document.getElementById("omLifetime2");
   if (omLifetime1El) {
-    omLifetime1El.addEventListener("input", () => {
-        const lf1 = parseFloat(omLifetime1El.value) || 12;
+    const syncOmLife1 = () => {
+      const val = parseFloat(omLifetime1El.value) || 0;
+      if (val > 0) {
+        try {
+          localStorage.setItem("custom_omLifetime1", val);
+          localStorage.setItem("app_field_omLifetime1", val);
+        } catch (e) {}
+        const repFreq1 = document.getElementById("omRepairFreq1");
+        if (repFreq1) repFreq1.value = val;
         const dtFreq1 = document.getElementById("omDowntimeFreq1");
-        if (dtFreq1) dtFreq1.value = (12 / lf1).toFixed(2);
-      const freqEl = document.getElementById("omDowntimeFreq1");
-      if (freqEl) {
-        const val = parseFloat(omLifetime1El.value) || 0;
-        freqEl.value = val > 0 ? parseFloat((12 / val).toFixed(2)) : 0;
+        if (dtFreq1) dtFreq1.value = (12 / val).toFixed(2);
       }
-    });
+      if (typeof calculateTco === "function") calculateTco();
+      if (typeof saveBearingTcoDetails === "function") saveBearingTcoDetails();
+      if (typeof updateRoiAutomationPage === "function") updateRoiAutomationPage();
+    };
+    omLifetime1El.addEventListener("input", syncOmLife1);
+    omLifetime1El.addEventListener("change", syncOmLife1);
   }
   if (omLifetime2El) {
-    omLifetime2El.addEventListener("input", () => {
-      const freqEl = document.getElementById("omDowntimeFreq2");
-      if (freqEl) {
-        const val = parseFloat(omLifetime2El.value) || 0;
-        freqEl.value = val > 0 ? parseFloat((12 / val).toFixed(2)) : 0;
+    const syncOmLife2 = () => {
+      const val = parseFloat(omLifetime2El.value) || 0;
+      if (val > 0) {
+        try {
+          localStorage.setItem("custom_omLifetime2", val);
+          localStorage.setItem("app_field_omLifetime2", val);
+        } catch (e) {}
+        const repFreq2 = document.getElementById("omRepairFreq2");
+        if (repFreq2) repFreq2.value = val;
+        const dtFreq2 = document.getElementById("omDowntimeFreq2");
+        if (dtFreq2) dtFreq2.value = (12 / val).toFixed(2);
       }
-    });
+      if (typeof calculateTco === "function") calculateTco();
+      if (typeof saveBearingTcoDetails === "function") saveBearingTcoDetails();
+      if (typeof updateRoiAutomationPage === "function") updateRoiAutomationPage();
+    };
+    omLifetime2El.addEventListener("input", syncOmLife2);
+    omLifetime2El.addEventListener("change", syncOmLife2);
   }
 
   // Sync downtime duration with repair hours in real-time
@@ -8141,22 +8207,44 @@ document.addEventListener("DOMContentLoaded", () => {
   const chainOmLifetime1El = document.getElementById("chainOmLifetime1");
   const chainOmLifetime2El = document.getElementById("chainOmLifetime2");
   if (chainOmLifetime1El) {
-    chainOmLifetime1El.addEventListener("input", () => {
-      const freqEl = document.getElementById("chainOmDowntimeFreq1");
-      if (freqEl) {
-        const val = parseFloat(chainOmLifetime1El.value) || 0;
-        freqEl.value = val > 0 ? parseFloat((12 / val).toFixed(2)) : 0;
+    const syncChainLife1 = () => {
+      const val = parseFloat(chainOmLifetime1El.value) || 0;
+      if (val > 0) {
+        try {
+          localStorage.setItem("custom_chainOmLifetime1", val);
+          localStorage.setItem("app_field_chainOmLifetime1", val);
+        } catch (e) {}
+        const cRep1 = document.getElementById("chainOmRepairFreq1");
+        if (cRep1) cRep1.value = val;
+        const dtFreq1 = document.getElementById("chainOmDowntimeFreq1");
+        if (dtFreq1) dtFreq1.value = (12 / val).toFixed(2);
       }
-    });
+      if (typeof calculateTco === "function") calculateTco();
+      if (typeof saveChainTcoDetails === "function") saveChainTcoDetails();
+      if (typeof updateRoiAutomationPage === "function") updateRoiAutomationPage();
+    };
+    chainOmLifetime1El.addEventListener("input", syncChainLife1);
+    chainOmLifetime1El.addEventListener("change", syncChainLife1);
   }
   if (chainOmLifetime2El) {
-    chainOmLifetime2El.addEventListener("input", () => {
-      const freqEl = document.getElementById("chainOmDowntimeFreq2");
-      if (freqEl) {
-        const val = parseFloat(chainOmLifetime2El.value) || 0;
-        freqEl.value = val > 0 ? parseFloat((12 / val).toFixed(2)) : 0;
+    const syncChainLife2 = () => {
+      const val = parseFloat(chainOmLifetime2El.value) || 0;
+      if (val > 0) {
+        try {
+          localStorage.setItem("custom_chainOmLifetime2", val);
+          localStorage.setItem("app_field_chainOmLifetime2", val);
+        } catch (e) {}
+        const cRep2 = document.getElementById("chainOmRepairFreq2");
+        if (cRep2) cRep2.value = val;
+        const dtFreq2 = document.getElementById("chainOmDowntimeFreq2");
+        if (dtFreq2) dtFreq2.value = (12 / val).toFixed(2);
       }
-    });
+      if (typeof calculateTco === "function") calculateTco();
+      if (typeof saveChainTcoDetails === "function") saveChainTcoDetails();
+      if (typeof updateRoiAutomationPage === "function") updateRoiAutomationPage();
+    };
+    chainOmLifetime2El.addEventListener("input", syncChainLife2);
+    chainOmLifetime2El.addEventListener("change", syncChainLife2);
   }
 
   // Sync downtime duration with repair hours in real-time for Chain OM
@@ -12608,6 +12696,15 @@ function loadBearingTcoDetails() {
         }
       }
     });
+    const customOmLife2 = localStorage.getItem("custom_omLifetime2");
+    if (customOmLife2 && !isNaN(parseFloat(customOmLife2)) && parseFloat(customOmLife2) > 0) {
+      const omLife2El = document.getElementById("omLifetime2");
+      if (omLife2El) omLife2El.value = customOmLife2;
+      const repFreq2 = document.getElementById("omRepairFreq2");
+      if (repFreq2) repFreq2.value = customOmLife2;
+      const dtFreq2 = document.getElementById("omDowntimeFreq2");
+      if (dtFreq2) dtFreq2.value = (12 / parseFloat(customOmLife2)).toFixed(2);
+    }
     setBearingTcoImage(data["omAppImage"] || "");
   } catch (e) {
     console.error("Fout bij laden Bearing TCO data:", e);
@@ -12640,6 +12737,15 @@ function loadChainTcoDetails() {
         }
       }
     });
+    const customChainLife2 = localStorage.getItem("custom_chainOmLifetime2");
+    if (customChainLife2 && !isNaN(parseFloat(customChainLife2)) && parseFloat(customChainLife2) > 0) {
+      const chainOmLife2El = document.getElementById("chainOmLifetime2");
+      if (chainOmLife2El) chainOmLife2El.value = customChainLife2;
+      const cRep2 = document.getElementById("chainOmRepairFreq2");
+      if (cRep2) cRep2.value = customChainLife2;
+      const cDt2 = document.getElementById("chainOmDowntimeFreq2");
+      if (cDt2) cDt2.value = (12 / parseFloat(customChainLife2)).toFixed(2);
+    }
     setChainTcoImage(data["chainOmAppImage"] || "");
   } catch (e) {
     console.error("Fout bij laden Chain TCO data:", e);
@@ -17197,10 +17303,43 @@ function updateRoiAutomationPage() {
   let manualMatCost = activeLifetime > 0 ? ((12 / activeLifetime) * shared_parts_cost * numBearingsForTco) : 0;
   let manualDowntimeCost = activeDtH * activeDtFreq * shared_downtime_rate * numBearingsForTco;
 
-  // Auto lubricator Card 2 costs (uses Interflon 36-month lifetime p2 + lifetime extension factor):
+  // Auto lubricator Card 2 costs (uses Interflon lifetime p2 + lifetime extension factor):
   const lifetimeFactorEl = document.getElementById("roiLifetimeFactorSelect");
   const lifetimeFactorPct = lifetimeFactorEl ? (parseFloat(lifetimeFactorEl.value) || 0) : 0;
   const lifetimeMult = 1 + (lifetimeFactorPct / 100);
+
+  if (lifetimeFactorEl) {
+    try {
+      localStorage.setItem("app_field_roiLifetimeFactorSelect", lifetimeFactorEl.value);
+      localStorage.setItem("roi_lifetime_factor", lifetimeFactorEl.value);
+    } catch(e) {}
+  }
+
+  const autoBearingLifetime = Math.round(p2_lifetime * lifetimeMult);
+
+  // Update visual lifetime badges and rows in real-time
+  const baseLifetimeEl = document.getElementById("roiBaseLifetimeDisplay");
+  const autoLifetimeEl = document.getElementById("roiAutomatedLifetimeDisplay");
+  const roiManLifetimeValEl = document.getElementById("roiManBearingLifetime");
+  const roiAutoLifetimeValEl = document.getElementById("roiAutoBearingLifetime");
+
+  var lang = currentLang || "nl";
+  const mndShortStr = lang === "fr" ? "m" : (lang === "en" ? "mo" : "mnd");
+  const mndFullStr = lang === "fr" ? "mois" : (lang === "en" ? "months" : "maanden");
+
+  if (baseLifetimeEl) baseLifetimeEl.textContent = `${p2_lifetime} ${mndShortStr}`;
+  if (autoLifetimeEl) autoLifetimeEl.textContent = `${autoBearingLifetime} ${mndShortStr}`;
+
+  if (roiManLifetimeValEl) {
+    roiManLifetimeValEl.textContent = `${activeLifetime} ${mndFullStr}`;
+    roiManLifetimeValEl.style.color = (manualMode === "huidig") ? "#0284c7" : "#dc2626";
+  }
+  if (roiAutoLifetimeValEl) {
+    const extText = lifetimeFactorPct > 0 
+      ? ` (+${lifetimeFactorPct}% ${lang === "fr" ? "prolongation" : (lang === "en" ? "extension" : "verlenging")})` 
+      : "";
+    roiAutoLifetimeValEl.textContent = `${autoBearingLifetime} ${mndFullStr}${extText}`;
+  }
 
   let autoRepairCost = (p2_lifetime > 0 ? ((12 / p2_lifetime) * (shared_repair_h + shared_prep_h) * numBearingsForTco * hourlyRate) : 0) / lifetimeMult;
   let autoMatCost = (p2_lifetime > 0 ? ((12 / p2_lifetime) * shared_parts_cost * numBearingsForTco) : 0) / lifetimeMult;
@@ -17249,6 +17388,7 @@ function updateRoiAutomationPage() {
       roiManCardSubtext.textContent = lang === "fr" ? "Avec produit actuel (base annuelle)" : (lang === "en" ? "With current product (annual basis)" : "Met huidig product (op jaarbasis)");
     }
     if (roiManLaborCost) roiManLaborCost.style.color = "#0284c7";
+    if (roiManLifetimeValEl) roiManLifetimeValEl.style.color = "#0284c7";
     if (manRepairCostEl) manRepairCostEl.style.color = "#0284c7";
     if (manMatCostEl) manMatCostEl.style.color = "#0284c7";
     if (manDowntimeCostEl) manDowntimeCostEl.style.color = "#0284c7";
@@ -17321,6 +17461,7 @@ function updateRoiAutomationPage() {
       roiManCardSubtext.textContent = lang === "fr" ? "Avec produit Interflon (base annuelle)" : (lang === "en" ? "With Interflon product (annual basis)" : "Met Interflon product (op jaarbasis)");
     }
     if (roiManLaborCost) roiManLaborCost.style.color = "#dc2626";
+    if (roiManLifetimeValEl) roiManLifetimeValEl.style.color = "#dc2626";
     if (manRepairCostEl) manRepairCostEl.style.color = "#dc2626";
     if (manMatCostEl) manMatCostEl.style.color = "#dc2626";
     if (manDowntimeCostEl) manDowntimeCostEl.style.color = "#dc2626";
@@ -27238,6 +27379,12 @@ document.addEventListener("DOMContentLoaded", function() {
 
     if (typeof syncAllQuestionnaireDataToCalculator === "function") {
       syncAllQuestionnaireDataToCalculator();
+    }
+    if (typeof calculateTco === "function") {
+      calculateTco();
+    }
+    if (typeof updateRoiAutomationPage === "function") {
+      updateRoiAutomationPage();
     }
     if (typeof updateCorrectionFactorsHint === "function") {
       updateCorrectionFactorsHint();
