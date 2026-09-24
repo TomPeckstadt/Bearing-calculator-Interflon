@@ -6497,6 +6497,7 @@ const TRANSLATIONS = {
     unitGramsVet: "gram vet",
     pdfTitle: "INTERFLON LAGER SMEERADVIES",
     pdfDocTitle: "INTERFLON LAGER SMEERADVIES",
+    pdfManualLubricationBasis: "Berekening op basis van manuele smering",
     pdfDate: "Datum",
     pdfEstimateNote: "Let op: Afmetingen en parameters zijn geschat op basis van SKF-aanduiding.",
     pdfWatermarkText: "A world without friction",
@@ -7035,6 +7036,7 @@ const TRANSLATIONS = {
     unitGramsVet: "grams of grease",
     pdfTitle: "INTERFLON BEARING LUBRICATION ADVICE",
     pdfDocTitle: "INTERFLON BEARING LUBRICATION ADVICE",
+    pdfManualLubricationBasis: "Calculation based on manual lubrication",
     pdfDate: "Date",
     pdfEstimateNote: "Please note: Dimensions and parameters are estimated based on SKF designation.",
     pdfWatermarkText: "A world without friction",
@@ -7573,6 +7575,7 @@ const TRANSLATIONS = {
     unitGramsVet: "grammes de graisse",
     pdfTitle: "CONSEIL DE LUBRIFICATION DES ROULEMENTS INTERFLON",
     pdfDocTitle: "CONSEIL DE LUBRIFICATION DES ROULEMENTS INTERFLON",
+    pdfManualLubricationBasis: "Calcul basé sur la lubrification manuelle",
     pdfDate: "Date",
     pdfEstimateNote: "Attention : Les dimensions et les paramètres sont estimés sur la base de la désignation SKF.",
     pdfWatermarkText: "A world without friction",
@@ -11653,7 +11656,7 @@ function renderBearingPdfPage2(doc, opts = {}) {
   const {
     watermarkDataUrl,
     aspectRatio,
-    langData,
+    langData = (typeof TRANSLATIONS !== "undefined" ? (TRANSLATIONS[currentLang] || TRANSLATIONS.nl) : {}),
     dateString,
     bearingLetter = "",
     bearingDesc = "",
@@ -11683,19 +11686,27 @@ function renderBearingPdfPage2(doc, opts = {}) {
         const page2Title = bearingLetter 
           ? "OPBRENGSTMODEL LAGERSMERING (TCO) - LAGER " + bearingLetter 
           : "OPBRENGSTMODEL LAGERSMERING (TCO)";
-        doc.text(page2Title, 20, 31);
+        doc.text(page2Title, 20, 29.5);
 
         doc.setFont("helvetica", "normal");
         doc.setFontSize(8.5);
         doc.setTextColor(100, 100, 100);
+        const manualSubtitle = (langData && langData.pdfManualLubricationBasis) 
+          || (typeof currentLang !== "undefined" && currentLang === "en" 
+              ? "Calculation based on manual lubrication" 
+              : (typeof currentLang !== "undefined" && currentLang === "fr" 
+                 ? "Calcul basé sur la lubrification manuelle" 
+                 : "Berekening op basis van manuele smering"));
+        doc.text(manualSubtitle, 20, 34.5);
+
         let desigStr = (typeof activeBearing !== "undefined" && activeBearing && activeBearing.designation) ? activeBearing.designation.toUpperCase() : "";
         const page2Subtitle = bearingLetter
           ? `Analysestructuur op basis van 14 parameters (Lager ${bearingLetter}${desigStr ? ': ' + desigStr : ''}${bearingDesc ? ' - ' + bearingDesc : ''})`
           : "Analysestructuur op basis van 14 parameters (Vetverbruik, arbeid, wisselstukken en stilstand)";
-        doc.text(page2Subtitle, 20, 37);
+        doc.text(page2Subtitle, 20, 38.5);
 
         doc.setDrawColor(220, 220, 220);
-        doc.line(20, 41, 190, 41);
+        doc.line(20, 41.5, 190, 41.5);
 
         const startX1 = 20;
         const startX2 = 75;
