@@ -3383,17 +3383,19 @@
         currentAdviceSystemMode = 'pulsarlube';
       }
 
-      const currentDevCount = (devices && Array.isArray(devices)) ? devices.length : 0;
-      const advice = getSmartDeviceAdvice(bearings, currentDevCount);
+      const currentPlDevCount = (devices && Array.isArray(devices))
+        ? devices.filter(d => d.active && d.type && d.type.startsWith('pulsarlube')).length
+        : 0;
+      const advice = getSmartDeviceAdvice(bearings, currentPlDevCount);
       currentAdviceData = advice;
 
       if (currentAdviceSystemMode === 'single_point') {
         currentChosenK = advice.N;
       } else {
-        if (advice.pulsarlube && advice.pulsarlube.recommended) {
+        if (currentPlDevCount >= 1 && advice.pulsarlube && advice.pulsarlube.solutionsMap && advice.pulsarlube.solutionsMap[currentPlDevCount]) {
+          currentChosenK = currentPlDevCount;
+        } else if (advice.pulsarlube && advice.pulsarlube.recommended) {
           currentChosenK = advice.pulsarlube.recommended.K;
-        } else if (currentDevCount >= 1 && advice.pulsarlube.solutionsMap && advice.pulsarlube.solutionsMap[currentDevCount]) {
-          currentChosenK = currentDevCount;
         } else {
           currentChosenK = advice.pulsarlube.K_cap;
         }
@@ -3416,15 +3418,15 @@
         if (mode === 'single_point') {
           currentChosenK = currentAdviceData.N;
         } else {
-          if (currentAdviceData.pulsarlube && currentAdviceData.pulsarlube.recommended) {
+          const currentPlDevCount = (devices && Array.isArray(devices))
+            ? devices.filter(d => d.active && d.type && d.type.startsWith('pulsarlube')).length
+            : 0;
+          if (currentPlDevCount >= 1 && currentAdviceData.pulsarlube && currentAdviceData.pulsarlube.solutionsMap && currentAdviceData.pulsarlube.solutionsMap[currentPlDevCount]) {
+            currentChosenK = currentPlDevCount;
+          } else if (currentAdviceData.pulsarlube && currentAdviceData.pulsarlube.recommended) {
             currentChosenK = currentAdviceData.pulsarlube.recommended.K;
           } else {
-            const currentDevCount = (devices && Array.isArray(devices)) ? devices.length : 0;
-            if (currentDevCount >= 1 && currentAdviceData.pulsarlube.solutionsMap && currentAdviceData.pulsarlube.solutionsMap[currentDevCount]) {
-              currentChosenK = currentDevCount;
-            } else {
-              currentChosenK = currentAdviceData.pulsarlube.K_cap;
-            }
+            currentChosenK = currentAdviceData.pulsarlube.K_cap;
           }
         }
         renderDeviceAdviceContent(currentAdviceData, currentChosenK);
@@ -3767,6 +3769,14 @@
       });
       devCardsHtml += '</div>';
 
+      // Explanation matching the currently selected solution option
+      let chosenExplanation = pl.explanation;
+      if (sol && sol.explanation) {
+        chosenExplanation = sol.explanation;
+      } else if (sol && chosenK !== (pl.recommended && pl.recommended.K)) {
+        chosenExplanation = `Opstelling met ${chosenK} Pulsarlube toestel${chosenK > 1 ? 'len' : ''}. Maximale leidingafstand: ${sol.maxDist.toFixed(1).replace('.', ',')} m (gemiddeld: ${sol.avgDist.toFixed(1).replace('.', ',')} m).`;
+      }
+
       container.innerHTML = `
         ${systemTabsHtml}
         <div style="background: ${bannerBg}; border: 1.5px solid ${bannerBorder}; border-radius: 10px; padding: 12px 14px; margin-bottom: 12px;">
@@ -3775,7 +3785,7 @@
             <span>${bannerTitle}</span>
           </div>
           <p style="margin: 6px 0 0 0; font-size: 12px; color: ${bannerText}; opacity: 0.9; line-height: 1.45;">
-            ${pl.explanation}
+            ${chosenExplanation}
           </p>
         </div>
         ${warningBoxHtml}
@@ -6837,6 +6847,7 @@
         window.currentSurveyRasterConfig = configToSave;
 
         // Also save snapshot of full questionnaire for seamless sync with Automatisering
+        let fullData = null;
         try {
           const q1El = document.getElementById('q1');
           const clientCompEl = document.getElementById('clientCompany');
@@ -6851,14 +6862,9 @@
                                bearings.some(b => (b.nr && !b.nr.startsWith('Lager ')) || b.desc || b.rpm) ||
                                bearings.length > 1;
 
-          // Only persist to localStorage if user has entered data and we are not restoring or clearing
-          const activeCalcMachine = (localStorage.getItem('tech_machine') || '').trim().toLowerCase();
-          const currentFormMachine = (machineName || '').trim().toLowerCase();
-          const hasMachineMismatch = activeCalcMachine && currentFormMachine && (activeCalcMachine !== currentFormMachine);
-
-          if (hasUserInput && !window.__isClearingQuestionnaire && !window.__questionnaireRestoring && !hasMachineMismatch) {
+          if (hasUserInput && !window.__isClearingQuestionnaire && !window.__questionnaireRestoring) {
             localStorage.setItem('interflon_survey_raster_config', JSON.stringify(configToSave));
-            const fullData = {
+            fullData = {
               fileType: 'Interflon_Smeeranalyse_Vragenlijst',
               version: '1.0',
               exportDate: new Date().toISOString(),
@@ -6899,7 +6905,7 @@
                 type: 'CONFIG_UPDATED',
                 config: configToSave,
                 bearings: bearings,
-                fullData: (typeof fullData !== 'undefined' ? fullData : null)
+                fullData: fullData
               });
             }
           } catch (e) {}
@@ -10046,8 +10052,11 @@
               if (window.__lastRestoredExportDate && targetData.exportDate === window.__lastRestoredExportDate) {
                 return;
               }
-              // Only restore if targetData is actually a valid questionnaire object
-              if (!targetData.bearings && !targetData.general && !targetData.raster) {
+              if (window.__isSavingRasterConfig || window.__questionnaireRestoring) {
+                return;
+              }
+              // Only restore if targetData is an explicit external file/dossier import from the calculator
+              if (targetData.source !== 'calculator_dossier_import' && targetData.source !== 'calculator_user_import' && !targetData.isDossierImport && targetData.source !== 'vragenlijst_user_import') {
                 return;
               }
               console.log("Storage event sync: Questionnaire replaced via localStorage update");
