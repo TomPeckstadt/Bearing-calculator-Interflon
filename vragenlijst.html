@@ -6886,6 +6886,18 @@
         const urenPerDag = (d2.q13 || '16') + ' uur';
         const dagenPerWeek = (d2.q14 || '5') + ' dagen';
 
+        const isSnl = !!d2.isSnl;
+        let snlType = d2.snlType || '';
+        if (isSnl && !snlType && typeof getSnlHousingForBearing === 'function') {
+          snlType = getSnlHousingForBearing(lagernummer) || 'SNL';
+        }
+        if (!snlType) snlType = 'SNL';
+        const snlFillDesc = isSnl ? (d2.snlFill === '100' ? '90% - 100% (traag / vuil barrière)' : '40% - 50% (standaard)') : '-';
+        const snlRelubDesc = isSnl ? (d2.snlRelub === 'w33' ? 'Centraal (W33 groef lager)' : 'Zijkant behuizing (+60% toeslag)') : '-';
+        const snlLagerhuis = isSnl 
+          ? `Ja — ${snlType} (Vulling: ${d2.snlFill === '100' ? '90-100%' : '40-50%'}, Nasmering: ${d2.snlRelub === 'w33' ? 'Centraal (W33)' : 'Zijkant behuizing (+60%)'})`
+          : 'Nee (Geen SNL-huis)';
+
         const pos = (typeof bearingPositions !== "undefined" && bearingPositions[letter]) ? bearingPositions[letter] : { x: 0, y: 0 };
         let minD = Math.hypot(pos.x, pos.y);
         if (typeof activeOrigins !== "undefined" && activeOrigins && activeOrigins.length > 0) {
@@ -6923,6 +6935,11 @@
           levensduur,
           urenPerDag,
           dagenPerWeek,
+          isSnl,
+          snlType: isSnl ? snlType : '-',
+          snlFill: snlFillDesc,
+          snlRelub: snlRelubDesc,
+          snlLagerhuis,
           leidingAfstand,
           coordinaten,
           omgevingstemp,
@@ -6990,22 +7007,23 @@
         { label: '09. Gemiddelde Levensduur', key: 'levensduur' },
         { label: '10. Operationele Uren / Dag', key: 'urenPerDag' },
         { label: '11. Operationele Dagen / Week', key: 'dagenPerWeek' },
-        { label: '12. Leidingafstand tot centraal punt', key: 'leidingAfstand' },
-        { label: '13. Coördinaten op raster (X, Y)', key: 'coordinaten' },
-        { label: '14. Omgevingstemperatuur (°C)', key: 'omgevingstemp' },
-        { label: '15. Lagertemperatuur (°C)', key: 'lagertemp' },
-        { label: '16. Water / Vocht / Stoom (1-10)', key: 'waterVocht' },
-        { label: '17. Stof / Zand (1-10)', key: 'stofZand' },
-        { label: '18. Abrasieve Vervuiling (1-10)', key: 'abrasief' },
-        { label: '19. Schokbelasting (1-10)', key: 'schokbelasting' },
-        { label: '20. Vibraties & Trillingen (1-10)', key: 'vibraties' },
-        { label: '21. Condensatie (1-10)', key: 'condensatie' },
-        { label: '22. Tijdsduur per smeerbeurt', key: 'tijdsduurSmeerbeurt' },
-        { label: '23. Uurloon technicus', key: 'uurloon' },
-        { label: '24. Downtime per lagerschade', key: 'downtimeUur' },
-        { label: '25. Voorbereidingstijd wissel', key: 'voorbereiding' },
-        { label: '26. Downtime kosten per uur', key: 'downtimeKost' },
-        { label: '27. Prijs wisselstukken / lager', key: 'prijsWisselstuk' }
+        { label: '12. SNL-Lagerhuis', key: 'snlLagerhuis' },
+        { label: '13. Leidingafstand tot centraal punt', key: 'leidingAfstand' },
+        { label: '14. Coördinaten op raster (X, Y)', key: 'coordinaten' },
+        { label: '15. Omgevingstemperatuur (°C)', key: 'omgevingstemp' },
+        { label: '16. Lagertemperatuur (°C)', key: 'lagertemp' },
+        { label: '17. Water / Vocht / Stoom (1-10)', key: 'waterVocht' },
+        { label: '18. Stof / Zand (1-10)', key: 'stofZand' },
+        { label: '19. Abrasieve Vervuiling (1-10)', key: 'abrasief' },
+        { label: '20. Schokbelasting (1-10)', key: 'schokbelasting' },
+        { label: '21. Vibraties & Trillingen (1-10)', key: 'vibraties' },
+        { label: '22. Condensatie (1-10)', key: 'condensatie' },
+        { label: '23. Tijdsduur per smeerbeurt', key: 'tijdsduurSmeerbeurt' },
+        { label: '24. Uurloon technicus', key: 'uurloon' },
+        { label: '25. Downtime per lagerschade', key: 'downtimeUur' },
+        { label: '26. Voorbereidingstijd wissel', key: 'voorbereiding' },
+        { label: '27. Downtime kosten per uur', key: 'downtimeKost' },
+        { label: '28. Prijs wisselstukken / lager', key: 'prijsWisselstuk' }
       ];
 
       metrics.forEach(m => {
@@ -7057,22 +7075,23 @@
         { label: '09. Gemiddelde Levensduur', key: 'levensduur' },
         { label: '10. Operationele Uren / Dag', key: 'urenPerDag' },
         { label: '11. Operationele Dagen / Week', key: 'dagenPerWeek' },
-        { label: '12. Leidingafstand meetpunt', key: 'leidingAfstand' },
-        { label: '13. Coördinaten raster (X, Y)', key: 'coordinaten' },
-        { label: '14. Omgevingstemperatuur (°C)', key: 'omgevingstemp' },
-        { label: '15. Lagertemperatuur (°C)', key: 'lagertemp' },
-        { label: '16. Water / Vocht / Stoom (1-10)', key: 'waterVocht' },
-        { label: '17. Stof / Zand (1-10)', key: 'stofZand' },
-        { label: '18. Abrasieve Vervuiling (1-10)', key: 'abrasief' },
-        { label: '19. Schokbelasting (1-10)', key: 'schokbelasting' },
-        { label: '20. Vibraties & Trillingen (1-10)', key: 'vibraties' },
-        { label: '21. Condensatie (1-10)', key: 'condensatie' },
-        { label: '22. Tijdsduur per smeerbeurt', key: 'tijdsduurSmeerbeurt' },
-        { label: '23. Uurloon technicus', key: 'uurloon' },
-        { label: '24. Downtime per lager', key: 'downtimeUur' },
-        { label: '25. Voorbereidingstijd wissel', key: 'voorbereiding' },
-        { label: '26. Downtime kosten per uur', key: 'downtimeKost' },
-        { label: '27. Prijs wisselstukken / lager', key: 'prijsWisselstuk' }
+        { label: '12. SNL-Lagerhuis', key: 'snlLagerhuis' },
+        { label: '13. Leidingafstand meetpunt', key: 'leidingAfstand' },
+        { label: '14. Coördinaten raster (X, Y)', key: 'coordinaten' },
+        { label: '15. Omgevingstemperatuur (°C)', key: 'omgevingstemp' },
+        { label: '16. Lagertemperatuur (°C)', key: 'lagertemp' },
+        { label: '17. Water / Vocht / Stoom (1-10)', key: 'waterVocht' },
+        { label: '18. Stof / Zand (1-10)', key: 'stofZand' },
+        { label: '19. Abrasieve Vervuiling (1-10)', key: 'abrasief' },
+        { label: '20. Schokbelasting (1-10)', key: 'schokbelasting' },
+        { label: '21. Vibraties & Trillingen (1-10)', key: 'vibraties' },
+        { label: '22. Condensatie (1-10)', key: 'condensatie' },
+        { label: '23. Tijdsduur per smeerbeurt', key: 'tijdsduurSmeerbeurt' },
+        { label: '24. Uurloon technicus', key: 'uurloon' },
+        { label: '25. Downtime per lager', key: 'downtimeUur' },
+        { label: '26. Voorbereidingstijd wissel', key: 'voorbereiding' },
+        { label: '27. Downtime kosten per uur', key: 'downtimeKost' },
+        { label: '28. Prijs wisselstukken / lager', key: 'prijsWisselstuk' }
       ];
 
       metrics.forEach(m => {
@@ -7118,13 +7137,18 @@
         const descIn = row.querySelector('.bearing-desc-input');
         const rpmIn = row.querySelector('.bearing-rpm-input');
         const posIn = row.querySelector('.bearing-pos-input');
+        const d2Export = (typeof bearingDataMapSec2 !== "undefined" && bearingDataMapSec2[letter]) ? bearingDataMapSec2[letter] : {};
         bearingRowsData.push({
           letter: letter,
           qty: qtyIn ? qtyIn.value : '1',
           nr: nrIn ? nrIn.value : '',
           desc: descIn ? descIn.value : '',
           rpm: rpmIn ? rpmIn.value : '',
-          pos: posIn ? posIn.value : 'Horizontaal'
+          pos: posIn ? posIn.value : 'Horizontaal',
+          isSnl: !!d2Export.isSnl,
+          snlType: d2Export.snlType || '',
+          snlFill: d2Export.snlFill || '40',
+          snlRelub: d2Export.snlRelub || 'side'
         });
       });
 
@@ -7825,7 +7849,7 @@
       activeBearingSec3 = 'A';
       activeBearingSec4 = 'A';
       bearingDataMapSec2 = {
-        'A': { q11: '', q12_price: '', q4_freq_num: '', q4_freq_unit: 'Weken', q29_life: '', q13: '16', q14: '5' }
+        'A': { q11: '', q12_price: '', q4_freq_num: '', q4_freq_unit: 'Weken', q29_life: '', q13: '16', q14: '5', isSnl: false, snlType: '', snlFill: '40', snlRelub: 'side' }
       };
       bearingDataMapSec3 = {
         'A': { q15: '', q16: '', q17: '3', q18: '4', q19: '2', q20: '3', q21: '3', q22: '2' }
@@ -9017,22 +9041,23 @@
         { label: '18. Gemiddelde Levensduur', key: 'levensduur', format: (b) => `[${b.letter}]: ${b.levensduur}` },
         { label: '19. Operationele Uren / Dag', key: 'urenPerDag', format: (b) => `[${b.letter}]: ${b.urenPerDag}` },
         { label: '20. Operationele Dagen / Week', key: 'dagenPerWeek', format: (b) => `[${b.letter}]: ${b.dagenPerWeek}` },
-        { label: '21. Leidingafstand tot centraal punt', key: 'leidingAfstand', format: (b) => `[${b.letter}]: ${b.leidingAfstand}` },
-        { label: '22. Coördinaten op raster (X, Y)', key: 'coordinaten', format: (b) => `[${b.letter}]: ${b.coordinaten}` },
-        { label: '23. Omgevingstemperatuur (°C)', key: 'omgevingstemp', format: (b) => `[${b.letter}]: ${b.omgevingstemp}` },
-        { label: '24. Lagertemperatuur (°C)', key: 'lagertemp', format: (b) => `[${b.letter}]: ${b.lagertemp}` },
-        { label: '25. Water / Vocht / Stoom (1-10)', key: 'waterVocht', format: (b) => `[${b.letter}]: ${b.waterVocht}` },
-        { label: '26. Stof / Zand (1-10)', key: 'stofZand', format: (b) => `[${b.letter}]: ${b.stofZand}` },
-        { label: '27. Abrasieve Vervuiling (1-10)', key: 'abrasief', format: (b) => `[${b.letter}]: ${b.abrasief}` },
-        { label: '28. Schokbelasting (1-10)', key: 'schokbelasting', format: (b) => `[${b.letter}]: ${b.schokbelasting}` },
-        { label: '29. Vibraties & Trillingen (1-10)', key: 'vibraties', format: (b) => `[${b.letter}]: ${b.vibraties}` },
-        { label: '30. Condensatie (1-10)', key: 'condensatie', format: (b) => `[${b.letter}]: ${b.condensatie}` },
-        { label: '31. Tijdsduur per smeerbeurt', key: 'tijdsduurSmeerbeurt', format: (b) => `[${b.letter}]: ${b.tijdsduurSmeerbeurt}` },
-        { label: '32. Uurloon technicus (€)', key: 'uurloon', format: (b) => `[${b.letter}]: ${b.uurloon}` },
-        { label: '33. Downtime per lager (uur)', key: 'downtimeUur', format: (b) => `[${b.letter}]: ${b.downtimeUur}` },
-        { label: '34. Voorbereidingstijd (uur)', key: 'voorbereiding', format: (b) => `[${b.letter}]: ${b.voorbereiding}` },
-        { label: '35. Downtime kosten per uur (€)', key: 'downtimeKost', format: (b) => `[${b.letter}]: ${b.downtimeKost}` },
-        { label: '36. Prijs wisselstukken (€)', key: 'prijsWisselstuk', format: (b) => `[${b.letter}]: ${b.prijsWisselstuk}` }
+        { label: '21. SNL-Lagerhuis', key: 'snlLagerhuis', format: (b) => `[${b.letter}]: ${b.snlLagerhuis}` },
+        { label: '22. Leidingafstand tot centraal punt', key: 'leidingAfstand', format: (b) => `[${b.letter}]: ${b.leidingAfstand}` },
+        { label: '23. Coördinaten op raster (X, Y)', key: 'coordinaten', format: (b) => `[${b.letter}]: ${b.coordinaten}` },
+        { label: '24. Omgevingstemperatuur (°C)', key: 'omgevingstemp', format: (b) => `[${b.letter}]: ${b.omgevingstemp}` },
+        { label: '25. Lagertemperatuur (°C)', key: 'lagertemp', format: (b) => `[${b.letter}]: ${b.lagertemp}` },
+        { label: '26. Water / Vocht / Stoom (1-10)', key: 'waterVocht', format: (b) => `[${b.letter}]: ${b.waterVocht}` },
+        { label: '27. Stof / Zand (1-10)', key: 'stofZand', format: (b) => `[${b.letter}]: ${b.stofZand}` },
+        { label: '28. Abrasieve Vervuiling (1-10)', key: 'abrasief', format: (b) => `[${b.letter}]: ${b.abrasief}` },
+        { label: '29. Schokbelasting (1-10)', key: 'schokbelasting', format: (b) => `[${b.letter}]: ${b.schokbelasting}` },
+        { label: '30. Vibraties & Trillingen (1-10)', key: 'vibraties', format: (b) => `[${b.letter}]: ${b.vibraties}` },
+        { label: '31. Condensatie (1-10)', key: 'condensatie', format: (b) => `[${b.letter}]: ${b.condensatie}` },
+        { label: '32. Tijdsduur per smeerbeurt', key: 'tijdsduurSmeerbeurt', format: (b) => `[${b.letter}]: ${b.tijdsduurSmeerbeurt}` },
+        { label: '33. Uurloon technicus (€)', key: 'uurloon', format: (b) => `[${b.letter}]: ${b.uurloon}` },
+        { label: '34. Downtime per lager (uur)', key: 'downtimeUur', format: (b) => `[${b.letter}]: ${b.downtimeUur}` },
+        { label: '35. Voorbereidingstijd (uur)', key: 'voorbereiding', format: (b) => `[${b.letter}]: ${b.voorbereiding}` },
+        { label: '36. Downtime kosten per uur (€)', key: 'downtimeKost', format: (b) => `[${b.letter}]: ${b.downtimeKost}` },
+        { label: '37. Prijs wisselstukken (€)', key: 'prijsWisselstuk', format: (b) => `[${b.letter}]: ${b.prijsWisselstuk}` }
       ];
 
       matrixMetrics.forEach(m => {
@@ -9044,7 +9069,7 @@
       addHidden('=== OVERZICHT PER LAGER ===', 'Specificaties per meetpunt');
       data.bearings.forEach(b => {
         const label = `📌 LAGER ${b.letter}: ${b.aantal}x ${b.lagernummer} (${b.omschrijving})`;
-        const val = `${b.rpm !== '-' ? b.rpm : ''} • As: ${b.asPositie} • Smeermiddel: ${b.smeermiddel} (${b.prijsLiter}) • Interval: ${b.interval} • Levensduur: ${b.levensduur} • Bedrijfsuren: ${b.urenPerDag} (${b.dagenPerWeek}) • Temp: Omgeving ${b.omgevingstemp}, Lager ${b.lagertemp} • Condities: Vocht ${b.waterVocht}/10, Stof ${b.stofZand}/10, Abrasief ${b.abrasief}/10 • Downtime: ${b.downtimeUur} (Loon: ${b.uurloon}, Stilstand: ${b.downtimeKost})`;
+        const val = `${b.rpm !== '-' ? b.rpm : ''} • As: ${b.asPositie} • SNL-huis: ${b.snlLagerhuis} • Smeermiddel: ${b.smeermiddel} (${b.prijsLiter}) • Interval: ${b.interval} • Levensduur: ${b.levensduur} • Bedrijfsuren: ${b.urenPerDag} (${b.dagenPerWeek}) • Temp: Omgeving ${b.omgevingstemp}, Lager ${b.lagertemp} • Condities: Vocht ${b.waterVocht}/10, Stof ${b.stofZand}/10, Abrasief ${b.abrasief}/10 • Downtime: ${b.downtimeUur} (Loon: ${b.uurloon}, Stilstand: ${b.downtimeKost})`;
         addHidden(label, val);
       });
 
@@ -9097,6 +9122,7 @@
         bodyText += "• Gemiddelde Levensduur: " + b.levensduur + "\n";
         bodyText += "• Operationele Uren/Dag: " + b.urenPerDag + "\n";
         bodyText += "• Operationele Dagen/Week: " + b.dagenPerWeek + "\n";
+        bodyText += "• SNL-Lagerhuis: " + b.snlLagerhuis + "\n";
         bodyText += "• Leidingafstand tot meetpunt: " + b.leidingAfstand + "\n";
         bodyText += "• Coördinaten op raster: " + b.coordinaten + "\n";
         bodyText += "• Omgevingstemperatuur: " + b.omgevingstemp + "\n";
@@ -9183,9 +9209,9 @@
 
       let bearingOverview = '';
       if (numBearings <= 6) {
-        bearingOverview = data.bearings.map(b => b.letter + ': ' + b.aantal + 'x ' + b.lagernummer + (b.omschrijving && b.omschrijving !== '-' ? ' (' + b.omschrijving + ')' : '')).join('\n• Lager ');
+        bearingOverview = data.bearings.map(b => b.letter + ': ' + b.aantal + 'x ' + b.lagernummer + (b.omschrijving && b.omschrijving !== '-' ? ' (' + b.omschrijving + ')' : '') + (b.isSnl ? ' [SNL]' : '')).join('\n• Lager ');
       } else {
-        const firstFew = data.bearings.slice(0, 4).map(b => b.letter + ': ' + b.aantal + 'x ' + b.lagernummer).join(', ');
+        const firstFew = data.bearings.slice(0, 4).map(b => b.letter + ': ' + b.aantal + 'x ' + b.lagernummer + (b.isSnl ? ' [SNL]' : '')).join(', ');
         bearingOverview = firstFew + '... (en nog ' + (numBearings - 4) + ' overige lagers)';
       }
 
