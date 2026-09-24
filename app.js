@@ -4708,7 +4708,7 @@ function updateAutomationHeaderImages() {
     pulsarlube_m2: {
       name: "Pulsarlube M2",
       short: "M2",
-      img: "pulsarlube-m2.png",
+      img: "pulsarlube-m2.png?v=20260924_1115",
       color: "#dc2626",
       bg: "#fee2e2",
       border: "#fca5a5",
@@ -4816,7 +4816,7 @@ function updateAutomationHeaderImages() {
 
     let columnsHtml = '';
     distinctTypes.forEach(t => {
-      const meta = DEVICE_IMAGE_META[t] || { name: t, short: t, img: 'pulsarlube-m2.png', color: '#dc2626', bg: '#fee2e2', border: '#fca5a5', feature: '' };
+      const meta = DEVICE_IMAGE_META[t] || { name: t, short: t, img: 'pulsarlube-m2.png?v=20260924_1115', color: '#dc2626', bg: '#fee2e2', border: '#fca5a5', feature: '' };
       const devLabels = typeMap.get(t).join(' &amp; ');
       columnsHtml += `
         <div style="flex: 1 1 240px; max-width: 380px; min-width: 220px; background: #ffffff; border: 1.5px solid ${meta.border}; border-radius: 8px; padding: 14px; display: flex; flex-direction: column; align-items: center; justify-content: space-between; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
@@ -5963,7 +5963,7 @@ function getAutomationDeviceImageDataUrl(imageSrc, callback) {
 
 function loadAllAutomationImages(callback) {
   const imageSources = {
-    pulsarlube_m2: "pulsarlube-m2.png",
+    pulsarlube_m2: "pulsarlube-m2.png?v=20260924_1115",
     pulsarlube_msp: "pulsarlube-msp.png",
     pulsarlube_msp_ac: "pulsarlube-msp.png",
     pulsarlube_msp_dc: "pulsarlube-msp.png",
@@ -11945,14 +11945,14 @@ function runBearingPdfExport(includeTco, includeRoi, includeRaster = true) {
 
   let autoImgSrc = "interflon-single-point-lubricator.png";
   if (autoDeviceKey === "pulsarlube_m2") {
-    autoImgSrc = "pulsarlube-m2.png";
+    autoImgSrc = "pulsarlube-m2.png?v=20260924_1115";
   } else if (autoDeviceKey === "pulsarlube_msp" || autoDeviceKey === "pulsarlube_msp_ac" || autoDeviceKey === "pulsarlube_msp_dc") {
     autoImgSrc = "pulsarlube-msp.png";
   } else if (autoDeviceKey === "pulsarlube_plc") {
     autoImgSrc = "pulsarlube-plc.png?v=20260823_1525";
   } else if (autoDeviceKey === "mixed") {
     const firstPulsar = activeDevList.find(d => d && d.type && d.type.startsWith("pulsarlube"));
-    autoImgSrc = (firstPulsar && firstPulsar.type === "pulsarlube_m2") ? "pulsarlube-m2.png" : "pulsarlube-msp.png";
+    autoImgSrc = (firstPulsar && firstPulsar.type === "pulsarlube_m2") ? "pulsarlube-m2.png?v=20260924_1115" : "pulsarlube-msp.png";
   }
 
   const qBearings = (typeof getQuestionnaireBearings === 'function') ? getQuestionnaireBearings() : [];
@@ -13711,7 +13711,7 @@ function updateAutomationPage(isDropdownChange) {
 
   if (device === "pulsarlube_m2") {
     if (titleEl) titleEl.textContent = "Pulsarlube M2";
-    if (imgEl) imgEl.src = "pulsarlube-m2.png";
+    if (imgEl) imgEl.src = "pulsarlube-m2.png?v=20260924_1115";
     const langData = (typeof TRANSLATIONS !== "undefined" && TRANSLATIONS[currentLang || "nl"]) || {};
     if (descEl) {
       descEl.innerHTML = langData.descPulsarlubeM2 || "De <strong>Pulsarlube M2</strong> is een elektro-mechanische automatische smeerunit die <strong>continu 24u/24u en 7d/7d doorsmeert</strong>, gestuurd door een interne micro-processor en pomp. Dit garandeert een uiterst nauwkeurige en constante vetdosering.";
@@ -14916,7 +14916,7 @@ function runChainPdfExport(includeTco, includeRoi) {
   const chainAutoDeviceKey = chainAutoDeviceSelectEl ? chainAutoDeviceSelectEl.value : "single_point";
   let chainAutoImgSrc = "interflon-oil-dispenser.png";
   if (chainAutoDeviceKey === "pulsarlube_m2") {
-    chainAutoImgSrc = "pulsarlube-m2.png";
+    chainAutoImgSrc = "pulsarlube-m2.png?v=20260924_1115";
   } else if (chainAutoDeviceKey === "pulsarlube_msp" || chainAutoDeviceKey === "pulsarlube_plc") {
     chainAutoImgSrc = "pulsarlube-msp.png";
   }
@@ -17038,13 +17038,13 @@ function updateRoiAutomationPage() {
 
     const primaryType = (typeOrder.find(t => t && t.startsWith("pulsarlube_msp"))) || (typeOrder[0] || deviceKey);
     if (primaryType === "pulsarlube_m2") {
-      imgSrc = "pulsarlube-m2.png";
+      imgSrc = "pulsarlube-m2.png?v=20260924_1115";
     } else if (primaryType.startsWith("pulsarlube_msp")) {
       imgSrc = "pulsarlube-msp.png";
     } else if (primaryType === "pulsarlube_plc") {
       imgSrc = "pulsarlube-plc.png?v=20260823_1525";
     } else {
-      imgSrc = "pulsarlube-m2.png";
+      imgSrc = "pulsarlube-m2.png?v=20260924_1115";
     }
   }
 
