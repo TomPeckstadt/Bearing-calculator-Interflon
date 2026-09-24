@@ -6279,7 +6279,7 @@ const TRANSLATIONS = {
     roiLabelHourlyRate: "Uurloon technieker:",
     roiLabelYearlyLaborCost: "Jaarlijkse arbeidskost:",
     roiLabelManualLifetime: "Levensduur lager:",
-    roiLabelAutoLifetime: "Levensduur lager (automaat):",
+    roiLabelAutoLifetime: "Levensduur lager:",
     roiLabelRepairTime: "Tijdsbesteding revisie (jaar):",
     roiLabelPartsCost: "Materiaalkost onderdelen (jaar):",
     roiLabelDowntimeCost: "Downtime kost (jaar):",
@@ -6842,7 +6842,7 @@ const TRANSLATIONS = {
   },
   en: {
     roiLabelManualLifetime: "Bearing lifetime:",
-    roiLabelAutoLifetime: "Bearing lifetime (automatic):",
+    roiLabelAutoLifetime: "Bearing lifetime:",
     "devicePulsarlubePlc": "Pulsarlube PLC (Central Control)",
     "unitBedrijfsuren": "operating hours / year",
     "techBrandLabel": "Machine brand / manufacturer",
@@ -7381,7 +7381,7 @@ const TRANSLATIONS = {
   },
   fr: {
     roiLabelManualLifetime: "Durée de vie roulement :",
-    roiLabelAutoLifetime: "Durée de vie roulement (automatique) :",
+    roiLabelAutoLifetime: "Durée de vie roulement :",
     "devicePulsarlubePlc": "Pulsarlube PLC (Commande Centralisée)",
     "unitBedrijfsuren": "heures de fonctionnement / an",
     "techBrandLabel": "Marque / Fabricant de la machine",
