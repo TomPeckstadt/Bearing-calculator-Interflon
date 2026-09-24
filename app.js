@@ -1324,17 +1324,16 @@ window.calculateSingleBearingDailyNeed = calculateSingleBearingDailyNeed;
 function applySurveyConfig(config) {
   if (!config || !config.devices || !Array.isArray(config.devices)) return;
 
-  const currentMachine = (localStorage.getItem('tech_machine') || '').trim().toLowerCase();
   const cfgMachine = (
     config.machineName ||
     (config.general && (config.general.machineName || config.general.name)) ||
     ''
-  ).trim().toLowerCase();
+  ).trim();
 
-  // If calculator has an active machine and config specifies a DIFFERENT machine, NEVER apply it!
-  if (currentMachine && cfgMachine && currentMachine !== cfgMachine) {
-    console.warn(`applySurveyConfig rejected config for '${cfgMachine}' because active machine is '${currentMachine}'`);
-    return;
+  if (cfgMachine) {
+    const techMach = document.getElementById('techMachineInput');
+    if (techMach) techMach.value = cfgMachine;
+    try { localStorage.setItem('tech_machine', cfgMachine); } catch(e) {}
   }
 
   const devSelect = document.getElementById('automationDeviceSelect') || document.getElementById('autoDeviceSelect');
@@ -1358,8 +1357,7 @@ function applySurveyConfig(config) {
   // Check if configuration is for Single Point Lubricators
   const isSinglePoint = (config.isSinglePoint === true) ||
                         (config.deviceType === 'single_point') ||
-                        (config.devices.length > 0 && config.devices.every(d => d.type === 'single_point')) ||
-                        (config.devices.length > 0 && config.devices[0].type === 'single_point');
+                        (!config.deviceType?.startsWith('pulsarlube') && Array.isArray(config.devices) && config.devices.length > 0 && config.devices.every(d => d.type === 'single_point'));
 
   if (isSinglePoint) {
     // --- CASE A: SINGLE POINT LUBRICATORS ---
@@ -1607,15 +1605,16 @@ function applySurveyConfig(config) {
 
   if (devSelect) {
     devSelect.value = targetType;
-    if (typeof updateAutomationPage === 'function') {
-      updateAutomationPage();
-    }
   }
 
-  // 2. Set number of devices in #autoNumDevicesSelect
+  // 2. Set number of devices in #autoNumDevicesSelect BEFORE updating page
   const numSelect = document.getElementById('autoNumDevicesSelect');
   if (numSelect) {
     numSelect.value = String(num);
+  }
+
+  if (typeof updateAutomationPage === 'function') {
+    updateAutomationPage();
   }
 
   const greaseSelect = document.getElementById("selectedGrease") || document.getElementById("greaseSelect") || document.getElementById("inputGrease");
@@ -1764,6 +1763,7 @@ function applySurveyConfig(config) {
   // Clear any extra inactive devices beyond num
   for (let i = num; i < autoDevicesState.length; i++) {
     if (autoDevicesState[i]) {
+      autoDevicesState[i].points = 0;
       autoDevicesState[i].bearingLetters = [];
       autoDevicesState[i].connectedBearings = [];
       autoDevicesState[i].bearingSummary = '';
@@ -4809,14 +4809,13 @@ try {
         if (bearings && bearings.length > 0) {
           window.latestSurveyBearings = bearings;
           try {
-            let fullData = {};
-            try { fullData = JSON.parse(localStorage.getItem('interflon_questionnaire_full_data') || '{}'); } catch(e){}
-            if (incomingData) {
-              fullData = Object.assign({}, fullData, incomingData);
+            // Only update interflon_questionnaire_full_data if ev.data is a QUESTIONNAIRE_IMPORTED event
+            // Do NOT re-save questionnaire full data on CONFIG_UPDATED to avoid cross-tab storage echo loops with vragenlijst.html!
+            if (ev.data.type === 'QUESTIONNAIRE_IMPORTED' && (ev.data.fullData || ev.data.data)) {
+              const importedData = ev.data.fullData || ev.data.data;
+              localStorage.setItem('interflon_questionnaire_full_data', JSON.stringify(importedData));
+              localStorage.setItem('interflon_last_questionnaire_data', JSON.stringify(importedData));
             }
-            fullData.bearings = bearings;
-            localStorage.setItem('interflon_questionnaire_full_data', JSON.stringify(fullData));
-            localStorage.setItem('interflon_last_questionnaire_data', JSON.stringify(fullData));
 
             let rasterCfg = {};
             try { rasterCfg = JSON.parse(localStorage.getItem('interflon_survey_raster_config') || '{}'); } catch(e){}
