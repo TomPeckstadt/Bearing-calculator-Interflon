@@ -17723,6 +17723,26 @@ function updateRoiAutomationPage() {
     roiMultiYearSavingEl.textContent = `${sign} € ${Math.abs(multiYearSaving).toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
     roiMultiYearSavingEl.style.color = multiYearSaving >= 0 ? "#059669" : "#dc2626";
   }
+
+  const initialInvestment = autoYear1Total - autoRecurringTotal;
+  window.__latestRoiData = {
+    manualMode: manualMode,
+    manualBeurtenPerYear: manualBeurtenPerYear,
+    effectiveManBearings: effectiveManBearings,
+    totalLagerBeurten: manualBeurtenPerYear * effectiveManBearings,
+    manualLaborHours: manualLaborHours,
+    workTimeMinutes: workTimeMinutes,
+    hourlyRate: hourlyRate,
+    manualTotalCost: manualTotalCost,
+    autoYear1Total: autoYear1Total,
+    autoRecurringTotal: autoRecurringTotal,
+    netYearlySaving: netYearlySaving,
+    year1NetResult: year1NetResult,
+    investment: initialInvestment > 0 ? initialInvestment : autoYear1Total,
+    annualSavings: netYearlySaving,
+    fullDeviceTitle: fullDeviceTitle,
+    deviceKey: deviceKey
+  };
 }
 
 /* ==========================================================================
@@ -26656,27 +26676,43 @@ function triggerDigitalTwinPulse() {
 
 let currentProposalTemplate = "formal"; // "formal" | "email" | "advisor" | "esg"
 
+function formatProposalCount(n) {
+  if (n === null || n === undefined || isNaN(n)) return "0";
+  const num = typeof n === "number" ? n : parseFloat(String(n).replace(",", "."));
+  if (isNaN(num)) return "0";
+  if (Math.abs(num - Math.round(num)) < 0.05) {
+    return Math.round(num).toString();
+  }
+  return (Math.round(num * 10) / 10).toString().replace(".", ",");
+}
+
 function getExecutiveProposalData() {
+  if (typeof updateRoiAutomationPage === "function") {
+    try {
+      updateRoiAutomationPage();
+    } catch (_) {}
+  }
+
   // Machine name
   let machineName = "Installatie";
-  const mInput = document.getElementById("techMachineInput") || document.getElementById("clientMachineInput");
+  const mInput = document.getElementById("techMachineInput") || document.getElementById("clientMachineInput") || document.getElementById("omMachineName") || document.getElementById("machineNameInput");
   if (mInput && mInput.value && mInput.value.trim()) {
     machineName = mInput.value.trim();
   } else {
     try {
-      const saved = localStorage.getItem("tech_machine") || localStorage.getItem("app_field_techMachineInput");
+      const saved = localStorage.getItem("tech_machine") || localStorage.getItem("app_field_techMachineInput") || localStorage.getItem("selectedMachineName");
       if (saved && saved.trim()) machineName = saved.trim();
     } catch (_) {}
   }
 
   // Client company
   let clientCompany = "Klantbedrijf";
-  const cInput = document.getElementById("clientCompanyInput");
+  const cInput = document.getElementById("clientCompanyInput") || document.getElementById("clientContactInput") || document.getElementById("omClientContact");
   if (cInput && cInput.value && cInput.value.trim()) {
     clientCompany = cInput.value.trim();
   } else {
     try {
-      const saved = localStorage.getItem("client_company") || localStorage.getItem("app_field_clientCompanyInput");
+      const saved = localStorage.getItem("client_company") || localStorage.getItem("app_field_clientCompanyInput") || localStorage.getItem("selectedClientContact");
       if (saved && saved.trim()) clientCompany = saved.trim();
     } catch (_) {}
   }
@@ -26694,6 +26730,9 @@ function getExecutiveProposalData() {
   let paybackMonthsStr = "Direct Rendabel";
   let manualHours = 52;
   let manualRounds = 52;
+  let totalBeurten = 52;
+  let effectiveBearings = 1;
+  let manualHoursStr = "52";
   let numUnits = 1;
   let totalPoints = 1;
   let systemType = "Pulsarlube M2 (elektromechanisch)";
@@ -26773,17 +26812,73 @@ function getExecutiveProposalData() {
     paybackMonthsStr = m.toFixed(1).replace(".", ",") + " maanden";
   }
 
-  // Manual rounds / hours
-  const roundsInput = document.getElementById("roiManualFreqRoundsPerYear");
-  if (roundsInput && roundsInput.value) {
-    const val = parseInt(roundsInput.value, 10);
-    if (!isNaN(val) && val > 0) manualRounds = val;
+  // 1. Direct from window.__latestRoiData
+  const roiData = (typeof window !== "undefined" && window.__latestRoiData) ? window.__latestRoiData : null;
+  if (roiData) {
+    if (typeof roiData.manualBeurtenPerYear === "number" && !isNaN(roiData.manualBeurtenPerYear) && roiData.manualBeurtenPerYear > 0) {
+      manualRounds = roiData.manualBeurtenPerYear;
+    }
+    if (typeof roiData.effectiveManBearings === "number" && !isNaN(roiData.effectiveManBearings) && roiData.effectiveManBearings > 0) {
+      effectiveBearings = roiData.effectiveManBearings;
+    }
+    if (typeof roiData.totalLagerBeurten === "number" && !isNaN(roiData.totalLagerBeurten) && roiData.totalLagerBeurten > 0) {
+      totalBeurten = roiData.totalLagerBeurten;
+    } else {
+      totalBeurten = manualRounds * effectiveBearings;
+    }
+    if (typeof roiData.manualLaborHours === "number" && !isNaN(roiData.manualLaborHours) && roiData.manualLaborHours >= 0) {
+      manualHours = roiData.manualLaborHours;
+    }
   }
 
-  const hoursInput = document.getElementById("roiManualHoursPerYear");
-  if (hoursInput && hoursInput.value) {
-    const val = parseFloat(hoursInput.value);
-    if (!isNaN(val) && val > 0) manualHours = Math.round(val);
+  // 2. DOM extraction fallback from #roiManBeurten and #roiManWorkTime
+  const beurtenEl = document.getElementById("roiManBeurten");
+  if (beurtenEl && beurtenEl.textContent) {
+    const txt = beurtenEl.textContent.trim();
+    const matchMulti = txt.match(/([\d.,]+)\s*\(([\d.,]+)\s*beurten\s*x\s*(\d+)\s*lagers\)/i);
+    if (matchMulti) {
+      totalBeurten = parseFloat(matchMulti[1].replace(/\./g, "").replace(",", "."));
+      manualRounds = parseFloat(matchMulti[2].replace(/\./g, "").replace(",", "."));
+      effectiveBearings = parseInt(matchMulti[3], 10);
+    } else {
+      const matchSingle = txt.match(/([\d.,]+)\s*beurten/i);
+      if (matchSingle) {
+        manualRounds = parseFloat(matchSingle[1].replace(/\./g, "").replace(",", "."));
+        effectiveBearings = 1;
+        totalBeurten = manualRounds;
+      }
+    }
+  }
+
+  const workTimeEl = document.getElementById("roiManWorkTime");
+  if (workTimeEl && workTimeEl.textContent) {
+    const matchHours = workTimeEl.textContent.match(/\(([\d.,]+)\s*u\/jaar\)/i);
+    if (matchHours) {
+      manualHours = parseFloat(matchHours[1].replace(/\./g, "").replace(",", "."));
+    }
+  }
+
+  // 3. Opbrengstmodel frequency fallback if still 52
+  if (manualRounds === 52) {
+    const selMode = (document.getElementById("roiManualModeSelect") && document.getElementById("roiManualModeSelect").value) || "interflon";
+    const freqElId = (selMode === "huidig") ? "omProdFreq1" : "omProdFreq2";
+    const chainFreqElId = (selMode === "huidig") ? "chainOmProdFreq1" : "chainOmProdFreq2";
+    const curFreqInput = document.getElementById(freqElId) || document.getElementById(chainFreqElId) || document.getElementById("tcoFreqCurrentInput");
+    if (curFreqInput && !isNaN(parseFloat(curFreqInput.value)) && parseFloat(curFreqInput.value) > 0) {
+      manualRounds = parseFloat(curFreqInput.value);
+      totalBeurten = manualRounds * effectiveBearings;
+    }
+  }
+
+  // Format manualHoursStr cleanly in Dutch
+  if (typeof manualHours === "number") {
+    if (manualHours < 10 && Math.abs(manualHours - Math.round(manualHours)) >= 0.05) {
+      manualHoursStr = manualHours.toFixed(1).replace(".", ",");
+    } else {
+      manualHoursStr = Math.round(manualHours).toString();
+    }
+  } else {
+    manualHoursStr = String(manualHours).replace(".", ",");
   }
 
   return {
@@ -26794,7 +26889,10 @@ function getExecutiveProposalData() {
     annualSavings,
     paybackMonthsStr,
     manualRounds,
+    totalBeurten,
+    effectiveBearings,
     manualHours,
+    manualHoursStr,
     numUnits,
     totalPoints,
     systemType,
@@ -26806,6 +26904,10 @@ function generateExecutiveProposalText(templateType) {
   const d = getExecutiveProposalData();
   const unitText = d.numUnits === 1 ? "1 automatisch Interflon precisiesmeertoestel" : `${d.numUnits} automatische Interflon precisiesmeertoestellen`;
   const pointsText = d.totalPoints === 1 ? "1 smeerpunt" : `${d.totalPoints} smeerpunten`;
+
+  const roundsText = (d.effectiveBearings > 1)
+    ? `${formatProposalCount(d.manualRounds)} handmatige smeerrondes (${formatProposalCount(d.totalBeurten)} lagersmeerbeurten, ${d.manualHoursStr} uur/jaar)`
+    : `${formatProposalCount(d.manualRounds)} handmatige smeerbeurten (${d.manualHoursStr} uur/jaar)`;
 
   return `ONDERWERP: Investeringsvoorstel: Automatisering smering ${d.machineName} (Terugverdientijd: ${d.paybackMonthsStr})
 
@@ -26820,7 +26922,7 @@ Financiële kerncijfers & Business Case:
 • Netto financieel voordeel na 3 jaar: ${formatTwinEuro(d.annualSavings * 3 - d.investment)}
 
 Belangrijkste operationele & technische voordelen:
-1. Arbeidswinst: ${d.manualRounds} handmatige smeerrondes (${d.manualHours} uur/jaar) geëlimineerd.
+1. Arbeidswinst: ${roundsText} geëlimineerd.
 2. Arbeidsveiligheid: Geen technici meer in gevaarlijke zones rond draaiende delen (100% veilig).
 3. Langere levensduur: Continue micro-smering met Interflon Micpol® verlengt de lagerlevensduur met 50 tot 300%.
 4. Geen zaagtand-effect: Sluit periodieke overvulling en hongerloop uit; lagers draaien continu optimaal.
@@ -26857,7 +26959,13 @@ function openExecutiveProposalModal() {
   if (kpiInv) kpiInv.textContent = formatTwinEuro(d.investment);
   if (kpiSav) kpiSav.textContent = formatTwinEuro(d.annualSavings) + " / jr";
   if (kpiPay) kpiPay.textContent = d.paybackMonthsStr;
-  if (kpiSafe) kpiSafe.textContent = d.manualRounds + " beurten / jr";
+  if (kpiSafe) {
+    if (d.effectiveBearings > 1) {
+      kpiSafe.textContent = `${formatProposalCount(d.totalBeurten)} beurten / jr (${formatProposalCount(d.manualRounds)} rondes)`;
+    } else {
+      kpiSafe.textContent = `${formatProposalCount(d.manualRounds)} beurten / jr`;
+    }
+  }
   if (docDate) docDate.textContent = "Datum: " + d.dateStr;
 
   // Vul tekstveld met het voorstel
@@ -27088,6 +27196,7 @@ if (typeof window !== "undefined") {
   window.hideTwinMetricInfo = hideTwinMetricInfo;
   window.toggleTwinMetricInfo = toggleTwinMetricInfo;
   window.clearTwinInfoHoverTimer = clearTwinInfoHoverTimer;
+  window.formatProposalCount = formatProposalCount;
   window.getExecutiveProposalData = getExecutiveProposalData;
   window.generateExecutiveProposalText = generateExecutiveProposalText;
   window.openExecutiveProposalModal = openExecutiveProposalModal;
