@@ -2229,7 +2229,7 @@
               De overstap van manuele naar automatische smering verlengt de levensduur van lagers in de praktijk doorgaans met 50% tot 300% (een factor 1,5 tot 4). In zware, vervuilde of continu draaiende toepassingen kan de levensduur zelfs met een factor 4 tot 8 toenemen. <span style="color: #64748b; font-size: 11px; font-style: italic;">(Bron: SKF Reliability Systems & Noria Machinery Lubrication veldstudies / ISO 15243)</span>
             </div>
           </div>
-          <div style="display: flex; align-items: center; gap: 10px; flex-shrink: 0;">
+          <div style="display: flex; align-items: center; gap: 12px; flex-shrink: 0; flex-wrap: wrap;">
             <label for="roiLifetimeFactorSelect" style="font-size: 13px; font-weight: 700; color: #334155; white-space: nowrap;" data-i18n="roiLifetimeExtensionLabel">Levensduur verlenging:</label>
             <select id="roiLifetimeFactorSelect" onchange="updateRoiAutomationPage()" style="background: #f8fafc; border: 1.5px solid #cbd5e1; color: #0f172a; font-weight: 700; border-radius: 8px; padding: 6px 12px; font-size: 13px; outline: none; cursor: pointer; box-shadow: 0 1px 2px rgba(0,0,0,0.05);" title="Selecteer levensduurverlenging door automatische smering">
               <option value="0" selected>0% (factor 1)</option>
@@ -2245,6 +2245,11 @@
               <option value="700">700% (factor 8)</option>
               <option value="800">800% (factor 9)</option>
             </select>
+            <div id="roiLifetimeResultBadge" style="display: inline-flex; align-items: center; gap: 8px; font-size: 12.5px; font-weight: 700; color: #0369a1; background: #e0f2fe; padding: 6px 12px; border-radius: 8px; border: 1.5px solid #bae6fd; box-shadow: 0 1px 2px rgba(0,0,0,0.04);">
+              <span>Basis Interflon: <strong id="roiBaseLifetimeDisplay">24 mnd</strong></span>
+              <span style="color: #0284c7;">➔</span>
+              <span style="color: #059669;">Met automaat: <strong id="roiAutomatedLifetimeDisplay">48 mnd</strong></span>
+            </div>
           </div>
         </div>
 
@@ -2297,6 +2302,10 @@
                 <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed #e2e8f0; padding-bottom: 8px;">
                   <span style="color: #64748b; font-size: 13px;" data-i18n="roiLabelYearlyLaborCost">Jaarlijkse arbeidskost:</span>
                   <strong id="roiManLaborCost" style="color: #dc2626; font-size: 14px;">€ 146,67 / jaar</strong>
+                </div>
+                <div id="roiManLifetimeRow" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed #e2e8f0; padding-bottom: 8px;">
+                  <span style="color: #64748b; font-size: 13px;" data-i18n="roiLabelManualLifetime">Levensduur lager:</span>
+                  <strong id="roiManBearingLifetime" style="color: #1e293b; font-size: 13.5px;">24 maanden</strong>
                 </div>
                 <div id="roiManRepairRow" style="display: none; justify-content: space-between; align-items: center; border-bottom: 1px dashed #e2e8f0; padding-bottom: 8px;">
                   <span style="color: #64748b; font-size: 13px;" data-i18n="roiLabelRepairTime">Tijdsbesteding revisie (jaar):</span>
@@ -2373,6 +2382,10 @@
                 <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed #e2e8f0; padding-bottom: 8px;">
                   <span style="color: #64748b; font-size: 13px;" data-i18n="roiLabelCartridgeChangeLabor">Arbeidskost patroonwissels:</span>
                   <strong id="roiAutoLaborCost" style="color: #059669; font-size: 13.5px;">€ 0,00 / jaar</strong>
+                </div>
+                <div id="roiAutoLifetimeRow" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed #e2e8f0; padding-bottom: 8px;">
+                  <span style="color: #64748b; font-size: 13px;" data-i18n="roiLabelAutoLifetime">Levensduur lager (automaat):</span>
+                  <strong id="roiAutoBearingLifetime" style="color: #059669; font-size: 13.5px;">48 maanden (100% verlenging)</strong>
                 </div>
                 <div id="roiAutoRepairRow" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed #e2e8f0; padding-bottom: 8px;">
                   <span style="color: #64748b; font-size: 13px;">Tijdsbesteding revisie (jaar):</span>
@@ -4296,7 +4309,7 @@
   <script src="bearings-db.js?v=20260918_1130"></script>
   <script src="chains-db.js?v=20260904_1726"></script>
   <script src="qrcode.min.js"></script>
-  <script src="app_v6.js?v=20260924_1145"></script>
+  <script src="app_v6.js?v=20260924_1225"></script>
 
   <!-- Interflon Oil Dispenser Information Modal (PowerPoint Viewer) -->
   <div id="oilDispenserInfoModal" class="modal-overlay hidden" style="z-index: 99999;">
