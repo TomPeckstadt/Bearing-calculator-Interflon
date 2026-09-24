@@ -5432,18 +5432,29 @@
       const posStr = String(shaftPosition || d3.asPositie || '').trim().toLowerCase();
       const isVertical = posStr.includes('vertic') || posStr.includes('vertik');
 
+      // 1. Omgevingsfactor (Te / Tx) - 100% identiek aan app.js
       let Te = 0.8;
       if (condens >= 7) Te = 0.15;
       else if (waterVocht >= 9) Te = 0.15;
       else if (stofZand >= 7) Te = 0.3;
       else if (waterVocht >= 7) Te = 0.3;
-      else if (abrasief >= 6) Te = 0.3;
-      else if (stofZand >= 4 || waterVocht >= 4) Te = 0.5;
+      else if (abrasief >= 7) Te = 0.3;
+      else if (stofZand >= 4) Te = 0.5;
+      else if (waterVocht >= 4) Te = 0.5;
+      else if (abrasief >= 4) Te = 0.5;
+      else if (condens >= 3) Te = 0.5;
+      else Te = 0.8;
 
+      // 2. Toepassingsfactor (Ta) - 100% identiek aan app.js
       let Ta = 0.8;
-      if (isVertical) Ta = 0.5;
-      else if (vibratie >= 7 || schok >= 7) Ta = 0.5;
-      else if (vibratie >= 4 || schok >= 4) Ta = 0.8;
+      if (isVertical) Ta = 0.15;
+      else if (vibratie >= 9) Ta = 0.15;
+      else if (schok >= 9) Ta = 0.15;
+      else if (vibratie >= 7) Ta = 0.3;
+      else if (schok >= 7) Ta = 0.3;
+      else if (vibratie >= 4) Ta = 0.5;
+      else if (schok >= 4) Ta = 0.5;
+      else Ta = 0.8;
 
       return { Te, Ta };
     }
@@ -5587,7 +5598,17 @@
         const nrIn = r.querySelector('.bearing-nr-input');
         const nrVal = nrIn && nrIn.value ? nrIn.value.trim() : ('Lager ' + letter);
         const rpmIn = r.querySelector('.bearing-rpm-input');
-        let rpmVal = rpmIn && rpmIn.value ? parseFloat(rpmIn.value) : 500;
+        let rpmVal = rpmIn && rpmIn.value ? parseFloat(rpmIn.value) : null;
+        if (isNaN(rpmVal) || rpmVal <= 0) {
+          const namedInput = document.querySelector(`input[name="Lager ${letter} - Toerental RPM"]`);
+          if (namedInput && namedInput.value) rpmVal = parseFloat(namedInput.value);
+        }
+        if (isNaN(rpmVal) || rpmVal <= 0) {
+          if (letter === 'A') {
+            const q8El = document.getElementById('q8');
+            if (q8El && q8El.value) rpmVal = parseFloat(q8El.value);
+          }
+        }
         if (isNaN(rpmVal) || rpmVal <= 0) rpmVal = 500;
         const posIn = r.querySelector('.bearing-pos-input');
         const posVal = posIn && posIn.value ? posIn.value.trim() : 'Horizontaal';
