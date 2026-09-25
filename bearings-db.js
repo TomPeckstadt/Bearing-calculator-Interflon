@@ -729,42 +729,168 @@ function getEffectiveLubricationWidth(bearingType, designation, d, D, B) {
   };
 }
 
-// --- SNL LAGERHUIZEN DATABASE (Tweedelige staande lagerblokken / Split Plummer Block Housings) ---
-// Gebaseerd op officiële SKF montagerichtlijnen en industriestandaarden (SE / SNL 500-600 serie)
+// --- LAGERHUIZEN & LAGERBLOKKEN DATABASE (SNL, F, FL, FN, S, FE) ---
+// Gebaseerd op officiële SKF, NTN-SNR, INA montagerichtlijnen en industriestandaarden.
 // Bevat nominale vetvolumes voor de eerste vulling:
-// - fill40: 40% tot 50% van de vrije ruimte in het lagerhuis (standaard bij normale toerentallen, voorkomt oververhitting/churning)
+// - fill40: 40% tot 50% van de vrije ruimte in het lagerhuis/blok (standaard bij normale toerentallen, voorkomt oververhitting/churning)
 // - fill100: 90% tot 100% van de vrije ruimte (bij zeer trage toerentallen, extreme vervuiling, water en stof als afdichtingsbarrière)
 const SNL_HOUSING_DATABASE = {
-  "SNL 505": { name: "SNL 505", fill40: 25, fill100: 50, bearings: ["22205", "1205", "2205"] },
-  "SNL 506-605": { name: "SNL 506-605", fill40: 40, fill100: 80, bearings: ["22206", "22305", "1206", "2206", "1305", "2305"] },
-  "SNL 507-606": { name: "SNL 507-606", fill40: 50, fill100: 100, bearings: ["22207", "22306", "1207", "2207", "1306", "2306"] },
-  "SNL 508-607": { name: "SNL 508-607", fill40: 65, fill100: 130, bearings: ["22208", "22307", "1208", "2208", "1307", "2307"] },
-  "SNL 509": { name: "SNL 509", fill40: 80, fill100: 160, bearings: ["22209", "1209", "2209"] },
-  "SNL 510-608": { name: "SNL 510-608", fill40: 100, fill100: 200, bearings: ["22210", "22308", "1210", "2210", "1308", "2308"] },
-  "SNL 511-609": { name: "SNL 511-609", fill40: 150, fill100: 300, bearings: ["22211", "22309", "1211", "2211", "1309", "2309"] },
-  "SNL 512-610": { name: "SNL 512-610", fill40: 180, fill100: 360, bearings: ["22212", "22310", "1212", "2212", "1310", "2310"] },
-  "SNL 513-611": { name: "SNL 513-611", fill40: 210, fill100: 420, bearings: ["22213", "22311", "1213", "2213", "1311", "2311"] },
-  "SNL 515-612": { name: "SNL 515-612", fill40: 250, fill100: 500, bearings: ["22215", "22312", "1215", "2215", "1312", "2312"] },
-  "SNL 516-613": { name: "SNL 516-613", fill40: 300, fill100: 600, bearings: ["22216", "22216EK", "22313", "1216", "2216", "1313", "2313"] },
-  "SNL 517": { name: "SNL 517", fill40: 370, fill100: 740, bearings: ["22217", "1217", "2217"] },
-  "SNL 518-615": { name: "SNL 518-615", fill40: 450, fill100: 900, bearings: ["22218", "22315", "1218", "2218", "1315", "2315"] },
-  "SNL 519-616": { name: "SNL 519-616", fill40: 550, fill100: 1100, bearings: ["22219", "22316", "1219", "2219", "1316", "2316"] },
-  "SNL 520-617": { name: "SNL 520-617", fill40: 650, fill100: 1300, bearings: ["22220", "22317", "1220", "2220", "1317", "2317"] },
-  "SNL 522-619": { name: "SNL 522-619", fill40: 850, fill100: 1700, bearings: ["22222", "22319", "1222", "2222", "1319", "2319"] },
-  "SNL 524-620": { name: "SNL 524-620", fill40: 1000, fill100: 2000, bearings: ["22224", "22320", "1224", "2224", "1320", "2320"] },
-  "SNL 526": { name: "SNL 526", fill40: 1150, fill100: 2300, bearings: ["22226"] },
-  "SNL 528": { name: "SNL 528", fill40: 1400, fill100: 2800, bearings: ["22228"] },
-  "SNL 530": { name: "SNL 530", fill40: 1650, fill100: 3300, bearings: ["22230"] },
-  "SNL 532": { name: "SNL 532", fill40: 1900, fill100: 3800, bearings: ["22232"] }
+  // === 1. SNL / S-SERIE (STAANDE LAGERHUIZEN & BLOKKEN) ===
+  "SNL 505": { name: "SNL 505", group: "SNL / S-serie (Staand lagerhuis)", fill40: 25, fill100: 50, bearings: ["22205", "1205", "2205"] },
+  "SNL 506-605": { name: "SNL 506-605", group: "SNL / S-serie (Staand lagerhuis)", fill40: 40, fill100: 80, bearings: ["22206", "22305", "1206", "2206", "1305", "2305"] },
+  "SNL 507-606": { name: "SNL 507-606", group: "SNL / S-serie (Staand lagerhuis)", fill40: 50, fill100: 100, bearings: ["22207", "22306", "1207", "2207", "1306", "2306"] },
+  "SNL 508-607": { name: "SNL 508-607", group: "SNL / S-serie (Staand lagerhuis)", fill40: 65, fill100: 130, bearings: ["22208", "22307", "1208", "2208", "1307", "2307"] },
+  "SNL 509": { name: "SNL 509", group: "SNL / S-serie (Staand lagerhuis)", fill40: 80, fill100: 160, bearings: ["22209", "1209", "2209"] },
+  "SNL 510-608": { name: "SNL 510-608", group: "SNL / S-serie (Staand lagerhuis)", fill40: 100, fill100: 200, bearings: ["22210", "22308", "1210", "2210", "1308", "2308"] },
+  "SNL 511-609": { name: "SNL 511-609", group: "SNL / S-serie (Staand lagerhuis)", fill40: 150, fill100: 300, bearings: ["22211", "22309", "1211", "2211", "1309", "2309"] },
+  "SNL 512-610": { name: "SNL 512-610", group: "SNL / S-serie (Staand lagerhuis)", fill40: 180, fill100: 360, bearings: ["22212", "22310", "1212", "2212", "1310", "2310"] },
+  "SNL 513-611": { name: "SNL 513-611", group: "SNL / S-serie (Staand lagerhuis)", fill40: 210, fill100: 420, bearings: ["22213", "22311", "1213", "2213", "1311", "2311"] },
+  "SNL 515-612": { name: "SNL 515-612", group: "SNL / S-serie (Staand lagerhuis)", fill40: 250, fill100: 500, bearings: ["22215", "22312", "1215", "2215", "1312", "2312"] },
+  "SNL 516-613": { name: "SNL 516-613", group: "SNL / S-serie (Staand lagerhuis)", fill40: 300, fill100: 600, bearings: ["22216", "22216EK", "22313", "1216", "2216", "1313", "2313", "SNL516"] },
+  "SNL 517": { name: "SNL 517", group: "SNL / S-serie (Staand lagerhuis)", fill40: 370, fill100: 740, bearings: ["22217", "1217", "2217"] },
+  "SNL 518-615": { name: "SNL 518-615", group: "SNL / S-serie (Staand lagerhuis)", fill40: 450, fill100: 900, bearings: ["22218", "22315", "1218", "2218", "1315", "2315"] },
+  "SNL 519-616": { name: "SNL 519-616", group: "SNL / S-serie (Staand lagerhuis)", fill40: 550, fill100: 1100, bearings: ["22219", "22316", "1219", "2219", "1316", "2316"] },
+  "SNL 520-617": { name: "SNL 520-617", group: "SNL / S-serie (Staand lagerhuis)", fill40: 650, fill100: 1300, bearings: ["22220", "22317", "1220", "2220", "1317", "2317", "SNL520", "520-617"] },
+  "SNL 522-619": { name: "SNL 522-619", group: "SNL / S-serie (Staand lagerhuis)", fill40: 850, fill100: 1700, bearings: ["22222", "22319", "1222", "2222", "1319", "2319"] },
+  "SNL 524-620": { name: "SNL 524-620", group: "SNL / S-serie (Staand lagerhuis)", fill40: 1000, fill100: 2000, bearings: ["22224", "22320", "1224", "2224", "1320", "2320", "SNL524", "524-620"] },
+  "SNL 526": { name: "SNL 526", group: "SNL / S-serie (Staand lagerhuis)", fill40: 1150, fill100: 2300, bearings: ["22226", "226-526"] },
+  "SNL 528": { name: "SNL 528", group: "SNL / S-serie (Staand lagerhuis)", fill40: 1400, fill100: 2800, bearings: ["22228"] },
+  "SNL 530": { name: "SNL 530", group: "SNL / S-serie (Staand lagerhuis)", fill40: 1650, fill100: 3300, bearings: ["22230"] },
+  "SNL 532": { name: "SNL 532", group: "SNL / S-serie (Staand lagerhuis)", fill40: 1900, fill100: 3800, bearings: ["22232"] },
+  "S204": { name: "S204 / UCP204", group: "SNL / S-serie (Staand lagerhuis)", fill40: 10, fill100: 25, bearings: ["UCP204", "S204"] },
+  "S205": { name: "S205 / UCP205", group: "SNL / S-serie (Staand lagerhuis)", fill40: 12, fill100: 30, bearings: ["UCP205", "S205"] },
+  "S206": { name: "S206 / UCP206", group: "SNL / S-serie (Staand lagerhuis)", fill40: 16, fill100: 40, bearings: ["UCP206", "S206"] },
+  "S207": { name: "S207 / UCP207", group: "SNL / S-serie (Staand lagerhuis)", fill40: 22, fill100: 55, bearings: ["UCP207", "S207"] },
+  "S208": { name: "S208 / UCP208", group: "SNL / S-serie (Staand lagerhuis)", fill40: 30, fill100: 75, bearings: ["UCP208", "S208"] },
+  "S209": { name: "S209 / UCP209", group: "SNL / S-serie (Staand lagerhuis)", fill40: 36, fill100: 90, bearings: ["UCP209", "S209"] },
+  "S210": { name: "S210 / UCP210", group: "SNL / S-serie (Staand lagerhuis)", fill40: 45, fill100: 110, bearings: ["UCP210", "S210"] },
+  "S211": { name: "S211 / UCP211", group: "SNL / S-serie (Staand lagerhuis)", fill40: 55, fill100: 140, bearings: ["UCP211", "S211"] },
+  "S212": { name: "S212 / UCP212", group: "SNL / S-serie (Staand lagerhuis)", fill40: 70, fill100: 175, bearings: ["UCP212", "S212"] },
+  "S213": { name: "S213 / UCP213", group: "SNL / S-serie (Staand lagerhuis)", fill40: 85, fill100: 210, bearings: ["UCP213", "S213"] },
+  "S214": { name: "S214 / UCP214", group: "SNL / S-serie (Staand lagerhuis)", fill40: 100, fill100: 250, bearings: ["UCP214", "S214"] },
+  "S215": { name: "S215 / UCP215", group: "SNL / S-serie (Staand lagerhuis)", fill40: 115, fill100: 285, bearings: ["UCP215", "S215"] },
+  "S216": { name: "S216 / UCP216", group: "SNL / S-serie (Staand lagerhuis)", fill40: 135, fill100: 340, bearings: ["UCP216", "S216"] },
+  "S217": { name: "S217 / UCP217", group: "SNL / S-serie (Staand lagerhuis)", fill40: 160, fill100: 400, bearings: ["UCP217", "S217"] },
+  "S218": { name: "S218 / UCP218", group: "SNL / S-serie (Staand lagerhuis)", fill40: 190, fill100: 475, bearings: ["UCP218", "S218"] },
+  "PHUSE50-XL-N": { name: "PHUSE50-XL-N (INA)", group: "SNL / S-serie (Staand lagerhuis)", fill40: 45, fill100: 110, bearings: ["PHUSE50", "SA210"] },
+
+  // === 2. F-SERIE (4-BOUTS FLENSLAGERBLOKKEN / UCF) ===
+  "F204": { name: "F204 / UCF204", group: "F-serie (4-bouts flenslagerblok)", fill40: 10, fill100: 25, bearings: ["UC204", "UCF204"] },
+  "F205": { name: "F205 / UCF205", group: "F-serie (4-bouts flenslagerblok)", fill40: 12, fill100: 30, bearings: ["UC205", "UCF205"] },
+  "F206": { name: "F206 / UCF206", group: "F-serie (4-bouts flenslagerblok)", fill40: 16, fill100: 40, bearings: ["UC206", "UCF206"] },
+  "F207": { name: "F207 / UCF207", group: "F-serie (4-bouts flenslagerblok)", fill40: 22, fill100: 55, bearings: ["UC207", "UCF207"] },
+  "F208": { name: "F208 / UCF208", group: "F-serie (4-bouts flenslagerblok)", fill40: 30, fill100: 75, bearings: ["UC208", "UCF208"] },
+  "F209": { name: "F209 / UCF209", group: "F-serie (4-bouts flenslagerblok)", fill40: 36, fill100: 90, bearings: ["UC209", "UCF209"] },
+  "F210": { name: "F210 / UCF210", group: "F-serie (4-bouts flenslagerblok)", fill40: 45, fill100: 110, bearings: ["UC210", "UCF210"] },
+  "F211": { name: "F211 / UCF211", group: "F-serie (4-bouts flenslagerblok)", fill40: 55, fill100: 140, bearings: ["UC211", "UCF211"] },
+  "F212": { name: "F212 / UCF212", group: "F-serie (4-bouts flenslagerblok)", fill40: 70, fill100: 175, bearings: ["UC212", "UCF212"] },
+  "F213": { name: "F213 / UCF213", group: "F-serie (4-bouts flenslagerblok)", fill40: 85, fill100: 210, bearings: ["UC213", "UCF213"] },
+  "F214": { name: "F214 / UCF214", group: "F-serie (4-bouts flenslagerblok)", fill40: 100, fill100: 250, bearings: ["UC214", "UCF214"] },
+  "F215": { name: "F215 / UCF215", group: "F-serie (4-bouts flenslagerblok)", fill40: 115, fill100: 285, bearings: ["UC215", "UCF215"] },
+  "F216": { name: "F216 / UCF216", group: "F-serie (4-bouts flenslagerblok)", fill40: 135, fill100: 340, bearings: ["UC216", "UCF216"] },
+  "F217": { name: "F217 / UCF217", group: "F-serie (4-bouts flenslagerblok)", fill40: 160, fill100: 400, bearings: ["UC217", "UCF217"] },
+  "F218": { name: "F218 / UCF218", group: "F-serie (4-bouts flenslagerblok)", fill40: 190, fill100: 475, bearings: ["UC218", "UCF218"] },
+  "F305": { name: "F305 / UCF305", group: "F-serie (4-bouts flenslagerblok)", fill40: 20, fill100: 50, bearings: ["UC305"] },
+  "F306": { name: "F306 / UCF306", group: "F-serie (4-bouts flenslagerblok)", fill40: 30, fill100: 75, bearings: ["UC306"] },
+  "F307": { name: "F307 / UCF307", group: "F-serie (4-bouts flenslagerblok)", fill40: 40, fill100: 100, bearings: ["UC307"] },
+  "F308": { name: "F308 / UCF308", group: "F-serie (4-bouts flenslagerblok)", fill40: 55, fill100: 135, bearings: ["UC308"] },
+  "F309": { name: "F309 / UCF309", group: "F-serie (4-bouts flenslagerblok)", fill40: 70, fill100: 175, bearings: ["UC309"] },
+  "F310": { name: "F310 / UCF310", group: "F-serie (4-bouts flenslagerblok)", fill40: 90, fill100: 225, bearings: ["UC310"] },
+  "F311": { name: "F311 / UCF311", group: "F-serie (4-bouts flenslagerblok)", fill40: 110, fill100: 275, bearings: ["UC311"] },
+  "F312": { name: "F312 / UCF312", group: "F-serie (4-bouts flenslagerblok)", fill40: 135, fill100: 340, bearings: ["UC312"] },
+  "F313": { name: "F313 / UCF313", group: "F-serie (4-bouts flenslagerblok)", fill40: 165, fill100: 410, bearings: ["UC313"] },
+  "F314": { name: "F314 / UCF314", group: "F-serie (4-bouts flenslagerblok)", fill40: 200, fill100: 500, bearings: ["UC314"] },
+  "F315": { name: "F315 / UCF315", group: "F-serie (4-bouts flenslagerblok)", fill40: 235, fill100: 590, bearings: ["UC315"] },
+  "F316": { name: "F316 / UCF316", group: "F-serie (4-bouts flenslagerblok)", fill40: 275, fill100: 690, bearings: ["UC316"] },
+  "F317": { name: "F317 / UCF317", group: "F-serie (4-bouts flenslagerblok)", fill40: 320, fill100: 800, bearings: ["UC317"] },
+  "F318": { name: "F318 / UCF318", group: "F-serie (4-bouts flenslagerblok)", fill40: 370, fill100: 925, bearings: ["UC318"] },
+  "F320": { name: "F320 / UCF320", group: "F-serie (4-bouts flenslagerblok)", fill40: 485, fill100: 1200, bearings: ["UC320", "F320"] },
+  "FC210": { name: "FC210 / UCFC210 (Rond)", group: "F-serie (4-bouts flenslagerblok)", fill40: 45, fill100: 110, bearings: ["FC210", "UCFC210"] },
+
+  // === 3. FL-SERIE (2-BOUTS OVALE FLENSLAGERBLOKKEN / UCFL) ===
+  "FL204": { name: "FL204 / UCFL204", group: "FL-serie (2-bouts flenslagerblok)", fill40: 10, fill100: 25, bearings: ["UCFL204"] },
+  "FL205": { name: "FL205 / UCFL205", group: "FL-serie (2-bouts flenslagerblok)", fill40: 12, fill100: 30, bearings: ["UCFL205"] },
+  "FL206": { name: "FL206 / UCFL206", group: "FL-serie (2-bouts flenslagerblok)", fill40: 16, fill100: 40, bearings: ["UCFL206"] },
+  "FL207": { name: "FL207 / UCFL207", group: "FL-serie (2-bouts flenslagerblok)", fill40: 22, fill100: 55, bearings: ["UCFL207"] },
+  "FL208": { name: "FL208 / UCFL208", group: "FL-serie (2-bouts flenslagerblok)", fill40: 30, fill100: 75, bearings: ["UCFL208"] },
+  "FL209": { name: "FL209 / UCFL209", group: "FL-serie (2-bouts flenslagerblok)", fill40: 36, fill100: 90, bearings: ["UCFL209"] },
+  "FL210": { name: "FL210 / UCFL210", group: "FL-serie (2-bouts flenslagerblok)", fill40: 45, fill100: 110, bearings: ["UCFL210", "FL210", "SA210"] },
+  "FL211": { name: "FL211 / UCFL211", group: "FL-serie (2-bouts flenslagerblok)", fill40: 55, fill100: 140, bearings: ["UCFL211"] },
+  "FL212": { name: "FL212 / UCFL212", group: "FL-serie (2-bouts flenslagerblok)", fill40: 70, fill100: 175, bearings: ["UCFL212"] },
+  "FL213": { name: "FL213 / UCFL213", group: "FL-serie (2-bouts flenslagerblok)", fill40: 85, fill100: 210, bearings: ["UCFL213"] },
+  "FL214": { name: "FL214 / UCFL214", group: "FL-serie (2-bouts flenslagerblok)", fill40: 100, fill100: 250, bearings: ["UCFL214"] },
+  "FL215": { name: "FL215 / UCFL215", group: "FL-serie (2-bouts flenslagerblok)", fill40: 115, fill100: 285, bearings: ["UCFL215"] },
+  "FL216": { name: "FL216 / UCFL216", group: "FL-serie (2-bouts flenslagerblok)", fill40: 135, fill100: 340, bearings: ["UCFL216"] },
+  "FL217": { name: "FL217 / UCFL217", group: "FL-serie (2-bouts flenslagerblok)", fill40: 160, fill100: 400, bearings: ["UCFL217"] },
+  "FL218": { name: "FL218 / UCFL218", group: "FL-serie (2-bouts flenslagerblok)", fill40: 190, fill100: 475, bearings: ["UCFL218"] },
+
+  // === 4. FN-SERIE (FLENSLAGERHUIZEN VOOR TON- & KOGELLAGERS OP TREKBUS) ===
+  "FN 505": { name: "FN 505 (FNL 505)", group: "FN-serie (Flenslagerhuis)", fill40: 15, fill100: 35, bearings: ["1205K", "2205K", "22205K"] },
+  "FN 506": { name: "FN 506 (FNL 506)", group: "FN-serie (Flenslagerhuis)", fill40: 25, fill100: 60, bearings: ["1206K", "2206K", "22206K"] },
+  "FN 507": { name: "FN 507 (FNL 507)", group: "FN-serie (Flenslagerhuis)", fill40: 35, fill100: 85, bearings: ["1207K", "2207K", "22207K"] },
+  "FN 508": { name: "FN 508 (FNL 508)", group: "FN-serie (Flenslagerhuis)", fill40: 45, fill100: 110, bearings: ["1208K", "2208K", "22208K"] },
+  "FN 509": { name: "FN 509 (FNL 509)", group: "FN-serie (Flenslagerhuis)", fill40: 50, fill100: 125, bearings: ["1209K", "2209K", "22209K"] },
+  "FN 510": { name: "FN 510 (FNL 510)", group: "FN-serie (Flenslagerhuis)", fill40: 50, fill100: 125, bearings: ["1210K", "2210K", "22210K"] },
+  "FN 511": { name: "FN 511 (FNL 511)", group: "FN-serie (Flenslagerhuis)", fill40: 60, fill100: 150, bearings: ["1211K", "2211K", "22211K"] },
+  "FN 512": { name: "FN 512 (FNL 512)", group: "FN-serie (Flenslagerhuis)", fill40: 90, fill100: 225, bearings: ["1212K", "2212K", "22212K"] },
+  "FN 513": { name: "FN 513 (FNL 513)", group: "FN-serie (Flenslagerhuis)", fill40: 120, fill100: 300, bearings: ["1213K", "2213K", "22213K"] },
+  "FN 515": { name: "FN 515 (FNL 515)", group: "FN-serie (Flenslagerhuis)", fill40: 160, fill100: 400, bearings: ["1215K", "2215K", "22215K"] },
+  "FN516A": { name: "FN 516 / FN516A (FNL 516)", group: "FN-serie (Flenslagerhuis)", fill40: 200, fill100: 500, bearings: ["1216K", "2216K", "22216K", "FN516", "FNL516"] },
+  "FN 517": { name: "FN 517 (FNL 517)", group: "FN-serie (Flenslagerhuis)", fill40: 240, fill100: 600, bearings: ["1217K", "2217K", "22217K"] },
+  "FN 518": { name: "FN 518 (FNL 518)", group: "FN-serie (Flenslagerhuis)", fill40: 290, fill100: 725, bearings: ["1218K", "2218K", "22218K"] },
+  "FN 520": { name: "FN 520 (FNL 520)", group: "FN-serie (Flenslagerhuis)", fill40: 400, fill100: 1000, bearings: ["1220K", "2220K", "22220K"] },
+  "FN 522": { name: "FN 522 (FNL 522)", group: "FN-serie (Flenslagerhuis)", fill40: 550, fill100: 1350, bearings: ["1222K", "2222K", "22222K"] },
+  "FN 524": { name: "FN 524 (FNL 524)", group: "FN-serie (Flenslagerhuis)", fill40: 700, fill100: 1750, bearings: ["1224K", "2224K", "22224K"] },
+  "722516 B": { name: "722516 B (SKF)", group: "FN-serie (Flenslagerhuis)", fill40: 180, fill100: 450, bearings: ["722516"] },
+
+  // === 5. FE-SERIE (SNR / NTN / ISO VIERKANTE FLENSLAGERBLOKKEN) ===
+  "FE204": { name: "FE204 / ESFE204", group: "FE-serie (Vierkant flenslagerblok)", fill40: 10, fill100: 25, bearings: ["ESFE204", "FE204"] },
+  "FE205": { name: "FE205 / ESFE205", group: "FE-serie (Vierkant flenslagerblok)", fill40: 12, fill100: 30, bearings: ["ESFE205", "FE205"] },
+  "FE206": { name: "FE206 / ESFE206", group: "FE-serie (Vierkant flenslagerblok)", fill40: 16, fill100: 40, bearings: ["ESFE206", "FE206"] },
+  "FE207": { name: "FE207 / ESFE207", group: "FE-serie (Vierkant flenslagerblok)", fill40: 22, fill100: 55, bearings: ["ESFE207", "FE207"] },
+  "FE208": { name: "FE208 / ESFE208", group: "FE-serie (Vierkant flenslagerblok)", fill40: 30, fill100: 75, bearings: ["ESFE208", "FE208"] },
+  "FE209": { name: "FE209 / ESFE209", group: "FE-serie (Vierkant flenslagerblok)", fill40: 36, fill100: 90, bearings: ["ESFE209", "FE209"] },
+  "FE210": { name: "FE210 / ESFE210", group: "FE-serie (Vierkant flenslagerblok)", fill40: 45, fill100: 110, bearings: ["ESFE210", "FE210"] },
+  "FE211": { name: "FE211 / ESFE211", group: "FE-serie (Vierkant flenslagerblok)", fill40: 55, fill100: 140, bearings: ["ESFE211", "FE211"] },
+  "FE212": { name: "FE212 / ESFE212", group: "FE-serie (Vierkant flenslagerblok)", fill40: 70, fill100: 175, bearings: ["ESFE212", "FE212"] },
+  "FE213": { name: "FE213 / ESFE213", group: "FE-serie (Vierkant flenslagerblok)", fill40: 85, fill100: 210, bearings: ["ESFE213", "FE213"] },
+  "FE214": { name: "FE214 / ESFE214", group: "FE-serie (Vierkant flenslagerblok)", fill40: 100, fill100: 250, bearings: ["ESFE214", "FE214"] },
+  "FE215": { name: "FE215 / ESFE215", group: "FE-serie (Vierkant flenslagerblok)", fill40: 115, fill100: 285, bearings: ["ESFE215", "FE215"] },
+  "FE216": { name: "FE216 / ESFE216", group: "FE-serie (Vierkant flenslagerblok)", fill40: 135, fill100: 340, bearings: ["ESFE216", "FE216"] },
+  "FE217": { name: "FE217 / ESFE217", group: "FE-serie (Vierkant flenslagerblok)", fill40: 160, fill100: 400, bearings: ["ESFE217", "FE217"] },
+  "FE218": { name: "FE218 / ESFE218", group: "FE-serie (Vierkant flenslagerblok)", fill40: 190, fill100: 475, bearings: ["ESFE218", "FE218"] }
 };
 
 function getSnlHousingForBearing(designation) {
   if (!designation || typeof designation !== "string") return null;
   const clean = designation.trim().toUpperCase().replace(/[^A-Z0-9]/g, "");
-  for (const [snlKey, snlData] of Object.entries(SNL_HOUSING_DATABASE)) {
-    for (const bPrefix of snlData.bearings) {
-      if (clean.startsWith(bPrefix)) {
-        return snlKey;
+  if (!clean) return null;
+
+  // 1. Directe overeenkomst met sleutel of naam van het lagerhuis
+  for (const [key, data] of Object.entries(SNL_HOUSING_DATABASE)) {
+    const kClean = key.toUpperCase().replace(/[^A-Z0-9]/g, "");
+    const nameClean = (data.name || "").toUpperCase().replace(/[^A-Z0-9]/g, "");
+    if (clean === kClean || clean === nameClean || clean.startsWith(kClean)) {
+      return key;
+    }
+  }
+
+  // 2. Specifieke aliassen uit klantenlijsten (bv. "524-620", "520-617", "226-526")
+  if (clean.includes("524620")) return "SNL 524-620";
+  if (clean.includes("520617")) return "SNL 520-617";
+  if (clean.includes("226526")) return "SNL 526";
+  if (clean.includes("722516")) return "722516 B";
+  if (clean.includes("PHUSE50")) return "PHUSE50-XL-N";
+  if (clean.includes("FC210")) return "FC210";
+
+  // 3. Overeenkomst met bijbehorende lagers
+  for (const [key, data] of Object.entries(SNL_HOUSING_DATABASE)) {
+    if (Array.isArray(data.bearings)) {
+      for (const bPrefix of data.bearings) {
+        const bClean = bPrefix.toUpperCase().replace(/[^A-Z0-9]/g, "");
+        if (clean.startsWith(bClean)) {
+          return key;
+        }
       }
     }
   }
