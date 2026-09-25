@@ -1589,16 +1589,18 @@ h1, h2, h3, h4, .brand-text {
   width: 13.3%;
   min-width: 48px;
   height: 1px; /* Stretch input height to 100% of row height */
-  background-color: #F3F4F6; /* Grey input cells by default */
+  background-color: #e2e8f0; /* Donkerdere tint grijs (idem Smeercalculatie) */
+  border-color: #cbd5e1;
 }
 
 /* Match cell background to input background to prevent grey bars on top/bottom */
 .om-spreadsheet-table .cell-input-wrapper:has(.auto-filled) {
   background-color: #DBEAFE; /* Soft blue */
+  border-color: #bfdbfe;
 }
 
 .om-spreadsheet-table .cell-input-wrapper:has(.om-cell-input:focus) {
-  background-color: #FFFFFF; /* White when focused */
+  background-color: #f1f5f9; /* White or light tint when focused */
 }
 
 .om-cell-input-div {
@@ -1618,13 +1620,19 @@ h1, h2, h3, h4, .brand-text {
   box-sizing: border-box;
 }
 
+/* De cell-input-wrapper voor productnaam (div) blijft neutraal wit */
+.om-spreadsheet-table .cell-input-wrapper:has(.om-cell-input-div) {
+  background-color: #ffffff;
+  border-color: #E2E8F0;
+}
+
 .om-cell-input {
   width: 100%;
   height: 100%;
   border: none;
   padding: 4px 6px;
-  background-color: #F3F4F6; /* "Vul de grijze cellen in" */
-  color: var(--text-dark);
+  background-color: #e2e8f0; /* Donkerdere tint grijs (idem Smeercalculatie) */
+  color: #0f172a;
   font-size: 11.5px;
   font-family: inherit;
   font-weight: 500;
@@ -1633,6 +1641,7 @@ h1, h2, h3, h4, .brand-text {
 
 .om-cell-input.auto-filled {
   background-color: #DBEAFE; /* Soft blue for auto-filled but editable */
+  color: var(--text-dark);
 }
 
 .om-cell-input[readonly] {
@@ -1646,12 +1655,56 @@ h1, h2, h3, h4, .brand-text {
 
 .om-cell-input:focus {
   outline: none;
-  background-color: #FFFFFF;
-  box-shadow: inset 0 0 0 2px var(--primary-blue);
+  background-color: #f1f5f9;
+  box-shadow: inset 0 0 0 2px var(--primary-red, #E30613);
 }
 
 .om-cell-input.numeric {
   text-align: right;
+}
+
+/* ==========================================================================
+   UITZONDERINGEN OPBRENGSTMODEL: Velden die lichtgrijs blijven
+   1. Kostprijs product / L (€) / Kies verpakking (#omProdPrice2, #chainOmProdPrice2, en #omProdPrice1)
+   2. Levensduur lager (maanden) in de middelste kolom (#omLifetime2, #chainOmLifetime2)
+   ========================================================================== */
+.om-spreadsheet-table #omProdPrice2,
+.om-spreadsheet-table #omProdPrice1:not(.auto-filled),
+.om-spreadsheet-table #omLifetime2,
+.om-spreadsheet-table #chainOmProdPrice2,
+.om-spreadsheet-table #chainOmProdPrice1:not(.auto-filled),
+.om-spreadsheet-table #chainOmLifetime2 {
+  background-color: #F3F4F6;
+  color: var(--text-dark);
+}
+
+.om-spreadsheet-table .cell-input-wrapper:has(#omProdPrice2),
+.om-spreadsheet-table .cell-input-wrapper:has(#omProdPrice1:not(.auto-filled)),
+.om-spreadsheet-table .cell-input-wrapper:has(#omLifetime2),
+.om-spreadsheet-table .cell-input-wrapper:has(#chainOmProdPrice2),
+.om-spreadsheet-table .cell-input-wrapper:has(#chainOmProdPrice1:not(.auto-filled)),
+.om-spreadsheet-table .cell-input-wrapper:has(#chainOmLifetime2) {
+  background-color: #F3F4F6;
+  border-color: #E2E8F0;
+}
+
+.om-spreadsheet-table #omProdPrice2:focus,
+.om-spreadsheet-table #omProdPrice1:focus,
+.om-spreadsheet-table #omLifetime2:focus,
+.om-spreadsheet-table #chainOmProdPrice2:focus,
+.om-spreadsheet-table #chainOmProdPrice1:focus,
+.om-spreadsheet-table #chainOmLifetime2:focus {
+  background-color: #FFFFFF;
+  box-shadow: inset 0 0 0 2px var(--primary-blue);
+}
+
+.om-spreadsheet-table .cell-input-wrapper:has(#omProdPrice2:focus),
+.om-spreadsheet-table .cell-input-wrapper:has(#omProdPrice1:focus),
+.om-spreadsheet-table .cell-input-wrapper:has(#omLifetime2:focus),
+.om-spreadsheet-table .cell-input-wrapper:has(#chainOmProdPrice2:focus),
+.om-spreadsheet-table .cell-input-wrapper:has(#chainOmProdPrice1:focus),
+.om-spreadsheet-table .cell-input-wrapper:has(#chainOmLifetime2:focus) {
+  background-color: #FFFFFF;
 }
 
 .om-spreadsheet-table .cell-value {
