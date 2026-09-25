@@ -1259,8 +1259,15 @@ function calculateSingleBearingDailyNeed(bearingNr, speedRpm, opts = {}) {
 
   const Te = (typeof opts.Te === "number" && !isNaN(opts.Te)) ? opts.Te : 0.8;
   const Ta = (typeof opts.Ta === "number" && !isNaN(opts.Ta)) ? opts.Ta : 0.8;
+  let defaultMicPol = 4;
+  try {
+    const lsMicPol = parseFloat(localStorage.getItem('calc_micpol_factor') || localStorage.getItem('app_field_inputMicPolFactor'));
+    if (!isNaN(lsMicPol) && lsMicPol >= 1) defaultMicPol = lsMicPol;
+  } catch(e) {}
   const micPolInput = document.getElementById("inputMicPolFactor");
-  const micPolFactor = (typeof opts.micPolFactor === "number" && !isNaN(opts.micPolFactor)) ? opts.micPolFactor : (micPolInput ? (parseFloat(micPolInput.value) || 4) : 4);
+  const micPolFactor = (typeof opts.micPolFactor === "number" && !isNaN(opts.micPolFactor) && opts.micPolFactor >= 1)
+    ? opts.micPolFactor
+    : (micPolInput && parseFloat(micPolInput.value) ? parseFloat(micPolInput.value) : defaultMicPol);
 
   const fcBase = (fb * Te * Ta * Tt) / 4.0;
   const fcMicPol = fcBase * micPolFactor;
@@ -1354,6 +1361,15 @@ function applySurveyConfig(config) {
   const sec2Map = config.bearingDataMapSec2 || config.sec2Map || (window.latestSurveyFullData && window.latestSurveyFullData.bearingDataMapSec2) || (fullData && fullData.bearingDataMapSec2) || {};
   const sec3Map = config.bearingDataMapSec3 || config.sec3Map || (window.latestSurveyFullData && window.latestSurveyFullData.bearingDataMapSec3) || (fullData && fullData.bearingDataMapSec3) || {};
 
+  let activeMicPolFactor = 4;
+  try {
+    const lsF = parseFloat(localStorage.getItem('calc_micpol_factor') || localStorage.getItem('app_field_inputMicPolFactor'));
+    if (!isNaN(lsF) && lsF >= 1) activeMicPolFactor = lsF;
+  } catch(e) {}
+  if (config && typeof config.micPolFactor === 'number' && !isNaN(config.micPolFactor) && config.micPolFactor >= 1) {
+    activeMicPolFactor = config.micPolFactor;
+  }
+
   // Check if configuration is for Single Point Lubricators
   const isSinglePoint = (config.isSinglePoint === true) ||
                         (config.deviceType === 'single_point') ||
@@ -1404,7 +1420,8 @@ function applySurveyConfig(config) {
         Te: effTe,
         Ta: effTa,
         isSnl: isSnl,
-        snlRelub: snlRelub
+        snlRelub: snlRelub,
+        micPolFactor: activeMicPolFactor
       });
       return {
         letter: b.letter,
@@ -1696,7 +1713,8 @@ function applySurveyConfig(config) {
         Te: effTe,
         Ta: effTa,
         isSnl: isSnl,
-        snlRelub: snlRelub
+        snlRelub: snlRelub,
+        micPolFactor: activeMicPolFactor
       });
 
       devTotalDailyNeed += (need.dailyNeed * bQty);
@@ -3871,6 +3889,18 @@ function syncAllQuestionnaireDataToCalculator(data, explicitTargetLetter) {
         pEl.style.display = pEl.textContent ? 'inline' : 'none';
       }
       badge.style.display = "flex";
+    }
+
+    // Sync MicPol convertiefactor if present in questionnaire data
+    const surveyMicPol = (fullData && typeof fullData.micPolFactor === 'number' && !isNaN(fullData.micPolFactor) && fullData.micPolFactor >= 1) ? fullData.micPolFactor :
+                         (savedCfg && typeof savedCfg.micPolFactor === 'number' && !isNaN(savedCfg.micPolFactor) && savedCfg.micPolFactor >= 1) ? savedCfg.micPolFactor : null;
+    if (surveyMicPol) {
+      const micIn = document.getElementById("inputMicPolFactor");
+      if (micIn) micIn.value = surveyMicPol.toString();
+      try {
+        localStorage.setItem("calc_micpol_factor", surveyMicPol.toString());
+        localStorage.setItem("app_field_inputMicPolFactor", surveyMicPol.toString());
+      } catch(e) {}
     }
 
     // 6. Enkele gecontroleerde herberekening van alle modules (geen synthetische events)
@@ -8137,6 +8167,38 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
+  // Herstel opgeslagen convertiefactor naar Interflon MicPol® technologie indien aanwezig
+  const savedMicPolFactor = localStorage.getItem("calc_micpol_factor") || localStorage.getItem("app_field_inputMicPolFactor");
+  const micPolInputEl = document.getElementById("inputMicPolFactor");
+  if (micPolInputEl && savedMicPolFactor) {
+    const parsedF = parseFloat(savedMicPolFactor);
+    if (!isNaN(parsedF) && parsedF >= 1) {
+      micPolInputEl.value = parsedF.toString();
+    }
+  }
+  if (micPolInputEl) {
+    const handleMicPolChange = () => {
+      const val = parseFloat(micPolInputEl.value);
+      if (!isNaN(val) && val >= 1) {
+        try {
+          localStorage.setItem("calc_micpol_factor", val.toString());
+          localStorage.setItem("app_field_inputMicPolFactor", val.toString());
+          if (typeof BroadcastChannel !== 'undefined') {
+            if (!window.__surveySyncBroadcastChannel) {
+              window.__surveySyncBroadcastChannel = new BroadcastChannel('interflon_questionnaire_sync');
+            }
+            window.__surveySyncBroadcastChannel.postMessage({
+              type: 'MICPOL_FACTOR_UPDATED',
+              micPolFactor: val
+            });
+          }
+        } catch(e) {}
+      }
+    };
+    micPolInputEl.addEventListener("input", handleMicPolChange);
+    micPolInputEl.addEventListener("change", handleMicPolChange);
+  }
+
   // Laad klant details op startup
   loadClientDetails();
 
@@ -10447,6 +10509,24 @@ function calculateGrease() {
     localStorage.setItem("calc_micpol_hours", fcMicPol.toString());
     localStorage.setItem("calc_hours_per_day", hDay.toString());
     localStorage.setItem("calc_days_per_week", dWeek.toString());
+    localStorage.setItem("calc_micpol_factor", micPolFactor.toString());
+    localStorage.setItem("app_field_inputMicPolFactor", micPolFactor.toString());
+
+    if (!window.__isSyncingQuestionnaire && typeof BroadcastChannel !== 'undefined') {
+      if (!window.__surveySyncBroadcastChannel) {
+        window.__surveySyncBroadcastChannel = new BroadcastChannel('interflon_questionnaire_sync');
+      }
+      window.__surveySyncBroadcastChannel.postMessage({
+        type: 'CALCULATOR_PARAMS_UPDATED',
+        micPolFactor: micPolFactor,
+        hoursPerDay: hDay,
+        daysPerWeek: dWeek,
+        calcDailyNeed: calcDailyNeed,
+        refillGrams: refill_grams,
+        micPolDays: totalCalendarDays,
+        fcMicPol: fcMicPol
+      });
+    }
   } catch (e) {
     console.warn("Could not save calc data to localStorage", e);
   }
