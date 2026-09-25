@@ -1700,7 +1700,7 @@
           <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
             <label style="display: flex; align-items: center; gap: 8px; font-weight: 700; color: #1e293b; margin-bottom: 0; cursor: pointer;">
               <input type="checkbox" id="q_is_snl" style="width: 17px; height: 17px; cursor: pointer; accent-color: #E30613;" onchange="toggleSnlSection2UI()">
-              <span>Lager is gemonteerd in een staand SNL-lagerblok</span>
+              <span>Lager is gemonteerd in een lagerhuis / lagerblok (SNL, F, FL, FN, S, FE)</span>
               <button type="button" class="snl-eye-btn" id="q_snl_eye_btn" title="Bekijk nasmeerposities visualisatie" aria-label="Bekijk nasmeerposities visualisatie">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
@@ -1709,14 +1709,14 @@
               </button>
             </label>
             <span id="q_snl_auto_badge" style="display: none; font-size: 11px; background: #e0f2fe; color: #0284c7; font-weight: 700; padding: 2px 8px; border-radius: 4px;">
-              💡 SNL Behuizing gedetecteerd
+              💡 Lagerhuis gedetecteerd
             </span>
           </div>
 
           <div id="q_snl_details_container" style="display: none; margin-top: 12px; padding-top: 12px; border-top: 1px dashed #cbd5e1;">
             <div class="grid-3" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px;">
               <div class="form-group" style="margin-bottom: 0;">
-                <label for="q_snl_type" style="font-size: 12px; font-weight: 600;">Type SNL-lagerhuis</label>
+                <label for="q_snl_type" style="font-size: 12px; font-weight: 600;">Type lagerhuis / lagerblok</label>
                 <select id="q_snl_type" class="form-control" onchange="saveCurrentSection2Data()" style="font-size: 12.5px;">
                   <!-- Dynamically populated from SNL_HOUSING_DATABASE -->
                 </select>
@@ -7555,7 +7555,7 @@
         { label: '09. Gemiddelde Levensduur', key: 'levensduur' },
         { label: '10. Operationele Uren / Dag', key: 'urenPerDag' },
         { label: '11. Operationele Dagen / Week', key: 'dagenPerWeek' },
-        { label: '12. SNL-Lagerhuis', key: 'snlLagerhuis' },
+        { label: '12. Lagerhuis / Lagerblok', key: 'snlLagerhuis' },
         { label: '13. Leidingafstand tot centraal punt', key: 'leidingAfstand' },
         { label: '14. Coördinaten op raster (X, Y)', key: 'coordinaten' },
         { label: '15. Omgevingstemperatuur (°C)', key: 'omgevingstemp' },
@@ -7623,7 +7623,7 @@
         { label: '09. Gemiddelde Levensduur', key: 'levensduur' },
         { label: '10. Operationele Uren / Dag', key: 'urenPerDag' },
         { label: '11. Operationele Dagen / Week', key: 'dagenPerWeek' },
-        { label: '12. SNL-Lagerhuis', key: 'snlLagerhuis' },
+        { label: '12. Lagerhuis / Lagerblok', key: 'snlLagerhuis' },
         { label: '13. Leidingafstand meetpunt', key: 'leidingAfstand' },
         { label: '14. Coördinaten raster (X, Y)', key: 'coordinaten' },
         { label: '15. Omgevingstemperatuur (°C)', key: 'omgevingstemp' },
@@ -8994,9 +8994,16 @@
       const sel = document.getElementById('q_snl_type');
       if (!sel || typeof SNL_HOUSING_DATABASE === 'undefined') return;
       const cur = sel.value;
-      sel.innerHTML = Object.keys(SNL_HOUSING_DATABASE).map(key => {
-        const item = SNL_HOUSING_DATABASE[key];
-        return `<option value="${key}">${item.name} (${item.fill40}g / ${item.fill100}g)</option>`;
+      const groups = {};
+      for (const [key, item] of Object.entries(SNL_HOUSING_DATABASE)) {
+        const grp = item.group || "Overige";
+        if (!groups[grp]) groups[grp] = [];
+        groups[grp].push({ key, ...item });
+      }
+
+      sel.innerHTML = Object.entries(groups).map(([grpName, items]) => {
+        const options = items.map(item => `<option value="${item.key}">${item.name} (${item.fill40}g / ${item.fill100}g)</option>`).join("");
+        return `<optgroup label="${grpName}">${options}</optgroup>`;
       }).join('');
       if (cur && SNL_HOUSING_DATABASE[cur]) sel.value = cur;
 
@@ -9595,7 +9602,7 @@
         { label: '18. Gemiddelde Levensduur', key: 'levensduur', format: (b) => `[${b.letter}]: ${b.levensduur}` },
         { label: '19. Operationele Uren / Dag', key: 'urenPerDag', format: (b) => `[${b.letter}]: ${b.urenPerDag}` },
         { label: '20. Operationele Dagen / Week', key: 'dagenPerWeek', format: (b) => `[${b.letter}]: ${b.dagenPerWeek}` },
-        { label: '21. SNL-Lagerhuis', key: 'snlLagerhuis', format: (b) => `[${b.letter}]: ${b.snlLagerhuis}` },
+        { label: '21. Lagerhuis / Lagerblok', key: 'snlLagerhuis', format: (b) => `[${b.letter}]: ${b.snlLagerhuis}` },
         { label: '22. Leidingafstand tot centraal punt', key: 'leidingAfstand', format: (b) => `[${b.letter}]: ${b.leidingAfstand}` },
         { label: '23. Coördinaten op raster (X, Y)', key: 'coordinaten', format: (b) => `[${b.letter}]: ${b.coordinaten}` },
         { label: '24. Omgevingstemperatuur (°C)', key: 'omgevingstemp', format: (b) => `[${b.letter}]: ${b.omgevingstemp}` },
@@ -9676,7 +9683,7 @@
         bodyText += "• Gemiddelde Levensduur: " + b.levensduur + "\n";
         bodyText += "• Operationele Uren/Dag: " + b.urenPerDag + "\n";
         bodyText += "• Operationele Dagen/Week: " + b.dagenPerWeek + "\n";
-        bodyText += "• SNL-Lagerhuis: " + b.snlLagerhuis + "\n";
+        bodyText += "• Lagerhuis / Lagerblok: " + b.snlLagerhuis + "\n";
         bodyText += "• Leidingafstand tot meetpunt: " + b.leidingAfstand + "\n";
         bodyText += "• Coördinaten op raster: " + b.coordinaten + "\n";
         bodyText += "• Omgevingstemperatuur: " + b.omgevingstemp + "\n";
