@@ -6645,8 +6645,8 @@ const TRANSLATIONS = {
     cardResults: "Berekende Resultaten",
     resFreeVol: "Vrij Volume Lager (V)",
     resInitialFill: "Eerste Smeervulling (40%)",
-    snlHousingTitle: "Gemonteerd in SNL-behuizing (staand lagerhuis)",
-    snlTypeLabel: "Type SNL-lagerhuis",
+    snlHousingTitle: "Gemonteerd in lagerhuis / lagerblok (SNL, F, FL, FN, S, FE)",
+    snlTypeLabel: "Type lagerhuis / lagerblok",
     snlFillLabel: "Eerste vulling huis",
     snlRelubLabel: "Nasmeerpositie",
     snlFill40: "40% - 50% (standaard)",
@@ -7184,8 +7184,8 @@ const TRANSLATIONS = {
     cardResults: "Calculated Results",
     resFreeVol: "Bearing Free Volume (V)",
     resInitialFill: "Initial Grease Fill (40%)",
-    snlHousingTitle: "Mounted in SNL housing (split plummer block)",
-    snlTypeLabel: "SNL Housing Type",
+    snlHousingTitle: "Mounted in housing / plummer block (SNL, F, FL, FN, S, FE)",
+    snlTypeLabel: "Housing / block type",
     snlFillLabel: "Initial housing fill",
     snlRelubLabel: "Relubrication position",
     snlFill40: "40% - 50% (standard)",
@@ -7723,8 +7723,8 @@ const TRANSLATIONS = {
     cardResults: "Résultats Calculés",
     resFreeVol: "Volume Libre du Roulement (V)",
     resInitialFill: "Premier Remplissage de Graisse (40%)",
-    snlHousingTitle: "Monté dans un palier SNL (palier à semelle)",
-    snlTypeLabel: "Type de palier SNL",
+    snlHousingTitle: "Monté dans un palier / corps de palier (SNL, F, FL, FN, S, FE)",
+    snlTypeLabel: "Type de palier / corps",
     snlFillLabel: "Remplissage initial du corps",
     snlRelubLabel: "Position de relubrification",
     snlFill40: "40% - 50% (standard)",
@@ -9567,9 +9567,16 @@ function initSnlDropdown() {
   if (typeof SNL_HOUSING_DATABASE === "undefined") return;
   
   const currentVal = sel.value;
-  sel.innerHTML = Object.keys(SNL_HOUSING_DATABASE).map(key => {
-    const item = SNL_HOUSING_DATABASE[key];
-    return `<option value="${key}">${item.name} (${item.fill40}g / ${item.fill100}g)</option>`;
+  const groups = {};
+  for (const [key, item] of Object.entries(SNL_HOUSING_DATABASE)) {
+    const grp = item.group || "Overige";
+    if (!groups[grp]) groups[grp] = [];
+    groups[grp].push({ key, ...item });
+  }
+
+  sel.innerHTML = Object.entries(groups).map(([grpName, items]) => {
+    const options = items.map(item => `<option value="${item.key}">${item.name} (${item.fill40}g / ${item.fill100}g)</option>`).join("");
+    return `<optgroup label="${grpName}">${options}</optgroup>`;
   }).join("");
   
   if (currentVal && SNL_HOUSING_DATABASE[currentVal]) {
