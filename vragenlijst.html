@@ -2769,6 +2769,10 @@
         const clNeedRatio = (clNeedMin && clNeedMax && clNeedMin > 0) ? (clNeedMax / clNeedMin) : 1.0;
         const clHasNeedMismatch = (clNeedRatio > 1.15);
         const clAvgNeed = clNeeds.length > 0 ? (clNeeds.reduce((a, b) => a + b, 0) / clNeeds.length) : null;
+        const clRpmValues = bearings.map(b => b.rpm ? parseFloat(b.rpm) : null).filter(r => r && r > 0);
+        const clRpmMin = clRpmValues.length > 0 ? Math.min(...clRpmValues) : null;
+        const clRpmMax = clRpmValues.length > 0 ? Math.max(...clRpmValues) : null;
+        const clHasRpmDiff = (clRpmMin && clRpmMax && clRpmMin !== clRpmMax);
         return {
           K: 1,
           devices: [{
@@ -2788,7 +2792,7 @@
           }],
           maxDist: center.maxDist,
           avgDist: Math.round((bearings.reduce((s, b) => s + Math.hypot(b.x - center.x, b.y - center.y), 0) / N) * 10) / 10,
-          hasRpmSeparation: false,
+          hasRpmSeparation: !clHasRpmDiff,
           hasNeedSeparation: !clHasNeedMismatch,
           hasNeedMismatch: clHasNeedMismatch,
           diffNeedCount: clHasNeedMismatch ? 1 : 0,
@@ -3242,7 +3246,6 @@
       const solExtra = solutionsMap[K_cap + 1] || null;
 
       // Determine recommended solution:
-      // If user has explicitly configured or added devices (e.g. currentDeviceCount = 3), prioritize that!
       let recommended = solCap;
       let reasonType = 'capacity_ok';
       let explanation = '';
@@ -3250,31 +3253,26 @@
       if (hasDistinctNeeds && (solCleanNeedAndRpm || solCleanNeed)) {
         recommended = solCleanNeedAndRpm || solCleanNeed;
         reasonType = 'need_separated_ideal';
-        const distNote = recommended.maxDist <= 3.0 ? `(ruim binnen de veilige zone van 3,0 m)` : `(maximale leidingafstand)`;
-        explanation = `Advies: ${recommended.K} Pulsarlube toestellen voor een optimale en veilige dosering. Omdat een multi-point verdeelblok een gelijk volume per uitgang doseert, zijn lagers gegroepeerd per gelijke vetbehoefte en toerental. Zo voorkomt u over- of ondersmering. Alle leidingafstanden bedragen maximaal ${recommended.maxDist.toFixed(1).replace('.', ',')} m ${distNote}.`;
-      } else if (currentDeviceCount >= 1 && solutionsMap[currentDeviceCount] && !solutionsMap[currentDeviceCount].hasNeedMismatch) {
-        recommended = solutionsMap[currentDeviceCount];
-        reasonType = 'user_configured';
-        const distNote = recommended.maxDist <= 3.0 ? `(ruim binnen de veilige zone van 3,0 m)` : `(let op: langer dan de aanbevolen richtlijn van 3,0 m)`;
-        if (recommended.hasNeedSeparation && recommended.hasRpmSeparation) {
-          explanation = `Met ${recommended.K} Pulsarlube toestellen zijn de lagers perfect gescheiden op basis van gelijke vetbehoefte en toerental. Alle leidingafstanden bedragen maximaal ${recommended.maxDist.toFixed(1).replace('.', ',')} m ${distNote}.`;
-        } else {
-          explanation = `Optimale opstelling berekend voor de ${recommended.K} aanwezige Pulsarlube toestellen. Maximale leidingafstand is ${recommended.maxDist.toFixed(1).replace('.', ',')} m ${distNote}.`;
-        }
-      } else if (hasDistinctRpms && solCleanRpm && solCleanRpm.K > K_cap) {
+        const distNote = recommended.maxDist <= 3.0 ? `, ruim binnen de veilige zone van 3,0 m` : `, maximale leidingafstand`;
+        explanation = `Advies: ${recommended.K} Pulsarlube toestellen voor een optimale en veilige dosering. Omdat een multi-point verdeelblok een gelijk volume per uitgang doseert, zijn lagers gegroepeerd per afwijkende vetbehoefte. Zo voorkomt u over- of ondersmering. Alle leidingafstanden bedragen maximaal ${recommended.maxDist.toFixed(1).replace('.', ',')} m${distNote}.`;
+      } else if (hasDistinctRpms && solCleanRpm && solCleanRpm.K > K_cap && (solCap.maxDist > 3.0 || hasDistinctNeeds)) {
         recommended = solCleanRpm;
         reasonType = 'rpm_separated_ideal';
-        const distNote = recommended.maxDist <= 3.0 ? `(ruim binnen de veilige zone van 3,0 m)` : ``;
-        explanation = `Advies: ${recommended.K} Pulsarlube toestellen. Lagers met een identiek type en toerental worden gegroepeerd, terwijl lagers met een afwijkend toerental op een apart toestel worden aangesloten voor een optimale dosering. Alle leidingafstanden blijven binnen ${recommended.maxDist.toFixed(1).replace('.', ',')} m ${distNote}.`;
+        const distNote = recommended.maxDist <= 3.0 ? `, ruim binnen de veilige zone van 3,0 m` : ``;
+        explanation = `Advies: ${recommended.K} Pulsarlube toestellen. Lagers met een identiek type en toerental worden gegroepeerd, terwijl lagers met een afwijkend toerental op een apart toestel worden aangesloten voor een optimale dosering. Alle leidingafstanden blijven binnen ${recommended.maxDist.toFixed(1).replace('.', ',')} m${distNote}.`;
       } else if (solExtra && (solCap.maxDist > 3.5 || (solCap.maxDist > 3.0 && solExtra.maxDist <= 3.0))) {
         recommended = solExtra;
         reasonType = 'split_distance_warning';
-        const distNote = solExtra.maxDist <= 3.0 ? `(ruim binnen de veilige zone van 3,0 m)` : ``;
-        explanation = `Hoewel ${K_cap} toestel qua capaciteit volstaat (≤ 8 punten), loopt de maximale leidingafstand op tot ${solCap.maxDist.toFixed(1).replace('.', ',')} m. We adviseren daarom ${solExtra.K} toestellen, waardoor alle leidingen maximaal ${solExtra.maxDist.toFixed(1).replace('.', ',')} m worden ${distNote}.`;
+        const distNote = solExtra.maxDist <= 3.0 ? `, ruim binnen de veilige zone van 3,0 m` : ``;
+        explanation = `Hoewel ${K_cap} toestel qua capaciteit volstaat (≤ 8 punten), loopt de maximale leidingafstand op tot ${solCap.maxDist.toFixed(1).replace('.', ',')} m. We adviseren daarom ${solExtra.K} toestellen, waardoor alle leidingen maximaal ${solExtra.maxDist.toFixed(1).replace('.', ',')} m worden${distNote}.`;
       } else if (solCap.maxDist <= 3.0 && !solCap.hasNeedMismatch) {
         recommended = solCap;
         reasonType = 'ideal_single';
-        explanation = `Met ${K_cap} toestel(len) blijven alle ${N} smeerpunten binnen de ideale leidingafstand (max. ${solCap.maxDist.toFixed(1).replace('.', ',')} m ≤ 3 m) en is de vetbehoefte uniform.`;
+        const b1Need = (bearings[0] && (bearings[0].formattedNeed || (bearings[0].dailyNeed ? bearings[0].dailyNeed.toFixed(2).replace('.', ',') + ' ml/d' : '')));
+        const needStr = b1Need ? ` van ${b1Need}` : '';
+        explanation = (solCap.K === 1)
+          ? `Advies: 1 Pulsarlube toestel met een ${N}-weg verdeelblok is de beste keuze. Omdat de lagers een gelijke vetbehoefte hebben${needStr} en alle leidingafstanden maximaal ${solCap.maxDist.toFixed(1).replace('.', ',')} m bedragen, ruim binnen de veilige zone van 3,0 m, zorgt het verdeelblok voor een perfecte, gelijke dosering aan elk smeerpunt.`
+          : `Met ${solCap.K} toestellen blijven alle ${N} smeerpunten binnen de ideale leidingafstand van max. ${solCap.maxDist.toFixed(1).replace('.', ',')} m en is de vetbehoefte uniform.`;
       } else {
         recommended = solExtra || solCap;
         reasonType = 'acceptable';
@@ -3392,13 +3390,9 @@
       if (currentAdviceSystemMode === 'single_point') {
         currentChosenK = advice.N;
       } else {
-        if (currentPlDevCount >= 1 && advice.pulsarlube && advice.pulsarlube.solutionsMap && advice.pulsarlube.solutionsMap[currentPlDevCount]) {
-          currentChosenK = currentPlDevCount;
-        } else if (advice.pulsarlube && advice.pulsarlube.recommended) {
-          currentChosenK = advice.pulsarlube.recommended.K;
-        } else {
-          currentChosenK = advice.pulsarlube.K_cap;
-        }
+        currentChosenK = (advice.pulsarlube && advice.pulsarlube.recommended)
+          ? advice.pulsarlube.recommended.K
+          : (advice.pulsarlube ? advice.pulsarlube.K_cap : 1);
       }
 
       renderDeviceAdviceContent(advice, currentChosenK);
@@ -3418,16 +3412,9 @@
         if (mode === 'single_point') {
           currentChosenK = currentAdviceData.N;
         } else {
-          const currentPlDevCount = (devices && Array.isArray(devices))
-            ? devices.filter(d => d.active && d.type && d.type.startsWith('pulsarlube')).length
-            : 0;
-          if (currentPlDevCount >= 1 && currentAdviceData.pulsarlube && currentAdviceData.pulsarlube.solutionsMap && currentAdviceData.pulsarlube.solutionsMap[currentPlDevCount]) {
-            currentChosenK = currentPlDevCount;
-          } else if (currentAdviceData.pulsarlube && currentAdviceData.pulsarlube.recommended) {
-            currentChosenK = currentAdviceData.pulsarlube.recommended.K;
-          } else {
-            currentChosenK = currentAdviceData.pulsarlube.K_cap;
-          }
+          currentChosenK = (currentAdviceData.pulsarlube && currentAdviceData.pulsarlube.recommended)
+            ? currentAdviceData.pulsarlube.recommended.K
+            : (currentAdviceData.pulsarlube ? currentAdviceData.pulsarlube.K_cap : 1);
         }
         renderDeviceAdviceContent(currentAdviceData, currentChosenK);
       }
@@ -3542,11 +3529,11 @@
                 <span style="background: #dcfce7; color: #15803d; font-weight: 800; font-size: 12px; padding: 3px 8px; border-radius: 5px;">T${idx + 1}</span>
                 <div>
                   <strong style="font-size: 13px; color: #0f172a;">Lager ${dev.targetBearingLetter}</strong>
-                  <span style="font-size: 11.5px; color: #64748b; margin-left: 6px;">(${b.nr}${b.desc ? ' • ' + b.desc : ''}${needTxt})</span>
+                  <span style="font-size: 11.5px; color: #64748b; margin-left: 6px;">• ${b.nr}${b.desc ? ' • ' + b.desc : ''}${needTxt}</span>
                 </div>
               </div>
               <div style="display: flex; align-items: center; gap: 12px;">
-                <span style="font-size: 11.5px; color: #64748b;">Positie: <strong>(${dev.x >= 0 ? '+' : ''}${dev.x}m, ${dev.y >= 0 ? '+' : ''}${dev.y}m)</strong></span>
+                <span style="font-size: 11.5px; color: #64748b;">Positie: <strong>${dev.x >= 0 ? '+' : ''}${dev.x}m, ${dev.y >= 0 ? '+' : ''}${dev.y}m</strong></span>
                 <span style="font-size: 11.5px; font-weight: 700; color: #166534; background: #f0fdf4; padding: 2px 8px; border-radius: 4px; border: 1px solid #bbf7d0;">0,0m leiding</span>
               </div>
             </div>
@@ -3577,42 +3564,65 @@
         : ((pl.solutions && Array.isArray(pl.solutions)) ? pl.solutions.find(s => s.K === chosenK) : null);
       if (!sol) sol = pl.recommended || pl.solCap;
 
+      const isChosenRec = (pl.recommended && pl.recommended.K === chosenK);
+      const hasDistinctNeeds = pl.hasDistinctNeeds;
+
       let bannerIcon = '🔵';
       let bannerTitle = `Pulsarlube Smeerplan (${chosenK} Toestel${chosenK > 1 ? 'len' : ''})`;
       let bannerBg = '#eff6ff';
       let bannerBorder = '#bfdbfe';
       let bannerText = '#1e3a8a';
+      let chosenExplanation = '';
 
-      if (sol.hasNeedSeparation && sol.hasRpmSeparation && chosenK >= 2) {
+      if (isChosenRec) {
         bannerIcon = '✨';
-        bannerTitle = `Optimaal Plan (${chosenK} Toestellen) • Perfecte dosering & toerental-afstemming`;
         bannerBg = '#f0fdf4';
         bannerBorder = '#86efac';
         bannerText = '#14532d';
-      } else if (sol.hasNeedMismatch) {
-        bannerIcon = '⚠️';
-        bannerTitle = `Opstelling met ${chosenK} Toestel${chosenK > 1 ? 'len' : ''} • Aandachtspunt: Afwijkende vetbehoefte`;
-        bannerBg = '#fffbeb';
-        bannerBorder = '#fde68a';
-        bannerText = '#78350f';
-      } else if (sol.hasRpmSeparation && chosenK >= 2) {
-        bannerIcon = '✨';
-        bannerTitle = `Optimaal Plan (${chosenK} Toestellen) • Perfecte toerental-afstemming`;
-        bannerBg = '#f0fdf4';
-        bannerBorder = '#86efac';
-        bannerText = '#14532d';
-      } else if (sol.maxDist <= 3.0) {
-        bannerIcon = '🟢';
-        bannerTitle = `Aanbevolen opstelling met ${chosenK} Toestel${chosenK > 1 ? 'len' : ''} (Leidingen ≤ 3 m)`;
-        bannerBg = '#ecfdf5';
-        bannerBorder = '#a7f3d0';
-        bannerText = '#065f46';
+
+        if (chosenK === 1 && !hasDistinctNeeds) {
+          bannerTitle = `Optimaal Plan (1 Toestel) • Perfecte dosering`;
+        } else if (hasDistinctNeeds && sol.hasNeedSeparation) {
+          bannerTitle = `Optimaal Plan (${chosenK} Toestellen) • Gescheiden dosering per vetbehoefte`;
+        } else if (sol.hasRpmSeparation && chosenK >= 2) {
+          bannerTitle = `Optimaal Plan (${chosenK} Toestellen) • Perfecte toerental-afstemming`;
+        } else {
+          bannerTitle = `Aanbevolen opstelling (${chosenK} Toestel${chosenK > 1 ? 'len' : ''})`;
+        }
+        chosenExplanation = pl.explanation;
       } else {
-        bannerIcon = '⚠️';
-        bannerTitle = `Opstelling met ${chosenK} Toestel${chosenK > 1 ? 'len' : ''} (Langste leiding: ${sol.maxDist.toFixed(1).replace('.', ',')} m)`;
-        bannerBg = '#fffbeb';
-        bannerBorder = '#fde68a';
-        bannerText = '#78350f';
+        // User selected an alternative option
+        if (sol.hasNeedMismatch) {
+          bannerIcon = '⚠️';
+          bannerTitle = `Opstelling met ${chosenK} Toestel${chosenK > 1 ? 'len' : ''} • Aandachtspunt: Afwijkende vetbehoefte`;
+          bannerBg = '#fffbeb';
+          bannerBorder = '#fde68a';
+          bannerText = '#78350f';
+          chosenExplanation = sol.explanation || `Opstelling met ${chosenK} toestellen. Let op: lagers met een verschillende vetbehoefte zijn aangesloten op hetzelfde verdeelblok.`;
+        } else if (!hasDistinctNeeds && chosenK > (pl.recommended ? pl.recommended.K : 1)) {
+          bannerIcon = 'ℹ️';
+          bannerTitle = `Alternatieve optie (${chosenK} Toestellen) • Gescheiden montage`;
+          bannerBg = '#eff6ff';
+          bannerBorder = '#bfdbfe';
+          bannerText = '#1e3a8a';
+          const b1Need = (bearings[0] && (bearings[0].formattedNeed || (bearings[0].dailyNeed ? bearings[0].dailyNeed.toFixed(2).replace('.', ',') + ' ml/d' : '')));
+          const needTxt = b1Need ? ` van ${b1Need}` : '';
+          chosenExplanation = `Met ${chosenK} toestellen krijgt elk lager een eigen Pulsarlube unit (0,0 m leiding). Omdat de lagers een gelijke vetbehoefte hebben${needTxt}, volstaat 1 toestel met een verdeelblok al ruimschoots en is dat voordeliger in aanschaf en verbruik.`;
+        } else if (sol.maxDist <= 3.0) {
+          bannerIcon = '🟢';
+          bannerTitle = `Opstelling met ${chosenK} Toestel${chosenK > 1 ? 'len' : ''} (Leidingen ≤ 3 m)`;
+          bannerBg = '#ecfdf5';
+          bannerBorder = '#a7f3d0';
+          bannerText = '#065f46';
+          chosenExplanation = sol.explanation || `Opstelling met ${chosenK} Pulsarlube toestellen. Maximale leidingafstand: ${sol.maxDist.toFixed(1).replace('.', ',')} m.`;
+        } else {
+          bannerIcon = '⚠️';
+          bannerTitle = `Opstelling met ${chosenK} Toestel${chosenK > 1 ? 'len' : ''} (Langste leiding: ${sol.maxDist.toFixed(1).replace('.', ',')} m)`;
+          bannerBg = '#fffbeb';
+          bannerBorder = '#fde68a';
+          bannerText = '#78350f';
+          chosenExplanation = sol.explanation || `Opstelling met ${chosenK} Pulsarlube toestellen. Maximale leidingafstand bedraagt ${sol.maxDist.toFixed(1).replace('.', ',')} m.`;
+        }
       }
 
       // Warning box for dosage mismatch
@@ -3658,21 +3668,44 @@
           const isActive = (chosenK === s.K);
           const isRec = (pl.recommended && pl.recommended.K === s.K);
           
-          let badgeText = isRec ? '✨ Aanbevolen' : (s.K === pl.K_cap ? 'Minimaal' : `${s.K} Units`);
-          let badgeBg = isRec ? '#dcfce7' : '#f1f5f9';
-          let badgeColor = isRec ? '#166534' : '#475569';
+          let badgeText = '';
+          let badgeBg = '#f1f5f9';
+          let badgeColor = '#475569';
+
           if (s.hasNeedMismatch) {
             badgeText = '⚠️ Vetbehoefte verschilt';
             badgeBg = '#fef3c7';
             badgeColor = '#92400e';
-          } else if (s.hasNeedSeparation && s.hasRpmSeparation && s.K >= 2) {
-            badgeText = isRec ? '✨ Perfecte dosering' : '⚡ Gelijke vetbehoefte';
-            badgeBg = isRec ? '#dcfce7' : '#e0e7ff';
-            badgeColor = isRec ? '#166534' : '#3730a3';
-          } else if (s.hasRpmSeparation && s.K >= 2) {
-            badgeText = '⚡ Toerentallen gescheiden';
-            badgeBg = '#e0e7ff';
-            badgeColor = '#3730a3';
+          } else if (s.maxDist > 3.0) {
+            badgeText = isRec ? '⚠️ Aanbevolen (leiding > 3m)' : '⚠️ Leiding > 3,0 m';
+            badgeBg = '#fef3c7';
+            badgeColor = '#92400e';
+          } else if (isRec) {
+            if (!hasDistinctNeeds) {
+              badgeText = (s.K === 1) ? '✨ Beste keuze • Perfecte dosering' : '✨ Aanbevolen';
+            } else {
+              badgeText = '✨ Aanbevolen • Gescheiden dosering';
+            }
+            badgeBg = '#dcfce7';
+            badgeColor = '#166534';
+          } else {
+            if (!hasDistinctNeeds && s.K > (pl.recommended ? pl.recommended.K : 1)) {
+              badgeText = `${s.K} Units • Gescheiden montage`;
+              badgeBg = '#f1f5f9';
+              badgeColor = '#475569';
+            } else if (s.hasNeedSeparation) {
+              badgeText = '⚡ Gescheiden dosering';
+              badgeBg = '#e0e7ff';
+              badgeColor = '#3730a3';
+            } else if (s.K === pl.K_cap) {
+              badgeText = 'Minimaal aantal';
+              badgeBg = '#f1f5f9';
+              badgeColor = '#475569';
+            } else {
+              badgeText = `${s.K} Toestellen`;
+              badgeBg = '#f1f5f9';
+              badgeColor = '#475569';
+            }
           }
 
           tabsHtml += `
@@ -3737,17 +3770,17 @@
         }).join('');
 
         let devNeedBadge = '';
-        if (dev.hasNeedMismatch && dev.needMin && dev.needMax) {
-          devNeedBadge = `<span style="background: #fef3c7; color: #92400e; border: 1px solid #fde68a; font-weight: 700; font-size: 10.5px; padding: 1.5px 7px; border-radius: 4px;" title="Verschillende vetbehoefte op dit toestel">⚠️ Afwijkende dosering (${dev.needMin.toFixed(2).replace('.', ',')} - ${dev.needMax.toFixed(2).replace('.', ',')} ml/d)</span>`;
+        if (dev.hasNeedMismatch) {
+          devNeedBadge = `<span style="background: #fef3c7; color: #92400e; border: 1px solid #fde68a; font-weight: 700; font-size: 10.5px; padding: 1.5px 7px; border-radius: 4px;" title="Verschillende vetbehoefte op dit toestel">⚠️ Afwijkende dosering</span>`;
         } else if (dev.needMin) {
-          devNeedBadge = `<span style="background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; font-weight: 700; font-size: 10.5px; padding: 1.5px 7px; border-radius: 4px;">✓ Gelijke vetbehoefte (${dev.needMin.toFixed(2).replace('.', ',')} ml/d)</span>`;
+          devNeedBadge = `<span style="background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; font-weight: 700; font-size: 10.5px; padding: 1.5px 7px; border-radius: 4px;">✓ Gelijke vetbehoefte</span>`;
         }
 
         devCardsHtml += `
           <div style="background: #ffffff; border: 1.5px solid #e2e8f0; border-left: 4px solid ${pal.color}; border-radius: 8px; padding: 12px 14px; box-shadow: 0 1px 3px rgba(0,0,0,0.03);">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap; gap: 6px;">
               <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-                <span style="background: ${pal.badgeBg}; color: ${pal.badgeText}; font-weight: 800; font-size: 12px; padding: 2px 8px; border-radius: 5px;">Toestel ${dev.deviceIndex + 1} (T${dev.deviceIndex + 1})</span>
+                <span style="background: ${pal.badgeBg}; color: ${pal.badgeText}; font-weight: 800; font-size: 12px; padding: 2px 8px; border-radius: 5px;">Toestel ${dev.deviceIndex + 1}</span>
                 <span style="background: #f1f5f9; color: #475569; font-weight: 600; font-size: 11px; padding: 2px 7px; border-radius: 4px;">${plTypeName}</span>
                 ${devNeedBadge}
                 <span style="font-size: 11.5px; color: #64748b; font-family: monospace;">Positie: X: ${dev.x >= 0 ? '+' : ''}${dev.x}m, Y: ${dev.y >= 0 ? '+' : ''}${dev.y}m</span>
@@ -3768,14 +3801,6 @@
         `;
       });
       devCardsHtml += '</div>';
-
-      // Explanation matching the currently selected solution option
-      let chosenExplanation = pl.explanation;
-      if (sol && sol.explanation) {
-        chosenExplanation = sol.explanation;
-      } else if (sol && chosenK !== (pl.recommended && pl.recommended.K)) {
-        chosenExplanation = `Opstelling met ${chosenK} Pulsarlube toestel${chosenK > 1 ? 'len' : ''}. Maximale leidingafstand: ${sol.maxDist.toFixed(1).replace('.', ',')} m (gemiddeld: ${sol.avgDist.toFixed(1).replace('.', ',')} m).`;
-      }
 
       container.innerHTML = `
         ${systemTabsHtml}
@@ -5469,6 +5494,24 @@
       return { Te, Ta };
     }
 
+    function getSurveyMicPolFactor() {
+      if (typeof window.__currentSurveyMicPolFactor === 'number' && !isNaN(window.__currentSurveyMicPolFactor) && window.__currentSurveyMicPolFactor >= 1) {
+        return window.__currentSurveyMicPolFactor;
+      }
+      try {
+        const lsVal = localStorage.getItem('calc_micpol_factor') || localStorage.getItem('app_field_inputMicPolFactor');
+        if (lsVal) {
+          const p = parseFloat(lsVal);
+          if (!isNaN(p) && p >= 1 && p <= 50) {
+            window.__currentSurveyMicPolFactor = p;
+            return p;
+          }
+        }
+      } catch(e) {}
+      return 4;
+    }
+    window.getSurveyMicPolFactor = getSurveyMicPolFactor;
+
     function calculateSurveyBearingDailyNeed(bearingNr, speedRpm, opts = {}) {
       let b = null;
       const cleanKey = (bearingNr || "").toString().trim();
@@ -5546,7 +5589,8 @@
 
       const Te = (typeof opts.Te === "number" && !isNaN(opts.Te)) ? opts.Te : 0.8;
       const Ta = (typeof opts.Ta === "number" && !isNaN(opts.Ta)) ? opts.Ta : 0.8;
-      const micPolFactor = (typeof opts.micPolFactor === "number" && !isNaN(opts.micPolFactor)) ? opts.micPolFactor : 4;
+      const currentDefaultMicPol = (typeof getSurveyMicPolFactor === 'function') ? getSurveyMicPolFactor() : 4;
+      const micPolFactor = (typeof opts.micPolFactor === "number" && !isNaN(opts.micPolFactor) && opts.micPolFactor >= 1) ? opts.micPolFactor : currentDefaultMicPol;
 
       const fcBase = (fb * Te * Ta * Tt) / 4.0;
       const fcMicPol = fcBase * micPolFactor;
@@ -5594,7 +5638,8 @@
         dailyNeed: Math.max(0.01, dailyNeed),
         refill_grams,
         totalCalendarDays,
-        fcMicPol
+        fcMicPol,
+        micPolFactor
       };
     }
 
@@ -5602,6 +5647,7 @@
       const rows = document.querySelectorAll('.bearing-row');
       const groupsMap = new Map();
       const bearingMap = {};
+      const currentMicPol = (typeof getSurveyMicPolFactor === 'function') ? getSurveyMicPolFactor() : 4;
 
       rows.forEach((r, idx) => {
         const letter = r.getAttribute('data-letter') || (LETTERS[idx] || ('L' + (idx+1)));
@@ -5638,7 +5684,8 @@
           Te: corr.Te,
           Ta: corr.Ta,
           isSnl: !!d2.isSnl,
-          snlRelub: d2.snlRelub || 'side'
+          snlRelub: d2.snlRelub || 'side',
+          micPolFactor: currentMicPol
         });
 
         const dailyNeed = needRes.dailyNeed;
@@ -6315,6 +6362,41 @@
     window.renderDistancesOverview = renderDistancesOverview;
     window.drawBearingLayout = drawBearingLayout;
 
+    function refreshSurveyBearingsDailyNeed(newFactor) {
+      if (typeof newFactor === 'number' && !isNaN(newFactor) && newFactor >= 1) {
+        window.__currentSurveyMicPolFactor = newFactor;
+      } else {
+        try {
+          const lsF = parseFloat(localStorage.getItem('calc_micpol_factor') || localStorage.getItem('app_field_inputMicPolFactor'));
+          if (!isNaN(lsF) && lsF >= 1) {
+            window.__currentSurveyMicPolFactor = lsF;
+          }
+        } catch(e) {}
+      }
+
+      if (typeof getSurveyBearingsNeedAnalysis === 'function') {
+        getSurveyBearingsNeedAnalysis();
+      }
+
+      if (typeof drawBearingLayout === 'function') {
+        drawBearingLayout();
+      }
+
+      if (typeof renderDistancesOverview === 'function') {
+        renderDistancesOverview();
+      }
+
+      const adviceModal = document.getElementById('smartDeviceAdviceModal');
+      if (adviceModal && adviceModal.style.display !== 'none' && typeof openDeviceAdviceModal === 'function') {
+        openDeviceAdviceModal();
+      }
+
+      if (typeof saveRasterConfigToLocalStorage === 'function' && !window.__questionnaireRestoring && !window.__isClearingQuestionnaire) {
+        saveRasterConfigToLocalStorage(true);
+      }
+    }
+    window.refreshSurveyBearingsDailyNeed = refreshSurveyBearingsDailyNeed;
+
     // =========================================================================
     // COÖRDINATEN FUNCTIE (OPTIE 1 & OPTIE 2 COMBINATIE)
     // =========================================================================
@@ -6633,6 +6715,9 @@
           const freqNum = d2.q4_freq_num ? String(d2.q4_freq_num).trim() : '';
           const freqUnit = d2.q4_freq_unit || 'Weken';
           const intervalStr = freqNum ? (freqNum + ' ' + freqUnit) : '-';
+          const bNeed = (window.__surveyBearingsNeedMap && window.__surveyBearingsNeedMap[letter]) || null;
+          const bDailyNeed = bNeed ? bNeed.dailyNeed : null;
+          const bFormattedNeed = bNeed ? bNeed.formattedNeed : null;
           bearings.push({
             letter, nr, desc, rpm, pos: asPos, x: pos.x, y: pos.y, qty,
             hoursPerDay, daysPerWeek, temp,
@@ -6643,7 +6728,9 @@
             isSnl: !!d2.isSnl,
             snlType: d2.snlType || '',
             snlFill: d2.snlFill || '40',
-            snlRelub: d2.snlRelub || 'side'
+            snlRelub: d2.snlRelub || 'side',
+            dailyNeed: bDailyNeed,
+            formattedNeed: bFormattedNeed
           });
         });
 
@@ -6824,9 +6911,12 @@
           sec4: (typeof activeBearingSec4 !== 'undefined') ? activeBearingSec4 : 'A'
         };
 
+        const currentSurveyMicPol = (typeof getSurveyMicPolFactor === 'function') ? getSurveyMicPolFactor() : 4;
+
         const configToSave = {
           timestamp: Date.now(),
           machineName: machineName,
+          micPolFactor: currentSurveyMicPol,
           general: generalData,
           contact: contactData,
           activeBearings: activeBearingsData,
@@ -6868,6 +6958,7 @@
               fileType: 'Interflon_Smeeranalyse_Vragenlijst',
               version: '1.0',
               exportDate: new Date().toISOString(),
+              micPolFactor: currentSurveyMicPol,
               general: generalData,
               contact: contactData,
               bearings: bearings,
@@ -9886,6 +9977,11 @@
       if (typeof initCanvasInteractions === "function") initCanvasInteractions();
       if (typeof syncBearingsToLayout === "function") setTimeout(syncBearingsToLayout, 100);
       if (typeof drawBearingLayout === "function") setTimeout(drawBearingLayout, 150);
+      setTimeout(() => {
+        if (typeof refreshSurveyBearingsDailyNeed === "function") {
+          refreshSurveyBearingsDailyNeed();
+        }
+      }, 200);
 
       // Realtime auto-save: saves immediately when user types or changes any input in the questionnaire
       const surveyForm = document.getElementById('publicSurveyForm');
@@ -9944,6 +10040,14 @@
             }
           }
         } catch(e) {}
+
+        const curFactor = (typeof getSurveyMicPolFactor === 'function') ? getSurveyMicPolFactor() : 4;
+        try {
+          const lsFactor = parseFloat(localStorage.getItem('calc_micpol_factor') || localStorage.getItem('app_field_inputMicPolFactor'));
+          if (!isNaN(lsFactor) && lsFactor >= 1 && lsFactor !== curFactor) {
+            refreshSurveyBearingsDailyNeed(lsFactor);
+          }
+        } catch(e) {}
       } else if (document.visibilityState === 'hidden') {
         if (window.__questionnaireRestoring || window.__isClearingQuestionnaire) return;
         const curDomMachine = (document.getElementById('q1') ? document.getElementById('q1').value.trim() : '').toLowerCase();
@@ -9955,6 +10059,18 @@
         }
       }
     });
+
+    window.addEventListener('focus', function() {
+      if (window.__isClearingQuestionnaire || window.__questionnaireRestoring) return;
+      const curFactor = (typeof getSurveyMicPolFactor === 'function') ? getSurveyMicPolFactor() : 4;
+      try {
+        const lsFactor = parseFloat(localStorage.getItem('calc_micpol_factor') || localStorage.getItem('app_field_inputMicPolFactor'));
+        if (!isNaN(lsFactor) && lsFactor >= 1 && lsFactor !== curFactor) {
+          refreshSurveyBearingsDailyNeed(lsFactor);
+        }
+      } catch(e) {}
+    });
+
     window.addEventListener('beforeunload', function() {
       if (window.__isClearingQuestionnaire || window.__questionnaireRestoring) return;
       const curDomMachine = (document.getElementById('q1') ? document.getElementById('q1').value.trim() : '').toLowerCase();
@@ -9975,6 +10091,16 @@
         const surveyChannel = window.__surveySyncBroadcastChannel;
         surveyChannel.onmessage = function(ev) {
           if (!ev.data) return;
+
+          if (ev.data.type === 'MICPOL_FACTOR_UPDATED' || ev.data.type === 'CALCULATOR_PARAMS_UPDATED') {
+            const factor = parseFloat(ev.data.micPolFactor);
+            if (!isNaN(factor) && factor >= 1) {
+              refreshSurveyBearingsDailyNeed(factor);
+            } else {
+              refreshSurveyBearingsDailyNeed();
+            }
+            return;
+          }
 
           if (ev.data.type === 'QUESTIONNAIRE_IMPORTED' || ev.data.type === 'DOSSIER_IMPORTED' || ev.data.type === 'REPLACE_QUESTIONNAIRE') {
             const targetData = ev.data.fullData || ev.data.data;
@@ -10040,6 +10166,15 @@
 
     // Cross-tab storage event listener
     window.addEventListener('storage', function(e) {
+      if (e.key === 'calc_micpol_factor' || e.key === 'app_field_inputMicPolFactor') {
+        const factor = parseFloat(e.newValue);
+        if (!isNaN(factor) && factor >= 1) {
+          refreshSurveyBearingsDailyNeed(factor);
+        } else {
+          refreshSurveyBearingsDailyNeed();
+        }
+        return;
+      }
       if (e.key === 'interflon_questionnaire_full_data') {
         if (e.newValue) {
           try {
