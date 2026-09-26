@@ -8187,14 +8187,19 @@
       }
       try {
         localStorage.setItem('interflon_questionnaire_full_data', JSON.stringify(data));
-        localStorage.setItem('interflon_last_questionnaire_data', JSON.stringify(data));
-        if (data.contact) {
-          if (data.contact.clientCompany) localStorage.setItem('client_company', data.contact.clientCompany);
-          if (data.contact.clientContact) localStorage.setItem('client_contact', data.contact.clientContact);
-          if (data.contact.clientEmail) localStorage.setItem('client_email', data.contact.clientEmail);
-        }
-        if (data.general && data.general.machineName) {
-          localStorage.setItem('tech_machine', data.general.machineName);
+        const activeDossierMach = (localStorage.getItem('interflon_active_dossier_machine') || '').trim().toLowerCase();
+        const incomingMach = (data.general && data.general.machineName ? data.general.machineName : '').trim().toLowerCase();
+        const shouldUpdateGlobalTech = isUserImport || !activeDossierMach || (activeDossierMach === incomingMach);
+
+        if (shouldUpdateGlobalTech) {
+          if (data.contact) {
+            if (data.contact.clientCompany) localStorage.setItem('client_company', data.contact.clientCompany);
+            if (data.contact.clientContact) localStorage.setItem('client_contact', data.contact.clientContact);
+            if (data.contact.clientEmail) localStorage.setItem('client_email', data.contact.clientEmail);
+          }
+          if (data.general && data.general.machineName) {
+            localStorage.setItem('tech_machine', data.general.machineName);
+          }
         }
         if (isUserImport && typeof BroadcastChannel !== 'undefined') {
           if (!window.__surveySyncBroadcastChannel) {
@@ -9907,6 +9912,11 @@
           document.getElementById('clientEmail').value = clientEmail;
           syncReplyTo(clientEmail);
         }
+
+        const reqMachine = urlParams.get('machine') || urlParams.get('tech_machine');
+        if (reqMachine && document.getElementById('q1')) {
+          document.getElementById('q1').value = reqMachine;
+        }
       }
 
       if (urlParams.get('submitted') === 'true') {
@@ -9941,28 +9951,40 @@
       let restoredFromStorage = false;
       if (!isBlankRequest) {
         try {
+          const reqMachine = (urlParams.get('machine') || urlParams.get('tech_machine') || '').trim().toLowerCase();
+          const activeDossierMach = (localStorage.getItem('interflon_active_dossier_machine') || '').trim().toLowerCase();
           const savedDataStr = localStorage.getItem('interflon_questionnaire_full_data') || localStorage.getItem('interflon_last_questionnaire_data');
           if (savedDataStr) {
             const savedData = JSON.parse(savedDataStr);
-            const hasBearings = Array.isArray(savedData.bearings) && savedData.bearings.length > 0 &&
-                                savedData.bearings.some(b => (b.nr && !b.nr.startsWith('Lager ')) || b.desc || b.rpm || (b.letter && b.letter !== 'A'));
-            const hasGeneral = savedData.general && (savedData.general.machineName || savedData.general.machineBrand || savedData.general.application);
-            const hasContact = savedData.contact && (savedData.contact.clientCompany || savedData.contact.clientContact || savedData.contact.clientEmail);
-            const hasMultipleBearings = Array.isArray(savedData.bearings) && savedData.bearings.length > 1;
-            const hasSec2 = savedData.bearingDataMapSec2 && Object.values(savedData.bearingDataMapSec2).some(d => d && (d.q11 || d.q12_price || d.q4_freq_num || d.q29_life));
-            const hasSec3 = savedData.bearingDataMapSec3 && Object.values(savedData.bearingDataMapSec3).some(d => d && (d.q15 || d.q16));
-            const hasSec4 = savedData.bearingDataMapSec4 && Object.values(savedData.bearingDataMapSec4).some(d => d && (d.q24 || d.q25 || d.q26 || d.q28 || d.q30));
-            const hasDevices = savedData.raster && Array.isArray(savedData.raster.devices) && savedData.raster.devices.length > 1;
-            const hasSurveyRasterConfig = savedData.surveyRasterConfig && Array.isArray(savedData.surveyRasterConfig.bearings) && savedData.surveyRasterConfig.bearings.length > 0;
+            const savedMachine = ((savedData.general && (savedData.general.machineName || savedData.general.name)) || savedData.machineName || '').trim().toLowerCase();
 
-            if (hasBearings || hasGeneral || hasContact || hasMultipleBearings || hasSec2 || hasSec3 || hasSec4 || hasDevices || hasSurveyRasterConfig) {
-              console.log("Restoring saved questionnaire from localStorage on page load...");
-              window.__questionnaireRestoring = true;
-              window.__lastRestoredExportDate = savedData.exportDate || '';
-              window.__lastSavedExportDate = savedData.exportDate || '';
-              restoreQuestionnaireDOM(savedData, false);
-              window.__questionnaireRestoring = false;
-              restoredFromStorage = true;
+            // If a specific machine was requested in the URL or active dossier is known, verify savedData matches
+            const expectedMach = reqMachine || activeDossierMach;
+            const isMatchReq = !expectedMach || !savedMachine || (expectedMach === savedMachine);
+
+            if (isMatchReq) {
+              const hasBearings = Array.isArray(savedData.bearings) && savedData.bearings.length > 0 &&
+                                  savedData.bearings.some(b => (b.nr && !b.nr.startsWith('Lager ')) || b.desc || b.rpm || (b.letter && b.letter !== 'A'));
+              const hasGeneral = savedData.general && (savedData.general.machineName || savedData.general.machineBrand || savedData.general.application);
+              const hasContact = savedData.contact && (savedData.contact.clientCompany || savedData.contact.clientContact || savedData.contact.clientEmail);
+              const hasMultipleBearings = Array.isArray(savedData.bearings) && savedData.bearings.length > 1;
+              const hasSec2 = savedData.bearingDataMapSec2 && Object.values(savedData.bearingDataMapSec2).some(d => d && (d.q11 || d.q12_price || d.q4_freq_num || d.q29_life));
+              const hasSec3 = savedData.bearingDataMapSec3 && Object.values(savedData.bearingDataMapSec3).some(d => d && (d.q15 || d.q16));
+              const hasSec4 = savedData.bearingDataMapSec4 && Object.values(savedData.bearingDataMapSec4).some(d => d && (d.q24 || d.q25 || d.q26 || d.q28 || d.q30));
+              const hasDevices = savedData.raster && Array.isArray(savedData.raster.devices) && savedData.raster.devices.length > 1;
+              const hasSurveyRasterConfig = savedData.surveyRasterConfig && Array.isArray(savedData.surveyRasterConfig.bearings) && savedData.surveyRasterConfig.bearings.length > 0;
+
+              if (hasBearings || hasGeneral || hasContact || hasMultipleBearings || hasSec2 || hasSec3 || hasSec4 || hasDevices || hasSurveyRasterConfig) {
+                console.log("Restoring saved questionnaire from localStorage on page load...");
+                window.__questionnaireRestoring = true;
+                window.__lastRestoredExportDate = savedData.exportDate || '';
+                window.__lastSavedExportDate = savedData.exportDate || '';
+                restoreQuestionnaireDOM(savedData, false);
+                window.__questionnaireRestoring = false;
+                restoredFromStorage = true;
+              }
+            } else {
+              console.warn(`Skipped restoring cached questionnaire because expected machine '${expectedMach}' differs from cached questionnaire '${savedMachine}'`);
             }
           }
         } catch (e) {
@@ -10058,7 +10080,11 @@
       } else if (document.visibilityState === 'hidden') {
         if (window.__questionnaireRestoring || window.__isClearingQuestionnaire) return;
         const curDomMachine = (document.getElementById('q1') ? document.getElementById('q1').value.trim() : '').toLowerCase();
-        const activeCalcMachine = (localStorage.getItem('tech_machine') || '').trim().toLowerCase();
+        const activeCalcMachine = (localStorage.getItem('interflon_active_dossier_machine') || localStorage.getItem('tech_machine') || '').trim().toLowerCase();
+        if (activeCalcMachine && curDomMachine && activeCalcMachine !== curDomMachine) {
+          console.warn(`Tab hidden: Not saving survey raster because curDomMachine '${curDomMachine}' differs from activeCalcMachine '${activeCalcMachine}'`);
+          return;
+        }
         if (!activeCalcMachine || !curDomMachine || activeCalcMachine === curDomMachine) {
           if (typeof saveRasterConfigToLocalStorage === 'function') {
             saveRasterConfigToLocalStorage();
@@ -10081,7 +10107,10 @@
     window.addEventListener('beforeunload', function() {
       if (window.__isClearingQuestionnaire || window.__questionnaireRestoring) return;
       const curDomMachine = (document.getElementById('q1') ? document.getElementById('q1').value.trim() : '').toLowerCase();
-      const activeCalcMachine = (localStorage.getItem('tech_machine') || '').trim().toLowerCase();
+      const activeCalcMachine = (localStorage.getItem('interflon_active_dossier_machine') || localStorage.getItem('tech_machine') || '').trim().toLowerCase();
+      if (activeCalcMachine && curDomMachine && activeCalcMachine !== curDomMachine) {
+        return;
+      }
       if (!activeCalcMachine || !curDomMachine || activeCalcMachine === curDomMachine) {
         if (typeof saveRasterConfigToLocalStorage === 'function') {
           saveRasterConfigToLocalStorage();
@@ -10130,7 +10159,7 @@
           if (ev.data.type === 'REQUEST_LATEST_CONFIG' || ev.data.type === 'REQUEST_SURVEY_BEARINGS') {
             if (window.__questionnaireRestoring || window.__isClearingQuestionnaire) return;
             const curDomMachine = (document.getElementById('q1') ? document.getElementById('q1').value.trim() : '').toLowerCase();
-            const activeCalcMachine = (localStorage.getItem('tech_machine') || '').trim().toLowerCase();
+            const activeCalcMachine = (localStorage.getItem('interflon_active_dossier_machine') || localStorage.getItem('tech_machine') || '').trim().toLowerCase();
             if (activeCalcMachine && curDomMachine && activeCalcMachine !== curDomMachine) {
               console.warn(`Ignoring REQUEST_LATEST_CONFIG because DOM is '${curDomMachine}' while calculator is '${activeCalcMachine}'`);
               return;
@@ -10197,8 +10226,11 @@
               if (window.__isSavingRasterConfig || window.__questionnaireRestoring) {
                 return;
               }
-              // Only restore if targetData is an explicit external file/dossier import from the calculator
-              if (targetData.source !== 'calculator_dossier_import' && targetData.source !== 'calculator_user_import' && !targetData.isDossierImport && targetData.source !== 'vragenlijst_user_import') {
+              const curMachine = (document.getElementById('q1') ? document.getElementById('q1').value.trim() : '').toLowerCase();
+              const newMachine = ((targetData.general && (targetData.general.machineName || targetData.general.name)) || targetData.machineName || '').trim().toLowerCase();
+              const isDiffMachine = newMachine && curMachine && (newMachine !== curMachine);
+              const isAllowedSource = (targetData.source === 'calculator_dossier_import' || targetData.source === 'calculator_user_import' || targetData.isDossierImport || targetData.source === 'vragenlijst_user_import' || isDiffMachine);
+              if (!isAllowedSource) {
                 return;
               }
               console.log("Storage event sync: Questionnaire replaced via localStorage update");
