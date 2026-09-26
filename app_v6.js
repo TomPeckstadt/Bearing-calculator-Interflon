@@ -1398,18 +1398,21 @@ function applySurveyConfig(config) {
 
       const savedSnlForLetter = localStorage.getItem("app_field_chkSnlHousing_" + b.letter);
       const hasSurveySnl = (b.isSnl !== undefined || b.is_snl !== undefined || d2.isSnl !== undefined || d2.is_snl !== undefined);
-      const isSnl = hasSurveySnl
-        ? !!(b.isSnl || b.is_snl || d2.isSnl || d2.is_snl)
-        : ((savedSnlForLetter !== null)
-            ? (savedSnlForLetter === "true")
-            : ((bOverride.isSnl !== undefined) ? !!bOverride.isSnl : false));
+      const isSnl = (savedSnlForLetter !== null)
+        ? (savedSnlForLetter === "true")
+        : ((bOverride && bOverride.isSnl !== undefined)
+            ? !!bOverride.isSnl
+            : (hasSurveySnl ? !!(b.isSnl || b.is_snl || d2.isSnl || d2.is_snl) : false));
       try { localStorage.setItem("app_field_chkSnlHousing_" + b.letter, isSnl ? "true" : "false"); } catch(e) {}
 
+      const savedRelubLetter = localStorage.getItem("app_field_selSnlRelubPosition_" + b.letter);
       const hasSurveyRelub = (b.snlRelub || b.snl_relub || d2.snlRelub || d2.snl_relub);
-      const snlRelub = hasSurveyRelub
-        ? (b.snlRelub || b.snl_relub || d2.snlRelub || d2.snl_relub)
-        : (localStorage.getItem("app_field_selSnlRelubPosition_" + b.letter) || bOverride.snlRelub || 'side');
-      if (hasSurveyRelub) {
+      const snlRelub = (savedRelubLetter !== null && savedRelubLetter !== undefined)
+        ? savedRelubLetter
+        : ((bOverride && bOverride.snlRelub)
+            ? bOverride.snlRelub
+            : (hasSurveyRelub ? (b.snlRelub || b.snl_relub || d2.snlRelub || d2.snl_relub) : 'side'));
+      if (hasSurveyRelub || savedRelubLetter) {
         try { localStorage.setItem("app_field_selSnlRelubPosition_" + b.letter, snlRelub); } catch(e) {}
       }
 
@@ -1691,18 +1694,21 @@ function applySurveyConfig(config) {
 
       const savedSnlForLetter = localStorage.getItem("app_field_chkSnlHousing_" + letter);
       const hasSurveySnl = (bObj.isSnl !== undefined || bObj.is_snl !== undefined || d2.isSnl !== undefined || d2.is_snl !== undefined);
-      const isSnl = hasSurveySnl
-        ? !!(bObj.isSnl || bObj.is_snl || d2.isSnl || d2.is_snl)
-        : ((savedSnlForLetter !== null)
-            ? (savedSnlForLetter === "true")
-            : ((bOverride.isSnl !== undefined) ? !!bOverride.isSnl : false));
+      const isSnl = (savedSnlForLetter !== null)
+        ? (savedSnlForLetter === "true")
+        : ((bOverride && bOverride.isSnl !== undefined)
+            ? !!bOverride.isSnl
+            : (hasSurveySnl ? !!(bObj.isSnl || bObj.is_snl || d2.isSnl || d2.is_snl) : false));
       try { localStorage.setItem("app_field_chkSnlHousing_" + letter, isSnl ? "true" : "false"); } catch(e) {}
 
+      const savedRelubLetter = localStorage.getItem("app_field_selSnlRelubPosition_" + letter);
       const hasSurveyRelub = (bObj.snlRelub || bObj.snl_relub || d2.snlRelub || d2.snl_relub);
-      const snlRelub = hasSurveyRelub
-        ? (bObj.snlRelub || bObj.snl_relub || d2.snlRelub || d2.snl_relub)
-        : (localStorage.getItem("app_field_selSnlRelubPosition_" + letter) || bOverride.snlRelub || 'side');
-      if (hasSurveyRelub) {
+      const snlRelub = (savedRelubLetter !== null && savedRelubLetter !== undefined)
+        ? savedRelubLetter
+        : ((bOverride && bOverride.snlRelub)
+            ? bOverride.snlRelub
+            : (hasSurveyRelub ? (bObj.snlRelub || bObj.snl_relub || d2.snlRelub || d2.snl_relub) : 'side'));
+      if (hasSurveyRelub || savedRelubLetter) {
         try { localStorage.setItem("app_field_selSnlRelubPosition_" + letter, snlRelub); } catch(e) {}
       }
 
@@ -3852,13 +3858,17 @@ function syncAllQuestionnaireDataToCalculator(data, explicitTargetLetter) {
       const savedSnlLetter = localStorage.getItem("app_field_chkSnlHousing_" + targetLetter);
       const savedSnlGlobal = localStorage.getItem("app_field_chkSnlHousing");
 
+      const isRecentUserSnlToggle = window.__lastUserSnlToggleTime && (Date.now() - window.__lastUserSnlToggleTime < 8000);
+
       let isSnlInSurvey = false;
-      if (data && (sec2.isSnl !== undefined || sec2.is_snl !== undefined || bRec.isSnl !== undefined || bRec.is_snl !== undefined)) {
-        isSnlInSurvey = !!(sec2.isSnl || sec2.is_snl || bRec.isSnl || bRec.is_snl);
+      if (isRecentUserSnlToggle) {
+        isSnlInSurvey = !!chkSnl.checked;
       } else if (savedSnlLetter !== null) {
         isSnlInSurvey = (savedSnlLetter === "true");
       } else if (bOverride.isSnl !== undefined) {
         isSnlInSurvey = !!bOverride.isSnl;
+      } else if (data && (sec2.isSnl !== undefined || sec2.is_snl !== undefined || bRec.isSnl !== undefined || bRec.is_snl !== undefined)) {
+        isSnlInSurvey = !!(sec2.isSnl || sec2.is_snl || bRec.isSnl || bRec.is_snl);
       } else if (sec2.isSnl !== undefined || sec2.is_snl !== undefined || bRec.isSnl !== undefined || bRec.is_snl !== undefined) {
         isSnlInSurvey = !!(sec2.isSnl || sec2.is_snl || bRec.isSnl || bRec.is_snl);
       } else if (savedSnlGlobal !== null) {
@@ -3873,21 +3883,33 @@ function syncAllQuestionnaireDataToCalculator(data, explicitTargetLetter) {
           snlContainer.classList.add("hidden");
         }
       }
-      const surveySnlType = (data && (sec2.snlType || sec2.snl_type || bRec.snlType || bRec.snl_type))
-        ? (sec2.snlType || sec2.snl_type || bRec.snlType || bRec.snl_type)
-        : (localStorage.getItem("app_field_selSnlType_" + targetLetter) || (bOverride && bOverride.snlType) || sec2.snlType || sec2.snl_type || bRec.snlType || bRec.snl_type || localStorage.getItem("app_field_selSnlType"));
-      if (surveySnlType && selSnlType) {
-        selSnlType.value = surveySnlType;
+      const savedSnlType = localStorage.getItem("app_field_selSnlType_" + targetLetter);
+      const surveySnlType = savedSnlType
+        || (bOverride && bOverride.snlType)
+        || (data && (sec2.snlType || sec2.snl_type || bRec.snlType || bRec.snl_type))
+        || sec2.snlType || sec2.snl_type || bRec.snlType || bRec.snl_type
+        || localStorage.getItem("app_field_selSnlType");
+      if (selSnlType) {
+        if (!selSnlType.options || selSnlType.options.length === 0) {
+          if (typeof initSnlDropdown === "function") initSnlDropdown();
+        }
+        if (surveySnlType) selSnlType.value = surveySnlType;
       }
-      const surveySnlFill = (data && (sec2.snlFill || sec2.snl_fill || bRec.snlFill || bRec.snl_fill))
-        ? (sec2.snlFill || sec2.snl_fill || bRec.snlFill || bRec.snl_fill)
-        : (localStorage.getItem("app_field_selSnlFillPercent_" + targetLetter) || (bOverride && bOverride.snlFill) || sec2.snlFill || sec2.snl_fill || bRec.snlFill || bRec.snl_fill || localStorage.getItem("app_field_selSnlFillPercent"));
+      const savedSnlFill = localStorage.getItem("app_field_selSnlFillPercent_" + targetLetter);
+      const surveySnlFill = savedSnlFill
+        || (bOverride && bOverride.snlFill)
+        || (data && (sec2.snlFill || sec2.snl_fill || bRec.snlFill || bRec.snl_fill))
+        || sec2.snlFill || sec2.snl_fill || bRec.snlFill || bRec.snl_fill
+        || localStorage.getItem("app_field_selSnlFillPercent");
       if (surveySnlFill && selSnlFill) {
         selSnlFill.value = surveySnlFill;
       }
-      const surveySnlRelub = (data && (sec2.snlRelub || sec2.snl_relub || bRec.snlRelub || bRec.snl_relub))
-        ? (sec2.snlRelub || sec2.snl_relub || bRec.snlRelub || bRec.snl_relub)
-        : (localStorage.getItem("app_field_selSnlRelubPosition_" + targetLetter) || (bOverride && bOverride.snlRelub) || sec2.snlRelub || sec2.snl_relub || bRec.snlRelub || bRec.snl_relub || localStorage.getItem("app_field_selSnlRelubPosition"));
+      const savedSnlRelub = localStorage.getItem("app_field_selSnlRelubPosition_" + targetLetter);
+      const surveySnlRelub = savedSnlRelub
+        || (bOverride && bOverride.snlRelub)
+        || (data && (sec2.snlRelub || sec2.snl_relub || bRec.snlRelub || bRec.snl_relub))
+        || sec2.snlRelub || sec2.snl_relub || bRec.snlRelub || bRec.snl_relub
+        || localStorage.getItem("app_field_selSnlRelubPosition");
       if (surveySnlRelub && selSnlRelub) {
         selSnlRelub.value = surveySnlRelub;
       }
@@ -4612,14 +4634,18 @@ function importSurveyBearingToOpbrengstmodel(mode, explicitLetter) {
     const savedSnlLetter = localStorage.getItem("app_field_chkSnlHousing_" + targetLetter);
     const savedSnlGlobal = localStorage.getItem("app_field_chkSnlHousing");
 
+    const isRecentUserSnlToggle = window.__lastUserSnlToggleTime && (Date.now() - window.__lastUserSnlToggleTime < 8000);
+
     const hasSurveySnl = (sec2 && (sec2.isSnl !== undefined || sec2.is_snl !== undefined)) || (bRec && (bRec.isSnl !== undefined || bRec.is_snl !== undefined));
     let isSnlInSurvey = false;
-    if (hasSurveySnl) {
-      isSnlInSurvey = !!((sec2 && (sec2.isSnl || sec2.is_snl)) || (bRec && (bRec.isSnl || bRec.is_snl)));
+    if (isRecentUserSnlToggle) {
+      isSnlInSurvey = !!chkSnl.checked;
     } else if (savedSnlLetter !== null) {
       isSnlInSurvey = (savedSnlLetter === "true");
     } else if (bOverride.isSnl !== undefined) {
       isSnlInSurvey = !!bOverride.isSnl;
+    } else if (hasSurveySnl) {
+      isSnlInSurvey = !!((sec2 && (sec2.isSnl || sec2.is_snl)) || (bRec && (bRec.isSnl || bRec.is_snl)));
     } else if (savedSnlGlobal !== null) {
       isSnlInSurvey = (savedSnlGlobal === "true");
     }
@@ -4632,21 +4658,30 @@ function importSurveyBearingToOpbrengstmodel(mode, explicitLetter) {
         snlContainer.classList.add("hidden");
       }
     }
-    const surveySnlType = (sec2.snlType || sec2.snl_type || bRec.snlType || bRec.snl_type)
-      ? (sec2.snlType || sec2.snl_type || bRec.snlType || bRec.snl_type)
-      : (localStorage.getItem("app_field_selSnlType_" + targetLetter) || (bOverride && bOverride.snlType) || localStorage.getItem("app_field_selSnlType"));
-    if (surveySnlType && selSnlType) {
-      selSnlType.value = surveySnlType;
+    const savedSnlType = localStorage.getItem("app_field_selSnlType_" + targetLetter);
+    const surveySnlType = savedSnlType
+      || (bOverride && bOverride.snlType)
+      || (sec2.snlType || sec2.snl_type || bRec.snlType || bRec.snl_type)
+      || localStorage.getItem("app_field_selSnlType");
+    if (selSnlType) {
+      if (!selSnlType.options || selSnlType.options.length === 0) {
+        if (typeof initSnlDropdown === "function") initSnlDropdown();
+      }
+      if (surveySnlType) selSnlType.value = surveySnlType;
     }
-    const surveySnlFill = (sec2.snlFill || sec2.snl_fill || bRec.snlFill || bRec.snl_fill)
-      ? (sec2.snlFill || sec2.snl_fill || bRec.snlFill || bRec.snl_fill)
-      : (localStorage.getItem("app_field_selSnlFillPercent_" + targetLetter) || (bOverride && bOverride.snlFill) || localStorage.getItem("app_field_selSnlFillPercent"));
+    const savedSnlFill = localStorage.getItem("app_field_selSnlFillPercent_" + targetLetter);
+    const surveySnlFill = savedSnlFill
+      || (bOverride && bOverride.snlFill)
+      || (sec2.snlFill || sec2.snl_fill || bRec.snlFill || bRec.snl_fill)
+      || localStorage.getItem("app_field_selSnlFillPercent");
     if (surveySnlFill && selSnlFill) {
       selSnlFill.value = surveySnlFill;
     }
-    const surveySnlRelub = (sec2.snlRelub || sec2.snl_relub || bRec.snlRelub || bRec.snl_relub)
-      ? (sec2.snlRelub || sec2.snl_relub || bRec.snlRelub || bRec.snl_relub)
-      : (localStorage.getItem("app_field_selSnlRelubPosition_" + targetLetter) || (bOverride && bOverride.snlRelub) || localStorage.getItem("app_field_selSnlRelubPosition"));
+    const savedSnlRelub = localStorage.getItem("app_field_selSnlRelubPosition_" + targetLetter);
+    const surveySnlRelub = savedSnlRelub
+      || (bOverride && bOverride.snlRelub)
+      || (sec2.snlRelub || sec2.snl_relub || bRec.snlRelub || bRec.snl_relub)
+      || localStorage.getItem("app_field_selSnlRelubPosition");
     if (surveySnlRelub && selSnlRelub) {
       selSnlRelub.value = surveySnlRelub;
     }
@@ -9653,13 +9688,31 @@ function onSnlHousingToggle() {
   const chk = document.getElementById("chkSnlHousing");
   const container = document.getElementById("snlOptionsContainer");
   if (chk && container) {
-    if (chk.checked) {
+    window.__lastUserSnlToggleTime = Date.now();
+    const isChecked = !!chk.checked;
+    if (isChecked) {
       container.classList.remove("hidden");
+      // Ensure dropdown options are loaded
+      const selType = document.getElementById("selSnlType");
+      if (selType && (!selType.options || selType.options.length === 0)) {
+        if (typeof initSnlDropdown === "function") initSnlDropdown();
+      }
+      // Auto-select detected recommended housing if nothing is selected yet
+      if (selType && (!selType.value || selType.value === "") && typeof activeBearing !== "undefined" && activeBearing && activeBearing.designation) {
+        if (typeof autoSelectSnlHousingForBearing === "function") {
+          autoSelectSnlHousingForBearing(activeBearing.designation);
+        }
+      }
+      // Smoothly scroll into view so the container is not cut off below the screen edge
+      setTimeout(() => {
+        try {
+          container.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        } catch(e) {}
+      }, 60);
     } else {
       container.classList.add("hidden");
     }
     if (window.__isSyncingQuestionnaire) return;
-    const isChecked = !!chk.checked;
     try {
       localStorage.setItem("app_field_chkSnlHousing", isChecked ? "true" : "false");
     } catch(e) {}
@@ -9689,6 +9742,15 @@ function onSnlHousingToggle() {
   }
   calculateGrease();
 }
+
+function onBadgeSnlClick() {
+  const chk = document.getElementById("chkSnlHousing");
+  if (chk) {
+    chk.checked = !chk.checked;
+    onSnlHousingToggle();
+  }
+}
+window.onBadgeSnlClick = onBadgeSnlClick;
 
 function onSnlParamsChanged() {
   if (window.__isSyncingQuestionnaire) return;
@@ -11474,14 +11536,18 @@ function applySurveyBearingToCalculator(b) {
   const savedSnlLetter = localStorage.getItem("app_field_chkSnlHousing_" + targetLetter);
   const savedSnlGlobal = localStorage.getItem("app_field_chkSnlHousing");
 
+  const isRecentUserSnlToggle = window.__lastUserSnlToggleTime && (Date.now() - window.__lastUserSnlToggleTime < 8000);
+
   const hasSurveySnl = (bRec && (bRec.isSnl !== undefined || bRec.is_snl !== undefined)) || (b && (b.isSnl !== undefined || b.is_snl !== undefined)) || (sec2 && (sec2.isSnl !== undefined || sec2.is_snl !== undefined));
   let isSnlInSurvey = false;
-  if (hasSurveySnl) {
-    isSnlInSurvey = !!((bRec && (bRec.isSnl || bRec.is_snl)) || (b && (b.isSnl || b.is_snl)) || (sec2 && (sec2.isSnl || sec2.is_snl)));
+  if (isRecentUserSnlToggle) {
+    isSnlInSurvey = !!(chkSnl && chkSnl.checked);
   } else if (savedSnlLetter !== null) {
     isSnlInSurvey = (savedSnlLetter === "true");
   } else if (bOverride.isSnl !== undefined) {
     isSnlInSurvey = !!bOverride.isSnl;
+  } else if (hasSurveySnl) {
+    isSnlInSurvey = !!((bRec && (bRec.isSnl || bRec.is_snl)) || (b && (b.isSnl || b.is_snl)) || (sec2 && (sec2.isSnl || sec2.is_snl)));
   } else if (savedSnlGlobal !== null) {
     isSnlInSurvey = (savedSnlGlobal === "true");
   }
@@ -11492,17 +11558,28 @@ function applySurveyBearingToCalculator(b) {
       if (isSnlInSurvey) snlContainer.classList.remove("hidden");
       else snlContainer.classList.add("hidden");
     }
-    const surveySnlType = (bRec.snlType || bRec.snl_type || b.snlType || b.snl_type || sec2.snlType || sec2.snl_type)
-      ? (bRec.snlType || bRec.snl_type || b.snlType || b.snl_type || sec2.snlType || sec2.snl_type)
-      : (localStorage.getItem("app_field_selSnlType_" + targetLetter) || (bOverride && bOverride.snlType) || localStorage.getItem("app_field_selSnlType"));
-    if (surveySnlType && selSnlType) selSnlType.value = surveySnlType;
-    const surveySnlFill = (bRec.snlFill || bRec.snl_fill || b.snlFill || b.snl_fill || sec2.snlFill || sec2.snl_fill)
-      ? (bRec.snlFill || bRec.snl_fill || b.snlFill || b.snl_fill || sec2.snlFill || sec2.snl_fill)
-      : (localStorage.getItem("app_field_selSnlFillPercent_" + targetLetter) || (bOverride && bOverride.snlFill) || localStorage.getItem("app_field_selSnlFillPercent"));
+    const savedSnlType = localStorage.getItem("app_field_selSnlType_" + targetLetter);
+    const surveySnlType = savedSnlType
+      || (bOverride && bOverride.snlType)
+      || (bRec.snlType || bRec.snl_type || b.snlType || b.snl_type || sec2.snlType || sec2.snl_type)
+      || localStorage.getItem("app_field_selSnlType");
+    if (selSnlType) {
+      if (!selSnlType.options || selSnlType.options.length === 0) {
+        if (typeof initSnlDropdown === "function") initSnlDropdown();
+      }
+      if (surveySnlType) selSnlType.value = surveySnlType;
+    }
+    const savedSnlFill = localStorage.getItem("app_field_selSnlFillPercent_" + targetLetter);
+    const surveySnlFill = savedSnlFill
+      || (bOverride && bOverride.snlFill)
+      || (bRec.snlFill || bRec.snl_fill || b.snlFill || b.snl_fill || sec2.snlFill || sec2.snl_fill)
+      || localStorage.getItem("app_field_selSnlFillPercent");
     if (surveySnlFill && selSnlFill) selSnlFill.value = surveySnlFill;
-    const surveySnlRelub = (bRec.snlRelub || bRec.snl_relub || b.snlRelub || b.snl_relub || sec2.snlRelub || sec2.snl_relub)
-      ? (bRec.snlRelub || bRec.snl_relub || b.snlRelub || b.snl_relub || sec2.snlRelub || sec2.snl_relub)
-      : (localStorage.getItem("app_field_selSnlRelubPosition_" + targetLetter) || (bOverride && bOverride.snlRelub) || localStorage.getItem("app_field_selSnlRelubPosition"));
+    const savedSnlRelub = localStorage.getItem("app_field_selSnlRelubPosition_" + targetLetter);
+    const surveySnlRelub = savedSnlRelub
+      || (bOverride && bOverride.snlRelub)
+      || (bRec.snlRelub || bRec.snl_relub || b.snlRelub || b.snl_relub || sec2.snlRelub || sec2.snl_relub)
+      || localStorage.getItem("app_field_selSnlRelubPosition");
     if (surveySnlRelub && selSnlRelub) selSnlRelub.value = surveySnlRelub;
   }
 
