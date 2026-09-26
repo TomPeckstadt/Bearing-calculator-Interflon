@@ -3311,6 +3311,24 @@ function syncAllQuestionnaireDataToCalculator(data, explicitTargetLetter) {
       fullData = fullData.fullData || fullData.questionnaire || fullData.data;
     }
 
+    const activeCalcMachine = (
+      (document.getElementById('techMachineInput') && document.getElementById('techMachineInput').value) ||
+      (document.getElementById('omTechMachine') && document.getElementById('omTechMachine').value) ||
+      window.__activeDossierMachine ||
+      localStorage.getItem('interflon_active_dossier_machine') ||
+      localStorage.getItem('tech_machine') || ''
+    ).trim().toLowerCase();
+
+    const incomingMachine = (
+      (fullData.general && (fullData.general.machineName || fullData.general.name)) ||
+      fullData.machineName || ''
+    ).trim().toLowerCase();
+
+    if (activeCalcMachine && incomingMachine && activeCalcMachine !== incomingMachine) {
+      console.warn(`Blocked syncAllQuestionnaireDataToCalculator from overwriting active calculator machine '${activeCalcMachine}' with survey machine '${incomingMachine}'`);
+      return;
+    }
+
     // Deep merge sections if fullData is a stripped raster config (ONLY if same machine and no explicit new data!)
     const mergeSource = savedFull || savedCfg;
     if (!data && mergeSource && fullData && mergeSource !== fullData) {
@@ -4767,15 +4785,25 @@ if (typeof window !== 'undefined') {
         try {
           const data = e.newValue ? JSON.parse(e.newValue) : null;
           if (!data) return;
-          const currentMachine = (localStorage.getItem('tech_machine') || '').trim().toLowerCase();
+          const activeCalcMachine = (
+            (document.getElementById('techMachineInput') && document.getElementById('techMachineInput').value) ||
+            (document.getElementById('omTechMachine') && document.getElementById('omTechMachine').value) ||
+            window.__activeDossierMachine ||
+            localStorage.getItem('interflon_active_dossier_machine') ||
+            localStorage.getItem('tech_machine') || ''
+          ).trim().toLowerCase();
           const incMachine = (
             (data.general && (data.general.machineName || data.general.name)) ||
             data.machineName ||
             (data.surveyRasterConfig && data.surveyRasterConfig.machineName) ||
             ''
           ).trim().toLowerCase();
-          if (currentMachine && incMachine && currentMachine !== incMachine) {
-            console.warn(`Ignoring storage update for '${incMachine}' because active calculator machine is '${currentMachine}'`);
+          if (activeCalcMachine && incMachine && activeCalcMachine !== incMachine) {
+            console.warn(`Ignoring storage update for '${incMachine}' because active calculator machine is '${activeCalcMachine}'`);
+            return;
+          }
+          if (activeCalcMachine && !incMachine) {
+            console.warn(`Ignoring storage update with missing machine name because active calculator machine is '${activeCalcMachine}'`);
             return;
           }
           if (typeof syncAllQuestionnaireDataToCalculator === 'function') {
@@ -4801,7 +4829,13 @@ try {
       if (ev.data.source === 'calculator_dossier_import') return;
 
       const incomingData = ev.data.fullData || ev.data.data || ev.data.config;
-      const currentMachine = (localStorage.getItem('tech_machine') || '').trim().toLowerCase();
+      const activeCalcMachine = (
+        (document.getElementById('techMachineInput') && document.getElementById('techMachineInput').value) ||
+        (document.getElementById('omTechMachine') && document.getElementById('omTechMachine').value) ||
+        window.__activeDossierMachine ||
+        localStorage.getItem('interflon_active_dossier_machine') ||
+        localStorage.getItem('tech_machine') || ''
+      ).trim().toLowerCase();
       const incMachine = (
         (incomingData && incomingData.general && (incomingData.general.machineName || incomingData.general.name)) ||
         (incomingData && incomingData.machineName) ||
@@ -4812,13 +4846,17 @@ try {
       ).trim().toLowerCase();
 
       // Strict rejection: if calculator machine is known and incoming message has a different machine name, drop it!
-      if (currentMachine && incMachine && currentMachine !== incMachine) {
-        console.warn(`Ignoring incoming cross-tab survey for '${incMachine}' because active calculator machine is '${currentMachine}'`);
+      if (activeCalcMachine && incMachine && activeCalcMachine !== incMachine) {
+        console.warn(`Ignoring incoming cross-tab survey for '${incMachine}' because active calculator machine is '${activeCalcMachine}'`);
+        return;
+      }
+      if (activeCalcMachine && !incMachine) {
+        console.warn(`Ignoring incoming cross-tab survey with missing machine name because active calculator machine is '${activeCalcMachine}'`);
         return;
       }
 
-      // If we recently imported a dossier (within 15 seconds), ignore incoming cross-tab messages to protect imported data
-      if (window.__lastDossierImportTime && (Date.now() - window.__lastDossierImportTime < 15000)) {
+      // If we recently imported a dossier (within 60 seconds), ignore incoming cross-tab messages to protect imported data
+      if (window.__lastDossierImportTime && (Date.now() - window.__lastDossierImportTime < 60000)) {
         if (ev.data.source !== 'vragenlijst_user_import') {
           console.log("Ignoring cross-tab survey message right after dossier import to protect imported data");
           return;
@@ -23099,11 +23137,72 @@ function getSurveyUrl(options = {}) {
 
 function openSurveyLink(e) {
   if (e) e.preventDefault();
-  // Open active questionnaire for current dossier on same origin/path
+
+  const curMach = (document.getElementById("techMachineInput") && document.getElementById("techMachineInput").value.trim()) ||
+                  (document.getElementById("omTechMachine") && document.getElementById("omTechMachine").value.trim()) ||
+                  window.__activeDossierMachine ||
+                  localStorage.getItem("tech_machine") || "";
+  const curComp = (document.getElementById("clientCompanyInput") && document.getElementById("clientCompanyInput").value.trim()) ||
+                  (document.getElementById("omClientCompany") && document.getElementById("omClientCompany").value.trim()) ||
+                  window.__activeDossierCompany ||
+                  localStorage.getItem("client_company") || "";
+
+  // Make sure questionnaire in localStorage matches the active calculator dossier
+  try {
+    let q = null;
+    const raw = localStorage.getItem('interflon_questionnaire_full_data') || localStorage.getItem('interflon_last_questionnaire_data');
+    if (raw) {
+      try { q = JSON.parse(raw); } catch(err) {}
+    }
+    const qMach = (q && q.general && (q.general.machineName || q.general.name)) || '';
+    if (!q || (curMach && qMach && curMach.toLowerCase() !== qMach.toLowerCase())) {
+      const targetBrand = (document.getElementById("techBrandInput") && document.getElementById("techBrandInput").value.trim()) || "";
+      const targetApp = (document.getElementById("techAppInput") && document.getElementById("techAppInput").value.trim()) || "";
+      const targetContact = (document.getElementById("clientContactInput") && document.getElementById("clientContactInput").value.trim()) || "";
+      const targetPhone = (document.getElementById("clientPhoneInput") && document.getElementById("clientPhoneInput").value.trim()) || "";
+      const targetEmail = (document.getElementById("clientEmailInput") && document.getElementById("clientEmailInput").value.trim()) || "";
+      const targetOpEmail = (document.getElementById("opEmailInput") && document.getElementById("opEmailInput").value.trim()) || "";
+      const newQ = {
+        fileType: 'Interflon_Smeeranalyse_Vragenlijst',
+        version: '1.0',
+        exportDate: new Date().toISOString(),
+        source: 'calculator_dossier_import',
+        isDossierImport: true,
+        general: {
+          machineName: curMach || 'Machine',
+          machineBrand: targetBrand,
+          application: targetApp,
+          machineCount: '1'
+        },
+        contact: {
+          clientCompany: curComp,
+          clientContact: targetContact,
+          clientPhone: targetPhone,
+          clientEmail: targetEmail,
+          interflonContactEmail: targetOpEmail
+        },
+        bearings: (window.latestSurveyBearings && window.latestSurveyBearings.length > 0) ? window.latestSurveyBearings : [
+          { letter: 'A', nr: 'Lager A', desc: targetApp, rpm: '', pos: 'Horizontaal', qty: 1 }
+        ]
+      };
+      const qJson = JSON.stringify(newQ);
+      localStorage.setItem('interflon_questionnaire_full_data', qJson);
+      localStorage.setItem('interflon_last_questionnaire_data', qJson);
+      if (curMach) localStorage.setItem('interflon_active_dossier_machine', curMach);
+      if (curComp) localStorage.setItem('interflon_active_dossier_company', curComp);
+    }
+  } catch(e) {}
+
   let targetUrl = 'vragenlijst.html';
+  const params = new URLSearchParams();
   if (typeof currentLang !== "undefined" && currentLang) {
-    targetUrl += '?lang=' + encodeURIComponent(currentLang);
+    params.set('lang', currentLang);
   }
+  if (curMach) params.set('machine', curMach);
+  if (curComp) params.set('company', curComp);
+
+  const qs = params.toString();
+  if (qs) targetUrl += '?' + qs;
   window.open(targetUrl, '_blank');
 }
 
@@ -24135,13 +24234,88 @@ async function exportCalculationData() {
           if (raw) q = (typeof raw === 'string') ? JSON.parse(raw) : raw;
         } catch(e) {}
         if (!q && window.latestSurveyFullData) q = window.latestSurveyFullData;
-        if (q && typeof q === 'object') {
+
+        // If existing questionnaire belongs to another machine, do not attach stale mismatch
+        const qMach = (q && q.general && (q.general.machineName || q.general.name)) || '';
+        const isMismatch = techMachineVal && qMach && (qMach.trim().toLowerCase() !== techMachineVal.trim().toLowerCase());
+
+        if (!q || isMismatch || !Array.isArray(q.bearings) || q.bearings.length === 0) {
+          const bNr = (inputsData && (inputsData.bearingSearchInput || inputsData.omBearingNumber)) || 'Lager A';
+          const bRpm = (inputsData && inputsData.inputSpeed) || '';
+          const bQty = parseInt((inputsData && (inputsData.omBearingCount || inputsData.omCalcBearingQty)) || 1, 10) || 1;
+          const bHours = parseFloat((inputsData && inputsData.inputHoursPerDay) || 16) || 16;
+          const bDays = parseFloat((inputsData && inputsData.inputDaysPerWeek) || 5) || 5;
+
+          q = {
+            fileType: 'Interflon_Smeeranalyse_Vragenlijst',
+            version: '1.0',
+            exportDate: new Date().toISOString(),
+            source: 'calculator_dossier_import',
+            isDossierImport: true,
+            general: {
+              machineName: techMachineVal || 'Machine',
+              machineBrand: techBrandVal || '',
+              application: techAppVal || '',
+              machineCount: String((inputsData && inputsData.omSharedNumMachines) || '1')
+            },
+            contact: {
+              clientCompany: clientCompVal || '',
+              clientContact: clientContactVal || '',
+              clientPhone: clientPhoneVal || '',
+              clientEmail: clientEmailVal || '',
+              interflonContactEmail: opEmailVal || ''
+            },
+            bearings: [
+              {
+                letter: 'A',
+                nr: bNr,
+                desc: techAppVal || '',
+                rpm: bRpm,
+                pos: 'Horizontaal',
+                qty: bQty,
+                smeermiddel: techProductVal || '',
+                prijsLiter: techPriceVal || '',
+                interval: techIntervalVal ? (techIntervalVal + (String(techIntervalVal).toLowerCase().includes('dag') ? '' : ' dagen')) : '',
+                hoursPerDay: bHours,
+                daysPerWeek: bDays
+              }
+            ],
+            bearingDataMapSec2: {
+              'A': {
+                q11: techProductVal || '',
+                q12_price: techPriceVal || '',
+                q4_freq_num: techIntervalVal ? (parseInt(techIntervalVal, 10) || '') : '',
+                q4_freq_unit: 'Dagen',
+                q13: bHours,
+                q14: bDays
+              }
+            },
+            bearingDataMapSec3: {},
+            bearingDataMapSec4: {},
+            activeBearings: { sec2: 'A', sec3: 'A', sec4: 'A' },
+            raster: {
+              machineRangeMeters: 10,
+              layoutViewMode: '3d',
+              showCentralPoint: true,
+              showBearingDistances: false,
+              bearingPositions: { 'A': { x: 0, y: 0 } },
+              devices: []
+            }
+          };
+        } else {
           if (!q.general) q.general = {};
           if (techMachineVal) q.general.machineName = techMachineVal;
-          if (clientCompVal) {
-            if (!q.contact) q.contact = {};
-            q.contact.clientCompany = clientCompVal;
-          }
+          if (techBrandVal && !q.general.machineBrand) q.general.machineBrand = techBrandVal;
+          if (techAppVal && !q.general.application) q.general.application = techAppVal;
+          if (!q.contact) q.contact = {};
+          if (clientCompVal) q.contact.clientCompany = clientCompVal;
+          if (clientContactVal && !q.contact.clientContact) q.contact.clientContact = clientContactVal;
+          if (clientPhoneVal && !q.contact.clientPhone) q.contact.clientPhone = clientPhoneVal;
+          if (clientEmailVal && !q.contact.clientEmail) q.contact.clientEmail = clientEmailVal;
+          if (opEmailVal && !q.contact.interflonContactEmail) q.contact.interflonContactEmail = opEmailVal;
+          q.source = 'calculator_dossier_import';
+          q.isDossierImport = true;
+          q.exportDate = new Date().toISOString();
         }
         return q;
       })(),
@@ -24554,6 +24728,8 @@ function handleImportFileSelected(event) {
           fileType: 'Interflon_Smeeranalyse_Vragenlijst',
           version: '1.0',
           exportDate: new Date().toISOString(),
+          source: 'calculator_dossier_import',
+          isDossierImport: true,
           general: {
             machineName: targetMachine,
             machineBrand: targetBrand,
@@ -24564,7 +24740,8 @@ function handleImportFileSelected(event) {
             clientCompany: targetCompany,
             clientContact: targetContact,
             clientPhone: targetPhone,
-            clientEmail: targetEmail
+            clientEmail: targetEmail,
+            interflonContactEmail: targetOpEmail
           },
           bearings: data.bearings,
           bearingDataMapSec2: data.bearingDataMapSec2 || {},
@@ -24574,23 +24751,94 @@ function handleImportFileSelected(event) {
         };
       }
 
+      // 2c. Fallback synthesis: If imported file had no explicit questionnaire object, build one from dossier metadata and inputs
+      if (!importedQuestionnaire && (targetMachine || targetCompany || (data.inputs && Object.keys(data.inputs).length > 0))) {
+        const inp = data.inputs || {};
+        const bNr = inp.bearingSearchInput || inp.omBearingNumber || inp.bearingNrInput || (data.currentSelectedBearing && data.currentSelectedBearing.designation) || 'Lager A';
+        const bRpm = inp.inputSpeed || inp.omSpeed || '';
+        const bQty = parseInt(inp.omBearingCount || inp.omCalcBearingQty || 1, 10) || 1;
+        const bHours = parseFloat(inp.inputHoursPerDay || inp.omHoursPerDay) || 16;
+        const bDays = parseFloat(inp.inputDaysPerWeek || inp.omDaysPerWeek) || 5;
+
+        importedQuestionnaire = {
+          fileType: 'Interflon_Smeeranalyse_Vragenlijst',
+          version: '1.0',
+          exportDate: new Date().toISOString(),
+          source: 'calculator_dossier_import',
+          isDossierImport: true,
+          general: {
+            machineName: targetMachine || 'Machine',
+            machineBrand: targetBrand || '',
+            application: targetApp || '',
+            machineCount: String(inp.omSharedNumMachines || inp.chainOmSharedNumMachines || '1')
+          },
+          contact: {
+            clientCompany: targetCompany || '',
+            clientContact: targetContact || '',
+            clientPhone: targetPhone || '',
+            clientEmail: targetEmail || '',
+            interflonContactEmail: targetOpEmail || ''
+          },
+          bearings: [
+            {
+              letter: 'A',
+              nr: bNr,
+              desc: targetApp || '',
+              rpm: bRpm,
+              pos: 'Horizontaal',
+              qty: bQty,
+              smeermiddel: targetProduct || '',
+              prijsLiter: targetPrice || '',
+              interval: targetInterval ? (targetInterval + (String(targetInterval).toLowerCase().includes('dag') ? '' : ' dagen')) : '',
+              hoursPerDay: bHours,
+              daysPerWeek: bDays
+            }
+          ],
+          bearingDataMapSec2: {
+            'A': {
+              q11: targetProduct || '',
+              q12_price: targetPrice || '',
+              q4_freq_num: targetInterval ? (parseInt(targetInterval, 10) || '') : '',
+              q4_freq_unit: 'Dagen',
+              q13: bHours,
+              q14: bDays
+            }
+          },
+          bearingDataMapSec3: {},
+          bearingDataMapSec4: {},
+          activeBearings: { sec2: 'A', sec3: 'A', sec4: 'A' },
+          raster: {
+            machineRangeMeters: 10,
+            layoutViewMode: '3d',
+            showCentralPoint: true,
+            showBearingDistances: false,
+            bearingPositions: { 'A': { x: 0, y: 0 } },
+            devices: []
+          }
+        };
+      }
+
       // Align questionnaire metadata if questionnaire exists
       if (importedQuestionnaire && typeof importedQuestionnaire === 'object') {
+        importedQuestionnaire.source = 'calculator_dossier_import';
+        importedQuestionnaire.isDossierImport = true;
+        importedQuestionnaire.exportDate = new Date().toISOString();
         if (!importedQuestionnaire.general) importedQuestionnaire.general = {};
-        if (targetMachine && !importedQuestionnaire.general.machineName) {
+        if (targetMachine) {
           importedQuestionnaire.general.machineName = targetMachine;
         }
-        if (targetBrand && !importedQuestionnaire.general.machineBrand) {
+        if (targetBrand) {
           importedQuestionnaire.general.machineBrand = targetBrand;
         }
-        if (targetApp && !importedQuestionnaire.general.application) {
+        if (targetApp) {
           importedQuestionnaire.general.application = targetApp;
         }
         if (!importedQuestionnaire.contact) importedQuestionnaire.contact = {};
-        if (targetCompany && !importedQuestionnaire.contact.clientCompany) importedQuestionnaire.contact.clientCompany = targetCompany;
-        if (targetContact && !importedQuestionnaire.contact.clientContact) importedQuestionnaire.contact.clientContact = targetContact;
-        if (targetPhone && !importedQuestionnaire.contact.clientPhone) importedQuestionnaire.contact.clientPhone = targetPhone;
-        if (targetEmail && !importedQuestionnaire.contact.clientEmail) importedQuestionnaire.contact.clientEmail = targetEmail;
+        if (targetCompany) importedQuestionnaire.contact.clientCompany = targetCompany;
+        if (targetContact) importedQuestionnaire.contact.clientContact = targetContact;
+        if (targetPhone) importedQuestionnaire.contact.clientPhone = targetPhone;
+        if (targetEmail) importedQuestionnaire.contact.clientEmail = targetEmail;
+        if (targetOpEmail) importedQuestionnaire.contact.interflonContactEmail = targetOpEmail;
       }
 
       // STEP 3: Purge existing field storage keys so no stale values linger
@@ -24958,7 +25206,14 @@ function handleImportFileSelected(event) {
 
       // Mark dossier import timestamp to protect against stale cross-tab broadcasts
       window.__lastDossierImportTime = Date.now();
+      window.__activeDossierMachine = targetMachine;
+      window.__activeDossierCompany = targetCompany;
       window.__isSyncingQuestionnaire = false;
+
+      try {
+        if (targetMachine) localStorage.setItem('interflon_active_dossier_machine', targetMachine);
+        if (targetCompany) localStorage.setItem('interflon_active_dossier_company', targetCompany);
+      } catch(e) {}
 
       // STEP 10: Activate questionnaire in calculator, dropdowns, and broadcast cross-tab
       if (importedQuestionnaire) {
@@ -24966,6 +25221,8 @@ function handleImportFileSelected(event) {
           const qJson = JSON.stringify(importedQuestionnaire);
           localStorage.setItem('interflon_questionnaire_full_data', qJson);
           localStorage.setItem('interflon_last_questionnaire_data', qJson);
+          if (targetMachine) localStorage.setItem('interflon_active_dossier_machine', targetMachine);
+          if (targetCompany) localStorage.setItem('interflon_active_dossier_company', targetCompany);
           if (importedQuestionnaire.surveyRasterConfig) {
             localStorage.setItem('interflon_survey_raster_config', JSON.stringify(importedQuestionnaire.surveyRasterConfig));
           } else if (data.localStorage && data.localStorage.interflon_survey_raster_config) {
