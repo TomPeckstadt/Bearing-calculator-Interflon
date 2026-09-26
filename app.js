@@ -89,14 +89,24 @@ function onDevicePointsChange(devId) {
   const sel = document.getElementById("autoNumPointsSelect_" + devId);
   if (dev && sel) {
     dev.points = parseInt(sel.value) || 1;
-    dev.userEditedPeriod = false;
     if (dev.dailyNeedCm3 && dev.dailyNeedCm3 > 0) {
       dev.totalDailyNeed = dev.dailyNeedCm3 * dev.points;
     }
+    if (!dev.userEditedPeriod) {
+      const selectGrease = document.getElementById("inputGrease") || document.getElementById("selectGrease");
+      const greaseName = selectGrease ? selectGrease.value : "Interflon Grease MP2/3";
+      const totalNeed = dev.totalDailyNeed || ((window.currentDailyNeedCm3 || 0.704) * dev.points);
+      const smartAdv = getOptimalSmartAdvice(totalNeed, dev.type || "pulsarlube_m2", greaseName);
+      if (smartAdv) {
+        dev.cap = smartAdv.cap;
+        dev.period = smartAdv.months;
+      }
+    }
   }
+  saveAutomationStateToLocalStorage();
   calculateAutomationLubrication();
+  if (typeof updateRoiAutomationPage === "function") updateRoiAutomationPage();
 }
-
 
 function onDeviceCustomPriceChange(devId, val) {
   const parsed = parseFloat(val);
@@ -108,6 +118,7 @@ function onDeviceCustomPriceChange(devId, val) {
   if (devId === "A") {
     window.customSinglePointPackPrice = numVal;
   }
+  saveAutomationStateToLocalStorage();
   calculateAutomationLubrication();
   if (typeof updateRoiAutomationPage === "function") updateRoiAutomationPage();
 }
@@ -119,8 +130,38 @@ function onDeviceCapChange(devId) {
   if (dev && capSel) {
     dev.cap = parseFloat(capSel.value) || 125;
     if (unitSel) dev.unit = unitSel.value;
-    dev.userEditedPeriod = false;
+
+    const deviceSelect = document.getElementById("automationDeviceSelect") || document.getElementById("autoDeviceSelect");
+    const deviceKey = deviceSelect ? deviceSelect.value : "single_point";
+    const devType = (deviceKey === "single_point") ? "single_point" : (dev.type || deviceKey || "pulsarlube_m2");
+    const validMonths = getValidDispenseMonths(devType, dev.cap);
+
+    if (dev.userEditedPeriod) {
+      // User has manually chosen a period: keep it if supported, or clamp to closest valid setting
+      if (!validMonths.map(Number).includes(Number(dev.period))) {
+        let nearest = validMonths[0];
+        let minDiff = Math.abs(Number(dev.period) - Number(nearest));
+        for (let m of validMonths) {
+          const diff = Math.abs(Number(dev.period) - Number(m));
+          if (diff < minDiff) {
+            minDiff = diff;
+            nearest = m;
+          }
+        }
+        dev.period = nearest;
+      }
+    } else {
+      // Recompute recommended setting for this new capacity
+      const totalDailyNeedForDev = (dev.totalDailyNeed && dev.totalDailyNeed > 0)
+        ? dev.totalDailyNeed
+        : ((window.currentDailyNeedCm3 || 0.704) * (dev.points || 1));
+      const recDays = dev.cap / (totalDailyNeedForDev > 0 ? totalDailyNeedForDev : 0.704);
+      const recMonths = recDays / 30.4375;
+      const recSetting = getRecommendedSettingMonths(recMonths, devType, dev.cap);
+      dev.period = recSetting.months;
+    }
   }
+  saveAutomationStateToLocalStorage();
   if (typeof renderAutoDevicesUI === "function") renderAutoDevicesUI();
   if (typeof renderPhotoGrid === "function") renderPhotoGrid();
   calculateAutomationLubrication();
@@ -160,24 +201,27 @@ function onDevicePeriodChange(devId) {
     const deviceKey = deviceSelect ? deviceSelect.value : "single_point";
     const devType = (deviceKey === "single_point") ? "single_point" : (dev.type || deviceKey || "pulsarlube_m2");
     const validMonths = getValidDispenseMonths(devType, dev.cap);
-    let val = parseFloat(input.value) || 1;
+    let val = parseFloat(input.value);
+    if (isNaN(val)) val = dev.period || 1;
+
     if (unitSel && unitSel.value === "months") {
-      if (!validMonths.includes(val)) {
+      if (!validMonths.map(Number).includes(Number(val))) {
         let nearest = validMonths[0];
-        let minDiff = Math.abs(val - nearest);
+        let minDiff = Math.abs(Number(val) - Number(nearest));
         for (let m of validMonths) {
-          const diff = Math.abs(val - m);
+          const diff = Math.abs(Number(val) - Number(m));
           if (diff < minDiff) {
             minDiff = diff;
             nearest = m;
           }
         }
         val = nearest;
-        input.value = nearest;
       }
     }
+    input.value = val;
     dev.period = val;
   }
+  saveAutomationStateToLocalStorage();
   calculateAutomationLubrication();
   if (typeof updateRoiAutomationPage === "function") updateRoiAutomationPage();
 }
@@ -218,15 +262,32 @@ function onDeviceTypeChange(devId, newType) {
     const dev = autoDevicesState.find(d => d.id === devId);
     if (dev) {
       dev.type = newType;
-      dev.userEditedPeriod = false;
-      const selectGrease = document.getElementById("inputGrease") || document.getElementById("selectGrease");
-      const greaseName = selectGrease ? selectGrease.value : "Interflon Grease MP2/3";
-      const totalNeed = (dev.totalDailyNeed && dev.totalDailyNeed > 0)
-        ? dev.totalDailyNeed
-        : ((window.currentDailyNeedCm3 || 0.704) * (dev.points || 1));
-      const smartAdv = getOptimalSmartAdvice(totalNeed, newType, greaseName);
-      dev.cap = smartAdv.cap;
-      dev.period = smartAdv.months;
+      const validMonths = getValidDispenseMonths(newType, dev.cap);
+      if (dev.userEditedPeriod) {
+        if (!validMonths.map(Number).includes(Number(dev.period))) {
+          let nearest = validMonths[0];
+          let minDiff = Math.abs(Number(dev.period) - Number(nearest));
+          for (let m of validMonths) {
+            const diff = Math.abs(Number(dev.period) - Number(m));
+            if (diff < minDiff) {
+              minDiff = diff;
+              nearest = m;
+            }
+          }
+          dev.period = nearest;
+        }
+      } else {
+        const selectGrease = document.getElementById("inputGrease") || document.getElementById("selectGrease");
+        const greaseName = selectGrease ? selectGrease.value : "Interflon Grease MP2/3";
+        const totalNeed = (dev.totalDailyNeed && dev.totalDailyNeed > 0)
+          ? dev.totalDailyNeed
+          : ((window.currentDailyNeedCm3 || 0.704) * (dev.points || 1));
+        const smartAdv = getOptimalSmartAdvice(totalNeed, newType, greaseName);
+        if (smartAdv) {
+          dev.cap = smartAdv.cap;
+          dev.period = smartAdv.months;
+        }
+      }
     }
     saveAutomationStateToLocalStorage();
     renderAutoDevicesUI();
@@ -469,6 +530,7 @@ function applyAutoRecommendationForDevice(devId) {
     const periodInput = document.getElementById("autoDispensePeriod_" + devId);
     if (periodInput) periodInput.value = smartAdv.months;
   }
+  saveAutomationStateToLocalStorage();
   if (typeof renderAutoDevicesUI === "function") renderAutoDevicesUI();
   calculateAutomationLubrication();
   if (typeof updateRoiAutomationPage === "function") updateRoiAutomationPage();
@@ -3975,7 +4037,7 @@ function syncAllQuestionnaireDataToCalculator(data, explicitTargetLetter) {
 }
 window.syncAllQuestionnaireDataToCalculator = syncAllQuestionnaireDataToCalculator;
 
-function importSurveyBearingToOpbrengstmodel(mode, explicitLetter) {
+function importSurveyBearingToOpbrengstmodel(mode, explicitLetter, allowPrompt = false) {
   try {
     if (typeof BroadcastChannel !== 'undefined') {
       const surveyChannel = new BroadcastChannel('interflon_questionnaire_sync');
@@ -4127,17 +4189,19 @@ function importSurveyBearingToOpbrengstmodel(mode, explicitLetter) {
   const hasBearingRecord = bRec && (bRec.nr || bRec.smeermiddel || bRec.prijsLiter || bRec.interval || bRec.levensduur);
 
   if (!fullData && !hasSec2Data && !hasBearingRecord) {
-    const lang = (typeof currentLang !== 'undefined' && currentLang) ? currentLang : 'nl';
-    const msg = (lang === 'en')
-      ? 'No active questionnaire data found in the browser.\n\nTip: Open the questionnaire tab first so your data is loaded, or click OK to select a saved questionnaire JSON file from your computer.'
-      : ((lang === 'fr')
-        ? 'Aucune donnée de questionnaire actif trouvée dans le navigateur.\n\nAstuce : Ouvrez d\'abord l\'onglet questionnaire, ou cliquez sur OK pour sélectionner un fichier questionnaire (.json) enregistré.'
-        : 'Er zijn momenteel nog geen actieve vragenlijstgegevens gevonden in de browser.\n\n💡 Tip: Open eerst het tabblad van de vragenlijst zodat uw gegevens geladen zijn, óf klik op OK om een opgeslagen vragenlijstbestand (.json) van uw computer te selecteren.');
-    if (confirm(msg)) {
-      const fileInput = document.getElementById('surveyBearingFileInput') || document.getElementById('surveyConfigFileSelector');
-      if (fileInput) {
-        fileInput.value = '';
-        fileInput.click();
+    if (allowPrompt) {
+      const lang = (typeof currentLang !== 'undefined' && currentLang) ? currentLang : 'nl';
+      const msg = (lang === 'en')
+        ? 'No active questionnaire data found in the browser.\n\nTip: Open the questionnaire tab first so your data is loaded, or click OK to select a saved questionnaire JSON file from your computer.'
+        : ((lang === 'fr')
+          ? 'Aucune donnée de questionnaire actif trouvée dans le navigateur.\n\nAstuce : Ouvrez d\'abord l\'onglet questionnaire, ou cliquez sur OK pour sélectionner un fichier questionnaire (.json) enregistré.'
+          : 'Er zijn momenteel nog geen actieve vragenlijstgegevens gevonden in de browser.\n\n💡 Tip: Open eerst het tabblad van de vragenlijst zodat uw gegevens geladen zijn, óf klik op OK om een opgeslagen vragenlijstbestand (.json) van uw computer te selecteren.');
+      if (confirm(msg)) {
+        const fileInput = document.getElementById('surveyBearingFileInput') || document.getElementById('surveyConfigFileSelector');
+        if (fileInput) {
+          fileInput.value = '';
+          fileInput.click();
+        }
       }
     }
     return;
@@ -5352,20 +5416,20 @@ function renderAutoDevicesUI() {
 
     let capOptionsHtml = "";
     const capsList = isSinglePoint ? [15, 60, 125, 250] : [60, 125, 250, 500];
-    if (isSinglePoint && !capsList.includes(dev.cap)) {
+    if (isSinglePoint && !capsList.map(Number).includes(Number(dev.cap))) {
       dev.cap = 250;
       if (autoDevicesState[i]) autoDevicesState[i].cap = 250;
     }
     capsList.forEach(c => {
-      const cSel = dev.cap === c ? " selected" : "";
+      const cSel = Number(dev.cap) === Number(c) ? " selected" : "";
       capOptionsHtml += `<option value="${c}"${cSel}>${c} ml</option>`;
     });
 
-    if (dev.unit === "months" && !validDispenseMonths.includes(dev.period)) {
+    if (dev.unit === "months" && !validDispenseMonths.map(Number).includes(Number(dev.period))) {
       let nearest = validDispenseMonths[0];
-      let minDiff = Math.abs(dev.period - nearest);
+      let minDiff = Math.abs(Number(dev.period) - Number(nearest));
       for (let m of validDispenseMonths) {
-        const diff = Math.abs(dev.period - m);
+        const diff = Math.abs(Number(dev.period) - Number(m));
         if (diff < minDiff) {
           minDiff = diff;
           nearest = m;
@@ -5513,7 +5577,7 @@ function renderAutoDevicesUI() {
             <label for="autoDispensePeriod_${devId}" style="display: block; font-size: 12px; font-weight: 600; color: var(--text-dark); margin-bottom: 4px;">Gewenste Looptijd / Leeglooptijd</label>
             <div style="display: flex; gap: 8px;">
               <select id="autoDispensePeriod_${devId}" class="form-select" onchange="onDevicePeriodChange('${devId}')" style="width: 100%; padding: 8px 12px; border-radius: var(--border-radius-sm); border: 1px solid #cbd5e1; font-weight: 600; color: var(--text-dark); background-color: #ffffff;">
-                ${validDispenseMonths.map(m => `<option value="${m}"${m === dev.period ? ' selected' : ''}>${m} ${m === 1 ? (lang === 'fr' ? 'mois' : (lang === 'en' ? 'month' : 'maand')) : (lang === 'fr' ? 'mois' : (lang === 'en' ? 'months' : 'maanden'))}</option>`).join('')}
+                ${validDispenseMonths.map(m => `<option value="${m}"${Number(m) === Number(dev.period) ? ' selected' : ''}>${m} ${m === 1 ? (lang === 'fr' ? 'mois' : (lang === 'en' ? 'month' : 'maand')) : (lang === 'fr' ? 'mois' : (lang === 'en' ? 'months' : 'maanden'))}</option>`).join('')}
               </select>
               <input type="hidden" id="autoDispenseUnit_${devId}" value="months">
             </div>
@@ -9175,8 +9239,9 @@ function switchPage(pageId) {
     }
     const curActiveSurveyL = window.currentActiveSurveyBearingLetter || window.currentSurveyBearingLetter || localStorage.getItem("interflon_active_survey_letter");
     const activeSrc = window.activeTcoBearingSource || localStorage.getItem("active_tco_bearing_source") || "";
-    if (activeSrc !== "manual" && curActiveSurveyL && typeof importSurveyBearingToOpbrengstmodel === "function") {
-      importSurveyBearingToOpbrengstmodel("bearing", curActiveSurveyL);
+    const hasSurveyData = !!(localStorage.getItem('interflon_questionnaire_full_data') || localStorage.getItem('interflon_last_questionnaire_data') || localStorage.getItem('interflon_survey_raster_config') || window.latestSurveyFullData);
+    if (activeSrc !== "manual" && curActiveSurveyL && hasSurveyData && typeof importSurveyBearingToOpbrengstmodel === "function") {
+      importSurveyBearingToOpbrengstmodel("bearing", curActiveSurveyL, false);
     } else {
       loadBearingTcoDetails();
     }
@@ -14754,12 +14819,50 @@ function calculateAutomationLubrication() {
     const recWeeks = recDays / 7;
 
     const recSetting = getRecommendedSettingMonths(recMonths, cardDevType, capMl);
-    const dialLabel = `${recSetting.months} ${recSetting.months === 1 ? 'maand' : 'maanden'}`;
     const theoMonthsStr = recMonths > 10 ? `${Math.round(recMonths)} maanden` : `${recMonths.toLocaleString("nl-BE", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} maanden`;
+
+    const periodInput = document.getElementById("autoDispensePeriod_" + devId);
+    const unitSelect = document.getElementById("autoDispenseUnit_" + devId);
+    const curUnit = unitSelect ? unitSelect.value : (dev.unit || "months");
+
+    if (!dev.userEditedPeriod && periodInput) {
+      if (curUnit === "weeks") {
+        periodInput.value = Math.max(1, Math.round(recWeeks));
+      } else if (curUnit === "days") {
+        periodInput.value = Math.max(1, Math.round(recDays));
+      } else {
+        periodInput.value = recSetting.months;
+      }
+      dev.period = parseFloat(periodInput.value) || 1;
+    } else if (dev.userEditedPeriod && curUnit === "months" && periodInput) {
+      const validMonths = getValidDispenseMonths(cardDevType, capMl);
+      const parsedPeriod = parseFloat(periodInput.value) || dev.period || 1;
+      if (!validMonths.map(Number).includes(Number(parsedPeriod))) {
+        let nearest = validMonths[0];
+        let minDiff = Math.abs(Number(parsedPeriod) - Number(nearest));
+        for (let m of validMonths) {
+          const diff = Math.abs(Number(parsedPeriod) - Number(m));
+          if (diff < minDiff) {
+            minDiff = diff;
+            nearest = m;
+          }
+        }
+        dev.period = nearest;
+        periodInput.value = nearest;
+      } else {
+        dev.period = parsedPeriod;
+      }
+    } else if (periodInput) {
+      dev.period = parseFloat(periodInput.value) || dev.period || 1;
+    }
+
+    const curPeriodVal = dev.period || (periodInput ? parseFloat(periodInput.value) : recSetting.months) || recSetting.months;
+    const activeSettingLabel = `${curPeriodVal} ${curPeriodVal === 1 ? (lang === 'fr' ? 'mois' : (lang === 'en' ? 'month' : 'maand')) : (lang === 'fr' ? 'mois' : (lang === 'en' ? 'months' : 'maanden'))}`;
+    const dialLabel = `${recSetting.months} ${recSetting.months === 1 ? (lang === 'fr' ? 'mois' : (lang === 'en' ? 'month' : 'maand')) : (lang === 'fr' ? 'mois' : (lang === 'en' ? 'months' : 'maanden'))}`;
 
     const dialValEl = document.getElementById("autoDialValue_" + devId);
     const theoValEl = document.getElementById("autoTheoValue_" + devId);
-    if (dialValEl) dialValEl.textContent = dialLabel;
+    if (dialValEl) dialValEl.textContent = activeSettingLabel;
     if (theoValEl) theoValEl.textContent = theoMonthsStr;
 
     const isDialDevice = (cardDevType === "single_point");
@@ -14773,8 +14876,8 @@ function calculateAutomationLubrication() {
     const groupUnits = isSinglePoint ? (isSpMultiGroup ? (dev.unitCount || (dev.bearingLetters ? dev.bearingLetters.length : 1)) : (window.spNumBearingsValue || dev.unitCount || 1)) : points;
 
     const smartAdv = getOptimalSmartAdvice(totalDailyNeedForDev, cardDevType, greaseName);
-    const isSmartMatch = (capMl === smartAdv.cap && recSetting.months === smartAdv.months);
-    const smartDialLabel = `${smartAdv.months} ${smartAdv.months === 1 ? 'maand' : 'maanden'}`;
+    const isSmartMatch = (Number(capMl) === Number(smartAdv.cap) && Number(curPeriodVal) === Number(smartAdv.months));
+    const smartDialLabel = `${smartAdv.months} ${smartAdv.months === 1 ? (lang === 'fr' ? 'mois' : (lang === 'en' ? 'month' : 'maand')) : (lang === 'fr' ? 'mois' : (lang === 'en' ? 'months' : 'maanden'))}`;
 
     if (recTitleEl) {
       if (isSurveyImported && !hasAssignedBearings && !isSinglePoint) {
@@ -14867,10 +14970,10 @@ function calculateAutomationLubrication() {
         const extraCostInfoEN = (isSinglePoint && groupUnits > 1) ? ` (&euro; ${smartAdv.annualCost.toFixed(2).replace('.', ',')}/bearing/year &bull; &euro; ${totalGrpCost.toFixed(2).replace('.', ',')}/year for ${groupUnits} bearings)` : ` (&euro; ${smartAdv.annualCost.toFixed(2).replace('.', ',')}/year)`;
 
         recSubtextEl.innerHTML = (lang === "fr")
-          ? `&bull; <strong>Combinaison conseillée :</strong> <strong>cartouche de ${smartAdv.cap} ml sur ${smartDialLabel}</strong> (dosage optimal &bull; ${extraCostInfoFR}).<br>&bull; Sélection actuelle : <strong>${capMl} ml sur ${dialLabel}</strong> (${roundReason}).<br>👉 Cliquez sur <em>'Reprendre le conseil'</em> pour appliquer automatiquement <strong>${smartAdv.cap} ml sur ${smartDialLabel}</strong>.`
+          ? `&bull; <strong>Combinaison conseillée :</strong> <strong>cartouche de ${smartAdv.cap} ml sur ${smartDialLabel}</strong> (dosage optimal &bull; ${extraCostInfoFR}).<br>&bull; Sélection actuelle : <strong>${capMl} ml sur ${activeSettingLabel}</strong>.<br>👉 Cliquez sur <em>'Reprendre le conseil'</em> pour appliquer automatiquement <strong>${smartAdv.cap} ml sur ${smartDialLabel}</strong>.`
           : ((lang === "en")
-            ? `&bull; <strong>Recommended combination:</strong> <strong>${smartAdv.cap} ml cartridge on ${smartDialLabel}</strong> (optimal dosing &bull; minimal grease waste &bull; ${extraCostInfoEN}).<br>&bull; Current selection on device: <strong>${capMl} ml cartridge on ${dialLabel}</strong> (${roundReason}).<br>👉 Click <em>'Apply advice'</em> to automatically adopt <strong>${smartAdv.cap} ml on ${smartDialLabel}</strong>.`
-            : `&bull; <strong>Geadviseerde combinatie:</strong> <strong>${smartAdv.cap} ml patroon op ${smartDialLabel}</strong> (optimale dosering &bull; minimale vetverspilling &bull; ${extraCostInfoNL}).<br>&bull; Huidige selectie op toestel: <strong>${capMl} ml patroon op ${dialLabel}</strong> (${roundReason}).<br>👉 Klik op <em>'Neem advies over'</em> om automatisch te kiezen voor <strong>${smartAdv.cap} ml op ${smartDialLabel}</strong>.`);
+            ? `&bull; <strong>Recommended combination:</strong> <strong>${smartAdv.cap} ml cartridge on ${smartDialLabel}</strong> (optimal dosing &bull; minimal grease waste &bull; ${extraCostInfoEN}).<br>&bull; Current selection on device: <strong>${capMl} ml cartridge on ${activeSettingLabel}</strong>.<br>👉 Click <em>'Apply advice'</em> to automatically adopt <strong>${smartAdv.cap} ml on ${smartDialLabel}</strong>.`
+            : `&bull; <strong>Geadviseerde combinatie:</strong> <strong>${smartAdv.cap} ml patroon op ${smartDialLabel}</strong> (optimale dosering &bull; minimale vetverspilling &bull; ${extraCostInfoNL}).<br>&bull; Huidige selectie op toestel: <strong>${capMl} ml patroon op ${activeSettingLabel}</strong>.<br>👉 Klik op <em>'Neem advies over'</em> om automatisch te kiezen voor <strong>${smartAdv.cap} ml op ${smartDialLabel}</strong>.`);
       }
     }
 
@@ -14879,36 +14982,6 @@ function calculateAutomationLubrication() {
       const legacySubtextEl = document.getElementById("autoRecSubtext");
       if (legacyTitleEl && recTitleEl) legacyTitleEl.textContent = recTitleEl.textContent;
       if (legacySubtextEl && recSubtextEl) legacySubtextEl.innerHTML = recSubtextEl.innerHTML;
-    }
-
-    const periodInput = document.getElementById("autoDispensePeriod_" + devId);
-    const unitSelect = document.getElementById("autoDispenseUnit_" + devId);
-    const curUnit = unitSelect ? unitSelect.value : dev.unit;
-
-    if (!dev.userEditedPeriod && periodInput) {
-      if (curUnit === "weeks") {
-        periodInput.value = Math.max(1, Math.round(recWeeks));
-      } else if (curUnit === "days") {
-        periodInput.value = Math.max(1, Math.round(recDays));
-      } else {
-        periodInput.value = recSetting.months;
-      }
-      dev.period = parseFloat(periodInput.value) || 1;
-    } else if (dev.userEditedPeriod && curUnit === "months" && periodInput) {
-      const validMonths = getValidDispenseMonths(cardDevType, capMl);
-      if (!validMonths.includes(dev.period)) {
-        let nearest = validMonths[0];
-        let minDiff = Math.abs(dev.period - nearest);
-        for (let m of validMonths) {
-          const diff = Math.abs(dev.period - m);
-          if (diff < minDiff) {
-            minDiff = diff;
-            nearest = m;
-          }
-        }
-        dev.period = nearest;
-        periodInput.value = nearest;
-      }
     }
 
     // 3. Compute Volume Output Boxes for THIS device
@@ -16701,7 +16774,7 @@ function renderOilDispenserSlide() {
 let userHasManuallyEditedChainAutoPeriod = false;
 
 function onChainAutoCartridgeCapChange() {
-  userHasManuallyEditedChainAutoPeriod = false;
+  // Preserve manual user selection if user already adjusted period
   calculateChainAutomation();
 }
 
