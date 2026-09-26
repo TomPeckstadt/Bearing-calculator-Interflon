@@ -1398,20 +1398,20 @@ function applySurveyConfig(config) {
 
       const savedSnlForLetter = localStorage.getItem("app_field_chkSnlHousing_" + b.letter);
       const hasSurveySnl = (b.isSnl !== undefined || b.is_snl !== undefined || d2.isSnl !== undefined || d2.is_snl !== undefined);
-      const isSnl = (savedSnlForLetter !== null)
-        ? (savedSnlForLetter === "true")
+      const isSnl = hasSurveySnl
+        ? !!(b.isSnl || b.is_snl || d2.isSnl || d2.is_snl)
         : ((bOverride && bOverride.isSnl !== undefined)
             ? !!bOverride.isSnl
-            : (hasSurveySnl ? !!(b.isSnl || b.is_snl || d2.isSnl || d2.is_snl) : false));
+            : (savedSnlForLetter !== null ? (savedSnlForLetter === "true") : false));
       try { localStorage.setItem("app_field_chkSnlHousing_" + b.letter, isSnl ? "true" : "false"); } catch(e) {}
 
       const savedRelubLetter = localStorage.getItem("app_field_selSnlRelubPosition_" + b.letter);
       const hasSurveyRelub = (b.snlRelub || b.snl_relub || d2.snlRelub || d2.snl_relub);
-      const snlRelub = (savedRelubLetter !== null && savedRelubLetter !== undefined)
-        ? savedRelubLetter
+      const snlRelub = hasSurveyRelub
+        ? (b.snlRelub || b.snl_relub || d2.snlRelub || d2.snl_relub)
         : ((bOverride && bOverride.snlRelub)
             ? bOverride.snlRelub
-            : (hasSurveyRelub ? (b.snlRelub || b.snl_relub || d2.snlRelub || d2.snl_relub) : 'side'));
+            : (savedRelubLetter !== null && savedRelubLetter !== undefined ? savedRelubLetter : 'side'));
       if (hasSurveyRelub || savedRelubLetter) {
         try { localStorage.setItem("app_field_selSnlRelubPosition_" + b.letter, snlRelub); } catch(e) {}
       }
@@ -1694,20 +1694,20 @@ function applySurveyConfig(config) {
 
       const savedSnlForLetter = localStorage.getItem("app_field_chkSnlHousing_" + letter);
       const hasSurveySnl = (bObj.isSnl !== undefined || bObj.is_snl !== undefined || d2.isSnl !== undefined || d2.is_snl !== undefined);
-      const isSnl = (savedSnlForLetter !== null)
-        ? (savedSnlForLetter === "true")
+      const isSnl = hasSurveySnl
+        ? !!(bObj.isSnl || bObj.is_snl || d2.isSnl || d2.is_snl)
         : ((bOverride && bOverride.isSnl !== undefined)
             ? !!bOverride.isSnl
-            : (hasSurveySnl ? !!(bObj.isSnl || bObj.is_snl || d2.isSnl || d2.is_snl) : false));
+            : (savedSnlForLetter !== null ? (savedSnlForLetter === "true") : false));
       try { localStorage.setItem("app_field_chkSnlHousing_" + letter, isSnl ? "true" : "false"); } catch(e) {}
 
       const savedRelubLetter = localStorage.getItem("app_field_selSnlRelubPosition_" + letter);
       const hasSurveyRelub = (bObj.snlRelub || bObj.snl_relub || d2.snlRelub || d2.snl_relub);
-      const snlRelub = (savedRelubLetter !== null && savedRelubLetter !== undefined)
-        ? savedRelubLetter
+      const snlRelub = hasSurveyRelub
+        ? (bObj.snlRelub || bObj.snl_relub || d2.snlRelub || d2.snl_relub)
         : ((bOverride && bOverride.snlRelub)
             ? bOverride.snlRelub
-            : (hasSurveyRelub ? (bObj.snlRelub || bObj.snl_relub || d2.snlRelub || d2.snl_relub) : 'side'));
+            : (savedRelubLetter !== null && savedRelubLetter !== undefined ? savedRelubLetter : 'side'));
       if (hasSurveyRelub || savedRelubLetter) {
         try { localStorage.setItem("app_field_selSnlRelubPosition_" + letter, snlRelub); } catch(e) {}
       }
@@ -3860,22 +3860,25 @@ function syncAllQuestionnaireDataToCalculator(data, explicitTargetLetter) {
 
       const isRecentUserSnlToggle = window.__lastUserSnlToggleTime && (Date.now() - window.__lastUserSnlToggleTime < 8000);
 
+      const hasSurveySnl = (data && (sec2.isSnl !== undefined || sec2.is_snl !== undefined || bRec.isSnl !== undefined || bRec.is_snl !== undefined))
+        || (sec2.isSnl !== undefined || sec2.is_snl !== undefined || bRec.isSnl !== undefined || bRec.is_snl !== undefined);
       let isSnlInSurvey = false;
       if (isRecentUserSnlToggle) {
         isSnlInSurvey = !!chkSnl.checked;
-      } else if (savedSnlLetter !== null) {
-        isSnlInSurvey = (savedSnlLetter === "true");
+      } else if (hasSurveySnl) {
+        isSnlInSurvey = !!(sec2.isSnl || sec2.is_snl || bRec.isSnl || bRec.is_snl);
       } else if (bOverride.isSnl !== undefined) {
         isSnlInSurvey = !!bOverride.isSnl;
-      } else if (data && (sec2.isSnl !== undefined || sec2.is_snl !== undefined || bRec.isSnl !== undefined || bRec.is_snl !== undefined)) {
-        isSnlInSurvey = !!(sec2.isSnl || sec2.is_snl || bRec.isSnl || bRec.is_snl);
-      } else if (sec2.isSnl !== undefined || sec2.is_snl !== undefined || bRec.isSnl !== undefined || bRec.is_snl !== undefined) {
-        isSnlInSurvey = !!(sec2.isSnl || sec2.is_snl || bRec.isSnl || bRec.is_snl);
+      } else if (savedSnlLetter !== null) {
+        isSnlInSurvey = (savedSnlLetter === "true");
       } else if (savedSnlGlobal !== null) {
         isSnlInSurvey = (savedSnlGlobal === "true");
       }
 
       chkSnl.checked = isSnlInSurvey;
+      try {
+        localStorage.setItem("app_field_chkSnlHousing_" + targetLetter, isSnlInSurvey ? "true" : "false");
+      } catch(e) {}
       if (snlContainer) {
         if (isSnlInSurvey) {
           snlContainer.classList.remove("hidden");
@@ -3884,34 +3887,39 @@ function syncAllQuestionnaireDataToCalculator(data, explicitTargetLetter) {
         }
       }
       const savedSnlType = localStorage.getItem("app_field_selSnlType_" + targetLetter);
-      const surveySnlType = savedSnlType
-        || (bOverride && bOverride.snlType)
-        || (data && (sec2.snlType || sec2.snl_type || bRec.snlType || bRec.snl_type))
+      const surveySnlType = (data && (sec2.snlType || sec2.snl_type || bRec.snlType || bRec.snl_type))
         || sec2.snlType || sec2.snl_type || bRec.snlType || bRec.snl_type
+        || (bOverride && bOverride.snlType)
+        || savedSnlType
         || localStorage.getItem("app_field_selSnlType");
       if (selSnlType) {
         if (!selSnlType.options || selSnlType.options.length === 0) {
           if (typeof initSnlDropdown === "function") initSnlDropdown();
         }
-        if (surveySnlType) selSnlType.value = surveySnlType;
+        if (surveySnlType) {
+          selSnlType.value = surveySnlType;
+          try { localStorage.setItem("app_field_selSnlType_" + targetLetter, surveySnlType); } catch(e) {}
+        }
       }
       const savedSnlFill = localStorage.getItem("app_field_selSnlFillPercent_" + targetLetter);
-      const surveySnlFill = savedSnlFill
-        || (bOverride && bOverride.snlFill)
-        || (data && (sec2.snlFill || sec2.snl_fill || bRec.snlFill || bRec.snl_fill))
+      const surveySnlFill = (data && (sec2.snlFill || sec2.snl_fill || bRec.snlFill || bRec.snl_fill))
         || sec2.snlFill || sec2.snl_fill || bRec.snlFill || bRec.snl_fill
+        || (bOverride && bOverride.snlFill)
+        || savedSnlFill
         || localStorage.getItem("app_field_selSnlFillPercent");
       if (surveySnlFill && selSnlFill) {
         selSnlFill.value = surveySnlFill;
+        try { localStorage.setItem("app_field_selSnlFillPercent_" + targetLetter, surveySnlFill); } catch(e) {}
       }
       const savedSnlRelub = localStorage.getItem("app_field_selSnlRelubPosition_" + targetLetter);
-      const surveySnlRelub = savedSnlRelub
-        || (bOverride && bOverride.snlRelub)
-        || (data && (sec2.snlRelub || sec2.snl_relub || bRec.snlRelub || bRec.snl_relub))
+      const surveySnlRelub = (data && (sec2.snlRelub || sec2.snl_relub || bRec.snlRelub || bRec.snl_relub))
         || sec2.snlRelub || sec2.snl_relub || bRec.snlRelub || bRec.snl_relub
+        || (bOverride && bOverride.snlRelub)
+        || savedSnlRelub
         || localStorage.getItem("app_field_selSnlRelubPosition");
       if (surveySnlRelub && selSnlRelub) {
         selSnlRelub.value = surveySnlRelub;
+        try { localStorage.setItem("app_field_selSnlRelubPosition_" + targetLetter, surveySnlRelub); } catch(e) {}
       }
     }
 
@@ -4640,17 +4648,20 @@ function importSurveyBearingToOpbrengstmodel(mode, explicitLetter) {
     let isSnlInSurvey = false;
     if (isRecentUserSnlToggle) {
       isSnlInSurvey = !!chkSnl.checked;
-    } else if (savedSnlLetter !== null) {
-      isSnlInSurvey = (savedSnlLetter === "true");
-    } else if (bOverride.isSnl !== undefined) {
-      isSnlInSurvey = !!bOverride.isSnl;
     } else if (hasSurveySnl) {
       isSnlInSurvey = !!((sec2 && (sec2.isSnl || sec2.is_snl)) || (bRec && (bRec.isSnl || bRec.is_snl)));
+    } else if (bOverride.isSnl !== undefined) {
+      isSnlInSurvey = !!bOverride.isSnl;
+    } else if (savedSnlLetter !== null) {
+      isSnlInSurvey = (savedSnlLetter === "true");
     } else if (savedSnlGlobal !== null) {
       isSnlInSurvey = (savedSnlGlobal === "true");
     }
 
     chkSnl.checked = isSnlInSurvey;
+    try {
+      localStorage.setItem("app_field_chkSnlHousing_" + targetLetter, isSnlInSurvey ? "true" : "false");
+    } catch(e) {}
     if (snlContainer) {
       if (isSnlInSurvey) {
         snlContainer.classList.remove("hidden");
@@ -4659,31 +4670,36 @@ function importSurveyBearingToOpbrengstmodel(mode, explicitLetter) {
       }
     }
     const savedSnlType = localStorage.getItem("app_field_selSnlType_" + targetLetter);
-    const surveySnlType = savedSnlType
+    const surveySnlType = (sec2.snlType || sec2.snl_type || bRec.snlType || bRec.snl_type)
       || (bOverride && bOverride.snlType)
-      || (sec2.snlType || sec2.snl_type || bRec.snlType || bRec.snl_type)
+      || savedSnlType
       || localStorage.getItem("app_field_selSnlType");
     if (selSnlType) {
       if (!selSnlType.options || selSnlType.options.length === 0) {
         if (typeof initSnlDropdown === "function") initSnlDropdown();
       }
-      if (surveySnlType) selSnlType.value = surveySnlType;
+      if (surveySnlType) {
+        selSnlType.value = surveySnlType;
+        try { localStorage.setItem("app_field_selSnlType_" + targetLetter, surveySnlType); } catch(e) {}
+      }
     }
     const savedSnlFill = localStorage.getItem("app_field_selSnlFillPercent_" + targetLetter);
-    const surveySnlFill = savedSnlFill
+    const surveySnlFill = (sec2.snlFill || sec2.snl_fill || bRec.snlFill || bRec.snl_fill)
       || (bOverride && bOverride.snlFill)
-      || (sec2.snlFill || sec2.snl_fill || bRec.snlFill || bRec.snl_fill)
+      || savedSnlFill
       || localStorage.getItem("app_field_selSnlFillPercent");
     if (surveySnlFill && selSnlFill) {
       selSnlFill.value = surveySnlFill;
+      try { localStorage.setItem("app_field_selSnlFillPercent_" + targetLetter, surveySnlFill); } catch(e) {}
     }
     const savedSnlRelub = localStorage.getItem("app_field_selSnlRelubPosition_" + targetLetter);
-    const surveySnlRelub = savedSnlRelub
+    const surveySnlRelub = (sec2.snlRelub || sec2.snl_relub || bRec.snlRelub || bRec.snl_relub)
       || (bOverride && bOverride.snlRelub)
-      || (sec2.snlRelub || sec2.snl_relub || bRec.snlRelub || bRec.snl_relub)
+      || savedSnlRelub
       || localStorage.getItem("app_field_selSnlRelubPosition");
     if (surveySnlRelub && selSnlRelub) {
       selSnlRelub.value = surveySnlRelub;
+      try { localStorage.setItem("app_field_selSnlRelubPosition_" + targetLetter, surveySnlRelub); } catch(e) {}
     }
   }
 
@@ -4860,10 +4876,6 @@ if (typeof window !== 'undefined') {
             console.warn(`Ignoring storage update for '${incMachine}' because active calculator machine is '${activeCalcMachine}'`);
             return;
           }
-          if (activeCalcMachine && !incMachine) {
-            console.warn(`Ignoring storage update with missing machine name because active calculator machine is '${activeCalcMachine}'`);
-            return;
-          }
           if (typeof syncAllQuestionnaireDataToCalculator === 'function') {
             const curL = window.currentActiveSurveyBearingLetter || localStorage.getItem("interflon_active_survey_letter") || null;
             syncAllQuestionnaireDataToCalculator(data, curL);
@@ -4883,8 +4895,91 @@ try {
     const surveyChannel = window.__surveySyncBroadcastChannel;
     surveyChannel.onmessage = function(ev) {
       if (!ev.data) return;
-      // Ignore own broadcast echo from calculator import
-      if (ev.data.source === 'calculator_dossier_import') return;
+      // Ignore own broadcast echo from calculator
+      if (ev.data.source === 'calculator' || ev.data.source === 'calculator_dossier_import') return;
+
+      if (ev.data.type === 'SNL_PARAM_UPDATED') {
+        const letter = ev.data.letter;
+        const isSnl = !!ev.data.isSnl;
+        const snlType = ev.data.snlType;
+        const snlFill = ev.data.snlFill;
+        const snlRelub = ev.data.snlRelub;
+
+        if (letter) {
+          try {
+            localStorage.setItem("app_field_chkSnlHousing_" + letter, isSnl ? "true" : "false");
+            if (snlType) localStorage.setItem("app_field_selSnlType_" + letter, snlType);
+            if (snlFill) localStorage.setItem("app_field_selSnlFillPercent_" + letter, snlFill);
+            if (snlRelub) localStorage.setItem("app_field_selSnlRelubPosition_" + letter, snlRelub);
+            if (typeof saveManualBearingSnlOverride === "function") {
+              saveManualBearingSnlOverride(letter, isSnl, snlType, snlFill, snlRelub);
+            }
+            updateStoredQuestionnaireSnl(letter, isSnl, snlType, snlFill, snlRelub);
+          } catch(e) {}
+
+          if (window.latestSurveyFullData) {
+            const fd = window.latestSurveyFullData;
+            if (fd.bearingDataMapSec2) {
+              if (!fd.bearingDataMapSec2[letter]) fd.bearingDataMapSec2[letter] = {};
+              fd.bearingDataMapSec2[letter].isSnl = isSnl;
+              if (snlType) fd.bearingDataMapSec2[letter].snlType = snlType;
+              if (snlFill) fd.bearingDataMapSec2[letter].snlFill = snlFill;
+              if (snlRelub) fd.bearingDataMapSec2[letter].snlRelub = snlRelub;
+            }
+            if (Array.isArray(fd.bearings)) {
+              const bItem = fd.bearings.find(x => x.letter === letter);
+              if (bItem) {
+                bItem.isSnl = isSnl;
+                if (snlType) bItem.snlType = snlType;
+                if (snlFill) bItem.snlFill = snlFill;
+                if (snlRelub) bItem.snlRelub = snlRelub;
+              }
+            }
+          }
+
+          const activeLetter = window.currentActiveSurveyBearingLetter || window.currentSurveyBearingLetter || localStorage.getItem("interflon_active_survey_letter") || 'A';
+          if (activeLetter === letter) {
+            const chkSnl = document.getElementById("chkSnlHousing");
+            const snlContainer = document.getElementById("snlOptionsContainer");
+            const selSnlType = document.getElementById("selSnlType");
+            const selSnlFill = document.getElementById("selSnlFillPercent");
+            const selSnlRelub = document.getElementById("selSnlRelubPosition");
+
+            if (chkSnl) {
+              chkSnl.checked = isSnl;
+              try { localStorage.setItem("app_field_chkSnlHousing", isSnl ? "true" : "false"); } catch(e) {}
+            }
+            if (snlContainer) {
+              if (isSnl) {
+                snlContainer.classList.remove("hidden");
+              } else {
+                snlContainer.classList.add("hidden");
+              }
+            }
+            if (selSnlType) {
+              if (!selSnlType.options || selSnlType.options.length === 0) {
+                if (typeof initSnlDropdown === "function") initSnlDropdown();
+              }
+              if (snlType) {
+                selSnlType.value = snlType;
+                try { localStorage.setItem("app_field_selSnlType", snlType); } catch(e) {}
+              }
+            }
+            if (selSnlFill && snlFill) {
+              selSnlFill.value = snlFill;
+              try { localStorage.setItem("app_field_selSnlFillPercent", snlFill); } catch(e) {}
+            }
+            if (selSnlRelub && snlRelub) {
+              selSnlRelub.value = snlRelub;
+              try { localStorage.setItem("app_field_selSnlRelubPosition", snlRelub); } catch(e) {}
+            }
+            if (typeof calculateGrease === "function") {
+              calculateGrease();
+            }
+          }
+        }
+        return;
+      }
 
       const incomingData = ev.data.fullData || ev.data.data || ev.data.config;
       const activeCalcMachine = (
@@ -4906,10 +5001,6 @@ try {
       // Strict rejection: if calculator machine is known and incoming message has a different machine name, drop it!
       if (activeCalcMachine && incMachine && activeCalcMachine !== incMachine) {
         console.warn(`Ignoring incoming cross-tab survey for '${incMachine}' because active calculator machine is '${activeCalcMachine}'`);
-        return;
-      }
-      if (activeCalcMachine && !incMachine) {
-        console.warn(`Ignoring incoming cross-tab survey with missing machine name because active calculator machine is '${activeCalcMachine}'`);
         return;
       }
 
@@ -9737,6 +9828,23 @@ function onSnlHousingToggle() {
           }
         }
         updateStoredQuestionnaireSnl(letter, isChecked);
+
+        try {
+          if (typeof BroadcastChannel !== 'undefined') {
+            if (!window.__surveySyncBroadcastChannel) {
+              window.__surveySyncBroadcastChannel = new BroadcastChannel('interflon_questionnaire_sync');
+            }
+            window.__surveySyncBroadcastChannel.postMessage({
+              type: 'SNL_PARAM_UPDATED',
+              source: 'calculator',
+              letter: letter,
+              isSnl: isChecked,
+              snlType: (document.getElementById("selSnlType") ? document.getElementById("selSnlType").value : ''),
+              snlFill: (document.getElementById("selSnlFillPercent") ? document.getElementById("selSnlFillPercent").value : '40'),
+              snlRelub: (document.getElementById("selSnlRelubPosition") ? document.getElementById("selSnlRelubPosition").value : 'side')
+            });
+          }
+        } catch(e) {}
       } catch(e) {}
     }
   }
@@ -9794,6 +9902,23 @@ function onSnlParamsChanged() {
         }
       }
       updateStoredQuestionnaireSnl(letter, undefined, typeVal, fillVal, relubVal);
+
+      try {
+        if (typeof BroadcastChannel !== 'undefined') {
+          if (!window.__surveySyncBroadcastChannel) {
+            window.__surveySyncBroadcastChannel = new BroadcastChannel('interflon_questionnaire_sync');
+          }
+          window.__surveySyncBroadcastChannel.postMessage({
+            type: 'SNL_PARAM_UPDATED',
+            source: 'calculator',
+            letter: letter,
+            isSnl: (document.getElementById("chkSnlHousing") ? document.getElementById("chkSnlHousing").checked : false),
+            snlType: typeVal,
+            snlFill: fillVal,
+            snlRelub: relubVal
+          });
+        }
+      } catch(e) {}
     } catch(e) {}
   }
   calculateGrease();
@@ -11542,45 +11667,57 @@ function applySurveyBearingToCalculator(b) {
   let isSnlInSurvey = false;
   if (isRecentUserSnlToggle) {
     isSnlInSurvey = !!(chkSnl && chkSnl.checked);
-  } else if (savedSnlLetter !== null) {
-    isSnlInSurvey = (savedSnlLetter === "true");
-  } else if (bOverride.isSnl !== undefined) {
-    isSnlInSurvey = !!bOverride.isSnl;
   } else if (hasSurveySnl) {
     isSnlInSurvey = !!((bRec && (bRec.isSnl || bRec.is_snl)) || (b && (b.isSnl || b.is_snl)) || (sec2 && (sec2.isSnl || sec2.is_snl)));
+  } else if (bOverride.isSnl !== undefined) {
+    isSnlInSurvey = !!bOverride.isSnl;
+  } else if (savedSnlLetter !== null) {
+    isSnlInSurvey = (savedSnlLetter === "true");
   } else if (savedSnlGlobal !== null) {
     isSnlInSurvey = (savedSnlGlobal === "true");
   }
 
   if (chkSnl) {
     chkSnl.checked = isSnlInSurvey;
+    try {
+      localStorage.setItem("app_field_chkSnlHousing_" + targetLetter, isSnlInSurvey ? "true" : "false");
+    } catch(e) {}
     if (snlContainer) {
       if (isSnlInSurvey) snlContainer.classList.remove("hidden");
       else snlContainer.classList.add("hidden");
     }
     const savedSnlType = localStorage.getItem("app_field_selSnlType_" + targetLetter);
-    const surveySnlType = savedSnlType
+    const surveySnlType = (bRec.snlType || bRec.snl_type || b.snlType || b.snl_type || sec2.snlType || sec2.snl_type)
       || (bOverride && bOverride.snlType)
-      || (bRec.snlType || bRec.snl_type || b.snlType || b.snl_type || sec2.snlType || sec2.snl_type)
+      || savedSnlType
       || localStorage.getItem("app_field_selSnlType");
     if (selSnlType) {
       if (!selSnlType.options || selSnlType.options.length === 0) {
         if (typeof initSnlDropdown === "function") initSnlDropdown();
       }
-      if (surveySnlType) selSnlType.value = surveySnlType;
+      if (surveySnlType) {
+        selSnlType.value = surveySnlType;
+        try { localStorage.setItem("app_field_selSnlType_" + targetLetter, surveySnlType); } catch(e) {}
+      }
     }
     const savedSnlFill = localStorage.getItem("app_field_selSnlFillPercent_" + targetLetter);
-    const surveySnlFill = savedSnlFill
+    const surveySnlFill = (bRec.snlFill || bRec.snl_fill || b.snlFill || b.snl_fill || sec2.snlFill || sec2.snl_fill)
       || (bOverride && bOverride.snlFill)
-      || (bRec.snlFill || bRec.snl_fill || b.snlFill || b.snl_fill || sec2.snlFill || sec2.snl_fill)
+      || savedSnlFill
       || localStorage.getItem("app_field_selSnlFillPercent");
-    if (surveySnlFill && selSnlFill) selSnlFill.value = surveySnlFill;
+    if (surveySnlFill && selSnlFill) {
+      selSnlFill.value = surveySnlFill;
+      try { localStorage.setItem("app_field_selSnlFillPercent_" + targetLetter, surveySnlFill); } catch(e) {}
+    }
     const savedSnlRelub = localStorage.getItem("app_field_selSnlRelubPosition_" + targetLetter);
-    const surveySnlRelub = savedSnlRelub
+    const surveySnlRelub = (bRec.snlRelub || bRec.snl_relub || b.snlRelub || b.snl_relub || sec2.snlRelub || sec2.snl_relub)
       || (bOverride && bOverride.snlRelub)
-      || (bRec.snlRelub || bRec.snl_relub || b.snlRelub || b.snl_relub || sec2.snlRelub || sec2.snl_relub)
+      || savedSnlRelub
       || localStorage.getItem("app_field_selSnlRelubPosition");
-    if (surveySnlRelub && selSnlRelub) selSnlRelub.value = surveySnlRelub;
+    if (surveySnlRelub && selSnlRelub) {
+      selSnlRelub.value = surveySnlRelub;
+      try { localStorage.setItem("app_field_selSnlRelubPosition_" + targetLetter, surveySnlRelub); } catch(e) {}
+    }
   }
 
   // 6. Correction factors (Te & Ta)
