@@ -1708,7 +1708,7 @@
                 </svg>
               </button>
             </label>
-            <span id="q_snl_auto_badge" style="display: none; font-size: 11px; background: #e0f2fe; color: #0284c7; font-weight: 700; padding: 2px 8px; border-radius: 4px;">
+            <span id="q_snl_auto_badge" style="display: none; font-size: 11px; background: #e0f2fe; color: #0284c7; font-weight: 700; padding: 2px 8px; border-radius: 4px; cursor: pointer;" title="Klik om dit lagerblok te activeren" onclick="const chk=document.getElementById('q_is_snl'); if(chk){chk.checked=!chk.checked; toggleSnlSection2UI();}">
               💡 Lagerhuis gedetecteerd
             </span>
           </div>
@@ -9054,10 +9054,39 @@
       if (q13) bearingDataMapSec2[activeBearingSec2].q13 = q13.value;
       if (q14) bearingDataMapSec2[activeBearingSec2].q14 = q14.value;
 
-      if (qIsSnl) bearingDataMapSec2[activeBearingSec2].isSnl = qIsSnl.checked;
-      if (qSnlType) bearingDataMapSec2[activeBearingSec2].snlType = qSnlType.value;
-      if (qSnlFill) bearingDataMapSec2[activeBearingSec2].snlFill = qSnlFill.value;
-      if (qSnlRelub) bearingDataMapSec2[activeBearingSec2].snlRelub = qSnlRelub.value;
+      const isSnlVal = qIsSnl ? !!qIsSnl.checked : false;
+      const snlTypeVal = qSnlType ? qSnlType.value : '';
+      const snlFillVal = qSnlFill ? qSnlFill.value : '40';
+      const snlRelubVal = qSnlRelub ? qSnlRelub.value : 'side';
+
+      if (qIsSnl) bearingDataMapSec2[activeBearingSec2].isSnl = isSnlVal;
+      if (qSnlType) bearingDataMapSec2[activeBearingSec2].snlType = snlTypeVal;
+      if (qSnlFill) bearingDataMapSec2[activeBearingSec2].snlFill = snlFillVal;
+      if (qSnlRelub) bearingDataMapSec2[activeBearingSec2].snlRelub = snlRelubVal;
+
+      try {
+        if (activeBearingSec2) {
+          localStorage.setItem("app_field_chkSnlHousing_" + activeBearingSec2, isSnlVal ? "true" : "false");
+          if (snlTypeVal) localStorage.setItem("app_field_selSnlType_" + activeBearingSec2, snlTypeVal);
+          if (snlFillVal) localStorage.setItem("app_field_selSnlFillPercent_" + activeBearingSec2, snlFillVal);
+          if (snlRelubVal) localStorage.setItem("app_field_selSnlRelubPosition_" + activeBearingSec2, snlRelubVal);
+        }
+        if (typeof BroadcastChannel !== 'undefined') {
+          if (!window.__surveySyncBroadcastChannel) {
+            window.__surveySyncBroadcastChannel = new BroadcastChannel('interflon_questionnaire_sync');
+          }
+          window.__surveySyncBroadcastChannel.postMessage({
+            type: 'SNL_PARAM_UPDATED',
+            source: 'vragenlijst',
+            letter: activeBearingSec2,
+            isSnl: isSnlVal,
+            snlType: snlTypeVal,
+            snlFill: snlFillVal,
+            snlRelub: snlRelubVal
+          });
+        }
+      } catch (e) {}
+
       if (!skipAutoSave) triggerSurveyAutoSave();
       if (typeof renderDistancesOverview === 'function') renderDistancesOverview();
       if (typeof drawBearingLayout === 'function') drawBearingLayout();
@@ -10134,6 +10163,35 @@
               refreshSurveyBearingsDailyNeed(factor);
             } else {
               refreshSurveyBearingsDailyNeed();
+            }
+            return;
+          }
+
+          if (ev.data.type === 'SNL_PARAM_UPDATED' && ev.data.source !== 'vragenlijst') {
+            const letter = ev.data.letter;
+            if (letter) {
+              if (typeof bearingDataMapSec2 !== 'undefined') {
+                if (!bearingDataMapSec2[letter]) bearingDataMapSec2[letter] = {};
+                if (ev.data.isSnl !== undefined) bearingDataMapSec2[letter].isSnl = !!ev.data.isSnl;
+                if (ev.data.snlType !== undefined) bearingDataMapSec2[letter].snlType = ev.data.snlType;
+                if (ev.data.snlFill !== undefined) bearingDataMapSec2[letter].snlFill = ev.data.snlFill;
+                if (ev.data.snlRelub !== undefined) bearingDataMapSec2[letter].snlRelub = ev.data.snlRelub;
+              }
+              if (typeof activeBearingSec2 !== 'undefined' && activeBearingSec2 === letter) {
+                const qIsSnl = document.getElementById('q_is_snl');
+                if (qIsSnl && ev.data.isSnl !== undefined) {
+                  qIsSnl.checked = !!ev.data.isSnl;
+                  const container = document.getElementById('q_snl_details_container');
+                  if (container) container.style.display = qIsSnl.checked ? 'block' : 'none';
+                }
+                const qSnlType = document.getElementById('q_snl_type');
+                if (qSnlType && ev.data.snlType) qSnlType.value = ev.data.snlType;
+                const qSnlFill = document.getElementById('q_snl_fill');
+                if (qSnlFill && ev.data.snlFill) qSnlFill.value = ev.data.snlFill;
+                const qSnlRelub = document.getElementById('q_snl_relub');
+                if (qSnlRelub && ev.data.snlRelub) qSnlRelub.value = ev.data.snlRelub;
+              }
+              if (typeof triggerSurveyAutoSave === 'function') triggerSurveyAutoSave();
             }
             return;
           }
