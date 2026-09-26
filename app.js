@@ -3485,6 +3485,16 @@ function syncAllQuestionnaireDataToCalculator(data, explicitTargetLetter) {
     if (genData) {
       const currentLsMach = localStorage.getItem("tech_machine") || "";
       const machToSet = genData.machineName || currentLsMach;
+      if (currentLsMach && machToSet && currentLsMach.trim().toLowerCase() !== machToSet.trim().toLowerCase()) {
+        const imgMach = localStorage.getItem("omAppImageMachine") || "";
+        if (imgMach && imgMach.trim().toLowerCase() !== machToSet.trim().toLowerCase()) {
+          if (typeof setBearingTcoImage === "function") setBearingTcoImage("", machToSet);
+        }
+        const chainImgMach = localStorage.getItem("chainOmAppImageMachine") || "";
+        if (chainImgMach && chainImgMach.trim().toLowerCase() !== machToSet.trim().toLowerCase()) {
+          if (typeof setChainTcoImage === "function") setChainTcoImage("", machToSet);
+        }
+      }
       if (machToSet) {
         const mIn = document.getElementById("techMachineInput");
         if (mIn) mIn.value = machToSet;
@@ -4736,6 +4746,19 @@ function handleSurveyBearingFileImport(event) {
             data.surveyRasterConfig.bearings = data.bearings;
           }
           localStorage.setItem('interflon_survey_raster_config', JSON.stringify(data.surveyRasterConfig));
+        }
+
+        const newSurveyMach = (data.general && (data.general.machineName || data.general.name)) || "";
+        const curSurveyLsMach = localStorage.getItem("tech_machine") || "";
+        if (newSurveyMach && curSurveyLsMach && newSurveyMach.trim().toLowerCase() !== curSurveyLsMach.trim().toLowerCase()) {
+          const imgMach = localStorage.getItem("omAppImageMachine") || "";
+          if (imgMach && imgMach.trim().toLowerCase() !== newSurveyMach.trim().toLowerCase()) {
+            if (typeof setBearingTcoImage === "function") setBearingTcoImage("", newSurveyMach);
+          }
+          const chainImgMach = localStorage.getItem("chainOmAppImageMachine") || "";
+          if (chainImgMach && chainImgMach.trim().toLowerCase() !== newSurveyMach.trim().toLowerCase()) {
+            if (typeof setChainTcoImage === "function") setChainTcoImage("", newSurveyMach);
+          }
         }
       } catch (errLs) {}
 
@@ -12908,7 +12931,7 @@ function saveTcoDetails() {
   saveChainTcoDetails();
 }
 
-function setBearingTcoImage(imgBase64) {
+function setBearingTcoImage(imgBase64, explicitMachine) {
   tcoUploadedImageBase64 = (imgBase64 && typeof imgBase64 === "string" && imgBase64.startsWith("data:image")) ? imgBase64 : "";
   const previewImg = document.getElementById("omAppImagePreview");
   const placeholder = document.getElementById("omAppImagePlaceholder");
@@ -12933,12 +12956,22 @@ function setBearingTcoImage(imgBase64) {
       try { tcoData = JSON.parse(existing) || {}; } catch(e) {}
     }
     tcoData["omAppImage"] = tcoUploadedImageBase64;
+    const currentMach = explicitMachine ||
+                        (document.getElementById("techMachineInput") && document.getElementById("techMachineInput").value) ||
+                        (document.getElementById("omTechMachine") && document.getElementById("omTechMachine").value) ||
+                        localStorage.getItem("tech_machine") || "";
+    tcoData["omAppImageMachine"] = tcoUploadedImageBase64 ? currentMach : "";
     localStorage.setItem("bearing_tco_data", JSON.stringify(tcoData));
+    if (tcoUploadedImageBase64 && currentMach) {
+      localStorage.setItem("omAppImageMachine", currentMach);
+    } else {
+      localStorage.removeItem("omAppImageMachine");
+    }
   } catch(e) {}
 }
 window.setBearingTcoImage = setBearingTcoImage;
 
-function setChainTcoImage(imgBase64) {
+function setChainTcoImage(imgBase64, explicitMachine) {
   chainTcoUploadedImageBase64 = (imgBase64 && typeof imgBase64 === "string" && imgBase64.startsWith("data:image")) ? imgBase64 : "";
   const previewImg = document.getElementById("chainOmAppImagePreview");
   const placeholder = document.getElementById("chainOmAppImagePlaceholder");
@@ -12963,7 +12996,17 @@ function setChainTcoImage(imgBase64) {
       try { tcoData = JSON.parse(existing) || {}; } catch(e) {}
     }
     tcoData["chainOmAppImage"] = chainTcoUploadedImageBase64;
+    const currentMach = explicitMachine ||
+                        (document.getElementById("chainOmTechMachine") && document.getElementById("chainOmTechMachine").value) ||
+                        (document.getElementById("techMachineInput") && document.getElementById("techMachineInput").value) ||
+                        localStorage.getItem("tech_machine") || "";
+    tcoData["chainOmAppImageMachine"] = chainTcoUploadedImageBase64 ? currentMach : "";
     localStorage.setItem("chain_tco_data", JSON.stringify(tcoData));
+    if (chainTcoUploadedImageBase64 && currentMach) {
+      localStorage.setItem("chainOmAppImageMachine", currentMach);
+    } else {
+      localStorage.removeItem("chainOmAppImageMachine");
+    }
   } catch(e) {}
 }
 window.setChainTcoImage = setChainTcoImage;
@@ -13004,9 +13047,19 @@ function loadBearingTcoDetails() {
       const dtFreq2 = document.getElementById("omDowntimeFreq2");
       if (dtFreq2) dtFreq2.value = (12 / parseFloat(customOmLife2)).toFixed(2);
     }
-    setBearingTcoImage(data["omAppImage"] || "");
+
+    const curMach = (document.getElementById("techMachineInput") && document.getElementById("techMachineInput").value) ||
+                    (document.getElementById("omTechMachine") && document.getElementById("omTechMachine").value) ||
+                    localStorage.getItem("tech_machine") || "";
+    const imgMach = data["omAppImageMachine"] || localStorage.getItem("omAppImageMachine") || "";
+    if (imgMach && curMach && imgMach.trim().toLowerCase() !== curMach.trim().toLowerCase()) {
+      setBearingTcoImage("");
+    } else {
+      setBearingTcoImage(data["omAppImage"] || "");
+    }
   } catch (e) {
     console.error("Fout bij laden Bearing TCO data:", e);
+    setBearingTcoImage("");
   }
 }
 
@@ -13045,9 +13098,19 @@ function loadChainTcoDetails() {
       const cDt2 = document.getElementById("chainOmDowntimeFreq2");
       if (cDt2) cDt2.value = (12 / parseFloat(customChainLife2)).toFixed(2);
     }
-    setChainTcoImage(data["chainOmAppImage"] || "");
+
+    const curMach = (document.getElementById("chainOmTechMachine") && document.getElementById("chainOmTechMachine").value) ||
+                    (document.getElementById("techMachineInput") && document.getElementById("techMachineInput").value) ||
+                    localStorage.getItem("tech_machine") || "";
+    const imgMach = data["chainOmAppImageMachine"] || localStorage.getItem("chainOmAppImageMachine") || "";
+    if (imgMach && curMach && imgMach.trim().toLowerCase() !== curMach.trim().toLowerCase()) {
+      setChainTcoImage("");
+    } else {
+      setChainTcoImage(data["chainOmAppImage"] || "");
+    }
   } catch (e) {
     console.error("Fout bij laden Chain TCO data:", e);
+    setChainTcoImage("");
   }
 }
 
@@ -24325,30 +24388,74 @@ async function exportCalculationData() {
       activeCalculationMode: (typeof activeCalculationMode !== "undefined") ? activeCalculationMode : "bearing",
       photoFolders: currentFolders,
       photoLibrary: currentPhotos,
-      omAppImage: tcoUploadedImageBase64 || (function() {
-        try {
-          const raw = localStorage.getItem("bearing_tco_data");
-          const d = raw ? JSON.parse(raw) : null;
-          return (d && d.omAppImage) || "";
-        } catch(e) { return ""; }
+      omAppImage: (function() {
+        const img = tcoUploadedImageBase64 || (function() {
+          try {
+            const raw = localStorage.getItem("bearing_tco_data");
+            const d = raw ? JSON.parse(raw) : null;
+            return (d && d.omAppImage) || "";
+          } catch(e) { return ""; }
+        })();
+        const imgMach = localStorage.getItem("omAppImageMachine") || (function() {
+          try {
+            const raw = localStorage.getItem("bearing_tco_data");
+            const d = raw ? JSON.parse(raw) : null;
+            return (d && d.omAppImageMachine) || "";
+          } catch(e) { return ""; }
+        })();
+        if (imgMach && techMachineVal && imgMach.trim().toLowerCase() !== techMachineVal.trim().toLowerCase()) {
+          return "";
+        }
+        return img;
       })(),
-      chainOmAppImage: chainTcoUploadedImageBase64 || (function() {
-        try {
-          const raw = localStorage.getItem("chain_tco_data");
-          const d = raw ? JSON.parse(raw) : null;
-          return (d && d.chainOmAppImage) || "";
-        } catch(e) { return ""; }
+      omAppImageMachine: techMachineVal || "",
+      chainOmAppImage: (function() {
+        const img = chainTcoUploadedImageBase64 || (function() {
+          try {
+            const raw = localStorage.getItem("chain_tco_data");
+            const d = raw ? JSON.parse(raw) : null;
+            return (d && d.chainOmAppImage) || "";
+          } catch(e) { return ""; }
+        })();
+        const imgMach = localStorage.getItem("chainOmAppImageMachine") || (function() {
+          try {
+            const raw = localStorage.getItem("chain_tco_data");
+            const d = raw ? JSON.parse(raw) : null;
+            return (d && d.chainOmAppImageMachine) || "";
+          } catch(e) { return ""; }
+        })();
+        if (imgMach && techMachineVal && imgMach.trim().toLowerCase() !== techMachineVal.trim().toLowerCase()) {
+          return "";
+        }
+        return img;
       })(),
+      chainOmAppImageMachine: techMachineVal || "",
       bearing_tco_data: (function() {
         try {
           const raw = localStorage.getItem("bearing_tco_data");
-          return raw ? JSON.parse(raw) : null;
+          const d = raw ? JSON.parse(raw) : null;
+          if (d) {
+            const imgMach = d.omAppImageMachine || localStorage.getItem("omAppImageMachine") || "";
+            if (imgMach && techMachineVal && imgMach.trim().toLowerCase() !== techMachineVal.trim().toLowerCase()) {
+              d.omAppImage = "";
+              d.omAppImageMachine = "";
+            }
+          }
+          return d;
         } catch(e) { return null; }
       })(),
       chain_tco_data: (function() {
         try {
           const raw = localStorage.getItem("chain_tco_data");
-          return raw ? JSON.parse(raw) : null;
+          const d = raw ? JSON.parse(raw) : null;
+          if (d) {
+            const imgMach = d.chainOmAppImageMachine || localStorage.getItem("chainOmAppImageMachine") || "";
+            if (imgMach && techMachineVal && imgMach.trim().toLowerCase() !== techMachineVal.trim().toLowerCase()) {
+              d.chainOmAppImage = "";
+              d.chainOmAppImageMachine = "";
+            }
+          }
+          return d;
         } catch(e) { return null; }
       })()
     };
@@ -24549,28 +24656,45 @@ function handleImportFileSelected(event) {
 
           // TCO Photo: restore if present in questionnaire, otherwise reset cleanly
           let qOmImage = "";
-          if (data.omAppImage && typeof data.omAppImage === "string") {
+          if (data.omAppImage && typeof data.omAppImage === "string" && data.omAppImage.startsWith("data:image")) {
             qOmImage = data.omAppImage;
-          } else if (data.bearing_tco_data && data.bearing_tco_data.omAppImage) {
+          } else if (data.bearing_tco_data && data.bearing_tco_data.omAppImage && typeof data.bearing_tco_data.omAppImage === "string" && data.bearing_tco_data.omAppImage.startsWith("data:image")) {
             qOmImage = data.bearing_tco_data.omAppImage;
           }
           if (typeof setBearingTcoImage === "function") {
-            setBearingTcoImage(qOmImage);
+            setBearingTcoImage(qOmImage, qMach);
           } else {
             tcoUploadedImageBase64 = qOmImage;
           }
 
           let qChainOmImage = "";
-          if (data.chainOmAppImage && typeof data.chainOmAppImage === "string") {
+          if (data.chainOmAppImage && typeof data.chainOmAppImage === "string" && data.chainOmAppImage.startsWith("data:image")) {
             qChainOmImage = data.chainOmAppImage;
-          } else if (data.chain_tco_data && data.chain_tco_data.chainOmAppImage) {
+          } else if (data.chain_tco_data && data.chain_tco_data.chainOmAppImage && typeof data.chain_tco_data.chainOmAppImage === "string" && data.chain_tco_data.chainOmAppImage.startsWith("data:image")) {
             qChainOmImage = data.chain_tco_data.chainOmAppImage;
           }
           if (typeof setChainTcoImage === "function") {
-            setChainTcoImage(qChainOmImage);
+            setChainTcoImage(qChainOmImage, qMach);
           } else {
             chainTcoUploadedImageBase64 = qChainOmImage;
           }
+
+          photoFolders = [
+            { id: "folder_default", name: "Algemeen", photos: [] }
+          ];
+          activePhotoFolderId = "folder_default";
+          photoLibrary = [];
+          if (typeof window !== "undefined") {
+            window.photoFolders = photoFolders;
+            window.activePhotoFolderId = activePhotoFolderId;
+            window.photoLibrary = photoLibrary;
+          }
+          try {
+            localStorage.removeItem("photo_folders");
+            localStorage.removeItem("photoFolders");
+            localStorage.removeItem("photo_library");
+            localStorage.removeItem("photoLibrary");
+          } catch(e) {}
 
           if (typeof loadBearingTcoDetails === "function") loadBearingTcoDetails();
           if (typeof loadChainTcoDetails === "function") loadChainTcoDetails();
@@ -24841,7 +24965,37 @@ function handleImportFileSelected(event) {
         if (targetOpEmail) importedQuestionnaire.contact.interflonContactEmail = targetOpEmail;
       }
 
-      // STEP 3: Purge existing field storage keys so no stale values linger
+      // STEP 3: Purge existing field storage keys and photo states so no stale values linger
+      tcoUploadedImageBase64 = "";
+      chainTcoUploadedImageBase64 = "";
+      if (typeof setBearingTcoImage === "function") setBearingTcoImage("");
+      if (typeof setChainTcoImage === "function") setChainTcoImage("");
+
+      const previewImg = document.getElementById("omAppImagePreview");
+      if (previewImg) previewImg.src = "";
+      const previewContainer = document.getElementById("omAppImagePreviewContainer");
+      if (previewContainer) previewContainer.style.display = "none";
+      const placeholder = document.getElementById("omAppImagePlaceholder");
+      if (placeholder) placeholder.style.display = "flex";
+
+      const chainPreviewImg = document.getElementById("chainOmAppImagePreview");
+      if (chainPreviewImg) chainPreviewImg.src = "";
+      const chainPreviewContainer = document.getElementById("chainOmAppImagePreviewContainer");
+      if (chainPreviewContainer) chainPreviewContainer.style.display = "none";
+      const chainPlaceholder = document.getElementById("chainOmAppImagePlaceholder");
+      if (chainPlaceholder) chainPlaceholder.style.display = "flex";
+
+      photoFolders = [
+        { id: "folder_default", name: "Algemeen", photos: [] }
+      ];
+      activePhotoFolderId = "folder_default";
+      photoLibrary = [];
+      if (typeof window !== "undefined") {
+        window.photoFolders = photoFolders;
+        window.activePhotoFolderId = activePhotoFolderId;
+        window.photoLibrary = photoLibrary;
+      }
+
       Object.keys(localStorage).forEach(k => {
         if (k.startsWith("app_field_") || k.startsWith("bearing_calc_")) {
           try { localStorage.removeItem(k); } catch(e) {}
@@ -24853,7 +25007,10 @@ function handleImportFileSelected(event) {
         "operator_name", "operator_phone", "operator_email",
         "interflon_active_survey_letter", "active_tco_bearing_source",
         "selected_bearing", "currentBearingId", "currentBearingName",
-        "bearing_tco_data", "chain_tco_data", "bearing_calc_tco_data"
+        "bearing_tco_data", "chain_tco_data", "bearing_calc_tco_data",
+        "photo_folders", "photoFolders", "photo_library", "photoLibrary",
+        "omAppImage", "chainOmAppImage", "omAppImageMachine", "chainOmAppImageMachine",
+        "active_interflon_grease"
       ];
       keysToPurge.forEach(k => {
         try { localStorage.removeItem(k); } catch(e) {}
@@ -25041,30 +25198,60 @@ function handleImportFileSelected(event) {
 
       // STEP 7b: Restore TCO Machine Photos (Lager & Ketting)
       let importedOmImage = "";
-      if (data.omAppImage && typeof data.omAppImage === "string") {
+      if (data.omAppImage && typeof data.omAppImage === "string" && data.omAppImage.startsWith("data:image")) {
         importedOmImage = data.omAppImage;
-      } else if (data.bearing_tco_data && data.bearing_tco_data.omAppImage) {
+      } else if (data.bearing_tco_data && data.bearing_tco_data.omAppImage && typeof data.bearing_tco_data.omAppImage === "string" && data.bearing_tco_data.omAppImage.startsWith("data:image")) {
         importedOmImage = data.bearing_tco_data.omAppImage;
       } else if (data.localStorage && data.localStorage["bearing_tco_data"]) {
         try {
           const parsed = typeof data.localStorage["bearing_tco_data"] === "string"
             ? JSON.parse(data.localStorage["bearing_tco_data"])
             : data.localStorage["bearing_tco_data"];
-          if (parsed && parsed.omAppImage) importedOmImage = parsed.omAppImage;
+          if (parsed && parsed.omAppImage && typeof parsed.omAppImage === "string" && parsed.omAppImage.startsWith("data:image")) {
+            importedOmImage = parsed.omAppImage;
+          }
         } catch(e) {}
       }
 
-      // Safe fallback for legacy files: check photo library for machine photo
-      if (!importedOmImage && Array.isArray(importedFolders)) {
+      // Check for photo contamination from another machine:
+      // If targetMachine is specified, ensure imported image doesn't belong to a different machine
+      const cleanTargetMach = (targetMachine || "").trim().toLowerCase();
+      let isContaminatedImage = false;
+      const fileImageMach = (data.omAppImageMachine || (data.bearing_tco_data && data.bearing_tco_data.omAppImageMachine) || "").trim().toLowerCase();
+      if (fileImageMach && cleanTargetMach && fileImageMach !== cleanTargetMach) {
+        isContaminatedImage = true;
+      }
+
+      // Also check if the image matches a photo with a conflicting machine name in its description/filename
+      if (!isContaminatedImage && importedOmImage && cleanTargetMach && Array.isArray(importedFolders)) {
+        for (const f of importedFolders) {
+          if (f.photos && Array.isArray(f.photos)) {
+            const pMatch = f.photos.find(p => p.dataUrl === importedOmImage);
+            if (pMatch) {
+              const pDesc = (pMatch.description || "").toLowerCase();
+              const pFn = (pMatch.filename || "").toLowerCase();
+              if ((pDesc.includes("bunker") || pFn.includes("bunker")) && !cleanTargetMach.includes("bunker")) {
+                isContaminatedImage = true;
+                break;
+              }
+            }
+          }
+        }
+      }
+
+      if (isContaminatedImage) {
+        console.warn(`[TCO Photo] Contaminated machine photo detected for '${targetMachine}' (originated from '${fileImageMach || "bunkerband"}'). Resetting.`);
+        importedOmImage = "";
+      }
+
+      // Safe fallback: ONLY if targetMachine is explicitly present and matches the photo's description or filename
+      if (!importedOmImage && cleanTargetMach && Array.isArray(importedFolders)) {
         for (const f of importedFolders) {
           if (f.photos && Array.isArray(f.photos)) {
             const match = f.photos.find(p => {
               const desc = (p.description || "").toLowerCase();
               const fn = (p.filename || "").toLowerCase();
-              const fName = (f.name || "").toLowerCase();
-              return fName.includes("machine") || fName.includes("tco") ||
-                     desc.includes("machine") || desc.includes("tco") ||
-                     (targetMachine && (desc.includes(targetMachine.toLowerCase()) || fn.includes(targetMachine.toLowerCase())));
+              return desc.includes(cleanTargetMach) || fn.includes(cleanTargetMach);
             });
             if (match && match.dataUrl) {
               importedOmImage = match.dataUrl;
@@ -25075,27 +25262,34 @@ function handleImportFileSelected(event) {
       }
 
       let importedChainOmImage = "";
-      if (data.chainOmAppImage && typeof data.chainOmAppImage === "string") {
+      if (data.chainOmAppImage && typeof data.chainOmAppImage === "string" && data.chainOmAppImage.startsWith("data:image")) {
         importedChainOmImage = data.chainOmAppImage;
-      } else if (data.chain_tco_data && data.chain_tco_data.chainOmAppImage) {
+      } else if (data.chain_tco_data && data.chain_tco_data.chainOmAppImage && typeof data.chain_tco_data.chainOmAppImage === "string" && data.chain_tco_data.chainOmAppImage.startsWith("data:image")) {
         importedChainOmImage = data.chain_tco_data.chainOmAppImage;
       } else if (data.localStorage && data.localStorage["chain_tco_data"]) {
         try {
           const parsed = typeof data.localStorage["chain_tco_data"] === "string"
             ? JSON.parse(data.localStorage["chain_tco_data"])
             : data.localStorage["chain_tco_data"];
-          if (parsed && parsed.chainOmAppImage) importedChainOmImage = parsed.chainOmAppImage;
+          if (parsed && parsed.chainOmAppImage && typeof parsed.chainOmAppImage === "string" && parsed.chainOmAppImage.startsWith("data:image")) {
+            importedChainOmImage = parsed.chainOmAppImage;
+          }
         } catch(e) {}
       }
 
+      const fileChainImageMach = (data.chainOmAppImageMachine || (data.chain_tco_data && data.chain_tco_data.chainOmAppImageMachine) || "").trim().toLowerCase();
+      if (fileChainImageMach && cleanTargetMach && fileChainImageMach !== cleanTargetMach) {
+        importedChainOmImage = "";
+      }
+
       if (typeof setBearingTcoImage === "function") {
-        setBearingTcoImage(importedOmImage);
+        setBearingTcoImage(importedOmImage, targetMachine);
       } else {
         tcoUploadedImageBase64 = importedOmImage;
       }
 
       if (typeof setChainTcoImage === "function") {
-        setChainTcoImage(importedChainOmImage);
+        setChainTcoImage(importedChainOmImage, targetMachine);
       } else {
         chainTcoUploadedImageBase64 = importedChainOmImage;
       }
