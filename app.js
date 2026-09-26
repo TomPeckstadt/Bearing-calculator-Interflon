@@ -49,6 +49,46 @@ if (typeof window !== "undefined") {
   window.autoDevicesState = autoDevicesState;
 }
 
+function ensureAutoDevicesStateSafety(minCount, defaultType) {
+  if (!Array.isArray(autoDevicesState)) autoDevicesState = [];
+  const deviceSelect = document.getElementById("automationDeviceSelect") || document.getElementById("autoDeviceSelect");
+  const deviceKey = defaultType || (deviceSelect ? deviceSelect.value : "pulsarlube_m2");
+  const isSp = (deviceKey === "single_point");
+  const fallbackType = isSp ? "single_point" : (deviceKey || "pulsarlube_m2");
+  const requiredCount = Math.max(4, typeof minCount === "number" ? minCount : 4);
+
+  for (let i = 0; i < requiredCount; i++) {
+    const devId = String.fromCharCode(65 + i);
+    if (!autoDevicesState[i]) {
+      autoDevicesState[i] = {
+        id: devId,
+        name: isSp ? "Interflon Single Point Lubricator" : ("Pulsarlube " + devId),
+        type: fallbackType,
+        points: 1,
+        cap: isSp ? 250 : 125,
+        period: isSp ? 6 : 7,
+        unit: "months",
+        userEditedPeriod: false,
+        customPackPrice: 0
+      };
+    } else {
+      if (!autoDevicesState[i].id) autoDevicesState[i].id = devId;
+      if (!autoDevicesState[i].unit) autoDevicesState[i].unit = "months";
+      if (typeof autoDevicesState[i].points !== "number" || isNaN(autoDevicesState[i].points)) autoDevicesState[i].points = 1;
+      if (typeof autoDevicesState[i].cap !== "number" || isNaN(autoDevicesState[i].cap)) autoDevicesState[i].cap = isSp ? 250 : 125;
+      if (typeof autoDevicesState[i].period !== "number" || isNaN(autoDevicesState[i].period)) autoDevicesState[i].period = 6;
+      if (typeof autoDevicesState[i].userEditedPeriod !== "boolean") autoDevicesState[i].userEditedPeriod = false;
+      if (typeof autoDevicesState[i].customPackPrice !== "number" || isNaN(autoDevicesState[i].customPackPrice)) autoDevicesState[i].customPackPrice = 0;
+      if (!autoDevicesState[i].type) autoDevicesState[i].type = fallbackType;
+    }
+  }
+  if (typeof window !== "undefined") {
+    window.autoDevicesState = autoDevicesState;
+  }
+  return autoDevicesState;
+}
+window.ensureAutoDevicesStateSafety = ensureAutoDevicesStateSafety;
+
 function getActiveNumDevices() {
   const deviceSelect = document.getElementById("automationDeviceSelect") || document.getElementById("autoDeviceSelect");
   const deviceKey = deviceSelect ? deviceSelect.value : "single_point";
@@ -67,6 +107,7 @@ function onAutoNumDevicesChange() {
   const num = getActiveNumDevices();
   const deviceSelect = document.getElementById("automationDeviceSelect") || document.getElementById("autoDeviceSelect");
   const deviceKey = deviceSelect ? deviceSelect.value : "pulsarlube_m2";
+  ensureAutoDevicesStateSafety(Math.max(4, num), deviceKey);
   if (deviceKey !== "single_point" && Array.isArray(autoDevicesState)) {
     for (let i = 0; i < num; i++) {
       if (autoDevicesState[i] && (!autoDevicesState[i].type || autoDevicesState[i].type === "single_point")) {
@@ -74,6 +115,7 @@ function onAutoNumDevicesChange() {
       }
     }
   }
+  saveAutomationStateToLocalStorage();
   renderAutoDevicesUI();
   calculateAutomationLubrication();
 }
@@ -85,6 +127,7 @@ function onAutoNumPointsChange() {
 }
 
 function onDevicePointsChange(devId) {
+  ensureAutoDevicesStateSafety();
   const dev = autoDevicesState.find(d => d.id === devId);
   const sel = document.getElementById("autoNumPointsSelect_" + devId);
   if (dev && sel) {
@@ -100,6 +143,20 @@ function onDevicePointsChange(devId) {
       if (smartAdv) {
         dev.cap = smartAdv.cap;
         dev.period = smartAdv.months;
+        // Keep DOM select elements synchronized with state
+        const capSel = document.getElementById("autoCartridgeCap_" + devId);
+        if (capSel) capSel.value = String(dev.cap);
+        const validMonths = getValidDispenseMonths(dev.type || "pulsarlube_m2", dev.cap);
+        const periodSel = document.getElementById("autoDispensePeriod_" + devId);
+        if (periodSel) {
+          const lang = (typeof currentLang !== "undefined" && currentLang) ? currentLang : "nl";
+          periodSel.innerHTML = validMonths.map(m => {
+            const isSel = Number(m) === Number(dev.period);
+            const unitLabel = m === 1 ? (lang === "fr" ? "mois" : (lang === "en" ? "month" : "maand")) : (lang === "fr" ? "mois" : (lang === "en" ? "months" : "maanden"));
+            return `<option value="${m}"${isSel ? " selected" : ""}>${m} ${unitLabel}</option>`;
+          }).join("");
+          periodSel.value = String(dev.period);
+        }
       }
     }
   }
@@ -124,6 +181,7 @@ function onDeviceCustomPriceChange(devId, val) {
 }
 
 function onDeviceCapChange(devId) {
+  ensureAutoDevicesStateSafety();
   const dev = autoDevicesState.find(d => d.id === devId);
   const capSel = document.getElementById("autoCartridgeCap_" + devId);
   const unitSel = document.getElementById("autoDispenseUnit_" + devId);
@@ -160,10 +218,20 @@ function onDeviceCapChange(devId) {
       const recSetting = getRecommendedSettingMonths(recMonths, devType, dev.cap);
       dev.period = recSetting.months;
     }
+
+    // Refresh period options and selected value in-place without destroying DOM card!
+    const periodSel = document.getElementById("autoDispensePeriod_" + devId);
+    if (periodSel) {
+      const lang = (typeof currentLang !== "undefined" && currentLang) ? currentLang : "nl";
+      periodSel.innerHTML = validMonths.map(m => {
+        const isSel = Number(m) === Number(dev.period);
+        const unitLabel = m === 1 ? (lang === "fr" ? "mois" : (lang === "en" ? "month" : "maand")) : (lang === "fr" ? "mois" : (lang === "en" ? "months" : "maanden"));
+        return `<option value="${m}"${isSel ? " selected" : ""}>${m} ${unitLabel}</option>`;
+      }).join("");
+      periodSel.value = String(dev.period);
+    }
   }
   saveAutomationStateToLocalStorage();
-  if (typeof renderAutoDevicesUI === "function") renderAutoDevicesUI();
-  if (typeof renderPhotoGrid === "function") renderPhotoGrid();
   calculateAutomationLubrication();
   if (typeof updateRoiAutomationPage === "function") updateRoiAutomationPage();
 }
@@ -258,6 +326,7 @@ function getDeviceTypeName(typeId) {
 window.getDeviceTypeName = getDeviceTypeName;
 
 function onDeviceTypeChange(devId, newType) {
+  ensureAutoDevicesStateSafety();
   if (typeof autoDevicesState !== "undefined") {
     const dev = autoDevicesState.find(d => d.id === devId);
     if (dev) {
@@ -543,13 +612,20 @@ function applyAutoRecommendationForDevice(devId) {
 let isAutomationStateLoaded = false;
 
 function saveAutomationStateToLocalStorage() {
-  if (!isAutomationStateLoaded) return;
+  ensureAutoDevicesStateSafety();
+  if (!isAutomationStateLoaded) isAutomationStateLoaded = true;
   try {
     const deviceSelect = document.getElementById("automationDeviceSelect") || document.getElementById("autoDeviceSelect");
-    if (deviceSelect) localStorage.setItem("auto_device_key", deviceSelect.value);
+    if (deviceSelect) {
+      localStorage.setItem("auto_device_key", deviceSelect.value);
+      localStorage.setItem("app_field_automationDeviceSelect", deviceSelect.value);
+    }
 
     const numDevicesSelect = document.getElementById("autoNumDevicesSelect");
-    if (numDevicesSelect) localStorage.setItem("auto_num_devices", numDevicesSelect.value);
+    if (numDevicesSelect) {
+      localStorage.setItem("auto_num_devices", numDevicesSelect.value);
+      localStorage.setItem("app_field_autoNumDevicesSelect", numDevicesSelect.value);
+    }
 
     if (window.spNumBearingsValue) {
       localStorage.setItem("single_point_num_bearings", String(window.spNumBearingsValue));
@@ -569,7 +645,7 @@ function saveAutomationStateToLocalStorage() {
 function loadAutomationStateFromLocalStorage(force) {
   if (isAutomationStateLoaded && !force) return;
   try {
-    const savedDeviceKey = localStorage.getItem("auto_device_key");
+    const savedDeviceKey = localStorage.getItem("auto_device_key") || localStorage.getItem("app_field_automationDeviceSelect");
     if (savedDeviceKey) {
       const deviceSelect = document.getElementById("automationDeviceSelect") || document.getElementById("autoDeviceSelect");
       if (deviceSelect) {
@@ -581,7 +657,7 @@ function loadAutomationStateFromLocalStorage(force) {
       }
     }
 
-    const savedNumDevices = localStorage.getItem("auto_num_devices");
+    const savedNumDevices = localStorage.getItem("auto_num_devices") || localStorage.getItem("app_field_autoNumDevicesSelect");
     if (savedNumDevices) {
       const numDevicesSelect = document.getElementById("autoNumDevicesSelect");
       if (numDevicesSelect) numDevicesSelect.value = savedNumDevices;
@@ -604,6 +680,9 @@ function loadAutomationStateFromLocalStorage(force) {
         window.autoDevicesState = autoDevicesState;
       }
     }
+
+    // Always ensure at least 4 valid devices
+    ensureAutoDevicesStateSafety(4, savedDeviceKey);
 
     // Determine total single point bearings across all groups
     if (Array.isArray(autoDevicesState)) {
@@ -5324,6 +5403,9 @@ function renderAutoDevicesUI() {
   const isSpMultiGroup = (isSinglePoint && activeSpGroups.length > 1);
   const numDevices = isSinglePoint ? (isSpMultiGroup ? activeSpGroups.length : 1) : getActiveNumDevices();
 
+  // CRITICAL SAFETY: Ensure all devices up to numDevices are initialized!
+  ensureAutoDevicesStateSafety(Math.max(4, numDevices), deviceKey);
+
   const outerGrid = document.getElementById("automationInteractiveGrid");
   if (outerGrid) {
     if (numDevices > 1) {
@@ -5350,7 +5432,7 @@ function renderAutoDevicesUI() {
   const hasAnyBearingSummary = Array.isArray(autoDevicesState) && autoDevicesState.slice(0, numDevices).some(d => !!d && !!d.bearingSummary);
 
   for (let i = 0; i < numDevices; i++) {
-    const dev = autoDevicesState[i];
+    const dev = autoDevicesState[i] || { id: String.fromCharCode(65 + i), points: 1, cap: isSinglePoint ? 250 : 125, period: 6, unit: "months" };
     const cardDevType = isSinglePoint ? "single_point" : (dev.type || deviceKey || "pulsarlube_m2");
     const selectGrease = document.getElementById("inputGrease") || document.getElementById("selectGrease");
     const greaseName = selectGrease ? selectGrease.value : "Interflon Grease MP2/3";
@@ -5746,7 +5828,7 @@ function initUniversalInputPersistence() {
 
     const allInputs = document.querySelectorAll("input[id], select[id]");
     allInputs.forEach(el => {
-      if (el.id === "passwordInput" || el.id === "langSelect" || el.id === "inputTe" || el.id === "inputTa" || el.type === "hidden" || el.type === "file") return;
+      if (el.id === "passwordInput" || el.id === "langSelect" || el.id === "inputTe" || el.id === "inputTa" || el.type === "hidden" || el.type === "file" || el.id.startsWith("autoCartridgeCap") || el.id.startsWith("autoDispensePeriod") || el.id.startsWith("autoNumPointsSelect") || el.id.startsWith("autoDeviceType")) return;
 
       const savedVal = localStorage.getItem("app_field_" + el.id);
       if (savedVal !== null && savedVal !== "") {
@@ -14416,9 +14498,10 @@ const DEVICE_CAPACITIES = {
 };
 
 function updateAutomationPage(isDropdownChange) {
-  if (typeof loadAutomationStateFromLocalStorage === "function") {
+  if (!isDropdownChange && typeof loadAutomationStateFromLocalStorage === "function") {
     loadAutomationStateFromLocalStorage();
   }
+  ensureAutoDevicesStateSafety();
   setTimeout(() => { if (typeof updateRoiAutomationPage === "function") updateRoiAutomationPage(); }, 0);
   const select = document.getElementById("automationDeviceSelect");
   if (!select) return;
@@ -14649,6 +14732,7 @@ function onAutoPeriodInput() {
 }
 
 function calculateAutomationLubrication() {
+  ensureAutoDevicesStateSafety();
   saveAutomationStateToLocalStorage();
   setTimeout(() => { if (typeof updateRoiAutomationPage === "function") updateRoiAutomationPage(); }, 0);
   
@@ -14661,6 +14745,7 @@ function calculateAutomationLubrication() {
     : [];
   const isSpMultiGroup = (isSinglePoint && activeSpGroups.length > 1);
   const numCards = isSinglePoint ? (isSpMultiGroup ? activeSpGroups.length : 1) : getActiveNumDevices();
+  ensureAutoDevicesStateSafety(Math.max(4, numCards), deviceKey);
   const container = document.getElementById("autoDevicesCardsContainer");
   if (container && container.children.length !== numCards) {
     renderAutoDevicesUI();
@@ -14775,6 +14860,11 @@ function calculateAutomationLubrication() {
       if (autoDevicesState[i]) autoDevicesState[i].cap = dev.cap;
     }
     const capMl = dev.cap || 125;
+    // Synchronize capSelect in DOM if out of sync
+    const capSelect = document.getElementById("autoCartridgeCap_" + devId);
+    if (capSelect && capSelect.value !== String(capMl)) {
+      capSelect.value = String(capMl);
+    }
     const devName = isSinglePoint ? "Interflon Single Point Lubricator" : (numCards === 1 ? "Pulsarlube Smeertoestel" : `Pulsarlube ${devId}`);
 
     // 1. Update Verdeelblok Card Info for this device
@@ -14854,6 +14944,22 @@ function calculateAutomationLubrication() {
       }
     } else if (periodInput) {
       dev.period = parseFloat(periodInput.value) || dev.period || 1;
+    }
+
+    if (periodInput && periodInput.tagName === "SELECT") {
+      const existingOptions = Array.from(periodInput.options).map(o => Number(o.value));
+      const validMonths = getValidDispenseMonths(cardDevType, capMl);
+      const matches = existingOptions.length === validMonths.length && existingOptions.every((v, idx) => v === validMonths[idx]);
+      if (!matches) {
+        periodInput.innerHTML = validMonths.map(m => {
+          const isSel = Number(m) === Number(dev.period);
+          const unitLabel = m === 1 ? (lang === 'fr' ? 'mois' : (lang === 'en' ? 'month' : 'maand')) : (lang === 'fr' ? 'mois' : (lang === 'en' ? 'months' : 'maanden'));
+          return `<option value="${m}"${isSel ? ' selected' : ''}>${m} ${unitLabel}</option>`;
+        }).join('');
+      }
+      if (periodInput.value !== String(dev.period)) {
+        periodInput.value = String(dev.period);
+      }
     }
 
     const curPeriodVal = dev.period || (periodInput ? parseFloat(periodInput.value) : recSetting.months) || recSetting.months;
