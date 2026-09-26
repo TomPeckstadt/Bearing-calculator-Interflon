@@ -962,7 +962,7 @@ h1, h2, h3, h4, .brand-text {
    ========================================================================== */
 .main-content.page-calc-active,
 .main-content:has(#pageCalc.active) {
-  padding: 16px 28px 24px;
+  padding: 16px 28px 60px;
   gap: 12px;
 }
 
