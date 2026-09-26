@@ -17967,6 +17967,8 @@ function updateRoiAutomationPage() {
   const autoBearingLifetime = Math.round(p2_lifetime * lifetimeMult);
 
   // Update visual lifetime badges and rows in real-time
+  const baseLifetimeLabelEl = document.getElementById("roiBaseLifetimeLabel");
+  const autoLifetimeLabelEl = document.getElementById("roiAutoLifetimeLabel");
   const baseLifetimeEl = document.getElementById("roiBaseLifetimeDisplay");
   const autoLifetimeEl = document.getElementById("roiAutomatedLifetimeDisplay");
   const roiManLifetimeValEl = document.getElementById("roiManBearingLifetime");
@@ -17976,7 +17978,25 @@ function updateRoiAutomationPage() {
   const mndShortStr = lang === "fr" ? "m" : (lang === "en" ? "mo" : "mnd");
   const mndFullStr = lang === "fr" ? "mois" : (lang === "en" ? "months" : "maanden");
 
-  if (baseLifetimeEl) baseLifetimeEl.textContent = `${p2_lifetime} ${mndShortStr}`;
+  if (baseLifetimeLabelEl) {
+    baseLifetimeLabelEl.textContent = (manualMode === "huidig")
+      ? (lang === "fr" ? "Base actuel:" : (lang === "en" ? "Base current:" : "Basis huidig:"))
+      : (lang === "fr" ? "Base Interflon:" : (lang === "en" ? "Base Interflon:" : "Basis Interflon:"));
+  } else if (baseLifetimeEl && baseLifetimeEl.parentElement) {
+    const prefix = (manualMode === "huidig")
+      ? (lang === "fr" ? "Base actuel: " : (lang === "en" ? "Base current: " : "Basis huidig: "))
+      : (lang === "fr" ? "Base Interflon: " : (lang === "en" ? "Base Interflon: " : "Basis Interflon: "));
+    baseLifetimeEl.parentElement.innerHTML = `<span id="roiBaseLifetimeLabel">${prefix}</span><strong id="roiBaseLifetimeDisplay">${activeLifetime} ${mndShortStr}</strong>`;
+  }
+
+  if (autoLifetimeLabelEl) {
+    autoLifetimeLabelEl.textContent = (lang === "fr") ? "Automatique:" : ((lang === "en") ? "Automatic:" : "Automatisch:");
+  } else if (autoLifetimeEl && autoLifetimeEl.parentElement) {
+    const autoPrefix = (lang === "fr") ? "Automatique: " : ((lang === "en") ? "Automatic: " : "Automatisch: ");
+    autoLifetimeEl.parentElement.innerHTML = `<span id="roiAutoLifetimeLabel">${autoPrefix}</span><strong id="roiAutomatedLifetimeDisplay">${autoBearingLifetime} ${mndShortStr}</strong>`;
+  }
+
+  if (baseLifetimeEl) baseLifetimeEl.textContent = `${activeLifetime} ${mndShortStr}`;
   if (autoLifetimeEl) autoLifetimeEl.textContent = `${autoBearingLifetime} ${mndShortStr}`;
 
   if (roiManLifetimeValEl) {
