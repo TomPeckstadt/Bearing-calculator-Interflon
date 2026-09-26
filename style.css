@@ -1667,44 +1667,57 @@ h1, h2, h3, h4, .brand-text {
    UITZONDERINGEN OPBRENGSTMODEL: Velden die lichtgrijs blijven
    1. Kostprijs product / L (€) / Kies verpakking (#omProdPrice2, #chainOmProdPrice2, en #omProdPrice1)
    2. Levensduur lager (maanden) in de middelste kolom (#omLifetime2, #chainOmLifetime2)
+   3. Aantal jaren voor TCO (#omTcoYears, #chainOmTcoYears)
    ========================================================================== */
 .om-spreadsheet-table #omProdPrice2,
 .om-spreadsheet-table #omProdPrice1:not(.auto-filled),
 .om-spreadsheet-table #omLifetime2,
+.om-spreadsheet-table #omTcoYears,
 .om-spreadsheet-table #chainOmProdPrice2,
 .om-spreadsheet-table #chainOmProdPrice1:not(.auto-filled),
-.om-spreadsheet-table #chainOmLifetime2 {
-  background-color: #F3F4F6;
+.om-spreadsheet-table #chainOmLifetime2,
+.om-spreadsheet-table #chainOmTcoYears,
+.om-spreadsheet-table .cell-input-wrapper.grey-input input {
+  background-color: #F3F4F6 !important;
   color: var(--text-dark);
 }
 
 .om-spreadsheet-table .cell-input-wrapper:has(#omProdPrice2),
 .om-spreadsheet-table .cell-input-wrapper:has(#omProdPrice1:not(.auto-filled)),
 .om-spreadsheet-table .cell-input-wrapper:has(#omLifetime2),
+.om-spreadsheet-table .cell-input-wrapper:has(#omTcoYears),
 .om-spreadsheet-table .cell-input-wrapper:has(#chainOmProdPrice2),
 .om-spreadsheet-table .cell-input-wrapper:has(#chainOmProdPrice1:not(.auto-filled)),
-.om-spreadsheet-table .cell-input-wrapper:has(#chainOmLifetime2) {
-  background-color: #F3F4F6;
+.om-spreadsheet-table .cell-input-wrapper:has(#chainOmLifetime2),
+.om-spreadsheet-table .cell-input-wrapper:has(#chainOmTcoYears),
+.om-spreadsheet-table .cell-input-wrapper.grey-input {
+  background-color: #F3F4F6 !important;
   border-color: #E2E8F0;
 }
 
 .om-spreadsheet-table #omProdPrice2:focus,
 .om-spreadsheet-table #omProdPrice1:focus,
 .om-spreadsheet-table #omLifetime2:focus,
+.om-spreadsheet-table #omTcoYears:focus,
 .om-spreadsheet-table #chainOmProdPrice2:focus,
 .om-spreadsheet-table #chainOmProdPrice1:focus,
-.om-spreadsheet-table #chainOmLifetime2:focus {
-  background-color: #FFFFFF;
+.om-spreadsheet-table #chainOmLifetime2:focus,
+.om-spreadsheet-table #chainOmTcoYears:focus,
+.om-spreadsheet-table .cell-input-wrapper.grey-input input:focus {
+  background-color: #FFFFFF !important;
   box-shadow: inset 0 0 0 2px var(--primary-blue);
 }
 
 .om-spreadsheet-table .cell-input-wrapper:has(#omProdPrice2:focus),
 .om-spreadsheet-table .cell-input-wrapper:has(#omProdPrice1:focus),
 .om-spreadsheet-table .cell-input-wrapper:has(#omLifetime2:focus),
+.om-spreadsheet-table .cell-input-wrapper:has(#omTcoYears:focus),
 .om-spreadsheet-table .cell-input-wrapper:has(#chainOmProdPrice2:focus),
 .om-spreadsheet-table .cell-input-wrapper:has(#chainOmProdPrice1:focus),
-.om-spreadsheet-table .cell-input-wrapper:has(#chainOmLifetime2:focus) {
-  background-color: #FFFFFF;
+.om-spreadsheet-table .cell-input-wrapper:has(#chainOmLifetime2:focus),
+.om-spreadsheet-table .cell-input-wrapper:has(#chainOmTcoYears:focus),
+.om-spreadsheet-table .cell-input-wrapper.grey-input:has(input:focus) {
+  background-color: #FFFFFF !important;
 }
 
 .om-spreadsheet-table .cell-value {
