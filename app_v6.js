@@ -146,17 +146,7 @@ function onDevicePointsChange(devId) {
         // Keep DOM select elements synchronized with state
         const capSel = document.getElementById("autoCartridgeCap_" + devId);
         if (capSel) capSel.value = String(dev.cap);
-        const validMonths = getValidDispenseMonths(dev.type || "pulsarlube_m2", dev.cap);
-        const periodSel = document.getElementById("autoDispensePeriod_" + devId);
-        if (periodSel) {
-          const lang = (typeof currentLang !== "undefined" && currentLang) ? currentLang : "nl";
-          periodSel.innerHTML = validMonths.map(m => {
-            const isSel = Number(m) === Number(dev.period);
-            const unitLabel = m === 1 ? (lang === "fr" ? "mois" : (lang === "en" ? "month" : "maand")) : (lang === "fr" ? "mois" : (lang === "en" ? "months" : "maanden"));
-            return `<option value="${m}"${isSel ? " selected" : ""}>${m} ${unitLabel}</option>`;
-          }).join("");
-          periodSel.value = String(dev.period);
-        }
+        updateDeviceDispenseSettingsUI(devId);
       }
     }
   }
@@ -219,17 +209,8 @@ function onDeviceCapChange(devId) {
       dev.period = recSetting.months;
     }
 
-    // Refresh period options and selected value in-place without destroying DOM card!
-    const periodSel = document.getElementById("autoDispensePeriod_" + devId);
-    if (periodSel) {
-      const lang = (typeof currentLang !== "undefined" && currentLang) ? currentLang : "nl";
-      periodSel.innerHTML = validMonths.map(m => {
-        const isSel = Number(m) === Number(dev.period);
-        const unitLabel = m === 1 ? (lang === "fr" ? "mois" : (lang === "en" ? "month" : "maand")) : (lang === "fr" ? "mois" : (lang === "en" ? "months" : "maanden"));
-        return `<option value="${m}"${isSel ? " selected" : ""}>${m} ${unitLabel}</option>`;
-      }).join("");
-      periodSel.value = String(dev.period);
-    }
+    // Refresh period options and display standen hint line in-place without destroying DOM card!
+    updateDeviceDispenseSettingsUI(devId);
   }
   saveAutomationStateToLocalStorage();
   calculateAutomationLubrication();
@@ -324,6 +305,95 @@ function getDeviceTypeName(typeId) {
   return "Pulsarlube M2";
 }
 window.getDeviceTypeName = getDeviceTypeName;
+
+function updateDeviceDispenseSettingsUI(devId) {
+  ensureAutoDevicesStateSafety();
+  if (typeof autoDevicesState === "undefined" || !Array.isArray(autoDevicesState)) return;
+  const dev = autoDevicesState.find(d => d.id === devId);
+  if (!dev) return;
+
+  const deviceSelect = document.getElementById("automationDeviceSelect") || document.getElementById("autoDeviceSelect");
+  const deviceKey = deviceSelect ? deviceSelect.value : "single_point";
+  const isSinglePoint = (deviceKey === "single_point");
+  const cardDevType = isSinglePoint ? "single_point" : (dev.type || deviceKey || "pulsarlube_m2");
+  const capMl = parseInt(dev.cap, 10) || 125;
+  const validMonths = getValidDispenseMonths(cardDevType, capMl);
+
+  let devShortName = "";
+  if (cardDevType === "pulsarlube_msp_ac") devShortName = "MSP AC";
+  else if (cardDevType === "pulsarlube_msp_dc" || cardDevType === "pulsarlube_msp") devShortName = "MSP DC";
+  else if (cardDevType === "pulsarlube_msp_oil") devShortName = "MSP";
+  else if (cardDevType === "pulsarlube_m2") devShortName = "M2";
+  else if (cardDevType === "pulsarlube_plc") devShortName = "PLC";
+
+  const isPulsarlubeSpecial = !isSinglePoint && !!devShortName && [60, 125, 250, 500].includes(capMl);
+  const lang = (typeof currentLang !== "undefined" && currentLang) ? currentLang : "nl";
+
+  // 1. Update display standen hint line & container visibility
+  const hintContainer = document.getElementById("autoDispenseHintContainer_" + devId);
+  const hintText = document.getElementById("autoDispenseHintText_" + devId);
+  if (hintContainer) {
+    hintContainer.style.display = isPulsarlubeSpecial ? "flex" : "none";
+  }
+  if (hintText) {
+    const unitLabel = lang === "fr" ? "mois" : (lang === "en" ? "months" : "maanden");
+    const prefix = lang === "fr" ? `Réglages écran ${devShortName} ${capMl}ml :` : (lang === "en" ? `Display settings ${devShortName} ${capMl}ml:` : `Displaystanden ${devShortName} ${capMl}ml:`);
+    hintText.innerHTML = `${prefix} <strong>${validMonths.join(', ')} ${unitLabel}</strong>`;
+  }
+
+  // 2. Synchronize period dropdown options and value
+  const periodSel = document.getElementById("autoDispensePeriod_" + devId);
+  if (periodSel) {
+    if (!validMonths.map(Number).includes(Number(dev.period))) {
+      let nearest = validMonths[0];
+      let minDiff = Math.abs(Number(dev.period) - Number(nearest));
+      for (let m of validMonths) {
+        const diff = Math.abs(Number(dev.period) - Number(m));
+        if (diff < minDiff) {
+          minDiff = diff;
+          nearest = m;
+        }
+      }
+      dev.period = nearest;
+    }
+
+    const currentOptionsValues = Array.from(periodSel.options).map(o => Number(o.value));
+    const isSameOptions = currentOptionsValues.length === validMonths.length && currentOptionsValues.every((v, i) => v === validMonths[i]);
+
+    if (!isSameOptions) {
+      periodSel.innerHTML = validMonths.map(m => {
+        const isSel = Number(m) === Number(dev.period);
+        const unitLabel = m === 1 ? (lang === "fr" ? "mois" : (lang === "en" ? "month" : "maand")) : (lang === "fr" ? "mois" : (lang === "en" ? "months" : "maanden"));
+        return `<option value="${m}"${isSel ? " selected" : ""}>${m} ${unitLabel}</option>`;
+      }).join("");
+    }
+    if (periodSel.value !== String(dev.period)) {
+      periodSel.value = String(dev.period);
+    }
+  }
+
+  // 3. Synchronize cartridge cap dropdown value if out of sync
+  const capSel = document.getElementById("autoCartridgeCap_" + devId);
+  if (capSel && capSel.value !== String(capMl)) {
+    capSel.value = String(capMl);
+  }
+
+  // 4. Update custom pack price placeholder and warning notice if custom price not set
+  const customPriceInput = document.getElementById("autoCustomPackPrice_" + devId);
+  if (customPriceInput && !dev.customPackPrice) {
+    const selectGrease = document.getElementById("inputGrease") || document.getElementById("selectGrease");
+    const greaseName = selectGrease ? selectGrease.value : "Interflon Grease MP2/3";
+    if (typeof getAutomationPriceInfo === "function") {
+      const pInfo = getAutomationPriceInfo(cardDevType, capMl, greaseName, dev.points || 1, 0);
+      customPriceInput.placeholder = pInfo.isPriceFound ? ('Standaard € ' + pInfo.servicepackPrice.toFixed(2).replace('.', ',')) : 'Voer prijs in (bijv. 65,00)';
+      const priceWarningNotice = document.getElementById("priceWarningNotice_" + devId);
+      if (priceWarningNotice) {
+        priceWarningNotice.style.display = pInfo.isPriceFound ? 'none' : 'block';
+      }
+    }
+  }
+}
+window.updateDeviceDispenseSettingsUI = updateDeviceDispenseSettingsUI;
 
 function onDeviceTypeChange(devId, newType) {
   ensureAutoDevicesStateSafety();
@@ -5663,12 +5733,10 @@ function renderAutoDevicesUI() {
               </select>
               <input type="hidden" id="autoDispenseUnit_${devId}" value="months">
             </div>
-            ${isPulsarlubeSpecial ? `
-            <div style="font-size: 11px; color: #475569; margin-top: 4px; display: flex; align-items: center; gap: 4px;">
+            <div id="autoDispenseHintContainer_${devId}" style="font-size: 11px; color: #475569; margin-top: 4px; display: ${isPulsarlubeSpecial ? 'flex' : 'none'}; align-items: center; gap: 4px;">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="#0284c7" style="width: 13px; height: 13px; flex-shrink: 0;"><path fill-rule="evenodd" d="M18 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0zm-7-4a1 1 0 1 1-2 0 1 1 0 0 1 2 0zM9 9a.75.75 0 0 0 0 1.5h.253a.25.25 0 0 1 .244.304l-.459 2.066A1.75 1.75 0 0 0 10.747 15H11a.75.75 0 0 0 0-1.5h-.253a.25.25 0 0 1-.244-.304l.459-2.066A1.75 1.75 0 0 0 9.253 9H9z" clip-rule="evenodd" /></svg>
-              <span>${lang === "fr" ? `Réglages écran ${devShortName} ${dev.cap}ml :` : (lang === "en" ? `Display settings ${devShortName} ${dev.cap}ml:` : `Displaystanden ${devShortName} ${dev.cap}ml:`)} <strong>${validDispenseMonths.join(', ')} ${lang === "fr" ? "mois" : (lang === "en" ? "months" : "maanden")}</strong></span>
+              <span id="autoDispenseHintText_${devId}">${lang === "fr" ? `Réglages écran ${devShortName} ${dev.cap}ml :` : (lang === "en" ? `Display settings ${devShortName} ${dev.cap}ml:` : `Displaystanden ${devShortName} ${dev.cap}ml:`)} <strong>${validDispenseMonths.join(', ')} ${lang === "fr" ? "mois" : (lang === "en" ? "months" : "maanden")}</strong></span>
             </div>
-            ` : ''}
             
             <div id="autoDialBadge_${devId}" style="margin-top: 8px; background-color: #ffffff; border: 1px solid #cbd5e1; border-radius: var(--border-radius-sm); padding: 8px 10px; font-size: 11.5px; color: var(--text-dark); line-height: 1.4;">
               <div style="font-weight: 700; color: var(--primary-red); display: flex; align-items: center; justify-content: space-between; gap: 6px;">
@@ -14946,21 +15014,7 @@ function calculateAutomationLubrication() {
       dev.period = parseFloat(periodInput.value) || dev.period || 1;
     }
 
-    if (periodInput && periodInput.tagName === "SELECT") {
-      const existingOptions = Array.from(periodInput.options).map(o => Number(o.value));
-      const validMonths = getValidDispenseMonths(cardDevType, capMl);
-      const matches = existingOptions.length === validMonths.length && existingOptions.every((v, idx) => v === validMonths[idx]);
-      if (!matches) {
-        periodInput.innerHTML = validMonths.map(m => {
-          const isSel = Number(m) === Number(dev.period);
-          const unitLabel = m === 1 ? (lang === 'fr' ? 'mois' : (lang === 'en' ? 'month' : 'maand')) : (lang === 'fr' ? 'mois' : (lang === 'en' ? 'months' : 'maanden'));
-          return `<option value="${m}"${isSel ? ' selected' : ''}>${m} ${unitLabel}</option>`;
-        }).join('');
-      }
-      if (periodInput.value !== String(dev.period)) {
-        periodInput.value = String(dev.period);
-      }
-    }
+    updateDeviceDispenseSettingsUI(devId);
 
     const curPeriodVal = dev.period || (periodInput ? parseFloat(periodInput.value) : recSetting.months) || recSetting.months;
     const activeSettingLabel = `${curPeriodVal} ${curPeriodVal === 1 ? (lang === 'fr' ? 'mois' : (lang === 'en' ? 'month' : 'maand')) : (lang === 'fr' ? 'mois' : (lang === 'en' ? 'months' : 'maanden'))}`;
