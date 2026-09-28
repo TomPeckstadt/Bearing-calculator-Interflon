@@ -1122,6 +1122,37 @@
       flex-shrink: 0 !important;
     }
 
+    /* Stable CSS Hover for Bearing Cards & Distance Pills */
+    .raster-bearing-card {
+      background: #f8fafc;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 10px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      transition: background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+      cursor: default;
+    }
+    .raster-bearing-card:hover,
+    .raster-bearing-card.is-canvas-hovered {
+      background: #eff6ff !important;
+      border-color: #3b82f6 !important;
+      box-shadow: 0 3px 8px rgba(37,99,235,0.12) !important;
+    }
+    .raster-dist-pill {
+      user-select: none;
+      transition: border-color 0.15s ease, background-color 0.15s ease, box-shadow 0.15s ease;
+    }
+    .raster-dist-pill * {
+      pointer-events: none !important;
+    }
+    .raster-dist-pill.can-reassign:not(.is-assigned):hover {
+      background-color: #ffffff !important;
+      border-color: var(--pill-hover-color, #3b82f6) !important;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+    }
+
     /* =========================================================================
        SMART DEVICE ADVICE & AUTO-PLACEMENT STYLES
        ========================================================================= */
@@ -2370,7 +2401,9 @@
       // 2. Each Device Pill with Dedicated Toggle Button & Distinct Type Selector
       devices.forEach((dev, idx) => {
         if (!dev.type) dev.type = 'pulsarlube_m2';
-        const pal = DEVICE_PALETTES[dev.paletteIndex % DEVICE_PALETTES.length];
+        const pal = (typeof dev.paletteIndex === 'number')
+          ? (DEVICE_PALETTES[dev.paletteIndex % DEVICE_PALETTES.length] || DEVICE_PALETTES[0])
+          : (DEVICE_PALETTES[idx % DEVICE_PALETTES.length] || DEVICE_PALETTES[0]);
         const devPill = document.createElement('div');
         devPill.className = 'device-filter-pill';
 
@@ -5195,6 +5228,14 @@
             hoveredDeviceId = newHoverDevice;
             canvas.style.cursor = hit ? 'grab' : 'default';
             drawBearingLayout();
+            const cards = document.querySelectorAll('.raster-bearing-card');
+            cards.forEach(c => {
+              if (c.getAttribute('data-letter') === hoveredBearingLetter) {
+                c.classList.add('is-canvas-hovered');
+              } else {
+                c.classList.remove('is-canvas-hovered');
+              }
+            });
           }
         }
       });
@@ -5234,6 +5275,8 @@
           hoveredDeviceId = null;
           canvas.style.cursor = 'default';
           drawBearingLayout();
+          const cards = document.querySelectorAll('.raster-bearing-card.is-canvas-hovered');
+          cards.forEach(c => c.classList.remove('is-canvas-hovered'));
         }
       });
 
@@ -5767,6 +5810,7 @@
         };
       }
 
+      const prevScrollTop = container.scrollTop;
       container.innerHTML = '';
 
       // Compute need analysis for all bearings to determine color grouping
@@ -6068,23 +6112,16 @@
         }
 
         const card = document.createElement('div');
-        card.className = 'raster-bearing-card';
+        card.className = 'raster-bearing-card' + (hoveredBearingLetter === letter ? ' is-canvas-hovered' : '');
         card.setAttribute('data-letter', letter);
-        card.style.cssText = 'background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 8px; padding: 10px 12px; display: flex; flex-direction: column; gap: 8px; transition: background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease; cursor: default;';
         
         card.onmouseenter = function() {
-          card.style.background = '#eff6ff';
-          card.style.borderColor = '#3b82f6';
-          card.style.boxShadow = '0 3px 8px rgba(37,99,235,0.12)';
           if (hoveredBearingLetter !== letter) {
             hoveredBearingLetter = letter;
             drawBearingLayout();
           }
         };
         card.onmouseleave = function() {
-          card.style.background = '#f8fafc';
-          card.style.borderColor = '#e2e8f0';
-          card.style.boxShadow = 'none';
           if (hoveredBearingLetter === letter) {
             hoveredBearingLetter = null;
             drawBearingLayout();
@@ -6177,7 +6214,7 @@
                 ? ('box-shadow: 0 2px 6px ' + od.origin.color + '33;') 
                 : '';
               const clickAttr = canReassign 
-                ? ('onclick="manuallyAssignBearingToDevice(\`' + letter + '\`, \`' + od.origin.id + '\`, event)"') 
+                ? ('onclick="manuallyAssignBearingToDevice(\'' + letter + '\', \'' + od.origin.id + '\', event)"') 
                 : '';
               const cursorStyle = canReassign ? 'cursor: pointer;' : 'cursor: default;';
               const titleAttr = isCp
@@ -6188,10 +6225,9 @@
 
               distRowsHtml += 
                 '<div ' + clickAttr + ' ' +
-                  'class="raster-dist-pill ' + (isAssigned ? 'is-assigned' : 'is-unassigned') + '" ' +
-                  'style="display: inline-flex; align-items: center; gap: 5px; background: ' + bgStyle + '; border: ' + borderStyle + '; ' + shadowStyle + ' border-radius: 6px; padding: 3px 8px; font-size: 11px; ' + cursorStyle + ' transition: all 0.18s ease; user-select: none;" ' +
-                  'title="' + titleAttr + '" ' +
-                  (canReassign && !isAssigned ? ('onmouseenter="this.style.borderColor=\'' + od.origin.color + '\'; this.style.backgroundColor=\'#ffffff\';" onmouseleave="this.style.borderColor=\'' + statusBorder + '\'; this.style.backgroundColor=\'' + bgStyle + '\';"') : '') + '>' +
+                  'class="raster-dist-pill ' + (isAssigned ? 'is-assigned' : 'is-unassigned') + (canReassign ? ' can-reassign' : '') + '" ' +
+                  'style="--pill-hover-color: ' + od.origin.color + '; display: inline-flex; align-items: center; gap: 5px; background: ' + bgStyle + '; border: ' + borderStyle + '; ' + shadowStyle + ' border-radius: 6px; padding: 3px 8px; font-size: 11px; ' + cursorStyle + ' transition: all 0.15s ease; user-select: none;" ' +
+                  'title="' + titleAttr + '">' +
                   '<span style="font-weight: 800; color: ' + od.origin.color + ';">' + od.origin.short + (od.origin.typeShort ? (' <small style="font-weight: 700; opacity: 0.85;">' + od.origin.typeShort + '</small>') : '') + ':</span>' +
                   '<span style="font-weight: 800; color: ' + statusCol + ';">' + roundedD.toFixed(1).replace('.', ',') + ' m</span>' +
                   (isClosest ? '<span style="font-size: 9px; font-weight: 800; color: #15803d; background: #bbf7d0; padding: 1px 4px; border-radius: 3px;" title="Fysiek kortste leidingafstand">⭐ Dichtstbij</span>' : '') +
@@ -6355,6 +6391,10 @@
             restoredInput.setSelectionRange(activeCoordMeta.selStart, activeCoordMeta.selEnd);
           } catch(e) {}
         }
+      }
+
+      if (typeof prevScrollTop === 'number' && prevScrollTop > 0) {
+        container.scrollTop = prevScrollTop;
       }
 
       // Render complete
@@ -9088,8 +9128,6 @@
       } catch (e) {}
 
       if (!skipAutoSave) triggerSurveyAutoSave();
-      if (typeof renderDistancesOverview === 'function') renderDistancesOverview();
-      if (typeof drawBearingLayout === 'function') drawBearingLayout();
     }
 
     function loadSection2DataForBearing(letter) {
