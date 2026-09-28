@@ -6095,19 +6095,17 @@ function renderPdfAutomationExtraPage(doc, autoData, autoDataUrl, autoRatio, wat
 
   // Read active devices state
   const deviceSelect = document.getElementById("automationDeviceSelect") || document.getElementById("autoDeviceSelect");
-  let deviceKey = deviceSelect ? deviceSelect.value : "single_point";
-
-  const isSpConfig = (deviceKey === "single_point") || (Array.isArray(autoDevicesState) && autoDevicesState.some(d => d && (d.isSinglePointGroup || d.type === 'single_point')));
-  const isSinglePoint = isChain ? false : isSpConfig;
-  if (isSinglePoint) {
-    deviceKey = "single_point";
-    if (Array.isArray(autoDevicesState)) {
-      autoDevicesState.forEach(d => { if (d) d.type = 'single_point'; });
-    }
-  }
+  let deviceKey = deviceSelect ? deviceSelect.value : "pulsarlube_m2";
 
   const rawNumDevices = (typeof getActiveNumDevices === "function" ? getActiveNumDevices() : 1);
   const activeDevicesList = (Array.isArray(autoDevicesState) ? autoDevicesState.slice(0, rawNumDevices) : []);
+
+  const hasSpGroups = activeDevicesList.some(d => d && d.isSinglePointGroup && (d.unitCount > 0 || (d.bearingLetters && d.bearingLetters.length > 0)));
+  const isSpConfig = (deviceKey === "single_point") || (!deviceKey.startsWith("pulsarlube") && deviceKey !== "mixed" && hasSpGroups);
+  const isSinglePoint = isChain ? false : isSpConfig;
+  if (isSinglePoint) {
+    deviceKey = "single_point";
+  }
   const activeSpGroups = (isSinglePoint && Array.isArray(autoDevicesState))
     ? autoDevicesState.filter(d => d && d.isSinglePointGroup && (d.unitCount > 0 || (d.bearingLetters && d.bearingLetters.length > 0)))
     : [];
@@ -10549,9 +10547,11 @@ function calculateGrease() {
   }
   window.lastSelectedGreaseName = currentGreaseVal;
 
-  if (typeof renderAutomationDeviceCards === "function") renderAutomationDeviceCards();
-  if (typeof calculateAutomationLubrication === "function") calculateAutomationLubrication();
-  setTimeout(() => { if (typeof updateRoiAutomationPage === "function") updateRoiAutomationPage(); }, 0);
+  if (!window.isGeneratingPdf) {
+    if (typeof renderAutomationDeviceCards === "function") renderAutomationDeviceCards();
+    if (typeof calculateAutomationLubrication === "function") calculateAutomationLubrication();
+    setTimeout(() => { if (typeof updateRoiAutomationPage === "function") updateRoiAutomationPage(); }, 0);
+  }
   updateThickenerCompatibility();
   const tempInput = document.getElementById("inputTemperature");
   const speedInput = document.getElementById("inputSpeed");
@@ -12768,19 +12768,19 @@ function runBearingPdfExport(includeTco, includeRoi, includeRaster = true) {
     exportBtn.innerHTML = langData.pdfGenerating || "Genereren...";
   }
 
-  const autoDeviceSelectEl = document.getElementById("automationDeviceSelect") || document.getElementById("autoDeviceSelect");
-  let autoDeviceKey = autoDeviceSelectEl ? autoDeviceSelectEl.value : "single_point";
+  window.isGeneratingPdf = true;
 
-  const isSinglePointMode = (autoDeviceKey === "single_point") || (Array.isArray(autoDevicesState) && autoDevicesState.some(d => d && (d.isSinglePointGroup || d.type === 'single_point')));
-  if (isSinglePointMode) {
-    autoDeviceKey = "single_point";
-    if (Array.isArray(autoDevicesState)) {
-      autoDevicesState.forEach(d => { if (d) d.type = 'single_point'; });
-    }
-  }
+  const autoDeviceSelectEl = document.getElementById("automationDeviceSelect") || document.getElementById("autoDeviceSelect");
+  let autoDeviceKey = autoDeviceSelectEl ? autoDeviceSelectEl.value : "pulsarlube_m2";
 
   const rawNumDevs = (typeof getActiveNumDevices === "function" ? getActiveNumDevices() : 1);
   const activeDevList = (Array.isArray(autoDevicesState) ? autoDevicesState.slice(0, rawNumDevs) : []);
+
+  const hasSpGroups = activeDevList.some(d => d && d.isSinglePointGroup && (d.unitCount > 0 || (d.bearingLetters && d.bearingLetters.length > 0)));
+  const isSinglePointMode = (autoDeviceKey === "single_point") || (!autoDeviceKey.startsWith("pulsarlube") && autoDeviceKey !== "mixed" && hasSpGroups);
+  if (isSinglePointMode) {
+    autoDeviceKey = "single_point";
+  }
 
   let autoImgSrc = "interflon-single-point-lubricator.png";
   if (autoDeviceKey === "pulsarlube_m2") {
@@ -12797,111 +12797,137 @@ function runBearingPdfExport(includeTco, includeRoi, includeRaster = true) {
   const qBearings = (typeof getQuestionnaireBearings === 'function') ? getQuestionnaireBearings() : [];
   const hasQBearings = qBearings && qBearings.length > 0;
 
-  // Snapshot van huidige calculator status om na export getrouw te herstellen indien er meerdere lagers zijn
-  let stateSnapshot = null;
-  let restoreState = () => {};
+  // Snapshot van huidige calculator status om na export getrouw te herstellen
+  const stateSnapshot = {
+    searchVal: document.getElementById("bearingSearchInput") ? document.getElementById("bearingSearchInput").value : "",
+    activeBearingDesig: (typeof activeBearing !== "undefined" && activeBearing) ? activeBearing.designation : "",
+    activeSource: window.activeTcoBearingSource,
+    speed: document.getElementById("inputSpeed") ? document.getElementById("inputSpeed").value : "",
+    hours: document.getElementById("inputHoursPerDay") ? document.getElementById("inputHoursPerDay").value : "",
+    days: document.getElementById("inputDaysPerWeek") ? document.getElementById("inputDaysPerWeek").value : "",
+    temp: document.getElementById("inputTemperature") ? document.getElementById("inputTemperature").value : "",
+    teIdx: document.getElementById("inputTe") ? document.getElementById("inputTe").selectedIndex : 1,
+    taIdx: document.getElementById("inputTa") ? document.getElementById("inputTa").selectedIndex : 1,
+    grease: document.getElementById("inputGrease") ? document.getElementById("inputGrease").value : "",
+    micpol: document.getElementById("inputMicPolFactor") ? document.getElementById("inputMicPolFactor").value : "",
+    techProd: document.getElementById("techProductInput") ? document.getElementById("techProductInput").value : "",
+    techPrice: document.getElementById("techPriceInput") ? document.getElementById("techPriceInput").value : "",
+    techInt: document.getElementById("techIntervalInput") ? document.getElementById("techIntervalInput").value : "",
+    omWorktime: document.getElementById("omSharedWorktime") ? document.getElementById("omSharedWorktime").value : "",
+    omLaborRate: document.getElementById("omSharedLaborRate") ? document.getElementById("omSharedLaborRate").value : "",
+    omRepairH: document.getElementById("omSharedRepairH") ? document.getElementById("omSharedRepairH").value : "",
+    omPrepH: document.getElementById("omSharedPrepH") ? document.getElementById("omSharedPrepH").value : "",
+    omDtRate: document.getElementById("omSharedDowntimeRate") ? document.getElementById("omSharedDowntimeRate").value : "",
+    omPartsCost: document.getElementById("omSharedPartsCost") ? document.getElementById("omSharedPartsCost").value : "",
+    omSets: document.getElementById("omSharedSetsPerMachine") ? document.getElementById("omSharedSetsPerMachine").value : "",
+    omLife1: document.getElementById("omLifetime1") ? document.getElementById("omLifetime1").value : "",
+    omLife2: document.getElementById("omLifetime2") ? document.getElementById("omLifetime2").value : "",
+    omProdPrice1: document.getElementById("omProdPrice1") ? document.getElementById("omProdPrice1").value : "",
+    omProdFreq1: document.getElementById("omProdFreq1") ? document.getElementById("omProdFreq1").value : "",
+    surveySelIdx: document.getElementById("surveyBearingSelect") ? document.getElementById("surveyBearingSelect").selectedIndex : -1,
+    omSurveySelIdx: document.getElementById("omSurveyBearingSelect") ? document.getElementById("omSurveyBearingSelect").selectedIndex : -1,
+    snlChecked: document.getElementById("chkSnlHousing") ? document.getElementById("chkSnlHousing").checked : false,
+    snlType: document.getElementById("selSnlType") ? document.getElementById("selSnlType").value : "",
+    snlFill: document.getElementById("selSnlFillPercent") ? document.getElementById("selSnlFillPercent").value : "",
+    snlRelub: document.getElementById("selSnlRelubPosition") ? document.getElementById("selSnlRelubPosition").value : "",
+    autoDevicesState: (typeof autoDevicesState !== "undefined" && Array.isArray(autoDevicesState))
+      ? JSON.parse(JSON.stringify(autoDevicesState))
+      : null,
+    autoDeviceSelectVal: (document.getElementById("automationDeviceSelect") || document.getElementById("autoDeviceSelect"))
+      ? (document.getElementById("automationDeviceSelect") || document.getElementById("autoDeviceSelect")).value
+      : null,
+    autoNumDevicesVal: document.getElementById("autoNumDevicesSelect")
+      ? document.getElementById("autoNumDevicesSelect").value
+      : null
+  };
 
-  if (hasQBearings) {
-    stateSnapshot = {
-      searchVal: document.getElementById("bearingSearchInput") ? document.getElementById("bearingSearchInput").value : "",
-      activeBearingDesig: (typeof activeBearing !== "undefined" && activeBearing) ? activeBearing.designation : "",
-      activeSource: window.activeTcoBearingSource,
-      speed: document.getElementById("inputSpeed") ? document.getElementById("inputSpeed").value : "",
-      hours: document.getElementById("inputHoursPerDay") ? document.getElementById("inputHoursPerDay").value : "",
-      days: document.getElementById("inputDaysPerWeek") ? document.getElementById("inputDaysPerWeek").value : "",
-      temp: document.getElementById("inputTemperature") ? document.getElementById("inputTemperature").value : "",
-      teIdx: document.getElementById("inputTe") ? document.getElementById("inputTe").selectedIndex : 1,
-      taIdx: document.getElementById("inputTa") ? document.getElementById("inputTa").selectedIndex : 1,
-      grease: document.getElementById("inputGrease") ? document.getElementById("inputGrease").value : "",
-      micpol: document.getElementById("inputMicPolFactor") ? document.getElementById("inputMicPolFactor").value : "",
-      techProd: document.getElementById("techProductInput") ? document.getElementById("techProductInput").value : "",
-      techPrice: document.getElementById("techPriceInput") ? document.getElementById("techPriceInput").value : "",
-      techInt: document.getElementById("techIntervalInput") ? document.getElementById("techIntervalInput").value : "",
-      omWorktime: document.getElementById("omSharedWorktime") ? document.getElementById("omSharedWorktime").value : "",
-      omLaborRate: document.getElementById("omSharedLaborRate") ? document.getElementById("omSharedLaborRate").value : "",
-      omRepairH: document.getElementById("omSharedRepairH") ? document.getElementById("omSharedRepairH").value : "",
-      omPrepH: document.getElementById("omSharedPrepH") ? document.getElementById("omSharedPrepH").value : "",
-      omDtRate: document.getElementById("omSharedDowntimeRate") ? document.getElementById("omSharedDowntimeRate").value : "",
-      omPartsCost: document.getElementById("omSharedPartsCost") ? document.getElementById("omSharedPartsCost").value : "",
-      omSets: document.getElementById("omSharedSetsPerMachine") ? document.getElementById("omSharedSetsPerMachine").value : "",
-      omLife1: document.getElementById("omLifetime1") ? document.getElementById("omLifetime1").value : "",
-      omLife2: document.getElementById("omLifetime2") ? document.getElementById("omLifetime2").value : "",
-      omProdPrice1: document.getElementById("omProdPrice1") ? document.getElementById("omProdPrice1").value : "",
-      omProdFreq1: document.getElementById("omProdFreq1") ? document.getElementById("omProdFreq1").value : "",
-      surveySelIdx: document.getElementById("surveyBearingSelect") ? document.getElementById("surveyBearingSelect").selectedIndex : -1,
-      omSurveySelIdx: document.getElementById("omSurveyBearingSelect") ? document.getElementById("omSurveyBearingSelect").selectedIndex : -1,
-      snlChecked: document.getElementById("chkSnlHousing") ? document.getElementById("chkSnlHousing").checked : false,
-      snlType: document.getElementById("selSnlType") ? document.getElementById("selSnlType").value : "",
-      snlFill: document.getElementById("selSnlFillPercent") ? document.getElementById("selSnlFillPercent").value : "",
-      snlRelub: document.getElementById("selSnlRelubPosition") ? document.getElementById("selSnlRelubPosition").value : ""
-    };
-
-    restoreState = () => {
-      try {
-        if (stateSnapshot.activeBearingDesig) {
-          if (typeof loadBearingDetails === "function") loadBearingDetails(stateSnapshot.activeBearingDesig);
-          if (typeof updateCalculatorFields === "function") updateCalculatorFields();
-        }
-        if (document.getElementById("bearingSearchInput")) document.getElementById("bearingSearchInput").value = stateSnapshot.searchVal;
-        if (document.getElementById("inputSpeed")) document.getElementById("inputSpeed").value = stateSnapshot.speed;
-        if (document.getElementById("inputHoursPerDay")) document.getElementById("inputHoursPerDay").value = stateSnapshot.hours;
-        if (document.getElementById("inputDaysPerWeek")) document.getElementById("inputDaysPerWeek").value = stateSnapshot.days;
-        if (document.getElementById("inputTemperature")) document.getElementById("inputTemperature").value = stateSnapshot.temp;
-        if (document.getElementById("inputTe")) document.getElementById("inputTe").selectedIndex = stateSnapshot.teIdx;
-        if (document.getElementById("inputTa")) document.getElementById("inputTa").selectedIndex = stateSnapshot.taIdx;
-        if (document.getElementById("inputGrease")) document.getElementById("inputGrease").value = stateSnapshot.grease;
-        if (document.getElementById("inputMicPolFactor")) document.getElementById("inputMicPolFactor").value = stateSnapshot.micpol;
-        if (document.getElementById("techProductInput")) document.getElementById("techProductInput").value = stateSnapshot.techProd;
-        if (document.getElementById("techPriceInput")) document.getElementById("techPriceInput").value = stateSnapshot.techPrice;
-        if (document.getElementById("techIntervalInput")) document.getElementById("techIntervalInput").value = stateSnapshot.techInt;
-        if (document.getElementById("omSharedWorktime")) document.getElementById("omSharedWorktime").value = stateSnapshot.omWorktime;
-        if (document.getElementById("omSharedLaborRate")) document.getElementById("omSharedLaborRate").value = stateSnapshot.omLaborRate;
-        if (document.getElementById("omSharedRepairH")) document.getElementById("omSharedRepairH").value = stateSnapshot.omRepairH;
-        if (document.getElementById("omSharedPrepH")) document.getElementById("omSharedPrepH").value = stateSnapshot.omPrepH;
-        if (document.getElementById("omSharedDowntimeRate")) document.getElementById("omSharedDowntimeRate").value = stateSnapshot.omDtRate;
-        if (document.getElementById("omSharedPartsCost")) document.getElementById("omSharedPartsCost").value = stateSnapshot.omPartsCost;
-        if (document.getElementById("omSharedSetsPerMachine")) document.getElementById("omSharedSetsPerMachine").value = stateSnapshot.omSets;
-        if (document.getElementById("omLifetime1")) document.getElementById("omLifetime1").value = stateSnapshot.omLife1;
-        if (document.getElementById("omLifetime2")) document.getElementById("omLifetime2").value = stateSnapshot.omLife2;
-        if (document.getElementById("omProdPrice1")) document.getElementById("omProdPrice1").value = stateSnapshot.omProdPrice1;
-        if (document.getElementById("omProdFreq1")) document.getElementById("omProdFreq1").value = stateSnapshot.omProdFreq1;
-        if (stateSnapshot.surveySelIdx >= 0 && document.getElementById("surveyBearingSelect")) {
-          document.getElementById("surveyBearingSelect").selectedIndex = stateSnapshot.surveySelIdx;
-        }
-        if (stateSnapshot.omSurveySelIdx >= 0 && document.getElementById("omSurveyBearingSelect")) {
-          document.getElementById("omSurveyBearingSelect").selectedIndex = stateSnapshot.omSurveySelIdx;
-        }
-        const chkSnl = document.getElementById("chkSnlHousing");
-        const selSnlType = document.getElementById("selSnlType");
-        const selSnlFill = document.getElementById("selSnlFillPercent");
-        const selSnlRelub = document.getElementById("selSnlRelubPosition");
-        const snlContainer = document.getElementById("snlOptionsContainer");
-        if (chkSnl) {
-          chkSnl.checked = !!stateSnapshot.snlChecked;
-          if (snlContainer) {
-            if (stateSnapshot.snlChecked) snlContainer.classList.remove("hidden");
-            else snlContainer.classList.add("hidden");
-          }
-          if (selSnlType && stateSnapshot.snlType) selSnlType.value = stateSnapshot.snlType;
-          if (selSnlFill && stateSnapshot.snlFill) selSnlFill.value = stateSnapshot.snlFill;
-          if (selSnlRelub && stateSnapshot.snlRelub) selSnlRelub.value = stateSnapshot.snlRelub;
-          if (typeof onSnlParamsChanged === "function") onSnlParamsChanged();
-        }
-        window.activeTcoBearingSource = stateSnapshot.activeSource;
-        if (typeof calculateGrease === "function") calculateGrease();
-        if (typeof updateTcoFrequencies === "function") updateTcoFrequencies();
-        if (typeof calculateTco === "function") calculateTco();
-        if (typeof updateOmMetadata === "function") updateOmMetadata();
-      } catch (err) {
-        console.warn("Could not fully restore calculator state:", err);
+  const restoreState = () => {
+    try {
+      window.isGeneratingPdf = false;
+      if (stateSnapshot.activeBearingDesig) {
+        if (typeof loadBearingDetails === "function") loadBearingDetails(stateSnapshot.activeBearingDesig);
+        if (typeof updateCalculatorFields === "function") updateCalculatorFields();
       }
-    };
-  }
+      if (document.getElementById("bearingSearchInput")) document.getElementById("bearingSearchInput").value = stateSnapshot.searchVal;
+      if (document.getElementById("inputSpeed")) document.getElementById("inputSpeed").value = stateSnapshot.speed;
+      if (document.getElementById("inputHoursPerDay")) document.getElementById("inputHoursPerDay").value = stateSnapshot.hours;
+      if (document.getElementById("inputDaysPerWeek")) document.getElementById("inputDaysPerWeek").value = stateSnapshot.days;
+      if (document.getElementById("inputTemperature")) document.getElementById("inputTemperature").value = stateSnapshot.temp;
+      if (document.getElementById("inputTe")) document.getElementById("inputTe").selectedIndex = stateSnapshot.teIdx;
+      if (document.getElementById("inputTa")) document.getElementById("inputTa").selectedIndex = stateSnapshot.taIdx;
+      if (document.getElementById("inputGrease")) document.getElementById("inputGrease").value = stateSnapshot.grease;
+      if (document.getElementById("inputMicPolFactor")) document.getElementById("inputMicPolFactor").value = stateSnapshot.micpol;
+      if (document.getElementById("techProductInput")) document.getElementById("techProductInput").value = stateSnapshot.techProd;
+      if (document.getElementById("techPriceInput")) document.getElementById("techPriceInput").value = stateSnapshot.techPrice;
+      if (document.getElementById("techIntervalInput")) document.getElementById("techIntervalInput").value = stateSnapshot.techInt;
+      if (document.getElementById("omSharedWorktime")) document.getElementById("omSharedWorktime").value = stateSnapshot.omWorktime;
+      if (document.getElementById("omSharedLaborRate")) document.getElementById("omSharedLaborRate").value = stateSnapshot.omLaborRate;
+      if (document.getElementById("omSharedRepairH")) document.getElementById("omSharedRepairH").value = stateSnapshot.omRepairH;
+      if (document.getElementById("omSharedPrepH")) document.getElementById("omSharedPrepH").value = stateSnapshot.omPrepH;
+      if (document.getElementById("omSharedDowntimeRate")) document.getElementById("omSharedDowntimeRate").value = stateSnapshot.omDtRate;
+      if (document.getElementById("omSharedPartsCost")) document.getElementById("omSharedPartsCost").value = stateSnapshot.omPartsCost;
+      if (document.getElementById("omSharedSetsPerMachine")) document.getElementById("omSharedSetsPerMachine").value = stateSnapshot.omSets;
+      if (document.getElementById("omLifetime1")) document.getElementById("omLifetime1").value = stateSnapshot.omLife1;
+      if (document.getElementById("omLifetime2")) document.getElementById("omLifetime2").value = stateSnapshot.omLife2;
+      if (document.getElementById("omProdPrice1")) document.getElementById("omProdPrice1").value = stateSnapshot.omProdPrice1;
+      if (document.getElementById("omProdFreq1")) document.getElementById("omProdFreq1").value = stateSnapshot.omProdFreq1;
+      if (stateSnapshot.surveySelIdx >= 0 && document.getElementById("surveyBearingSelect")) {
+        document.getElementById("surveyBearingSelect").selectedIndex = stateSnapshot.surveySelIdx;
+      }
+      if (stateSnapshot.omSurveySelIdx >= 0 && document.getElementById("omSurveyBearingSelect")) {
+        document.getElementById("omSurveyBearingSelect").selectedIndex = stateSnapshot.omSurveySelIdx;
+      }
+      const chkSnl = document.getElementById("chkSnlHousing");
+      const selSnlType = document.getElementById("selSnlType");
+      const selSnlFill = document.getElementById("selSnlFillPercent");
+      const selSnlRelub = document.getElementById("selSnlRelubPosition");
+      const snlContainer = document.getElementById("snlOptionsContainer");
+      if (chkSnl) {
+        chkSnl.checked = !!stateSnapshot.snlChecked;
+        if (snlContainer) {
+          if (stateSnapshot.snlChecked) snlContainer.classList.remove("hidden");
+          else snlContainer.classList.add("hidden");
+        }
+        if (selSnlType && stateSnapshot.snlType) selSnlType.value = stateSnapshot.snlType;
+        if (selSnlFill && stateSnapshot.snlFill) selSnlFill.value = stateSnapshot.snlFill;
+        if (selSnlRelub && stateSnapshot.snlRelub) selSnlRelub.value = stateSnapshot.snlRelub;
+        if (typeof onSnlParamsChanged === "function") onSnlParamsChanged();
+      }
+      window.activeTcoBearingSource = stateSnapshot.activeSource;
+
+      // Restore automation state cleanly
+      if (stateSnapshot.autoDevicesState && Array.isArray(stateSnapshot.autoDevicesState)) {
+        autoDevicesState = JSON.parse(JSON.stringify(stateSnapshot.autoDevicesState));
+      }
+      const numDevEl = document.getElementById("autoNumDevicesSelect");
+      if (numDevEl && stateSnapshot.autoNumDevicesVal) {
+        numDevEl.value = stateSnapshot.autoNumDevicesVal;
+      }
+      const devSel = document.getElementById("automationDeviceSelect") || document.getElementById("autoDeviceSelect");
+      if (devSel && stateSnapshot.autoDeviceSelectVal) {
+        devSel.value = stateSnapshot.autoDeviceSelectVal;
+      }
+      if (typeof updateAutomationHeaderImages === "function") updateAutomationHeaderImages();
+      if (typeof renderAutoDevicesUI === "function") renderAutoDevicesUI();
+
+      if (typeof calculateGrease === "function") calculateGrease();
+      if (typeof updateTcoFrequencies === "function") updateTcoFrequencies();
+      if (typeof calculateTco === "function") calculateTco();
+      if (typeof updateOmMetadata === "function") updateOmMetadata();
+    } catch (err) {
+      console.warn("Could not fully restore calculator state:", err);
+    }
+  };
 
   getTransparentLogo((watermarkDataUrl, aspectRatio) => {
     getMicPolImageDataUrl((micpolDataUrl, micpolRatio) => {
       loadAllAutomationImages((autoImagesMap) => {
-        const primaryImgObj = (autoImagesMap && autoImagesMap[autoDeviceKey]) || 
+        let primaryImgKey = autoDeviceKey;
+        if (autoDeviceKey === "mixed") {
+          const firstPulsar = activeDevList.find(d => d && d.type && d.type.startsWith("pulsarlube"));
+          primaryImgKey = (firstPulsar && firstPulsar.type) ? firstPulsar.type : "pulsarlube_m2";
+        }
+        const primaryImgObj = (autoImagesMap && autoImagesMap[primaryImgKey]) || 
                               (autoImagesMap && autoImagesMap.pulsarlube_msp) || 
                               (autoImagesMap && autoImagesMap.pulsarlube_m2) || 
                               (autoImagesMap && autoImagesMap.single_point) || 
@@ -13022,6 +13048,7 @@ function runBearingPdfExport(includeTco, includeRoi, includeRaster = true) {
               console.error("Fout bij toevoegen automatisatiepagina's:", err);
               alert((langData.pdfErrorGen || "Er is een fout opgetreden bij het genereren van het PDF-rapport: ") + err.message);
             } finally {
+              window.isGeneratingPdf = false;
               restoreState();
               if (exportBtn) {
                 exportBtn.disabled = false;
@@ -13031,6 +13058,7 @@ function runBearingPdfExport(includeTco, includeRoi, includeRaster = true) {
           });
 
         } catch (e) {
+          window.isGeneratingPdf = false;
           console.error("Fout bij genereren PDF:", e);
           alert((langData.pdfErrorGen || "Er is een fout opgetreden bij het genereren van het PDF-rapport: ") + e.message);
           restoreState();
@@ -13068,6 +13096,8 @@ function runAllBearingsNoAutoPdfExport(includeTco = true) {
     exportBtn.innerHTML = langData.pdfGenerating || "Genereren...";
   }
 
+  window.isGeneratingPdf = true;
+
   // Snapshot van huidige calculator status om na export getrouw te herstellen
   const stateSnapshot = {
     searchVal: document.getElementById("bearingSearchInput") ? document.getElementById("bearingSearchInput").value : "",
@@ -13100,11 +13130,21 @@ function runAllBearingsNoAutoPdfExport(includeTco = true) {
     snlChecked: document.getElementById("chkSnlHousing") ? document.getElementById("chkSnlHousing").checked : false,
     snlType: document.getElementById("selSnlType") ? document.getElementById("selSnlType").value : "",
     snlFill: document.getElementById("selSnlFillPercent") ? document.getElementById("selSnlFillPercent").value : "",
-    snlRelub: document.getElementById("selSnlRelubPosition") ? document.getElementById("selSnlRelubPosition").value : ""
+    snlRelub: document.getElementById("selSnlRelubPosition") ? document.getElementById("selSnlRelubPosition").value : "",
+    autoDevicesState: (typeof autoDevicesState !== "undefined" && Array.isArray(autoDevicesState))
+      ? JSON.parse(JSON.stringify(autoDevicesState))
+      : null,
+    autoDeviceSelectVal: (document.getElementById("automationDeviceSelect") || document.getElementById("autoDeviceSelect"))
+      ? (document.getElementById("automationDeviceSelect") || document.getElementById("autoDeviceSelect")).value
+      : null,
+    autoNumDevicesVal: document.getElementById("autoNumDevicesSelect")
+      ? document.getElementById("autoNumDevicesSelect").value
+      : null
   };
 
   const restoreState = () => {
     try {
+      window.isGeneratingPdf = false;
       if (stateSnapshot.activeBearingDesig) {
         if (typeof loadBearingDetails === "function") loadBearingDetails(stateSnapshot.activeBearingDesig);
         if (typeof updateCalculatorFields === "function") updateCalculatorFields();
@@ -13123,7 +13163,7 @@ function runAllBearingsNoAutoPdfExport(includeTco = true) {
       if (document.getElementById("techIntervalInput")) document.getElementById("techIntervalInput").value = stateSnapshot.techInt;
       if (document.getElementById("omSharedWorktime")) document.getElementById("omSharedWorktime").value = stateSnapshot.omWorktime;
       if (document.getElementById("omSharedLaborRate")) document.getElementById("omSharedLaborRate").value = stateSnapshot.omLaborRate;
-      if (document.getElementById("omSharedRepairH")) document.getElementById("omSharedRepairH").value = stateSnapshot.omRepairH;
+      if (document.getElementById("omRepairH")) document.getElementById("omSharedRepairH").value = stateSnapshot.omRepairH;
       if (document.getElementById("omSharedPrepH")) document.getElementById("omSharedPrepH").value = stateSnapshot.omPrepH;
       if (document.getElementById("omSharedDowntimeRate")) document.getElementById("omSharedDowntimeRate").value = stateSnapshot.omDtRate;
       if (document.getElementById("omSharedPartsCost")) document.getElementById("omSharedPartsCost").value = stateSnapshot.omPartsCost;
@@ -13155,6 +13195,22 @@ function runAllBearingsNoAutoPdfExport(includeTco = true) {
         if (typeof onSnlParamsChanged === "function") onSnlParamsChanged();
       }
       window.activeTcoBearingSource = stateSnapshot.activeSource;
+
+      // Restore automation state cleanly
+      if (stateSnapshot.autoDevicesState && Array.isArray(stateSnapshot.autoDevicesState)) {
+        autoDevicesState = JSON.parse(JSON.stringify(stateSnapshot.autoDevicesState));
+      }
+      const numDevEl = document.getElementById("autoNumDevicesSelect");
+      if (numDevEl && stateSnapshot.autoNumDevicesVal) {
+        numDevEl.value = stateSnapshot.autoNumDevicesVal;
+      }
+      const devSel = document.getElementById("automationDeviceSelect") || document.getElementById("autoDeviceSelect");
+      if (devSel && stateSnapshot.autoDeviceSelectVal) {
+        devSel.value = stateSnapshot.autoDeviceSelectVal;
+      }
+      if (typeof updateAutomationHeaderImages === "function") updateAutomationHeaderImages();
+      if (typeof renderAutoDevicesUI === "function") renderAutoDevicesUI();
+
       if (typeof calculateGrease === "function") calculateGrease();
       if (typeof updateTcoFrequencies === "function") updateTcoFrequencies();
       if (typeof calculateTco === "function") calculateTco();
@@ -13224,13 +13280,15 @@ function runAllBearingsNoAutoPdfExport(includeTco = true) {
           : currentLang === "en" 
             ? "Interflon_Lubrication_Advice_All_Bearings_" 
             : "Interflon_Conseil_Lubrification_Tous_Roulements_";
-        const machine = (localStorage.getItem("tech_machine") || "Machine").replace(/[\\/\\?%*:|"<>]/g, "_").replace(/\s+/g, "_");
+        const machine = (localStorage.getItem("tech_machine") || "Machine").replace(/[\\/\?%*:|"<>]/g, "_").replace(/\s+/g, "_");
         doc.save(filePrefix + machine + ".pdf");
 
       } catch (e) {
+        window.isGeneratingPdf = false;
         console.error("Fout bij genereren PDF alle lagers:", e);
         alert((langData.pdfErrorGen || "Er is een fout opgetreden bij het genereren van het PDF-rapport: ") + e.message);
       } finally {
+        window.isGeneratingPdf = false;
         restoreState();
         if (exportBtn) {
           exportBtn.disabled = false;
@@ -14800,6 +14858,7 @@ function onAutoPeriodInput() {
 }
 
 function calculateAutomationLubrication() {
+  if (window.isGeneratingPdf) return;
   ensureAutoDevicesStateSafety();
   saveAutomationStateToLocalStorage();
   setTimeout(() => { if (typeof updateRoiAutomationPage === "function") updateRoiAutomationPage(); }, 0);
@@ -21865,19 +21924,17 @@ function addRoiPdfPage(doc, dateString, watermarkDataUrl, aspectRatio, autoDataU
 
   // Read active devices state
   const deviceSelect = document.getElementById("automationDeviceSelect") || document.getElementById("autoDeviceSelect");
-  let deviceKey = deviceSelect ? deviceSelect.value : "single_point";
-
-  const isSinglePointMode = (deviceKey === "single_point") || (Array.isArray(autoDevicesState) && autoDevicesState.some(d => d && (d.isSinglePointGroup || d.type === 'single_point')));
-  const isSinglePoint = isSinglePointMode;
-  if (isSinglePoint) {
-    deviceKey = "single_point";
-    if (Array.isArray(autoDevicesState)) {
-      autoDevicesState.forEach(d => { if (d) d.type = 'single_point'; });
-    }
-  }
+  let deviceKey = deviceSelect ? deviceSelect.value : "pulsarlube_m2";
 
   const numDevices = typeof getActiveNumDevices === "function" ? getActiveNumDevices() : 1;
   const activeDevList = (Array.isArray(autoDevicesState) ? autoDevicesState.slice(0, numDevices) : []);
+
+  const hasSpGroups = activeDevList.some(d => d && d.isSinglePointGroup && (d.unitCount > 0 || (d.bearingLetters && d.bearingLetters.length > 0)));
+  const isSinglePointMode = (deviceKey === "single_point") || (!deviceKey.startsWith("pulsarlube") && deviceKey !== "mixed" && hasSpGroups);
+  const isSinglePoint = isSinglePointMode;
+  if (isSinglePoint) {
+    deviceKey = "single_point";
+  }
 
   const selectGrease = document.getElementById("inputGrease") || document.getElementById("selectGrease");
   const greaseName = selectGrease ? selectGrease.value : "Interflon Grease MP2/3";
