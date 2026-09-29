@@ -1131,18 +1131,19 @@
       display: flex;
       flex-direction: column;
       gap: 8px;
-      transition: background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+      transition: background-color 0.15s ease, border-color 0.15s ease;
       cursor: default;
+      contain: layout;
+      box-sizing: border-box;
     }
     .raster-bearing-card:hover,
     .raster-bearing-card.is-canvas-hovered {
       background: #eff6ff !important;
       border-color: #3b82f6 !important;
-      box-shadow: 0 3px 8px rgba(37,99,235,0.12) !important;
     }
     .raster-dist-pill {
       user-select: none;
-      transition: border-color 0.15s ease, background-color 0.15s ease, box-shadow 0.15s ease;
+      transition: border-color 0.15s ease, background-color 0.15s ease;
     }
     .raster-dist-pill * {
       pointer-events: none !important;
@@ -1150,7 +1151,11 @@
     .raster-dist-pill.can-reassign:not(.is-assigned):hover {
       background-color: #ffffff !important;
       border-color: var(--pill-hover-color, #3b82f6) !important;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+    }
+    .raster-dist-pill.can-reassign:not(.is-assigned):hover .koppel-badge {
+      background-color: #2563eb !important;
+      color: #ffffff !important;
+      border-color: #1d4ed8 !important;
     }
 
     /* =========================================================================
@@ -1919,7 +1924,7 @@
             </div>
 
             <!-- Canvas Container with Responsive Sizing -->
-            <div style="position: relative; width: 100%; height: 440px; border-radius: 10px; overflow: hidden; background: radial-gradient(circle at center, #1e293b 0%, #090d16 100%); touch-action: none; border: 1px solid #334155;" id="canvasWrapper">
+            <div style="position: relative; width: 100%; height: 440px; border-radius: 10px; overflow: hidden; background: radial-gradient(circle at center, #1e293b 0%, #090d16 100%); touch-action: none; border: 1px solid #334155; contain: paint layout;" id="canvasWrapper">
               <canvas id="bearingLayoutCanvas" style="display: block; width: 100%; height: 100%; cursor: default;"></canvas>
               
               <!-- Floating Legend overlay -->
@@ -1960,7 +1965,7 @@
               </p>
 
               <!-- Dynamic list of distances -->
-              <div id="bearingDistancesList" style="display: flex; flex-direction: column; gap: 8px; max-height: 285px; overflow-y: auto; padding-right: 4px;">
+              <div id="bearingDistancesList" style="display: flex; flex-direction: column; gap: 8px; max-height: 285px; overflow-y: auto; overflow-x: hidden; padding: 4px 6px 4px 4px; box-sizing: border-box;">
                 <!-- Rendered dynamically by JavaScript -->
               </div>
             </div>
@@ -4355,9 +4360,13 @@
       const dpr = targetCanvas ? 1 : (window.devicePixelRatio || 1);
       if (!targetCanvas) {
         const rect = canvas.getBoundingClientRect();
-        if (canvas.width !== Math.floor(rect.width * dpr) || canvas.height !== Math.floor(rect.height * dpr)) {
-          canvas.width = Math.floor(rect.width * dpr);
-          canvas.height = Math.floor(rect.height * dpr);
+        const targetW = Math.round(rect.width * dpr);
+        const targetH = Math.round(rect.height * dpr);
+        // Only re-dimension the canvas if it actually changed significantly (> 2px)
+        // Setting canvas.width wipes the buffer and forces DOM layout reflow!
+        if (Math.abs(canvas.width - targetW) > 2 || Math.abs(canvas.height - targetH) > 2) {
+          canvas.width = targetW;
+          canvas.height = targetH;
         }
       }
 
@@ -6121,7 +6130,8 @@
             drawBearingLayout();
           }
         };
-        card.onmouseleave = function() {
+        card.onmouseleave = function(e) {
+          if (e && e.relatedTarget && card.contains(e.relatedTarget)) return;
           if (hoveredBearingLetter === letter) {
             hoveredBearingLetter = null;
             drawBearingLayout();
@@ -6232,7 +6242,7 @@
                   '<span style="font-weight: 800; color: ' + statusCol + ';">' + roundedD.toFixed(1).replace('.', ',') + ' m</span>' +
                   (isClosest ? '<span style="font-size: 9px; font-weight: 800; color: #15803d; background: #bbf7d0; padding: 1px 4px; border-radius: 3px;" title="Fysiek kortste leidingafstand">⭐ Dichtstbij</span>' : '') +
                   (isAssigned && originDists.length > 1 ? '<span style="font-size: 9px; font-weight: 800; color: #ffffff; background: ' + od.origin.color + '; padding: 1.5px 5px; border-radius: 3px; display: inline-flex; align-items: center; gap: 2px;" title="Lager is actief aangesloten op dit toestel">✓ Aangesloten</span>' : '') +
-                  (!isAssigned && canReassign ? '<span style="font-size: 8.5px; font-weight: 700; color: #64748b; opacity: 0.75;" title="Klik om handmatig aan te sluiten op dit toestel">(Koppel)</span>' : '') +
+                  (!isAssigned && canReassign ? '<span class="koppel-badge" style="font-size: 9.5px; font-weight: 800; color: #1d4ed8; background: #dbeafe; padding: 1.5px 6px; border-radius: 4px; border: 1px solid #bfdbfe; margin-left: 2px; transition: all 0.15s ease;" title="Klik om handmatig aan te sluiten op dit toestel">🔗 Koppel</span>' : '') +
                 '</div>';
             }
           });
