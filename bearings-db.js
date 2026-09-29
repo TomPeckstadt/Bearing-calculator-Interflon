@@ -1002,7 +1002,30 @@ const SNL_HOUSING_DATABASE = {
   "FE215": { name: "FE215 / ESFE215", group: "FE-serie (Vierkant flenslagerblok)", fill40: 115, fill100: 285, bearings: ["ESFE215", "FE215"] },
   "FE216": { name: "FE216 / ESFE216", group: "FE-serie (Vierkant flenslagerblok)", fill40: 135, fill100: 340, bearings: ["ESFE216", "FE216"] },
   "FE217": { name: "FE217 / ESFE217", group: "FE-serie (Vierkant flenslagerblok)", fill40: 160, fill100: 400, bearings: ["ESFE217", "FE217"] },
-  "FE218": { name: "FE218 / ESFE218", group: "FE-serie (Vierkant flenslagerblok)", fill40: 190, fill100: 475, bearings: ["ESFE218", "FE218"] }
+  "FE218": { name: "FE218 / ESFE218", group: "FE-serie (Vierkant flenslagerblok)", fill40: 190, fill100: 475, bearings: ["ESFE218", "FE218"] },
+
+  // === 6. SES-SERIE (FAG / SCHAEFFLER STAANDE DEELBARE LAGERHUIZEN) ===
+  "SES 505": { name: "SES 505 (FAG/Schaeffler)", group: "SES-serie (FAG / Schaeffler staand lagerhuis)", fill40: 25, fill100: 50, bearings: ["22205", "1205", "2205", "SES505"] },
+  "SES 506-605": { name: "SES 506-605 (FAG/Schaeffler)", group: "SES-serie (FAG / Schaeffler staand lagerhuis)", fill40: 40, fill100: 80, bearings: ["22206", "22305", "1206", "2206", "1305", "2305", "SES506", "SES605"] },
+  "SES 507-606": { name: "SES 507-606 (FAG/Schaeffler)", group: "SES-serie (FAG / Schaeffler staand lagerhuis)", fill40: 50, fill100: 100, bearings: ["22207", "22306", "1207", "2207", "1306", "2306", "SES507", "SES606"] },
+  "SES 508-607": { name: "SES 508-607 (FAG/Schaeffler)", group: "SES-serie (FAG / Schaeffler staand lagerhuis)", fill40: 65, fill100: 130, bearings: ["22208", "22307", "1208", "2208", "1307", "2307", "SES508", "SES607"] },
+  "SES 509": { name: "SES 509 (FAG/Schaeffler)", group: "SES-serie (FAG / Schaeffler staand lagerhuis)", fill40: 80, fill100: 160, bearings: ["22209", "1209", "2209", "SES509"] },
+  "SES 510-608": { name: "SES 510-608 (FAG/Schaeffler)", group: "SES-serie (FAG / Schaeffler staand lagerhuis)", fill40: 100, fill100: 200, bearings: ["22210", "22308", "1210", "2210", "1308", "2308", "SES510", "SES608"] },
+  "SES 511-609": { name: "SES 511-609 (FAG/Schaeffler)", group: "SES-serie (FAG / Schaeffler staand lagerhuis)", fill40: 150, fill100: 300, bearings: ["22211", "22309", "1211", "2211", "1309", "2309", "222SM50", "SES511", "SES609"] },
+  "SES 512-610": { name: "SES 512-610 (FAG/Schaeffler)", group: "SES-serie (FAG / Schaeffler staand lagerhuis)", fill40: 180, fill100: 360, bearings: ["22212", "22310", "1212", "2212", "1310", "2310", "222SM55", "SES512", "SES610"] },
+  "SES 513-611": { name: "SES 513-611 (FAG/Schaeffler)", group: "SES-serie (FAG / Schaeffler staand lagerhuis)", fill40: 210, fill100: 420, bearings: ["22213", "22311", "1213", "2213", "1311", "2311", "222SM60", "SES513", "SES611"] },
+  "SES 515-612": { name: "SES 515-612 (FAG/Schaeffler)", group: "SES-serie (FAG / Schaeffler staand lagerhuis)", fill40: 250, fill100: 500, bearings: ["22215", "22312", "1215", "2215", "1312", "2312", "222SM65", "SES515", "SES612"] },
+  "SES 516-613": { name: "SES 516-613 (FAG/Schaeffler)", group: "SES-serie (FAG / Schaeffler staand lagerhuis)", fill40: 300, fill100: 600, bearings: ["22216", "22216EK", "22313", "1216", "2216", "1313", "2313", "222SM70", "SES516", "SES613"] },
+  "SES 517": { name: "SES 517 (FAG/Schaeffler)", group: "SES-serie (FAG / Schaeffler staand lagerhuis)", fill40: 370, fill100: 740, bearings: ["22217", "1217", "2217", "222SM75", "SES517"] },
+  "SES 518-615": { name: "SES 518-615 (FAG/Schaeffler)", group: "SES-serie (FAG / Schaeffler staand lagerhuis)", fill40: 450, fill100: 900, bearings: ["22218", "22315", "1218", "2218", "1315", "2315", "222SM80", "SES518", "SES615"] },
+  "SES 519-616": { name: "SES 519-616 (FAG/Schaeffler)", group: "SES-serie (FAG / Schaeffler staand lagerhuis)", fill40: 550, fill100: 1100, bearings: ["22219", "22316", "1219", "2219", "1316", "2316", "222SM85", "SES519", "SES616"] },
+  "SES 520-617": { name: "SES 520-617 (FAG/Schaeffler)", group: "SES-serie (FAG / Schaeffler staand lagerhuis)", fill40: 650, fill100: 1300, bearings: ["22220", "22317", "1220", "2220", "1317", "2317", "222SM90", "SES520", "SES617"] },
+  "SES 522-619": { name: "SES 522-619 (FAG/Schaeffler)", group: "SES-serie (FAG / Schaeffler staand lagerhuis)", fill40: 850, fill100: 1700, bearings: ["22222", "22319", "1222", "2222", "1319", "2319", "222SM100", "SES522", "SES619"] },
+  "SES 524-620": { name: "SES 524-620 (FAG/Schaeffler)", group: "SES-serie (FAG / Schaeffler staand lagerhuis)", fill40: 1000, fill100: 2000, bearings: ["22224", "22320", "1224", "2224", "1320", "2320", "222SM110", "SES524", "SES620"] },
+  "SES 526": { name: "SES 526 (FAG/Schaeffler)", group: "SES-serie (FAG / Schaeffler staand lagerhuis)", fill40: 1150, fill100: 2300, bearings: ["22226", "222SM115", "SES526"] },
+  "SES 528-L": { name: "SES 528-L / SES528L (FAG/Schaeffler)", group: "SES-serie (FAG / Schaeffler staand lagerhuis)", fill40: 1400, fill100: 2800, bearings: ["22228", "222SM125", "SES528L", "SES528", "SES 528-L", "SES 528 L"] },
+  "SES 530": { name: "SES 530 (FAG/Schaeffler)", group: "SES-serie (FAG / Schaeffler staand lagerhuis)", fill40: 1650, fill100: 3300, bearings: ["22230", "222SM135", "SES530"] },
+  "SES 532": { name: "SES 532 (FAG/Schaeffler)", group: "SES-serie (FAG / Schaeffler staand lagerhuis)", fill40: 1900, fill100: 3800, bearings: ["22232", "222SM140", "SES532"] }
 };
 
 function getSnlHousingForBearing(designation) {
@@ -1019,7 +1042,8 @@ function getSnlHousingForBearing(designation) {
     }
   }
 
-  // 2. Specifieke aliassen uit klantenlijsten (bv. "524-620", "520-617", "226-526")
+  // 2. Specifieke aliassen uit klantenlijsten (bv. "524-620", "520-617", "226-526", "SES528L")
+  if (clean.includes("SES528")) return "SES 528-L";
   if (clean.includes("524620")) return "SNL 524-620";
   if (clean.includes("520617")) return "SNL 520-617";
   if (clean.includes("226526")) return "SNL 526";
