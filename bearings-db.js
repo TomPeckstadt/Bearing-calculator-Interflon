@@ -349,7 +349,101 @@ const bearingDatabase = {
   "UC 317": { d: 85, D: 180, B: 96.0, C: 133.0, C0: 96.5, refSpeed: 2200, limitSpeed: 1500, mass: 6.65, type: BEARING_TYPES.INSERT_BALL },
   "UC 318": { d: 90, D: 190, B: 96.0, C: 143.0, C0: 107.0, refSpeed: 2000, limitSpeed: 1400, mass: 7.60, type: BEARING_TYPES.INSERT_BALL },
   "UC 319": { d: 95, D: 200, B: 103.0, C: 153.0, C0: 119.0, refSpeed: 1900, limitSpeed: 1300, mass: 8.80, type: BEARING_TYPES.INSERT_BALL },
-  "UC 320": { d: 100, D: 215, B: 108.0, C: 173.0, C0: 141.0, refSpeed: 1800, limitSpeed: 1200, mass: 10.70, type: BEARING_TYPES.INSERT_BALL }
+  "UC 320": { d: 100, D: 215, B: 108.0, C: 173.0, C0: 141.0, refSpeed: 1800, limitSpeed: 1200, mass: 10.70, type: BEARING_TYPES.INSERT_BALL },
+
+  // --- DEELBARE PENDELROLLAGERS (FAG 222SM-SERIE / SPLIT SPHERICAL ROLLER BEARINGS) ---
+  // Toepassing: direct monteerbaar op as ter vervanging van lagers op trekbus in bijv. SNL/SNV-lagerhuizen.
+  // B: totale inbouwbreedte over de klemkragen (mm).
+  // outerRingWidth: effectieve loopbaan- en buitenringbreedte C (mm) voor smeer- en vulberekening.
+  "222SM50": { d: 50, D: 100, B: 50, outerRingWidth: 25, C: 102.0, C0: 115.0, refSpeed: 4500, limitSpeed: 3000, mass: 1.20, type: BEARING_TYPES.SPHERICAL_ROLLER, housing: "SNL 511-609", note: "FAG Deelbaar pendelrollager (split spherical roller bearing)" },
+  "222SM50-TVPA": { d: 50, D: 100, B: 50, outerRingWidth: 25, C: 102.0, C0: 115.0, refSpeed: 4500, limitSpeed: 3000, mass: 1.20, type: BEARING_TYPES.SPHERICAL_ROLLER, housing: "SNL 511-609", note: "FAG Deelbaar pendelrollager (split spherical roller bearing)" },
+
+  "222SM55": { d: 55, D: 110, B: 52, outerRingWidth: 28, C: 110.0, C0: 130.0, refSpeed: 4200, limitSpeed: 2800, mass: 1.47, type: BEARING_TYPES.SPHERICAL_ROLLER, housing: "SNL 512-610", note: "FAG Deelbaar pendelrollager (split spherical roller bearing)" },
+  "222SM55-TVPA": { d: 55, D: 110, B: 52, outerRingWidth: 28, C: 110.0, C0: 130.0, refSpeed: 4200, limitSpeed: 2800, mass: 1.47, type: BEARING_TYPES.SPHERICAL_ROLLER, housing: "SNL 512-610", note: "FAG Deelbaar pendelrollager (split spherical roller bearing)" },
+
+  "222SM60": { d: 60, D: 120, B: 55, outerRingWidth: 31, C: 135.0, C0: 160.0, refSpeed: 3800, limitSpeed: 2600, mass: 1.95, type: BEARING_TYPES.SPHERICAL_ROLLER, housing: "SNL 513-611", note: "FAG Deelbaar pendelrollager (split spherical roller bearing)" },
+  "222SM60-TVPA": { d: 60, D: 120, B: 55, outerRingWidth: 31, C: 135.0, C0: 160.0, refSpeed: 3800, limitSpeed: 2600, mass: 1.95, type: BEARING_TYPES.SPHERICAL_ROLLER, housing: "SNL 513-611", note: "FAG Deelbaar pendelrollager (split spherical roller bearing)" },
+
+  "222SM65": { d: 65, D: 130, B: 58, outerRingWidth: 31, C: 150.0, C0: 185.0, refSpeed: 3400, limitSpeed: 2400, mass: 2.35, type: BEARING_TYPES.SPHERICAL_ROLLER, housing: "SNL 515-612", note: "FAG Deelbaar pendelrollager (split spherical roller bearing)" },
+  "222SM65-TVPA": { d: 65, D: 130, B: 58, outerRingWidth: 31, C: 150.0, C0: 185.0, refSpeed: 3400, limitSpeed: 2400, mass: 2.35, type: BEARING_TYPES.SPHERICAL_ROLLER, housing: "SNL 515-612", note: "FAG Deelbaar pendelrollager (split spherical roller bearing)" },
+
+  "222SM70": { d: 70, D: 140, B: 62, outerRingWidth: 33, C: 175.0, C0: 220.0, refSpeed: 3200, limitSpeed: 2200, mass: 3.18, type: BEARING_TYPES.SPHERICAL_ROLLER, housing: "SNL 516-613", note: "FAG Deelbaar pendelrollager (split spherical roller bearing)" },
+  "222SM70-TVPA": { d: 70, D: 140, B: 62, outerRingWidth: 33, C: 175.0, C0: 220.0, refSpeed: 3200, limitSpeed: 2200, mass: 3.18, type: BEARING_TYPES.SPHERICAL_ROLLER, housing: "SNL 516-613", note: "FAG Deelbaar pendelrollager (split spherical roller bearing)" },
+
+  "222SM75": { d: 75, D: 150, B: 66, outerRingWidth: 36, C: 210.0, C0: 260.0, refSpeed: 3000, limitSpeed: 2000, mass: 3.85, type: BEARING_TYPES.SPHERICAL_ROLLER, housing: "SNL 517", note: "FAG Deelbaar pendelrollager (split spherical roller bearing)" },
+  "222SM75-TVPA": { d: 75, D: 150, B: 66, outerRingWidth: 36, C: 210.0, C0: 260.0, refSpeed: 3000, limitSpeed: 2000, mass: 3.85, type: BEARING_TYPES.SPHERICAL_ROLLER, housing: "SNL 517", note: "FAG Deelbaar pendelrollager (split spherical roller bearing)" },
+
+  "222SM80": { d: 80, D: 160, B: 70, outerRingWidth: 40, C: 245.0, C0: 310.0, refSpeed: 2800, limitSpeed: 1900, mass: 4.50, type: BEARING_TYPES.SPHERICAL_ROLLER, housing: "SNL 518-615", note: "FAG Deelbaar pendelrollager (split spherical roller bearing)" },
+  "222SM80-TVPA": { d: 80, D: 160, B: 70, outerRingWidth: 40, C: 245.0, C0: 310.0, refSpeed: 2800, limitSpeed: 1900, mass: 4.50, type: BEARING_TYPES.SPHERICAL_ROLLER, housing: "SNL 518-615", note: "FAG Deelbaar pendelrollager (split spherical roller bearing)" },
+
+  "222SM85": { d: 85, D: 170, B: 74, outerRingWidth: 43, C: 285.0, C0: 365.0, refSpeed: 2600, limitSpeed: 1800, mass: 5.50, type: BEARING_TYPES.SPHERICAL_ROLLER, housing: "SNL 519-616", note: "FAG Deelbaar pendelrollager (split spherical roller bearing)" },
+  "222SM85-TVPA": { d: 85, D: 170, B: 74, outerRingWidth: 43, C: 285.0, C0: 365.0, refSpeed: 2600, limitSpeed: 1800, mass: 5.50, type: BEARING_TYPES.SPHERICAL_ROLLER, housing: "SNL 519-616", note: "FAG Deelbaar pendelrollager (split spherical roller bearing)" },
+
+  "222SM90": { d: 90, D: 180, B: 76, outerRingWidth: 46, C: 330.0, C0: 425.0, refSpeed: 2400, limitSpeed: 1700, mass: 6.59, type: BEARING_TYPES.SPHERICAL_ROLLER, housing: "SNL 520-617", note: "FAG Deelbaar pendelrollager (split spherical roller bearing)" },
+  "222SM90-TVPA": { d: 90, D: 180, B: 76, outerRingWidth: 46, C: 330.0, C0: 425.0, refSpeed: 2400, limitSpeed: 1700, mass: 6.59, type: BEARING_TYPES.SPHERICAL_ROLLER, housing: "SNL 520-617", note: "FAG Deelbaar pendelrollager (split spherical roller bearing)" },
+
+  "222SM95": { d: 95, D: 190, B: 82, outerRingWidth: 50, C: 380.0, C0: 490.0, refSpeed: 2200, limitSpeed: 1600, mass: 8.20, type: BEARING_TYPES.SPHERICAL_ROLLER, note: "FAG Deelbaar pendelrollager (split spherical roller bearing)" },
+  "222SM95-TVPA": { d: 95, D: 190, B: 82, outerRingWidth: 50, C: 380.0, C0: 490.0, refSpeed: 2200, limitSpeed: 1600, mass: 8.20, type: BEARING_TYPES.SPHERICAL_ROLLER, note: "FAG Deelbaar pendelrollager (split spherical roller bearing)" },
+
+  "222SM100": { d: 100, D: 200, B: 90, outerRingWidth: 53, C: 430.0, C0: 560.0, refSpeed: 2100, limitSpeed: 1500, mass: 10.70, type: BEARING_TYPES.SPHERICAL_ROLLER, housing: "SNL 522-619", note: "FAG Deelbaar pendelrollager (split spherical roller bearing)" },
+  "222SM100-TVPA": { d: 100, D: 200, B: 90, outerRingWidth: 53, C: 430.0, C0: 560.0, refSpeed: 2100, limitSpeed: 1500, mass: 10.70, type: BEARING_TYPES.SPHERICAL_ROLLER, housing: "SNL 522-619", note: "FAG Deelbaar pendelrollager (split spherical roller bearing)" },
+
+  "222SM105": { d: 105, D: 210, B: 94, outerRingWidth: 55, C: 470.0, C0: 620.0, refSpeed: 2000, limitSpeed: 1400, mass: 11.50, type: BEARING_TYPES.SPHERICAL_ROLLER, note: "FAG Deelbaar pendelrollager (split spherical roller bearing)" },
+  "222SM105-TVPA": { d: 105, D: 210, B: 94, outerRingWidth: 55, C: 470.0, C0: 620.0, refSpeed: 2000, limitSpeed: 1400, mass: 11.50, type: BEARING_TYPES.SPHERICAL_ROLLER, note: "FAG Deelbaar pendelrollager (split spherical roller bearing)" },
+
+  "222SM110": { d: 110, D: 215, B: 98, outerRingWidth: 58, C: 510.0, C0: 670.0, refSpeed: 1900, limitSpeed: 1350, mass: 12.30, type: BEARING_TYPES.SPHERICAL_ROLLER, housing: "SNL 524-620", note: "FAG Deelbaar pendelrollager (split spherical roller bearing)" },
+  "222SM110-TVPA": { d: 110, D: 215, B: 98, outerRingWidth: 58, C: 510.0, C0: 670.0, refSpeed: 1900, limitSpeed: 1350, mass: 12.30, type: BEARING_TYPES.SPHERICAL_ROLLER, housing: "SNL 524-620", note: "FAG Deelbaar pendelrollager (split spherical roller bearing)" },
+
+  "222SM115": { d: 115, D: 230, B: 105, outerRingWidth: 64, C: 580.0, C0: 780.0, refSpeed: 1800, limitSpeed: 1250, mass: 15.50, type: BEARING_TYPES.SPHERICAL_ROLLER, housing: "SNL 526", note: "FAG Deelbaar pendelrollager (split spherical roller bearing)" },
+  "222SM115-TVPA": { d: 115, D: 230, B: 105, outerRingWidth: 64, C: 580.0, C0: 780.0, refSpeed: 1800, limitSpeed: 1250, mass: 15.50, type: BEARING_TYPES.SPHERICAL_ROLLER, housing: "SNL 526", note: "FAG Deelbaar pendelrollager (split spherical roller bearing)" },
+
+  "222SM120": { d: 120, D: 240, B: 108, outerRingWidth: 65, C: 600.0, C0: 820.0, refSpeed: 1700, limitSpeed: 1200, mass: 17.00, type: BEARING_TYPES.SPHERICAL_ROLLER, note: "FAG Deelbaar pendelrollager (split spherical roller bearing)" },
+  "222SM120-TVPA": { d: 120, D: 240, B: 108, outerRingWidth: 65, C: 600.0, C0: 820.0, refSpeed: 1700, limitSpeed: 1200, mass: 17.00, type: BEARING_TYPES.SPHERICAL_ROLLER, note: "FAG Deelbaar pendelrollager (split spherical roller bearing)" },
+
+  "222SM125": { d: 125, D: 250, B: 110, outerRingWidth: 68, C: 630.0, C0: 870.0, refSpeed: 1400, limitSpeed: 1170, mass: 19.00, type: BEARING_TYPES.SPHERICAL_ROLLER, housing: "SNL 528", note: "FAG Deelbaar pendelrollager (split spherical roller bearing)" },
+  "222SM125-TVPA": { d: 125, D: 250, B: 110, outerRingWidth: 68, C: 630.0, C0: 870.0, refSpeed: 1400, limitSpeed: 1170, mass: 19.00, type: BEARING_TYPES.SPHERICAL_ROLLER, housing: "SNL 528", note: "FAG Deelbaar pendelrollager (split spherical roller bearing)" },
+
+  "222SM130": { d: 130, D: 260, B: 112, outerRingWidth: 70, C: 670.0, C0: 930.0, refSpeed: 1500, limitSpeed: 1100, mass: 21.00, type: BEARING_TYPES.SPHERICAL_ROLLER, note: "FAG Deelbaar pendelrollager (split spherical roller bearing)" },
+  "222SM130-TVPA": { d: 130, D: 260, B: 112, outerRingWidth: 70, C: 670.0, C0: 930.0, refSpeed: 1500, limitSpeed: 1100, mass: 21.00, type: BEARING_TYPES.SPHERICAL_ROLLER, note: "FAG Deelbaar pendelrollager (split spherical roller bearing)" },
+
+  "222SM135": { d: 135, D: 270, B: 115, outerRingWidth: 73, C: 720.0, C0: 1000.0, refSpeed: 1450, limitSpeed: 1050, mass: 24.50, type: BEARING_TYPES.SPHERICAL_ROLLER, housing: "SNL 530", note: "FAG Deelbaar pendelrollager (split spherical roller bearing)" },
+  "222SM135-TVPA": { d: 135, D: 270, B: 115, outerRingWidth: 73, C: 720.0, C0: 1000.0, refSpeed: 1450, limitSpeed: 1050, mass: 24.50, type: BEARING_TYPES.SPHERICAL_ROLLER, housing: "SNL 530", note: "FAG Deelbaar pendelrollager (split spherical roller bearing)" },
+
+  "222SM140": { d: 140, D: 290, B: 125, outerRingWidth: 80, C: 820.0, C0: 1150.0, refSpeed: 1350, limitSpeed: 950, mass: 29.50, type: BEARING_TYPES.SPHERICAL_ROLLER, housing: "SNL 532", note: "FAG Deelbaar pendelrollager (split spherical roller bearing)" },
+  "222SM140-TVPA": { d: 140, D: 290, B: 125, outerRingWidth: 80, C: 820.0, C0: 1150.0, refSpeed: 1350, limitSpeed: 950, mass: 29.50, type: BEARING_TYPES.SPHERICAL_ROLLER, housing: "SNL 532", note: "FAG Deelbaar pendelrollager (split spherical roller bearing)" },
+
+  "222SM150": { d: 150, D: 310, B: 135, outerRingWidth: 86, C: 950.0, C0: 1350.0, refSpeed: 1250, limitSpeed: 880, mass: 36.50, type: BEARING_TYPES.SPHERICAL_ROLLER, note: "FAG Deelbaar pendelrollager (split spherical roller bearing)" },
+  "222SM150-TVPA": { d: 150, D: 310, B: 135, outerRingWidth: 86, C: 950.0, C0: 1350.0, refSpeed: 1250, limitSpeed: 880, mass: 36.50, type: BEARING_TYPES.SPHERICAL_ROLLER, note: "FAG Deelbaar pendelrollager (split spherical roller bearing)" },
+
+  "222SM160": { d: 160, D: 320, B: 140, outerRingWidth: 86, C: 990.0, C0: 1420.0, refSpeed: 1200, limitSpeed: 840, mass: 39.50, type: BEARING_TYPES.SPHERICAL_ROLLER, note: "FAG Deelbaar pendelrollager (split spherical roller bearing)" },
+  "222SM160-TVPA": { d: 160, D: 320, B: 140, outerRingWidth: 86, C: 990.0, C0: 1420.0, refSpeed: 1200, limitSpeed: 840, mass: 39.50, type: BEARING_TYPES.SPHERICAL_ROLLER, note: "FAG Deelbaar pendelrollager (split spherical roller bearing)" },
+
+  "222SM170": { d: 170, D: 340, B: 145, outerRingWidth: 92, C: 1100.0, C0: 1600.0, refSpeed: 1100, limitSpeed: 780, mass: 47.00, type: BEARING_TYPES.SPHERICAL_ROLLER, note: "FAG Deelbaar pendelrollager (split spherical roller bearing)" },
+  "222SM170-TVPA": { d: 170, D: 340, B: 145, outerRingWidth: 92, C: 1100.0, C0: 1600.0, refSpeed: 1100, limitSpeed: 780, mass: 47.00, type: BEARING_TYPES.SPHERICAL_ROLLER, note: "FAG Deelbaar pendelrollager (split spherical roller bearing)" },
+
+  "222SM180": { d: 180, D: 360, B: 150, outerRingWidth: 92, C: 1200.0, C0: 1750.0, refSpeed: 1050, limitSpeed: 740, mass: 54.00, type: BEARING_TYPES.SPHERICAL_ROLLER, note: "FAG Deelbaar pendelrollager (split spherical roller bearing)" },
+  "222SM180-TVPA": { d: 180, D: 360, B: 150, outerRingWidth: 92, C: 1200.0, C0: 1750.0, refSpeed: 1050, limitSpeed: 740, mass: 54.00, type: BEARING_TYPES.SPHERICAL_ROLLER, note: "FAG Deelbaar pendelrollager (split spherical roller bearing)" },
+
+  "222SM190": { d: 190, D: 380, B: 155, outerRingWidth: 100, C: 1350.0, C0: 1980.0, refSpeed: 980, limitSpeed: 690, mass: 65.00, type: BEARING_TYPES.SPHERICAL_ROLLER, note: "FAG Deelbaar pendelrollager (split spherical roller bearing)" },
+  "222SM190-TVPA": { d: 190, D: 380, B: 155, outerRingWidth: 100, C: 1350.0, C0: 1980.0, refSpeed: 980, limitSpeed: 690, mass: 65.00, type: BEARING_TYPES.SPHERICAL_ROLLER, note: "FAG Deelbaar pendelrollager (split spherical roller bearing)" },
+
+  "222SM200": { d: 200, D: 400, B: 160, outerRingWidth: 108, C: 1500.0, C0: 2240.0, refSpeed: 920, limitSpeed: 650, mass: 76.00, type: BEARING_TYPES.SPHERICAL_ROLLER, note: "FAG Deelbaar pendelrollager (split spherical roller bearing)" },
+  "222SM200-MA": { d: 200, D: 400, B: 160, outerRingWidth: 108, C: 1500.0, C0: 2240.0, refSpeed: 920, limitSpeed: 650, mass: 76.00, type: BEARING_TYPES.SPHERICAL_ROLLER, note: "FAG Deelbaar pendelrollager (split spherical roller bearing)" },
+
+  "222SM220": { d: 220, D: 440, B: 175, outerRingWidth: 120, C: 1800.0, C0: 2700.0, refSpeed: 830, limitSpeed: 590, mass: 99.00, type: BEARING_TYPES.SPHERICAL_ROLLER, note: "FAG Deelbaar pendelrollager (split spherical roller bearing)" },
+  "222SM220-MA": { d: 220, D: 440, B: 175, outerRingWidth: 120, C: 1800.0, C0: 2700.0, refSpeed: 830, limitSpeed: 590, mass: 99.00, type: BEARING_TYPES.SPHERICAL_ROLLER, note: "FAG Deelbaar pendelrollager (split spherical roller bearing)" },
+
+  "222SM240": { d: 240, D: 480, B: 190, outerRingWidth: 130, C: 2150.0, C0: 3300.0, refSpeed: 750, limitSpeed: 530, mass: 130.00, type: BEARING_TYPES.SPHERICAL_ROLLER, note: "FAG Deelbaar pendelrollager (split spherical roller bearing)" },
+  "222SM240-MA": { d: 240, D: 480, B: 190, outerRingWidth: 130, C: 2150.0, C0: 3300.0, refSpeed: 750, limitSpeed: 530, mass: 130.00, type: BEARING_TYPES.SPHERICAL_ROLLER, note: "FAG Deelbaar pendelrollager (split spherical roller bearing)" },
+
+  "222SM260": { d: 260, D: 520, B: 205, outerRingWidth: 140, C: 2500.0, C0: 3850.0, refSpeed: 690, limitSpeed: 490, mass: 165.00, type: BEARING_TYPES.SPHERICAL_ROLLER, note: "FAG Deelbaar pendelrollager (split spherical roller bearing)" },
+  "222SM260-MA": { d: 260, D: 520, B: 205, outerRingWidth: 140, C: 2500.0, C0: 3850.0, refSpeed: 690, limitSpeed: 490, mass: 165.00, type: BEARING_TYPES.SPHERICAL_ROLLER, note: "FAG Deelbaar pendelrollager (split spherical roller bearing)" },
+
+  "222SM280": { d: 280, D: 560, B: 215, outerRingWidth: 145, C: 2800.0, C0: 4350.0, refSpeed: 640, limitSpeed: 450, mass: 205.00, type: BEARING_TYPES.SPHERICAL_ROLLER, note: "FAG Deelbaar pendelrollager (split spherical roller bearing)" },
+  "222SM280-MA": { d: 280, D: 560, B: 215, outerRingWidth: 145, C: 2800.0, C0: 4350.0, refSpeed: 640, limitSpeed: 450, mass: 205.00, type: BEARING_TYPES.SPHERICAL_ROLLER, note: "FAG Deelbaar pendelrollager (split spherical roller bearing)" },
+
+  "222SM300": { d: 300, D: 580, B: 225, outerRingWidth: 150, C: 3050.0, C0: 4800.0, refSpeed: 600, limitSpeed: 420, mass: 235.00, type: BEARING_TYPES.SPHERICAL_ROLLER, note: "FAG Deelbaar pendelrollager (split spherical roller bearing)" },
+  "222SM300-MA": { d: 300, D: 580, B: 225, outerRingWidth: 150, C: 3050.0, C0: 4800.0, refSpeed: 600, limitSpeed: 420, mass: 235.00, type: BEARING_TYPES.SPHERICAL_ROLLER, note: "FAG Deelbaar pendelrollager (split spherical roller bearing)" }
 };
 
 // Functie om de aanduiding (designation) te cleanen en te parsen als deze niet in de DB zit
@@ -403,8 +497,8 @@ function parseBearingDesignation(input) {
     if (bearingDatabase[spacedCand]) return { designation: input, foundInDb: true, ...bearingDatabase[spacedCand] };
   }
 
-  // Strip bekende SKF suffixen zoals 2F, 2RS1, 2RZ, 2Z, ZZ, RS, Z, C3, WT, etc.
-  const knownSuffixRegex = /(2F|2RS1?|2RZ|2Z|ZZ|RS1?|Z|C[1-5]|WT|ECP|EK|K|CC|W33)$/i;
+  // Strip bekende SKF/FAG suffixen zoals 2F, 2RS1, 2RZ, 2Z, ZZ, RS, Z, C3, WT, TVPA, MA, etc.
+  const knownSuffixRegex = /(2F|2RS1?|2RZ|2Z|ZZ|RS1?|Z|C[1-5]|WT|ECP|EK|K|CC|W33|TVPA|MA|TVP|T)$/i;
   const strippedSuffix = clean.replace(knownSuffixRegex, "");
   if (bearingDatabase[strippedSuffix]) {
     return {
@@ -422,13 +516,21 @@ function parseBearingDesignation(input) {
     };
   }
 
-  // Suffixen opschonen (veelvoorkomende SKF suffixen weghalen om de basisserie te vinden)
+  // Suffixen opschonen (veelvoorkomende SKF/FAG suffixen weghalen om de basisserie te vinden)
   let baseStr = clean;
   
-  // Verwijder achtervoegsels zoals C3, C4, 2Z, 2RS1, ECP, EK, K, WT, etc.
-  const matchCore = clean.match(/^([A-Z]*\d+)/);
-  if (matchCore) {
-    baseStr = matchCore[1];
+  // Speciale afhandeling voor deelbare pendelrollagers (bijv. 222SM125-TVPA -> 222SM125)
+  if (clean.startsWith("222SM")) {
+    const smMatch = clean.match(/^(222SM\d+)/);
+    if (smMatch) {
+      baseStr = smMatch[1];
+    }
+  } else {
+    // Verwijder achtervoegsels zoals C3, C4, 2Z, 2RS1, ECP, EK, K, WT, etc.
+    const matchCore = clean.match(/^([A-Z]*\d+)/);
+    if (matchCore) {
+      baseStr = matchCore[1];
+    }
   }
 
   if (bearingDatabase[baseStr]) {
@@ -478,8 +580,21 @@ function parseBearingDesignation(input) {
   let D = null;
   let B = null;
   
+  // Deelbare pendelrollagers (FAG 222SM-serie: boring d is direct het getal achter 222SM)
+  if (baseStr.startsWith("222SM")) {
+    type = BEARING_TYPES.SPHERICAL_ROLLER;
+    const numPart = baseStr.replace(/^222SM/i, "");
+    const parsedD = parseInt(numPart);
+    if (!isNaN(parsedD) && parsedD > 0) {
+      d = parsedD;
+      // Schatting D en B gebaseerd op 222-serie verhoudingen
+      D = Math.round(d * 1.8 + 20);
+      const outerW = Math.round((D - d) * 0.35 + 5);
+      B = Math.round(outerW * 1.6);
+    }
+  }
   // Spanlagers / Y-lagers (beginnen met UC, YAR, YAT, YET, YEL)
-  if (baseStr.startsWith("UC") || baseStr.startsWith("YAR") || baseStr.startsWith("YAT") || baseStr.startsWith("YET") || baseStr.startsWith("YEL")) {
+  else if (baseStr.startsWith("UC") || baseStr.startsWith("YAR") || baseStr.startsWith("YAT") || baseStr.startsWith("YET") || baseStr.startsWith("YEL")) {
     type = BEARING_TYPES.INSERT_BALL;
     const numPart = baseStr.replace(/^[A-Z]+/g, "");
     if (numPart.length >= 3) {
@@ -658,12 +773,14 @@ function calculateBoreFromCode(code) {
 function getEffectiveLubricationWidth(bearingType, designation, d, D, B) {
   const bType = (bearingType || "").toString();
   const desig = (designation || "").toString().trim();
-  
+  const cleanDesig = desig.toUpperCase().replace(/[\s-]/g, "");
+
+  const isSplit = (/^222SM/i.test(cleanDesig)) || (bType.toLowerCase().includes("deelbaar") || bType.toLowerCase().includes("split"));
   const isInsert = (bType === "Spanlager (Y-lager)") ||
                    (bType.includes("Spanlager") || bType.includes("Y-lager") || bType.includes("Insert") || bType.includes("Inzetlager")) ||
                    (/^(UC|UCP|UCF|UCFL|UCT|UCFC|YAR|YAT|YET|YEL|SB|CS|SA)\b/i.test(desig));
-  
-  if (!isInsert) {
+
+  if (!isInsert && !isSplit) {
     return {
       effectiveB: B,
       isAdjusted: false,
@@ -679,6 +796,33 @@ function getEffectiveLubricationWidth(bearingType, designation, d, D, B) {
 
   const bDb = (typeof bearingDatabase !== "undefined" && bearingDatabase) ? bearingDatabase :
               (typeof window !== "undefined" && window.bearingDatabase) ? window.bearingDatabase : null;
+
+  // Deelbare pendelrollagers (FAG 222SM-serie): B is totale klembreedte, C (outerRingWidth) is loopbaanbreedte
+  if (isSplit) {
+    if (bDb) {
+      const matchItem = bDb[cleanDesig] || bDb[desig] || bDb[cleanDesig.replace(/(TVPA|MA|TVP|T)$/i, "")];
+      if (matchItem && matchItem.outerRingWidth) {
+        cRing = matchItem.outerRingWidth;
+        equivDesig = cleanDesig;
+        equivMass = matchItem.mass || null;
+      }
+    }
+    if (!cRing || isNaN(cRing)) {
+      cRing = Math.round(B * 0.62);
+    }
+    if (cRing >= B) {
+      cRing = Math.round(B * 0.62);
+    }
+    return {
+      effectiveB: cRing,
+      isAdjusted: true,
+      originalB: B,
+      outerRingWidth: cRing,
+      equivDesig: equivDesig,
+      equivMass: equivMass,
+      note: `Deelbaar pendelrollager (split bearing): Smeer- en vulvolumes berekend op basis van effectieve loopbaanbreedte C (${cRing} mm) in plaats van klemkragen B (${B} mm) ter voorkoming van overbevetting.`
+    };
+  }
 
   if (bDb) {
     // 1. Zoek naar overeenkomstig standaard diepgroefkogellager (63xx voor serie 300, 62xx voor serie 200)
@@ -742,21 +886,21 @@ const SNL_HOUSING_DATABASE = {
   "SNL 508-607": { name: "SNL 508-607", group: "SNL / S-serie (Staand lagerhuis)", fill40: 65, fill100: 130, bearings: ["22208", "22307", "1208", "2208", "1307", "2307"] },
   "SNL 509": { name: "SNL 509", group: "SNL / S-serie (Staand lagerhuis)", fill40: 80, fill100: 160, bearings: ["22209", "1209", "2209"] },
   "SNL 510-608": { name: "SNL 510-608", group: "SNL / S-serie (Staand lagerhuis)", fill40: 100, fill100: 200, bearings: ["22210", "22308", "1210", "2210", "1308", "2308"] },
-  "SNL 511-609": { name: "SNL 511-609", group: "SNL / S-serie (Staand lagerhuis)", fill40: 150, fill100: 300, bearings: ["22211", "22309", "1211", "2211", "1309", "2309"] },
-  "SNL 512-610": { name: "SNL 512-610", group: "SNL / S-serie (Staand lagerhuis)", fill40: 180, fill100: 360, bearings: ["22212", "22310", "1212", "2212", "1310", "2310"] },
-  "SNL 513-611": { name: "SNL 513-611", group: "SNL / S-serie (Staand lagerhuis)", fill40: 210, fill100: 420, bearings: ["22213", "22311", "1213", "2213", "1311", "2311"] },
-  "SNL 515-612": { name: "SNL 515-612", group: "SNL / S-serie (Staand lagerhuis)", fill40: 250, fill100: 500, bearings: ["22215", "22312", "1215", "2215", "1312", "2312"] },
-  "SNL 516-613": { name: "SNL 516-613", group: "SNL / S-serie (Staand lagerhuis)", fill40: 300, fill100: 600, bearings: ["22216", "22216EK", "22313", "1216", "2216", "1313", "2313", "SNL516"] },
-  "SNL 517": { name: "SNL 517", group: "SNL / S-serie (Staand lagerhuis)", fill40: 370, fill100: 740, bearings: ["22217", "1217", "2217"] },
-  "SNL 518-615": { name: "SNL 518-615", group: "SNL / S-serie (Staand lagerhuis)", fill40: 450, fill100: 900, bearings: ["22218", "22315", "1218", "2218", "1315", "2315"] },
-  "SNL 519-616": { name: "SNL 519-616", group: "SNL / S-serie (Staand lagerhuis)", fill40: 550, fill100: 1100, bearings: ["22219", "22316", "1219", "2219", "1316", "2316"] },
-  "SNL 520-617": { name: "SNL 520-617", group: "SNL / S-serie (Staand lagerhuis)", fill40: 650, fill100: 1300, bearings: ["22220", "22317", "1220", "2220", "1317", "2317", "SNL520", "520-617"] },
-  "SNL 522-619": { name: "SNL 522-619", group: "SNL / S-serie (Staand lagerhuis)", fill40: 850, fill100: 1700, bearings: ["22222", "22319", "1222", "2222", "1319", "2319"] },
-  "SNL 524-620": { name: "SNL 524-620", group: "SNL / S-serie (Staand lagerhuis)", fill40: 1000, fill100: 2000, bearings: ["22224", "22320", "1224", "2224", "1320", "2320", "SNL524", "524-620"] },
-  "SNL 526": { name: "SNL 526", group: "SNL / S-serie (Staand lagerhuis)", fill40: 1150, fill100: 2300, bearings: ["22226", "226-526"] },
-  "SNL 528": { name: "SNL 528", group: "SNL / S-serie (Staand lagerhuis)", fill40: 1400, fill100: 2800, bearings: ["22228"] },
-  "SNL 530": { name: "SNL 530", group: "SNL / S-serie (Staand lagerhuis)", fill40: 1650, fill100: 3300, bearings: ["22230"] },
-  "SNL 532": { name: "SNL 532", group: "SNL / S-serie (Staand lagerhuis)", fill40: 1900, fill100: 3800, bearings: ["22232"] },
+  "SNL 511-609": { name: "SNL 511-609", group: "SNL / S-serie (Staand lagerhuis)", fill40: 150, fill100: 300, bearings: ["22211", "22309", "1211", "2211", "1309", "2309", "222SM50"] },
+  "SNL 512-610": { name: "SNL 512-610", group: "SNL / S-serie (Staand lagerhuis)", fill40: 180, fill100: 360, bearings: ["22212", "22310", "1212", "2212", "1310", "2310", "222SM55"] },
+  "SNL 513-611": { name: "SNL 513-611", group: "SNL / S-serie (Staand lagerhuis)", fill40: 210, fill100: 420, bearings: ["22213", "22311", "1213", "2213", "1311", "2311", "222SM60"] },
+  "SNL 515-612": { name: "SNL 515-612", group: "SNL / S-serie (Staand lagerhuis)", fill40: 250, fill100: 500, bearings: ["22215", "22312", "1215", "2215", "1312", "2312", "222SM65"] },
+  "SNL 516-613": { name: "SNL 516-613", group: "SNL / S-serie (Staand lagerhuis)", fill40: 300, fill100: 600, bearings: ["22216", "22216EK", "22313", "1216", "2216", "1313", "2313", "SNL516", "222SM70"] },
+  "SNL 517": { name: "SNL 517", group: "SNL / S-serie (Staand lagerhuis)", fill40: 370, fill100: 740, bearings: ["22217", "1217", "2217", "222SM75"] },
+  "SNL 518-615": { name: "SNL 518-615", group: "SNL / S-serie (Staand lagerhuis)", fill40: 450, fill100: 900, bearings: ["22218", "22315", "1218", "2218", "1315", "2315", "222SM80"] },
+  "SNL 519-616": { name: "SNL 519-616", group: "SNL / S-serie (Staand lagerhuis)", fill40: 550, fill100: 1100, bearings: ["22219", "22316", "1219", "2219", "1316", "2316", "222SM85"] },
+  "SNL 520-617": { name: "SNL 520-617", group: "SNL / S-serie (Staand lagerhuis)", fill40: 650, fill100: 1300, bearings: ["22220", "22317", "1220", "2220", "1317", "2317", "SNL520", "520-617", "222SM90"] },
+  "SNL 522-619": { name: "SNL 522-619", group: "SNL / S-serie (Staand lagerhuis)", fill40: 850, fill100: 1700, bearings: ["22222", "22319", "1222", "2222", "1319", "2319", "222SM100"] },
+  "SNL 524-620": { name: "SNL 524-620", group: "SNL / S-serie (Staand lagerhuis)", fill40: 1000, fill100: 2000, bearings: ["22224", "22320", "1224", "2224", "1320", "2320", "SNL524", "524-620", "222SM110"] },
+  "SNL 526": { name: "SNL 526", group: "SNL / S-serie (Staand lagerhuis)", fill40: 1150, fill100: 2300, bearings: ["22226", "226-526", "222SM115"] },
+  "SNL 528": { name: "SNL 528", group: "SNL / S-serie (Staand lagerhuis)", fill40: 1400, fill100: 2800, bearings: ["22228", "222SM125"] },
+  "SNL 530": { name: "SNL 530", group: "SNL / S-serie (Staand lagerhuis)", fill40: 1650, fill100: 3300, bearings: ["22230", "222SM135"] },
+  "SNL 532": { name: "SNL 532", group: "SNL / S-serie (Staand lagerhuis)", fill40: 1900, fill100: 3800, bearings: ["22232", "222SM140"] },
   "S204": { name: "S204 / UCP204", group: "SNL / S-serie (Staand lagerhuis)", fill40: 10, fill100: 25, bearings: ["UCP204", "S204"] },
   "S205": { name: "S205 / UCP205", group: "SNL / S-serie (Staand lagerhuis)", fill40: 12, fill100: 30, bearings: ["UCP205", "S205"] },
   "S206": { name: "S206 / UCP206", group: "SNL / S-serie (Staand lagerhuis)", fill40: 16, fill100: 40, bearings: ["UCP206", "S206"] },
