@@ -13,7 +13,7 @@
       window.location.replace('https://www.interflonapps.com' + window.location.pathname + window.location.search + window.location.hash);
     }
   </script>
-  <link rel="stylesheet" href="style.css?v=20260922_1955">
+  <link rel="stylesheet" href="style.css?v=20260930_1930">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 </head>
@@ -787,6 +787,10 @@
           <button type="button" id="photoLibraryBadgeBtn" class="user-badge" onclick="openPhotoLibraryModal()">
             <div id="photoAvatar" class="user-avatar" style="background-color: #FCE7F3; color: #DB2777;">📷</div>
             <span id="photoLibraryBadgeText" class="user-name" data-i18n="photoLibraryBadge">Foto bibliotheek</span>
+          </button>
+          <button type="button" id="btnClearFormApp" class="app-header-clear-btn" onclick="clearAllForNewDossier()" title="Wis alle ingevulde gegevens in de app en actieve vragenlijst om een nieuw dossier te starten">
+            <div class="user-avatar" style="background-color: #FEE2E2; color: #DC2626; font-size: 14px; flex-shrink: 0;">🗑️</div>
+            <span id="clearFormBtnText" class="user-name" data-i18n="btnClearForm" style="color: #DC2626; font-weight: 700;">Formulier wissen</span>
           </button>
         </div>
       </header>
@@ -4310,7 +4314,7 @@
   <script src="bearings-db.js?v=20260918_1130"></script>
   <script src="chains-db.js?v=20260904_1726"></script>
   <script src="qrcode.min.js"></script>
-  <script src="app_v6.js?v=20260924_1250"></script>
+  <script src="app_v6.js?v=20260930_1930"></script>
 
   <!-- Interflon Oil Dispenser Information Modal (PowerPoint Viewer) -->
   <div id="oilDispenserInfoModal" class="modal-overlay hidden" style="z-index: 99999;">
