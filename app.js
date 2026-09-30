@@ -318,6 +318,119 @@ function getDeviceTypeName(typeId) {
 }
 window.getDeviceTypeName = getDeviceTypeName;
 
+// ==========================================================================
+// AUTOMATION CUSTOM IN-DOM DROPDOWNS (IMMUNE TO BROWSER POPUP GLITCHES)
+// ==========================================================================
+function toggleAutoCustomDropdown(selectId) {
+  const menu = document.getElementById('autoCustomDropdownMenu_' + selectId);
+  const arrow = document.getElementById('autoCustomDropdownArrow_' + selectId);
+  const btn = document.getElementById('autoCustomDropdownBtn_' + selectId);
+  if (!menu) return;
+  const isOpen = menu.style.display === 'block';
+
+  // Close all other open custom dropdown menus
+  document.querySelectorAll('.auto-custom-dropdown-menu').forEach(m => {
+    m.style.display = 'none';
+  });
+  document.querySelectorAll('.auto-custom-dropdown-arrow').forEach(a => {
+    a.style.transform = 'rotate(0deg)';
+  });
+  document.querySelectorAll('.auto-custom-dropdown-btn').forEach(b => {
+    b.classList.remove('open');
+  });
+
+  if (!isOpen) {
+    syncAutoCustomDropdownUI(selectId);
+    menu.style.display = 'block';
+    if (arrow) arrow.style.transform = 'rotate(180deg)';
+    if (btn) btn.classList.add('open');
+  }
+}
+window.toggleAutoCustomDropdown = toggleAutoCustomDropdown;
+
+function selectAutoCustomDropdownOption(selectId, value) {
+  const sel = document.getElementById(selectId);
+  const menu = document.getElementById('autoCustomDropdownMenu_' + selectId);
+  const arrow = document.getElementById('autoCustomDropdownArrow_' + selectId);
+  const btn = document.getElementById('autoCustomDropdownBtn_' + selectId);
+
+  if (menu) menu.style.display = 'none';
+  if (arrow) arrow.style.transform = 'rotate(0deg)';
+  if (btn) btn.classList.remove('open');
+
+  if (sel) {
+    sel.value = value;
+    if (typeof sel.onchange === 'function') {
+      sel.onchange();
+    } else {
+      sel.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+  }
+  syncAutoCustomDropdownUI(selectId);
+}
+window.selectAutoCustomDropdownOption = selectAutoCustomDropdownOption;
+
+function syncAutoCustomDropdownUI(selectId) {
+  const sel = document.getElementById(selectId);
+  if (!sel) return;
+
+  const label = document.getElementById('autoCustomDropdownLabel_' + selectId);
+  const menu = document.getElementById('autoCustomDropdownMenu_' + selectId);
+
+  const selectedOpt = (sel.selectedIndex >= 0 && sel.options[sel.selectedIndex])
+    ? sel.options[sel.selectedIndex]
+    : (sel.options.length > 0 ? sel.options[0] : null);
+
+  if (label && selectedOpt) {
+    label.textContent = selectedOpt.textContent;
+  }
+
+  if (menu) {
+    menu.innerHTML = Array.from(sel.options).map(opt => {
+      const isSel = String(opt.value) === String(sel.value);
+      const safeVal = String(opt.value).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+      return `
+        <div class="auto-custom-dropdown-item ${isSel ? 'selected' : ''}" 
+             onclick="selectAutoCustomDropdownOption('${selectId}', '${safeVal}')">
+          <span>${opt.textContent}</span>
+          ${isSel ? '<span class="check-icon">✓</span>' : ''}
+        </div>
+      `;
+    }).join('');
+  }
+}
+window.syncAutoCustomDropdownUI = syncAutoCustomDropdownUI;
+
+if (typeof document !== 'undefined') {
+  document.addEventListener('click', function(e) {
+    if (!e.target.closest || !e.target.closest('.auto-custom-dropdown-wrapper')) {
+      document.querySelectorAll('.auto-custom-dropdown-menu').forEach(m => {
+        m.style.display = 'none';
+      });
+      document.querySelectorAll('.auto-custom-dropdown-arrow').forEach(a => {
+        a.style.transform = 'rotate(0deg)';
+      });
+      document.querySelectorAll('.auto-custom-dropdown-btn').forEach(b => {
+        b.classList.remove('open');
+      });
+    }
+  });
+
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+      document.querySelectorAll('.auto-custom-dropdown-menu').forEach(m => {
+        m.style.display = 'none';
+      });
+      document.querySelectorAll('.auto-custom-dropdown-arrow').forEach(a => {
+        a.style.transform = 'rotate(0deg)';
+      });
+      document.querySelectorAll('.auto-custom-dropdown-btn').forEach(b => {
+        b.classList.remove('open');
+      });
+    }
+  });
+}
+
 function updateDeviceDispenseSettingsUI(devId) {
   ensureAutoDevicesStateSafety();
   if (typeof autoDevicesState === "undefined" || !Array.isArray(autoDevicesState)) return;
@@ -404,6 +517,12 @@ function updateDeviceDispenseSettingsUI(devId) {
       }
     }
   }
+
+  // 5. Synchronize custom dropdown UI for device card
+  syncAutoCustomDropdownUI("autoDispensePeriod_" + devId);
+  syncAutoCustomDropdownUI("autoCartridgeCap_" + devId);
+  syncAutoCustomDropdownUI("autoNumPointsSelect_" + devId);
+  syncAutoCustomDropdownUI("autoDeviceType_" + devId);
 }
 window.updateDeviceDispenseSettingsUI = updateDeviceDispenseSettingsUI;
 
@@ -5664,12 +5783,25 @@ function renderAutoDevicesUI() {
         <label for="autoDeviceType_${devId}" style="font-size: 12px; font-weight: 700; color: #475569; margin: 0; display: flex; align-items: center; gap: 6px;">
           🏷️ Model Toestel ${devId}:
         </label>
-        <select id="autoDeviceType_${devId}" class="form-select" style="width: 100%; max-width: 100%; padding: 7px 10px; font-size: 12px; font-weight: 700; border-radius: var(--border-radius-sm); border: 1px solid #cbd5e1; background: #ffffff; color: var(--primary-dark); box-sizing: border-box;" onchange="onDeviceTypeChange('${devId}', this.value)">
-          <option value="pulsarlube_m2"${cardDevType === 'pulsarlube_m2' ? ' selected' : ''}>Pulsarlube M2 (Batterij)</option>
-          <option value="pulsarlube_msp_ac"${cardDevType === 'pulsarlube_msp_ac' ? ' selected' : ''}>Pulsarlube MSP AC (Synchroon)</option>
-          <option value="pulsarlube_msp_dc"${(cardDevType === 'pulsarlube_msp_dc' || cardDevType === 'pulsarlube_msp') ? ' selected' : ''}>Pulsarlube MSP DC (Synchroon)</option>
-          <option value="pulsarlube_plc"${cardDevType === 'pulsarlube_plc' ? ' selected' : ''}>Pulsarlube PLC (Extern)</option>
-        </select>
+        <div class="auto-custom-dropdown-wrapper" id="customDropdownWrapper_autoDeviceType_${devId}">
+          <button type="button" id="autoCustomDropdownBtn_autoDeviceType_${devId}" class="auto-custom-dropdown-btn" onclick="toggleAutoCustomDropdown('autoDeviceType_${devId}')" aria-haspopup="listbox">
+            <span id="autoCustomDropdownLabel_autoDeviceType_${devId}">${
+              cardDevType === 'pulsarlube_msp_ac' ? 'Pulsarlube MSP AC (Synchroon)' :
+              (cardDevType === 'pulsarlube_msp_dc' || cardDevType === 'pulsarlube_msp') ? 'Pulsarlube MSP DC (Synchroon)' :
+              cardDevType === 'pulsarlube_plc' ? 'Pulsarlube PLC (Extern)' : 'Pulsarlube M2 (Batterij)'
+            }</span>
+            <svg id="autoCustomDropdownArrow_autoDeviceType_${devId}" class="auto-custom-dropdown-arrow" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+            </svg>
+          </button>
+          <div id="autoCustomDropdownMenu_autoDeviceType_${devId}" class="auto-custom-dropdown-menu"></div>
+          <select id="autoDeviceType_${devId}" class="form-select" onchange="onDeviceTypeChange('${devId}', this.value)" style="position: absolute !important; width: 0 !important; height: 0 !important; opacity: 0 !important; pointer-events: none !important; margin: 0 !important; padding: 0 !important; border: none !important; z-index: -1 !important;">
+            <option value="pulsarlube_m2"${cardDevType === 'pulsarlube_m2' ? ' selected' : ''}>Pulsarlube M2 (Batterij)</option>
+            <option value="pulsarlube_msp_ac"${cardDevType === 'pulsarlube_msp_ac' ? ' selected' : ''}>Pulsarlube MSP AC (Synchroon)</option>
+            <option value="pulsarlube_msp_dc"${(cardDevType === 'pulsarlube_msp_dc' || cardDevType === 'pulsarlube_msp') ? ' selected' : ''}>Pulsarlube MSP DC (Synchroon)</option>
+            <option value="pulsarlube_plc"${cardDevType === 'pulsarlube_plc' ? ' selected' : ''}>Pulsarlube PLC (Extern)</option>
+          </select>
+        </div>
       </div>
       ` : ''}
 
@@ -5713,9 +5845,21 @@ function renderAutoDevicesUI() {
         <label for="autoNumPointsSelect_${devId}" style="display: block; font-size: 12.5px; font-weight: 700; color: var(--text-dark); margin-bottom: 6px;">
           ${pointsLabel}
         </label>
-        <select id="autoNumPointsSelect_${devId}" class="form-select" style="width: 100%; padding: 8px 12px; font-weight: 600; border-radius: var(--border-radius-sm); border: 1px solid #cbd5e1;" onchange="onDevicePointsChange('${devId}')">
-          ${optionsHtml}
-        </select>
+        <div class="auto-custom-dropdown-wrapper" id="customDropdownWrapper_autoNumPointsSelect_${devId}">
+          <button type="button" id="autoCustomDropdownBtn_autoNumPointsSelect_${devId}" class="auto-custom-dropdown-btn" onclick="toggleAutoCustomDropdown('autoNumPointsSelect_${devId}')" aria-haspopup="listbox">
+            <span id="autoCustomDropdownLabel_autoNumPointsSelect_${devId}">${
+              dev.points === 0 ? ((lang === 'fr') ? "0 point / roulement (non raccordé)" : ((lang === 'en') ? "0 points / bearings (not connected)" : "0 lagers (geen aangesloten)")) :
+              (isSinglePoint ? `${dev.points} ${dev.points === 1 ? 'lager / smeerpunt' : 'lagers / smeerpunten'}` : (dev.points === 1 ? "1 lager / smeerpunt (Direct)" : (dev.points + " lagers (Verdeelblok " + dev.points + "-poorts)")))
+            }</span>
+            <svg id="autoCustomDropdownArrow_autoNumPointsSelect_${devId}" class="auto-custom-dropdown-arrow" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+            </svg>
+          </button>
+          <div id="autoCustomDropdownMenu_autoNumPointsSelect_${devId}" class="auto-custom-dropdown-menu"></div>
+          <select id="autoNumPointsSelect_${devId}" class="form-select" onchange="onDevicePointsChange('${devId}')" style="position: absolute !important; width: 0 !important; height: 0 !important; opacity: 0 !important; pointer-events: none !important; margin: 0 !important; padding: 0 !important; border: none !important; z-index: -1 !important;">
+            ${optionsHtml}
+          </select>
+        </div>
         
         <!-- Interactive Verdeelblok Card -->
         <div id="dividerBlockCard_${devId}" class="auto-divider-block-card" style="margin-top: 10px; background-color: #ffffff; border: 1px solid #cbd5e1; border-radius: var(--border-radius-sm); padding: 10px 12px; display: ${isSinglePoint ? 'none' : 'flex'}; align-items: center; gap: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); box-sizing: border-box;">
@@ -5778,17 +5922,35 @@ function renderAutoDevicesUI() {
           </div>
           <div>
             <label for="autoCartridgeCap_${devId}" style="display: block; font-size: 12px; font-weight: 600; color: var(--text-dark); margin-bottom: 4px;">Patroon Capaciteit (ml)</label>
-            <select id="autoCartridgeCap_${devId}" class="form-select" onchange="onDeviceCapChange('${devId}')" style="width: 100%; padding: 8px 12px; border-radius: var(--border-radius-sm); border: 1px solid #cbd5e1;">
-              ${capOptionsHtml}
-            </select>
+            <div class="auto-custom-dropdown-wrapper" id="customDropdownWrapper_autoCartridgeCap_${devId}">
+              <button type="button" id="autoCustomDropdownBtn_autoCartridgeCap_${devId}" class="auto-custom-dropdown-btn" onclick="toggleAutoCustomDropdown('autoCartridgeCap_${devId}')" aria-haspopup="listbox">
+                <span id="autoCustomDropdownLabel_autoCartridgeCap_${devId}">${dev.cap} ml</span>
+                <svg id="autoCustomDropdownArrow_autoCartridgeCap_${devId}" class="auto-custom-dropdown-arrow" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+                </svg>
+              </button>
+              <div id="autoCustomDropdownMenu_autoCartridgeCap_${devId}" class="auto-custom-dropdown-menu"></div>
+              <select id="autoCartridgeCap_${devId}" class="form-select" onchange="onDeviceCapChange('${devId}')" style="position: absolute !important; width: 0 !important; height: 0 !important; opacity: 0 !important; pointer-events: none !important; margin: 0 !important; padding: 0 !important; border: none !important; z-index: -1 !important;">
+                ${capOptionsHtml}
+              </select>
+            </div>
           </div>
 
           <div>
             <label for="autoDispensePeriod_${devId}" style="display: block; font-size: 12px; font-weight: 600; color: var(--text-dark); margin-bottom: 4px;">Gewenste Looptijd / Leeglooptijd</label>
             <div style="display: flex; gap: 8px;">
-              <select id="autoDispensePeriod_${devId}" class="form-select" onchange="onDevicePeriodChange('${devId}')" style="width: 100%; padding: 8px 12px; border-radius: var(--border-radius-sm); border: 1px solid #cbd5e1; font-weight: 600; color: var(--text-dark); background-color: #ffffff;">
-                ${validDispenseMonths.map(m => `<option value="${m}"${Number(m) === Number(dev.period) ? ' selected' : ''}>${m} ${m === 1 ? (lang === 'fr' ? 'mois' : (lang === 'en' ? 'month' : 'maand')) : (lang === 'fr' ? 'mois' : (lang === 'en' ? 'months' : 'maanden'))}</option>`).join('')}
-              </select>
+              <div class="auto-custom-dropdown-wrapper" id="customDropdownWrapper_autoDispensePeriod_${devId}">
+                <button type="button" id="autoCustomDropdownBtn_autoDispensePeriod_${devId}" class="auto-custom-dropdown-btn" onclick="toggleAutoCustomDropdown('autoDispensePeriod_${devId}')" aria-haspopup="listbox">
+                  <span id="autoCustomDropdownLabel_autoDispensePeriod_${devId}">${dev.period} ${dev.period === 1 ? (lang === 'fr' ? 'mois' : (lang === 'en' ? 'month' : 'maand')) : (lang === 'fr' ? 'mois' : (lang === 'en' ? 'months' : 'maanden'))}</span>
+                  <svg id="autoCustomDropdownArrow_autoDispensePeriod_${devId}" class="auto-custom-dropdown-arrow" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+                  </svg>
+                </button>
+                <div id="autoCustomDropdownMenu_autoDispensePeriod_${devId}" class="auto-custom-dropdown-menu"></div>
+                <select id="autoDispensePeriod_${devId}" class="form-select" onchange="onDevicePeriodChange('${devId}')" style="position: absolute !important; width: 0 !important; height: 0 !important; opacity: 0 !important; pointer-events: none !important; margin: 0 !important; padding: 0 !important; border: none !important; z-index: -1 !important;">
+                  ${validDispenseMonths.map(m => `<option value="${m}"${Number(m) === Number(dev.period) ? ' selected' : ''}>${m} ${m === 1 ? (lang === 'fr' ? 'mois' : (lang === 'en' ? 'month' : 'maand')) : (lang === 'fr' ? 'mois' : (lang === 'en' ? 'months' : 'maanden'))}</option>`).join('')}
+                </select>
+              </div>
               <input type="hidden" id="autoDispenseUnit_${devId}" value="months">
             </div>
             <div id="autoDispenseHintContainer_${devId}" style="font-size: 11px; color: #475569; margin-top: 4px; display: ${isPulsarlubeSpecial ? 'flex' : 'none'}; align-items: center; gap: 4px;">
@@ -5861,14 +6023,21 @@ function renderAutoDevicesUI() {
   }
 
   container.innerHTML = html;
+  if (Array.isArray(autoDevicesState)) {
+    autoDevicesState.forEach(d => {
+      if (d && d.id) {
+        syncAutoCustomDropdownUI("autoDeviceType_" + d.id);
+        syncAutoCustomDropdownUI("autoNumPointsSelect_" + d.id);
+        syncAutoCustomDropdownUI("autoCartridgeCap_" + d.id);
+        syncAutoCustomDropdownUI("autoDispensePeriod_" + d.id);
+      }
+    });
+  }
   if (typeof updateAutomationHeaderImages === "function") {
     updateAutomationHeaderImages();
   }
   if (typeof syncAutomationDeviceCardHeights === "function") {
     syncAutomationDeviceCardHeights();
-    requestAnimationFrame(() => {
-      syncAutomationDeviceCardHeights();
-    });
   }
 }
 
@@ -5884,10 +6053,6 @@ function syncAutomationDeviceCardHeights() {
         if (minThreshold) els[0].style.minHeight = minThreshold + 'px';
         return;
       }
-      els.forEach(el => {
-        el.style.minHeight = 'auto';
-        el.style.height = 'auto';
-      });
       let maxH = 0;
       els.forEach(el => {
         const rect = el.getBoundingClientRect();
@@ -5923,14 +6088,6 @@ function syncAutomationDeviceCardHeights() {
   }
 }
 window.syncAutomationDeviceCardHeights = syncAutomationDeviceCardHeights;
-
-if (typeof window !== "undefined") {
-  window.addEventListener('resize', () => {
-    if (typeof syncAutomationDeviceCardHeights === 'function') {
-      syncAutomationDeviceCardHeights();
-    }
-  });
-}
 
 
 // ==========================================================================
@@ -10577,12 +10734,12 @@ function updateCalculatorFields() {
     // Geen lager geladen. We behouden de waarden uit het HTML formulier als standaard voorbeeld
     bannerTitle.textContent = langData.searchEmptyTitle || "Geen lager geselecteerd";
     bannerSubtitle.textContent = langData.calcBannerSubtitleEmpty || "Keer terug naar 'Lager Opzoeken' of geef hieronder handmatig de afmetingen in.";
-    bannerBadge.textContent = "-";
-    
-    if (!boreInput.value) boreInput.value = "120";
-    if (!outerInput.value) outerInput.value = "215";
-    if (!widthInput.value) widthInput.value = "42";
-    if (massInput && !massInput.value) massInput.value = "6.71";
+    if (!window.__isFormCleared && !window.__formEverCleared) {
+      if (!boreInput.value) boreInput.value = "120";
+      if (!outerInput.value) outerInput.value = "215";
+      if (!widthInput.value) widthInput.value = "42";
+      if (massInput && !massInput.value) massInput.value = "6.71";
+    }
   }
 
   // Voer direct een berekening uit op basis van de ingevulde waarden
@@ -18007,6 +18164,10 @@ function updateRoiAutomationPage() {
   const greasePriceInput = document.getElementById("omProdPrice2") || document.getElementById("chainOmProdPrice2") || document.getElementById("tcoPriceInterflonInput");
   const greasePricePerLiter = greasePriceInput ? (parseFloat(greasePriceInput.value) || 70.50) : 70.50;
 
+  const isFormCleared = !!window.__isFormCleared;
+  const boreEl = document.getElementById("inputBoreManual");
+  const hasBearing = !isFormCleared && !!(activeBearing || window.selectedSearchedBearing || (boreEl && boreEl.value && parseFloat(boreEl.value) > 0));
+
   // Aggregate total points across all active devices
   let totalPointsAllDevices = 0;
   let devBreakdownText = [];
@@ -18015,7 +18176,9 @@ function updateRoiAutomationPage() {
     : [];
   const isSpMultiGroup = (deviceKey === "single_point" && activeSpGroups.length > 1);
 
-  if (deviceKey === "single_point") {
+  if (!hasBearing) {
+    totalPointsAllDevices = 0;
+  } else if (deviceKey === "single_point") {
     if (isSpMultiGroup) {
       totalPointsAllDevices = activeSpGroups.reduce((sum, g) => sum + (g.unitCount || (g.bearingLetters ? g.bearingLetters.length : 1)), 0);
       activeSpGroups.forEach(g => {
@@ -18101,33 +18264,35 @@ function updateRoiAutomationPage() {
   }
 
   // 2. Annual Volume calculation for ALL points combined
-  const dailyNeedCm3 = window.currentDailyNeedCm3 || 0.704;
+  const dailyNeedCm3 = hasBearing ? (window.currentDailyNeedCm3 || 0) : 0;
   let totalDailyNeedAllDevices = 0;
-  if (deviceKey === "single_point") {
-    if (isSpMultiGroup) {
-      activeSpGroups.forEach(g => {
-        const cnt = g.unitCount || (g.bearingLetters ? g.bearingLetters.length : 1);
-        const need1 = (g.dailyNeedCm3 && g.dailyNeedCm3 > 0) ? g.dailyNeedCm3 : (window.currentDailyNeedCm3 || 0.704);
-        totalDailyNeedAllDevices += (need1 * cnt);
-      });
-    } else {
-      const cnt = window.spNumBearingsValue || (autoDevicesState[0] && autoDevicesState[0].unitCount) || 1;
-      const need1 = (autoDevicesState[0] && autoDevicesState[0].dailyNeedCm3 > 0) ? autoDevicesState[0].dailyNeedCm3 : (window.currentDailyNeedCm3 || 0.704);
-      totalDailyNeedAllDevices = need1 * cnt;
-    }
-  } else {
-    for (let i = 0; i < numDevices; i++) {
-      const d = (typeof autoDevicesState !== "undefined" && autoDevicesState[i]) ? autoDevicesState[i] : null;
-      const pts = (deviceKey === "single_point") ? 1 : (d ? ((typeof d.points === 'number') ? d.points : (parseInt(d.points, 10) || 0)) : 1);
-      const hasExplicitBearings = d && Array.isArray(d.bearingLetters);
-      const hasZeroAssigned = hasExplicitBearings && d.bearingLetters.length === 0;
-
-      if (d && d.totalDailyNeed && d.totalDailyNeed > 0) {
-        totalDailyNeedAllDevices += d.totalDailyNeed;
-      } else if (hasZeroAssigned || pts === 0) {
-        totalDailyNeedAllDevices += 0;
+  if (hasBearing) {
+    if (deviceKey === "single_point") {
+      if (isSpMultiGroup) {
+        activeSpGroups.forEach(g => {
+          const cnt = g.unitCount || (g.bearingLetters ? g.bearingLetters.length : 1);
+          const need1 = (g.dailyNeedCm3 && g.dailyNeedCm3 > 0) ? g.dailyNeedCm3 : (window.currentDailyNeedCm3 || 0);
+          totalDailyNeedAllDevices += (need1 * cnt);
+        });
       } else {
-        totalDailyNeedAllDevices += ((window.currentDailyNeedCm3 || 0.704) * pts);
+        const cnt = window.spNumBearingsValue || (autoDevicesState[0] && autoDevicesState[0].unitCount) || 1;
+        const need1 = (autoDevicesState[0] && autoDevicesState[0].dailyNeedCm3 > 0) ? autoDevicesState[0].dailyNeedCm3 : (window.currentDailyNeedCm3 || 0);
+        totalDailyNeedAllDevices = need1 * cnt;
+      }
+    } else {
+      for (let i = 0; i < numDevices; i++) {
+        const d = (typeof autoDevicesState !== "undefined" && autoDevicesState[i]) ? autoDevicesState[i] : null;
+        const pts = (deviceKey === "single_point") ? 1 : (d ? ((typeof d.points === 'number') ? d.points : (parseInt(d.points, 10) || 0)) : 1);
+        const hasExplicitBearings = d && Array.isArray(d.bearingLetters);
+        const hasZeroAssigned = hasExplicitBearings && d.bearingLetters.length === 0;
+
+        if (d && d.totalDailyNeed && d.totalDailyNeed > 0) {
+          totalDailyNeedAllDevices += d.totalDailyNeed;
+        } else if (hasZeroAssigned || pts === 0) {
+          totalDailyNeedAllDevices += 0;
+        } else {
+          totalDailyNeedAllDevices += ((window.currentDailyNeedCm3 || 0) * pts);
+        }
       }
     }
   }
@@ -18232,9 +18397,9 @@ function updateRoiAutomationPage() {
   const activeDtH = (manualMode === "huidig") ? p1_downtime_h : p2_downtime_h;
   const activeDtFreq = (manualMode === "huidig") ? p1_downtime_freq : p2_downtime_freq;
 
-  let manualRepairCost = activeRepairFreq > 0 ? ((12 / activeRepairFreq) * (shared_repair_h + shared_prep_h) * numBearingsForTco * hourlyRate) : 0;
-  let manualMatCost = activeLifetime > 0 ? ((12 / activeLifetime) * shared_parts_cost * numBearingsForTco) : 0;
-  let manualDowntimeCost = activeDtH * activeDtFreq * shared_downtime_rate * numBearingsForTco;
+  let manualRepairCost = (hasBearing && activeRepairFreq > 0) ? ((12 / activeRepairFreq) * (shared_repair_h + shared_prep_h) * numBearingsForTco * hourlyRate) : 0;
+  let manualMatCost = (hasBearing && activeLifetime > 0) ? ((12 / activeLifetime) * shared_parts_cost * numBearingsForTco) : 0;
+  let manualDowntimeCost = hasBearing ? (activeDtH * activeDtFreq * shared_downtime_rate * numBearingsForTco) : 0;
 
   // Auto lubricator Card 2 costs (uses Interflon lifetime p2 + lifetime extension factor):
   const lifetimeFactorEl = document.getElementById("roiLifetimeFactorSelect");
@@ -18280,20 +18445,20 @@ function updateRoiAutomationPage() {
     autoLifetimeEl.parentElement.innerHTML = `<span id="roiAutoLifetimeLabel">${autoPrefix}</span><strong id="roiAutomatedLifetimeDisplay">${autoBearingLifetime} ${mndShortStr}</strong>`;
   }
 
-  if (baseLifetimeEl) baseLifetimeEl.textContent = `${activeLifetime} ${mndShortStr}`;
-  if (autoLifetimeEl) autoLifetimeEl.textContent = `${autoBearingLifetime} ${mndShortStr}`;
+  if (baseLifetimeEl) baseLifetimeEl.textContent = hasBearing ? `${activeLifetime} ${mndShortStr}` : "--";
+  if (autoLifetimeEl) autoLifetimeEl.textContent = hasBearing ? `${autoBearingLifetime} ${mndShortStr}` : "--";
 
   if (roiManLifetimeValEl) {
-    roiManLifetimeValEl.textContent = `${activeLifetime} ${mndFullStr}`;
+    roiManLifetimeValEl.textContent = hasBearing ? `${activeLifetime} ${mndFullStr}` : "--";
     roiManLifetimeValEl.style.color = (manualMode === "huidig") ? "#0284c7" : "#dc2626";
   }
   if (roiAutoLifetimeValEl) {
-    roiAutoLifetimeValEl.textContent = `${autoBearingLifetime} ${mndFullStr}`;
+    roiAutoLifetimeValEl.textContent = hasBearing ? `${autoBearingLifetime} ${mndFullStr}` : "--";
   }
 
-  let autoRepairCost = (p2_lifetime > 0 ? ((12 / p2_lifetime) * (shared_repair_h + shared_prep_h) * numBearingsForTco * hourlyRate) : 0) / lifetimeMult;
-  let autoMatCost = (p2_lifetime > 0 ? ((12 / p2_lifetime) * shared_parts_cost * numBearingsForTco) : 0) / lifetimeMult;
-  let autoDowntimeCost = (p2_downtime_h * p2_downtime_freq * shared_downtime_rate * numBearingsForTco) / lifetimeMult;
+  let autoRepairCost = hasBearing ? ((p2_lifetime > 0 ? ((12 / p2_lifetime) * (shared_repair_h + shared_prep_h) * numBearingsForTco * hourlyRate) : 0) / lifetimeMult) : 0;
+  let autoMatCost = hasBearing ? ((p2_lifetime > 0 ? ((12 / p2_lifetime) * shared_parts_cost * numBearingsForTco) : 0) / lifetimeMult) : 0;
+  let autoDowntimeCost = hasBearing ? ((p2_downtime_h * p2_downtime_freq * shared_downtime_rate * numBearingsForTco) / lifetimeMult) : 0;
 
   if (manRepairRow && manRepairRow.style) manRepairRow.style.display = "flex";
   if (manMatRow) manMatRow.style.display = "flex";
