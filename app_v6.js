@@ -321,49 +321,66 @@ window.getDeviceTypeName = getDeviceTypeName;
 // ==========================================================================
 // AUTOMATION CUSTOM IN-DOM DROPDOWNS (IMMUNE TO BROWSER POPUP GLITCHES)
 // ==========================================================================
-function toggleAutoCustomDropdown(selectId) {
-  const menu = document.getElementById('autoCustomDropdownMenu_' + selectId);
-  const arrow = document.getElementById('autoCustomDropdownArrow_' + selectId);
-  const btn = document.getElementById('autoCustomDropdownBtn_' + selectId);
+function toggleAutoCustomDropdown(e, selectId) {
+  if (typeof e === "string" && !selectId) {
+    selectId = e;
+    e = null;
+  }
+  if (e && typeof e.stopPropagation === "function") {
+    e.stopPropagation();
+  }
+
+  const menu = document.getElementById("autoCustomDropdownMenu_" + selectId);
+  const arrow = document.getElementById("autoCustomDropdownArrow_" + selectId);
+  const btn = document.getElementById("autoCustomDropdownBtn_" + selectId);
   if (!menu) return;
-  const isOpen = menu.style.display === 'block';
+  const isOpen = menu.style.display === "block";
 
   // Close all other open custom dropdown menus
-  document.querySelectorAll('.auto-custom-dropdown-menu').forEach(m => {
-    m.style.display = 'none';
+  document.querySelectorAll(".auto-custom-dropdown-menu").forEach(m => {
+    m.style.display = "none";
   });
-  document.querySelectorAll('.auto-custom-dropdown-arrow').forEach(a => {
-    a.style.transform = 'rotate(0deg)';
+  document.querySelectorAll(".auto-custom-dropdown-arrow").forEach(a => {
+    a.style.transform = "rotate(0deg)";
   });
-  document.querySelectorAll('.auto-custom-dropdown-btn').forEach(b => {
-    b.classList.remove('open');
+  document.querySelectorAll(".auto-custom-dropdown-btn").forEach(b => {
+    b.classList.remove("open");
   });
 
   if (!isOpen) {
     syncAutoCustomDropdownUI(selectId);
-    menu.style.display = 'block';
-    if (arrow) arrow.style.transform = 'rotate(180deg)';
-    if (btn) btn.classList.add('open');
+    menu.style.display = "block";
+    if (arrow) arrow.style.transform = "rotate(180deg)";
+    if (btn) btn.classList.add("open");
   }
 }
 window.toggleAutoCustomDropdown = toggleAutoCustomDropdown;
 
-function selectAutoCustomDropdownOption(selectId, value) {
-  const sel = document.getElementById(selectId);
-  const menu = document.getElementById('autoCustomDropdownMenu_' + selectId);
-  const arrow = document.getElementById('autoCustomDropdownArrow_' + selectId);
-  const btn = document.getElementById('autoCustomDropdownBtn_' + selectId);
+function selectAutoCustomDropdownOption(e, selectId, value) {
+  if (typeof e === "string" && typeof selectId === "string" && value === undefined) {
+    value = selectId;
+    selectId = e;
+    e = null;
+  }
+  if (e && typeof e.stopPropagation === "function") {
+    e.stopPropagation();
+  }
 
-  if (menu) menu.style.display = 'none';
-  if (arrow) arrow.style.transform = 'rotate(0deg)';
-  if (btn) btn.classList.remove('open');
+  const sel = document.getElementById(selectId);
+  const menu = document.getElementById("autoCustomDropdownMenu_" + selectId);
+  const arrow = document.getElementById("autoCustomDropdownArrow_" + selectId);
+  const btn = document.getElementById("autoCustomDropdownBtn_" + selectId);
+
+  if (menu) menu.style.display = "none";
+  if (arrow) arrow.style.transform = "rotate(0deg)";
+  if (btn) btn.classList.remove("open");
 
   if (sel) {
     sel.value = value;
-    if (typeof sel.onchange === 'function') {
+    if (typeof sel.onchange === "function") {
       sel.onchange();
     } else {
-      sel.dispatchEvent(new Event('change', { bubbles: true }));
+      sel.dispatchEvent(new Event("change", { bubbles: true }));
     }
   }
   syncAutoCustomDropdownUI(selectId);
@@ -374,58 +391,71 @@ function syncAutoCustomDropdownUI(selectId) {
   const sel = document.getElementById(selectId);
   if (!sel) return;
 
-  const label = document.getElementById('autoCustomDropdownLabel_' + selectId);
-  const menu = document.getElementById('autoCustomDropdownMenu_' + selectId);
+  const label = document.getElementById("autoCustomDropdownLabel_" + selectId);
+  const menu = document.getElementById("autoCustomDropdownMenu_" + selectId);
 
   const selectedOpt = (sel.selectedIndex >= 0 && sel.options[sel.selectedIndex])
     ? sel.options[sel.selectedIndex]
     : (sel.options.length > 0 ? sel.options[0] : null);
 
   if (label && selectedOpt) {
-    label.textContent = selectedOpt.textContent;
+    // Only update if text actually differs to avoid destroying active text node under cursor
+    if (label.textContent !== selectedOpt.textContent) {
+      label.textContent = selectedOpt.textContent;
+    }
   }
 
   if (menu) {
-    menu.innerHTML = Array.from(sel.options).map(opt => {
-      const isSel = String(opt.value) === String(sel.value);
-      const safeVal = String(opt.value).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
-      return `
-        <div class="auto-custom-dropdown-item ${isSel ? 'selected' : ''}" 
-             onclick="selectAutoCustomDropdownOption('${selectId}', '${safeVal}')">
-          <span>${opt.textContent}</span>
-          ${isSel ? '<span class="check-icon">✓</span>' : ''}
-        </div>
-      `;
-    }).join('');
+    menu.innerHTML = Array.from(sel.options)
+      .filter(opt => opt.style.display !== "none")
+      .map(opt => {
+        const isSel = String(opt.value) === String(sel.value);
+        const safeVal = String(opt.value).replace(/\\/g, "\\\\").replace(/'/g, "\\'");
+        return `
+          <div class="auto-custom-dropdown-item ${isSel ? 'selected' : ''}" 
+               onclick="selectAutoCustomDropdownOption(event, '${selectId}', '${safeVal}')"
+               style="cursor: pointer; user-select: none;">
+            <span style="pointer-events: none;">${opt.textContent}</span>
+            ${isSel ? '<span class="check-icon" style="pointer-events: none;">✓</span>' : ''}
+          </div>
+        `;
+      }).join("");
   }
 }
 window.syncAutoCustomDropdownUI = syncAutoCustomDropdownUI;
 
-if (typeof document !== 'undefined') {
-  document.addEventListener('click', function(e) {
-    if (!e.target.closest || !e.target.closest('.auto-custom-dropdown-wrapper')) {
-      document.querySelectorAll('.auto-custom-dropdown-menu').forEach(m => {
-        m.style.display = 'none';
+if (typeof document !== "undefined") {
+  document.addEventListener("click", function(e) {
+    const path = (e.composedPath && typeof e.composedPath === "function") ? e.composedPath() : [];
+    const isInsideDropdown = path.some(el => el && el.classList && (el.classList.contains("auto-custom-dropdown-wrapper") || el.classList.contains("auto-custom-dropdown-btn") || el.classList.contains("auto-custom-dropdown-menu")));
+    
+    if (!isInsideDropdown) {
+      const targetEl = e.target;
+      if (targetEl && targetEl.closest && targetEl.closest(".auto-custom-dropdown-wrapper")) {
+        return;
+      }
+      document.querySelectorAll(".auto-custom-dropdown-menu").forEach(m => {
+        m.style.display = "none";
       });
-      document.querySelectorAll('.auto-custom-dropdown-arrow').forEach(a => {
-        a.style.transform = 'rotate(0deg)';
+      document.querySelectorAll(".auto-custom-dropdown-arrow").forEach(a => {
+        a.style.transform = "rotate(0deg)";
       });
-      document.querySelectorAll('.auto-custom-dropdown-btn').forEach(b => {
-        b.classList.remove('open');
+      document.querySelectorAll(".auto-custom-dropdown-btn").forEach(b => {
+        b.classList.remove("open");
       });
     }
   });
 
-  document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') {
-      document.querySelectorAll('.auto-custom-dropdown-menu').forEach(m => {
-        m.style.display = 'none';
+  document.addEventListener("keydown", function(e) {
+    if (e.key === "Escape") {
+      document.querySelectorAll(".auto-custom-dropdown-menu").forEach(m => {
+        m.style.display = "none";
       });
-      document.querySelectorAll('.auto-custom-dropdown-arrow').forEach(a => {
-        a.style.transform = 'rotate(0deg)';
+      document.querySelectorAll(".auto-custom-dropdown-arrow").forEach(a => {
+        a.style.transform = "rotate(0deg)";
       });
-      document.querySelectorAll('.auto-custom-dropdown-btn').forEach(b => {
-        b.classList.remove('open');
+      document.querySelectorAll(".auto-custom-dropdown-btn").forEach(b => {
+        b.classList.remove("open");
       });
     }
   });
@@ -5780,21 +5810,21 @@ function renderAutoDevicesUI() {
       ${!isSinglePoint ? `
       <!-- Device Type Selector per Device -->
       <div class="auto-device-type-wrapper" style="margin-bottom: 14px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: var(--border-radius-sm); padding: 10px 12px; display: flex; flex-direction: column; gap: 6px; box-sizing: border-box;">
-        <label for="autoDeviceType_${devId}" style="font-size: 12px; font-weight: 700; color: #475569; margin: 0; display: flex; align-items: center; gap: 6px;">
+        <label for="autoCustomDropdownBtn_autoDeviceType_${devId}" style="font-size: 12px; font-weight: 700; color: #475569; margin: 0; display: flex; align-items: center; gap: 6px; cursor: pointer;">
           🏷️ Model Toestel ${devId}:
         </label>
         <div class="auto-custom-dropdown-wrapper" id="customDropdownWrapper_autoDeviceType_${devId}">
-          <button type="button" id="autoCustomDropdownBtn_autoDeviceType_${devId}" class="auto-custom-dropdown-btn" onclick="toggleAutoCustomDropdown('autoDeviceType_${devId}')" aria-haspopup="listbox">
-            <span id="autoCustomDropdownLabel_autoDeviceType_${devId}">${
+          <button type="button" id="autoCustomDropdownBtn_autoDeviceType_${devId}" class="auto-custom-dropdown-btn" onclick="toggleAutoCustomDropdown(event, 'autoDeviceType_${devId}')" aria-haspopup="listbox">
+            <span id="autoCustomDropdownLabel_autoDeviceType_${devId}" style="pointer-events: none;">${
               cardDevType === 'pulsarlube_msp_ac' ? 'Pulsarlube MSP AC (Synchroon)' :
               (cardDevType === 'pulsarlube_msp_dc' || cardDevType === 'pulsarlube_msp') ? 'Pulsarlube MSP DC (Synchroon)' :
               cardDevType === 'pulsarlube_plc' ? 'Pulsarlube PLC (Extern)' : 'Pulsarlube M2 (Batterij)'
             }</span>
-            <svg id="autoCustomDropdownArrow_autoDeviceType_${devId}" class="auto-custom-dropdown-arrow" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+            <svg id="autoCustomDropdownArrow_autoDeviceType_${devId}" class="auto-custom-dropdown-arrow" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" style="pointer-events: none;">
+              <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" style="pointer-events: none;" />
             </svg>
           </button>
-          <div id="autoCustomDropdownMenu_autoDeviceType_${devId}" class="auto-custom-dropdown-menu"></div>
+          <div id="autoCustomDropdownMenu_autoDeviceType_${devId}" class="auto-custom-dropdown-menu" style="display: none;"></div>
           <select id="autoDeviceType_${devId}" class="form-select" onchange="onDeviceTypeChange('${devId}', this.value)" style="position: absolute !important; width: 0 !important; height: 0 !important; opacity: 0 !important; pointer-events: none !important; margin: 0 !important; padding: 0 !important; border: none !important; z-index: -1 !important;">
             <option value="pulsarlube_m2"${cardDevType === 'pulsarlube_m2' ? ' selected' : ''}>Pulsarlube M2 (Batterij)</option>
             <option value="pulsarlube_msp_ac"${cardDevType === 'pulsarlube_msp_ac' ? ' selected' : ''}>Pulsarlube MSP AC (Synchroon)</option>
@@ -5842,20 +5872,20 @@ function renderAutoDevicesUI() {
 
       <!-- Point Selection per Device -->
       <div class="auto-points-selection-wrapper" style="margin-bottom: 16px; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: var(--border-radius-sm); padding: 12px 14px; display: ${isSinglePoint ? 'none' : 'block'};">
-        <label for="autoNumPointsSelect_${devId}" style="display: block; font-size: 12.5px; font-weight: 700; color: var(--text-dark); margin-bottom: 6px;">
+        <label for="autoCustomDropdownBtn_autoNumPointsSelect_${devId}" style="display: block; font-size: 12.5px; font-weight: 700; color: var(--text-dark); margin-bottom: 6px; cursor: pointer;">
           ${pointsLabel}
         </label>
         <div class="auto-custom-dropdown-wrapper" id="customDropdownWrapper_autoNumPointsSelect_${devId}">
-          <button type="button" id="autoCustomDropdownBtn_autoNumPointsSelect_${devId}" class="auto-custom-dropdown-btn" onclick="toggleAutoCustomDropdown('autoNumPointsSelect_${devId}')" aria-haspopup="listbox">
-            <span id="autoCustomDropdownLabel_autoNumPointsSelect_${devId}">${
+          <button type="button" id="autoCustomDropdownBtn_autoNumPointsSelect_${devId}" class="auto-custom-dropdown-btn" onclick="toggleAutoCustomDropdown(event, 'autoNumPointsSelect_${devId}')" aria-haspopup="listbox">
+            <span id="autoCustomDropdownLabel_autoNumPointsSelect_${devId}" style="pointer-events: none;">${
               dev.points === 0 ? ((lang === 'fr') ? "0 point / roulement (non raccordé)" : ((lang === 'en') ? "0 points / bearings (not connected)" : "0 lagers (geen aangesloten)")) :
               (isSinglePoint ? `${dev.points} ${dev.points === 1 ? 'lager / smeerpunt' : 'lagers / smeerpunten'}` : (dev.points === 1 ? "1 lager / smeerpunt (Direct)" : (dev.points + " lagers (Verdeelblok " + dev.points + "-poorts)")))
             }</span>
-            <svg id="autoCustomDropdownArrow_autoNumPointsSelect_${devId}" class="auto-custom-dropdown-arrow" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+            <svg id="autoCustomDropdownArrow_autoNumPointsSelect_${devId}" class="auto-custom-dropdown-arrow" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" style="pointer-events: none;">
+              <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" style="pointer-events: none;" />
             </svg>
           </button>
-          <div id="autoCustomDropdownMenu_autoNumPointsSelect_${devId}" class="auto-custom-dropdown-menu"></div>
+          <div id="autoCustomDropdownMenu_autoNumPointsSelect_${devId}" class="auto-custom-dropdown-menu" style="display: none;"></div>
           <select id="autoNumPointsSelect_${devId}" class="form-select" onchange="onDevicePointsChange('${devId}')" style="position: absolute !important; width: 0 !important; height: 0 !important; opacity: 0 !important; pointer-events: none !important; margin: 0 !important; padding: 0 !important; border: none !important; z-index: -1 !important;">
             ${optionsHtml}
           </select>
@@ -5921,15 +5951,15 @@ function renderAutoDevicesUI() {
             <input type="number" id="autoCustomPackPrice_${devId}" class="form-input" value="${dev.customPackPrice || ''}" placeholder="${pInfo.isPriceFound ? ('Standaard € ' + pInfo.servicepackPrice.toFixed(2).replace('.',',')) : 'Voer prijs in (bijv. 65,00)'}" min="0" step="0.01" oninput="onDeviceCustomPriceChange('${devId}', this.value)" style="width: 100%; padding: 8px 12px; border-radius: var(--border-radius-sm); border: 1px solid ${!pInfo.isPriceFound && !dev.customPackPrice ? '#f59e0b' : '#cbd5e1'}; font-weight: 600;">
           </div>
           <div>
-            <label for="autoCartridgeCap_${devId}" style="display: block; font-size: 12px; font-weight: 600; color: var(--text-dark); margin-bottom: 4px;">Patroon Capaciteit (ml)</label>
+            <label for="autoCustomDropdownBtn_autoCartridgeCap_${devId}" style="display: block; font-size: 12px; font-weight: 600; color: var(--text-dark); margin-bottom: 4px; cursor: pointer;">Patroon Capaciteit (ml)</label>
             <div class="auto-custom-dropdown-wrapper" id="customDropdownWrapper_autoCartridgeCap_${devId}">
-              <button type="button" id="autoCustomDropdownBtn_autoCartridgeCap_${devId}" class="auto-custom-dropdown-btn" onclick="toggleAutoCustomDropdown('autoCartridgeCap_${devId}')" aria-haspopup="listbox">
-                <span id="autoCustomDropdownLabel_autoCartridgeCap_${devId}">${dev.cap} ml</span>
-                <svg id="autoCustomDropdownArrow_autoCartridgeCap_${devId}" class="auto-custom-dropdown-arrow" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+              <button type="button" id="autoCustomDropdownBtn_autoCartridgeCap_${devId}" class="auto-custom-dropdown-btn" onclick="toggleAutoCustomDropdown(event, 'autoCartridgeCap_${devId}')" aria-haspopup="listbox">
+                <span id="autoCustomDropdownLabel_autoCartridgeCap_${devId}" style="pointer-events: none;">${dev.cap} ml</span>
+                <svg id="autoCustomDropdownArrow_autoCartridgeCap_${devId}" class="auto-custom-dropdown-arrow" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" style="pointer-events: none;">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" style="pointer-events: none;" />
                 </svg>
               </button>
-              <div id="autoCustomDropdownMenu_autoCartridgeCap_${devId}" class="auto-custom-dropdown-menu"></div>
+              <div id="autoCustomDropdownMenu_autoCartridgeCap_${devId}" class="auto-custom-dropdown-menu" style="display: none;"></div>
               <select id="autoCartridgeCap_${devId}" class="form-select" onchange="onDeviceCapChange('${devId}')" style="position: absolute !important; width: 0 !important; height: 0 !important; opacity: 0 !important; pointer-events: none !important; margin: 0 !important; padding: 0 !important; border: none !important; z-index: -1 !important;">
                 ${capOptionsHtml}
               </select>
@@ -5937,16 +5967,16 @@ function renderAutoDevicesUI() {
           </div>
 
           <div>
-            <label for="autoDispensePeriod_${devId}" style="display: block; font-size: 12px; font-weight: 600; color: var(--text-dark); margin-bottom: 4px;">Gewenste Looptijd / Leeglooptijd</label>
+            <label for="autoCustomDropdownBtn_autoDispensePeriod_${devId}" style="display: block; font-size: 12px; font-weight: 600; color: var(--text-dark); margin-bottom: 4px; cursor: pointer;">Gewenste Looptijd / Leeglooptijd</label>
             <div style="display: flex; gap: 8px;">
               <div class="auto-custom-dropdown-wrapper" id="customDropdownWrapper_autoDispensePeriod_${devId}">
-                <button type="button" id="autoCustomDropdownBtn_autoDispensePeriod_${devId}" class="auto-custom-dropdown-btn" onclick="toggleAutoCustomDropdown('autoDispensePeriod_${devId}')" aria-haspopup="listbox">
-                  <span id="autoCustomDropdownLabel_autoDispensePeriod_${devId}">${dev.period} ${dev.period === 1 ? (lang === 'fr' ? 'mois' : (lang === 'en' ? 'month' : 'maand')) : (lang === 'fr' ? 'mois' : (lang === 'en' ? 'months' : 'maanden'))}</span>
-                  <svg id="autoCustomDropdownArrow_autoDispensePeriod_${devId}" class="auto-custom-dropdown-arrow" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+                <button type="button" id="autoCustomDropdownBtn_autoDispensePeriod_${devId}" class="auto-custom-dropdown-btn" onclick="toggleAutoCustomDropdown(event, 'autoDispensePeriod_${devId}')" aria-haspopup="listbox">
+                  <span id="autoCustomDropdownLabel_autoDispensePeriod_${devId}" style="pointer-events: none;">${dev.period} ${dev.period === 1 ? (lang === 'fr' ? 'mois' : (lang === 'en' ? 'month' : 'maand')) : (lang === 'fr' ? 'mois' : (lang === 'en' ? 'months' : 'maanden'))}</span>
+                  <svg id="autoCustomDropdownArrow_autoDispensePeriod_${devId}" class="auto-custom-dropdown-arrow" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" style="pointer-events: none;">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" style="pointer-events: none;" />
                   </svg>
                 </button>
-                <div id="autoCustomDropdownMenu_autoDispensePeriod_${devId}" class="auto-custom-dropdown-menu"></div>
+                <div id="autoCustomDropdownMenu_autoDispensePeriod_${devId}" class="auto-custom-dropdown-menu" style="display: none;"></div>
                 <select id="autoDispensePeriod_${devId}" class="form-select" onchange="onDevicePeriodChange('${devId}')" style="position: absolute !important; width: 0 !important; height: 0 !important; opacity: 0 !important; pointer-events: none !important; margin: 0 !important; padding: 0 !important; border: none !important; z-index: -1 !important;">
                   ${validDispenseMonths.map(m => `<option value="${m}"${Number(m) === Number(dev.period) ? ' selected' : ''}>${m} ${m === 1 ? (lang === 'fr' ? 'mois' : (lang === 'en' ? 'month' : 'maand')) : (lang === 'fr' ? 'mois' : (lang === 'en' ? 'months' : 'maanden'))}</option>`).join('')}
                 </select>
