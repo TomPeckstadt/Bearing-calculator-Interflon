@@ -10734,7 +10734,7 @@ function updateCalculatorFields() {
     // Geen lager geladen. We behouden de waarden uit het HTML formulier als standaard voorbeeld
     bannerTitle.textContent = langData.searchEmptyTitle || "Geen lager geselecteerd";
     bannerSubtitle.textContent = langData.calcBannerSubtitleEmpty || "Keer terug naar 'Lager Opzoeken' of geef hieronder handmatig de afmetingen in.";
-    if (!window.__isFormCleared && !window.__formEverCleared) {
+    if (!window.__isFormCleared && !window.__formEverCleared && (!localStorage.getItem("bearing_calc_form_cleared") || localStorage.getItem("bearing_calc_form_cleared") !== "true")) {
       if (!boreInput.value) boreInput.value = "120";
       if (!outerInput.value) outerInput.value = "215";
       if (!widthInput.value) widthInput.value = "42";
@@ -10857,6 +10857,11 @@ function calculateGrease() {
     ];
     elements.forEach(el => { if (el) el.textContent = "--"; });
     if (dnWarningRow) dnWarningRow.classList.add("hidden");
+    window.currentDailyNeedCm3 = 0;
+    window.currentHoursPerDay = 0;
+    window.currentDaysPerWeek = 0;
+    window.currentRefillGrams = 0;
+    window.currentMicPolDays = 0;
     return;
   }
 
@@ -15099,13 +15104,40 @@ function calculateAutomationLubrication() {
   const greaseSelect = document.getElementById("selectedGrease") || document.getElementById("greaseSelect") || document.getElementById("inputGrease");
   const greaseName = greaseSelect ? greaseSelect.value : "Interflon Grease LS2";
 
-  const dailyNeedCm3 = window.currentDailyNeedCm3 || 0.704;
-  const hDay = window.currentHoursPerDay || 24;
-  const dWeek = window.currentDaysPerWeek || 7;
+  const isFormCleared = !!window.__isFormCleared || (typeof localStorage !== "undefined" && localStorage.getItem("bearing_calc_form_cleared") === "true");
+  const boreEl = document.getElementById("inputBoreManual");
+  const hasBearing = !isFormCleared && !!(activeBearing || window.selectedSearchedBearing || (boreEl && boreEl.value && parseFloat(boreEl.value) > 0));
+  const dailyNeedCm3 = hasBearing ? (window.currentDailyNeedCm3 || 0) : 0;
+  const hDay = hasBearing ? (window.currentHoursPerDay || 24) : 0;
+  const dWeek = hasBearing ? (window.currentDaysPerWeek || 7) : 0;
 
   // Render main summary badge above cards
   const needBadgeEl = document.getElementById("autoBearingNeedBadge");
   if (needBadgeEl) {
+    if (!hasBearing) {
+      needBadgeEl.innerHTML = `
+        <div style="margin-bottom: 16px; background-color: #f8fafc; border: 1px solid #e2e8f0; border-left: 4px solid #94a3b8; border-radius: var(--border-radius-sm); padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.03);">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <div style="width: 32px; height: 32px; border-radius: 50%; background-color: #f1f5f9; border: 1px solid #cbd5e1; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="#64748b" style="width: 16px; height: 16px;">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0zm-9 3.75h.008v.008H12v-.008z" />
+              </svg>
+            </div>
+            <div>
+              <div style="font-size: 11px; font-weight: 700; color: var(--text-medium); text-transform: uppercase; letter-spacing: 0.5px;">
+                ${lang === 'fr' ? 'Besoin Calculé en Graisse' : (lang === 'en' ? 'Calculated Grease Demand' : 'Berekende Lagerbehoefte')}
+              </div>
+              <div style="font-size: 14px; font-weight: 700; color: #475569; margin-top: 1px;">
+                ${lang === 'fr' ? 'Aucun roulement sélectionné' : (lang === 'en' ? 'No bearing selected' : 'Geen lager geselecteerd')}
+              </div>
+              <div style="font-size: 11.5px; color: var(--text-medium); margin-top: 3px;">
+                ${lang === 'fr' ? "Sélectionnez d'abord un roulement pour calculer la lubrification automatique." : (lang === 'en' ? 'Select a bearing first to calculate automated lubrication.' : 'Selecteer eerst een lager om de automatische smering te berekenen.')}
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    } else {
     const hasDistinctDeviceNeeds = (numCards > 1 && Array.isArray(autoDevicesState) && autoDevicesState.slice(0, numCards).some(d => d && (d.totalDailyNeed > 0 || d.dailyNeedCm3 > 0)));
     
     if (hasDistinctDeviceNeeds) {
@@ -15188,16 +15220,42 @@ function calculateAutomationLubrication() {
         </div>
       `;
     }
+    }
   }
 
   // Iterate over each active device card (A, B, C, D)
   for (let i = 0; i < numCards; i++) {
     const dev = (typeof autoDevicesState !== "undefined" && autoDevicesState[i]) ? autoDevicesState[i] : { id: String.fromCharCode(65 + i), points: 1, cap: 125, period: 6, unit: "months" };
+    const devId = dev.id;
+
+    if (!hasBearing) {
+      const theoValEl = document.getElementById("autoTheoValue_" + devId);
+      const recTitleEl = document.getElementById("autoRecTitle_" + devId);
+      const recSubtextEl = document.getElementById("autoRecSubtext_" + devId);
+      const resValEl = document.getElementById("autoDailyVolumeRes_" + devId);
+      const monthValEl = document.getElementById("autoMonthlyVolumeRes_" + devId);
+      const yearValEl = document.getElementById("autoYearlyVolumeRes_" + devId);
+      const resDailyX = document.getElementById("autoDailyVolumeTotalRes_" + devId);
+      const resMonthlyX = document.getElementById("autoMonthlyVolumeTotalRes_" + devId);
+      const resYearlyX = document.getElementById("autoYearlyVolumeTotalRes_" + devId);
+      const cartsRowEl = document.getElementById("autoYearlyCartsTotalRow_" + devId);
+
+      if (theoValEl) theoValEl.textContent = "--";
+      if (recTitleEl) recTitleEl.textContent = (lang === "fr") ? "Aucun roulement sélectionné" : ((lang === "en") ? "No bearing selected" : "Geen lager geselecteerd");
+      if (recSubtextEl) recSubtextEl.innerHTML = (lang === "fr") ? "Sélectionnez un roulement pour calculer le conseil et la durée de fonctionnement." : ((lang === "en") ? "Select a bearing first to calculate advice and dispense period." : "Selecteer eerst een lager om het advies en de looptijd te berekenen.");
+      if (resValEl) resValEl.textContent = "0,00 ml/dag";
+      if (monthValEl) monthValEl.textContent = "0,0 ml/maand";
+      if (yearValEl) yearValEl.textContent = "0,0 ml/jaar";
+      if (resDailyX) resDailyX.textContent = "0,00 ml/dag";
+      if (resMonthlyX) resMonthlyX.textContent = "0,0 ml/maand";
+      if (resYearlyX) resYearlyX.textContent = "0,0 ml/jaar";
+      if (cartsRowEl) cartsRowEl.style.display = "none";
+      continue;
+    }
     if (deviceKey === "single_point") {
       dev.points = 1;
       if (autoDevicesState[i]) autoDevicesState[i].points = 1;
     }
-    const devId = dev.id;
     const points = isSinglePoint ? 1 : (typeof dev.points === 'number' && !isNaN(dev.points) ? dev.points : 1);
     const validCaps = isSinglePoint ? [15, 60, 125, 250] : [60, 125, 250, 500];
     const devCapNum = Number(dev.cap);
@@ -18164,7 +18222,7 @@ function updateRoiAutomationPage() {
   const greasePriceInput = document.getElementById("omProdPrice2") || document.getElementById("chainOmProdPrice2") || document.getElementById("tcoPriceInterflonInput");
   const greasePricePerLiter = greasePriceInput ? (parseFloat(greasePriceInput.value) || 70.50) : 70.50;
 
-  const isFormCleared = !!window.__isFormCleared;
+  const isFormCleared = !!window.__isFormCleared || (typeof localStorage !== "undefined" && localStorage.getItem("bearing_calc_form_cleared") === "true");
   const boreEl = document.getElementById("inputBoreManual");
   const hasBearing = !isFormCleared && !!(activeBearing || window.selectedSearchedBearing || (boreEl && boreEl.value && parseFloat(boreEl.value) > 0));
 
@@ -18259,7 +18317,7 @@ function updateRoiAutomationPage() {
     const devListStr = (numDevices === 1 || (deviceKey === "single_point" && !isSpMultiGroup)) ? `${totalPointsAllDevices} ${ptsWord}` : devBreakdownText.join(" &bull; ");
     const numDevLabel = lang === "fr" ? "Nombre d'appareils :" : (lang === "en" ? "Number of devices:" : "Aantal toestellen:");
     const selGreaseLabel = lang === "fr" ? "Graisse sélectionnée :" : (lang === "en" ? "Selected grease:" : "Geselecteerd vet:");
-    const actualDevCount = (deviceKey === "single_point") ? totalPointsAllDevices : numDevices;
+    const actualDevCount = hasBearing ? ((deviceKey === "single_point") ? totalPointsAllDevices : numDevices) : 0;
     roiSubtextEl.innerHTML = `${numDevLabel} <strong>${actualDevCount}</strong> (${devListStr}) &bull; ${selGreaseLabel} <strong>${greaseName}</strong>`;
   }
 
@@ -18558,6 +18616,17 @@ function updateRoiAutomationPage() {
     manualLaborHours = numBearingsForTco * manualBeurtenPerYear * (workTimeMinutes / 60);
     manualLaborCost = manualLaborHours * hourlyRate;
     manualTotalCost = manualGreaseCost + manualLaborCost + manualRepairCost + manualMatCost + manualDowntimeCost;
+  }
+
+  if (!hasBearing) {
+    manualGreaseCost = 0;
+    manualLaborHours = 0;
+    manualLaborCost = 0;
+    manualRepairCost = 0;
+    manualMatCost = 0;
+    manualDowntimeCost = 0;
+    manualTotalCost = 0;
+    manualYearlyMl = 0;
   } else {
     // 1. Theme: Red / Rose (Default Interflon)
     if (roiManCardContainer) roiManCardContainer.style.borderColor = "#fee2e2";
@@ -18740,9 +18809,22 @@ function updateRoiAutomationPage() {
     }
   }
 
-  const autoLaborCost = totalCartridgesPerYear * (15 / 60) * hourlyRate;
-  const autoYear1Total = totalUnitsPrice + totalInstallKitPrice + totalDividerBlockPrice + totalCartridgesCostYear + autoLaborCost + autoRepairCost + autoMatCost + autoDowntimeCost;
-  const autoRecurringTotal = totalCartridgesCostYear + autoLaborCost + autoRepairCost + autoMatCost + autoDowntimeCost;
+  let autoLaborCost = hasBearing ? (totalCartridgesPerYear * (15 / 60) * hourlyRate) : 0;
+  let autoYear1Total = hasBearing ? (totalUnitsPrice + totalInstallKitPrice + totalDividerBlockPrice + totalCartridgesCostYear + autoLaborCost + autoRepairCost + autoMatCost + autoDowntimeCost) : 0;
+  let autoRecurringTotal = hasBearing ? (totalCartridgesCostYear + autoLaborCost + autoRepairCost + autoMatCost + autoDowntimeCost) : 0;
+  if (!hasBearing) {
+    totalCartridgesPerYear = 0;
+    totalCartridgesCostYear = 0;
+    totalUnitsPrice = 0;
+    totalInstallKitPrice = 0;
+    totalDividerBlockPrice = 0;
+    autoLaborCost = 0;
+    autoRepairCost = 0;
+    autoMatCost = 0;
+    autoDowntimeCost = 0;
+    autoYear1Total = 0;
+    autoRecurringTotal = 0;
+  }
 
   const autoLaborCostEl = document.getElementById("roiAutoLaborCost");
   var lang = currentLang || "nl";
@@ -18941,29 +19023,43 @@ function updateRoiAutomationPage() {
   const perYrSuffix = lang === "fr" ? "/ an" : (lang === "en" ? "/ year" : "/ jaar");
 
   if (netYearlySavingEl) {
-    const sign = netYearlySaving >= 0 ? "+" : "-";
-    netYearlySavingEl.innerHTML = `${sign} € ${Math.abs(netYearlySaving).toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} <span style="font-size: 0.82em; font-weight: 700;">${perYrSuffix}</span>`;
-    netYearlySavingEl.style.color = netYearlySaving >= 0 ? "#16a34a" : "#dc2626";
+    if (!hasBearing) {
+      netYearlySavingEl.innerHTML = `€ 0,00 <span style="font-size: 0.82em; font-weight: 700;">${perYrSuffix}</span>`;
+      netYearlySavingEl.style.color = "#64748b";
+    } else {
+      const sign = netYearlySaving >= 0 ? "+" : "-";
+      netYearlySavingEl.innerHTML = `${sign} € ${Math.abs(netYearlySaving).toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} <span style="font-size: 0.82em; font-weight: 700;">${perYrSuffix}</span>`;
+      netYearlySavingEl.style.color = netYearlySaving >= 0 ? "#16a34a" : "#dc2626";
+    }
   }
 
   if (year1NetResultEl) {
-    const sign = year1NetResult >= 0 ? "+" : "-";
-    year1NetResultEl.innerHTML = `${sign} € ${Math.abs(year1NetResult).toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} <span style="font-size: 0.82em; font-weight: 700;">${yr1Suffix}</span>`;
-    year1NetResultEl.style.color = year1NetResult >= 0 ? "#16a34a" : "#dc2626";
+    if (!hasBearing) {
+      year1NetResultEl.innerHTML = `€ 0,00 <span style="font-size: 0.82em; font-weight: 700;">${yr1Suffix}</span>`;
+      year1NetResultEl.style.color = "#64748b";
+    } else {
+      const sign = year1NetResult >= 0 ? "+" : "-";
+      year1NetResultEl.innerHTML = `${sign} € ${Math.abs(year1NetResult).toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} <span style="font-size: 0.82em; font-weight: 700;">${yr1Suffix}</span>`;
+      year1NetResultEl.style.color = year1NetResult >= 0 ? "#16a34a" : "#dc2626";
+    }
   }
 
   if (paybackPeriodEl) {
-    const initialInvestment = autoYear1Total - autoRecurringTotal;
-    if (initialInvestment <= 0) {
-      const dirTxt = lang === "fr" ? "Directement Rentable" : (lang === "en" ? "Immediately Profitable" : "Direct Rendabel");
-      const zeroTxt = lang === "fr" ? "(0 mois)" : (lang === "en" ? "(0 months)" : "(0 maanden)");
-      paybackPeriodEl.innerHTML = `${dirTxt} <span style="font-size: 0.82em; font-weight: 700;">${zeroTxt}</span>`;
-    } else if (netYearlySaving <= 0) {
-      paybackPeriodEl.textContent = lang === "fr" ? "Pas d'amortissement possible" : (lang === "en" ? "No payback possible" : "Geen terugverdientijd mogelijk");
+    if (!hasBearing) {
+      paybackPeriodEl.textContent = "--";
     } else {
-      const paybackYears = initialInvestment / netYearlySaving;
-      const paybackMonths = paybackYears * 12;
-      paybackPeriodEl.innerHTML = `${paybackMonths.toFixed(1).replace('.', ',')} ${mSuffix} <span style="font-size: 0.82em; font-weight: 700;">(${paybackYears.toFixed(2).replace('.', ',')} ${ySuffix})</span>`;
+      const initialInvestment = autoYear1Total - autoRecurringTotal;
+      if (initialInvestment <= 0) {
+        const dirTxt = lang === "fr" ? "Directement Rentable" : (lang === "en" ? "Immediately Profitable" : "Direct Rendabel");
+        const zeroTxt = lang === "fr" ? "(0 mois)" : (lang === "en" ? "(0 months)" : "(0 maanden)");
+        paybackPeriodEl.innerHTML = `${dirTxt} <span style="font-size: 0.82em; font-weight: 700;">${zeroTxt}</span>`;
+      } else if (netYearlySaving <= 0) {
+        paybackPeriodEl.textContent = lang === "fr" ? "Pas d'amortissement possible" : (lang === "en" ? "No payback possible" : "Geen terugverdientijd mogelijk");
+      } else {
+        const paybackYears = initialInvestment / netYearlySaving;
+        const paybackMonths = paybackYears * 12;
+        paybackPeriodEl.innerHTML = `${paybackMonths.toFixed(1).replace('.', ',')} ${mSuffix} <span style="font-size: 0.82em; font-weight: 700;">(${paybackYears.toFixed(2).replace('.', ',')} ${ySuffix})</span>`;
+      }
     }
   }
 
@@ -24673,6 +24769,227 @@ function clearAllPhotosForNewDossier() {
   }
 }
 
+function applyClearedFormState() {
+  window.__isFormCleared = true;
+  window.__formEverCleared = true;
+  activeBearing = null;
+  window.selectedSearchedBearing = null;
+  window.latestSurveyFullData = null;
+  window.latestSurveyBearings = [];
+  window.currentActiveSurveyBearingLetter = null;
+  window.currentSurveyBearingLetter = null;
+  window.activeTcoBearingSource = "manual";
+
+  // 1. Modals & Metadata (Client & Tech)
+  const clientFields = ["clientCompanyInput", "clientContactInput", "clientPhoneInput", "clientEmailInput"];
+  clientFields.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = "";
+  });
+  if (typeof updateClientBadge === "function") updateClientBadge("", "");
+
+  const techFields = ["techMachineInput", "techAppInput", "techBrandInput", "techProductInput", "techIntervalInput", "techPriceInput"];
+  techFields.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = "";
+  });
+  if (typeof updateTechBadge === "function") updateTechBadge("", "");
+
+  const omMetadataFields = [
+    "omTechMachine", "chainOmTechMachine",
+    "omTechBrand", "chainOmTechBrand",
+    "omTechApp", "chainOmTechApp",
+    "omTechProduct", "chainOmTechProduct",
+    "omTechInterval", "chainOmTechInterval",
+    "omTechPrice", "chainOmTechPrice",
+    "omClientCompany", "chainOmClientCompany",
+    "omClientContact", "chainOmClientContact",
+    "omClientPhone", "chainOmClientPhone",
+    "omClientEmail", "chainOmClientEmail"
+  ];
+  omMetadataFields.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = "";
+  });
+
+  // 2. Search Page & Dropdowns
+  const searchInput = document.getElementById("bearingSearchInput");
+  if (searchInput) searchInput.value = "";
+  const suggestionsBox = document.getElementById("suggestionsBox");
+  if (suggestionsBox) suggestionsBox.style.display = "none";
+  const emptyState = document.getElementById("emptySearchState");
+  const resultsArea = document.getElementById("searchResultsArea");
+  if (emptyState) emptyState.style.display = "block";
+  if (resultsArea) resultsArea.classList.add("hidden");
+
+  const searchSurveyWrapper = document.getElementById("surveyBearingSelectWrapper");
+  if (searchSurveyWrapper) searchSurveyWrapper.style.display = "none";
+  const surveySelectedBadge = document.getElementById("surveyBearingSelectedBadge");
+  if (surveySelectedBadge) surveySelectedBadge.style.display = "none";
+  const surveyBearingSelect = document.getElementById("surveyBearingSelect");
+  if (surveyBearingSelect) surveyBearingSelect.innerHTML = '<option value="">-- Kies lager uit vragenlijst --</option>';
+
+  const chainSearchInput = document.getElementById("chainSearchInput");
+  if (chainSearchInput) chainSearchInput.value = "";
+  const chainSuggestionsBox = document.getElementById("chainSuggestionsBox");
+  if (chainSuggestionsBox) chainSuggestionsBox.style.display = "none";
+  const chainResultsArea = document.getElementById("chainResultsArea");
+  if (chainResultsArea) chainResultsArea.classList.add("hidden");
+
+  // 3. Smeercalculatie (Calc Page & Chain Calc)
+  const calcSurveyBearingSelectWrapper = document.getElementById("calcSurveyBearingSelectWrapper");
+  if (calcSurveyBearingSelectWrapper) calcSurveyBearingSelectWrapper.style.display = "none";
+  const calcSurveyBearingSelect = document.getElementById("calcSurveyBearingSelect");
+  if (calcSurveyBearingSelect) calcSurveyBearingSelect.innerHTML = '<option value="">-- Kies lager uit vragenlijst --</option>';
+
+  const chkSnl = document.getElementById("chkSnlHousing");
+  if (chkSnl) chkSnl.checked = false;
+  const snlContainer = document.getElementById("snlOptionsContainer");
+  if (snlContainer) snlContainer.classList.add("hidden");
+  const badgeSnlDetected = document.getElementById("badgeSnlDetected");
+  if (badgeSnlDetected) badgeSnlDetected.classList.add("hidden");
+
+  const calcFieldsToBlank = [
+    "inputHoursPerDay", "inputDaysPerWeek", "inputTemperature",
+    "inputSpeed", "inputLimitingSpeed", "inputMicPolFactor",
+    "inputBoreManual", "inputOuterManual", "inputWidthManual", "inputMassManual",
+    "chainLengthInput", "chainSpeedInput", "chainHoursPerDayInput",
+    "chainDaysPerWeekInput", "chainTempInput"
+  ];
+  calcFieldsToBlank.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = "";
+  });
+
+  const lang = (typeof currentLang !== "undefined" && currentLang) ? currentLang : "nl";
+  const langData = (typeof TRANSLATIONS !== "undefined" && TRANSLATIONS[lang]) ? TRANSLATIONS[lang] : {};
+  const bannerTitle = document.getElementById("calcBannerTitle");
+  const bannerSubtitle = document.getElementById("calcBannerSubtitle");
+  const bannerBadge = document.getElementById("calcBannerBadge");
+  if (bannerTitle) bannerTitle.textContent = langData.searchEmptyTitle || "Geen lager geselecteerd";
+  if (bannerSubtitle) bannerSubtitle.textContent = langData.calcBannerSubtitleEmpty || "Keer terug naar 'Lager Opzoeken' of geef hieronder handmatig de afmetingen in.";
+  if (bannerBadge) bannerBadge.textContent = "-- mm";
+
+  const chainBannerTitle = document.getElementById("chainCalcBannerTitle");
+  const chainBannerBadge = document.getElementById("chainCalcBannerBadge");
+  if (chainBannerTitle) chainBannerTitle.textContent = "Geen ketting geselecteerd";
+  if (chainBannerBadge) chainBannerBadge.textContent = "--";
+
+  const chainOutputs = ["chainResHourly", "chainResDaily", "chainResWeekly", "chainResMonthly", "chainResYearly", "chainResTheoPassMl", "chainResRealPassMl", "chainResRealPassDetail"];
+  chainOutputs.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = "--";
+  });
+
+  window.currentDailyNeedCm3 = 0;
+  window.currentHoursPerDay = 0;
+  window.currentDaysPerWeek = 0;
+  window.currentRefillGrams = 0;
+  window.currentMicPolDays = 0;
+
+  // 4. Opbrengstmodel (OM & Chain OM)
+  const omFieldsToBlank = [
+    "omProdCons1", "omProdCons2", "omProdPrice1", "omProdPrice2",
+    "omProdFreq1", "omProdFreq2", "omSharedWorktime",
+    "omRepairFreq1", "omRepairFreq2", "omSharedRepairH", "omSharedLaborRate",
+    "omLifetime1", "omLifetime2", "omSharedPartsCost", "omSharedSetsPerMachine",
+    "omSharedNumMachines", "omDowntimeH1", "omDowntimeH2", "omSharedDowntimeRate",
+    "omDowntimeFreq1", "omDowntimeFreq2", "omSharedPrepH", "omTcoYears",
+    "chainOmProdCons1", "chainOmProdCons2", "chainOmProdPrice1", "chainOmProdPrice2",
+    "chainOmProdFreq1", "chainOmProdFreq2", "chainOmSharedWorktime",
+    "chainOmRepairFreq1", "chainOmRepairFreq2", "chainOmSharedRepairH", "chainOmSharedLaborRate",
+    "chainOmLifetime1", "chainOmLifetime2", "chainOmSharedPartsCost", "chainOmSharedSetsPerMachine",
+    "chainOmSharedNumMachines", "chainOmDowntimeH1", "chainOmDowntimeH2", "chainOmSharedDowntimeRate",
+    "chainOmDowntimeFreq1", "chainOmDowntimeFreq2", "chainOmSharedPrepH", "chainOmTcoYears"
+  ];
+  omFieldsToBlank.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = "";
+  });
+
+  const omOutputs = [
+    "omAnnProdCost1", "omAnnProdCost2", "omAnnLaborCost1", "omAnnLaborCost2",
+    "omAnnMaterialCost1", "omAnnMaterialCost2", "omAnnDowntimeCost1", "omAnnDowntimeCost2",
+    "omAnnTotalCost1", "omAnnTotalCost2", "omAnnSavingsMachine", "omAnnSavingsPark",
+    "omTotalCostYears1", "omTotalCostYears2", "omTotalParkCostYears1", "omTotalParkCostYears2",
+    "omSavingsMachineYears", "omTotalSavingsYears",
+    "chainOmAnnProdCost1", "chainOmAnnProdCost2", "chainOmAnnLaborCost1", "chainOmAnnLaborCost2",
+    "chainOmAnnMaterialCost1", "chainOmAnnMaterialCost2", "chainOmAnnDowntimeCost1", "chainOmAnnDowntimeCost2",
+    "chainOmAnnTotalCost1", "chainOmAnnTotalCost2", "chainOmAnnSavingsMachine", "chainOmAnnSavingsPark",
+    "chainOmTotalCostYears1", "chainOmTotalCostYears2", "chainOmTotalParkCostYears1", "chainOmTotalParkCostYears2",
+    "chainOmSavingsMachineYears", "chainOmTotalSavingsYears"
+  ];
+  omOutputs.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = "€ 0,00";
+  });
+
+  ["omProdCostPercent", "chainOmProdCostPercent"].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = "0,00%";
+  });
+
+  window.lastOmSingleSavings = { annSavings: 0, totalSavings: 0, prodCostPercent: 0 };
+  if (typeof setOmKpiScope === "function") setOmKpiScope("single");
+  const omAnnSavingsSummary = document.getElementById("omAnnSavingsSummary");
+  if (omAnnSavingsSummary) omAnnSavingsSummary.textContent = "€ 0,00";
+  const omTotalSavingsSummary = document.getElementById("omTotalSavingsSummary");
+  if (omTotalSavingsSummary) omTotalSavingsSummary.textContent = "€ 0,00";
+  const omProdCostPercentSummary = document.getElementById("omProdCostPercentSummary");
+  if (omProdCostPercentSummary) omProdCostPercentSummary.textContent = "0,00%";
+
+  const chainOmAnnSavingsSummary = document.getElementById("chainOmAnnSavingsSummary");
+  if (chainOmAnnSavingsSummary) chainOmAnnSavingsSummary.textContent = "€ 0,00";
+  const chainOmTotalSavingsSummary = document.getElementById("chainOmTotalSavingsSummary");
+  if (chainOmTotalSavingsSummary) chainOmTotalSavingsSummary.textContent = "€ 0,00";
+  const chainOmProdCostPercentSummary = document.getElementById("chainOmProdCostPercentSummary");
+  if (chainOmProdCostPercentSummary) chainOmProdCostPercentSummary.textContent = "0,00%";
+
+  const omSurveySelect = document.getElementById("omSurveyBearingSelect");
+  if (omSurveySelect) {
+    omSurveySelect.innerHTML = '<option value="manual">🔍 Zelf gezocht lager</option>';
+    omSurveySelect.value = "manual";
+  }
+  const chainOmSurveySelect = document.getElementById("chainOmSurveyBearingSelect");
+  if (chainOmSurveySelect) {
+    chainOmSurveySelect.innerHTML = '<option value="manual">🔍 Zelf gezochte ketting</option>';
+    chainOmSurveySelect.value = "manual";
+  }
+
+  if (typeof setBearingTcoImage === "function") setBearingTcoImage("");
+  if (typeof setChainTcoImage === "function") setChainTcoImage("");
+  if (typeof updateOmMetadata === "function") updateOmMetadata();
+
+  // 5. Automatisering
+  autoDevicesState = [];
+  window.autoDevicesState = [];
+  window.spNumBearingsValue = 1;
+  window.customSinglePointPackPrice = 0;
+
+  const spInput = document.getElementById("singlePointNumBearingsInput");
+  if (spInput) spInput.value = "1";
+  const autoDevSel = document.getElementById("automationDeviceSelect");
+  if (autoDevSel) autoDevSel.value = "single_point";
+  const autoNumSel = document.getElementById("autoNumDevicesSelect");
+  if (autoNumSel) autoNumSel.value = "1";
+
+  // 6. ROI Automatisering
+  const roiYearsInput = document.getElementById("roiYearsInput");
+  if (roiYearsInput) roiYearsInput.value = "1";
+  const roiManModeSel = document.getElementById("roiManualModeSelect");
+  if (roiManModeSel) roiManModeSel.value = "interflon";
+  const roiFactorSel = document.getElementById("roiLifetimeFactorSelect");
+  if (roiFactorSel) roiFactorSel.value = "0";
+
+  // 7. Calculate all modules with cleared state
+  if (typeof calculateGrease === "function") calculateGrease();
+  if (typeof calculateTco === "function") calculateTco();
+  if (typeof renderAutoDevicesUI === "function") renderAutoDevicesUI();
+  if (typeof calculateAutomationLubrication === "function") calculateAutomationLubrication();
+  if (typeof updateRoiAutomationPage === "function") updateRoiAutomationPage();
+}
+window.applyClearedFormState = applyClearedFormState;
+
 function clearAllForNewDossier() {
   const lang = (typeof currentLang !== "undefined" && currentLang) ? currentLang : "nl";
   let confirmMsg = "Weet u zeker dat u alle ingevulde gegevens in de app en de actieve vragenlijst wilt wissen om een nieuw dossier voor een nieuwe klant te starten?\n\n(Reeds opgeslagen dossiers op uw computer blijven veilig bewaard.)";
@@ -24690,16 +25007,16 @@ function clearAllForNewDossier() {
     clearTimeout(__storageSyncTimer);
     __storageSyncTimer = null;
   }
+
   window.__isClearingForNewDossier = true;
+  window.__isFormCleared = true;
+  window.__formEverCleared = true;
   window.__lastClearTime = Date.now();
   window.__activeDossierMachine = "";
   window.__activeDossierCompany = "";
-  setTimeout(() => {
-    window.__isClearingForNewDossier = false;
-  }, 4000);
 
   try {
-    // 1. CLEAR ACTIVE QUESTIONNAIRE VIA BROADCAST CHANNEL
+    // 1. BROADCAST CLEAR TO ACTIVE QUESTIONNAIRE
     if (typeof BroadcastChannel !== "undefined") {
       try {
         if (!window.__surveySyncBroadcastChannel) {
@@ -24715,232 +25032,25 @@ function clearAllForNewDossier() {
       }
     }
 
-    // 2. CLEAR QUESTIONNAIRE LOCAL STORAGE KEYS
+    // 2. PURGE ALL LOCAL STORAGE KEYS EXCEPT OPERATOR ADVISOR IDENTITY & LANGUAGE
     try {
-      localStorage.removeItem('interflon_questionnaire_full_data');
-      localStorage.removeItem('interflon_last_questionnaire_data');
-      localStorage.removeItem('interflon_survey_raster_config');
-      localStorage.removeItem('interflon_raster_config');
-      localStorage.removeItem('interflon_active_survey_letter');
-      localStorage.removeItem('interflon_active_dossier_machine');
-      localStorage.removeItem('interflon_active_dossier_company');
-      localStorage.removeItem('active_tco_bearing_source');
-    } catch(e) {}
-
-    // 3. PURGE LOCAL STORAGE FORM FIELDS & METADATA (PRESERVE OPERATOR ADVISOR IDENTITY)
-    try {
-      Object.keys(localStorage).forEach(k => {
-        if (k.startsWith("app_field_") || k.startsWith("bearing_calc_") || k.startsWith("bearing_tco_") || k.startsWith("chain_tco_")) {
-          try { localStorage.removeItem(k); } catch(e) {}
+      const preserveKeys = new Set([
+        'operator_name', 'operator_phone', 'operator_email',
+        'app_field_opNameInput', 'app_field_opPhoneInput', 'app_field_opEmailInput',
+        'app_field_omOpName', 'app_field_omOpPhone', 'app_field_omOpEmail',
+        'app_field_chainOmOpName', 'app_field_chainOmOpPhone', 'app_field_chainOmOpEmail',
+        'bearing_calc_lang', 'app_field_langSelect'
+      ]);
+      const allKeys = Object.keys(localStorage);
+      for (const k of allKeys) {
+        if (!preserveKeys.has(k)) {
+          try { localStorage.removeItem(k); } catch(err) {}
         }
-      });
-
-      const keysToPurge = [
-        "client_company", "client_contact", "client_phone", "client_email",
-        "tech_machine", "tech_app", "tech_brand", "tech_product", "tech_interval", "tech_price",
-        "selected_bearing", "currentBearingId", "currentBearingName", "active_bearing_designation",
-        "bearing_tco_data", "chain_tco_data", "bearing_calc_tco_data",
-        "photo_folders", "photoFolders", "photo_library", "photoLibrary",
-        "omAppImage", "chainOmAppImage", "omAppImageMachine", "chainOmAppImageMachine",
-        "active_interflon_grease",
-        "autoDevicesState", "auto_device_key", "auto_num_devices",
-        "roi_lifetime_factor", "calc_micpol_factor",
-        "custom_chainOmLifetime2", "custom_omLifetime2"
-      ];
-      keysToPurge.forEach(k => {
-        try { localStorage.removeItem(k); } catch(e) {}
-      });
+      }
+      localStorage.setItem("bearing_calc_form_cleared", "true");
     } catch(e) {}
 
-    // 4. RESET CLIENT & TECH DETAILS IN MODALS & BADGES
-    const clientFields = ["clientCompanyInput", "clientContactInput", "clientPhoneInput", "clientEmailInput"];
-    clientFields.forEach(id => {
-      const el = document.getElementById(id);
-      if (el) el.value = "";
-    });
-    if (typeof updateClientBadge === "function") updateClientBadge("", "");
-
-    const techFields = ["techMachineInput", "techAppInput", "techBrandInput", "techProductInput", "techIntervalInput", "techPriceInput"];
-    techFields.forEach(id => {
-      const el = document.getElementById(id);
-      if (el) el.value = "";
-    });
-    if (typeof updateTechBadge === "function") updateTechBadge("", "");
-
-    const omMetadataFields = [
-      "omTechMachine", "chainOmTechMachine",
-      "omTechBrand", "chainOmTechBrand",
-      "omTechApp", "chainOmTechApp",
-      "omClientCompany", "chainOmClientCompany",
-      "omClientContact", "chainOmClientContact",
-      "omClientPhone", "chainOmClientPhone",
-      "omClientEmail", "chainOmClientEmail"
-    ];
-    omMetadataFields.forEach(id => {
-      const el = document.getElementById(id);
-      if (el) el.value = "";
-    });
-
-    // 5. RESET SEARCH PAGE & SELECTED BEARING
-    activeBearing = null;
-    window.selectedSearchedBearing = null;
-    window.latestSurveyFullData = null;
-    window.latestSurveyBearings = [];
-    window.currentActiveSurveyBearingLetter = null;
-    window.currentSurveyBearingLetter = null;
-    window.activeTcoBearingSource = "manual";
-
-    const searchInput = document.getElementById("bearingSearchInput");
-    if (searchInput) searchInput.value = "";
-    const suggestionsBox = document.getElementById("suggestionsBox");
-    if (suggestionsBox) suggestionsBox.style.display = "none";
-
-    const emptyState = document.getElementById("emptySearchState");
-    const resultsArea = document.getElementById("searchResultsArea");
-    if (emptyState) emptyState.style.display = "block";
-    if (resultsArea) resultsArea.classList.add("hidden");
-
-    // 6. RESET SMEERCALCULATIE (PAGECALC)
-    const calcSurveyBearingSelectWrapper = document.getElementById("calcSurveyBearingSelectWrapper");
-    if (calcSurveyBearingSelectWrapper) calcSurveyBearingSelectWrapper.style.display = "none";
-    const calcSurveyBearingSelect = document.getElementById("calcSurveyBearingSelect");
-    if (calcSurveyBearingSelect) calcSurveyBearingSelect.innerHTML = '<option value="">-- Kies lager uit vragenlijst --</option>';
-    const surveyBearingSelect = document.getElementById("surveyBearingSelect");
-    if (surveyBearingSelect) surveyBearingSelect.innerHTML = '<option value="">-- Kies lager uit vragenlijst --</option>';
-
-    const chkSnl = document.getElementById("chkSnlHousing");
-    if (chkSnl) chkSnl.checked = false;
-    const snlContainer = document.getElementById("snlOptionsContainer");
-    if (snlContainer) snlContainer.classList.add("hidden");
-    const badgeSnlDetected = document.getElementById("badgeSnlDetected");
-    if (badgeSnlDetected) badgeSnlDetected.classList.add("hidden");
-
-    const inputHoursPerDay = document.getElementById("inputHoursPerDay");
-    if (inputHoursPerDay) inputHoursPerDay.value = "24";
-    const inputDaysPerWeek = document.getElementById("inputDaysPerWeek");
-    if (inputDaysPerWeek) inputDaysPerWeek.value = "7";
-    const inputTemperature = document.getElementById("inputTemperature");
-    if (inputTemperature) inputTemperature.value = "65";
-    const inputSpeed = document.getElementById("inputSpeed");
-    if (inputSpeed) inputSpeed.value = "980";
-    const inputLimitingSpeed = document.getElementById("inputLimitingSpeed");
-    if (inputLimitingSpeed) inputLimitingSpeed.value = "4000";
-    const inputMicPolFactor = document.getElementById("inputMicPolFactor");
-    if (inputMicPolFactor) inputMicPolFactor.value = "4";
-    const inputBoreManual = document.getElementById("inputBoreManual");
-    if (inputBoreManual) inputBoreManual.value = "120";
-    const inputOuterManual = document.getElementById("inputOuterManual");
-    if (inputOuterManual) inputOuterManual.value = "215";
-    const inputWidthManual = document.getElementById("inputWidthManual");
-    if (inputWidthManual) inputWidthManual.value = "42";
-    const inputMassManual = document.getElementById("inputMassManual");
-    if (inputMassManual) inputMassManual.value = "6.71";
-    const inputTe = document.getElementById("inputTe");
-    if (inputTe) inputTe.value = "0.5";
-    const inputTa = document.getElementById("inputTa");
-    if (inputTa) inputTa.value = "0.5";
-    const thickenerSelect = document.getElementById("thickenerSelect");
-    if (thickenerSelect) thickenerSelect.value = "Lithium-complex";
-
-    if (typeof updateCalculatorFields === "function") {
-      updateCalculatorFields();
-    }
-
-    // 7. RESET OPBRENGSTMODEL (PAGEOM & CHAIN)
-    if (typeof setOmKpiScope === "function") setOmKpiScope("single");
-    const omSurveySelect = document.getElementById("omSurveyBearingSelect");
-    if (omSurveySelect) {
-      omSurveySelect.innerHTML = '<option value="manual">🔍 Zelf gezocht lager</option>';
-      omSurveySelect.value = "manual";
-    }
-    const chainOmSurveySelect = document.getElementById("chainOmSurveyBearingSelect");
-    if (chainOmSurveySelect) {
-      chainOmSurveySelect.innerHTML = '<option value="manual">🔍 Zelf gezochte ketting</option>';
-      chainOmSurveySelect.value = "manual";
-    }
-
-    const resetField = (id, defVal) => {
-      const el = document.getElementById(id);
-      if (el) el.value = defVal;
-    };
-    resetField("omProdCons1", "2850");
-    resetField("omProdCons2", "475");
-    resetField("omProdPrice1", "10.00");
-    resetField("omProdPrice2", "38.60");
-    resetField("omProdFreq1", "56");
-    resetField("omProdFreq2", "56");
-    resetField("omSharedWorktime", "3");
-    resetField("omRepairFreq1", "12");
-    resetField("omRepairFreq2", "48");
-    resetField("omSharedRepairH", "4");
-    resetField("omSharedLaborRate", "35.00");
-    resetField("omLifetime1", "12");
-    resetField("omLifetime2", "48");
-    resetField("omSharedPartsCost", "6000");
-    resetField("omSharedSetsPerMachine", "1");
-    resetField("omSharedNumMachines", "14");
-    resetField("omDowntimeH1", "4");
-    resetField("omDowntimeH2", "4");
-    resetField("omSharedDowntimeRate", "100");
-    resetField("omDowntimeFreq1", "1");
-    resetField("omDowntimeFreq2", "0.25");
-    resetField("omSharedPrepH", "1");
-    resetField("omTcoYears", "10");
-
-    resetField("chainOmProdCons1", "2850");
-    resetField("chainOmProdCons2", "475");
-    resetField("chainOmProdPrice1", "10.00");
-    resetField("chainOmProdPrice2", "38.60");
-    resetField("chainOmProdFreq1", "365");
-    resetField("chainOmProdFreq2", "365");
-    resetField("chainOmSharedWorktime", "3");
-    resetField("chainOmRepairFreq1", "12");
-    resetField("chainOmRepairFreq2", "48");
-    resetField("chainOmSharedRepairH", "4");
-    resetField("chainOmSharedLaborRate", "35.00");
-    resetField("chainOmLifetime1", "12");
-    resetField("chainOmLifetime2", "48");
-    resetField("chainOmSharedPartsCost", "6000");
-    resetField("chainOmSharedSetsPerMachine", "1");
-    resetField("chainOmSharedNumMachines", "14");
-    resetField("chainOmDowntimeH1", "4");
-    resetField("chainOmDowntimeH2", "4");
-    resetField("chainOmSharedDowntimeRate", "100");
-    resetField("chainOmDowntimeFreq1", "1");
-    resetField("chainOmDowntimeFreq2", "0.25");
-    resetField("chainOmSharedPrepH", "1");
-    resetField("chainOmTcoYears", "10");
-
-    const tcoMode = document.getElementById("tcoCalcModeSelect");
-    if (tcoMode) tcoMode.value = "formula";
-    const chainTcoMode = document.getElementById("chainTcoCalcModeSelect");
-    if (chainTcoMode) chainTcoMode.value = "formula";
-
-    if (typeof setBearingTcoImage === "function") setBearingTcoImage("");
-    if (typeof setChainTcoImage === "function") setChainTcoImage("");
-    if (typeof updateOmMetadata === "function") updateOmMetadata();
-
-    // 8. RESET AUTOMATISERING
-    autoDevicesState = [
-      { id: 'A', name: 'Pulsarlube A', type: 'pulsarlube_m2', points: 1, cap: 125, period: 7, unit: 'months', userEditedPeriod: false, customPackPrice: 0 },
-      { id: 'B', name: 'Pulsarlube B', type: 'pulsarlube_m2', points: 1, cap: 125, period: 7, unit: 'months', userEditedPeriod: false, customPackPrice: 0 },
-      { id: 'C', name: 'Pulsarlube C', type: 'pulsarlube_m2', points: 1, cap: 125, period: 7, unit: 'months', userEditedPeriod: false, customPackPrice: 0 },
-      { id: 'D', name: 'Pulsarlube D', type: 'pulsarlube_m2', points: 1, cap: 125, period: 7, unit: 'months', userEditedPeriod: false, customPackPrice: 0 }
-    ];
-    if (typeof window !== "undefined") {
-      window.autoDevicesState = autoDevicesState;
-    }
-    const autoDevSel = document.getElementById("automationDeviceSelect");
-    if (autoDevSel) autoDevSel.value = "single_point";
-    const autoNumSel = document.getElementById("autoNumDevicesSelect");
-    if (autoNumSel) autoNumSel.value = "1";
-
-    if (typeof saveAutomationStateToLocalStorage === "function") saveAutomationStateToLocalStorage();
-    if (typeof renderAutoDevicesUI === "function") renderAutoDevicesUI();
-    if (typeof calculateAutomationLubrication === "function") calculateAutomationLubrication();
-    if (typeof updateRoiAutomationPage === "function") updateRoiAutomationPage();
-
-    // 9. RESET PHOTO LIBRARY
+    // 3. RESET PHOTO LIBRARY
     photoFolders = [
       { id: "folder_default", name: "Algemeen", photos: [] }
     ];
@@ -24957,11 +25067,10 @@ function clearAllForNewDossier() {
     if (typeof updatePhotoBadgeCounter === "function") updatePhotoBadgeCounter();
     if (typeof renderPhotoFolderManagerList === "function") renderPhotoFolderManagerList();
 
-    // 10. RECALCULATE & SWITCH TO START PAGE
-    if (typeof calculateBearing === "function") calculateBearing();
-    if (typeof calculateGrease === "function") calculateGrease();
-    if (typeof calculateTco === "function") calculateTco();
-    if (typeof updateRoiAutomationPage === "function") updateRoiAutomationPage();
+    // 4. APPLY 100% BLANK STATE ACROSS ALL FORM CONTROLS & MODULES
+    applyClearedFormState();
+
+    // 5. SWITCH TO FIRST TAB (SEARCH)
     if (typeof switchPage === "function") switchPage("search");
 
     const toastMsg = (lang === "fr")
@@ -24979,117 +25088,7 @@ function clearAllForNewDossier() {
     }, 400);
   }
 }
-
-function renderPhotoGrid() {
-  const container = document.getElementById("photoGridContainer");
-  const counterText = document.getElementById("photoCounterText");
-  var lang = (typeof currentLang !== "undefined" && currentLang) ? currentLang : "nl";
-  const t = (typeof TRANSLATIONS !== "undefined" && TRANSLATIONS[lang]) ? TRANSLATIONS[lang] : (typeof TRANSLATIONS !== "undefined" && TRANSLATIONS["nl"] ? TRANSLATIONS["nl"] : {});
-
-  const curFolder = getCurrentPhotoFolder();
-  const photos = curFolder.photos || [];
-  photoLibrary = photos;
-
-  if (counterText) {
-    const uploadedSuffix = lang === "fr" ? "photos téléchargées" : (lang === "en" ? "photos uploaded" : "foto's geüpload");
-    counterText.innerText = `${curFolder.name}: ${photos.length} / 20 ${uploadedSuffix}`;
-  }
-
-  if (!container) return;
-  container.innerHTML = "";
-
-  if (photos.length === 0) {
-    container.innerHTML = `
-      <div style="grid-column: 1 / -1; text-align: center; color: #94a3b8; padding: 40px 10px; background: #f8fafc; border-radius: 10px; border: 1.5px dashed #cbd5e1;">
-        <span style="font-size: 32px; display: block; margin-bottom: 8px;">📷</span>
-        <p style="margin: 0; font-size: 14px; font-weight: 600;">Nog geen foto's in map "${curFolder.name}".</p>
-        <p style="margin: 4px 0 0 0; font-size: 12.5px;">${t.noPhotosHint || "Klik hierboven op '➕ Foto's toevoegen' om tot 20 foto's toe te voegen."}</p>
-      </div>
-    `;
-    return;
-  }
-
-  photos.forEach((photo, idx) => {
-    const card = document.createElement("div");
-    card.style.cssText = "background: #ffffff; border: 1px solid #cbd5e1; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 6px rgba(0,0,0,0.04); display: flex; flex-direction: column; min-height: 205px; height: auto;";
-    const photoBadge = (t.photoLabel || "Foto") + " " + (idx + 1);
-    const enlargeTxt = t.enlargeLabel || "🔍 Vergroot";
-    const clickTitle = t.clickToEnlarge || "Klik om te vergroten 🔍";
-    const descPlaceholder = t.addDescPlaceholder || "Beschrijving toevoegen...";
-    const delTitle = t.deletePhotoTitle || "Verwijderen";
-
-    card.innerHTML = `
-      <div style="position: relative; width: 100%; height: 140px; min-height: 140px; flex-shrink: 0; background: #000; overflow: hidden;">
-        <img src="${photo.dataUrl}" alt="${photoBadge}" onclick="openPhotoLightbox('${photo.id}')" title="${clickTitle}" style="width: 100%; height: 100%; object-fit: cover; cursor: pointer; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
-        <div onclick="openPhotoLightbox('${photo.id}')" title="${clickTitle}" style="position: absolute; bottom: 6px; right: 6px; background: rgba(15,23,42,0.75); color: #fff; border-radius: 4px; padding: 2px 6px; font-size: 11px; cursor: pointer; pointer-events: auto;">${enlargeTxt}</div>
-        <span style="position: absolute; top: 6px; left: 6px; background: rgba(15,23,42,0.75); color: #fff; font-size: 11px; font-weight: 700; padding: 2px 7px; border-radius: 4px;">${photoBadge}</span>
-        <button type="button" onclick="deletePhoto('${photo.id}')" title="${delTitle}" style="position: absolute; top: 6px; right: 6px; background: rgba(227,6,19,0.9); color: #fff; border: none; width: 26px; height: 26px; border-radius: 50%; cursor: pointer; font-size: 13px; font-weight: 800; display: flex; align-items: center; justify-content: center;">✕</button>
-      </div>
-      <div style="padding: 10px; flex: 1 0 auto; display: flex; flex-direction: column; gap: 6px;">
-        <input type="text" value="${photo.description || ''}" placeholder="${descPlaceholder}" oninput="updatePhotoDescription('${photo.id}', this.value)" style="width: 100%; padding: 6px 10px; font-size: 12.5px; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box;">
-      </div>
-    `;
-    container.appendChild(card);
-  });
-}
-
-function openPhotoLightbox(id) {
-  const allPhotos = getAllPhotosFlat();
-  const item = allPhotos.find(p => p.id === id);
-  if (!item) return;
-
-  const modal = document.getElementById("photoLightboxModal");
-  const img = document.getElementById("photoLightboxImg");
-  const caption = document.getElementById("photoLightboxCaption");
-
-  if (img) img.src = item.dataUrl;
-  if (caption) {
-    if (item.description && item.description.trim()) {
-      caption.innerText = item.description.trim();
-      caption.style.display = "block";
-    } else {
-      caption.innerText = "";
-      caption.style.display = "none";
-    }
-  }
-  if (modal) modal.classList.remove("hidden");
-}
-
-function closePhotoLightboxModal() {
-  const modal = document.getElementById("photoLightboxModal");
-  if (modal) modal.classList.add("hidden");
-}
-
-// Explicitly export all HTML inline handler functions to window object
-if (typeof window !== "undefined") {
-  window.handleLogin = handleLogin;
-  window.handleLoginDirect = handleLoginDirect;
-  window.handleLoginWithIntro = handleLoginWithIntro;
-  window.playOpeningAnimation = playOpeningAnimation;
-  window.changeLanguage = changeLanguage;
-  window.togglePasswordVisibility = togglePasswordVisibility;
-  window.openOperatorModal = openOperatorModal;
-  window.closeOperatorModal = closeOperatorModal;
-  window.saveOperatorDetails = saveOperatorDetails;
-  window.openClientModal = openClientModal;
-  window.closeClientModal = closeClientModal;
-  window.saveClientDetails = saveClientDetails;
-  window.openTechModal = openTechModal;
-  window.closeTechModal = closeTechModal;
-  window.saveTechDetails = saveTechDetails;
-  window.openModeSelectionModal = openModeSelectionModal;
-  window.closeModeSelectionModal = closeModeSelectionModal;
-  window.selectAppMode = selectAppMode;
-  window.handleLogout = handleLogout;
-  window.loadPhotoLibrary = loadPhotoLibrary;
-  window.savePhotoLibraryToStorage = savePhotoLibraryToStorage;
-  window.openPhotoLibraryModal = openPhotoLibraryModal;
-  window.closePhotoLibraryModal = closePhotoLibraryModal;
-  window.handlePhotoUpload = handlePhotoUpload;
-  window.updatePhotoDescription = updatePhotoDescription;
-  window.deletePhoto = deletePhoto;
-  window.clearAllPhotosForNewDossier = clearAllPhotosForNewDossier;
-  window.clearAllForNewDossier = clearAllForNewDossier;
+window.clearAllForNewDossier = clearAllForNewDossier;
   window.openPhotoLightbox = openPhotoLightbox;
   window.closePhotoLightboxModal = closePhotoLightboxModal;
   window.renderPhotoGrid = renderPhotoGrid;
@@ -25106,7 +25105,6 @@ if (typeof window !== "undefined") {
   window.openPhotoFolderManagerModal = openPhotoFolderManagerModal;
   window.closePhotoFolderManagerModal = closePhotoFolderManagerModal;
   window.renderPhotoFolderManagerList = renderPhotoFolderManagerList;
-}
 
 
 // ==========================================================================
@@ -29168,4 +29166,27 @@ document.addEventListener("DOMContentLoaded", function() {
       updateCorrectionFactorsHint();
     }
   }, 150);
+});
+// Universal Form Cleared State Handler & User Input Re-activation
+window.addEventListener("input", function(e) {
+  if (!e.target || !e.target.id) return;
+  const id = e.target.id.toLowerCase();
+  if (id.includes("opname") || id.includes("opphone") || id.includes("opemail") || id.includes("langselect")) {
+    return;
+  }
+  if (window.__isClearingForNewDossier) return;
+  window.__isFormCleared = false;
+  try {
+    localStorage.removeItem("bearing_calc_form_cleared");
+  } catch(_) {}
+});
+
+document.addEventListener("DOMContentLoaded", function() {
+  try {
+    if (localStorage.getItem("bearing_calc_form_cleared") === "true") {
+      if (typeof applyClearedFormState === "function") {
+        applyClearedFormState();
+      }
+    }
+  } catch(_) {}
 });
