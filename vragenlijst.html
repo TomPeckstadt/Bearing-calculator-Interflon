@@ -8462,7 +8462,7 @@
       activeBearingSec3 = 'A';
       activeBearingSec4 = 'A';
       bearingDataMapSec2 = {
-        'A': { q11: '', q12_price: '', q4_freq_num: '', q4_freq_unit: 'Weken', q29_life: '', q13: '16', q14: '5', isSnl: false, snlType: '', snlFill: '40', snlRelub: 'side' }
+        'A': { q11: '', q12_price: '', q4_freq_num: '', q4_freq_unit: 'Weken', q29_life: '', q13: '', q14: '', isSnl: false, snlType: '', snlFill: '40', snlRelub: 'side' }
       };
       bearingDataMapSec3 = {
         'A': { q15: '', q16: '', q17: '3', q18: '4', q19: '2', q20: '3', q21: '3', q22: '2' }
@@ -8478,6 +8478,11 @@
       if (typeof loadSection2DataForBearing === 'function') loadSection2DataForBearing('A');
       if (typeof loadSection3DataForBearing === 'function') loadSection3DataForBearing('A');
       if (typeof loadSection4DataForBearing === 'function') loadSection4DataForBearing('A');
+      const extraSurveyFields = ['q11', 'q12_price', 'q4_freq_num', 'q29_life', 'q13', 'q14', 'q15', 'q16', 'q24', 'q25', 'q26', 'q27', 'q28', 'q30'];
+      extraSurveyFields.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = '';
+      });
 
       // 6. Reset Raster State
       if (typeof bearingPositions !== 'undefined') {
