@@ -6728,12 +6728,12 @@
     // --- SAVE RASTER CONFIGURATION FOR AUTOMATION IMPORT ---
     function saveRasterConfigToLocalStorage(skipBroadcast) {
       if (window.__isSavingRasterConfig) return null;
-      if (window.__isClearingQuestionnaire || window.__questionnaireRestoring) {
+      if (window.__isClearingQuestionnaire || window.__questionnaireRestoring || (window.__lastClearTime && Date.now() - window.__lastClearTime < 5000)) {
         return null;
       }
       window.__isSavingRasterConfig = true;
       try {
-        if (window.__isClearingQuestionnaire || window.__questionnaireRestoring) {
+        if (window.__isClearingQuestionnaire || window.__questionnaireRestoring || (window.__lastClearTime && Date.now() - window.__lastClearTime < 5000)) {
           return null;
         }
 
@@ -8404,6 +8404,10 @@
     function resetQuestionnaireFormToBlank(silent, preserveDossierMetadata) {
       window.__isClearingQuestionnaire = true;
       window.__questionnaireRestoring = true;
+      window.__lastClearTime = Date.now();
+      if (typeof autoSaveTimer !== 'undefined' && autoSaveTimer) { clearTimeout(autoSaveTimer); autoSaveTimer = null; }
+      if (typeof __surveyAutoSaveTimer !== 'undefined' && __surveyAutoSaveTimer) { clearTimeout(__surveyAutoSaveTimer); __surveyAutoSaveTimer = null; }
+      if (typeof attachmentUpdateTimer !== 'undefined' && attachmentUpdateTimer) { clearTimeout(attachmentUpdateTimer); attachmentUpdateTimer = null; }
 
       // 1. Purge questionnaire localStorage items
       try {
@@ -10256,8 +10260,13 @@
           }
 
           if (ev.data.type === 'CLEAR_QUESTIONNAIRE') {
+            window.__lastClearTime = Date.now();
+            if (typeof autoSaveTimer !== 'undefined' && autoSaveTimer) { clearTimeout(autoSaveTimer); autoSaveTimer = null; }
+            if (typeof __surveyAutoSaveTimer !== 'undefined' && __surveyAutoSaveTimer) { clearTimeout(__surveyAutoSaveTimer); __surveyAutoSaveTimer = null; }
+            if (typeof attachmentUpdateTimer !== 'undefined' && attachmentUpdateTimer) { clearTimeout(attachmentUpdateTimer); attachmentUpdateTimer = null; }
+            const preserve = (ev.data.clearAll === true) ? false : ((ev.data.preserveDossierMetadata !== undefined) ? !!ev.data.preserveDossierMetadata : false);
             if (typeof resetQuestionnaireFormToBlank === 'function') {
-              resetQuestionnaireFormToBlank(false, true);
+              resetQuestionnaireFormToBlank(false, preserve);
             }
             return;
           }
