@@ -52,9 +52,10 @@ if (typeof window !== "undefined") {
 function ensureAutoDevicesStateSafety(minCount, defaultType) {
   if (!Array.isArray(autoDevicesState)) autoDevicesState = [];
   const deviceSelect = document.getElementById("automationDeviceSelect") || document.getElementById("autoDeviceSelect");
-  const deviceKey = defaultType || (deviceSelect ? deviceSelect.value : "pulsarlube_m2");
+  let deviceKey = defaultType || (deviceSelect ? deviceSelect.value : "pulsarlube_m2");
+  if (!deviceKey || deviceKey === "") deviceKey = "pulsarlube_m2";
   const isSp = (deviceKey === "single_point");
-  const fallbackType = isSp ? "single_point" : (deviceKey || "pulsarlube_m2");
+  const fallbackType = (isSp ? "single_point" : (deviceKey === "mixed" ? "pulsarlube_m2" : deviceKey)) || "pulsarlube_m2";
   const requiredCount = Math.max(4, typeof minCount === "number" ? minCount : 4);
 
   for (let i = 0; i < requiredCount; i++) {
@@ -79,7 +80,9 @@ function ensureAutoDevicesStateSafety(minCount, defaultType) {
       if (typeof autoDevicesState[i].period !== "number" || isNaN(autoDevicesState[i].period)) autoDevicesState[i].period = 6;
       if (typeof autoDevicesState[i].userEditedPeriod !== "boolean") autoDevicesState[i].userEditedPeriod = false;
       if (typeof autoDevicesState[i].customPackPrice !== "number" || isNaN(autoDevicesState[i].customPackPrice)) autoDevicesState[i].customPackPrice = 0;
-      if (!autoDevicesState[i].type) autoDevicesState[i].type = fallbackType;
+      if (!autoDevicesState[i].type || autoDevicesState[i].type === "mixed") {
+        autoDevicesState[i].type = fallbackType;
+      }
     }
   }
   if (typeof window !== "undefined") {
@@ -102,15 +105,17 @@ function getActiveNumDevices() {
   const sel = document.getElementById("autoNumDevicesSelect");
   return sel ? (parseInt(sel.value) || 1) : 1;
 }
+window.getActiveNumDevices = getActiveNumDevices;
 
 function onAutoNumDevicesChange() {
   const num = getActiveNumDevices();
   const deviceSelect = document.getElementById("automationDeviceSelect") || document.getElementById("autoDeviceSelect");
-  const deviceKey = deviceSelect ? deviceSelect.value : "pulsarlube_m2";
+  let deviceKey = deviceSelect ? deviceSelect.value : "pulsarlube_m2";
+  if (!deviceKey || deviceKey === "" || deviceKey === "mixed") deviceKey = "pulsarlube_m2";
   ensureAutoDevicesStateSafety(Math.max(4, num), deviceKey);
   if (deviceKey !== "single_point" && Array.isArray(autoDevicesState)) {
     for (let i = 0; i < num; i++) {
-      if (autoDevicesState[i] && (!autoDevicesState[i].type || autoDevicesState[i].type === "single_point")) {
+      if (autoDevicesState[i] && (!autoDevicesState[i].type || autoDevicesState[i].type === "single_point" || autoDevicesState[i].type === "mixed")) {
         autoDevicesState[i].type = deviceKey;
       }
     }
@@ -119,26 +124,29 @@ function onAutoNumDevicesChange() {
   renderAutoDevicesUI();
   calculateAutomationLubrication();
 }
+window.onAutoNumDevicesChange = onAutoNumDevicesChange;
 
 function onAutoNumPointsChange() {
   userHasManuallyEditedAutoPeriod = false;
   if (autoDevicesState[0]) autoDevicesState[0].userEditedPeriod = false;
   calculateAutomationLubrication();
 }
+window.onAutoNumPointsChange = onAutoNumPointsChange;
 
 function onDevicePointsChange(devId) {
   ensureAutoDevicesStateSafety();
   const dev = autoDevicesState.find(d => d.id === devId);
   const sel = document.getElementById("autoNumPointsSelect_" + devId);
   if (dev && sel) {
-    dev.points = parseInt(sel.value) || 1;
+    const parsedPts = parseInt(sel.value, 10);
+    dev.points = isNaN(parsedPts) ? 1 : parsedPts;
     if (dev.dailyNeedCm3 && dev.dailyNeedCm3 > 0) {
       dev.totalDailyNeed = dev.dailyNeedCm3 * dev.points;
     }
     if (!dev.userEditedPeriod) {
       const selectGrease = document.getElementById("inputGrease") || document.getElementById("selectGrease");
       const greaseName = selectGrease ? selectGrease.value : "Interflon Grease MP2/3";
-      const totalNeed = dev.totalDailyNeed || ((window.currentDailyNeedCm3 || 0.704) * dev.points);
+      const totalNeed = dev.totalDailyNeed || ((window.currentDailyNeedCm3 || 0.704) * (dev.points || 1));
       const smartAdv = getOptimalSmartAdvice(totalNeed, dev.type || "pulsarlube_m2", greaseName);
       if (smartAdv) {
         dev.cap = smartAdv.cap;
@@ -154,6 +162,7 @@ function onDevicePointsChange(devId) {
   calculateAutomationLubrication();
   if (typeof updateRoiAutomationPage === "function") updateRoiAutomationPage();
 }
+window.onDevicePointsChange = onDevicePointsChange;
 
 function onDeviceCustomPriceChange(devId, val) {
   const parsed = parseFloat(val);
@@ -169,6 +178,7 @@ function onDeviceCustomPriceChange(devId, val) {
   calculateAutomationLubrication();
   if (typeof updateRoiAutomationPage === "function") updateRoiAutomationPage();
 }
+window.onDeviceCustomPriceChange = onDeviceCustomPriceChange;
 
 function onDeviceCapChange(devId) {
   ensureAutoDevicesStateSafety();
@@ -181,7 +191,7 @@ function onDeviceCapChange(devId) {
 
     const deviceSelect = document.getElementById("automationDeviceSelect") || document.getElementById("autoDeviceSelect");
     const deviceKey = deviceSelect ? deviceSelect.value : "single_point";
-    const devType = (deviceKey === "single_point") ? "single_point" : (dev.type || deviceKey || "pulsarlube_m2");
+    const devType = (deviceKey === "single_point") ? "single_point" : (dev.type || (deviceKey !== "mixed" ? deviceKey : "pulsarlube_m2") || "pulsarlube_m2");
     const validMonths = getValidDispenseMonths(devType, dev.cap);
 
     if (dev.userEditedPeriod) {
@@ -216,6 +226,7 @@ function onDeviceCapChange(devId) {
   calculateAutomationLubrication();
   if (typeof updateRoiAutomationPage === "function") updateRoiAutomationPage();
 }
+window.onDeviceCapChange = onDeviceCapChange;
 
 function onDevicePeriodInput(devId) {
   const dev = autoDevicesState.find(d => d.id === devId);
@@ -225,7 +236,7 @@ function onDevicePeriodInput(devId) {
     dev.userEditedPeriod = true;
     const deviceSelect = document.getElementById("automationDeviceSelect") || document.getElementById("autoDeviceSelect");
     const deviceKey = deviceSelect ? deviceSelect.value : "single_point";
-    const devType = (deviceKey === "single_point") ? "single_point" : (dev.type || deviceKey || "pulsarlube_m2");
+    const devType = (deviceKey === "single_point") ? "single_point" : (dev.type || (deviceKey !== "mixed" ? deviceKey : "pulsarlube_m2") || "pulsarlube_m2");
     const validMonths = getValidDispenseMonths(devType, dev.cap);
     const maxM = validMonths[validMonths.length - 1];
     if (unitSel && unitSel.value === "months") {
@@ -239,6 +250,7 @@ function onDevicePeriodInput(devId) {
   }
   calculateAutomationLubrication();
 }
+window.onDevicePeriodInput = onDevicePeriodInput;
 
 function onDevicePeriodChange(devId) {
   const dev = autoDevicesState.find(d => d.id === devId);
@@ -248,7 +260,7 @@ function onDevicePeriodChange(devId) {
     dev.userEditedPeriod = true;
     const deviceSelect = document.getElementById("automationDeviceSelect") || document.getElementById("autoDeviceSelect");
     const deviceKey = deviceSelect ? deviceSelect.value : "single_point";
-    const devType = (deviceKey === "single_point") ? "single_point" : (dev.type || deviceKey || "pulsarlube_m2");
+    const devType = (deviceKey === "single_point") ? "single_point" : (dev.type || (deviceKey !== "mixed" ? deviceKey : "pulsarlube_m2") || "pulsarlube_m2");
     const validMonths = getValidDispenseMonths(devType, dev.cap);
     let val = parseFloat(input.value);
     if (isNaN(val)) val = dev.period || 1;
@@ -674,6 +686,7 @@ function applyAutoRecommendationForDevice(devId) {
   calculateAutomationLubrication();
   if (typeof updateRoiAutomationPage === "function") updateRoiAutomationPage();
 }
+window.applyAutoRecommendationForDevice = applyAutoRecommendationForDevice;
 
 
 // ==========================================
@@ -686,7 +699,7 @@ function saveAutomationStateToLocalStorage() {
   if (!isAutomationStateLoaded) isAutomationStateLoaded = true;
   try {
     const deviceSelect = document.getElementById("automationDeviceSelect") || document.getElementById("autoDeviceSelect");
-    if (deviceSelect) {
+    if (deviceSelect && deviceSelect.value) {
       localStorage.setItem("auto_device_key", deviceSelect.value);
       localStorage.setItem("app_field_automationDeviceSelect", deviceSelect.value);
     }
@@ -711,6 +724,7 @@ function saveAutomationStateToLocalStorage() {
     console.warn("Could not save automation state to localStorage", e);
   }
 }
+window.saveAutomationStateToLocalStorage = saveAutomationStateToLocalStorage;
 
 function loadAutomationStateFromLocalStorage(force) {
   if (isAutomationStateLoaded && !force) return;
@@ -719,6 +733,15 @@ function loadAutomationStateFromLocalStorage(force) {
     if (savedDeviceKey) {
       const deviceSelect = document.getElementById("automationDeviceSelect") || document.getElementById("autoDeviceSelect");
       if (deviceSelect) {
+        if (savedDeviceKey === "mixed") {
+          let mixedOpt = deviceSelect.querySelector('option[value="mixed"]');
+          if (!mixedOpt) {
+            mixedOpt = document.createElement('option');
+            mixedOpt.value = 'mixed';
+            mixedOpt.textContent = 'Gecombineerd';
+            deviceSelect.appendChild(mixedOpt);
+          }
+        }
         if (savedDeviceKey === "pulsarlube_msp") {
           deviceSelect.value = "pulsarlube_msp_dc";
         } else {
@@ -5355,7 +5378,7 @@ function updateAutomationHeaderImages() {
     `;
     if (deviceSelect) {
       const mixedOpt = deviceSelect.querySelector('option[value="mixed"]');
-      if (mixedOpt) mixedOpt.remove();
+      if (mixedOpt) mixedOpt.style.display = "none";
     }
     return;
   }
@@ -5386,7 +5409,7 @@ function updateAutomationHeaderImages() {
     `;
     if (deviceSelect) {
       const mixedOpt = deviceSelect.querySelector('option[value="mixed"]');
-      if (mixedOpt) mixedOpt.remove();
+      if (mixedOpt) mixedOpt.style.display = "none";
       if (deviceSelect.value === 'mixed') deviceSelect.value = t;
     }
   } else {
@@ -5441,6 +5464,7 @@ function updateAutomationHeaderImages() {
       } else {
         mixedOpt.textContent = `Gecombineerd (${names.join(' & ')})`;
       }
+      mixedOpt.style.display = "";
       deviceSelect.value = 'mixed';
     }
   }
@@ -5896,7 +5920,7 @@ function initUniversalInputPersistence() {
 
     const allInputs = document.querySelectorAll("input[id], select[id]");
     allInputs.forEach(el => {
-      if (el.id === "passwordInput" || el.id === "langSelect" || el.id === "inputTe" || el.id === "inputTa" || el.type === "hidden" || el.type === "file" || el.id.startsWith("autoCartridgeCap") || el.id.startsWith("autoDispensePeriod") || el.id.startsWith("autoNumPointsSelect") || el.id.startsWith("autoDeviceType")) return;
+      if (el.id === "passwordInput" || el.id === "langSelect" || el.id === "inputTe" || el.id === "inputTa" || el.type === "hidden" || el.type === "file" || el.id.startsWith("autoCartridgeCap") || el.id.startsWith("autoDispensePeriod") || el.id.startsWith("autoNumPointsSelect") || el.id.startsWith("autoDeviceType") || el.id.startsWith("autoCustomPackPrice") || el.id.startsWith("autoDispenseUnit") || el.id === "automationDeviceSelect" || el.id === "autoNumDevicesSelect") return;
 
       const savedVal = localStorage.getItem("app_field_" + el.id);
       if (savedVal !== null && savedVal !== "") {
@@ -14980,13 +15004,17 @@ function calculateAutomationLubrication() {
       if (autoDevicesState[i]) autoDevicesState[i].points = 1;
     }
     const devId = dev.id;
-    const points = isSinglePoint ? 1 : (dev.points || 1);
+    const points = isSinglePoint ? 1 : (typeof dev.points === 'number' && !isNaN(dev.points) ? dev.points : 1);
     const validCaps = isSinglePoint ? [15, 60, 125, 250] : [60, 125, 250, 500];
-    if (!validCaps.includes(dev.cap)) {
-      dev.cap = 125;
+    const devCapNum = Number(dev.cap);
+    if (!validCaps.includes(devCapNum)) {
+      dev.cap = isSinglePoint ? 250 : 125;
       if (autoDevicesState[i]) autoDevicesState[i].cap = dev.cap;
+    } else {
+      dev.cap = devCapNum;
+      if (autoDevicesState[i]) autoDevicesState[i].cap = devCapNum;
     }
-    const capMl = dev.cap || 125;
+    const capMl = dev.cap;
     // Synchronize capSelect in DOM if out of sync
     const capSelect = document.getElementById("autoCartridgeCap_" + devId);
     if (capSelect && capSelect.value !== String(capMl)) {
@@ -15023,7 +15051,7 @@ function calculateAutomationLubrication() {
     const hasAssignedBearings = Array.isArray(dev.bearingLetters) && dev.bearingLetters.length > 0;
     const isSurveyImported = Array.isArray(autoDevicesState) && autoDevicesState.some(d => Array.isArray(d.bearingLetters) && d.bearingLetters.length > 0);
 
-    const cardDevType = isSinglePoint ? "single_point" : (dev.type || deviceKey || "pulsarlube_m2");
+    const cardDevType = isSinglePoint ? "single_point" : (dev.type || (deviceKey !== "mixed" ? deviceKey : "pulsarlube_m2") || "pulsarlube_m2");
     const totalDailyNeedForDev = isSinglePoint
       ? ((dev.dailyNeedCm3 && dev.dailyNeedCm3 > 0) ? dev.dailyNeedCm3 : (dailyNeedCm3 > 0 ? dailyNeedCm3 : 0.704))
       : ((dev.totalDailyNeed && dev.totalDailyNeed > 0) ? dev.totalDailyNeed : (points === 0 ? 0 : (dailyNeedCm3 * points)));
