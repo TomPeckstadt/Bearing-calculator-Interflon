@@ -5085,13 +5085,21 @@ window.handleSurveyBearingFileImport = handleSurveyBearingFileImport;
 var __storageSyncTimer = null;
 if (typeof window !== 'undefined') {
   window.addEventListener('storage', function(e) {
-    if (window.__isSyncingQuestionnaire) return;
+    if (window.__isSyncingQuestionnaire || window.__isClearingForNewDossier) return;
+    if (window.__lastClearTime && (Date.now() - window.__lastClearTime < 5000)) return;
     if (e.key === 'interflon_questionnaire_full_data' || e.key === 'interflon_last_questionnaire_data') {
       if (window.__lastDossierImportTime && (Date.now() - window.__lastDossierImportTime < 15000)) {
         return;
       }
       clearTimeout(__storageSyncTimer);
+      if (!e.newValue) return;
       __storageSyncTimer = setTimeout(function() {
+        if (window.__isClearingForNewDossier || (window.__lastClearTime && Date.now() - window.__lastClearTime < 5000)) {
+          return;
+        }
+        if (!localStorage.getItem('interflon_questionnaire_full_data') && !localStorage.getItem('interflon_last_questionnaire_data')) {
+          return;
+        }
         try {
           const data = e.newValue ? JSON.parse(e.newValue) : null;
           if (!data) return;
@@ -5132,7 +5140,13 @@ try {
     surveyChannel.onmessage = function(ev) {
       if (!ev.data) return;
       // Ignore own broadcast echo from calculator
-      if (ev.data.source === 'calculator' || ev.data.source === 'calculator_dossier_import') return;
+      if (ev.data.source === 'calculator' || ev.data.source === 'calculator_dossier_import' || ev.data.source === 'calculator_clear_all') return;
+
+      if (window.__isClearingForNewDossier || (window.__lastClearTime && Date.now() - window.__lastClearTime < 5000)) {
+        if (ev.data.type !== 'CLEAR_QUESTIONNAIRE' && ev.data.type !== 'SURVEY_CLEARED') {
+          return;
+        }
+      }
 
       if (ev.data.type === 'SNL_PARAM_UPDATED') {
         const letter = ev.data.letter;
@@ -5214,6 +5228,26 @@ try {
             }
           }
         }
+        return;
+      }
+
+      if (ev.data.type === 'SURVEY_CLEARED') {
+        window.latestSurveyFullData = null;
+        window.latestSurveyBearings = [];
+        try {
+          localStorage.removeItem('interflon_questionnaire_full_data');
+          localStorage.removeItem('interflon_last_questionnaire_data');
+          localStorage.removeItem('interflon_survey_raster_config');
+          localStorage.removeItem('interflon_raster_config');
+        } catch(e) {}
+        if (typeof populateSurveyBearingsDropdown === 'function') {
+          populateSurveyBearingsDropdown([]);
+        }
+        if (typeof populateOmSurveyBearingsDropdown === 'function') {
+          populateOmSurveyBearingsDropdown([]);
+        }
+        const calcWrap = document.getElementById('calcSurveyBearingSelectWrapper');
+        if (calcWrap) calcWrap.style.display = 'none';
         return;
       }
 
@@ -6682,6 +6716,7 @@ const TRANSLATIONS = {
     photoLibraryTitle: "📷 Foto bibliotheek",
     photoLibrarySubtitle: "Upload en beheer tot 20 foto's van de machine, lagers of smeerpunten met een optionele beschrijving.",
     btnClearAllPhotos: "Wis alle foto's voor nieuw dossier",
+    btnClearForm: "Formulier wissen",
     btnPhotoFolders: "Mappen",
     btnAddPhotos: "➕ Foto's toevoegen",
     btnClose: "Sluiten",
@@ -7313,6 +7348,7 @@ const TRANSLATIONS = {
     "btnSaveCalc": "Save Yield Model",
     "btnImportCalc": "Import Yield Model",
     "btnClearAllPhotos": "Clear all photos for new dossier",
+    "btnClearForm": "Clear form",
     "btnLogout": "Log Out",
     "welcomeModalTitle": "Welcome to Interflon Calculation Module",
     "welcomeModalSubtitle": "Make your choice to open the desired application:",
@@ -7852,6 +7888,7 @@ const TRANSLATIONS = {
     "btnSaveCalc": "Enregistrer modèle de rentabilité",
     "btnImportCalc": "Importer modèle de rentabilité",
     "btnClearAllPhotos": "Effacer toutes les photos pour nouveau dossier",
+    "btnClearForm": "Effacer formulaire",
     "btnLogout": "Déconnexion",
     "welcomeModalTitle": "Bienvenue dans le Module de Calcul Interflon",
     "welcomeModalSubtitle": "Faites votre choix pour ouvrir l'application souhaitée:",
@@ -24471,6 +24508,313 @@ function clearAllPhotosForNewDossier() {
   }
 }
 
+function clearAllForNewDossier() {
+  const lang = (typeof currentLang !== "undefined" && currentLang) ? currentLang : "nl";
+  let confirmMsg = "Weet u zeker dat u alle ingevulde gegevens in de app en de actieve vragenlijst wilt wissen om een nieuw dossier voor een nieuwe klant te starten?\n\n(Reeds opgeslagen dossiers op uw computer blijven veilig bewaard.)";
+  if (lang === "fr") {
+    confirmMsg = "Êtes-vous sûr de vouloir effacer toutes les données saisies dans l'application et le questionnaire actif pour démarrer un nouveau dossier pour un nouveau client ?\n\n(Les dossiers déjà enregistrés sur votre ordinateur restent conservés en toute sécurité.)";
+  } else if (lang === "en") {
+    confirmMsg = "Are you sure you want to clear all entered data in both the app and the active questionnaire to start a new dossier for a new client?\n\n(Previously saved dossiers on your computer will remain safe.)";
+  }
+
+  if (!confirm(confirmMsg)) {
+    return;
+  }
+
+  if (typeof __storageSyncTimer !== "undefined" && __storageSyncTimer) {
+    clearTimeout(__storageSyncTimer);
+    __storageSyncTimer = null;
+  }
+  window.__isClearingForNewDossier = true;
+  window.__lastClearTime = Date.now();
+  window.__activeDossierMachine = "";
+  window.__activeDossierCompany = "";
+  setTimeout(() => {
+    window.__isClearingForNewDossier = false;
+  }, 4000);
+
+  try {
+    // 1. CLEAR ACTIVE QUESTIONNAIRE VIA BROADCAST CHANNEL
+    if (typeof BroadcastChannel !== "undefined") {
+      try {
+        if (!window.__surveySyncBroadcastChannel) {
+          window.__surveySyncBroadcastChannel = new BroadcastChannel('interflon_questionnaire_sync');
+        }
+        window.__surveySyncBroadcastChannel.postMessage({
+          type: 'CLEAR_QUESTIONNAIRE',
+          clearAll: true,
+          source: 'calculator_clear_all'
+        });
+      } catch(e) {
+        console.warn("Fout bij uitzenden CLEAR_QUESTIONNAIRE:", e);
+      }
+    }
+
+    // 2. CLEAR QUESTIONNAIRE LOCAL STORAGE KEYS
+    try {
+      localStorage.removeItem('interflon_questionnaire_full_data');
+      localStorage.removeItem('interflon_last_questionnaire_data');
+      localStorage.removeItem('interflon_survey_raster_config');
+      localStorage.removeItem('interflon_raster_config');
+      localStorage.removeItem('interflon_active_survey_letter');
+      localStorage.removeItem('interflon_active_dossier_machine');
+      localStorage.removeItem('interflon_active_dossier_company');
+      localStorage.removeItem('active_tco_bearing_source');
+    } catch(e) {}
+
+    // 3. PURGE LOCAL STORAGE FORM FIELDS & METADATA (PRESERVE OPERATOR ADVISOR IDENTITY)
+    try {
+      Object.keys(localStorage).forEach(k => {
+        if (k.startsWith("app_field_") || k.startsWith("bearing_calc_") || k.startsWith("bearing_tco_") || k.startsWith("chain_tco_")) {
+          try { localStorage.removeItem(k); } catch(e) {}
+        }
+      });
+
+      const keysToPurge = [
+        "client_company", "client_contact", "client_phone", "client_email",
+        "tech_machine", "tech_app", "tech_brand", "tech_product", "tech_interval", "tech_price",
+        "selected_bearing", "currentBearingId", "currentBearingName", "active_bearing_designation",
+        "bearing_tco_data", "chain_tco_data", "bearing_calc_tco_data",
+        "photo_folders", "photoFolders", "photo_library", "photoLibrary",
+        "omAppImage", "chainOmAppImage", "omAppImageMachine", "chainOmAppImageMachine",
+        "active_interflon_grease",
+        "autoDevicesState", "auto_device_key", "auto_num_devices",
+        "roi_lifetime_factor", "calc_micpol_factor",
+        "custom_chainOmLifetime2", "custom_omLifetime2"
+      ];
+      keysToPurge.forEach(k => {
+        try { localStorage.removeItem(k); } catch(e) {}
+      });
+    } catch(e) {}
+
+    // 4. RESET CLIENT & TECH DETAILS IN MODALS & BADGES
+    const clientFields = ["clientCompanyInput", "clientContactInput", "clientPhoneInput", "clientEmailInput"];
+    clientFields.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.value = "";
+    });
+    if (typeof updateClientBadge === "function") updateClientBadge("", "");
+
+    const techFields = ["techMachineInput", "techAppInput", "techBrandInput", "techProductInput", "techIntervalInput", "techPriceInput"];
+    techFields.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.value = "";
+    });
+    if (typeof updateTechBadge === "function") updateTechBadge("", "");
+
+    const omMetadataFields = [
+      "omTechMachine", "chainOmTechMachine",
+      "omTechBrand", "chainOmTechBrand",
+      "omTechApp", "chainOmTechApp",
+      "omClientCompany", "chainOmClientCompany",
+      "omClientContact", "chainOmClientContact",
+      "omClientPhone", "chainOmClientPhone",
+      "omClientEmail", "chainOmClientEmail"
+    ];
+    omMetadataFields.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.value = "";
+    });
+
+    // 5. RESET SEARCH PAGE & SELECTED BEARING
+    activeBearing = null;
+    window.selectedSearchedBearing = null;
+    window.latestSurveyFullData = null;
+    window.latestSurveyBearings = [];
+    window.currentActiveSurveyBearingLetter = null;
+    window.currentSurveyBearingLetter = null;
+    window.activeTcoBearingSource = "manual";
+
+    const searchInput = document.getElementById("bearingSearchInput");
+    if (searchInput) searchInput.value = "";
+    const suggestionsBox = document.getElementById("suggestionsBox");
+    if (suggestionsBox) suggestionsBox.style.display = "none";
+
+    const emptyState = document.getElementById("emptySearchState");
+    const resultsArea = document.getElementById("searchResultsArea");
+    if (emptyState) emptyState.style.display = "block";
+    if (resultsArea) resultsArea.classList.add("hidden");
+
+    // 6. RESET SMEERCALCULATIE (PAGECALC)
+    const calcSurveyBearingSelectWrapper = document.getElementById("calcSurveyBearingSelectWrapper");
+    if (calcSurveyBearingSelectWrapper) calcSurveyBearingSelectWrapper.style.display = "none";
+    const calcSurveyBearingSelect = document.getElementById("calcSurveyBearingSelect");
+    if (calcSurveyBearingSelect) calcSurveyBearingSelect.innerHTML = '<option value="">-- Kies lager uit vragenlijst --</option>';
+    const surveyBearingSelect = document.getElementById("surveyBearingSelect");
+    if (surveyBearingSelect) surveyBearingSelect.innerHTML = '<option value="">-- Kies lager uit vragenlijst --</option>';
+
+    const chkSnl = document.getElementById("chkSnlHousing");
+    if (chkSnl) chkSnl.checked = false;
+    const snlContainer = document.getElementById("snlOptionsContainer");
+    if (snlContainer) snlContainer.classList.add("hidden");
+    const badgeSnlDetected = document.getElementById("badgeSnlDetected");
+    if (badgeSnlDetected) badgeSnlDetected.classList.add("hidden");
+
+    const inputHoursPerDay = document.getElementById("inputHoursPerDay");
+    if (inputHoursPerDay) inputHoursPerDay.value = "24";
+    const inputDaysPerWeek = document.getElementById("inputDaysPerWeek");
+    if (inputDaysPerWeek) inputDaysPerWeek.value = "7";
+    const inputTemperature = document.getElementById("inputTemperature");
+    if (inputTemperature) inputTemperature.value = "65";
+    const inputSpeed = document.getElementById("inputSpeed");
+    if (inputSpeed) inputSpeed.value = "980";
+    const inputLimitingSpeed = document.getElementById("inputLimitingSpeed");
+    if (inputLimitingSpeed) inputLimitingSpeed.value = "4000";
+    const inputMicPolFactor = document.getElementById("inputMicPolFactor");
+    if (inputMicPolFactor) inputMicPolFactor.value = "4";
+    const inputBoreManual = document.getElementById("inputBoreManual");
+    if (inputBoreManual) inputBoreManual.value = "120";
+    const inputOuterManual = document.getElementById("inputOuterManual");
+    if (inputOuterManual) inputOuterManual.value = "215";
+    const inputWidthManual = document.getElementById("inputWidthManual");
+    if (inputWidthManual) inputWidthManual.value = "42";
+    const inputMassManual = document.getElementById("inputMassManual");
+    if (inputMassManual) inputMassManual.value = "6.71";
+    const inputTe = document.getElementById("inputTe");
+    if (inputTe) inputTe.value = "0.5";
+    const inputTa = document.getElementById("inputTa");
+    if (inputTa) inputTa.value = "0.5";
+    const thickenerSelect = document.getElementById("thickenerSelect");
+    if (thickenerSelect) thickenerSelect.value = "Lithium-complex";
+
+    if (typeof updateCalculatorFields === "function") {
+      updateCalculatorFields();
+    }
+
+    // 7. RESET OPBRENGSTMODEL (PAGEOM & CHAIN)
+    if (typeof setOmKpiScope === "function") setOmKpiScope("single");
+    const omSurveySelect = document.getElementById("omSurveyBearingSelect");
+    if (omSurveySelect) {
+      omSurveySelect.innerHTML = '<option value="manual">🔍 Zelf gezocht lager</option>';
+      omSurveySelect.value = "manual";
+    }
+    const chainOmSurveySelect = document.getElementById("chainOmSurveyBearingSelect");
+    if (chainOmSurveySelect) {
+      chainOmSurveySelect.innerHTML = '<option value="manual">🔍 Zelf gezochte ketting</option>';
+      chainOmSurveySelect.value = "manual";
+    }
+
+    const resetField = (id, defVal) => {
+      const el = document.getElementById(id);
+      if (el) el.value = defVal;
+    };
+    resetField("omProdCons1", "2850");
+    resetField("omProdCons2", "475");
+    resetField("omProdPrice1", "10.00");
+    resetField("omProdPrice2", "38.60");
+    resetField("omProdFreq1", "56");
+    resetField("omProdFreq2", "56");
+    resetField("omSharedWorktime", "3");
+    resetField("omRepairFreq1", "12");
+    resetField("omRepairFreq2", "48");
+    resetField("omSharedRepairH", "4");
+    resetField("omSharedLaborRate", "35.00");
+    resetField("omLifetime1", "12");
+    resetField("omLifetime2", "48");
+    resetField("omSharedPartsCost", "6000");
+    resetField("omSharedSetsPerMachine", "1");
+    resetField("omSharedNumMachines", "14");
+    resetField("omDowntimeH1", "4");
+    resetField("omDowntimeH2", "4");
+    resetField("omSharedDowntimeRate", "100");
+    resetField("omDowntimeFreq1", "1");
+    resetField("omDowntimeFreq2", "0.25");
+    resetField("omSharedPrepH", "1");
+    resetField("omTcoYears", "10");
+
+    resetField("chainOmProdCons1", "2850");
+    resetField("chainOmProdCons2", "475");
+    resetField("chainOmProdPrice1", "10.00");
+    resetField("chainOmProdPrice2", "38.60");
+    resetField("chainOmProdFreq1", "365");
+    resetField("chainOmProdFreq2", "365");
+    resetField("chainOmSharedWorktime", "3");
+    resetField("chainOmRepairFreq1", "12");
+    resetField("chainOmRepairFreq2", "48");
+    resetField("chainOmSharedRepairH", "4");
+    resetField("chainOmSharedLaborRate", "35.00");
+    resetField("chainOmLifetime1", "12");
+    resetField("chainOmLifetime2", "48");
+    resetField("chainOmSharedPartsCost", "6000");
+    resetField("chainOmSharedSetsPerMachine", "1");
+    resetField("chainOmSharedNumMachines", "14");
+    resetField("chainOmDowntimeH1", "4");
+    resetField("chainOmDowntimeH2", "4");
+    resetField("chainOmSharedDowntimeRate", "100");
+    resetField("chainOmDowntimeFreq1", "1");
+    resetField("chainOmDowntimeFreq2", "0.25");
+    resetField("chainOmSharedPrepH", "1");
+    resetField("chainOmTcoYears", "10");
+
+    const tcoMode = document.getElementById("tcoCalcModeSelect");
+    if (tcoMode) tcoMode.value = "formula";
+    const chainTcoMode = document.getElementById("chainTcoCalcModeSelect");
+    if (chainTcoMode) chainTcoMode.value = "formula";
+
+    if (typeof setBearingTcoImage === "function") setBearingTcoImage("");
+    if (typeof setChainTcoImage === "function") setChainTcoImage("");
+    if (typeof updateOmMetadata === "function") updateOmMetadata();
+
+    // 8. RESET AUTOMATISERING
+    autoDevicesState = [
+      { id: 'A', name: 'Pulsarlube A', type: 'pulsarlube_m2', points: 1, cap: 125, period: 7, unit: 'months', userEditedPeriod: false, customPackPrice: 0 },
+      { id: 'B', name: 'Pulsarlube B', type: 'pulsarlube_m2', points: 1, cap: 125, period: 7, unit: 'months', userEditedPeriod: false, customPackPrice: 0 },
+      { id: 'C', name: 'Pulsarlube C', type: 'pulsarlube_m2', points: 1, cap: 125, period: 7, unit: 'months', userEditedPeriod: false, customPackPrice: 0 },
+      { id: 'D', name: 'Pulsarlube D', type: 'pulsarlube_m2', points: 1, cap: 125, period: 7, unit: 'months', userEditedPeriod: false, customPackPrice: 0 }
+    ];
+    if (typeof window !== "undefined") {
+      window.autoDevicesState = autoDevicesState;
+    }
+    const autoDevSel = document.getElementById("automationDeviceSelect");
+    if (autoDevSel) autoDevSel.value = "single_point";
+    const autoNumSel = document.getElementById("autoNumDevicesSelect");
+    if (autoNumSel) autoNumSel.value = "1";
+
+    if (typeof saveAutomationStateToLocalStorage === "function") saveAutomationStateToLocalStorage();
+    if (typeof renderAutoDevicesUI === "function") renderAutoDevicesUI();
+    if (typeof calculateAutomationLubrication === "function") calculateAutomationLubrication();
+    if (typeof updateRoiAutomationPage === "function") updateRoiAutomationPage();
+
+    // 9. RESET PHOTO LIBRARY
+    photoFolders = [
+      { id: "folder_default", name: "Algemeen", photos: [] }
+    ];
+    activePhotoFolderId = "folder_default";
+    photoLibrary = [];
+    if (typeof window !== "undefined") {
+      window.photoFolders = photoFolders;
+      window.activePhotoFolderId = activePhotoFolderId;
+      window.photoLibrary = photoLibrary;
+    }
+    if (typeof savePhotoLibraryToStorage === "function") savePhotoLibraryToStorage();
+    if (typeof renderPhotoFolderTabs === "function") renderPhotoFolderTabs();
+    if (typeof renderPhotoGrid === "function") renderPhotoGrid();
+    if (typeof updatePhotoBadgeCounter === "function") updatePhotoBadgeCounter();
+    if (typeof renderPhotoFolderManagerList === "function") renderPhotoFolderManagerList();
+
+    // 10. RECALCULATE & SWITCH TO START PAGE
+    if (typeof calculateBearing === "function") calculateBearing();
+    if (typeof calculateGrease === "function") calculateGrease();
+    if (typeof calculateTco === "function") calculateTco();
+    if (typeof updateRoiAutomationPage === "function") updateRoiAutomationPage();
+    if (typeof switchPage === "function") switchPage("search");
+
+    const toastMsg = (lang === "fr")
+      ? "🗑️ Toutes les données de l'application et du questionnaire ont été effacées. Vous pouvez commencer un nouveau dossier !"
+      : (lang === "en"
+          ? "🗑️ All form fields and active questionnaire data have been cleared. Ready for a new client dossier!"
+          : "🗑️ Alle ingevulde gegevens in de app en vragenlijst zijn gewist. U kunt met een nieuw dossier starten!");
+
+    if (typeof showToastNotification === "function") {
+      showToastNotification(toastMsg);
+    }
+  } finally {
+    setTimeout(() => {
+      window.__isClearingForNewDossier = false;
+    }, 400);
+  }
+}
+
 function renderPhotoGrid() {
   const container = document.getElementById("photoGridContainer");
   const counterText = document.getElementById("photoCounterText");
@@ -24580,6 +24924,7 @@ if (typeof window !== "undefined") {
   window.updatePhotoDescription = updatePhotoDescription;
   window.deletePhoto = deletePhoto;
   window.clearAllPhotosForNewDossier = clearAllPhotosForNewDossier;
+  window.clearAllForNewDossier = clearAllForNewDossier;
   window.openPhotoLightbox = openPhotoLightbox;
   window.closePhotoLightboxModal = closePhotoLightboxModal;
   window.renderPhotoGrid = renderPhotoGrid;
