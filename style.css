@@ -3326,6 +3326,20 @@ table {
   box-sizing: border-box;
 }
 
+.auto-custom-dropdown-wrapper.open {
+  z-index: 100000 !important;
+}
+
+.auto-device-card.dropdown-active {
+  z-index: 10000 !important;
+  position: relative;
+}
+
+.auto-custom-dropdown-label {
+  user-select: none;
+  cursor: pointer;
+}
+
 .auto-custom-dropdown-btn {
   width: 100%;
   display: flex;
