@@ -1143,19 +1143,56 @@
     }
     .raster-dist-pill {
       user-select: none;
-      transition: border-color 0.15s ease, background-color 0.15s ease;
+      box-sizing: border-box !important;
+      flex-shrink: 0;
+      transition: border-color 0.15s ease, background-color 0.15s ease, box-shadow 0.15s ease;
     }
-    .raster-dist-pill * {
-      pointer-events: none !important;
+    .raster-dist-pill:not(.can-reassign) * {
+      pointer-events: none;
+    }
+    .raster-dist-pill.can-reassign *:not(.koppel-btn):not(.koppel-badge) {
+      pointer-events: none;
     }
     .raster-dist-pill.can-reassign:not(.is-assigned):hover {
       background-color: #ffffff !important;
       border-color: var(--pill-hover-color, #3b82f6) !important;
     }
+    .koppel-btn,
+    .koppel-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+      font-size: 9.5px;
+      font-weight: 800;
+      color: #1d4ed8;
+      background: #dbeafe;
+      border: 1px solid #bfdbfe;
+      border-radius: 4px;
+      padding: 1.5px 6px;
+      margin: 0 0 0 3px;
+      line-height: 1.2;
+      cursor: pointer;
+      pointer-events: auto !important;
+      user-select: none;
+      box-sizing: border-box !important;
+      white-space: nowrap;
+      flex-shrink: 0;
+      transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease, transform 0.08s ease;
+    }
+    .koppel-btn:hover,
+    .koppel-badge:hover,
+    .raster-dist-pill.can-reassign:not(.is-assigned):hover .koppel-btn,
     .raster-dist-pill.can-reassign:not(.is-assigned):hover .koppel-badge {
       background-color: #2563eb !important;
       color: #ffffff !important;
       border-color: #1d4ed8 !important;
+    }
+    .koppel-btn:active,
+    .koppel-badge:active {
+      transform: scale(0.95);
+      background-color: #1d4ed8 !important;
+      color: #ffffff !important;
     }
 
     /* =========================================================================
@@ -5412,8 +5449,9 @@
 
     // --- 5B. MANUELE AANSLUITING VAN LAGER OP SPECIFIEK TOESTEL ---
     function manuallyAssignBearingToDevice(letter, devId, event) {
-      if (event && typeof event.stopPropagation === 'function') {
-        event.stopPropagation();
+      if (event) {
+        if (typeof event.stopPropagation === 'function') event.stopPropagation();
+        if (typeof event.preventDefault === 'function') event.preventDefault();
       }
       if (devId === 'cp') return; // Centraal punt is geen smeertoestel en kan niet gekoppeld worden
       if (!devices || !Array.isArray(devices) || devices.length === 0) return;
@@ -5820,7 +5858,6 @@
       }
 
       const prevScrollTop = container.scrollTop;
-      container.innerHTML = '';
 
       // Compute need analysis for all bearings to determine color grouping
       const needAnalysis = getSurveyBearingsNeedAnalysis();
@@ -5863,8 +5900,83 @@
         }
       });
 
+      // Helper function to bind event handlers to interCard
+      function bindInterCardEvents(cardEl) {
+        let updatePairDist = null;
+
+        cardEl.querySelectorAll('.inter-bearing-edge-row').forEach(el => {
+          const fromL = el.getAttribute('data-from');
+          const toL = el.getAttribute('data-to');
+          el.onmouseenter = function() {
+            el.style.background = '#e0f2fe';
+            el.style.borderColor = '#0284c7';
+            hoveredBearingLetter = null;
+            window.__hoveredInterEdge = { from: fromL, to: toL };
+            if (window.__hoverCanvasRaf) cancelAnimationFrame(window.__hoverCanvasRaf);
+            window.__hoverCanvasRaf = requestAnimationFrame(() => drawBearingLayout());
+          };
+          el.onmouseleave = function() {
+            el.style.background = 'rgba(255,255,255,0.75)';
+            el.style.borderColor = '#e0f2fe';
+            window.__hoveredInterEdge = null;
+            if (window.__hoverCanvasRaf) cancelAnimationFrame(window.__hoverCanvasRaf);
+            window.__hoverCanvasRaf = requestAnimationFrame(() => drawBearingLayout());
+          };
+          el.onclick = function() {
+            const s1 = cardEl.querySelector('#selInterB1');
+            const s2 = cardEl.querySelector('#selInterB2');
+            if (s1 && s2 && fromL && toL) {
+              s1.value = fromL;
+              s2.value = toL;
+              if (typeof updatePairDist === 'function') updatePairDist();
+            }
+          };
+        });
+
+        const sel1 = cardEl.querySelector('#selInterB1');
+        const sel2 = cardEl.querySelector('#selInterB2');
+        const valPair = cardEl.querySelector('#valInterPairDist');
+        const measureRow = cardEl.querySelector('#interBearingCustomMeasureRow');
+        if (sel1 && sel2 && valPair) {
+          updatePairDist = () => {
+            window.__savedInterB1 = sel1.value;
+            window.__savedInterB2 = sel2.value;
+            const l1 = sel1.value;
+            const l2 = sel2.value;
+            const pos1 = bearingPositions[l1] || { x: 0, y: 0 };
+            const pos2 = bearingPositions[l2] || { x: 0, y: 0 };
+            const dist = Math.hypot(pos2.x - pos1.x, pos2.y - pos1.y);
+            valPair.textContent = dist.toFixed(1).replace('.', ',') + ' m';
+            if (window.__hoverCanvasRaf) cancelAnimationFrame(window.__hoverCanvasRaf);
+            window.__hoverCanvasRaf = requestAnimationFrame(() => drawBearingLayout());
+          };
+          sel1.onchange = updatePairDist;
+          sel2.onchange = updatePairDist;
+          sel1.oninput = updatePairDist;
+          sel2.oninput = updatePairDist;
+          sel1.onclick = function(e) { e.stopPropagation(); };
+          sel1.onmousedown = function(e) { e.stopPropagation(); };
+          sel2.onclick = function(e) { e.stopPropagation(); };
+          sel2.onmousedown = function(e) { e.stopPropagation(); };
+          if (measureRow) {
+            measureRow.onmouseenter = function() {
+              window.__hoveredMeasurePair = true;
+              measureRow.style.background = '#e0f2fe';
+              if (window.__hoverCanvasRaf) cancelAnimationFrame(window.__hoverCanvasRaf);
+              window.__hoverCanvasRaf = requestAnimationFrame(() => drawBearingLayout());
+            };
+            measureRow.onmouseleave = function() {
+              window.__hoveredMeasurePair = false;
+              measureRow.style.background = 'rgba(224, 242, 254, 0.4)';
+              if (window.__hoverCanvasRaf) cancelAnimationFrame(window.__hoverCanvasRaf);
+              window.__hoverCanvasRaf = requestAnimationFrame(() => drawBearingLayout());
+            };
+          }
+          updatePairDist();
+        }
+      }
+
       // 1. If showBearingDistances is active, build the inter-bearing distances card
-      let interCard = null;
       if (showBearingDistances && rows.length >= 2) {
         const bearingList = [];
         rows.forEach((r, idx) => {
@@ -5876,10 +5988,6 @@
         });
 
         const edges = getInterBearingEdges(bearingList);
-        interCard = document.createElement('div');
-        interCard.className = 'inter-bearing-distances-card';
-        interCard.style.cssText = 'background: #f0f9ff; border: 1.5px solid #7dd3fc; border-radius: 8px; padding: 10px 12px; margin-bottom: 8px; box-shadow: 0 2px 5px rgba(2,132,199,0.08);';
-
         let interHtml = '<div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; border-bottom: 1px solid #bae6fd; padding-bottom: 6px;">' +
           '<div style="display: flex; align-items: center; gap: 6px;">' +
             '<span style="font-size: 14px;">📏</span>' +
@@ -5927,93 +6035,39 @@
           '</div>';
         }
 
-        interCard.innerHTML = interHtml;
-
-        let updatePairDist = null;
-
-        interCard.querySelectorAll('.inter-bearing-edge-row').forEach(el => {
-          const fromL = el.getAttribute('data-from');
-          const toL = el.getAttribute('data-to');
-          el.onmouseenter = function() {
-            el.style.background = '#e0f2fe';
-            el.style.borderColor = '#0284c7';
-            hoveredBearingLetter = null;
-            window.__hoveredInterEdge = { from: fromL, to: toL };
-            drawBearingLayout();
-          };
-          el.onmouseleave = function() {
-            el.style.background = 'rgba(255,255,255,0.75)';
-            el.style.borderColor = '#e0f2fe';
-            window.__hoveredInterEdge = null;
-            drawBearingLayout();
-          };
-          el.onclick = function() {
-            const s1 = interCard.querySelector('#selInterB1');
-            const s2 = interCard.querySelector('#selInterB2');
-            if (s1 && s2 && fromL && toL) {
-              s1.value = fromL;
-              s2.value = toL;
-              if (typeof updatePairDist === 'function') updatePairDist();
-            }
-          };
-        });
-
-        const sel1 = interCard.querySelector('#selInterB1');
-        const sel2 = interCard.querySelector('#selInterB2');
-        const valPair = interCard.querySelector('#valInterPairDist');
-        const measureRow = interCard.querySelector('#interBearingCustomMeasureRow');
-        if (sel1 && sel2 && valPair) {
-          updatePairDist = () => {
-            window.__savedInterB1 = sel1.value;
-            window.__savedInterB2 = sel2.value;
-            const l1 = sel1.value;
-            const l2 = sel2.value;
-            const pos1 = bearingPositions[l1] || { x: 0, y: 0 };
-            const pos2 = bearingPositions[l2] || { x: 0, y: 0 };
-            const dist = Math.hypot(pos2.x - pos1.x, pos2.y - pos1.y);
-            valPair.textContent = dist.toFixed(1).replace('.', ',') + ' m';
-            drawBearingLayout();
-          };
-          sel1.onchange = updatePairDist;
-          sel2.onchange = updatePairDist;
-          sel1.oninput = updatePairDist;
-          sel2.oninput = updatePairDist;
-          sel1.onclick = function(e) { e.stopPropagation(); };
-          sel1.onmousedown = function(e) { e.stopPropagation(); };
-          sel2.onclick = function(e) { e.stopPropagation(); };
-          sel2.onmousedown = function(e) { e.stopPropagation(); };
-          if (measureRow) {
-            measureRow.onmouseenter = function() {
-              window.__hoveredMeasurePair = true;
-              measureRow.style.background = '#e0f2fe';
-              drawBearingLayout();
-            };
-            measureRow.onmouseleave = function() {
-              window.__hoveredMeasurePair = false;
-              measureRow.style.background = 'rgba(224, 242, 254, 0.4)';
-              drawBearingLayout();
-            };
-          }
-          updatePairDist();
+        let interCard = container.querySelector('.inter-bearing-distances-card');
+        if (!interCard) {
+          interCard = document.createElement('div');
+          interCard.className = 'inter-bearing-distances-card';
+          interCard.style.cssText = 'background: #f0f9ff; border: 1.5px solid #7dd3fc; border-radius: 8px; padding: 10px 12px; margin-bottom: 8px; box-shadow: 0 2px 5px rgba(2,132,199,0.08);';
+          container.insertAdjacentElement('afterbegin', interCard);
         }
-      }
-
-      if (interCard) {
-        container.appendChild(interCard);
+        if (interCard.__lastHtml !== interHtml) {
+          interCard.innerHTML = interHtml;
+          interCard.__lastHtml = interHtml;
+          bindInterCardEvents(interCard);
+        }
+      } else {
+        const oldInter = container.querySelector('.inter-bearing-distances-card');
+        if (oldInter) oldInter.remove();
       }
 
       if (activeOrigins.length === 0) {
         if (!showBearingDistances) {
-          container.innerHTML = '<div style="padding: 24px 16px; text-align: center; color: #64748b; font-size: 13px; line-height: 1.5; background: #f8fafc; border-radius: 8px; border: 1px dashed #cbd5e1;">' +
-            '💡 <strong>Geen meetpunten actief</strong><br>Schakel in de filterbalk hierboven minimaal 1 punt in (bijv. <em>Centraal Punt</em> of <em>Toestel 1</em>) of activeer <em>Afstand lagers</em> om de afstanden te tonen.' +
-            '</div>';
-          
+          const emptyNotice = container.querySelector('.raster-no-origins-notice');
+          if (!emptyNotice) {
+            container.innerHTML = '<div class="raster-no-origins-notice" style="padding: 24px 16px; text-align: center; color: #64748b; font-size: 13px; line-height: 1.5; background: #f8fafc; border-radius: 8px; border: 1px dashed #cbd5e1;">' +
+              '💡 <strong>Geen meetpunten actief</strong><br>Schakel in de filterbalk hierboven minimaal 1 punt in (bijv. <em>Centraal Punt</em> of <em>Toestel 1</em>) of activeer <em>Afstand lagers</em> om de afstanden te tonen.' +
+              '</div>';
+          }
           const badgeEl = document.getElementById('totalBearingsBadge');
           if (badgeEl) badgeEl.textContent = rows.length + (rows.length === 1 ? ' Lager' : ' Lagers');
           const maxEl = document.getElementById('statMaxDistance');
           if (maxEl) maxEl.textContent = '-';
           return;
         } else {
+          // In inter-bearing only mode, remove any bearing cards
+          container.querySelectorAll('.raster-bearing-card').forEach(c => c.remove());
           const badgeEl = document.getElementById('totalBearingsBadge');
           if (badgeEl) badgeEl.textContent = rows.length + (rows.length === 1 ? ' Lager' : ' Lagers');
           let maxInterD = 0;
@@ -6031,15 +6085,20 @@
           if (maxEl) maxEl.textContent = maxInterD > 0 ? (maxInterD.toFixed(1).replace('.', ',') + ' m') : '-';
           return;
         }
+      } else {
+        const emptyNotice = container.querySelector('.raster-no-origins-notice');
+        if (emptyNotice) emptyNotice.remove();
       }
 
       let overallMaxDist = 0;
       let totalDistSum = 0;
       let distCount = 0;
       const deviceAssignedBearings = {};
+      const desiredLetters = [];
 
       rows.forEach((r, idx) => {
         const letter = r.getAttribute('data-letter') || (LETTERS[idx] || ('L' + (idx+1)));
+        desiredLetters.push(letter);
         const pos = bearingPositions[letter] || { x: 0, y: 0 };
 
         const nrIn = r.querySelector('.bearing-nr-input');
@@ -6120,24 +6179,6 @@
           overallMaxDist = actualAssignedD;
         }
 
-        const card = document.createElement('div');
-        card.className = 'raster-bearing-card' + (hoveredBearingLetter === letter ? ' is-canvas-hovered' : '');
-        card.setAttribute('data-letter', letter);
-        
-        card.onmouseenter = function() {
-          if (hoveredBearingLetter !== letter) {
-            hoveredBearingLetter = letter;
-            drawBearingLayout();
-          }
-        };
-        card.onmouseleave = function(e) {
-          if (e && e.relatedTarget && card.contains(e.relatedTarget)) return;
-          if (hoveredBearingLetter === letter) {
-            hoveredBearingLetter = null;
-            drawBearingLayout();
-          }
-        };
-
         // Determine grease demand & palette for this bearing
         const needInfo = bearingNeedMap[letter] || {
           formattedNeed: '0,35',
@@ -6196,10 +6237,10 @@
             if (od.origin.type === 'single_point') {
               const isDirect = (od.d < 0.15);
               distRowsHtml += 
-                '<div style="display: inline-flex; align-items: center; gap: 5px; background: ' + (isDirect ? '#dcfce7' : '#fef3c7') + '; border: 1.5px solid ' + (isDirect ? '#86efac' : '#fde68a') + '; border-radius: 6px; padding: 3px 8px; font-size: 11px;">' +
+                '<div style="display: inline-flex; align-items: center; gap: 5px; background: ' + (isDirect ? '#dcfce7' : '#fef3c7') + '; border: 1.5px solid ' + (isDirect ? '#86efac' : '#fde68a') + '; border-radius: 6px; padding: 3px 8px; font-size: 11px; box-sizing: border-box; flex-shrink: 0;">' +
                   '<span style="font-weight: 800; color: ' + od.origin.color + ';" title="' + od.origin.name + '">' + od.origin.short + ' <small style="font-weight: 700; opacity: 0.9;">Single Point</small>:</span>' +
                   '<span style="font-weight: 800; color: ' + (isDirect ? '#166534' : '#92400e') + ';">' + (isDirect ? '0,0 m' : (od.d.toFixed(1).replace('.', ',') + ' m')) + '</span>' +
-                  (isDirect ? '<span style="font-size: 9.5px; font-weight: 800; color: #15803d; background: #bbf7d0; padding: 1px 5px; border-radius: 3px;" title="Direct op lager gemonteerd zonder leiding">⭐ Direct op lager</span>' : '<span style="font-size: 9px; font-weight: 800; color: #92400e; background: #fde68a; padding: 1px 4px; border-radius: 3px;">⚠️ Niet direct op lager</span>') +
+                  (isDirect ? '<span style="font-size: 9.5px; font-weight: 800; color: #15803d; background: #bbf7d0; padding: 1px 5px; border-radius: 3px; flex-shrink: 0;" title="Direct op lager gemonteerd zonder leiding">⭐ Direct op lager</span>' : '<span style="font-size: 9px; font-weight: 800; color: #92400e; background: #fde68a; padding: 1px 4px; border-radius: 3px; flex-shrink: 0;">⚠️ Niet direct op lager</span>') +
                 '</div>';
             } else {
               const roundedD = Math.round(od.d * 10) / 10;
@@ -6217,8 +6258,8 @@
               }
 
               const borderStyle = isAssigned 
-                ? ('2px solid ' + od.origin.color) 
-                : ('1px solid ' + statusBorder);
+                ? ('1.5px solid ' + od.origin.color) 
+                : ('1.5px solid ' + statusBorder);
               const bgStyle = isAssigned ? '#ffffff' : statusBg;
               const shadowStyle = isAssigned 
                 ? ('box-shadow: 0 2px 6px ' + od.origin.color + '33;') 
@@ -6236,13 +6277,14 @@
               distRowsHtml += 
                 '<div ' + clickAttr + ' ' +
                   'class="raster-dist-pill ' + (isAssigned ? 'is-assigned' : 'is-unassigned') + (canReassign ? ' can-reassign' : '') + '" ' +
-                  'style="--pill-hover-color: ' + od.origin.color + '; display: inline-flex; align-items: center; gap: 5px; background: ' + bgStyle + '; border: ' + borderStyle + '; ' + shadowStyle + ' border-radius: 6px; padding: 3px 8px; font-size: 11px; ' + cursorStyle + ' transition: all 0.15s ease; user-select: none;" ' +
+                  'data-dev-id="' + od.origin.id + '" ' +
+                  'style="--pill-hover-color: ' + od.origin.color + '; display: inline-flex; align-items: center; gap: 5px; background: ' + bgStyle + '; border: ' + borderStyle + '; ' + shadowStyle + ' border-radius: 6px; padding: 3px 8px; font-size: 11px; ' + cursorStyle + ' box-sizing: border-box; flex-shrink: 0; user-select: none;" ' +
                   'title="' + titleAttr + '">' +
                   '<span style="font-weight: 800; color: ' + od.origin.color + ';">' + od.origin.short + (od.origin.typeShort ? (' <small style="font-weight: 700; opacity: 0.85;">' + od.origin.typeShort + '</small>') : '') + ':</span>' +
-                  '<span style="font-weight: 800; color: ' + statusCol + ';">' + roundedD.toFixed(1).replace('.', ',') + ' m</span>' +
-                  (isClosest ? '<span style="font-size: 9px; font-weight: 800; color: #15803d; background: #bbf7d0; padding: 1px 4px; border-radius: 3px;" title="Fysiek kortste leidingafstand">⭐ Dichtstbij</span>' : '') +
-                  (isAssigned && originDists.length > 1 ? '<span style="font-size: 9px; font-weight: 800; color: #ffffff; background: ' + od.origin.color + '; padding: 1.5px 5px; border-radius: 3px; display: inline-flex; align-items: center; gap: 2px;" title="Lager is actief aangesloten op dit toestel">✓ Aangesloten</span>' : '') +
-                  (!isAssigned && canReassign ? '<span class="koppel-badge" style="font-size: 9.5px; font-weight: 800; color: #1d4ed8; background: #dbeafe; padding: 1.5px 6px; border-radius: 4px; border: 1px solid #bfdbfe; margin-left: 2px; transition: all 0.15s ease;" title="Klik om handmatig aan te sluiten op dit toestel">🔗 Koppel</span>' : '') +
+                  '<span class="dist-val" style="font-weight: 800; color: ' + statusCol + ';">' + roundedD.toFixed(1).replace('.', ',') + ' m</span>' +
+                  (isClosest ? '<span style="font-size: 9px; font-weight: 800; color: #15803d; background: #bbf7d0; padding: 1px 4px; border-radius: 3px; flex-shrink: 0;" title="Fysiek kortste leidingafstand">⭐ Dichtstbij</span>' : '') +
+                  (isAssigned && originDists.length > 1 ? '<span style="font-size: 9px; font-weight: 800; color: #ffffff; background: ' + od.origin.color + '; padding: 1.5px 5px; border-radius: 3px; display: inline-flex; align-items: center; gap: 2px; flex-shrink: 0;" title="Lager is actief aangesloten op dit toestel">✓ Aangesloten</span>' : '') +
+                  (!isAssigned && canReassign ? '<button type="button" class="koppel-btn" onclick="manuallyAssignBearingToDevice(\'' + letter + '\', \'' + od.origin.id + '\', event)" title="Klik om handmatig aan te sluiten op ' + od.origin.name + '">🔗 Koppel</button>' : '') +
                 '</div>';
             }
           });
@@ -6284,9 +6326,61 @@
             '</div>' +
           '</div>';
 
-        card.innerHTML = headerHtml + coordInputsHtml + distRowsHtml;
-        container.appendChild(card);
+        const cardInnerHtml = headerHtml + coordInputsHtml + distRowsHtml;
+
+        // In-place DOM reconciliation: reuse existing card element to maintain event bindings and prevent click drops!
+        let card = container.querySelector('.raster-bearing-card[data-letter="' + letter + '"]');
+        if (!card) {
+          card = document.createElement('div');
+          card.className = 'raster-bearing-card' + (hoveredBearingLetter === letter ? ' is-canvas-hovered' : '');
+          card.setAttribute('data-letter', letter);
+          card.onmouseenter = function() {
+            if (hoveredBearingLetter !== letter) {
+              hoveredBearingLetter = letter;
+              if (window.__hoverCanvasRaf) cancelAnimationFrame(window.__hoverCanvasRaf);
+              window.__hoverCanvasRaf = requestAnimationFrame(() => drawBearingLayout());
+            }
+          };
+          card.onmouseleave = function(e) {
+            if (e && e.relatedTarget && card.contains(e.relatedTarget)) return;
+            if (hoveredBearingLetter === letter) {
+              hoveredBearingLetter = null;
+              if (window.__hoverCanvasRaf) cancelAnimationFrame(window.__hoverCanvasRaf);
+              window.__hoverCanvasRaf = requestAnimationFrame(() => drawBearingLayout());
+            }
+          };
+          card.innerHTML = cardInnerHtml;
+          card.__lastHtml = cardInnerHtml;
+          container.appendChild(card);
+        } else {
+          card.classList.toggle('is-canvas-hovered', hoveredBearingLetter === letter);
+          if (card.__lastHtml !== cardInnerHtml) {
+            card.innerHTML = cardInnerHtml;
+            card.__lastHtml = cardInnerHtml;
+          }
+          if (card.parentElement !== container) {
+            container.appendChild(card);
+          }
+        }
       });
+
+      // Remove obsolete cards for bearings that no longer exist
+      container.querySelectorAll('.raster-bearing-card').forEach(c => {
+        const cLetter = c.getAttribute('data-letter');
+        if (!desiredLetters.includes(cLetter)) {
+          c.remove();
+        }
+      });
+
+      // Only reorder if bearing sequence actually changed
+      const currentCardLetters = Array.from(container.querySelectorAll('.raster-bearing-card')).map(c => c.getAttribute('data-letter'));
+      const orderChanged = (currentCardLetters.length !== desiredLetters.length) || currentCardLetters.some((l, idx) => l !== desiredLetters[idx]);
+      if (orderChanged) {
+        desiredLetters.forEach(l => {
+          const c = container.querySelector('.raster-bearing-card[data-letter="' + l + '"]');
+          if (c) container.appendChild(c);
+        });
+      }
 
       const badgeEl = document.getElementById('totalBearingsBadge');
       if (badgeEl) badgeEl.textContent = rows.length + (rows.length === 1 ? ' Lager' : ' Lagers');
@@ -6403,7 +6497,7 @@
         }
       }
 
-      if (typeof prevScrollTop === 'number' && prevScrollTop > 0) {
+      if (typeof prevScrollTop === 'number' && prevScrollTop > 0 && Math.abs(container.scrollTop - prevScrollTop) > 2) {
         container.scrollTop = prevScrollTop;
       }
 
@@ -6520,14 +6614,16 @@
       // Update pills inside this card
       devices.forEach(dev => {
         if (!dev.active) return;
-        const pill = card.querySelector('.raster-dist-pill[title*="' + dev.name + '"] span:nth-child(2)');
+        const pill = card.querySelector('.raster-dist-pill[data-dev-id="' + dev.id + '"] .dist-val') ||
+                     card.querySelector('.raster-dist-pill[title*="' + dev.name + '"] span:nth-child(2)');
         if (pill) {
           const d = Math.hypot(pos.x - dev.x, pos.y - dev.y);
           pill.textContent = (Math.round(d * 10) / 10).toFixed(1).replace('.', ',') + ' m';
         }
       });
 
-      const cpPill = card.querySelector('.raster-dist-pill[title*="geometrisch"] span:nth-child(2)');
+      const cpPill = card.querySelector('.raster-dist-pill[data-dev-id="cp"] .dist-val') ||
+                     card.querySelector('.raster-dist-pill[title*="geometrisch"] span:nth-child(2)');
       if (cpPill) {
         const cpD = Math.hypot(pos.x, pos.y);
         cpPill.textContent = (Math.round(cpD * 10) / 10).toFixed(1).replace('.', ',') + ' m';
