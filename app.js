@@ -24743,9 +24743,9 @@ function renderPhotoGrid() {
 
   curPhotos.forEach((photo, idx) => {
     const card = document.createElement("div");
-    card.style.cssText = "background: #ffffff; border: 1px solid #cbd5e1; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 6px rgba(0,0,0,0.04); display: flex; flex-direction: column;";
+    card.style.cssText = "background: #ffffff; border: 1px solid #cbd5e1; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 6px rgba(0,0,0,0.04); display: flex; flex-direction: column; min-height: 205px; flex-shrink: 0;";
     card.innerHTML = `
-      <div style="position: relative; width: 100%; height: 140px; background: #000; overflow: hidden;">
+      <div style="position: relative; width: 100%; height: 140px; min-height: 140px; flex-shrink: 0; background: #000; overflow: hidden;">
         <img src="${photo.dataUrl}" alt="Foto ${idx+1}" onclick="openPhotoLightbox('${photo.id}')" title="Klik om te vergroten 🔍" style="width: 100%; height: 100%; object-fit: cover; cursor: pointer; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
         <span style="position: absolute; top: 6px; left: 6px; background: rgba(15,23,42,0.75); color: #fff; font-size: 11px; font-weight: 700; padding: 2px 7px; border-radius: 4px;">Foto ${idx+1}</span>
         <button type="button" onclick="deletePhoto('${photo.id}')" title="Verwijderen" style="position: absolute; top: 6px; right: 6px; background: rgba(227,6,19,0.9); color: #fff; border: none; width: 26px; height: 26px; border-radius: 50%; cursor: pointer; font-size: 13px; font-weight: 800; display: flex; align-items: center; justify-content: center;">✕</button>
