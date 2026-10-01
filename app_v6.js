@@ -326,13 +326,24 @@ function toggleAutoCustomDropdown(e, selectId) {
     selectId = e;
     e = null;
   }
-  if (e && typeof e.stopPropagation === "function") {
-    e.stopPropagation();
+  if (e) {
+    if (typeof e.stopPropagation === "function") e.stopPropagation();
+    if (typeof e.preventDefault === "function") e.preventDefault();
   }
+
+  const now = Date.now();
+  // Debounce guard: ignore duplicate calls within 200ms
+  if (window.__lastDropdownToggleTime && (now - window.__lastDropdownToggleTime < 200) && window.__lastDropdownToggleId === selectId) {
+    return;
+  }
+  window.__lastDropdownToggleTime = now;
+  window.__lastDropdownToggleId = selectId;
 
   const menu = document.getElementById("autoCustomDropdownMenu_" + selectId);
   const arrow = document.getElementById("autoCustomDropdownArrow_" + selectId);
   const btn = document.getElementById("autoCustomDropdownBtn_" + selectId);
+  const wrap = document.getElementById("customDropdownWrapper_" + selectId) || (btn ? btn.closest(".auto-custom-dropdown-wrapper") : null);
+  const card = btn ? btn.closest(".auto-device-card") : null;
   if (!menu) return;
   const isOpen = menu.style.display === "block";
 
@@ -346,12 +357,29 @@ function toggleAutoCustomDropdown(e, selectId) {
   document.querySelectorAll(".auto-custom-dropdown-btn").forEach(b => {
     b.classList.remove("open");
   });
+  document.querySelectorAll(".auto-custom-dropdown-wrapper").forEach(w => {
+    w.classList.remove("open");
+    w.style.zIndex = "";
+  });
+  document.querySelectorAll(".auto-device-card").forEach(c => {
+    c.classList.remove("dropdown-active");
+    c.style.zIndex = "";
+  });
 
   if (!isOpen) {
     syncAutoCustomDropdownUI(selectId);
     menu.style.display = "block";
     if (arrow) arrow.style.transform = "rotate(180deg)";
     if (btn) btn.classList.add("open");
+    if (wrap) {
+      wrap.classList.add("open");
+      wrap.style.zIndex = "100000";
+    }
+    if (card) {
+      card.classList.add("dropdown-active");
+      card.style.zIndex = "10000";
+      card.style.position = "relative";
+    }
   }
 }
 window.toggleAutoCustomDropdown = toggleAutoCustomDropdown;
@@ -362,18 +390,29 @@ function selectAutoCustomDropdownOption(e, selectId, value) {
     selectId = e;
     e = null;
   }
-  if (e && typeof e.stopPropagation === "function") {
-    e.stopPropagation();
+  if (e) {
+    if (typeof e.stopPropagation === "function") e.stopPropagation();
+    if (typeof e.preventDefault === "function") e.preventDefault();
   }
 
   const sel = document.getElementById(selectId);
   const menu = document.getElementById("autoCustomDropdownMenu_" + selectId);
   const arrow = document.getElementById("autoCustomDropdownArrow_" + selectId);
   const btn = document.getElementById("autoCustomDropdownBtn_" + selectId);
+  const wrap = document.getElementById("customDropdownWrapper_" + selectId) || (btn ? btn.closest(".auto-custom-dropdown-wrapper") : null);
+  const card = btn ? btn.closest(".auto-device-card") : null;
 
   if (menu) menu.style.display = "none";
   if (arrow) arrow.style.transform = "rotate(0deg)";
   if (btn) btn.classList.remove("open");
+  if (wrap) {
+    wrap.classList.remove("open");
+    wrap.style.zIndex = "";
+  }
+  if (card) {
+    card.classList.remove("dropdown-active");
+    card.style.zIndex = "";
+  }
 
   if (sel) {
     sel.value = value;
@@ -426,12 +465,27 @@ window.syncAutoCustomDropdownUI = syncAutoCustomDropdownUI;
 
 if (typeof document !== "undefined") {
   document.addEventListener("click", function(e) {
+    // If a dropdown was toggled within 250ms, do NOT let document outside-click immediately close it
+    if (window.__lastDropdownToggleTime && (Date.now() - window.__lastDropdownToggleTime < 250)) {
+      return;
+    }
+
     const path = (e.composedPath && typeof e.composedPath === "function") ? e.composedPath() : [];
-    const isInsideDropdown = path.some(el => el && el.classList && (el.classList.contains("auto-custom-dropdown-wrapper") || el.classList.contains("auto-custom-dropdown-btn") || el.classList.contains("auto-custom-dropdown-menu")));
+    const isInsideDropdown = path.some(el => el && el.classList && (
+      el.classList.contains("auto-custom-dropdown-wrapper") ||
+      el.classList.contains("auto-custom-dropdown-btn") ||
+      el.classList.contains("auto-custom-dropdown-menu") ||
+      el.classList.contains("auto-custom-dropdown-label")
+    ));
     
     if (!isInsideDropdown) {
       const targetEl = e.target;
-      if (targetEl && targetEl.closest && targetEl.closest(".auto-custom-dropdown-wrapper")) {
+      if (targetEl && targetEl.closest && (
+        targetEl.closest(".auto-custom-dropdown-wrapper") ||
+        targetEl.closest(".auto-custom-dropdown-btn") ||
+        targetEl.closest(".auto-custom-dropdown-menu") ||
+        targetEl.closest(".auto-custom-dropdown-label")
+      )) {
         return;
       }
       document.querySelectorAll(".auto-custom-dropdown-menu").forEach(m => {
@@ -442,6 +496,14 @@ if (typeof document !== "undefined") {
       });
       document.querySelectorAll(".auto-custom-dropdown-btn").forEach(b => {
         b.classList.remove("open");
+      });
+      document.querySelectorAll(".auto-custom-dropdown-wrapper").forEach(w => {
+        w.classList.remove("open");
+        w.style.zIndex = "";
+      });
+      document.querySelectorAll(".auto-device-card").forEach(c => {
+        c.classList.remove("dropdown-active");
+        c.style.zIndex = "";
       });
     }
   });
@@ -456,6 +518,14 @@ if (typeof document !== "undefined") {
       });
       document.querySelectorAll(".auto-custom-dropdown-btn").forEach(b => {
         b.classList.remove("open");
+      });
+      document.querySelectorAll(".auto-custom-dropdown-wrapper").forEach(w => {
+        w.classList.remove("open");
+        w.style.zIndex = "";
+      });
+      document.querySelectorAll(".auto-device-card").forEach(c => {
+        c.classList.remove("dropdown-active");
+        c.style.zIndex = "";
       });
     }
   });
@@ -5810,7 +5880,7 @@ function renderAutoDevicesUI() {
       ${!isSinglePoint ? `
       <!-- Device Type Selector per Device -->
       <div class="auto-device-type-wrapper" style="margin-bottom: 14px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: var(--border-radius-sm); padding: 10px 12px; display: flex; flex-direction: column; gap: 6px; box-sizing: border-box;">
-        <label for="autoCustomDropdownBtn_autoDeviceType_${devId}" style="font-size: 12px; font-weight: 700; color: #475569; margin: 0; display: flex; align-items: center; gap: 6px; cursor: pointer;">
+        <label class="auto-custom-dropdown-label" onclick="toggleAutoCustomDropdown(event, 'autoDeviceType_${devId}')" style="font-size: 12px; font-weight: 700; color: #475569; margin: 0; display: flex; align-items: center; gap: 6px; cursor: pointer; user-select: none;">
           🏷️ Model Toestel ${devId}:
         </label>
         <div class="auto-custom-dropdown-wrapper" id="customDropdownWrapper_autoDeviceType_${devId}">
@@ -5825,7 +5895,7 @@ function renderAutoDevicesUI() {
             </svg>
           </button>
           <div id="autoCustomDropdownMenu_autoDeviceType_${devId}" class="auto-custom-dropdown-menu" style="display: none;"></div>
-          <select id="autoDeviceType_${devId}" class="form-select" onchange="onDeviceTypeChange('${devId}', this.value)" style="position: absolute !important; width: 0 !important; height: 0 !important; opacity: 0 !important; pointer-events: none !important; margin: 0 !important; padding: 0 !important; border: none !important; z-index: -1 !important;">
+          <select id="autoDeviceType_${devId}" class="form-select" onchange="onDeviceTypeChange('${devId}', this.value)" style="display: none !important;" tabindex="-1" aria-hidden="true">
             <option value="pulsarlube_m2"${cardDevType === 'pulsarlube_m2' ? ' selected' : ''}>Pulsarlube M2 (Batterij)</option>
             <option value="pulsarlube_msp_ac"${cardDevType === 'pulsarlube_msp_ac' ? ' selected' : ''}>Pulsarlube MSP AC (Synchroon)</option>
             <option value="pulsarlube_msp_dc"${(cardDevType === 'pulsarlube_msp_dc' || cardDevType === 'pulsarlube_msp') ? ' selected' : ''}>Pulsarlube MSP DC (Synchroon)</option>
@@ -5872,7 +5942,7 @@ function renderAutoDevicesUI() {
 
       <!-- Point Selection per Device -->
       <div class="auto-points-selection-wrapper" style="margin-bottom: 16px; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: var(--border-radius-sm); padding: 12px 14px; display: ${isSinglePoint ? 'none' : 'block'};">
-        <label for="autoCustomDropdownBtn_autoNumPointsSelect_${devId}" style="display: block; font-size: 12.5px; font-weight: 700; color: var(--text-dark); margin-bottom: 6px; cursor: pointer;">
+        <label class="auto-custom-dropdown-label" onclick="toggleAutoCustomDropdown(event, 'autoNumPointsSelect_${devId}')" style="display: block; font-size: 12.5px; font-weight: 700; color: var(--text-dark); margin-bottom: 6px; cursor: pointer; user-select: none;">
           ${pointsLabel}
         </label>
         <div class="auto-custom-dropdown-wrapper" id="customDropdownWrapper_autoNumPointsSelect_${devId}">
@@ -5886,7 +5956,7 @@ function renderAutoDevicesUI() {
             </svg>
           </button>
           <div id="autoCustomDropdownMenu_autoNumPointsSelect_${devId}" class="auto-custom-dropdown-menu" style="display: none;"></div>
-          <select id="autoNumPointsSelect_${devId}" class="form-select" onchange="onDevicePointsChange('${devId}')" style="position: absolute !important; width: 0 !important; height: 0 !important; opacity: 0 !important; pointer-events: none !important; margin: 0 !important; padding: 0 !important; border: none !important; z-index: -1 !important;">
+          <select id="autoNumPointsSelect_${devId}" class="form-select" onchange="onDevicePointsChange('${devId}')" style="display: none !important;" tabindex="-1" aria-hidden="true">
             ${optionsHtml}
           </select>
         </div>
@@ -5951,7 +6021,7 @@ function renderAutoDevicesUI() {
             <input type="number" id="autoCustomPackPrice_${devId}" class="form-input" value="${dev.customPackPrice || ''}" placeholder="${pInfo.isPriceFound ? ('Standaard € ' + pInfo.servicepackPrice.toFixed(2).replace('.',',')) : 'Voer prijs in (bijv. 65,00)'}" min="0" step="0.01" oninput="onDeviceCustomPriceChange('${devId}', this.value)" style="width: 100%; padding: 8px 12px; border-radius: var(--border-radius-sm); border: 1px solid ${!pInfo.isPriceFound && !dev.customPackPrice ? '#f59e0b' : '#cbd5e1'}; font-weight: 600;">
           </div>
           <div>
-            <label for="autoCustomDropdownBtn_autoCartridgeCap_${devId}" style="display: block; font-size: 12px; font-weight: 600; color: var(--text-dark); margin-bottom: 4px; cursor: pointer;">Patroon Capaciteit (ml)</label>
+            <label class="auto-custom-dropdown-label" onclick="toggleAutoCustomDropdown(event, 'autoCartridgeCap_${devId}')" style="display: block; font-size: 12px; font-weight: 600; color: var(--text-dark); margin-bottom: 4px; cursor: pointer; user-select: none;">Patroon Capaciteit (ml)</label>
             <div class="auto-custom-dropdown-wrapper" id="customDropdownWrapper_autoCartridgeCap_${devId}">
               <button type="button" id="autoCustomDropdownBtn_autoCartridgeCap_${devId}" class="auto-custom-dropdown-btn" onclick="toggleAutoCustomDropdown(event, 'autoCartridgeCap_${devId}')" aria-haspopup="listbox">
                 <span id="autoCustomDropdownLabel_autoCartridgeCap_${devId}" style="pointer-events: none;">${dev.cap} ml</span>
@@ -5960,14 +6030,14 @@ function renderAutoDevicesUI() {
                 </svg>
               </button>
               <div id="autoCustomDropdownMenu_autoCartridgeCap_${devId}" class="auto-custom-dropdown-menu" style="display: none;"></div>
-              <select id="autoCartridgeCap_${devId}" class="form-select" onchange="onDeviceCapChange('${devId}')" style="position: absolute !important; width: 0 !important; height: 0 !important; opacity: 0 !important; pointer-events: none !important; margin: 0 !important; padding: 0 !important; border: none !important; z-index: -1 !important;">
+              <select id="autoCartridgeCap_${devId}" class="form-select" onchange="onDeviceCapChange('${devId}')" style="display: none !important;" tabindex="-1" aria-hidden="true">
                 ${capOptionsHtml}
               </select>
             </div>
           </div>
 
           <div>
-            <label for="autoCustomDropdownBtn_autoDispensePeriod_${devId}" style="display: block; font-size: 12px; font-weight: 600; color: var(--text-dark); margin-bottom: 4px; cursor: pointer;">Gewenste Looptijd / Leeglooptijd</label>
+            <label class="auto-custom-dropdown-label" onclick="toggleAutoCustomDropdown(event, 'autoDispensePeriod_${devId}')" style="display: block; font-size: 12px; font-weight: 600; color: var(--text-dark); margin-bottom: 4px; cursor: pointer; user-select: none;">Gewenste Looptijd / Leeglooptijd</label>
             <div style="display: flex; gap: 8px;">
               <div class="auto-custom-dropdown-wrapper" id="customDropdownWrapper_autoDispensePeriod_${devId}">
                 <button type="button" id="autoCustomDropdownBtn_autoDispensePeriod_${devId}" class="auto-custom-dropdown-btn" onclick="toggleAutoCustomDropdown(event, 'autoDispensePeriod_${devId}')" aria-haspopup="listbox">
@@ -5977,7 +6047,7 @@ function renderAutoDevicesUI() {
                   </svg>
                 </button>
                 <div id="autoCustomDropdownMenu_autoDispensePeriod_${devId}" class="auto-custom-dropdown-menu" style="display: none;"></div>
-                <select id="autoDispensePeriod_${devId}" class="form-select" onchange="onDevicePeriodChange('${devId}')" style="position: absolute !important; width: 0 !important; height: 0 !important; opacity: 0 !important; pointer-events: none !important; margin: 0 !important; padding: 0 !important; border: none !important; z-index: -1 !important;">
+                <select id="autoDispensePeriod_${devId}" class="form-select" onchange="onDevicePeriodChange('${devId}')" style="display: none !important;" tabindex="-1" aria-hidden="true">
                   ${validDispenseMonths.map(m => `<option value="${m}"${Number(m) === Number(dev.period) ? ' selected' : ''}>${m} ${m === 1 ? (lang === 'fr' ? 'mois' : (lang === 'en' ? 'month' : 'maand')) : (lang === 'fr' ? 'mois' : (lang === 'en' ? 'months' : 'maanden'))}</option>`).join('')}
                 </select>
               </div>
@@ -9507,6 +9577,24 @@ function closeMobileSidebar() {
 
 function switchPage(pageId) {
   closeMobileSidebar();
+  // Clean up any open custom dropdown menus, arrows, buttons, and elevation
+  document.querySelectorAll(".auto-custom-dropdown-menu").forEach(m => {
+    m.style.display = "none";
+  });
+  document.querySelectorAll(".auto-custom-dropdown-arrow").forEach(a => {
+    a.style.transform = "rotate(0deg)";
+  });
+  document.querySelectorAll(".auto-custom-dropdown-btn").forEach(b => {
+    b.classList.remove("open");
+  });
+  document.querySelectorAll(".auto-custom-dropdown-wrapper").forEach(w => {
+    w.classList.remove("open");
+    w.style.zIndex = "";
+  });
+  document.querySelectorAll(".auto-device-card").forEach(c => {
+    c.classList.remove("dropdown-active");
+    c.style.zIndex = "";
+  });
   // Reset scrollpositie naar de top van de pagina
   window.scrollTo(0, 0);
   const mainContent = document.querySelector(".main-content");
