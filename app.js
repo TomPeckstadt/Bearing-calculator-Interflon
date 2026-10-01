@@ -107,7 +107,10 @@ function getActiveNumDevices() {
 }
 window.getActiveNumDevices = getActiveNumDevices;
 
-function onAutoNumDevicesChange() {
+function onAutoNumDevicesChange(e) {
+  const evt = (typeof e !== "undefined" && e) ? e : (typeof window !== "undefined" && window.event);
+  if (evt && evt.isTrusted) window.__isImportingDossier = false;
+  if (window.__isImportingDossier) return;
   const num = getActiveNumDevices();
   const deviceSelect = document.getElementById("automationDeviceSelect") || document.getElementById("autoDeviceSelect");
   let deviceKey = deviceSelect ? deviceSelect.value : "pulsarlube_m2";
@@ -126,7 +129,10 @@ function onAutoNumDevicesChange() {
 }
 window.onAutoNumDevicesChange = onAutoNumDevicesChange;
 
-function onAutoNumPointsChange() {
+function onAutoNumPointsChange(e) {
+  const evt = (typeof e !== "undefined" && e) ? e : (typeof window !== "undefined" && window.event);
+  if (evt && evt.isTrusted) window.__isImportingDossier = false;
+  if (window.__isImportingDossier) return;
   userHasManuallyEditedAutoPeriod = false;
   if (autoDevicesState[0]) autoDevicesState[0].userEditedPeriod = false;
   calculateAutomationLubrication();
@@ -134,6 +140,9 @@ function onAutoNumPointsChange() {
 window.onAutoNumPointsChange = onAutoNumPointsChange;
 
 function onDevicePointsChange(devId) {
+  const evt = (typeof window !== "undefined" && window.event);
+  if (evt && evt.isTrusted) window.__isImportingDossier = false;
+  if (window.__isImportingDossier) return;
   ensureAutoDevicesStateSafety();
   const dev = autoDevicesState.find(d => d.id === devId);
   const sel = document.getElementById("autoNumPointsSelect_" + devId);
@@ -181,6 +190,9 @@ function onDeviceCustomPriceChange(devId, val) {
 window.onDeviceCustomPriceChange = onDeviceCustomPriceChange;
 
 function onDeviceCapChange(devId) {
+  const evt = (typeof window !== "undefined" && window.event);
+  if (evt && evt.isTrusted) window.__isImportingDossier = false;
+  if (window.__isImportingDossier) return;
   ensureAutoDevicesStateSafety();
   const dev = autoDevicesState.find(d => d.id === devId);
   const capSel = document.getElementById("autoCartridgeCap_" + devId);
@@ -253,6 +265,9 @@ function onDevicePeriodInput(devId) {
 window.onDevicePeriodInput = onDevicePeriodInput;
 
 function onDevicePeriodChange(devId) {
+  const evt = (typeof window !== "undefined" && window.event);
+  if (evt && evt.isTrusted) window.__isImportingDossier = false;
+  if (window.__isImportingDossier) return;
   const dev = autoDevicesState.find(d => d.id === devId);
   const input = document.getElementById("autoDispensePeriod_" + devId);
   const unitSel = document.getElementById("autoDispenseUnit_" + devId);
@@ -350,6 +365,7 @@ function toggleAutoCustomDropdown(e, selectId) {
     e = null;
   }
   if (e) {
+    if (e.isTrusted) window.__isImportingDossier = false;
     if (typeof e.stopPropagation === "function") e.stopPropagation();
     if (typeof e.preventDefault === "function") e.preventDefault();
   }
@@ -407,6 +423,7 @@ function selectAutoCustomDropdownOption(e, selectId, value) {
     e = null;
   }
   if (e) {
+    if (e.isTrusted) window.__isImportingDossier = false;
     if (typeof e.stopPropagation === "function") e.stopPropagation();
     if (typeof e.preventDefault === "function") e.preventDefault();
   }
@@ -416,9 +433,6 @@ function selectAutoCustomDropdownOption(e, selectId, value) {
   const sel = document.getElementById(selectId);
   if (sel) {
     sel.value = value;
-    if (typeof sel.onchange === "function") {
-      try { sel.onchange.call(sel, new Event("change", { bubbles: true })); } catch(err) { console.error(err); }
-    }
     sel.dispatchEvent(new Event("change", { bubbles: true }));
   }
   syncAutoCustomDropdownUI(selectId);
@@ -493,6 +507,13 @@ if (typeof document !== "undefined") {
       return; // Inside active dropdown menu, button or wrapper
     }
 
+    const menuId = openMenu.id || "";
+    const selectId = menuId.replace("autoCustomDropdownMenu_", "");
+    const activeLabel = selectId ? document.querySelector(`.auto-custom-dropdown-label[onclick*="${selectId}"]`) : null;
+    if (activeLabel && activeLabel.contains(target)) {
+      return; // Inside active label - let label onclick toggle cleanly
+    }
+
     // Click is outside: close all custom dropdowns immediately
     closeAllAutoCustomDropdowns();
   }, true);
@@ -507,6 +528,14 @@ if (typeof document !== "undefined") {
     if (activeWrap && activeWrap.contains(target)) {
       return;
     }
+
+    const menuId = openMenu.id || "";
+    const selectId = menuId.replace("autoCustomDropdownMenu_", "");
+    const activeLabel = selectId ? document.querySelector(`.auto-custom-dropdown-label[onclick*="${selectId}"]`) : null;
+    if (activeLabel && activeLabel.contains(target)) {
+      return;
+    }
+
     closeAllAutoCustomDropdowns();
   }, true);
 
@@ -616,7 +645,38 @@ function updateDeviceDispenseSettingsUI(devId) {
 }
 window.updateDeviceDispenseSettingsUI = updateDeviceDispenseSettingsUI;
 
+function syncMainDeviceSelectorFromDevicesState() {
+  const devSel = document.getElementById("automationDeviceSelect");
+  if (!devSel || !Array.isArray(autoDevicesState)) return;
+  const num = getActiveNumDevices();
+  const activeDevs = autoDevicesState.slice(0, num);
+  if (activeDevs.length === 0) return;
+
+  const firstType = activeDevs[0].type || "pulsarlube_m2";
+  const allSame = activeDevs.every(d => (d.type || "pulsarlube_m2") === firstType);
+  const optMixed = document.getElementById("autoDeviceOptMixed") || devSel.querySelector('option[value="mixed"]');
+
+  if (allSame) {
+    devSel.value = firstType;
+    try {
+      localStorage.setItem("auto_device_key", firstType);
+      localStorage.setItem("app_field_automationDeviceSelect", firstType);
+    } catch(e) {}
+  } else {
+    if (optMixed) optMixed.style.display = "";
+    devSel.value = "mixed";
+    try {
+      localStorage.setItem("auto_device_key", "mixed");
+      localStorage.setItem("app_field_automationDeviceSelect", "mixed");
+    } catch(e) {}
+  }
+}
+window.syncMainDeviceSelectorFromDevicesState = syncMainDeviceSelectorFromDevicesState;
+
 function onDeviceTypeChange(devId, newType) {
+  const evt = (typeof window !== "undefined" && window.event);
+  if (evt && evt.isTrusted) window.__isImportingDossier = false;
+  if (window.__isImportingDossier) return;
   ensureAutoDevicesStateSafety();
   if (typeof autoDevicesState !== "undefined") {
     const dev = autoDevicesState.find(d => d.id === devId);
@@ -649,6 +709,7 @@ function onDeviceTypeChange(devId, newType) {
         }
       }
     }
+    syncMainDeviceSelectorFromDevicesState();
     saveAutomationStateToLocalStorage();
     renderAutoDevicesUI();
     calculateAutomationLubrication();
@@ -950,6 +1011,7 @@ function loadAutomationStateFromLocalStorage(force) {
             mixedOpt.textContent = 'Gecombineerd';
             deviceSelect.appendChild(mixedOpt);
           }
+          mixedOpt.style.display = "";
         }
         if (savedDeviceKey === "pulsarlube_msp") {
           deviceSelect.value = "pulsarlube_msp_dc";
@@ -977,7 +1039,7 @@ function loadAutomationStateFromLocalStorage(force) {
       if (rmmEl) rmmEl.value = savedRoiManualMode;
     }
 
-    const savedStateJson = localStorage.getItem("auto_devices_state");
+    const savedStateJson = localStorage.getItem("auto_devices_state") || localStorage.getItem("autoDevicesState");
     if (savedStateJson) {
       const parsed = JSON.parse(savedStateJson);
       if (Array.isArray(parsed) && parsed.length > 0) {
@@ -1010,10 +1072,10 @@ function loadAutomationStateFromLocalStorage(force) {
       }
     }
 
-    if (savedDeviceKey && savedDeviceKey !== "single_point" && Array.isArray(autoDevicesState)) {
+    if (savedDeviceKey && savedDeviceKey !== "single_point" && savedDeviceKey !== "mixed" && Array.isArray(autoDevicesState)) {
       const effectiveSavedDevKey = (savedDeviceKey === 'pulsarlube_msp') ? 'pulsarlube_msp_dc' : savedDeviceKey;
       const allM2 = autoDevicesState.every(d => !d.type || d.type === 'pulsarlube_m2');
-      if (allM2 && effectiveSavedDevKey !== 'pulsarlube_m2') {
+      if (allM2 && effectiveSavedDevKey !== 'pulsarlube_m2' && effectiveSavedDevKey !== 'mixed') {
         autoDevicesState.forEach(d => { if (d) d.type = effectiveSavedDevKey; });
       }
     }
@@ -15050,7 +15112,9 @@ function updateAutomationPage(isDropdownChange) {
   }
 
   // Synchroniseer alle actieve toestellen met de gekozen toestel dropdown UITSLUITEND wanneer de gebruiker de dropdown bewust wijzigt
-  if (isDropdownChange && Array.isArray(autoDevicesState)) {
+  const evt = (typeof window !== "undefined" && window.event);
+  if (evt && evt.isTrusted) window.__isImportingDossier = false;
+  if (isDropdownChange && !window.__isImportingDossier && Array.isArray(autoDevicesState) && device !== "mixed") {
     const selectGrease = document.getElementById("inputGrease") || document.getElementById("selectGrease");
     const greaseName = selectGrease ? selectGrease.value : "Interflon Grease MP2/3";
     autoDevicesState.forEach(d => {
@@ -25203,6 +25267,7 @@ function applyClearedFormState() {
   window.autoDevicesState = [];
   window.spNumBearingsValue = 1;
   window.customSinglePointPackPrice = 0;
+  isAutomationStateLoaded = false;
 
   const spInput = document.getElementById("singlePointNumBearingsInput");
   if (spInput) spInput.value = "1";
@@ -25210,6 +25275,8 @@ function applyClearedFormState() {
   if (autoDevSel) autoDevSel.value = "single_point";
   const autoNumSel = document.getElementById("autoNumDevicesSelect");
   if (autoNumSel) autoNumSel.value = "1";
+  const autoDevOptMixed = document.getElementById("autoDeviceOptMixed");
+  if (autoDevOptMixed) autoDevOptMixed.style.display = "none";
 
   // 6. ROI Automatisering
   const roiYearsInput = document.getElementById("roiYearsInput");
@@ -25818,9 +25885,25 @@ function handleImportFileSelected(event) {
   const file = event.target.files && event.target.files[0];
   if (!file) return;
 
+  window.__isImportingDossier = true;
+  window.__isFormCleared = false;
+  window.__formEverCleared = false;
+  try {
+    localStorage.removeItem("bearing_calc_form_cleared");
+  } catch(e) {}
+  isAutomationStateLoaded = false;
+
   const reader = new FileReader();
   reader.onload = function(e) {
     try {
+      window.__isImportingDossier = true;
+      window.__isFormCleared = false;
+      window.__formEverCleared = false;
+      try {
+        localStorage.removeItem("bearing_calc_form_cleared");
+      } catch(e) {}
+      isAutomationStateLoaded = false;
+
       const data = JSON.parse(e.target.result);
       if (!data || typeof data !== 'object') {
         showToastNotification("Ongeldig bestand.", true);
@@ -26016,8 +26099,15 @@ function handleImportFileSelected(event) {
           if (typeof updateRoiAutomationPage === "function") updateRoiAutomationPage();
           if (typeof calculateChain === "function") calculateChain();
           if (typeof calculateChainTco === "function") calculateChainTco();
+          if (typeof syncAllAutoCustomDropdowns === "function") syncAllAutoCustomDropdowns();
 
           showToastNotification(qMach ? `Vragenlijst voor machine '${qMach}' succesvol geladen!` : "Vragenlijst succesvol geladen in de calculator!");
+          setTimeout(() => {
+            window.__isImportingDossier = false;
+            if (typeof syncAllAutoCustomDropdowns === "function") {
+              syncAllAutoCustomDropdowns();
+            }
+          }, 300);
           return;
         } catch(e) {
           console.error("Fout bij laden van vragenlijst:", e);
@@ -26325,6 +26415,7 @@ function handleImportFileSelected(event) {
       // STEP 4: Restore localStorage from imported file (with individual try/catch)
       if (data.localStorage && typeof data.localStorage === 'object') {
         Object.keys(data.localStorage).forEach(k => {
+          if (k === 'bearing_calc_form_cleared') return;
           if (data.localStorage[k] !== null && data.localStorage[k] !== undefined) {
             try {
               const valToStore = (typeof data.localStorage[k] === "object")
@@ -26335,6 +26426,11 @@ function handleImportFileSelected(event) {
           }
         });
       }
+      try {
+        localStorage.removeItem("bearing_calc_form_cleared");
+      } catch(e) {}
+      window.__isFormCleared = false;
+      window.__formEverCleared = false;
 
       if (data.bearing_tco_data && typeof data.bearing_tco_data === 'object') {
         try {
@@ -26414,16 +26510,48 @@ function handleImportFileSelected(event) {
         currentAppMode = data.activeCalculationMode;
         if (typeof updateModeUI === "function") updateModeUI();
       }
+
+      let importedAutoDevices = null;
       if (data.autoDevicesState && Array.isArray(data.autoDevicesState)) {
-        window.autoDevicesState = data.autoDevicesState;
-        autoDevicesState = data.autoDevicesState;
+        importedAutoDevices = data.autoDevicesState;
+      } else if (data.localStorage && (data.localStorage.auto_devices_state || data.localStorage.autoDevicesState)) {
         try {
-          localStorage.setItem("autoDevicesState", JSON.stringify(data.autoDevicesState));
-          localStorage.setItem("auto_devices_state", JSON.stringify(data.autoDevicesState));
+          const raw = data.localStorage.auto_devices_state || data.localStorage.autoDevicesState;
+          importedAutoDevices = typeof raw === 'string' ? JSON.parse(raw) : raw;
+        } catch(e) {}
+      }
+
+      if (importedAutoDevices && Array.isArray(importedAutoDevices) && importedAutoDevices.length > 0) {
+        window.autoDevicesState = importedAutoDevices;
+        autoDevicesState = importedAutoDevices;
+        try {
+          localStorage.setItem("autoDevicesState", JSON.stringify(importedAutoDevices));
+          localStorage.setItem("auto_devices_state", JSON.stringify(importedAutoDevices));
         } catch(err){}
-        if (typeof loadAutomationStateFromLocalStorage === "function") {
-          loadAutomationStateFromLocalStorage(true);
+      }
+
+      const rawAutoDevKey = (data.inputs && data.inputs["automationDeviceSelect"]) ||
+                            (data.localStorage && (data.localStorage["auto_device_key"] || data.localStorage["app_field_automationDeviceSelect"])) || "";
+      if (rawAutoDevKey) {
+        const devSel = document.getElementById("automationDeviceSelect");
+        if (devSel) {
+          if (rawAutoDevKey === "mixed") {
+            const optMixed = document.getElementById("autoDeviceOptMixed") || devSel.querySelector('option[value="mixed"]');
+            if (optMixed) optMixed.style.display = "";
+          }
+          devSel.value = (rawAutoDevKey === "pulsarlube_msp") ? "pulsarlube_msp_dc" : rawAutoDevKey;
         }
+      }
+
+      const rawNumDev = (data.inputs && data.inputs["autoNumDevicesSelect"]) ||
+                        (data.localStorage && (data.localStorage["auto_num_devices"] || data.localStorage["app_field_autoNumDevicesSelect"])) || "";
+      if (rawNumDev) {
+        const numSel = document.getElementById("autoNumDevicesSelect");
+        if (numSel) numSel.value = String(rawNumDev);
+      }
+
+      if (typeof loadAutomationStateFromLocalStorage === "function") {
+        loadAutomationStateFromLocalStorage(true);
       }
       if (data.currentSelectedBearing) {
         window.currentSelectedBearing = data.currentSelectedBearing;
@@ -26612,10 +26740,13 @@ function handleImportFileSelected(event) {
             } else {
               el.value = (val !== null && val !== undefined) ? val : "";
             }
-            try {
-              el.dispatchEvent(new Event("input", { bubbles: true }));
-              el.dispatchEvent(new Event("change", { bubbles: true }));
-            } catch(e) {}
+            const isAutoInput = id.startsWith("auto") || id === "automationDeviceSelect" || id.startsWith("singlePoint");
+            if (!isAutoInput) {
+              try {
+                el.dispatchEvent(new Event("input", { bubbles: true }));
+                el.dispatchEvent(new Event("change", { bubbles: true }));
+              } catch(e) {}
+            }
           }
         });
       }
@@ -26811,11 +26942,22 @@ function handleImportFileSelected(event) {
       if (typeof updatePhotoBadgeCounter === "function") updatePhotoBadgeCounter();
 
       // STEP 12: Display selected bearing if restored
-      if (window.currentSelectedBearing && typeof displayBearingData === "function") {
-        displayBearingData(window.currentSelectedBearing);
+      if (window.currentSelectedBearing) {
+        const desig = typeof window.currentSelectedBearing === "string" 
+          ? window.currentSelectedBearing 
+          : (window.currentSelectedBearing.designation || window.currentSelectedBearing.name);
+        if (desig && typeof loadBearingDetails === "function") {
+          loadBearingDetails(desig);
+        }
+      } else {
+        const savedDesig = localStorage.getItem("active_bearing_designation");
+        if (savedDesig && typeof loadBearingDetails === "function") {
+          loadBearingDetails(savedDesig);
+        }
       }
 
       // STEP 13: Trigger all recalculations
+      if (typeof syncMainDeviceSelectorFromDevicesState === "function") syncMainDeviceSelectorFromDevicesState();
       if (typeof calculateGrease === "function") calculateGrease();
       if (typeof calculateBearing === "function") calculateBearing();
       if (typeof calculateTco === "function") calculateTco();
@@ -26825,6 +26967,7 @@ function handleImportFileSelected(event) {
       if (typeof updateRoiAutomationPage === "function") updateRoiAutomationPage();
       if (typeof calculateChain === "function") calculateChain();
       if (typeof calculateChainTco === "function") calculateChainTco();
+      if (typeof syncAllAutoCustomDropdowns === "function") syncAllAutoCustomDropdowns();
 
       const displayName = targetMachine || targetCompany || "";
       const msg = isEnglish
@@ -26841,6 +26984,12 @@ function handleImportFileSelected(event) {
           event.target.value = "";
         }
       } catch(e) {}
+      setTimeout(() => {
+        window.__isImportingDossier = false;
+        if (typeof syncAllAutoCustomDropdowns === "function") {
+          syncAllAutoCustomDropdowns();
+        }
+      }, 300);
     }
   };
   reader.readAsText(file);
