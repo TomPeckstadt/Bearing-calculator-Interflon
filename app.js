@@ -319,8 +319,31 @@ function getDeviceTypeName(typeId) {
 window.getDeviceTypeName = getDeviceTypeName;
 
 // ==========================================================================
-// AUTOMATION CUSTOM IN-DOM DROPDOWNS (IMMUNE TO BROWSER POPUP GLITCHES)
+// AUTOMATION CUSTOM IN-DOM DROPDOWNS (BULLETPROOF, ZERO-TIMER, UNIVERSAL ENGINE)
 // ==========================================================================
+function closeAllAutoCustomDropdowns() {
+  document.querySelectorAll(".auto-custom-dropdown-menu").forEach(m => {
+    m.style.display = "none";
+    m.classList.remove("dropup");
+  });
+  document.querySelectorAll(".auto-custom-dropdown-arrow").forEach(a => {
+    a.style.transform = "rotate(0deg)";
+  });
+  document.querySelectorAll(".auto-custom-dropdown-btn").forEach(b => {
+    b.classList.remove("open");
+    b.setAttribute("aria-expanded", "false");
+  });
+  document.querySelectorAll(".auto-custom-dropdown-wrapper").forEach(w => {
+    w.classList.remove("open");
+    w.style.zIndex = "";
+  });
+  document.querySelectorAll(".auto-device-card").forEach(c => {
+    c.classList.remove("dropdown-active");
+    c.style.zIndex = "";
+  });
+}
+window.closeAllAutoCustomDropdowns = closeAllAutoCustomDropdowns;
+
 function toggleAutoCustomDropdown(e, selectId) {
   if (typeof e === "string" && !selectId) {
     selectId = e;
@@ -331,46 +354,39 @@ function toggleAutoCustomDropdown(e, selectId) {
     if (typeof e.preventDefault === "function") e.preventDefault();
   }
 
-  const now = Date.now();
-  // Debounce guard: ignore duplicate calls within 200ms
-  if (window.__lastDropdownToggleTime && (now - window.__lastDropdownToggleTime < 200) && window.__lastDropdownToggleId === selectId) {
-    return;
-  }
-  window.__lastDropdownToggleTime = now;
-  window.__lastDropdownToggleId = selectId;
-
   const menu = document.getElementById("autoCustomDropdownMenu_" + selectId);
   const arrow = document.getElementById("autoCustomDropdownArrow_" + selectId);
   const btn = document.getElementById("autoCustomDropdownBtn_" + selectId);
   const wrap = document.getElementById("customDropdownWrapper_" + selectId) || (btn ? btn.closest(".auto-custom-dropdown-wrapper") : null);
   const card = btn ? btn.closest(".auto-device-card") : null;
   if (!menu) return;
-  const isOpen = menu.style.display === "block";
 
-  // Close all other open custom dropdown menus
-  document.querySelectorAll(".auto-custom-dropdown-menu").forEach(m => {
-    m.style.display = "none";
-  });
-  document.querySelectorAll(".auto-custom-dropdown-arrow").forEach(a => {
-    a.style.transform = "rotate(0deg)";
-  });
-  document.querySelectorAll(".auto-custom-dropdown-btn").forEach(b => {
-    b.classList.remove("open");
-  });
-  document.querySelectorAll(".auto-custom-dropdown-wrapper").forEach(w => {
-    w.classList.remove("open");
-    w.style.zIndex = "";
-  });
-  document.querySelectorAll(".auto-device-card").forEach(c => {
-    c.classList.remove("dropdown-active");
-    c.style.zIndex = "";
-  });
+  const isCurrentlyOpen = (menu.style.display === "block");
 
-  if (!isOpen) {
+  // Always close all other open custom dropdowns first
+  closeAllAutoCustomDropdowns();
+
+  if (!isCurrentlyOpen) {
     syncAutoCustomDropdownUI(selectId);
     menu.style.display = "block";
+
+    // Smart vertical flip check: if not enough space below (< 200px) and more space above, flip upwards
+    const btnRect = btn ? btn.getBoundingClientRect() : (wrap ? wrap.getBoundingClientRect() : null);
+    if (btnRect) {
+      const spaceBelow = window.innerHeight - btnRect.bottom;
+      const spaceAbove = btnRect.top;
+      if (spaceBelow < 200 && spaceAbove > spaceBelow) {
+        menu.classList.add("dropup");
+      } else {
+        menu.classList.remove("dropup");
+      }
+    }
+
     if (arrow) arrow.style.transform = "rotate(180deg)";
-    if (btn) btn.classList.add("open");
+    if (btn) {
+      btn.classList.add("open");
+      btn.setAttribute("aria-expanded", "true");
+    }
     if (wrap) {
       wrap.classList.add("open");
       wrap.style.zIndex = "100000";
@@ -395,38 +411,25 @@ function selectAutoCustomDropdownOption(e, selectId, value) {
     if (typeof e.preventDefault === "function") e.preventDefault();
   }
 
+  closeAllAutoCustomDropdowns();
+
   const sel = document.getElementById(selectId);
-  const menu = document.getElementById("autoCustomDropdownMenu_" + selectId);
-  const arrow = document.getElementById("autoCustomDropdownArrow_" + selectId);
-  const btn = document.getElementById("autoCustomDropdownBtn_" + selectId);
-  const wrap = document.getElementById("customDropdownWrapper_" + selectId) || (btn ? btn.closest(".auto-custom-dropdown-wrapper") : null);
-  const card = btn ? btn.closest(".auto-device-card") : null;
-
-  if (menu) menu.style.display = "none";
-  if (arrow) arrow.style.transform = "rotate(0deg)";
-  if (btn) btn.classList.remove("open");
-  if (wrap) {
-    wrap.classList.remove("open");
-    wrap.style.zIndex = "";
-  }
-  if (card) {
-    card.classList.remove("dropdown-active");
-    card.style.zIndex = "";
-  }
-
   if (sel) {
     sel.value = value;
     if (typeof sel.onchange === "function") {
-      sel.onchange();
-    } else {
-      sel.dispatchEvent(new Event("change", { bubbles: true }));
+      try { sel.onchange.call(sel, new Event("change", { bubbles: true })); } catch(err) { console.error(err); }
     }
+    sel.dispatchEvent(new Event("change", { bubbles: true }));
   }
   syncAutoCustomDropdownUI(selectId);
 }
 window.selectAutoCustomDropdownOption = selectAutoCustomDropdownOption;
 
 function syncAutoCustomDropdownUI(selectId) {
+  if (!selectId) {
+    syncAllAutoCustomDropdowns();
+    return;
+  }
   const sel = document.getElementById(selectId);
   if (!sel) return;
 
@@ -438,7 +441,6 @@ function syncAutoCustomDropdownUI(selectId) {
     : (sel.options.length > 0 ? sel.options[0] : null);
 
   if (label && selectedOpt) {
-    // Only update if text actually differs to avoid destroying active text node under cursor
     if (label.textContent !== selectedOpt.textContent) {
       label.textContent = selectedOpt.textContent;
     }
@@ -452,6 +454,8 @@ function syncAutoCustomDropdownUI(selectId) {
         const safeVal = String(opt.value).replace(/\\/g, "\\\\").replace(/'/g, "\\'");
         return `
           <div class="auto-custom-dropdown-item ${isSel ? 'selected' : ''}" 
+               role="option"
+               aria-selected="${isSel ? 'true' : 'false'}"
                onclick="selectAutoCustomDropdownOption(event, '${selectId}', '${safeVal}')"
                style="cursor: pointer; user-select: none;">
             <span style="pointer-events: none;">${opt.textContent}</span>
@@ -463,71 +467,57 @@ function syncAutoCustomDropdownUI(selectId) {
 }
 window.syncAutoCustomDropdownUI = syncAutoCustomDropdownUI;
 
+function syncAllAutoCustomDropdowns() {
+  if (Array.isArray(autoDevicesState)) {
+    autoDevicesState.forEach(d => {
+      if (d && d.id) {
+        syncAutoCustomDropdownUI("autoDeviceType_" + d.id);
+        syncAutoCustomDropdownUI("autoNumPointsSelect_" + d.id);
+        syncAutoCustomDropdownUI("autoCartridgeCap_" + d.id);
+        syncAutoCustomDropdownUI("autoDispensePeriod_" + d.id);
+      }
+    });
+  }
+}
+window.syncAllAutoCustomDropdowns = syncAllAutoCustomDropdowns;
+
 if (typeof document !== "undefined") {
-  document.addEventListener("click", function(e) {
-    // If a dropdown was toggled within 250ms, do NOT let document outside-click immediately close it
-    if (window.__lastDropdownToggleTime && (Date.now() - window.__lastDropdownToggleTime < 250)) {
-      return;
+  // Instant, latency-free outside click/touch dismissal via pointerdown
+  document.addEventListener("pointerdown", function(e) {
+    const openMenu = document.querySelector('.auto-custom-dropdown-menu[style*="display: block"]');
+    if (!openMenu) return;
+
+    const target = e.target;
+    const activeWrap = openMenu.closest(".auto-custom-dropdown-wrapper");
+    if (activeWrap && activeWrap.contains(target)) {
+      return; // Inside active dropdown menu, button or wrapper
     }
 
-    const path = (e.composedPath && typeof e.composedPath === "function") ? e.composedPath() : [];
-    const isInsideDropdown = path.some(el => el && el.classList && (
-      el.classList.contains("auto-custom-dropdown-wrapper") ||
-      el.classList.contains("auto-custom-dropdown-btn") ||
-      el.classList.contains("auto-custom-dropdown-menu") ||
-      el.classList.contains("auto-custom-dropdown-label")
-    ));
-    
-    if (!isInsideDropdown) {
-      const targetEl = e.target;
-      if (targetEl && targetEl.closest && (
-        targetEl.closest(".auto-custom-dropdown-wrapper") ||
-        targetEl.closest(".auto-custom-dropdown-btn") ||
-        targetEl.closest(".auto-custom-dropdown-menu") ||
-        targetEl.closest(".auto-custom-dropdown-label")
-      )) {
-        return;
-      }
-      document.querySelectorAll(".auto-custom-dropdown-menu").forEach(m => {
-        m.style.display = "none";
-      });
-      document.querySelectorAll(".auto-custom-dropdown-arrow").forEach(a => {
-        a.style.transform = "rotate(0deg)";
-      });
-      document.querySelectorAll(".auto-custom-dropdown-btn").forEach(b => {
-        b.classList.remove("open");
-      });
-      document.querySelectorAll(".auto-custom-dropdown-wrapper").forEach(w => {
-        w.classList.remove("open");
-        w.style.zIndex = "";
-      });
-      document.querySelectorAll(".auto-device-card").forEach(c => {
-        c.classList.remove("dropdown-active");
-        c.style.zIndex = "";
-      });
+    // Click is outside: close all custom dropdowns immediately
+    closeAllAutoCustomDropdowns();
+  }, true);
+
+  // Fallback click listener for environments without pointer events
+  document.addEventListener("click", function(e) {
+    const openMenu = document.querySelector('.auto-custom-dropdown-menu[style*="display: block"]');
+    if (!openMenu) return;
+
+    const target = e.target;
+    const activeWrap = openMenu.closest(".auto-custom-dropdown-wrapper");
+    if (activeWrap && activeWrap.contains(target)) {
+      return;
     }
-  });
+    closeAllAutoCustomDropdowns();
+  }, true);
 
   document.addEventListener("keydown", function(e) {
     if (e.key === "Escape") {
-      document.querySelectorAll(".auto-custom-dropdown-menu").forEach(m => {
-        m.style.display = "none";
-      });
-      document.querySelectorAll(".auto-custom-dropdown-arrow").forEach(a => {
-        a.style.transform = "rotate(0deg)";
-      });
-      document.querySelectorAll(".auto-custom-dropdown-btn").forEach(b => {
-        b.classList.remove("open");
-      });
-      document.querySelectorAll(".auto-custom-dropdown-wrapper").forEach(w => {
-        w.classList.remove("open");
-        w.style.zIndex = "";
-      });
-      document.querySelectorAll(".auto-device-card").forEach(c => {
-        c.classList.remove("dropdown-active");
-        c.style.zIndex = "";
-      });
+      closeAllAutoCustomDropdowns();
     }
+  });
+
+  window.addEventListener("resize", function() {
+    closeAllAutoCustomDropdowns();
   });
 }
 
@@ -6129,15 +6119,8 @@ function renderAutoDevicesUI() {
   }
 
   container.innerHTML = html;
-  if (Array.isArray(autoDevicesState)) {
-    autoDevicesState.forEach(d => {
-      if (d && d.id) {
-        syncAutoCustomDropdownUI("autoDeviceType_" + d.id);
-        syncAutoCustomDropdownUI("autoNumPointsSelect_" + d.id);
-        syncAutoCustomDropdownUI("autoCartridgeCap_" + d.id);
-        syncAutoCustomDropdownUI("autoDispensePeriod_" + d.id);
-      }
-    });
+  if (typeof syncAllAutoCustomDropdowns === "function") {
+    syncAllAutoCustomDropdowns();
   }
   if (typeof updateAutomationHeaderImages === "function") {
     updateAutomationHeaderImages();
@@ -9584,23 +9567,9 @@ function closeMobileSidebar() {
 function switchPage(pageId) {
   closeMobileSidebar();
   // Clean up any open custom dropdown menus, arrows, buttons, and elevation
-  document.querySelectorAll(".auto-custom-dropdown-menu").forEach(m => {
-    m.style.display = "none";
-  });
-  document.querySelectorAll(".auto-custom-dropdown-arrow").forEach(a => {
-    a.style.transform = "rotate(0deg)";
-  });
-  document.querySelectorAll(".auto-custom-dropdown-btn").forEach(b => {
-    b.classList.remove("open");
-  });
-  document.querySelectorAll(".auto-custom-dropdown-wrapper").forEach(w => {
-    w.classList.remove("open");
-    w.style.zIndex = "";
-  });
-  document.querySelectorAll(".auto-device-card").forEach(c => {
-    c.classList.remove("dropdown-active");
-    c.style.zIndex = "";
-  });
+  if (typeof closeAllAutoCustomDropdowns === "function") {
+    closeAllAutoCustomDropdowns();
+  }
   // Reset scrollpositie naar de top van de pagina
   window.scrollTo(0, 0);
   const mainContent = document.querySelector(".main-content");
