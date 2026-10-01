@@ -981,6 +981,12 @@ function loadAutomationStateFromLocalStorage(force) {
       if (lfEl) lfEl.value = savedLifetimeFactor;
     }
 
+    const savedRoiManualMode = localStorage.getItem("app_field_roiManualModeSelect") || localStorage.getItem("roi_manual_mode");
+    if (savedRoiManualMode) {
+      const rmmEl = document.getElementById("roiManualModeSelect");
+      if (rmmEl) rmmEl.value = savedRoiManualMode;
+    }
+
     const savedStateJson = localStorage.getItem("auto_devices_state");
     if (savedStateJson) {
       const parsed = JSON.parse(savedStateJson);
@@ -18483,6 +18489,12 @@ function updateRoiAutomationPage() {
   // 3. Card 1: Manuele Smering (Met Interflon vs Met Huidig Product)
   const manualModeSelect = document.getElementById("roiManualModeSelect");
   const manualMode = manualModeSelect ? manualModeSelect.value : "interflon";
+  if (manualModeSelect) {
+    try {
+      localStorage.setItem("app_field_roiManualModeSelect", manualModeSelect.value);
+      localStorage.setItem("roi_manual_mode", manualModeSelect.value);
+    } catch(e) {}
+  }
 
   const roiManCardContainer = document.getElementById("roiManCardContainer");
   const roiManCardHeader = document.getElementById("roiManCardHeader");
@@ -18661,8 +18673,80 @@ function updateRoiAutomationPage() {
     autoDowntimeCostEl.style.color = "#059669";
   }
 
-  if (manualMode === "huidig") {
-    // 1. Theme: Blue / Slate
+  if (!hasBearing) {
+    manualGreaseCost = 0;
+    manualLaborHours = 0;
+    manualLaborCost = 0;
+    manualRepairCost = 0;
+    manualMatCost = 0;
+    manualDowntimeCost = 0;
+    manualTotalCost = 0;
+    manualYearlyMl = 0;
+    if (manualMode === "huidig") {
+      if (roiManCardContainer) roiManCardContainer.style.borderColor = "#bae6fd";
+      if (roiManCardHeader) {
+        roiManCardHeader.style.backgroundColor = "#f0f9ff";
+        roiManCardHeader.style.borderBottomColor = "#bae6fd";
+      }
+      var lang = currentLang || "nl";
+      if (roiManCardTitle) {
+        roiManCardTitle.style.color = "#0369a1";
+        roiManCardTitle.textContent = lang === "fr" ? "Lubrification Manuelle" : (lang === "en" ? "Manual Lubrication" : "Manuele Smering");
+      }
+      if (roiManCardSubtext) {
+        roiManCardSubtext.style.color = "#0284c7";
+        roiManCardSubtext.textContent = lang === "fr" ? "Avec produit actuel (sur base annuelle)" : (lang === "en" ? "With current product (annual basis)" : "Met huidig product (op jaarbasis)");
+      }
+      if (roiManLaborCost) roiManLaborCost.style.color = "#0284c7";
+      if (roiManLifetimeValEl) roiManLifetimeValEl.style.color = "#0284c7";
+      if (manRepairCostEl) manRepairCostEl.style.color = "#0284c7";
+      if (manMatCostEl) manMatCostEl.style.color = "#0284c7";
+      if (manDowntimeCostEl) manDowntimeCostEl.style.color = "#0284c7";
+      if (roiManTotalBox) {
+        roiManTotalBox.style.backgroundColor = "#f0f9ff";
+        roiManTotalBox.style.borderColor = "#bae6fd";
+      }
+      if (roiManTotalTitle) roiManTotalTitle.style.color = "#0369a1";
+      if (roiManTotalCost) roiManTotalCost.style.color = "#0369a1";
+      if (manualModeSelect) {
+        manualModeSelect.style.backgroundColor = "rgba(3, 105, 161, 0.08)";
+        manualModeSelect.style.color = "#0369a1";
+        manualModeSelect.style.borderColor = "#bae6fd";
+      }
+    } else {
+      if (roiManCardContainer) roiManCardContainer.style.borderColor = "#fee2e2";
+      if (roiManCardHeader) {
+        roiManCardHeader.style.backgroundColor = "#fef2f2";
+        roiManCardHeader.style.borderBottomColor = "#fecaca";
+      }
+      var lang = currentLang || "nl";
+      if (roiManCardTitle) {
+        roiManCardTitle.style.color = "#991b1b";
+        roiManCardTitle.textContent = lang === "fr" ? "Lubrification Manuelle" : (lang === "en" ? "Manual Lubrication" : "Manuele Smering");
+      }
+      if (roiManCardSubtext) {
+        roiManCardSubtext.style.color = "#b91c1c";
+        roiManCardSubtext.textContent = lang === "fr" ? "Avec produit Interflon (sur base annuelle)" : (lang === "en" ? "With Interflon product (annual basis)" : "Met Interflon product (op jaarbasis)");
+      }
+      if (roiManLaborCost) roiManLaborCost.style.color = "#dc2626";
+      if (roiManLifetimeValEl) roiManLifetimeValEl.style.color = "#dc2626";
+      if (manRepairCostEl) manRepairCostEl.style.color = "#dc2626";
+      if (manMatCostEl) manMatCostEl.style.color = "#dc2626";
+      if (manDowntimeCostEl) manDowntimeCostEl.style.color = "#dc2626";
+      if (roiManTotalBox) {
+        roiManTotalBox.style.backgroundColor = "#fff1f2";
+        roiManTotalBox.style.borderColor = "#fecdd3";
+      }
+      if (roiManTotalTitle) roiManTotalTitle.style.color = "#9f1239";
+      if (roiManTotalCost) roiManTotalCost.style.color = "#9f1239";
+      if (manualModeSelect) {
+        manualModeSelect.style.backgroundColor = "rgba(153, 27, 27, 0.08)";
+        manualModeSelect.style.color = "#991b1b";
+        manualModeSelect.style.borderColor = "#fecaca";
+      }
+    }
+  } else if (manualMode === "huidig") {
+    // 1. Theme: Blue / Slate (Huidig Product)
     if (roiManCardContainer) roiManCardContainer.style.borderColor = "#bae6fd";
     if (roiManCardHeader) {
       roiManCardHeader.style.backgroundColor = "#f0f9ff";
@@ -18675,8 +18759,7 @@ function updateRoiAutomationPage() {
     }
     if (roiManCardSubtext) {
       roiManCardSubtext.style.color = "#0284c7";
-      var lang = currentLang || "nl";
-      roiManCardSubtext.textContent = lang === "fr" ? "Avec produit actuel (base annuelle)" : (lang === "en" ? "With current product (annual basis)" : "Met huidig product (op jaarbasis)");
+      roiManCardSubtext.textContent = lang === "fr" ? "Avec produit actuel (sur base annuelle)" : (lang === "en" ? "With current product (annual basis)" : "Met huidig product (op jaarbasis)");
     }
     if (roiManLaborCost) roiManLaborCost.style.color = "#0284c7";
     if (roiManLifetimeValEl) roiManLifetimeValEl.style.color = "#0284c7";
@@ -18710,15 +18793,15 @@ function updateRoiAutomationPage() {
       else manualGreasePricePerLiter = 20.00;
     }
 
-    const freqElId = (manualMode === "huidig") ? "omProdFreq1" : "omProdFreq2";
-    const chainFreqElId = (manualMode === "huidig") ? "chainOmProdFreq1" : "chainOmProdFreq2";
+    const freqElId = "omProdFreq1";
+    const chainFreqElId = "chainOmProdFreq1";
     const currentFreqInput = document.getElementById(freqElId) || document.getElementById(chainFreqElId) || document.getElementById("tcoFreqCurrentInput");
     if (currentFreqInput && !isNaN(parseFloat(currentFreqInput.value)) && parseFloat(currentFreqInput.value) > 0) {
       manualBeurtenPerYear = parseFloat(currentFreqInput.value);
     } else {
-      const pv = (manualMode === "huidig") ? pVal("ProdFreq1") : pVal("ProdFreq2");
+      const pv = pVal("ProdFreq1");
       if (!isNaN(pv) && pv > 0) manualBeurtenPerYear = pv;
-      else manualBeurtenPerYear = (manualMode === "huidig" ? 26.0 : 13.1);
+      else manualBeurtenPerYear = 26.0;
     }
 
     const currentConsInput = document.getElementById("omProdCons1") || document.getElementById("chainOmProdCons1") || document.getElementById("tcoQtyCurrentInput");
@@ -18734,17 +18817,6 @@ function updateRoiAutomationPage() {
     manualLaborHours = numBearingsForTco * manualBeurtenPerYear * (workTimeMinutes / 60);
     manualLaborCost = manualLaborHours * hourlyRate;
     manualTotalCost = manualGreaseCost + manualLaborCost + manualRepairCost + manualMatCost + manualDowntimeCost;
-  }
-
-  if (!hasBearing) {
-    manualGreaseCost = 0;
-    manualLaborHours = 0;
-    manualLaborCost = 0;
-    manualRepairCost = 0;
-    manualMatCost = 0;
-    manualDowntimeCost = 0;
-    manualTotalCost = 0;
-    manualYearlyMl = 0;
   } else {
     // 1. Theme: Red / Rose (Default Interflon)
     if (roiManCardContainer) roiManCardContainer.style.borderColor = "#fee2e2";
@@ -18759,8 +18831,7 @@ function updateRoiAutomationPage() {
     }
     if (roiManCardSubtext) {
       roiManCardSubtext.style.color = "#b91c1c";
-      var lang = currentLang || "nl";
-      roiManCardSubtext.textContent = lang === "fr" ? "Avec produit Interflon (base annuelle)" : (lang === "en" ? "With Interflon product (annual basis)" : "Met Interflon product (op jaarbasis)");
+      roiManCardSubtext.textContent = lang === "fr" ? "Avec produit Interflon (sur base annuelle)" : (lang === "en" ? "With Interflon product (annual basis)" : "Met Interflon product (op jaarbasis)");
     }
     if (roiManLaborCost) roiManLaborCost.style.color = "#dc2626";
     if (roiManLifetimeValEl) roiManLifetimeValEl.style.color = "#dc2626";
