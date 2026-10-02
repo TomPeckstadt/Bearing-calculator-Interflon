@@ -6506,7 +6506,7 @@
     window.renderDistancesOverview = renderDistancesOverview;
     window.drawBearingLayout = drawBearingLayout;
 
-    function refreshSurveyBearingsDailyNeed(newFactor) {
+    function refreshSurveyBearingsDailyNeed(newFactor, isExternalSync) {
       if (typeof newFactor === 'number' && !isNaN(newFactor) && newFactor >= 1) {
         window.__currentSurveyMicPolFactor = newFactor;
       } else {
@@ -6535,7 +6535,8 @@
         openDeviceAdviceModal();
       }
 
-      if (typeof saveRasterConfigToLocalStorage === 'function' && !window.__questionnaireRestoring && !window.__isClearingQuestionnaire) {
+      // STRICT LOOP-BREAKER: Never trigger auto-save if called from external sync, factor sync, or restore
+      if (!isExternalSync && typeof saveRasterConfigToLocalStorage === 'function' && !window.__questionnaireRestoring && !window.__isClearingQuestionnaire) {
         saveRasterConfigToLocalStorage(true);
       }
     }
@@ -6822,14 +6823,14 @@
     window.applyPastedCoordinates = applyPastedCoordinates;
 
     // --- SAVE RASTER CONFIGURATION FOR AUTOMATION IMPORT ---
-    function saveRasterConfigToLocalStorage(skipBroadcast) {
+    function saveRasterConfigToLocalStorage(skipBroadcast, skipStorageWrite) {
       if (window.__isSavingRasterConfig) return null;
-      if (window.__isClearingQuestionnaire || window.__questionnaireRestoring || (window.__lastClearTime && Date.now() - window.__lastClearTime < 5000)) {
+      if (window.__isClearingQuestionnaire || (!skipStorageWrite && window.__questionnaireRestoring) || (window.__lastClearTime && Date.now() - window.__lastClearTime < 5000)) {
         return null;
       }
       window.__isSavingRasterConfig = true;
       try {
-        if (window.__isClearingQuestionnaire || window.__questionnaireRestoring || (window.__lastClearTime && Date.now() - window.__lastClearTime < 5000)) {
+        if (window.__isClearingQuestionnaire || (!skipStorageWrite && window.__questionnaireRestoring) || (window.__lastClearTime && Date.now() - window.__lastClearTime < 5000)) {
           return null;
         }
 
@@ -7099,11 +7100,41 @@
                                bearings.length > 1;
 
           if (hasUserInput && !window.__isClearingQuestionnaire && !window.__questionnaireRestoring) {
-            localStorage.setItem('interflon_survey_raster_config', JSON.stringify(configToSave));
+            // Deduplication: compute stable content signature without volatile timestamps
+            const contentSignature = JSON.stringify({
+              mach: machineName,
+              mic: currentSurveyMicPol,
+              gen: generalData,
+              con: contactData,
+              act: activeBearingsData,
+              sp: isSinglePointSetup,
+              devs: deviceConfigs,
+              brgs: bearings,
+              d2: (typeof bearingDataMapSec2 !== 'undefined') ? bearingDataMapSec2 : null,
+              d3: (typeof bearingDataMapSec3 !== 'undefined') ? bearingDataMapSec3 : null,
+              d4: (typeof bearingDataMapSec4 !== 'undefined') ? bearingDataMapSec4 : null,
+              cp: (typeof showCentralPoint === 'boolean') ? showCentralPoint : true,
+              bd: (typeof showBearingDistances === 'boolean') ? showBearingDistances : false,
+              pos: (typeof bearingPositions !== 'undefined') ? bearingPositions : null,
+              rdev: (typeof devices !== 'undefined') ? devices : null
+            });
+
+            if (window.__lastSavedRasterConfigSignature === contentSignature) {
+              return configToSave;
+            }
+            window.__lastSavedRasterConfigSignature = contentSignature;
+
+            if (!skipStorageWrite) {
+              const cfgStr = JSON.stringify(configToSave);
+              if (localStorage.getItem('interflon_survey_raster_config') !== cfgStr) {
+                localStorage.setItem('interflon_survey_raster_config', cfgStr);
+              }
+            }
+
             fullData = {
               fileType: 'Interflon_Smeeranalyse_Vragenlijst',
               version: '1.0',
-              exportDate: new Date().toISOString(),
+              exportDate: window.__lastSavedExportDate || new Date().toISOString(),
               micPolFactor: currentSurveyMicPol,
               general: generalData,
               contact: contactData,
@@ -7127,12 +7158,19 @@
               surveyRasterConfig: configToSave
             };
             window.__lastSavedExportDate = fullData.exportDate;
-            localStorage.setItem('interflon_questionnaire_full_data', JSON.stringify(fullData));
-            localStorage.setItem('interflon_last_questionnaire_data', JSON.stringify(fullData));
+            if (!skipStorageWrite) {
+              const fullDataStr = JSON.stringify(fullData);
+              if (localStorage.getItem('interflon_questionnaire_full_data') !== fullDataStr) {
+                localStorage.setItem('interflon_questionnaire_full_data', fullDataStr);
+              }
+              if (localStorage.getItem('interflon_last_questionnaire_data') !== fullDataStr) {
+                localStorage.setItem('interflon_last_questionnaire_data', fullDataStr);
+              }
+            }
           }
         } catch (errFull) {}
 
-        if (!skipBroadcast && !window.__questionnaireRestoring) {
+        if (!skipBroadcast && !skipStorageWrite && !window.__questionnaireRestoring) {
           try {
             if (typeof BroadcastChannel !== 'undefined') {
               if (!window.__surveySyncBroadcastChannel) {
@@ -7885,7 +7923,7 @@
           sec4: (typeof activeBearingSec4 !== "undefined") ? activeBearingSec4 : 'A'
         },
         raster: rasterData,
-        surveyRasterConfig: (typeof saveRasterConfigToLocalStorage === 'function' ? saveRasterConfigToLocalStorage() : null)
+        surveyRasterConfig: (typeof saveRasterConfigToLocalStorage === 'function' ? saveRasterConfigToLocalStorage(true, true) : null)
       };
     }
     window.generateQuestionnaireExportPackage = generateQuestionnaireExportPackage;
@@ -8327,37 +8365,45 @@
         // Keep window.__questionnaireRestoring = true until after local persist finishes
       }
 
-      // 9. Persist configuration immediately to localStorage so Automatisering has it instantly (skipBroadcast = true)
-      if (typeof saveRasterConfigToLocalStorage === 'function') {
-        saveRasterConfigToLocalStorage(true);
-      }
-      try {
-        localStorage.setItem('interflon_questionnaire_full_data', JSON.stringify(data));
-        const activeDossierMach = (localStorage.getItem('interflon_active_dossier_machine') || '').trim().toLowerCase();
-        const incomingMach = (data.general && data.general.machineName ? data.general.machineName : '').trim().toLowerCase();
-        const shouldUpdateGlobalTech = isUserImport || !activeDossierMach || (activeDossierMach === incomingMach);
+      // 9. Persist configuration ONLY on user import (skip on external sync to avoid echo loops)
+      if (isUserImport) {
+        if (typeof saveRasterConfigToLocalStorage === 'function') {
+          saveRasterConfigToLocalStorage(true);
+        }
+        try {
+          const dataStr = JSON.stringify(data);
+          if (localStorage.getItem('interflon_questionnaire_full_data') !== dataStr) {
+            localStorage.setItem('interflon_questionnaire_full_data', dataStr);
+          }
+          const activeDossierMach = (localStorage.getItem('interflon_active_dossier_machine') || '').trim().toLowerCase();
+          const incomingMach = (data.general && data.general.machineName ? data.general.machineName : '').trim().toLowerCase();
+          const shouldUpdateGlobalTech = !activeDossierMach || (activeDossierMach === incomingMach);
 
-        if (shouldUpdateGlobalTech) {
-          if (data.contact) {
-            if (data.contact.clientCompany) localStorage.setItem('client_company', data.contact.clientCompany);
-            if (data.contact.clientContact) localStorage.setItem('client_contact', data.contact.clientContact);
-            if (data.contact.clientEmail) localStorage.setItem('client_email', data.contact.clientEmail);
+          if (shouldUpdateGlobalTech) {
+            if (data.contact) {
+              if (data.contact.clientCompany) localStorage.setItem('client_company', data.contact.clientCompany);
+              if (data.contact.clientContact) localStorage.setItem('client_contact', data.contact.clientContact);
+              if (data.contact.clientEmail) localStorage.setItem('client_email', data.contact.clientEmail);
+            }
+            if (data.general && data.general.machineName) {
+              localStorage.setItem('tech_machine', data.general.machineName);
+            }
           }
-          if (data.general && data.general.machineName) {
-            localStorage.setItem('tech_machine', data.general.machineName);
+          if (typeof BroadcastChannel !== 'undefined') {
+            if (!window.__surveySyncBroadcastChannel) {
+              window.__surveySyncBroadcastChannel = new BroadcastChannel('interflon_questionnaire_sync');
+            }
+            window.__surveySyncBroadcastChannel.postMessage({ type: 'QUESTIONNAIRE_IMPORTED', data: data, bearings: data.bearings, fullData: data, source: 'vragenlijst_user_import' });
           }
+        } catch (e) {
+          console.warn('Could not persist questionnaire to localStorage', e);
         }
-        if (isUserImport && typeof BroadcastChannel !== 'undefined') {
-          if (!window.__surveySyncBroadcastChannel) {
-            window.__surveySyncBroadcastChannel = new BroadcastChannel('interflon_questionnaire_sync');
-          }
-          window.__surveySyncBroadcastChannel.postMessage({ type: 'QUESTIONNAIRE_IMPORTED', data: data, bearings: data.bearings, fullData: data, source: 'vragenlijst_user_import' });
+      } else {
+        if (typeof saveRasterConfigToLocalStorage === 'function') {
+          saveRasterConfigToLocalStorage(true, true);
         }
-      } catch (e) {
-        console.warn('Could not persist questionnaire to localStorage', e);
-      } finally {
-        window.__questionnaireRestoring = false;
       }
+      window.__questionnaireRestoring = false;
 
       if (isUserImport) {
         try {
@@ -8752,7 +8798,9 @@
       setValidSelection(selector2, prevSelected2, bearingDataMapSec2, v => activeBearingSec2 = v, loadSection2DataForBearing);
       setValidSelection(selector3, prevSelected3, bearingDataMapSec3, v => activeBearingSec3 = v, loadSection3DataForBearing);
       setValidSelection(selector4, prevSelected4, bearingDataMapSec4, v => activeBearingSec4 = v, loadSection4DataForBearing);
-      if (typeof saveRasterConfigToLocalStorage === 'function') saveRasterConfigToLocalStorage();
+      if (typeof saveRasterConfigToLocalStorage === 'function' && !window.__questionnaireRestoring && !window.__isClearingQuestionnaire) {
+        saveRasterConfigToLocalStorage();
+      }
     }
 
     function addBearingRow() {
@@ -9221,24 +9269,47 @@
 
       try {
         if (activeBearingSec2) {
-          localStorage.setItem("app_field_chkSnlHousing_" + activeBearingSec2, isSnlVal ? "true" : "false");
-          if (snlTypeVal) localStorage.setItem("app_field_selSnlType_" + activeBearingSec2, snlTypeVal);
-          if (snlFillVal) localStorage.setItem("app_field_selSnlFillPercent_" + activeBearingSec2, snlFillVal);
-          if (snlRelubVal) localStorage.setItem("app_field_selSnlRelubPosition_" + activeBearingSec2, snlRelubVal);
-        }
-        if (typeof BroadcastChannel !== 'undefined') {
-          if (!window.__surveySyncBroadcastChannel) {
-            window.__surveySyncBroadcastChannel = new BroadcastChannel('interflon_questionnaire_sync');
+          const k1 = "app_field_chkSnlHousing_" + activeBearingSec2;
+          const v1 = isSnlVal ? "true" : "false";
+          const k2 = "app_field_selSnlType_" + activeBearingSec2;
+          const v2 = snlTypeVal || '';
+          const k3 = "app_field_selSnlFillPercent_" + activeBearingSec2;
+          const v3 = snlFillVal || '40';
+          const k4 = "app_field_selSnlRelubPosition_" + activeBearingSec2;
+          const v4 = snlRelubVal || 'side';
+
+          const hasChanged = (
+            localStorage.getItem(k1) !== v1 ||
+            (v2 && localStorage.getItem(k2) !== v2) ||
+            localStorage.getItem(k3) !== v3 ||
+            localStorage.getItem(k4) !== v4
+          );
+
+          if (hasChanged) {
+            localStorage.setItem(k1, v1);
+            if (v2) localStorage.setItem(k2, v2);
+            localStorage.setItem(k3, v3);
+            localStorage.setItem(k4, v4);
+
+            if (typeof BroadcastChannel !== 'undefined') {
+              if (!window.__surveySyncBroadcastChannel) {
+                window.__surveySyncBroadcastChannel = new BroadcastChannel('interflon_questionnaire_sync');
+              }
+              const snlPayload = JSON.stringify({
+                type: 'SNL_PARAM_UPDATED',
+                source: 'vragenlijst',
+                letter: activeBearingSec2,
+                isSnl: isSnlVal,
+                snlType: snlTypeVal,
+                snlFill: snlFillVal,
+                snlRelub: snlRelubVal
+              });
+              if (window.__lastSurveySnlBroadcast !== snlPayload) {
+                window.__lastSurveySnlBroadcast = snlPayload;
+                window.__surveySyncBroadcastChannel.postMessage(JSON.parse(snlPayload));
+              }
+            }
           }
-          window.__surveySyncBroadcastChannel.postMessage({
-            type: 'SNL_PARAM_UPDATED',
-            source: 'vragenlijst',
-            letter: activeBearingSec2,
-            isSnl: isSnlVal,
-            snlType: snlTypeVal,
-            snlFill: snlFillVal,
-            snlRelub: snlRelubVal
-          });
         }
       } catch (e) {}
 
@@ -10190,7 +10261,7 @@
       if (typeof drawBearingLayout === "function") setTimeout(drawBearingLayout, 150);
       setTimeout(() => {
         if (typeof refreshSurveyBearingsDailyNeed === "function") {
-          refreshSurveyBearingsDailyNeed();
+          refreshSurveyBearingsDailyNeed(undefined, true);
         }
       }, 200);
 
@@ -10256,7 +10327,7 @@
         try {
           const lsFactor = parseFloat(localStorage.getItem('calc_micpol_factor') || localStorage.getItem('app_field_inputMicPolFactor'));
           if (!isNaN(lsFactor) && lsFactor >= 1 && lsFactor !== curFactor) {
-            refreshSurveyBearingsDailyNeed(lsFactor);
+            refreshSurveyBearingsDailyNeed(lsFactor, true);
           }
         } catch(e) {}
       } else if (document.visibilityState === 'hidden') {
@@ -10281,7 +10352,7 @@
       try {
         const lsFactor = parseFloat(localStorage.getItem('calc_micpol_factor') || localStorage.getItem('app_field_inputMicPolFactor'));
         if (!isNaN(lsFactor) && lsFactor >= 1 && lsFactor !== curFactor) {
-          refreshSurveyBearingsDailyNeed(lsFactor);
+          refreshSurveyBearingsDailyNeed(lsFactor, true);
         }
       } catch(e) {}
     });
@@ -10313,9 +10384,9 @@
           if (ev.data.type === 'MICPOL_FACTOR_UPDATED' || ev.data.type === 'CALCULATOR_PARAMS_UPDATED') {
             const factor = parseFloat(ev.data.micPolFactor);
             if (!isNaN(factor) && factor >= 1) {
-              refreshSurveyBearingsDailyNeed(factor);
+              refreshSurveyBearingsDailyNeed(factor, true);
             } else {
-              refreshSurveyBearingsDailyNeed();
+              refreshSurveyBearingsDailyNeed(undefined, true);
             }
             return;
           }
@@ -10344,7 +10415,6 @@
                 const qSnlRelub = document.getElementById('q_snl_relub');
                 if (qSnlRelub && ev.data.snlRelub) qSnlRelub.value = ev.data.snlRelub;
               }
-              if (typeof triggerSurveyAutoSave === 'function') triggerSurveyAutoSave();
             }
             return;
           }
@@ -10355,6 +10425,7 @@
               console.log("Cross-tab sync: Questionnaire replaced via opbrengstmodel import");
               window.__questionnaireRestoring = true;
               window.__lastRestoredExportDate = targetData.exportDate || '';
+              window.__lastSavedExportDate = targetData.exportDate || '';
               restoreQuestionnaireDOM(targetData, false);
             }
             return;
@@ -10380,7 +10451,7 @@
               console.warn(`Ignoring REQUEST_LATEST_CONFIG because DOM is '${curDomMachine}' while calculator is '${activeCalcMachine}'`);
               return;
             }
-            const cfg = (typeof saveRasterConfigToLocalStorage === 'function') ? saveRasterConfigToLocalStorage(true) : null;
+            const cfg = (typeof saveRasterConfigToLocalStorage === 'function') ? saveRasterConfigToLocalStorage(true, true) : null;
             const rows = document.querySelectorAll('.bearing-row');
             const bearings = [];
             rows.forEach((r, idx) => {
@@ -10421,9 +10492,9 @@
       if (e.key === 'calc_micpol_factor' || e.key === 'app_field_inputMicPolFactor') {
         const factor = parseFloat(e.newValue);
         if (!isNaN(factor) && factor >= 1) {
-          refreshSurveyBearingsDailyNeed(factor);
+          refreshSurveyBearingsDailyNeed(factor, true);
         } else {
-          refreshSurveyBearingsDailyNeed();
+          refreshSurveyBearingsDailyNeed(undefined, true);
         }
         return;
       }
@@ -10452,6 +10523,7 @@
               console.log("Storage event sync: Questionnaire replaced via localStorage update");
               window.__questionnaireRestoring = true;
               window.__lastRestoredExportDate = targetData.exportDate || '';
+              window.__lastSavedExportDate = targetData.exportDate || '';
               restoreQuestionnaireDOM(targetData, false);
             }
           } catch(err) {}
