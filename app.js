@@ -3802,6 +3802,16 @@ window.clearSurveyBearingSelection = clearSurveyBearingSelection;
 // overal direct worden doorgevoerd in Smeercalculatie, Opbrengstmodel en ROI.
 // Reentrancy-beveiligd en zonder synthetische event-cascades of UI-bevriezingen.
 // =========================================================================
+function safeSetStorage(key, val) {
+  try {
+    const s = (val === null || val === undefined) ? '' : String(val);
+    if (localStorage.getItem(key) !== s) {
+      localStorage.setItem(key, s);
+    }
+  } catch(e) {}
+}
+window.safeSetStorage = safeSetStorage;
+
 function syncAllQuestionnaireDataToCalculator(data, explicitTargetLetter) {
   if (window.__isSyncingQuestionnaire) return;
   window.__isSyncingQuestionnaire = true;
@@ -3936,8 +3946,8 @@ function syncAllQuestionnaireDataToCalculator(data, explicitTargetLetter) {
     window.currentSurveyBearingLetter = targetLetter;
     window.currentActiveSurveyBearingLetter = targetLetter;
     window.activeTcoBearingSource = "survey_" + targetLetter;
-    try { localStorage.setItem("interflon_active_survey_letter", targetLetter); } catch(e) {}
-    try { localStorage.setItem("active_tco_bearing_source", "survey_" + targetLetter); } catch(e) {}
+    safeSetStorage("interflon_active_survey_letter", targetLetter);
+    safeSetStorage("active_tco_bearing_source", "survey_" + targetLetter);
 
     // Synchroniseer UI dropdowns naar targetLetter
     const mainSel = document.getElementById("surveyBearingSelect");
@@ -4019,34 +4029,28 @@ function syncAllQuestionnaireDataToCalculator(data, explicitTargetLetter) {
         if (omM) omM.value = machToSet;
         const chainM = document.getElementById("chainOmTechMachine");
         if (chainM) chainM.value = machToSet;
-        try {
-          localStorage.setItem("tech_machine", machToSet);
-          localStorage.setItem("app_field_techMachineInput", machToSet);
-          localStorage.setItem("app_field_omTechMachine", machToSet);
-          localStorage.setItem("app_field_chainOmTechMachine", machToSet);
-        } catch(e) {}
+        safeSetStorage("tech_machine", machToSet);
+        safeSetStorage("app_field_techMachineInput", machToSet);
+        safeSetStorage("app_field_omTechMachine", machToSet);
+        safeSetStorage("app_field_chainOmTechMachine", machToSet);
       }
       if (genData.machineBrand) {
         const bIn = document.getElementById("techBrandInput");
         if (bIn) bIn.value = genData.machineBrand;
         const omB = document.getElementById("omTechBrand");
         if (omB) omB.value = genData.machineBrand;
-        try {
-          localStorage.setItem("tech_brand", genData.machineBrand);
-          localStorage.setItem("app_field_techBrandInput", genData.machineBrand);
-          localStorage.setItem("app_field_omTechBrand", genData.machineBrand);
-        } catch(e) {}
+        safeSetStorage("tech_brand", genData.machineBrand);
+        safeSetStorage("app_field_techBrandInput", genData.machineBrand);
+        safeSetStorage("app_field_omTechBrand", genData.machineBrand);
       }
       if (genData.application) {
         const aIn = document.getElementById("techAppInput");
         if (aIn) aIn.value = genData.application;
         const omA = document.getElementById("omTechApp");
         if (omA) omA.value = genData.application;
-        try {
-          localStorage.setItem("tech_app", genData.application);
-          localStorage.setItem("app_field_techAppInput", genData.application);
-          localStorage.setItem("app_field_omTechApp", genData.application);
-        } catch(e) {}
+        safeSetStorage("tech_app", genData.application);
+        safeSetStorage("app_field_techAppInput", genData.application);
+        safeSetStorage("app_field_omTechApp", genData.application);
       }
       const rawMachCount = parseCleanNum(genData.machineCount);
       if (rawMachCount !== null && rawMachCount > 0) {
@@ -4054,10 +4058,8 @@ function syncAllQuestionnaireDataToCalculator(data, explicitTargetLetter) {
         if (numMachIn) numMachIn.value = rawMachCount;
         const chainNumMachIn = document.getElementById("chainOmSharedNumMachines");
         if (chainNumMachIn) chainNumMachIn.value = rawMachCount;
-        try {
-          localStorage.setItem("app_field_omSharedNumMachines", rawMachCount);
-          localStorage.setItem("app_field_chainOmSharedNumMachines", rawMachCount);
-        } catch(e) {}
+        safeSetStorage("app_field_omSharedNumMachines", rawMachCount);
+        safeSetStorage("app_field_chainOmSharedNumMachines", rawMachCount);
       }
     }
 
@@ -4068,33 +4070,27 @@ function syncAllQuestionnaireDataToCalculator(data, explicitTargetLetter) {
         if (cIn) cIn.value = contactData.clientCompany;
         const omC = document.getElementById("omClientCompany");
         if (omC) omC.value = contactData.clientCompany;
-        try {
-          localStorage.setItem("client_company", contactData.clientCompany);
-          localStorage.setItem("app_field_clientCompanyInput", contactData.clientCompany);
-          localStorage.setItem("app_field_omClientCompany", contactData.clientCompany);
-        } catch(e) {}
+        safeSetStorage("client_company", contactData.clientCompany);
+        safeSetStorage("app_field_clientCompanyInput", contactData.clientCompany);
+        safeSetStorage("app_field_omClientCompany", contactData.clientCompany);
       }
       if (contactData.clientContact) {
         const ccIn = document.getElementById("clientContactInput");
         if (ccIn) ccIn.value = contactData.clientContact;
         const omCC = document.getElementById("omClientContact");
         if (omCC) omCC.value = contactData.clientContact;
-        try {
-          localStorage.setItem("client_contact", contactData.clientContact);
-          localStorage.setItem("app_field_clientContactInput", contactData.clientContact);
-          localStorage.setItem("app_field_omClientContact", contactData.clientContact);
-        } catch(e) {}
+        safeSetStorage("client_contact", contactData.clientContact);
+        safeSetStorage("app_field_clientContactInput", contactData.clientContact);
+        safeSetStorage("app_field_omClientContact", contactData.clientContact);
       }
       if (contactData.clientEmail) {
         const ceIn = document.getElementById("clientEmailInput");
         if (ceIn) ceIn.value = contactData.clientEmail;
         const omCE = document.getElementById("omClientEmail");
         if (omCE) omCE.value = contactData.clientEmail;
-        try {
-          localStorage.setItem("client_email", contactData.clientEmail);
-          localStorage.setItem("app_field_clientEmailInput", contactData.clientEmail);
-          localStorage.setItem("app_field_omClientEmail", contactData.clientEmail);
-        } catch(e) {}
+        safeSetStorage("client_email", contactData.clientEmail);
+        safeSetStorage("app_field_clientEmailInput", contactData.clientEmail);
+        safeSetStorage("app_field_omClientEmail", contactData.clientEmail);
       }
     }
 
@@ -4107,10 +4103,8 @@ function syncAllQuestionnaireDataToCalculator(data, explicitTargetLetter) {
       if (wtIn) wtIn.value = worktimeMin;
       const cWtIn = document.getElementById("chainOmSharedWorktime");
       if (cWtIn) cWtIn.value = worktimeMin;
-      try {
-        localStorage.setItem("app_field_omSharedWorktime", worktimeMin);
-        localStorage.setItem("app_field_chainOmSharedWorktime", worktimeMin);
-      } catch(e) {}
+      safeSetStorage("app_field_omSharedWorktime", worktimeMin);
+      safeSetStorage("app_field_chainOmSharedWorktime", worktimeMin);
     }
 
     // --- Punt 21: Uurloon onderhoudstechnicus (€/uur) ---
@@ -4124,10 +4118,8 @@ function syncAllQuestionnaireDataToCalculator(data, explicitTargetLetter) {
       if (cLrIn) cLrIn.value = rateStr;
       const tcoRateIn = document.getElementById("tcoHourlyRateInput");
       if (tcoRateIn) tcoRateIn.value = rateStr;
-      try {
-        localStorage.setItem("app_field_omSharedLaborRate", rateStr);
-        localStorage.setItem("app_field_chainOmSharedLaborRate", rateStr);
-      } catch(e) {}
+      safeSetStorage("app_field_omSharedLaborRate", rateStr);
+      safeSetStorage("app_field_chainOmSharedLaborRate", rateStr);
     }
 
     // --- Punt 22: Tijdsduur revisie/vervanging lager (uren) ---
@@ -4142,12 +4134,10 @@ function syncAllQuestionnaireDataToCalculator(data, explicitTargetLetter) {
       if (dtH1) dtH1.value = repairHours;
       const dtH2 = document.getElementById("omDowntimeH2");
       if (dtH2) dtH2.value = repairHours;
-      try {
-        localStorage.setItem("app_field_omSharedRepairH", repairHours);
-        localStorage.setItem("app_field_chainOmSharedRepairH", repairHours);
-        localStorage.setItem("app_field_omDowntimeH1", repairHours);
-        localStorage.setItem("app_field_omDowntimeH2", repairHours);
-      } catch(e) {}
+      safeSetStorage("app_field_omSharedRepairH", repairHours);
+      safeSetStorage("app_field_chainOmSharedRepairH", repairHours);
+      safeSetStorage("app_field_omDowntimeH1", repairHours);
+      safeSetStorage("app_field_omDowntimeH2", repairHours);
     }
 
     // --- Punt 23: Voorbereidingstijd revisie (uren) ---
@@ -4158,10 +4148,8 @@ function syncAllQuestionnaireDataToCalculator(data, explicitTargetLetter) {
       if (prepHIn) prepHIn.value = prepHours;
       const cPrepHIn = document.getElementById("chainOmSharedPrepH");
       if (cPrepHIn) cPrepHIn.value = prepHours;
-      try {
-        localStorage.setItem("app_field_omSharedPrepH", prepHours);
-        localStorage.setItem("app_field_chainOmSharedPrepH", prepHours);
-      } catch(e) {}
+      safeSetStorage("app_field_omSharedPrepH", prepHours);
+      safeSetStorage("app_field_chainOmSharedPrepH", prepHours);
     }
 
     // --- Punt 24: Kostprijs stilstand / downtime (€/uur) ---
@@ -4173,10 +4161,8 @@ function syncAllQuestionnaireDataToCalculator(data, explicitTargetLetter) {
       if (dtRateIn) dtRateIn.value = dtStr;
       const cDtRateIn = document.getElementById("chainOmSharedDowntimeRate");
       if (cDtRateIn) cDtRateIn.value = dtStr;
-      try {
-        localStorage.setItem("app_field_omSharedDowntimeRate", dtStr);
-        localStorage.setItem("app_field_chainOmSharedDowntimeRate", dtStr);
-      } catch(e) {}
+      safeSetStorage("app_field_omSharedDowntimeRate", dtStr);
+      safeSetStorage("app_field_chainOmSharedDowntimeRate", dtStr);
     }
 
     // --- Punt 25: Prijs lager + wisselstukken (€) ---
@@ -4188,10 +4174,8 @@ function syncAllQuestionnaireDataToCalculator(data, explicitTargetLetter) {
       if (partsCostIn) partsCostIn.value = partsStr;
       const cPartsCostIn = document.getElementById("chainOmSharedPartsCost");
       if (cPartsCostIn) cPartsCostIn.value = partsStr;
-      try {
-        localStorage.setItem("app_field_omSharedPartsCost", partsStr);
-        localStorage.setItem("app_field_chainOmSharedPartsCost", partsStr);
-      } catch(e) {}
+      safeSetStorage("app_field_omSharedPartsCost", partsStr);
+      safeSetStorage("app_field_chainOmSharedPartsCost", partsStr);
     }
 
     // Aantal lagers per machine
@@ -4201,10 +4185,8 @@ function syncAllQuestionnaireDataToCalculator(data, explicitTargetLetter) {
       if (setsIn) setsIn.value = bearingQty;
       const cSetsIn = document.getElementById("chainOmSharedSetsPerMachine");
       if (cSetsIn) cSetsIn.value = bearingQty;
-      try {
-        localStorage.setItem("app_field_omSharedSetsPerMachine", bearingQty);
-        localStorage.setItem("app_field_chainOmSharedSetsPerMachine", bearingQty);
-      } catch(e) {}
+      safeSetStorage("app_field_omSharedSetsPerMachine", bearingQty);
+      safeSetStorage("app_field_chainOmSharedSetsPerMachine", bearingQty);
     }
 
     // 3. Sectie 2: Bedrijfsuren, smeermiddel, prijs, frequentie, levensduur
@@ -4215,7 +4197,7 @@ function syncAllQuestionnaireDataToCalculator(data, explicitTargetLetter) {
       const hInput = document.getElementById("inputHoursPerDay");
       if (hInput) {
         hInput.value = operHours;
-        try { localStorage.setItem("app_field_inputHoursPerDay", operHours); } catch(e) {}
+        safeSetStorage("app_field_inputHoursPerDay", operHours);
       }
     }
 
@@ -4226,7 +4208,7 @@ function syncAllQuestionnaireDataToCalculator(data, explicitTargetLetter) {
       const dInput = document.getElementById("inputDaysPerWeek");
       if (dInput) {
         dInput.value = operDays;
-        try { localStorage.setItem("app_field_inputDaysPerWeek", operDays); } catch(e) {}
+        safeSetStorage("app_field_inputDaysPerWeek", operDays);
       }
     }
 
@@ -4239,10 +4221,8 @@ function syncAllQuestionnaireDataToCalculator(data, explicitTargetLetter) {
       if (omTechProd) omTechProd.value = curLube;
       const omProdName1 = document.getElementById("omProdName1");
       if (omProdName1) omProdName1.textContent = curLube;
-      try {
-        localStorage.setItem("tech_product", curLube);
-        localStorage.setItem("app_field_techProductInput", curLube);
-      } catch(e) {}
+      safeSetStorage("tech_product", curLube);
+      safeSetStorage("app_field_techProductInput", curLube);
     }
 
     const rawPrice = (sec2.q12_price !== undefined && sec2.q12_price !== '') ? sec2.q12_price : bRec.prijsLiter;
@@ -4255,11 +4235,9 @@ function syncAllQuestionnaireDataToCalculator(data, explicitTargetLetter) {
       if (omTechPrice) omTechPrice.value = '€ ' + priceStr.replace('.', ',');
       const omPrice1 = document.getElementById("omProdPrice1");
       if (omPrice1) omPrice1.value = priceStr;
-      try {
-        localStorage.setItem("tech_price", priceStr);
-        localStorage.setItem("app_field_techPriceInput", priceStr);
-        localStorage.setItem("app_field_omProdPrice1", priceStr);
-      } catch(e) {}
+      safeSetStorage("tech_price", priceStr);
+      safeSetStorage("app_field_techPriceInput", priceStr);
+      safeSetStorage("app_field_omProdPrice1", priceStr);
     }
 
     let freqNum = null;
@@ -4387,9 +4365,7 @@ function syncAllQuestionnaireDataToCalculator(data, explicitTargetLetter) {
       }
 
       chkSnl.checked = isSnlInSurvey;
-      try {
-        localStorage.setItem("app_field_chkSnlHousing_" + targetLetter, isSnlInSurvey ? "true" : "false");
-      } catch(e) {}
+      safeSetStorage("app_field_chkSnlHousing_" + targetLetter, isSnlInSurvey ? "true" : "false");
       if (snlContainer) {
         if (isSnlInSurvey) {
           snlContainer.classList.remove("hidden");
@@ -4409,7 +4385,7 @@ function syncAllQuestionnaireDataToCalculator(data, explicitTargetLetter) {
         }
         if (surveySnlType) {
           selSnlType.value = surveySnlType;
-          try { localStorage.setItem("app_field_selSnlType_" + targetLetter, surveySnlType); } catch(e) {}
+          safeSetStorage("app_field_selSnlType_" + targetLetter, surveySnlType);
         }
       }
       const savedSnlFill = localStorage.getItem("app_field_selSnlFillPercent_" + targetLetter);
@@ -4420,7 +4396,7 @@ function syncAllQuestionnaireDataToCalculator(data, explicitTargetLetter) {
         || localStorage.getItem("app_field_selSnlFillPercent");
       if (surveySnlFill && selSnlFill) {
         selSnlFill.value = surveySnlFill;
-        try { localStorage.setItem("app_field_selSnlFillPercent_" + targetLetter, surveySnlFill); } catch(e) {}
+        safeSetStorage("app_field_selSnlFillPercent_" + targetLetter, surveySnlFill);
       }
       const savedSnlRelub = localStorage.getItem("app_field_selSnlRelubPosition_" + targetLetter);
       const surveySnlRelub = (data && (sec2.snlRelub || sec2.snl_relub || bRec.snlRelub || bRec.snl_relub))
@@ -4430,7 +4406,7 @@ function syncAllQuestionnaireDataToCalculator(data, explicitTargetLetter) {
         || localStorage.getItem("app_field_selSnlRelubPosition");
       if (surveySnlRelub && selSnlRelub) {
         selSnlRelub.value = surveySnlRelub;
-        try { localStorage.setItem("app_field_selSnlRelubPosition_" + targetLetter, surveySnlRelub); } catch(e) {}
+        safeSetStorage("app_field_selSnlRelubPosition_" + targetLetter, surveySnlRelub);
       }
     }
 
@@ -4466,10 +4442,8 @@ function syncAllQuestionnaireDataToCalculator(data, explicitTargetLetter) {
     if (surveyMicPol) {
       const micIn = document.getElementById("inputMicPolFactor");
       if (micIn) micIn.value = surveyMicPol.toString();
-      try {
-        localStorage.setItem("calc_micpol_factor", surveyMicPol.toString());
-        localStorage.setItem("app_field_inputMicPolFactor", surveyMicPol.toString());
-      } catch(e) {}
+      safeSetStorage("calc_micpol_factor", surveyMicPol.toString());
+      safeSetStorage("app_field_inputMicPolFactor", surveyMicPol.toString());
     }
 
     // 6. Enkele gecontroleerde herberekening van alle modules (geen synthetische events)
@@ -5365,11 +5339,9 @@ if (typeof window !== 'undefined') {
     if (window.__isSyncingQuestionnaire || window.__isClearingForNewDossier) return;
     if (window.__lastClearTime && (Date.now() - window.__lastClearTime < 5000)) return;
     if (e.key === 'interflon_questionnaire_full_data' || e.key === 'interflon_last_questionnaire_data') {
-      if (window.__lastDossierImportTime && (Date.now() - window.__lastDossierImportTime < 15000)) {
-        return;
-      }
-      clearTimeout(__storageSyncTimer);
       if (!e.newValue) return;
+      if (e.newValue === window.__lastProcessedQuestionnaireStorageValue) return;
+      clearTimeout(__storageSyncTimer);
       __storageSyncTimer = setTimeout(function() {
         if (window.__isClearingForNewDossier || (window.__lastClearTime && Date.now() - window.__lastClearTime < 5000)) {
           return;
@@ -5378,8 +5350,11 @@ if (typeof window !== 'undefined') {
           return;
         }
         try {
-          const data = e.newValue ? JSON.parse(e.newValue) : null;
+          const currentStorage = localStorage.getItem('interflon_questionnaire_full_data') || localStorage.getItem('interflon_last_questionnaire_data');
+          if (!currentStorage || currentStorage === window.__lastProcessedQuestionnaireStorageValue) return;
+          const data = JSON.parse(currentStorage);
           if (!data) return;
+          window.__lastProcessedQuestionnaireStorageValue = currentStorage;
           const activeCalcMachine = (
             (document.getElementById('techMachineInput') && document.getElementById('techMachineInput').value) ||
             (document.getElementById('omTechMachine') && document.getElementById('omTechMachine').value) ||
@@ -5551,16 +5526,14 @@ try {
         return;
       }
 
-      // If we recently imported a dossier (within 60 seconds), ignore incoming cross-tab messages to protect imported data
-      if (window.__lastDossierImportTime && (Date.now() - window.__lastDossierImportTime < 60000)) {
-        if (ev.data.source !== 'vragenlijst_user_import') {
-          console.log("Ignoring cross-tab survey message right after dossier import to protect imported data");
+      if (ev.data.type === 'SURVEY_BEARINGS_RESPONSE' || ev.data.type === 'QUESTIONNAIRE_IMPORTED' || ev.data.type === 'CONFIG_UPDATED') {
+        const incomingData = ev.data.fullData || ev.data.data || ev.data.config;
+        const incomingSig = incomingData ? JSON.stringify(incomingData) : '';
+        if (incomingSig && incomingSig === window.__lastProcessedBroadcastSignature) {
           return;
         }
-      }
-      if (ev.data.type === 'SURVEY_BEARINGS_RESPONSE' || ev.data.type === 'QUESTIONNAIRE_IMPORTED' || ev.data.type === 'CONFIG_UPDATED') {
+        window.__lastProcessedBroadcastSignature = incomingSig;
         console.log("Vragenlijst update ontvangen:", ev.data.type);
-        const incomingData = ev.data.fullData || ev.data.data || ev.data.config;
         if (incomingData && typeof incomingData === 'object') {
           window.latestSurveyFullData = incomingData;
         }
@@ -5577,14 +5550,23 @@ try {
             // Do NOT re-save questionnaire full data on CONFIG_UPDATED to avoid cross-tab storage echo loops with vragenlijst.html!
             if (ev.data.type === 'QUESTIONNAIRE_IMPORTED' && (ev.data.fullData || ev.data.data)) {
               const importedData = ev.data.fullData || ev.data.data;
-              localStorage.setItem('interflon_questionnaire_full_data', JSON.stringify(importedData));
-              localStorage.setItem('interflon_last_questionnaire_data', JSON.stringify(importedData));
+              if (typeof safeSetStorage === 'function') {
+                safeSetStorage('interflon_questionnaire_full_data', JSON.stringify(importedData));
+                safeSetStorage('interflon_last_questionnaire_data', JSON.stringify(importedData));
+              } else {
+                localStorage.setItem('interflon_questionnaire_full_data', JSON.stringify(importedData));
+                localStorage.setItem('interflon_last_questionnaire_data', JSON.stringify(importedData));
+              }
             }
 
             let rasterCfg = {};
             try { rasterCfg = JSON.parse(localStorage.getItem('interflon_survey_raster_config') || '{}'); } catch(e){}
             rasterCfg.bearings = bearings;
-            localStorage.setItem('interflon_survey_raster_config', JSON.stringify(rasterCfg));
+            if (typeof safeSetStorage === 'function') {
+              safeSetStorage('interflon_survey_raster_config', JSON.stringify(rasterCfg));
+            } else {
+              localStorage.setItem('interflon_survey_raster_config', JSON.stringify(rasterCfg));
+            }
           } catch(e) {}
 
           populateSurveyBearingsDropdown(bearings);
@@ -5596,10 +5578,14 @@ try {
         const latestConfig = ev.data.config || (incomingData && incomingData.surveyRasterConfig);
         if (latestConfig) {
           try {
-            localStorage.setItem('interflon_survey_raster_config', JSON.stringify(latestConfig));
+            if (typeof safeSetStorage === 'function') {
+              safeSetStorage('interflon_survey_raster_config', JSON.stringify(latestConfig));
+            } else {
+              localStorage.setItem('interflon_survey_raster_config', JSON.stringify(latestConfig));
+            }
           } catch(e) {}
         }
-        if (typeof syncAllQuestionnaireDataToCalculator === 'function') {
+        if (ev.data.type !== 'SURVEY_BEARINGS_RESPONSE' && typeof syncAllQuestionnaireDataToCalculator === 'function') {
           const curL = window.currentActiveSurveyBearingLetter || localStorage.getItem("interflon_active_survey_letter") || null;
           syncAllQuestionnaireDataToCalculator(incomingData, curL);
         }
@@ -6180,9 +6166,51 @@ function renderAutoDevicesUI() {
     `;
   }
 
+  if (container.__lastRenderedHtml === html) {
+    if (typeof syncAllAutoCustomDropdowns === "function") {
+      syncAllAutoCustomDropdowns();
+    }
+    if (typeof updateAutomationHeaderImages === "function") {
+      updateAutomationHeaderImages();
+    }
+    return;
+  }
+
+  // Preserve any currently open custom dropdown state across re-renders
+  const openMenu = document.querySelector('.auto-custom-dropdown-menu[style*="display: block"]');
+  const openSelectId = openMenu ? openMenu.id.replace('autoCustomDropdownMenu_', '') : null;
+  const isDropup = openMenu ? openMenu.classList.contains('dropup') : false;
+
   container.innerHTML = html;
+  container.__lastRenderedHtml = html;
+
   if (typeof syncAllAutoCustomDropdowns === "function") {
     syncAllAutoCustomDropdowns();
+  }
+  if (openSelectId) {
+    const restoredMenu = document.getElementById("autoCustomDropdownMenu_" + openSelectId);
+    const restoredBtn = document.getElementById("autoCustomDropdownBtn_" + openSelectId);
+    const restoredArrow = document.getElementById("autoCustomDropdownArrow_" + openSelectId);
+    const restoredWrap = document.getElementById("customDropdownWrapper_" + openSelectId);
+    const restoredCard = restoredBtn ? restoredBtn.closest(".auto-device-card") : null;
+    if (restoredMenu) {
+      restoredMenu.style.display = "block";
+      if (isDropup) restoredMenu.classList.add("dropup");
+    }
+    if (restoredBtn) {
+      restoredBtn.classList.add("open");
+      restoredBtn.setAttribute("aria-expanded", "true");
+    }
+    if (restoredArrow) restoredArrow.style.transform = "rotate(180deg)";
+    if (restoredWrap) {
+      restoredWrap.classList.add("open");
+      restoredWrap.style.zIndex = "100000";
+    }
+    if (restoredCard) {
+      restoredCard.classList.add("dropdown-active");
+      restoredCard.style.zIndex = "10000";
+      restoredCard.style.position = "relative";
+    }
   }
   if (typeof updateAutomationHeaderImages === "function") {
     updateAutomationHeaderImages();
@@ -10520,23 +10548,53 @@ function updateStoredQuestionnaireSnl(letter, isChecked, snlType, snlFill, snlRe
         let qData = JSON.parse(raw);
         let target = qData.fullData || qData.questionnaire || qData.data || qData;
         if (target) {
+          let changed = false;
           if (target.bearingDataMapSec2) {
             if (!target.bearingDataMapSec2[letter]) target.bearingDataMapSec2[letter] = {};
-            if (isChecked !== undefined) target.bearingDataMapSec2[letter].isSnl = isChecked;
-            if (snlType !== undefined) target.bearingDataMapSec2[letter].snlType = snlType;
-            if (snlFill !== undefined) target.bearingDataMapSec2[letter].snlFill = snlFill;
-            if (snlRelub !== undefined) target.bearingDataMapSec2[letter].snlRelub = snlRelub;
+            if (isChecked !== undefined && target.bearingDataMapSec2[letter].isSnl !== isChecked) {
+              target.bearingDataMapSec2[letter].isSnl = isChecked;
+              changed = true;
+            }
+            if (snlType !== undefined && target.bearingDataMapSec2[letter].snlType !== snlType) {
+              target.bearingDataMapSec2[letter].snlType = snlType;
+              changed = true;
+            }
+            if (snlFill !== undefined && target.bearingDataMapSec2[letter].snlFill !== snlFill) {
+              target.bearingDataMapSec2[letter].snlFill = snlFill;
+              changed = true;
+            }
+            if (snlRelub !== undefined && target.bearingDataMapSec2[letter].snlRelub !== snlRelub) {
+              target.bearingDataMapSec2[letter].snlRelub = snlRelub;
+              changed = true;
+            }
           }
           if (Array.isArray(target.bearings)) {
             const b = target.bearings.find(x => x.letter === letter);
             if (b) {
-              if (isChecked !== undefined) b.isSnl = isChecked;
-              if (snlType !== undefined) b.snlType = snlType;
-              if (snlFill !== undefined) b.snlFill = snlFill;
-              if (snlRelub !== undefined) b.snlRelub = snlRelub;
+              if (isChecked !== undefined && b.isSnl !== isChecked) {
+                b.isSnl = isChecked;
+                changed = true;
+              }
+              if (snlType !== undefined && b.snlType !== snlType) {
+                b.snlType = snlType;
+                changed = true;
+              }
+              if (snlFill !== undefined && b.snlFill !== snlFill) {
+                b.snlFill = snlFill;
+                changed = true;
+              }
+              if (snlRelub !== undefined && b.snlRelub !== snlRelub) {
+                b.snlRelub = snlRelub;
+                changed = true;
+              }
             }
           }
-          localStorage.setItem(key, JSON.stringify(qData));
+          if (changed) {
+            const newJson = JSON.stringify(qData);
+            if (localStorage.getItem(key) !== newJson) {
+              localStorage.setItem(key, newJson);
+            }
+          }
         }
       }
     });
@@ -11351,20 +11409,31 @@ function calculateGrease() {
 
   // Persist in localStorage so data survives page refresh
   try {
-    localStorage.setItem("calc_daily_need", calcDailyNeed.toString());
-    localStorage.setItem("calc_refill_grams", refill_grams.toString());
-    localStorage.setItem("calc_micpol_days", totalCalendarDays.toString());
-    localStorage.setItem("calc_micpol_hours", fcMicPol.toString());
-    localStorage.setItem("calc_hours_per_day", hDay.toString());
-    localStorage.setItem("calc_days_per_week", dWeek.toString());
-    localStorage.setItem("calc_micpol_factor", micPolFactor.toString());
-    localStorage.setItem("app_field_inputMicPolFactor", micPolFactor.toString());
+    if (typeof safeSetStorage === 'function') {
+      safeSetStorage("calc_daily_need", calcDailyNeed.toString());
+      safeSetStorage("calc_refill_grams", refill_grams.toString());
+      safeSetStorage("calc_micpol_days", totalCalendarDays.toString());
+      safeSetStorage("calc_micpol_hours", fcMicPol.toString());
+      safeSetStorage("calc_hours_per_day", hDay.toString());
+      safeSetStorage("calc_days_per_week", dWeek.toString());
+      safeSetStorage("calc_micpol_factor", micPolFactor.toString());
+      safeSetStorage("app_field_inputMicPolFactor", micPolFactor.toString());
+    } else {
+      localStorage.setItem("calc_daily_need", calcDailyNeed.toString());
+      localStorage.setItem("calc_refill_grams", refill_grams.toString());
+      localStorage.setItem("calc_micpol_days", totalCalendarDays.toString());
+      localStorage.setItem("calc_micpol_hours", fcMicPol.toString());
+      localStorage.setItem("calc_hours_per_day", hDay.toString());
+      localStorage.setItem("calc_days_per_week", dWeek.toString());
+      localStorage.setItem("calc_micpol_factor", micPolFactor.toString());
+      localStorage.setItem("app_field_inputMicPolFactor", micPolFactor.toString());
+    }
 
     if (!window.__isSyncingQuestionnaire && typeof BroadcastChannel !== 'undefined') {
       if (!window.__surveySyncBroadcastChannel) {
         window.__surveySyncBroadcastChannel = new BroadcastChannel('interflon_questionnaire_sync');
       }
-      window.__surveySyncBroadcastChannel.postMessage({
+      const broadcastPayload = JSON.stringify({
         type: 'CALCULATOR_PARAMS_UPDATED',
         micPolFactor: micPolFactor,
         hoursPerDay: hDay,
@@ -11374,6 +11443,10 @@ function calculateGrease() {
         micPolDays: totalCalendarDays,
         fcMicPol: fcMicPol
       });
+      if (window.__lastCalculatorParamsBroadcast !== broadcastPayload) {
+        window.__lastCalculatorParamsBroadcast = broadcastPayload;
+        window.__surveySyncBroadcastChannel.postMessage(JSON.parse(broadcastPayload));
+      }
     }
   } catch (e) {
     console.warn("Could not save calc data to localStorage", e);
@@ -25319,6 +25392,10 @@ function clearAllForNewDossier() {
   window.__lastClearTime = Date.now();
   window.__activeDossierMachine = "";
   window.__activeDossierCompany = "";
+  window.__lastProcessedQuestionnaireStorageValue = null;
+  window.__lastProcessedBroadcastSignature = null;
+  const autoCardsContainer = document.getElementById("autoDevicesCardsContainer");
+  if (autoCardsContainer) autoCardsContainer.__lastRenderedHtml = "";
 
   try {
     // 1. BROADCAST CLEAR TO ACTIVE QUESTIONNAIRE
@@ -26962,6 +27039,8 @@ function handleImportFileSelected(event) {
       if (typeof calculateBearing === "function") calculateBearing();
       if (typeof calculateTco === "function") calculateTco();
       if (typeof updateOmKpiSummaryCards === "function") updateOmKpiSummaryCards();
+      const autoCardsContainer = document.getElementById("autoDevicesCardsContainer");
+      if (autoCardsContainer) autoCardsContainer.__lastRenderedHtml = "";
       if (typeof renderAutoDevicesUI === "function") renderAutoDevicesUI();
       if (typeof calculateAutomationLubrication === "function") calculateAutomationLubrication();
       if (typeof updateRoiAutomationPage === "function") updateRoiAutomationPage();
