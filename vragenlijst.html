@@ -5670,7 +5670,19 @@
         }
       }
 
-      const temp = (typeof opts.temp === "number" && !isNaN(opts.temp)) ? opts.temp : 20;
+      let defaultTemp = 20;
+      let defaultHDay = 16;
+      let defaultDWeek = 5;
+      try {
+        const lsT = parseFloat(localStorage.getItem('app_field_inputTemperature') || localStorage.getItem('calc_temperature'));
+        if (!isNaN(lsT) && lsT > 0) defaultTemp = lsT;
+        const lsH = parseFloat(localStorage.getItem('app_field_inputHoursPerDay') || localStorage.getItem('calc_hours_per_day'));
+        if (!isNaN(lsH) && lsH > 0) defaultHDay = lsH;
+        const lsD = parseFloat(localStorage.getItem('app_field_inputDaysPerWeek') || localStorage.getItem('calc_days_per_week'));
+        if (!isNaN(lsD) && lsD > 0) defaultDWeek = lsD;
+      } catch(e) {}
+
+      const temp = (typeof opts.temp === "number" && !isNaN(opts.temp)) ? opts.temp : defaultTemp;
       let Tt = 0.8;
       if (temp <= 75) Tt = 0.8;
       else if (temp <= 85) Tt = 0.5;
@@ -5685,8 +5697,8 @@
       const fcBase = (fb * Te * Ta * Tt) / 4.0;
       const fcMicPol = fcBase * micPolFactor;
 
-      const hDay = (typeof opts.hoursPerDay === "number" && opts.hoursPerDay > 0) ? opts.hoursPerDay : 16;
-      const dWeek = (typeof opts.daysPerWeek === "number" && opts.daysPerWeek > 0) ? opts.daysPerWeek : 5;
+      const hDay = (typeof opts.hoursPerDay === "number" && opts.hoursPerDay > 0) ? opts.hoursPerDay : defaultHDay;
+      const dWeek = (typeof opts.daysPerWeek === "number" && opts.daysPerWeek > 0) ? opts.daysPerWeek : defaultDWeek;
       const weeklyOpHours = hDay * dWeek;
       const totalCalendarDays = (weeklyOpHours > 0) ? (fcMicPol / weeklyOpHours) * 7 : (fcMicPol / 24);
 
@@ -5762,9 +5774,23 @@
         const d2 = (typeof bearingDataMapSec2 !== "undefined" && bearingDataMapSec2[letter]) ? bearingDataMapSec2[letter] : {};
         const d3 = (typeof bearingDataMapSec3 !== "undefined" && bearingDataMapSec3[letter]) ? bearingDataMapSec3[letter] : {};
 
-        const hoursPerDay = parseFloat(d2.q13) || 16;
-        const daysPerWeek = parseFloat(d2.q14) || 5;
-        const temp = parseFloat(d3.q15) || 20;
+        let defaultTemp = 20;
+        let defaultHDay = 16;
+        let defaultDWeek = 5;
+        try {
+          const lsT = parseFloat(localStorage.getItem('app_field_inputTemperature') || localStorage.getItem('calc_temperature'));
+          if (!isNaN(lsT) && lsT > 0) defaultTemp = lsT;
+          const lsH = parseFloat(localStorage.getItem('app_field_inputHoursPerDay') || localStorage.getItem('calc_hours_per_day'));
+          if (!isNaN(lsH) && lsH > 0) defaultHDay = lsH;
+          const lsD = parseFloat(localStorage.getItem('app_field_inputDaysPerWeek') || localStorage.getItem('calc_days_per_week'));
+          if (!isNaN(lsD) && lsD > 0) defaultDWeek = lsD;
+        } catch(e) {}
+
+        const hoursPerDay = (d2.q13 !== undefined && d2.q13 !== '') ? (parseFloat(d2.q13) || defaultHDay) : defaultHDay;
+        const daysPerWeek = (d2.q14 !== undefined && d2.q14 !== '') ? (parseFloat(d2.q14) || defaultDWeek) : defaultDWeek;
+        const temp = ((d3.q16 !== undefined && d3.q16 !== '') || (d3.q15 !== undefined && d3.q15 !== ''))
+          ? (parseFloat(d3.q16 || d3.q15) || defaultTemp)
+          : defaultTemp;
 
         const corr = determineSurveyBearingCorrectionFactors(d3, posVal);
         const needRes = calculateSurveyBearingDailyNeed(nrVal, rpmVal, {
@@ -6855,10 +6881,23 @@
           const posIn = r.querySelector('.bearing-pos-input');
           const asPos = posIn && posIn.value ? posIn.value.trim() : 'Horizontaal';
           const d2 = (typeof bearingDataMapSec2 !== "undefined" && bearingDataMapSec2[letter]) ? bearingDataMapSec2[letter] : {};
-          const d3 = (typeof bearingDataMapSec3 !== "undefined" && bearingDataMapSec3[letter]) ? bearingDataMapSec3[letter] : {};
-          const hoursPerDay = parseFloat(d2.q13) || 16;
-          const daysPerWeek = parseFloat(d2.q14) || 5;
-          const temp = parseFloat(d3.q15) || 20;
+          let defaultTemp = 20;
+          let defaultHDay = 16;
+          let defaultDWeek = 5;
+          try {
+            const lsT = parseFloat(localStorage.getItem('app_field_inputTemperature') || localStorage.getItem('calc_temperature'));
+            if (!isNaN(lsT) && lsT > 0) defaultTemp = lsT;
+            const lsH = parseFloat(localStorage.getItem('app_field_inputHoursPerDay') || localStorage.getItem('calc_hours_per_day'));
+            if (!isNaN(lsH) && lsH > 0) defaultHDay = lsH;
+            const lsD = parseFloat(localStorage.getItem('app_field_inputDaysPerWeek') || localStorage.getItem('calc_days_per_week'));
+            if (!isNaN(lsD) && lsD > 0) defaultDWeek = lsD;
+          } catch(e) {}
+
+          const hoursPerDay = (d2.q13 !== undefined && d2.q13 !== '') ? (parseFloat(d2.q13) || defaultHDay) : defaultHDay;
+          const daysPerWeek = (d2.q14 !== undefined && d2.q14 !== '') ? (parseFloat(d2.q14) || defaultDWeek) : defaultDWeek;
+          const temp = ((d3.q16 !== undefined && d3.q16 !== '') || (d3.q15 !== undefined && d3.q15 !== ''))
+            ? (parseFloat(d3.q16 || d3.q15) || defaultTemp)
+            : defaultTemp;
           const freqNum = d2.q4_freq_num ? String(d2.q4_freq_num).trim() : '';
           const freqUnit = d2.q4_freq_unit || 'Weken';
           const intervalStr = freqNum ? (freqNum + ' ' + freqUnit) : '-';
@@ -10383,7 +10422,26 @@
 
           if (ev.data.type === 'MICPOL_FACTOR_UPDATED' || ev.data.type === 'CALCULATOR_PARAMS_UPDATED') {
             const factor = parseFloat(ev.data.micPolFactor);
+            if (ev.data.temp !== undefined && !isNaN(parseFloat(ev.data.temp))) {
+              try {
+                localStorage.setItem('calc_temperature', String(ev.data.temp));
+                localStorage.setItem('app_field_inputTemperature', String(ev.data.temp));
+              } catch(e) {}
+            }
+            if (ev.data.hoursPerDay !== undefined && !isNaN(parseFloat(ev.data.hoursPerDay))) {
+              try {
+                localStorage.setItem('calc_hours_per_day', String(ev.data.hoursPerDay));
+                localStorage.setItem('app_field_inputHoursPerDay', String(ev.data.hoursPerDay));
+              } catch(e) {}
+            }
+            if (ev.data.daysPerWeek !== undefined && !isNaN(parseFloat(ev.data.daysPerWeek))) {
+              try {
+                localStorage.setItem('calc_days_per_week', String(ev.data.daysPerWeek));
+                localStorage.setItem('app_field_inputDaysPerWeek', String(ev.data.daysPerWeek));
+              } catch(e) {}
+            }
             if (!isNaN(factor) && factor >= 1) {
+              window.__currentSurveyMicPolFactor = factor;
               refreshSurveyBearingsDailyNeed(factor, true);
             } else {
               refreshSurveyBearingsDailyNeed(undefined, true);
