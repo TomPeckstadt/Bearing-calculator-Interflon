@@ -148,14 +148,16 @@ function onDevicePointsChange(devId) {
   const sel = document.getElementById("autoNumPointsSelect_" + devId);
   if (dev && sel) {
     const parsedPts = parseInt(sel.value, 10);
-    dev.points = isNaN(parsedPts) ? 1 : parsedPts;
-    if (dev.dailyNeedCm3 && dev.dailyNeedCm3 > 0) {
-      dev.totalDailyNeed = dev.dailyNeedCm3 * dev.points;
-    }
+    const hasAssigned = Array.isArray(dev.bearingLetters) && dev.bearingLetters.length > 0;
+    const need1 = (hasAssigned && dev.dailyNeedCm3 && dev.dailyNeedCm3 > 0)
+      ? dev.dailyNeedCm3
+      : (window.currentDailyNeedCm3 || dev.dailyNeedCm3 || 0.704);
+    dev.dailyNeedCm3 = need1;
+    dev.totalDailyNeed = need1 * dev.points;
     if (!dev.userEditedPeriod) {
       const selectGrease = document.getElementById("inputGrease") || document.getElementById("selectGrease");
       const greaseName = selectGrease ? selectGrease.value : "Interflon Grease MP2/3";
-      const totalNeed = dev.totalDailyNeed || ((window.currentDailyNeedCm3 || 0.704) * (dev.points || 1));
+      const totalNeed = dev.totalDailyNeed;
       const smartAdv = getOptimalSmartAdvice(totalNeed, dev.type || "pulsarlube_m2", greaseName);
       if (smartAdv) {
         dev.cap = smartAdv.cap;
@@ -222,9 +224,10 @@ function onDeviceCapChange(devId) {
       }
     } else {
       // Recompute recommended setting for this new capacity
-      const totalDailyNeedForDev = (dev.totalDailyNeed && dev.totalDailyNeed > 0)
+      const hasAssigned = Array.isArray(dev.bearingLetters) && dev.bearingLetters.length > 0;
+      const totalDailyNeedForDev = (hasAssigned && dev.totalDailyNeed && dev.totalDailyNeed > 0)
         ? dev.totalDailyNeed
-        : ((window.currentDailyNeedCm3 || 0.704) * (dev.points || 1));
+        : ((window.currentDailyNeedCm3 || dev.dailyNeedCm3 || 0.704) * (dev.points || 1));
       const recDays = dev.cap / (totalDailyNeedForDev > 0 ? totalDailyNeedForDev : 0.704);
       const recMonths = recDays / 30.4375;
       const recSetting = getRecommendedSettingMonths(recMonths, devType, dev.cap);
@@ -699,9 +702,10 @@ function onDeviceTypeChange(devId, newType) {
       } else {
         const selectGrease = document.getElementById("inputGrease") || document.getElementById("selectGrease");
         const greaseName = selectGrease ? selectGrease.value : "Interflon Grease MP2/3";
-        const totalNeed = (dev.totalDailyNeed && dev.totalDailyNeed > 0)
+        const hasAssigned = Array.isArray(dev.bearingLetters) && dev.bearingLetters.length > 0;
+        const totalNeed = (hasAssigned && dev.totalDailyNeed && dev.totalDailyNeed > 0)
           ? dev.totalDailyNeed
-          : ((window.currentDailyNeedCm3 || 0.704) * (dev.points || 1));
+          : ((window.currentDailyNeedCm3 || dev.dailyNeedCm3 || 0.704) * (dev.points || 1));
         const smartAdv = getOptimalSmartAdvice(totalNeed, newType, greaseName);
         if (smartAdv) {
           dev.cap = smartAdv.cap;
@@ -997,7 +1001,31 @@ function saveAutomationStateToLocalStorage() {
 window.saveAutomationStateToLocalStorage = saveAutomationStateToLocalStorage;
 
 function loadAutomationStateFromLocalStorage(force) {
-  if (isAutomationStateLoaded && !force) return;
+  const curDailyNeed = (typeof window !== 'undefined' && window.currentDailyNeedCm3 > 0)
+    ? window.currentDailyNeedCm3
+    : (parseFloat(localStorage.getItem("calc_daily_need")) || 0);
+
+  if (isAutomationStateLoaded && !force) {
+    if (curDailyNeed > 0 && Array.isArray(autoDevicesState)) {
+      const activeLetter = (typeof window !== "undefined" && (window.currentActiveSurveyBearingLetter || window.currentSurveyBearingLetter))
+        || localStorage.getItem("interflon_active_survey_letter") || 'A';
+      const activeNumCards = (typeof getActiveNumDevices === "function") ? getActiveNumDevices() : 1;
+      autoDevicesState.forEach(d => {
+        if (!d) return;
+        const hasAssigned = Array.isArray(d.bearingLetters) && d.bearingLetters.length > 0;
+        const isTarget = !hasAssigned || activeNumCards === 1 || d.id === 'A' || (activeLetter && hasAssigned && d.bearingLetters.includes(activeLetter));
+        if (isTarget) {
+          d.dailyNeedCm3 = curDailyNeed;
+          const pts = (d.type === 'single_point') ? 1 : (d.points || 1);
+          d.totalDailyNeed = (d.type === 'single_point') ? curDailyNeed : (pts === 0 ? 0 : (curDailyNeed * pts));
+          if (hasAssigned) {
+            d.bearingDetailsSummary = d.bearingLetters.map(l => `${l}: ${curDailyNeed.toFixed(2).replace('.', ',')} ml/d`).join(' &bull; ');
+          }
+        }
+      });
+    }
+    return;
+  }
   try {
     const savedDeviceKey = localStorage.getItem("auto_device_key") || localStorage.getItem("app_field_automationDeviceSelect");
     if (savedDeviceKey) {
@@ -1048,6 +1076,27 @@ function loadAutomationStateFromLocalStorage(force) {
           return { ...item, unit: "months" };
         });
         window.autoDevicesState = autoDevicesState;
+
+        if (curDailyNeed > 0) {
+          const activeLetter = (typeof window !== "undefined" && (window.currentActiveSurveyBearingLetter || window.currentSurveyBearingLetter))
+            ? (window.currentActiveSurveyBearingLetter || window.currentSurveyBearingLetter)
+            : localStorage.getItem("interflon_active_survey_letter") || 'A';
+          const activeNumCards = (typeof getActiveNumDevices === "function") ? getActiveNumDevices() : 1;
+
+          autoDevicesState.forEach(d => {
+            if (!d) return;
+            const hasAssigned = Array.isArray(d.bearingLetters) && d.bearingLetters.length > 0;
+            const isTarget = !hasAssigned || activeNumCards === 1 || d.id === 'A' || (activeLetter && hasAssigned && d.bearingLetters.includes(activeLetter));
+            if (isTarget) {
+              d.dailyNeedCm3 = curDailyNeed;
+              const pts = (d.type === 'single_point') ? 1 : (d.points || 1);
+              d.totalDailyNeed = (d.type === 'single_point') ? curDailyNeed : (pts === 0 ? 0 : (curDailyNeed * pts));
+              if (hasAssigned) {
+                d.bearingDetailsSummary = d.bearingLetters.map(l => `${l}: ${curDailyNeed.toFixed(2).replace('.', ',')} ml/d`).join(' &bull; ');
+              }
+            }
+          });
+        }
       }
     }
 
@@ -1722,10 +1771,10 @@ function calculateSingleBearingDailyNeed(bearingNr, speedRpm, opts = {}) {
   }
 
   // Fallback to active bearing form values if available, or sensible defaults
-  const d = b ? (b.d || 100) : (parseFloat(document.getElementById("inputD")?.value) || 125);
-  const D = b ? (b.D || 180) : (parseFloat(document.getElementById("inputOutD")?.value) || 225);
-  const B = b ? (b.B || 50) : (parseFloat(document.getElementById("inputB")?.value) || 68);
-  const limitingSpeed = b ? (b.limitSpeed || b.refSpeed || 3400) : 3400;
+  const d = b ? (b.d || 100) : (parseFloat(document.getElementById("inputBoreManual")?.value) || parseFloat(document.getElementById("inputD")?.value) || 125);
+  const D = b ? (b.D || 180) : (parseFloat(document.getElementById("inputOuterManual")?.value) || parseFloat(document.getElementById("inputOutD")?.value) || 225);
+  const B = b ? (b.B || 50) : (parseFloat(document.getElementById("inputWidthManual")?.value) || parseFloat(document.getElementById("inputB")?.value) || 68);
+  const limitingSpeed = b ? (b.limitSpeed || b.refSpeed || 3400) : (parseFloat(document.getElementById("inputLimitingSpeed")?.value) || 3400);
   const bearingType = b ? (b.type || "Pendelrollager") : "Pendelrollager";
 
   const bTypeCheck = bearingType.toLowerCase();
@@ -1738,7 +1787,9 @@ function calculateSingleBearingDailyNeed(bearingNr, speedRpm, opts = {}) {
     baseTypeFactor = 1.7;
   }
 
-  const speed = parseFloat(speedRpm) || (parseFloat(document.getElementById("inputSpeed")?.value) || 500);
+  const speed = (typeof speedRpm === "number" && !isNaN(speedRpm) && speedRpm > 0)
+    ? speedRpm
+    : (parseFloat(speedRpm) || parseFloat(document.getElementById("inputSpeed")?.value) || 500);
   const rawRatio = (isNaN(speed) || speed <= 0) ? 0.01 : (speed / limitingSpeed);
   const ratio = Math.min(1.0, rawRatio * baseTypeFactor);
 
@@ -1761,7 +1812,13 @@ function calculateSingleBearingDailyNeed(bearingNr, speedRpm, opts = {}) {
     }
   }
 
-  const temp = (typeof opts.temp === "number" && !isNaN(opts.temp)) ? opts.temp : (parseFloat(document.getElementById("inputTemp")?.value) || 20);
+  let defaultTemp = 20;
+  try {
+    const lsT = parseFloat(document.getElementById("inputTemperature")?.value) ||
+                parseFloat(localStorage.getItem("app_field_inputTemperature") || localStorage.getItem("calc_temperature"));
+    if (!isNaN(lsT) && lsT > 0) defaultTemp = lsT;
+  } catch(e) {}
+  const temp = (typeof opts.temp === "number" && !isNaN(opts.temp)) ? opts.temp : defaultTemp;
   let Tt = 0.8;
   if (temp <= 75) Tt = 0.8;
   else if (temp <= 85) Tt = 0.5;
@@ -1776,15 +1833,28 @@ function calculateSingleBearingDailyNeed(bearingNr, speedRpm, opts = {}) {
     if (!isNaN(lsMicPol) && lsMicPol >= 1) defaultMicPol = lsMicPol;
   } catch(e) {}
   const micPolInput = document.getElementById("inputMicPolFactor");
+  if (micPolInput && parseFloat(micPolInput.value) >= 1) {
+    defaultMicPol = parseFloat(micPolInput.value);
+  }
   const micPolFactor = (typeof opts.micPolFactor === "number" && !isNaN(opts.micPolFactor) && opts.micPolFactor >= 1)
     ? opts.micPolFactor
-    : (micPolInput && parseFloat(micPolInput.value) ? parseFloat(micPolInput.value) : defaultMicPol);
+    : defaultMicPol;
 
   const fcBase = (fb * Te * Ta * Tt) / 4.0;
   const fcMicPol = fcBase * micPolFactor;
 
-  const hDay = (typeof opts.hoursPerDay === "number" && opts.hoursPerDay > 0) ? opts.hoursPerDay : (window.currentHoursPerDay || 16);
-  const dWeek = (typeof opts.daysPerWeek === "number" && opts.daysPerWeek > 0) ? opts.daysPerWeek : (window.currentDaysPerWeek || 5);
+  let defaultHDay = 24;
+  let defaultDWeek = 7;
+  try {
+    const lsH = parseFloat(document.getElementById("inputHoursPerDay")?.value) ||
+                parseFloat(localStorage.getItem("app_field_inputHoursPerDay") || localStorage.getItem("calc_hours_per_day"));
+    if (!isNaN(lsH) && lsH > 0) defaultHDay = lsH;
+    const lsD = parseFloat(document.getElementById("inputDaysPerWeek")?.value) ||
+                parseFloat(localStorage.getItem("app_field_inputDaysPerWeek") || localStorage.getItem("calc_days_per_week"));
+    if (!isNaN(lsD) && lsD > 0) defaultDWeek = lsD;
+  } catch(e) {}
+  const hDay = (typeof opts.hoursPerDay === "number" && opts.hoursPerDay > 0) ? opts.hoursPerDay : (window.currentHoursPerDay || defaultHDay);
+  const dWeek = (typeof opts.daysPerWeek === "number" && opts.daysPerWeek > 0) ? opts.daysPerWeek : (window.currentDaysPerWeek || defaultDWeek);
   const weeklyOpHours = hDay * dWeek;
   const totalCalendarDays = (weeklyOpHours > 0) ? (fcMicPol / weeklyOpHours) * 7 : (fcMicPol / 24);
 
@@ -1872,13 +1942,34 @@ function applySurveyConfig(config) {
   const sec2Map = config.bearingDataMapSec2 || config.sec2Map || (window.latestSurveyFullData && window.latestSurveyFullData.bearingDataMapSec2) || (fullData && fullData.bearingDataMapSec2) || {};
   const sec3Map = config.bearingDataMapSec3 || config.sec3Map || (window.latestSurveyFullData && window.latestSurveyFullData.bearingDataMapSec3) || (fullData && fullData.bearingDataMapSec3) || {};
 
+  let activeCalcTemp = 20;
+  let activeCalcHours = 24;
+  let activeCalcDays = 7;
+  try {
+    const lsT = parseFloat(document.getElementById("inputTemperature")?.value) ||
+                parseFloat(localStorage.getItem("app_field_inputTemperature") || localStorage.getItem("calc_temperature"));
+    if (!isNaN(lsT) && lsT > 0) activeCalcTemp = lsT;
+    const lsH = parseFloat(document.getElementById("inputHoursPerDay")?.value) ||
+                parseFloat(localStorage.getItem("app_field_inputHoursPerDay") || localStorage.getItem("calc_hours_per_day"));
+    if (!isNaN(lsH) && lsH > 0) activeCalcHours = lsH;
+    const lsD = parseFloat(document.getElementById("inputDaysPerWeek")?.value) ||
+                parseFloat(localStorage.getItem("app_field_inputDaysPerWeek") || localStorage.getItem("calc_days_per_week"));
+    if (!isNaN(lsD) && lsD > 0) activeCalcDays = lsD;
+  } catch(e) {}
+
   let activeMicPolFactor = 4;
   try {
     const lsF = parseFloat(localStorage.getItem('calc_micpol_factor') || localStorage.getItem('app_field_inputMicPolFactor'));
     if (!isNaN(lsF) && lsF >= 1) activeMicPolFactor = lsF;
   } catch(e) {}
+  const micPolInput = document.getElementById("inputMicPolFactor");
+  if (micPolInput && parseFloat(micPolInput.value) >= 1) {
+    activeMicPolFactor = parseFloat(micPolInput.value);
+  }
   if (config && typeof config.micPolFactor === 'number' && !isNaN(config.micPolFactor) && config.micPolFactor >= 1) {
-    activeMicPolFactor = config.micPolFactor;
+    if (!micPolInput || !parseFloat(micPolInput.value)) {
+      activeMicPolFactor = config.micPolFactor;
+    }
   }
 
   // Check if configuration is for Single Point Lubricators
@@ -1895,9 +1986,15 @@ function applySurveyConfig(config) {
     const calculatedBearings = (allBearings && allBearings.length > 0) ? allBearings.map(b => {
       const d2 = sec2Map[b.letter] || {};
       const d3 = sec3Map[b.letter] || {};
-      const hDay = parseFloat(b.hoursPerDay || d2.q13) || 16;
-      const dWeek = parseFloat(b.daysPerWeek || d2.q14) || 5;
-      const temp = parseFloat(b.temp || d3.q15) || 20;
+      const hasSurveyHours = (d2.q13 !== undefined && d2.q13 !== '') || (b.hoursPerDay !== undefined && b.hoursPerDay !== '' && parseFloat(b.hoursPerDay) !== 16);
+      const hDay = hasSurveyHours ? (parseFloat(d2.q13 || b.hoursPerDay) || activeCalcHours) : activeCalcHours;
+
+      const hasSurveyDays = (d2.q14 !== undefined && d2.q14 !== '') || (b.daysPerWeek !== undefined && b.daysPerWeek !== '' && parseFloat(b.daysPerWeek) !== 5);
+      const dWeek = hasSurveyDays ? (parseFloat(d2.q14 || b.daysPerWeek) || activeCalcDays) : activeCalcDays;
+
+      const hasSurveyTemp = (d3 && ((d3.q16 !== undefined && d3.q16 !== '') || (d3.q15 !== undefined && d3.q15 !== ''))) ||
+                            (b.temp !== undefined && b.temp !== '' && parseFloat(b.temp) !== 20);
+      const temp = hasSurveyTemp ? (parseFloat((d3 && (d3.q16 || d3.q15)) || b.temp) || activeCalcTemp) : activeCalcTemp;
       const rpm = parseFloat(b.rpm) || 500;
       const bQty = parseInt(b.qty, 10) || 1;
       const bPos = b.asPositie || b.pos || '';
@@ -2191,9 +2288,15 @@ function applySurveyConfig(config) {
       const bObj = allBearings.find(x => x.letter === letter) || { letter, nr: '22225', rpm: 500, qty: 1 };
       const d2 = sec2Map[letter] || {};
       const d3 = sec3Map[letter] || {};
-      const hDay = parseFloat(bObj.hoursPerDay || d2.q13) || 16;
-      const dWeek = parseFloat(bObj.daysPerWeek || d2.q14) || 5;
-      const temp = parseFloat(bObj.temp || d3.q15) || 20;
+      const hasSurveyHours = (d2.q13 !== undefined && d2.q13 !== '') || (bObj.hoursPerDay !== undefined && bObj.hoursPerDay !== '' && parseFloat(bObj.hoursPerDay) !== 16);
+      const hDay = hasSurveyHours ? (parseFloat(d2.q13 || bObj.hoursPerDay) || activeCalcHours) : activeCalcHours;
+
+      const hasSurveyDays = (d2.q14 !== undefined && d2.q14 !== '') || (bObj.daysPerWeek !== undefined && bObj.daysPerWeek !== '' && parseFloat(bObj.daysPerWeek) !== 5);
+      const dWeek = hasSurveyDays ? (parseFloat(d2.q14 || bObj.daysPerWeek) || activeCalcDays) : activeCalcDays;
+
+      const hasSurveyTemp = (d3 && ((d3.q16 !== undefined && d3.q16 !== '') || (d3.q15 !== undefined && d3.q15 !== ''))) ||
+                            (bObj.temp !== undefined && bObj.temp !== '' && parseFloat(bObj.temp) !== 20);
+      const temp = hasSurveyTemp ? (parseFloat((d3 && (d3.q16 || d3.q15)) || bObj.temp) || activeCalcTemp) : activeCalcTemp;
       const bQty = parseInt(bObj.qty, 10) || 1;
       const rpm = parseFloat(bObj.rpm) || 500;
       const bPos = bObj.asPositie || bObj.pos || '';
@@ -2452,10 +2555,30 @@ function parseSurveyPackageToConfig(data) {
         const rpm = (b.rpm || b.toerental || '').toString().trim();
         const asPos = (b.pos || b.asPositie || 'Horizontaal').trim();
         const d2 = (data.bearingDataMapSec2 && data.bearingDataMapSec2[letter]) ? data.bearingDataMapSec2[letter] : {};
-        const d3 = (data.bearingDataMapSec3 && data.bearingDataMapSec3[letter]) ? data.bearingDataMapSec3[letter] : {};
-        const hoursPerDay = parseFloat(b.hoursPerDay || d2.q13) || 16;
-        const daysPerWeek = parseFloat(b.daysPerWeek || d2.q14) || 5;
-        const temp = parseFloat(b.temp || d3.q15) || 20;
+        let calcTemp = 20;
+        let calcHours = 24;
+        let calcDays = 7;
+        try {
+          const lsT = parseFloat(document.getElementById("inputTemperature")?.value) ||
+                      parseFloat(localStorage.getItem("app_field_inputTemperature") || localStorage.getItem("calc_temperature"));
+          if (!isNaN(lsT) && lsT > 0) calcTemp = lsT;
+          const lsH = parseFloat(document.getElementById("inputHoursPerDay")?.value) ||
+                      parseFloat(localStorage.getItem("app_field_inputHoursPerDay") || localStorage.getItem("calc_hours_per_day"));
+          if (!isNaN(lsH) && lsH > 0) calcHours = lsH;
+          const lsD = parseFloat(document.getElementById("inputDaysPerWeek")?.value) ||
+                      parseFloat(localStorage.getItem("app_field_inputDaysPerWeek") || localStorage.getItem("calc_days_per_week"));
+          if (!isNaN(lsD) && lsD > 0) calcDays = lsD;
+        } catch(e) {}
+
+        const hasSurveyHours = (d2.q13 !== undefined && d2.q13 !== '') || (b.hoursPerDay !== undefined && b.hoursPerDay !== '' && parseFloat(b.hoursPerDay) !== 16);
+        const hoursPerDay = hasSurveyHours ? (parseFloat(d2.q13 || b.hoursPerDay) || calcHours) : calcHours;
+
+        const hasSurveyDays = (d2.q14 !== undefined && d2.q14 !== '') || (b.daysPerWeek !== undefined && b.daysPerWeek !== '' && parseFloat(b.daysPerWeek) !== 5);
+        const daysPerWeek = hasSurveyDays ? (parseFloat(d2.q14 || b.daysPerWeek) || calcDays) : calcDays;
+
+        const hasSurveyTemp = (d3 && ((d3.q16 !== undefined && d3.q16 !== '') || (d3.q15 !== undefined && d3.q15 !== ''))) ||
+                              (b.temp !== undefined && b.temp !== '' && parseFloat(b.temp) !== 20);
+        const temp = hasSurveyTemp ? (parseFloat((d3 && (d3.q16 || d3.q15)) || b.temp) || calcTemp) : calcTemp;
         const corr = determineBearingCorrectionFactors(d3, asPos);
         const manualOverrides = (typeof getManualBearingOverrides === 'function') ? getManualBearingOverrides() : {};
         const bOverride = manualOverrides[letter];
@@ -5822,8 +5945,26 @@ function renderAutoDevicesUI() {
 
   const hasAnyBearingSummary = Array.isArray(autoDevicesState) && autoDevicesState.slice(0, numDevices).some(d => !!d && !!d.bearingSummary);
 
+  const curDailyNeed = (typeof window !== 'undefined' && window.currentDailyNeedCm3 > 0)
+    ? window.currentDailyNeedCm3
+    : (parseFloat(localStorage.getItem("calc_daily_need")) || 0);
+
   for (let i = 0; i < numDevices; i++) {
     const dev = autoDevicesState[i] || { id: String.fromCharCode(65 + i), points: 1, cap: isSinglePoint ? 250 : 125, period: 6, unit: "months" };
+    if (curDailyNeed > 0) {
+      const activeLetter = (typeof window !== "undefined" && (window.currentActiveSurveyBearingLetter || window.currentSurveyBearingLetter))
+        || localStorage.getItem("interflon_active_survey_letter") || 'A';
+      const hasAssigned = Array.isArray(dev.bearingLetters) && dev.bearingLetters.length > 0;
+      const isTarget = !hasAssigned || numDevices === 1 || dev.id === 'A' || (activeLetter && hasAssigned && dev.bearingLetters.includes(activeLetter));
+      if (isTarget) {
+        dev.dailyNeedCm3 = curDailyNeed;
+        const pts = isSinglePoint ? 1 : (dev.points || 1);
+        dev.totalDailyNeed = isSinglePoint ? curDailyNeed : (pts === 0 ? 0 : (curDailyNeed * pts));
+        if (hasAssigned) {
+          dev.bearingDetailsSummary = dev.bearingLetters.map(l => `${l}: ${curDailyNeed.toFixed(2).replace('.', ',')} ml/d`).join(' &bull; ');
+        }
+      }
+    }
     const cardDevType = isSinglePoint ? "single_point" : (dev.type || deviceKey || "pulsarlube_m2");
     const selectGrease = document.getElementById("inputGrease") || document.getElementById("selectGrease");
     const greaseName = selectGrease ? selectGrease.value : "Interflon Grease MP2/3";
@@ -5956,7 +6097,7 @@ function renderAutoDevicesUI() {
           <div style="font-size: 11.5px; font-weight: 700; color: #0369a1; line-height: 1.4; word-break: break-word;">
             <span style="display: inline-block; margin-right: 4px;">🔗</span>Aangesloten lagers: <strong style="color: #0c4a6e;">${dev.bearingSummary}</strong>
           </div>
-          ${dev.bearingDetailsSummary ? `<div style="font-size: 10.5px; color: #0284c7; margin-top: 3px; line-height: 1.35; word-break: break-word;">Individuele behoefte: ${dev.bearingDetailsSummary}</div>` : ''}
+          <div id="autoBearingDetailsSummary_${devId}" style="${dev.bearingDetailsSummary ? '' : 'display: none; '}font-size: 10.5px; color: #0284c7; margin-top: 3px; line-height: 1.35; word-break: break-word;">Individuele behoefte: ${dev.bearingDetailsSummary || ''}</div>
         </div>
         <span style="background: #0284c7; color: white; font-size: 9.5px; font-weight: 800; padding: 3px 8px; border-radius: 10px; text-transform: uppercase; white-space: nowrap; letter-spacing: 0.5px; flex-shrink: 0; align-self: center;">Vragenlijst</span>
       </div>
@@ -6127,6 +6268,7 @@ function renderAutoDevicesUI() {
           <div style="margin-bottom: 6px;">
             <div style="font-size: 10px; font-weight: 700; color: var(--text-medium); text-transform: uppercase;">BEREKEND DAGELIJKS SMEERVOLUME (VOOR 1 LAGER):</div>
             <div id="autoDailyVolumeRes_${devId}" style="font-size: 18px; font-weight: 800; color: #E30613; margin-top: 1px;">0,00 ml/dag</div>
+            <div id="autoDailyVolumeFormula_${devId}" style="font-size: 10.5px; color: #64748b; margin-top: 2px;"></div>
           </div>
           <div style="margin-bottom: 6px;">
             <div style="font-size: 10px; font-weight: 700; color: var(--text-medium); text-transform: uppercase;">BEREKEND MAANDELIJKS SMEERVOLUME (VOOR 1 LAGER):</div>
@@ -6381,6 +6523,7 @@ function initUniversalInputPersistence() {
 
     if (typeof updateOmMetadata === "function") updateOmMetadata();
     if (typeof updateChainOmMetadata === "function") updateChainOmMetadata();
+    if (typeof calculateGrease === "function") calculateGrease();
     if (typeof calculateBearingRelubrication === "function") calculateBearingRelubrication();
     if (typeof recalculateTcoModel === "function") recalculateTcoModel();
     if (typeof recalculateChainTcoModel === "function") recalculateChainTcoModel();
@@ -7449,6 +7592,7 @@ const TRANSLATIONS = {
     snlRelubSide: "Zijkant behuizing (+60%)",
     resInterval: "Gecorrigeerd Smeerinterval met conventioneel smeermiddel (FC)",
     resRefillQty: "Nasmeerhoeveelheid",
+    resContinuousDailyLabel: "Continu dagverbruik (automatisatie):",
     resStrokes: "Aantal Slagen Vetpomp",
     resBaseInterval: "Basis frequentie onder optimale labo omstandigheden (FB)",
     resTempFactor: "Temperatuurfactor (Tt)",
@@ -7989,6 +8133,7 @@ const TRANSLATIONS = {
     snlRelubSide: "Housing side (+60%)",
     resInterval: "Corrected Lubrication Interval (FC)",
     resRefillQty: "Relubrication Quantity",
+    resContinuousDailyLabel: "Continuous daily demand (automation):",
     resStrokes: "Grease Gun Strokes",
     resBaseInterval: "Base Lubrication Interval (FB)",
     resTempFactor: "Temperature Factor (Tt)",
@@ -8529,6 +8674,7 @@ const TRANSLATIONS = {
     snlRelubSide: "Côté du palier (+60%)",
     resInterval: "Intervalle de Lubrification Corrigé (FC)",
     resRefillQty: "Quantité de Relubrification",
+    resContinuousDailyLabel: "Consommation journalière continue (automatisation) :",
     resStrokes: "Coups de Pompe à Graisse",
     resBaseInterval: "Intervalle de Lubrification de Base (FB)",
     resTempFactor: "Facteur de Température (Tt)",
@@ -11056,6 +11202,8 @@ function calculateGrease() {
   const coefCElement = document.getElementById("calcCoefC");
   const strokesElement = document.getElementById("calcStrokes");
   const densityElement = document.getElementById("calcDensity");
+  const continuousDailyNeedEl = document.getElementById("calcContinuousDailyNeed");
+  const continuousDailyFormulaEl = document.getElementById("calcContinuousDailyFormula");
 
   // Validatie van invoergegevens
   if (isNaN(d) || isNaN(D) || isNaN(B) || d <= 0 || D <= 0 || B <= 0) {
@@ -11066,9 +11214,10 @@ function calculateGrease() {
       intervalMonthsElement, coefCElement, strokesElement, densityElement,
       baseFreqDaysElement, baseFreqWeeksElement, baseFreqMonthsElement,
       intervalMicPolElement, intervalMicPolDaysElement, intervalMicPolWeeksElement,
-      intervalMicPolMonthsElement
+      intervalMicPolMonthsElement, continuousDailyNeedEl
     ];
     elements.forEach(el => { if (el) el.textContent = "--"; });
+    if (continuousDailyFormulaEl) continuousDailyFormulaEl.textContent = "";
     if (dnWarningRow) dnWarningRow.classList.add("hidden");
     window.currentDailyNeedCm3 = 0;
     window.currentHoursPerDay = 0;
@@ -11407,6 +11556,54 @@ function calculateGrease() {
   const calcDailyNeed = (totalCalendarDays > 0) ? (refill_grams / totalCalendarDays) : 0;
   window.currentDailyNeedCm3 = calcDailyNeed;
 
+  if (continuousDailyNeedEl) {
+    continuousDailyNeedEl.textContent = (calcDailyNeed > 0) ? calcDailyNeed.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : "--";
+  }
+  if (continuousDailyFormulaEl) {
+    if (calcDailyNeed > 0 && totalCalendarDays > 0) {
+      continuousDailyFormulaEl.textContent = `(${refill_grams.toFixed(1).replace('.', ',')} g ÷ ${totalCalendarDays.toFixed(1).replace('.', ',')} d)`;
+    } else {
+      continuousDailyFormulaEl.textContent = "";
+    }
+  }
+
+  // Immediately keep Automatisering devices in sync with the calculated grease demand
+  if (typeof autoDevicesState !== 'undefined' && Array.isArray(autoDevicesState) && calcDailyNeed > 0) {
+    const activeLetter = (typeof window !== "undefined" && (window.currentActiveSurveyBearingLetter || window.currentSurveyBearingLetter))
+      ? (window.currentActiveSurveyBearingLetter || window.currentSurveyBearingLetter)
+      : (typeof localStorage !== "undefined" ? localStorage.getItem("interflon_active_survey_letter") : null);
+
+    const activeNumCards = (typeof getActiveNumDevices === "function") ? getActiveNumDevices() : 1;
+
+    autoDevicesState.forEach(d => {
+      if (!d) return;
+      const hasAssigned = Array.isArray(d.bearingLetters) && d.bearingLetters.length > 0;
+      const isTarget = !hasAssigned || activeNumCards === 1 || d.id === 'A' || (activeLetter && hasAssigned && d.bearingLetters.includes(activeLetter));
+
+      if (isTarget) {
+        d.dailyNeedCm3 = calcDailyNeed;
+        const pts = (d.type === 'single_point') ? 1 : (d.points || 1);
+        d.totalDailyNeed = (d.type === 'single_point') ? calcDailyNeed : (pts === 0 ? 0 : (calcDailyNeed * pts));
+        if (hasAssigned) {
+          d.bearingDetailsSummary = d.bearingLetters.map(l => `${l}: ${calcDailyNeed.toFixed(2).replace('.', ',')} ml/d`).join(' &bull; ');
+        }
+      }
+    });
+
+    try {
+      if (typeof saveAutomationStateToLocalStorage === "function") {
+        saveAutomationStateToLocalStorage();
+      }
+    } catch(e) {}
+
+    if (!window.isGeneratingPdf) {
+      if (typeof renderAutomationDeviceCards === "function") renderAutomationDeviceCards();
+      if (typeof renderAutoDevicesUI === "function") renderAutoDevicesUI();
+      if (typeof calculateAutomationLubrication === "function") calculateAutomationLubrication();
+      setTimeout(() => { if (typeof updateRoiAutomationPage === "function") updateRoiAutomationPage(); }, 0);
+    }
+  }
+
   // Persist in localStorage so data survives page refresh
   try {
     if (typeof safeSetStorage === 'function') {
@@ -11418,6 +11615,8 @@ function calculateGrease() {
       safeSetStorage("calc_days_per_week", dWeek.toString());
       safeSetStorage("calc_micpol_factor", micPolFactor.toString());
       safeSetStorage("app_field_inputMicPolFactor", micPolFactor.toString());
+      safeSetStorage("calc_temperature", temp.toString());
+      safeSetStorage("app_field_inputTemperature", temp.toString());
     } else {
       localStorage.setItem("calc_daily_need", calcDailyNeed.toString());
       localStorage.setItem("calc_refill_grams", refill_grams.toString());
@@ -11427,6 +11626,8 @@ function calculateGrease() {
       localStorage.setItem("calc_days_per_week", dWeek.toString());
       localStorage.setItem("calc_micpol_factor", micPolFactor.toString());
       localStorage.setItem("app_field_inputMicPolFactor", micPolFactor.toString());
+      localStorage.setItem("calc_temperature", temp.toString());
+      localStorage.setItem("app_field_inputTemperature", temp.toString());
     }
 
     if (!window.__isSyncingQuestionnaire && typeof BroadcastChannel !== 'undefined') {
@@ -11436,6 +11637,7 @@ function calculateGrease() {
       const broadcastPayload = JSON.stringify({
         type: 'CALCULATOR_PARAMS_UPDATED',
         micPolFactor: micPolFactor,
+        temp: temp,
         hoursPerDay: hDay,
         daysPerWeek: dWeek,
         calcDailyNeed: calcDailyNeed,
@@ -15190,14 +15392,27 @@ function updateAutomationPage(isDropdownChange) {
   if (isDropdownChange && !window.__isImportingDossier && Array.isArray(autoDevicesState) && device !== "mixed") {
     const selectGrease = document.getElementById("inputGrease") || document.getElementById("selectGrease");
     const greaseName = selectGrease ? selectGrease.value : "Interflon Grease MP2/3";
+    const activeLetter = (typeof window !== "undefined" && (window.currentActiveSurveyBearingLetter || window.currentSurveyBearingLetter))
+      ? (window.currentActiveSurveyBearingLetter || window.currentSurveyBearingLetter)
+      : (typeof localStorage !== "undefined" ? localStorage.getItem("interflon_active_survey_letter") : null) || 'A';
+    const activeNumCards = (typeof getActiveNumDevices === "function") ? getActiveNumDevices() : 1;
+
     autoDevicesState.forEach(d => {
       if (d) {
+        const hasAssigned = Array.isArray(d.bearingLetters) && d.bearingLetters.length > 0;
+        const isTarget = !hasAssigned || activeNumCards === 1 || d.id === 'A' || (activeLetter && hasAssigned && d.bearingLetters.includes(activeLetter));
+
         if (device === "single_point") {
           d.type = "single_point";
           d.points = 1;
-          const dailyNeed = (d.dailyNeedCm3 && d.dailyNeedCm3 > 0)
-            ? d.dailyNeedCm3
-            : (window.currentDailyNeedCm3 || 0.704);
+          const dailyNeed = (window.currentDailyNeedCm3 > 0 && isTarget)
+            ? window.currentDailyNeedCm3
+            : ((hasAssigned && d.dailyNeedCm3 && d.dailyNeedCm3 > 0) ? d.dailyNeedCm3 : (window.currentDailyNeedCm3 || 0.704));
+          d.dailyNeedCm3 = dailyNeed;
+          d.totalDailyNeed = dailyNeed;
+          if (hasAssigned && isTarget && window.currentDailyNeedCm3 > 0) {
+            d.bearingDetailsSummary = d.bearingLetters.map(l => `${l}: ${dailyNeed.toFixed(2).replace('.', ',')} ml/d`).join(' &bull; ');
+          }
           if (!d.userEditedPeriod) {
             const smartAdv = getOptimalSmartAdvice(dailyNeed, "single_point", greaseName);
             if (smartAdv) {
@@ -15207,9 +15422,15 @@ function updateAutomationPage(isDropdownChange) {
           }
         } else {
           d.type = device;
-          const totalNeed = (d.totalDailyNeed && d.totalDailyNeed > 0)
-            ? d.totalDailyNeed
-            : ((window.currentDailyNeedCm3 || 0.704) * (d.points || 1));
+          const dailyNeed = (window.currentDailyNeedCm3 > 0 && isTarget)
+            ? window.currentDailyNeedCm3
+            : ((hasAssigned && d.dailyNeedCm3 && d.dailyNeedCm3 > 0) ? d.dailyNeedCm3 : (window.currentDailyNeedCm3 || 0.704));
+          const totalNeed = (d.points === 0) ? 0 : (dailyNeed * (d.points || 1));
+          d.dailyNeedCm3 = dailyNeed;
+          d.totalDailyNeed = totalNeed;
+          if (hasAssigned && isTarget && window.currentDailyNeedCm3 > 0) {
+            d.bearingDetailsSummary = d.bearingLetters.map(l => `${l}: ${dailyNeed.toFixed(2).replace('.', ',')} ml/d`).join(' &bull; ');
+          }
           if (!d.userEditedPeriod) {
             const smartAdv = getOptimalSmartAdvice(totalNeed, device, greaseName);
             if (smartAdv) {
@@ -15529,17 +15750,48 @@ function calculateAutomationLubrication() {
       if (divPriceEl) divPriceEl.textContent = `Prijs verdeelblok: € ${divInfo.price.toFixed(2).replace('.', ',')}`;
     }
 
-    // 2. Compute recommendation for THIS device (based on points for this device)
     const hasAssignedBearings = Array.isArray(dev.bearingLetters) && dev.bearingLetters.length > 0;
     const isSurveyImported = Array.isArray(autoDevicesState) && autoDevicesState.some(d => Array.isArray(d.bearingLetters) && d.bearingLetters.length > 0);
 
     const cardDevType = isSinglePoint ? "single_point" : (dev.type || (deviceKey !== "mixed" ? deviceKey : "pulsarlube_m2") || "pulsarlube_m2");
+    
+    const activeLetter = (typeof window !== "undefined" && (window.currentActiveSurveyBearingLetter || window.currentSurveyBearingLetter))
+      ? (window.currentActiveSurveyBearingLetter || window.currentSurveyBearingLetter)
+      : (typeof localStorage !== "undefined" ? localStorage.getItem("interflon_active_survey_letter") : null) || 'A';
+
+    const isCardTarget = !hasAssignedBearings || numCards === 1 || dev.id === 'A' || (activeLetter && hasAssignedBearings && dev.bearingLetters.includes(activeLetter));
+
+    if (dailyNeedCm3 > 0 && isCardTarget) {
+      dev.dailyNeedCm3 = dailyNeedCm3;
+      dev.totalDailyNeed = isSinglePoint ? dailyNeedCm3 : (points === 0 ? 0 : (dailyNeedCm3 * points));
+      if (hasAssignedBearings) {
+        dev.bearingDetailsSummary = dev.bearingLetters.map(l => `${l}: ${dailyNeedCm3.toFixed(2).replace('.', ',')} ml/d`).join(' &bull; ');
+      }
+    }
+
+    const effectiveSingleNeed = (dailyNeedCm3 > 0 && isCardTarget)
+      ? dailyNeedCm3
+      : ((dev.dailyNeedCm3 && dev.dailyNeedCm3 > 0) ? dev.dailyNeedCm3 : (dailyNeedCm3 > 0 ? dailyNeedCm3 : 0.704));
+
     const totalDailyNeedForDev = isSinglePoint
-      ? ((dev.dailyNeedCm3 && dev.dailyNeedCm3 > 0) ? dev.dailyNeedCm3 : (dailyNeedCm3 > 0 ? dailyNeedCm3 : 0.704))
-      : ((dev.totalDailyNeed && dev.totalDailyNeed > 0) ? dev.totalDailyNeed : (points === 0 ? 0 : (dailyNeedCm3 * points)));
-    const devDailyNeed1 = isSinglePoint
-      ? totalDailyNeedForDev
-      : ((dev.dailyNeedCm3 && dev.dailyNeedCm3 > 0) ? dev.dailyNeedCm3 : (points > 0 ? (totalDailyNeedForDev / points) : 0));
+      ? effectiveSingleNeed
+      : (points === 0 ? 0 : (effectiveSingleNeed * points));
+
+    const devDailyNeed1 = effectiveSingleNeed;
+
+    dev.dailyNeedCm3 = effectiveSingleNeed;
+    dev.totalDailyNeed = totalDailyNeedForDev;
+
+    // Dynamically update the Individuele behoefte badge element in DOM if present
+    const detailsEl = document.getElementById("autoBearingDetailsSummary_" + devId);
+    if (detailsEl) {
+      if (dev.bearingDetailsSummary) {
+        detailsEl.innerHTML = `Individuele behoefte: ${dev.bearingDetailsSummary}`;
+        detailsEl.style.display = "";
+      } else {
+        detailsEl.style.display = "none";
+      }
+    }
 
     const recDays = capMl / (totalDailyNeedForDev > 0 ? totalDailyNeedForDev : 0.704);
     const recMonths = recDays / 30.4375;
@@ -15725,6 +15977,19 @@ function calculateAutomationLubrication() {
     if (resValEl) resValEl.textContent = `${displayDaily1.toLocaleString("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ml/dag`;
     if (monthValEl) monthValEl.textContent = `${displayMonthly1.toLocaleString("nl-BE", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} ml/maand`;
     if (yearValEl) yearValEl.textContent = `${displayYearly1.toLocaleString("nl-BE", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} ml/jaar`;
+
+    const formulaEl = document.getElementById("autoDailyVolumeFormula_" + devId);
+    if (formulaEl) {
+      const refillG = (dev && dev.refillGrams) || window.currentRefillGrams || 0;
+      const daysInt = (dev && dev.intervalDays) || window.currentMicPolDays || 0;
+      if (refillG > 0 && daysInt > 0) {
+        formulaEl.textContent = `(= ${refillG.toFixed(1).replace('.', ',')} g per beurt ÷ ${daysInt.toFixed(1).replace('.', ',')} d interval)`;
+      } else if (displayDaily1 > 0) {
+        formulaEl.textContent = `(= continu verbruik o.b.v. smeercalculatie)`;
+      } else {
+        formulaEl.textContent = "";
+      }
+    }
 
     const displayDailyX = isSinglePoint ? (devDailyNeed1 * groupUnits) : totalDailyNeedForDev;
     const displayMonthlyX = displayDailyX * 30.4375;
@@ -15924,6 +16189,7 @@ function calculateAutomationLubrication() {
     syncAutomationDeviceCardHeights();
   }
 }
+window.calculateAutomationLubrication = calculateAutomationLubrication;
 
 // ==========================================================================
 // MODE SELECTION & CHAIN LOGIC (LAGERBEREKENING VS KETTINGBEREKENING)
