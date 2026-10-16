@@ -219,13 +219,13 @@ const INTERFLON_GREASES = {
   },
   "INTERFLON GREASE MP00": {
     dnMax: 320000, dnOptimalMax: 250000, dnEffectiveMax: 320000,
-    density: 0.90, isHighTemp: false, tempMin: 0, tempMax: 145, tempPeak: 145,
+    density: 0.90, isHighTemp: false, tempMin: -25, tempMax: 145, tempPeak: 145,
     nlgi: -1, nlgiLabel: "00", viscosity40: 105, baseOil: "Mineraal",
     thickener: "Lithium-complex", weldLoadN: 3800, waterWashoutPct: 15.0,
     waterResistance: "low", category: "semi_fluid_gear", isFoodH1: false
   },
   "INTERFLON GREASE OG": {
-    dnMax: 250000, dnOptimalMax: 40000, dnEffectiveMax: 60000,
+    dnMax: 60000, dnOptimalMax: 40000, dnEffectiveMax: 60000,
     density: 0.95, isHighTemp: false, tempMin: -10, tempMax: 120, tempPeak: 140,
     nlgi: 0, nlgiLabel: "0", viscosity40: 800, baseOil: "Mineraal / Plantaardig",
     thickener: "Calcium-Lithium-complex", weldLoadN: 8000, waterWashoutPct: 2.0,
