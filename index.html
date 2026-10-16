@@ -1062,10 +1062,46 @@
             <form onsubmit="event.preventDefault()">
               <div class="form-group">
                 <label for="inputGrease" data-i18n="inputGreaseLabel">Selecteer Interflon Vet</label>
-                <select id="inputGrease" class="form-control" style="padding-left: 16px;" onchange="if(typeof calculateGrease==='function')calculateGrease(); if(typeof renderAutoDevicesUI==='function')renderAutoDevicesUI(); if(typeof calculateAutomationLubrication==='function')calculateAutomationLubrication(); if(typeof updateRoiAutomationPage==='function')updateRoiAutomationPage();">
+                <select id="inputGrease" class="form-control" style="padding-left: 14px; font-weight: 700; transition: all 0.2s ease;" onchange="if(typeof calculateGrease==='function')calculateGrease(); if(typeof renderAutoDevicesUI==='function')renderAutoDevicesUI(); if(typeof calculateAutomationLubrication==='function')calculateAutomationLubrication(); if(typeof updateRoiAutomationPage==='function')updateRoiAutomationPage();">
                   <!-- Wordt dynamisch gevuld in JS -->
                 </select>
                 <span class="input-label-description" data-i18n="descGrease">Bepaalt de maximale DN-factor en consistentie</span>
+
+                <!-- Dynamische 3-kleuren geschiktheidsindicator (Dennis Training + TDS) -->
+                <div id="greaseSuitabilityContainer" style="margin-top: 6px; display: flex; flex-direction: column; gap: 5px;">
+                  <div id="greaseSuitabilityLegend" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 4px; font-size: 10.5px; font-weight: 700; padding: 4px 8px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px;">
+                    <div style="display: inline-flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                      <span style="display: inline-flex; align-items: center; gap: 3px; color: #15803d;" title="Helemaal geschikt voor de huidige parameters">
+                        <span style="width: 8px; height: 8px; border-radius: 50%; background: #16a34a; display: inline-block;"></span>
+                        <span id="greaseLegendGreenText">Geschikt</span> (<span id="greaseCountGreen">-</span>)
+                      </span>
+                      <span style="display: inline-flex; align-items: center; gap: 3px; color: #c2410c;" title="Niet ideaal, maar eventueel mogelijk">
+                        <span style="width: 8px; height: 8px; border-radius: 50%; background: #ea580c; display: inline-block;"></span>
+                        <span id="greaseLegendOrangeText">Mogelijk</span> (<span id="greaseCountOrange">-</span>)
+                      </span>
+                      <span style="display: inline-flex; align-items: center; gap: 3px; color: #b91c1c;" title="Echt niet geschikt voor de huidige parameters">
+                        <span style="width: 8px; height: 8px; border-radius: 50%; background: #dc2626; display: inline-block;"></span>
+                        <span id="greaseLegendRedText">Ongeschikt</span> (<span id="greaseCountRed">-</span>)
+                      </span>
+                    </div>
+                    <button type="button" id="btnToggleGreaseOverview" onclick="toggleGreaseSuitabilityOverview()" style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 4px; padding: 2px 6px; font-size: 10px; font-weight: 700; color: #334155; cursor: pointer; display: inline-flex; align-items: center; gap: 3px;" onmouseover="this.style.borderColor='#94a3b8'; this.style.backgroundColor='#f1f5f9';" onmouseout="this.style.borderColor='#cbd5e1'; this.style.backgroundColor='#ffffff';">
+                      <span id="btnToggleGreaseOverviewText">📋 Overzicht (20)</span>
+                    </button>
+                  </div>
+
+                  <!-- Live statusbalk voor het huidig geselecteerde vet -->
+                  <div id="greaseSuitabilityBadge" style="padding: 6px 9px; border-radius: 6px; border: 1px solid #bbf7d0; background-color: #f0fdf4; color: #15803d; font-size: 11px; line-height: 1.35; transition: all 0.2s ease;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; gap: 6px; font-weight: 700;">
+                      <span id="greaseSuitabilityTitle">🟢 Helemaal geschikt</span>
+                      <span id="greaseSuitabilitySpecs" style="font-size: 10px; font-weight: 600; opacity: 0.9;"></span>
+                    </div>
+                    <div id="greaseSuitabilityReason" style="margin-top: 2px; font-size: 10.5px; font-weight: 500;"></div>
+                  </div>
+
+                  <!-- Uitklapbaar overzicht van alle 20 vetten met kleurcode & onderbouwing -->
+                  <div id="greaseSuitabilityOverviewPanel" class="hidden" style="max-height: 290px; overflow-y: auto; border: 1px solid #cbd5e1; border-radius: 6px; background: #ffffff; padding: 4px; box-shadow: 0 4px 12px rgba(15,23,42,0.08);">
+                  </div>
+                </div>
                 
                 <!-- Ga naar productinfo knop -->
                 <button type="button" id="btnProductInfo" onclick="openProductInfoPage()" class="btn" style="margin-top: 6px; width: 100%; display: inline-flex; align-items: center; justify-content: center; gap: 6px; font-family: 'Outfit', sans-serif; font-size: 11.5px; padding: 4px 10px; height: auto;">
@@ -4314,11 +4350,11 @@
 
   <!-- JavaScript logic imports -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="interflon-data.js?v=20260904_1726"></script>
+  <script src="interflon-data.js?v=20261016_1000"></script>
   <script src="bearings-db.js?v=20260918_1130"></script>
   <script src="chains-db.js?v=20260904_1726"></script>
   <script src="qrcode.min.js"></script>
-  <script src="app_v6.js?v=20261015_2245"></script>
+  <script src="app_v6.js?v=20261016_1000"></script>
 
   <!-- Interflon Oil Dispenser Information Modal (PowerPoint Viewer) -->
   <div id="oilDispenserInfoModal" class="modal-overlay hidden" style="z-index: 99999;">
