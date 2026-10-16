@@ -12,6 +12,31 @@
     if (window.location.hostname === 'bearing-calculator-interflon.onrender.com') {
       window.location.replace('https://www.interflonapps.com' + window.location.pathname + window.location.search + window.location.hash);
     }
+    window.__APP_BUILD_VERSION = '20261016_1930';
+    (function() {
+      if (window.location.protocol === 'file:') return;
+      function checkLiveAppVersion() {
+        fetch('version.json?_t=' + Date.now(), { cache: 'no-store' })
+          .then(function(r) { return r.ok ? r.json() : null; })
+          .then(function(data) {
+            if (data && data.version && data.version !== window.__APP_BUILD_VERSION) {
+              var lastReloaded = sessionStorage.getItem('__last_auto_version_reload');
+              if (lastReloaded !== data.version) {
+                sessionStorage.setItem('__last_auto_version_reload', data.version);
+                var url = new URL(window.location.href);
+                url.searchParams.set('_v', data.version);
+                window.location.replace(url.toString());
+              }
+            }
+          })
+          .catch(function() {});
+      }
+      checkLiveAppVersion();
+      document.addEventListener('visibilitychange', function() {
+        if (document.visibilityState === 'visible') checkLiveAppVersion();
+      });
+      setInterval(checkLiveAppVersion, 25000);
+    })();
   </script>
   <link rel="stylesheet" href="style.css?v=20261002_0848">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -4350,11 +4375,11 @@
 
   <!-- JavaScript logic imports -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="interflon-data.js?v=20261016_1905"></script>
+  <script src="interflon-data.js?v=20261016_1930"></script>
   <script src="bearings-db.js?v=20260918_1130"></script>
   <script src="chains-db.js?v=20260904_1726"></script>
   <script src="qrcode.min.js"></script>
-  <script src="app_v6.js?v=20261016_1905"></script>
+  <script src="app_v6.js?v=20261016_1930"></script>
 
   <!-- Interflon Oil Dispenser Information Modal (PowerPoint Viewer) -->
   <div id="oilDispenserInfoModal" class="modal-overlay hidden" style="z-index: 99999;">
