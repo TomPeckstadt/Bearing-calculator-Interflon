@@ -18154,13 +18154,14 @@ function toggleGreaseSuitabilityOverview() {
   const btnText = document.getElementById("btnToggleGreaseOverviewText");
   if (!panel) return;
   const lang = (typeof currentLang !== "undefined" && currentLang) ? currentLang : "nl";
+  const totalGreases = (typeof INTERFLON_GREASES !== "undefined") ? Object.keys(INTERFLON_GREASES).length : 19;
   const isHidden = panel.classList.contains("hidden");
   if (isHidden) {
     panel.classList.remove("hidden");
     if (btnText) btnText.textContent = lang === "en" ? "🔼 Hide list" : lang === "fr" ? "🔼 Masquer" : "🔼 Sluit overzicht";
   } else {
     panel.classList.add("hidden");
-    if (btnText) btnText.textContent = lang === "en" ? "📋 Overview (20)" : lang === "fr" ? "📋 Aperçu (20)" : "📋 Overzicht (20)";
+    if (btnText) btnText.textContent = lang === "en" ? `📋 Overview (${totalGreases})` : lang === "fr" ? `📋 Aperçu (${totalGreases})` : `📋 Overzicht (${totalGreases})`;
   }
 }
 window.toggleGreaseSuitabilityOverview = toggleGreaseSuitabilityOverview;
