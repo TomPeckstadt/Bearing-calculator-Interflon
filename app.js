@@ -11248,7 +11248,7 @@ function calculateGrease() {
     ? INTERFLON_GREASES[greaseName] 
     : { dnMax: 680000, density: 0.92, isHighTemp: false };
   
-  const dnMax = grease.dnMax;
+  const dnMax = grease.dnEffectiveMax || grease.dnMax;
   const density = grease.density;
 
   if (greaseDNElement) greaseDNElement.textContent = dnMax.toLocaleString("nl-NL");
@@ -14992,7 +14992,11 @@ function updateBearingAnimation(speed, limitingSpeed, ndm, dnMax, fc, temp, temp
     let maxT = parseFloat(tempMax);
     let tempExceeded = !isNaN(tempVal) && !isNaN(minT) && !isNaN(maxT) && (tempVal < minT || tempVal > maxT);
     
-    if (limitExceeded || dnExceeded || lifespanTooLow || tempExceeded) {
+    const greaseSuit = window.currentSelectedGreaseSuitability || null;
+    const isGreaseRed = !!(greaseSuit && greaseSuit.status === "red");
+    const isGreaseOrange = !!(greaseSuit && greaseSuit.status === "orange");
+
+    if (limitExceeded || dnExceeded || lifespanTooLow || tempExceeded || isGreaseRed) {
       state = "warning";
       dotColor = "#ef4444";
       cardBorderColor = "#fca5a5";
@@ -15003,9 +15007,16 @@ function updateBearingAnimation(speed, limitingSpeed, ndm, dnMax, fc, temp, temp
         statusText = lang === "nl" ? "Snelheidslimiet overschreden!" : lang === "en" ? "Speed limit exceeded!" : "Vitesse limite dépassée !";
       } else if (dnExceeded) {
         statusText = lang === "nl" ? "Vet DN-limiet overschreden!" : lang === "en" ? "Grease DN limit exceeded!" : "Limite DN de graisse dépassée !";
+      } else if (isGreaseRed) {
+        statusText = lang === "nl" ? "Geselecteerd vet niet geschikt voor deze toepassing!" : lang === "en" ? "Selected grease unsuitable for this application!" : "Graisse sélectionnée inadaptée !";
       } else {
         statusText = lang === "nl" ? "Kritiek smeerinterval!" : lang === "en" ? "Critical lubrication interval!" : "Intervalle de lubrification critique !";
       }
+    } else if (isGreaseOrange) {
+      state = "caution";
+      dotColor = "#ea580c";
+      cardBorderColor = "#fed7aa";
+      statusText = lang === "nl" ? "Operationeel (Let op: vet niet ideaal)" : lang === "en" ? "Operational (Note: grease not ideal)" : "Opérationnel (Attention: graisse non idéale)";
     } else {
       state = "normal";
       dotColor = "#10b981";
@@ -15026,7 +15037,7 @@ function updateBearingAnimation(speed, limitingSpeed, ndm, dnMax, fc, temp, temp
   
   if (statusLabel) {
     statusLabel.textContent = statusText;
-    statusLabel.style.color = state === "warning" ? "#dc2626" : state === "normal" ? "#0f766e" : "var(--text-medium)";
+    statusLabel.style.color = state === "warning" ? "#dc2626" : state === "caution" ? "#c2410c" : state === "normal" ? "#0f766e" : "var(--text-medium)";
   }
   
   const animCard = document.getElementById("bearingAnimCard");
@@ -15038,6 +15049,9 @@ function updateBearingAnimation(speed, limitingSpeed, ndm, dnMax, fc, temp, temp
     if (state === "warning") {
       container.style.boxShadow = "0 0 15px rgba(239, 68, 68, 0.25), inset 0 2px 4px rgba(0,0,0,0.06)";
       container.style.border = "1px solid rgba(239, 68, 68, 0.3)";
+    } else if (state === "caution") {
+      container.style.boxShadow = "0 0 15px rgba(234, 88, 12, 0.20), inset 0 2px 4px rgba(0,0,0,0.06)";
+      container.style.border = "1px solid rgba(234, 88, 12, 0.3)";
     } else if (state === "normal") {
       container.style.boxShadow = "0 0 15px rgba(2, 132, 199, 0.15), inset 0 2px 4px rgba(0,0,0,0.06)";
       container.style.border = "1px solid rgba(2, 132, 199, 0.2)";
@@ -18066,6 +18080,14 @@ function updateGreaseDropdownColors(ctx) {
 
   const selectedName = greaseSelect.value;
   const activeRes = evaluations[selectedName] || evaluateGreaseSuitability(selectedName, ctx);
+  window.currentSelectedGreaseSuitability = activeRes;
+
+  const panelOverviewEl = document.getElementById("greaseSuitabilityOverviewPanel");
+  const btnOverviewTextEl = document.getElementById("btnToggleGreaseOverviewText");
+  if (panelOverviewEl && btnOverviewTextEl && panelOverviewEl.classList.contains("hidden")) {
+    const totalGreases = greaseSelect.options.length;
+    btnOverviewTextEl.textContent = lang === "en" ? `📋 Overview (${totalGreases})` : lang === "fr" ? `📋 Aperçu (${totalGreases})` : `📋 Overzicht (${totalGreases})`;
+  }
 
   // Style het gesloten <select> element en de live statusbalk
   const badgeEl = document.getElementById("greaseSuitabilityBadge");
