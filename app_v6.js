@@ -9087,6 +9087,9 @@ document.addEventListener("DOMContentLoaded", () => {
     if (initialOmProdName2 && greaseSelect.value) {
       initialOmProdName2.textContent = greaseSelect.value;
     }
+    if (typeof updateGreaseDropdownColors === "function") {
+      updateGreaseDropdownColors();
+    }
   }
 
   // Initialiseer SNL-lagerhuizen dropdown
@@ -11219,6 +11222,19 @@ function calculateGrease() {
     elements.forEach(el => { if (el) el.textContent = "--"; });
     if (continuousDailyFormulaEl) continuousDailyFormulaEl.textContent = "";
     if (dnWarningRow) dnWarningRow.classList.add("hidden");
+    if (typeof updateGreaseDropdownColors === "function") {
+      updateGreaseDropdownColors({
+        temp: isNaN(temp) ? 65 : temp,
+        speed: isNaN(speed) ? 0 : speed,
+        ndm: 0,
+        Te: isNaN(Te) ? 0.5 : Te,
+        Ta: isNaN(Ta) ? 0.5 : Ta,
+        bearingType: (typeof activeBearing !== "undefined" && activeBearing && activeBearing.type) ? activeBearing.type : "Groove Ball",
+        baseTypeFactor: 1.0,
+        isSnlActive: false,
+        snlFillPct: "40"
+      });
+    }
     window.currentDailyNeedCm3 = 0;
     window.currentHoursPerDay = 0;
     window.currentDaysPerWeek = 0;
@@ -11329,6 +11345,20 @@ function calculateGrease() {
   const snlFillPct = selSnlFillEl ? selSnlFillEl.value : "40";
   const snlRelubPos = selSnlRelubEl ? selSnlRelubEl.value : "w33";
   const snlData = (typeof getSnlHousingData === "function") ? getSnlHousingData(snlTypeVal) : null;
+
+  if (typeof updateGreaseDropdownColors === "function") {
+    updateGreaseDropdownColors({
+      temp: isNaN(temp) ? 65 : temp,
+      speed: isNaN(speed) ? 0 : speed,
+      ndm: isNaN(ndm) ? 0 : ndm,
+      Te: isNaN(Te) ? 0.5 : Te,
+      Ta: isNaN(Ta) ? 0.5 : Ta,
+      bearingType: bearingType,
+      baseTypeFactor: baseTypeFactor,
+      isSnlActive: isSnlActive,
+      snlFillPct: snlFillPct
+    });
+  }
 
   const fillPercent = 40;
   const fill_cm3 = vol_free_cm3 * (fillPercent / 100);
@@ -17584,6 +17614,565 @@ function updateThickenerCompatibility() {
     textEl.textContent = currentLang === "en" ? "Not compatible" : currentLang === "fr" ? "Non compatible" : "Niet compatibel";
   }
 }
+
+// ==========================================================================
+// DYNAMISCHE 3-KLEUREN VETGESCHIKTHEID (DENNIS TRAINING + INTERFLON TDS)
+// ==========================================================================
+
+function evaluateGreaseSuitability(greaseName, ctx) {
+  const g = (typeof INTERFLON_GREASES !== "undefined" && INTERFLON_GREASES[greaseName])
+    ? INTERFLON_GREASES[greaseName]
+    : null;
+  if (!g) {
+    return {
+      status: "green",
+      reasonsRed: [],
+      reasonsOrange: [],
+      summaryReason: "",
+      specsSummary: ""
+    };
+  }
+
+  const lang = (typeof currentLang !== "undefined" && currentLang) ? currentLang : "nl";
+  const temp = (ctx && typeof ctx.temp === "number" && !isNaN(ctx.temp)) ? ctx.temp : 65;
+  const ndm = (ctx && typeof ctx.ndm === "number" && !isNaN(ctx.ndm)) ? ctx.ndm : 0;
+  const Te = (ctx && typeof ctx.Te === "number" && !isNaN(ctx.Te)) ? ctx.Te : 0.5;
+  const Ta = (ctx && typeof ctx.Ta === "number" && !isNaN(ctx.Ta)) ? ctx.Ta : 0.5;
+  const bType = (ctx && ctx.bearingType) ? String(ctx.bearingType).toLowerCase() : "groove ball";
+  const baseTypeFactor = (ctx && typeof ctx.baseTypeFactor === "number") ? ctx.baseTypeFactor : 1.0;
+  const isRoller = baseTypeFactor > 1.0 || bType.includes("roller") || bType.includes("rol") || bType.includes("kegel") || bType.includes("taper") || bType.includes("spherical") || bType.includes("pendel") || bType.includes("cylind") || bType.includes("cilinder") || bType.includes("naald") || bType.includes("needle") || bType.includes("ton");
+  const isHeavyRoller = baseTypeFactor >= 2.0 || bType.includes("spherical") || bType.includes("pendelrol") || bType.includes("sferisch") || bType.includes("taper") || bType.includes("kegel") || bType.includes("conisch") || bType.includes("ton");
+  const isSnl100 = !!(ctx && ctx.isSnlActive && String(ctx.snlFillPct) === "100");
+
+  const dnEffectiveMax = g.dnEffectiveMax || g.dnMax || 250000;
+  const dnOptimalMax = g.dnOptimalMax || Math.round(dnEffectiveMax * 0.8);
+  const nlgi = (typeof g.nlgi === "number") ? g.nlgi : 2;
+  const nlgiLabel = g.nlgiLabel || "2";
+  const cSt = g.viscosity40 || 220;
+  const weldLoadN = g.weldLoadN || 3900;
+  const category = g.category || "standard_bearing";
+
+  const reasonsRed = [];
+  const reasonsOrange = [];
+
+  const fmtNum = (n) => Math.round(n).toLocaleString("nl-NL");
+
+  // --------------------------------------------------------------------------
+  // 1. TEMPERATUUR BEOORDELING (TDS + Dennis Training)
+  // --------------------------------------------------------------------------
+  if (temp < g.tempMin) {
+    reasonsRed.push(
+      lang === "en" ? `Temp. (${temp}°C) below min. limit (${g.tempMin}°C)` :
+      lang === "fr" ? `Temp. (${temp}°C) sous la limite min. (${g.tempMin}°C)` :
+      `Temp. (${temp}°C) onder minimale grens (${g.tempMin}°C)`
+    );
+  } else if (temp > g.tempMax) {
+    reasonsRed.push(
+      lang === "en" ? `Temp. (${temp}°C) exceeds max. limit (${g.tempMax}°C)` :
+      lang === "fr" ? `Temp. (${temp}°C) dépasse la limite max. (${g.tempMax}°C)` :
+      `Temp. (${temp}°C) boven maximale grens (${g.tempMax}°C)`
+    );
+  } else {
+    // Bovengrens thermische marge
+    const upperWarnThreshold = (greaseName === "INTERFLON GREASE MP2/3" || greaseName === "INTERFLON GREASE MP1")
+      ? 125
+      : (g.tempMax - 15);
+    if (temp > upperWarnThreshold) {
+      reasonsOrange.push(
+        lang === "en" ? `Temp. (${temp}°C) approaches upper limit (${g.tempMax}°C)` :
+        lang === "fr" ? `Temp. (${temp}°C) proche de la limite max. (${g.tempMax}°C)` :
+        `Temp. (${temp}°C) nadert bovengrens (${g.tempMax}°C)`
+      );
+    }
+
+    // Ondergrens koude-mobiliteit / aanloopkoppel marge (Dennis Slide 40 & 105)
+    let lowerWarnThreshold = g.tempMin + 10;
+    if (greaseName === "INTERFLON GREASE LS2" || greaseName === "INTERFLON GREASE OG") {
+      lowerWarnThreshold = 0; // 800-1000 cSt wordt erg stug onder 0°C
+    } else if (greaseName === "INTERFLON GREASE HD2") {
+      lowerWarnThreshold = -10; // CaSx #2 wordt stug onder -10°C
+    }
+    if (temp < lowerWarnThreshold) {
+      reasonsOrange.push(
+        lang === "en" ? `Low temp. (${temp}°C): stiff starting torque near min. limit (${g.tempMin}°C)` :
+        lang === "fr" ? `Basse temp. (${temp}°C): couple de démarrage élevé près de ${g.tempMin}°C` :
+        `Lage temp. (${temp}°C): hoog aanloopkoppel nabij ondergrens (${g.tempMin}°C)`
+      );
+    }
+
+    // Hoogtemperatuurspecialisten bij normale bedrijfstemperatuur
+    if (category === "high_temp_specialist" && temp < 125) {
+      reasonsOrange.push(
+        lang === "en" ? `High-temp Bentonite specialist (>125..240°C); not miscible & less shear-stable at ${temp}°C` :
+        lang === "fr" ? `Spécialiste haute temp. Bentonite (>125..240°C); non miscible à ${temp}°C` :
+        `Hoogtemperatuurspecialist (Bentoniet, >125..240°C); niet mengbaar en lagere schuifstabiliteit bij ${temp}°C`
+      );
+    } else if (category === "extreme_temp_chem" && temp < 140 && Te > 0.15) {
+      reasonsOrange.push(
+        lang === "en" ? `PFPE/PTFE specialist for extreme temp. (>140..270°C) or aggressive chemicals; not miscible` :
+        lang === "fr" ? `Spécialiste PFPE/PTFE pour temp. extrêmes (>140..270°C) ou chimie; non miscible` :
+        `PFPE/PTFE specialist voor extreme temp. (>140..270°C) of chemie; niet mengbaar met andere vetten`
+      );
+    }
+  }
+
+  // --------------------------------------------------------------------------
+  // 2. SNELHEID / DN-FACTOR & BASISOLIEVISCOSITEIT (TDS + Dennis Slide 49-51, 93-95)
+  // --------------------------------------------------------------------------
+  if (ndm > dnEffectiveMax) {
+    reasonsRed.push(
+      lang === "en" ? `Bearing DN (${fmtNum(ndm)}) exceeds max. DN limit (${fmtNum(dnEffectiveMax)})` :
+      lang === "fr" ? `DN roulement (${fmtNum(ndm)}) dépasse la limite DN max. (${fmtNum(dnEffectiveMax)})` :
+      `Lager DN (${fmtNum(ndm)}) overschrijdt max. DN-limiet (${fmtNum(dnEffectiveMax)})`
+    );
+  } else if (ndm > dnOptimalMax) {
+    reasonsOrange.push(
+      lang === "en" ? `Bearing DN (${fmtNum(ndm)}) approaches max. limit (${fmtNum(dnEffectiveMax)})` :
+      lang === "fr" ? `DN roulement (${fmtNum(ndm)}) approche la limite max. (${fmtNum(dnEffectiveMax)})` :
+      `Lager DN (${fmtNum(ndm)}) nadert max. DN-limiet (optimaal ≤ ${fmtNum(dnOptimalMax)}, max. ${fmtNum(dnEffectiveMax)})`
+    );
+  }
+
+  // Traagdraaiend lager + lage olieviscositeit (≤ 110 cSt)
+  if (ndm > 0 && ndm < 35000 && cSt <= 110 && (isRoller || Ta <= 0.5)) {
+    reasonsRed.push(
+      lang === "en" ? `Base oil viscosity (${cSt} cSt) too thin for slow/heavily loaded bearing (DN ${fmtNum(ndm)})` :
+      lang === "fr" ? `Viscosité d'huile (${cSt} cSt) trop faible pour roulement lent/chargé (DN ${fmtNum(ndm)})` :
+      `Basisolieviscositeit (${cSt} cSt) te dun voor traagdraaiend/belast lager (DN ${fmtNum(ndm)})`
+    );
+  } else if (ndm > 0 && ndm < 28000 && cSt < 250 && weldLoadN < 6000 && (Ta <= 0.3 || (isHeavyRoller && Ta <= 0.5))) {
+    reasonsOrange.push(
+      lang === "en" ? `At very low speed (DN ${fmtNum(ndm)}) & heavy shock/load, higher viscosity/EP grease (HD2, LS1/2, LS2, Food HD2/EP) is preferred` :
+      lang === "fr" ? `À très basse vitesse (DN ${fmtNum(ndm)}) et forte charge, une huile plus visqueuse/EP (HD2, LS1/2, LS2) est préférable` :
+      `Bij zeer lage snelheid (DN ${fmtNum(ndm)}) en zware belasting geeft een dikkere basisolie/EP-vet (HD2, LS1/2, LS2, Food HD2/EP) een sterkere smeerfilm`
+    );
+  }
+
+  // Zeer dikke basisolie (≥ 550 cSt) in een schoon, lichtbelast kogellager op snelheid
+  if (!isRoller && Ta >= 0.8 && Te >= 0.8 && ndm > 45000 && cSt >= 550) {
+    reasonsOrange.push(
+      lang === "en" ? `High base oil viscosity (${cSt} cSt) causes extra fluid friction in a lightly loaded ball bearing` :
+      lang === "fr" ? `Haute viscosité (${cSt} cSt) entraîne une friction fluide supplémentaire dans un roulement à billes peu chargé` :
+      `Hoge basisolieviscositeit (${cSt} cSt) geeft extra vloeistofwrijving in een lichtbelast kogellager`
+    );
+  }
+
+  // --------------------------------------------------------------------------
+  // 3. TOEPASSING, BELASTING, VIBRATIES, VERTICALE AS & NLGI (Ta & Lagertype)
+  // --------------------------------------------------------------------------
+  if (category === "semi_fluid_gear") {
+    // NLGI 00 / 000 tandwielkast- en centraalsysteemvetten (MP00, Food HD00, Food 000)
+    if (isRoller || Ta <= 0.5 || Te <= 0.5 || isSnl100) {
+      reasonsRed.push(
+        lang === "en" ? `Semi-fluid gearbox grease (NLGI ${nlgiLabel}); leaks out & lacks film/sealing stability in this bearing` :
+        lang === "fr" ? `Graisse semi-fluide pour réducteurs (NLGI ${nlgiLabel}); fuit et manque de tenue dans ce roulement` :
+        `Semi-vloeibaar tandwielkast-/centraalsysteemvet (NLGI ${nlgiLabel}); lekt weg en mist kraag-/filmstabiliteit in dit lager`
+      );
+    } else {
+      reasonsOrange.push(
+        lang === "en" ? `Semi-fluid grease (NLGI ${nlgiLabel}) intended for gearboxes/central systems; only usable in sealed housings` :
+        lang === "fr" ? `Graisse semi-fluide (NLGI ${nlgiLabel}) pour réducteurs/systèmes centraux` :
+        `Semi-vloeibaar vet (NLGI ${nlgiLabel}) voor tandwielkasten/centraalsystemen; enkel toepasbaar in goed afgedichte huizen`
+      );
+    }
+  } else if (category === "open_gear") {
+    // INTERFLON GREASE OG (NLGI 0, 800 cSt)
+    if (Ta === 0.15 || isSnl100 || Te <= 0.3 || (!isRoller && ndm > 30000)) {
+      reasonsRed.push(
+        lang === "en" ? `Open-gear grease (NLGI 0, 800 cSt); unsuitable consistency for this rolling bearing configuration` :
+        lang === "fr" ? `Graisse pour engrenages ouverts (NLGI 0, 800 cSt); non adaptée à ce roulement` :
+        `Open-tandwielvet (NLGI 0, 800 cSt); niet geschikt voor deze wentellagerconfiguratie`
+      );
+    } else {
+      reasonsOrange.push(
+        lang === "en" ? `Open-gear/slewing ring grease (NLGI 0, 800 cSt); LS1/2, LS2 or HD2 are better suited for rolling bearings` :
+        lang === "fr" ? `Graisse pour engrenages ouverts (NLGI 0, 800 cSt); LS1/2, LS2 ou HD2 sont préférables` :
+        `Open-tandwiel-/draaikransvet (NLGI 0, 800 cSt); voor wentellagers zijn LS1/2, LS2 of HD2 beter geschikt`
+      );
+    }
+  } else if (category === "direct_food_3h") {
+    // INTERFLON FOOD GREASE 3H (Silica, 103 cSt, <2200 N, NSF 3H)
+    if (isRoller || Ta <= 0.5 || Te <= 0.3) {
+      reasonsRed.push(
+        lang === "en" ? `NSF 3H direct food-contact grease with low load capacity (<220 kg); unsuitable for roller/shock-loaded bearings` :
+        lang === "fr" ? `Graisse NSF 3H contact alimentaire direct à faible charge (<220 kg); inadaptée aux roulements chargés` :
+        `NSF 3H direct-voedselcontactvet met lage lasbelasting (<220 kg); ongeschikt voor rollagers of schokbelasting`
+      );
+    } else {
+      reasonsOrange.push(
+        lang === "en" ? `NSF 3H direct food-contact release grease (<220 kg weld load); use Food Grease MP2/LT2/HD2 for longer bearing life` :
+        lang === "fr" ? `Graisse NSF 3H contact direct (<220 kg); privilégier Food Grease MP2/LT2/HD2 pour les roulements` :
+        `NSF 3H direct-voedselcontactvet (<220 kg lasbelasting); enkel voor zeer lichtbelaste lagers met direct voedselcontact`
+      );
+    }
+  } else if (category === "light_silica_bearing") {
+    // INTERFLON FOOD GREASE 2 (Silica, 400 cSt, <2200 N)
+    if (Ta <= 0.5 || isHeavyRoller || Te <= 0.3) {
+      reasonsRed.push(
+        lang === "en" ? `Silica thickener with low load capacity (<220 kg); unsuitable for heavy roller bearings, shocks or heavy moisture` :
+        lang === "fr" ? `Épaississant silice à faible capacité de charge (<220 kg); inadapté aux fortes charges/chocs` :
+        `Silica-vet met lage belastbaarheid (<220 kg); ongeschikt voor zwaarbelaste rollagers, schokken of zware vervuiling`
+      );
+    } else if (isRoller || Te === 0.5) {
+      reasonsOrange.push(
+        lang === "en" ? `Silica grease with limited weld load (<220 kg); Food Grease MP2, EP or HD2 offer higher mechanical stability` :
+        lang === "fr" ? `Graisse silice à charge limitée (<220 kg); Food Grease MP2, EP ou HD2 offrent plus de stabilité` :
+        `Silica-vet met beperkte lasbelasting (<220 kg); Food Grease MP2, EP of HD2 bieden hogere mechanische stabiliteit`
+      );
+    }
+  } else if (category === "epdm_specialist") {
+    // INTERFLON FOOD GREASE S1/2 (Silica, 220 cSt synth, 2400 N)
+    if (Ta <= 0.3 || Te === 0.15) {
+      reasonsRed.push(
+        lang === "en" ? `Silica grease (240 kg weld load); insufficient shear/load resistance for severe vibrations, vertical shaft or extreme washout` :
+        lang === "fr" ? `Graisse silice (240 kg); résistance insuffisante aux fortes vibrations, arbre vertical ou lavage extrême` :
+        `Silica-vet (lasbelasting 240 kg); onvoldoende mechanische/water-stabiliteit bij zware vibraties, verticale as of extreme condensatie`
+      );
+    } else if (Ta === 0.5 || isHeavyRoller || Te === 0.3) {
+      reasonsOrange.push(
+        lang === "en" ? `EPDM/elastomer Silica specialist (240 kg weld load); less ideal for shock loads or heavy roller bearings` :
+        lang === "fr" ? `Spécialiste EPDM/élastomères (240 kg); moins idéal pour chocs ou roulements à rouleaux lourds` :
+        `Specialist voor EPDM/kunststof afdichtingen (Silica, 240 kg lasbelasting); minder ideaal bij schokbelasting of zware rollagers`
+      );
+    }
+  } else if (category === "soft_central_lube") {
+    // NLGI 1 vetten: INTERFLON GREASE MP1 & INTERFLON FOOD GREASE 1
+    if (Ta === 0.15) {
+      reasonsRed.push(
+        lang === "en" ? `Soft NLGI 1 grease; slumps/leaks in vertical shaft or extreme mechanical applications` :
+        lang === "fr" ? `Graisse souple NLGI 1; coule sur arbre vertical ou sollicitation extrême` :
+        `Zacht NLGI 1 vet; zakt uit bij verticale as of extreme mechanische belasting (kies NLGI 2/3)`
+      );
+    } else if (Te === 0.15) {
+      reasonsRed.push(
+        lang === "en" ? `Soft NLGI 1 grease; insufficient sealing barrier against extreme condensation/water washout` :
+        lang === "fr" ? `Graisse souple NLGI 1; barrière insuffisante contre la condensation/lavage extrême` :
+        `Zacht NLGI 1 vet; onvoldoende waterbarrière bij extreme condensatie/wateruitwassing`
+      );
+    } else if (Ta <= 0.5 || Te <= 0.5 || isSnl100 || temp > 25) {
+      reasonsOrange.push(
+        lang === "en" ? `Soft NLGI 1 grease (designed for central lubrication systems / cold start); NLGI 2 provides better sealing & collar stability` :
+        lang === "fr" ? `Graisse souple NLGI 1 (pour graissage centralisé / froid); NLGI 2 offre une meilleure étanchéité` :
+        `Zacht NLGI 1 vet (voor centrale smering / lage temp.); NLGI 2 biedt een betere afdichtingskraag en schokstabiliteit`
+      );
+    }
+  }
+
+  // Specifieke Ta = 0.15 (Verticale as / Extreem) & Ta = 0.3 (Zware vibraties) checks voor overige vetten
+  if (Ta === 0.15) {
+    if (category === "high_temp_specialist") {
+      reasonsRed.push(
+        lang === "en" ? `Bentonite clay thickener lacks mechanical stability for vertical shaft / extreme vibration` :
+        lang === "fr" ? `L'épaississant bentonite manque de stabilité mécanique pour arbre vertical / vibration extrême` :
+        `Bentoniet-kleiverdikker heeft onvoldoende mechanische stabiliteit bij verticale as / extreme belasting`
+      );
+    } else if (greaseName === "INTERFLON GREASE LS1/2") {
+      reasonsOrange.push(
+        lang === "en" ? `NLGI 1/2 consistency; for vertical shafts a firmer NLGI 2 grease (LS2, HD2, MP2/3) is preferred` :
+        lang === "fr" ? `Consistance NLGI 1/2; pour arbre vertical, une graisse NLGI 2 (LS2, HD2, MP2/3) est préférable` :
+        `NLGI 1/2 consistentie; bij verticale as verdient een vaster NLGI 2 vet (LS2, HD2, MP2/3) de voorkeur`
+      );
+    } else if (greaseName === "INTERFLON GREASE HS2" && isHeavyRoller) {
+      reasonsOrange.push(
+        lang === "en" ? `High-speed grease (3000 N weld load); for heavily loaded roller bearings under extreme conditions HD2 is stronger` :
+        lang === "fr" ? `Graisse haute vitesse (3000 N); pour roulements à rouleaux fortement sollicités, HD2 est plus robuste` :
+        `Hogesnelheidsvet (lasbelasting 300 kg); bij zwaarbelaste rollagers onder extreme condities biedt HD2 (750 kg) meer reserve`
+      );
+    }
+  } else if (Ta === 0.3) {
+    if (category === "high_temp_specialist" && temp < 140) {
+      reasonsRed.push(
+        lang === "en" ? `Bentonite clay thickener softens under severe vibrations (Ta 0.3)` :
+        lang === "fr" ? `L'épaississant bentonite se ramollit sous fortes vibrations (Ta 0,3)` :
+        `Bentoniet-kleiverdikker verliest structuur bij zware vibraties/trillingen (Ta 0,3)`
+      );
+    } else if (greaseName === "INTERFLON GREASE HS2" && isRoller) {
+      reasonsOrange.push(
+        lang === "en" ? `Moderate weld load (300 kg) for a roller bearing under severe vibrations (Ta 0.3); HD2/MP2/3 offer higher EP capacity` :
+        lang === "fr" ? `Charge de soudure modérée (300 kg) pour roulement à rouleaux sous fortes vibrations (Ta 0,3)` :
+        `Beperktere lasbelasting (300 kg) voor een rollager onder zware vibraties (Ta 0,3); HD2 of MP2/3 biedt hogere EP-reserve`
+      );
+    }
+  }
+
+  // --------------------------------------------------------------------------
+  // 4. OMGEVING, STOF, WATER & CONDENSATIE (Te: Dennis Slide 20-21, 94, 98)
+  // --------------------------------------------------------------------------
+  if (Te === 0.15) {
+    // Condensatie / Extreem water / Stoom
+    if (category === "high_temp_specialist") {
+      reasonsRed.push(
+        lang === "en" ? `Bentonite clay grease is sensitive to extreme water washout / steam (Te 0.15)` :
+        lang === "fr" ? `Graisse bentonite sensible au délavage extrême à l'eau / vapeur (Te 0,15)` :
+        `Bentoniet-kleivet is gevoelig voor extreme wateruitwassing / condensatie (Te 0,15)`
+      );
+    } else if (
+      greaseName === "INTERFLON GREASE MP2/3" ||
+      greaseName === "INTERFLON FOOD GREASE MP2" ||
+      greaseName === "INTERFLON FOOD GREASE LT2"
+    ) {
+      reasonsOrange.push(
+        lang === "en" ? `Good water resistance, but under extreme condensation/washout (Te 0.15) Ca-sulfonate/Ca-Li/EP (HD2, LS2, LS1/2, Food HD2/EP) is superior` :
+        lang === "fr" ? `Bonne résistance à l'eau, mais sous condensation extrême (Te 0,15) HD2, LS2, LS1/2 ou Food HD2/EP sont supérieurs` :
+        `Goede waterbestendigheid, maar bij extreme condensatie/waterbelasting (Te 0,15) zijn HD2, LS2, LS1/2, Food HD2 of Food EP superieur`
+      );
+    }
+  } else if (Te === 0.3) {
+    // Erg hoog stof en/of vocht
+    if (category === "high_temp_specialist" && temp < 150) {
+      reasonsOrange.push(
+        lang === "en" ? `Medium water barrier under heavy moisture/dust (Te 0.3)` :
+        lang === "fr" ? `Barrière à l'eau moyenne sous forte humidité/poussière (Te 0,3)` :
+        `Matige waterbarrière bij zware vocht-/stofbelasting (Te 0,3)`
+      );
+    }
+  }
+
+  // --------------------------------------------------------------------------
+  // EINDSTATUS BEPALEN (Rood > Oranje > Groen)
+  // --------------------------------------------------------------------------
+  let status = "green";
+  if (reasonsRed.length > 0) {
+    status = "red";
+  } else if (reasonsOrange.length > 0) {
+    status = "orange";
+  }
+
+  const specsSummary = `NLGI ${nlgiLabel} • ${cSt} cSt • ${g.tempMin}..+${g.tempMax}°C • Max DN ${fmtNum(dnEffectiveMax)}`;
+
+  let summaryReason = "";
+  if (status === "red") {
+    summaryReason = reasonsRed.join(" • ");
+  } else if (status === "orange") {
+    summaryReason = reasonsOrange.join(" • ");
+  } else {
+    const weldKg = Math.round(weldLoadN / 9.81);
+    summaryReason =
+      lang === "en" ? `Optimal match: Temp. ${temp}°C (${g.tempMin}..+${g.tempMax}°C), DN ${fmtNum(ndm)} (≤ ${fmtNum(dnEffectiveMax)}), ${g.thickener} (${cSt} cSt, weld load ~${weldKg} kg)` :
+      lang === "fr" ? `Parfaitement adapté: Temp. ${temp}°C (${g.tempMin}..+${g.tempMax}°C), DN ${fmtNum(ndm)} (≤ ${fmtNum(dnEffectiveMax)}), ${g.thickener} (${cSt} cSt)` :
+      `Volledig geschikt: Temp. ${temp}°C (${g.tempMin}..+${g.tempMax}°C), DN ${fmtNum(ndm)} (max. ${fmtNum(dnEffectiveMax)}), ${g.thickener} (${cSt} cSt, lasbelasting ~${weldKg} kg)`;
+  }
+
+  return {
+    status,
+    reasonsRed,
+    reasonsOrange,
+    summaryReason,
+    specsSummary
+  };
+}
+window.evaluateGreaseSuitability = evaluateGreaseSuitability;
+
+function updateGreaseDropdownColors(ctx) {
+  const greaseSelect = document.getElementById("inputGrease");
+  if (!greaseSelect || typeof INTERFLON_GREASES === "undefined") return;
+
+  const lang = (typeof currentLang !== "undefined" && currentLang) ? currentLang : "nl";
+
+  // Indien geen context meegegeven, lees huidige waarden uit DOM
+  if (!ctx) {
+    const tempVal = parseFloat(document.getElementById("inputTemperature")?.value);
+    const speedVal = parseFloat(document.getElementById("inputSpeed")?.value);
+    const dVal = parseFloat(document.getElementById("inputBoreManual")?.value);
+    const DVal = parseFloat(document.getElementById("inputOuterManual")?.value);
+    const BVal = parseFloat(document.getElementById("inputWidthManual")?.value);
+    const TeVal = parseFloat(document.getElementById("inputTe")?.value);
+    const TaVal = parseFloat(document.getElementById("inputTa")?.value);
+    const chkSnl = document.getElementById("chkSnlHousing");
+    const selSnlFill = document.getElementById("selSnlFillPercent");
+
+    let bType = "Groove Ball";
+    if (typeof activeBearing !== "undefined" && activeBearing && activeBearing.type) {
+      bType = activeBearing.type;
+    } else if (!isNaN(BVal) && !isNaN(DVal) && DVal > 0 && (BVal / DVal > 0.28)) {
+      bType = "Spherical Roller";
+    }
+    const bLower = bType.toLowerCase();
+    let baseTf = 1.0;
+    let baseDnMult = 1;
+    if (bLower.includes("spherical") || bLower.includes("sferisch") || bLower.includes("pendelrol") || bLower.includes("ton") || bLower.includes("naald")) {
+      baseTf = 2.6; baseDnMult = 3;
+    } else if (bLower.includes("tapered") || bLower.includes("conisch") || bLower.includes("kegel")) {
+      baseTf = 2.0; baseDnMult = 2;
+    } else if (bLower.includes("cylindrical") || bLower.includes("cylindrisch") || bLower.includes("cilinder")) {
+      baseTf = 1.7; baseDnMult = 2;
+    }
+    const dm = (!isNaN(dVal) && !isNaN(DVal) && dVal > 0 && DVal > 0) ? ((dVal + DVal) / 2) : 0;
+    const ndmCalc = (!isNaN(speedVal) && speedVal > 0 && dm > 0) ? (speedVal * dm * baseDnMult) : 0;
+
+    ctx = {
+      temp: isNaN(tempVal) ? 65 : tempVal,
+      speed: isNaN(speedVal) ? 0 : speedVal,
+      ndm: ndmCalc,
+      Te: isNaN(TeVal) ? 0.5 : TeVal,
+      Ta: isNaN(TaVal) ? 0.5 : TaVal,
+      bearingType: bType,
+      baseTypeFactor: baseTf,
+      isSnlActive: !!(chkSnl && chkSnl.checked),
+      snlFillPct: selSnlFill ? selSnlFill.value : "40"
+    };
+  }
+
+  let countGreen = 0;
+  let countOrange = 0;
+  let countRed = 0;
+  const evaluations = {};
+
+  for (let i = 0; i < greaseSelect.options.length; i++) {
+    const opt = greaseSelect.options[i];
+    const name = opt.value;
+    const res = evaluateGreaseSuitability(name, ctx);
+    evaluations[name] = res;
+
+    if (res.status === "green") {
+      countGreen++;
+      opt.style.backgroundColor = "#dcfce7";
+      opt.style.color = "#166534";
+      opt.style.fontWeight = "700";
+      opt.textContent = `🟢 ${name}`;
+      opt.title = (lang === "en" ? "Suitable: " : lang === "fr" ? "Adapté: " : "Geschikt: ") + res.summaryReason;
+    } else if (res.status === "orange") {
+      countOrange++;
+      opt.style.backgroundColor = "#ffedd5";
+      opt.style.color = "#c2410c";
+      opt.style.fontWeight = "600";
+      opt.textContent = `🟠 ${name}`;
+      opt.title = (lang === "en" ? "Possible / not ideal: " : lang === "fr" ? "Possible / non idéal: " : "Niet ideaal / mogelijk: ") + res.summaryReason;
+    } else {
+      countRed++;
+      opt.style.backgroundColor = "#fee2e2";
+      opt.style.color = "#991b1b";
+      opt.style.fontWeight = "500";
+      opt.textContent = `🔴 ${name}`;
+      opt.title = (lang === "en" ? "Unsuitable: " : lang === "fr" ? "Inadapté: " : "Niet geschikt: ") + res.summaryReason;
+    }
+    opt.dataset.suitability = res.status;
+  }
+
+  // Update legend counts & labels
+  const elCountGreen = document.getElementById("greaseCountGreen");
+  const elCountOrange = document.getElementById("greaseCountOrange");
+  const elCountRed = document.getElementById("greaseCountRed");
+  if (elCountGreen) elCountGreen.textContent = String(countGreen);
+  if (elCountOrange) elCountOrange.textContent = String(countOrange);
+  if (elCountRed) elCountRed.textContent = String(countRed);
+
+  const elLegGreen = document.getElementById("greaseLegendGreenText");
+  const elLegOrange = document.getElementById("greaseLegendOrangeText");
+  const elLegRed = document.getElementById("greaseLegendRedText");
+  if (elLegGreen) elLegGreen.textContent = lang === "en" ? "Suitable" : lang === "fr" ? "Adapté" : "Geschikt";
+  if (elLegOrange) elLegOrange.textContent = lang === "en" ? "Possible" : lang === "fr" ? "Possible" : "Mogelijk";
+  if (elLegRed) elLegRed.textContent = lang === "en" ? "Unsuitable" : lang === "fr" ? "Inadapté" : "Niet geschikt";
+
+  const selectedName = greaseSelect.value;
+  const activeRes = evaluations[selectedName] || evaluateGreaseSuitability(selectedName, ctx);
+
+  // Style het gesloten <select> element en de live statusbalk
+  const badgeEl = document.getElementById("greaseSuitabilityBadge");
+  const titleEl = document.getElementById("greaseSuitabilityTitle");
+  const specsEl = document.getElementById("greaseSuitabilitySpecs");
+  const reasonEl = document.getElementById("greaseSuitabilityReason");
+
+  if (activeRes.status === "green") {
+    greaseSelect.style.borderColor = "#22c55e";
+    greaseSelect.style.backgroundColor = "#f0fdf4";
+    greaseSelect.style.color = "#14532d";
+    if (badgeEl) {
+      badgeEl.style.backgroundColor = "#f0fdf4";
+      badgeEl.style.borderColor = "#bbf7d0";
+      badgeEl.style.color = "#15803d";
+    }
+    if (titleEl) {
+      titleEl.textContent = lang === "en" ? "🟢 Completely suitable for current parameters" : lang === "fr" ? "🟢 Parfaitement adapté aux paramètres actuels" : "🟢 Helemaal geschikt voor huidige parameters";
+    }
+  } else if (activeRes.status === "orange") {
+    greaseSelect.style.borderColor = "#f97316";
+    greaseSelect.style.backgroundColor = "#fff7ed";
+    greaseSelect.style.color = "#9a3412";
+    if (badgeEl) {
+      badgeEl.style.backgroundColor = "#fff7ed";
+      badgeEl.style.borderColor = "#fed7aa";
+      badgeEl.style.color = "#c2410c";
+    }
+    if (titleEl) {
+      titleEl.textContent = lang === "en" ? "🟠 Not ideal, but potentially usable" : lang === "fr" ? "🟠 Non idéal, mais éventuellement possible" : "🟠 Niet ideaal, maar eventueel mogelijk";
+    }
+  } else {
+    greaseSelect.style.borderColor = "#ef4444";
+    greaseSelect.style.backgroundColor = "#fef2f2";
+    greaseSelect.style.color = "#991b1b";
+    if (badgeEl) {
+      badgeEl.style.backgroundColor = "#fef2f2";
+      badgeEl.style.borderColor = "#fecaca";
+      badgeEl.style.color = "#b91c1c";
+    }
+    if (titleEl) {
+      titleEl.textContent = lang === "en" ? "🔴 Truly unsuitable for current parameters" : lang === "fr" ? "🔴 Vraiment inadapté aux paramètres actuels" : "🔴 Echt niet geschikt voor huidige parameters";
+    }
+  }
+
+  if (specsEl) specsEl.textContent = activeRes.specsSummary;
+  if (reasonEl) reasonEl.textContent = activeRes.summaryReason;
+
+  // Vul het uitklapbare overzichtspaneel (gesorteerd op Groen -> Oranje -> Rood)
+  const overviewPanel = document.getElementById("greaseSuitabilityOverviewPanel");
+  if (overviewPanel) {
+    const orderWeight = { green: 1, orange: 2, red: 3 };
+    const sortedNames = Object.keys(INTERFLON_GREASES).sort((a, b) => {
+      const wa = orderWeight[(evaluations[a] && evaluations[a].status) || "green"] || 2;
+      const wb = orderWeight[(evaluations[b] && evaluations[b].status) || "green"] || 2;
+      if (wa !== wb) return wa - wb;
+      return a.localeCompare(b);
+    });
+
+    overviewPanel.innerHTML = sortedNames.map(name => {
+      const r = evaluations[name] || evaluateGreaseSuitability(name, ctx);
+      const isSelected = (name === selectedName);
+      let bg = "#f0fdf4", border = "#bbf7d0", textCol = "#166534", dot = "🟢";
+      if (r.status === "orange") {
+        bg = "#fff7ed"; border = "#fed7aa"; textCol = "#c2410c"; dot = "🟠";
+      } else if (r.status === "red") {
+        bg = "#fef2f2"; border = "#fecaca"; textCol = "#991b1b"; dot = "🔴";
+      }
+      const activeOutline = isSelected ? "box-shadow: 0 0 0 2px #0f172a; font-weight: 800;" : "";
+      return `
+        <div onclick="selectGreaseFromOverview('${name.replace(/'/g, "\\'")}')" style="padding: 5px 8px; margin-bottom: 3px; border-radius: 5px; background: ${bg}; border: 1px solid ${border}; color: ${textCol}; cursor: pointer; font-size: 10.5px; line-height: 1.3; transition: all 0.15s ease; ${activeOutline}">
+          <div style="display: flex; align-items: center; justify-content: space-between; gap: 4px; font-weight: 700;">
+            <span>${dot} ${name}</span>
+            <span style="font-size: 9.5px; font-weight: 600; opacity: 0.85;">${r.specsSummary}</span>
+          </div>
+          <div style="font-size: 10px; font-weight: 500; margin-top: 1px; opacity: 0.95;">${r.summaryReason}</div>
+        </div>
+      `;
+    }).join("");
+  }
+}
+window.updateGreaseDropdownColors = updateGreaseDropdownColors;
+
+function toggleGreaseSuitabilityOverview() {
+  const panel = document.getElementById("greaseSuitabilityOverviewPanel");
+  const btnText = document.getElementById("btnToggleGreaseOverviewText");
+  if (!panel) return;
+  const lang = (typeof currentLang !== "undefined" && currentLang) ? currentLang : "nl";
+  const isHidden = panel.classList.contains("hidden");
+  if (isHidden) {
+    panel.classList.remove("hidden");
+    if (btnText) btnText.textContent = lang === "en" ? "🔼 Hide list" : lang === "fr" ? "🔼 Masquer" : "🔼 Sluit overzicht";
+  } else {
+    panel.classList.add("hidden");
+    if (btnText) btnText.textContent = lang === "en" ? "📋 Overview (20)" : lang === "fr" ? "📋 Aperçu (20)" : "📋 Overzicht (20)";
+  }
+}
+window.toggleGreaseSuitabilityOverview = toggleGreaseSuitabilityOverview;
+
+function selectGreaseFromOverview(greaseName) {
+  const greaseSelect = document.getElementById("inputGrease");
+  if (!greaseSelect) return;
+  greaseSelect.value = greaseName;
+  greaseSelect.dispatchEvent(new Event("change", { bubbles: true }));
+}
+window.selectGreaseFromOverview = selectGreaseFromOverview;
+
 
 
 // ==========================================================================
