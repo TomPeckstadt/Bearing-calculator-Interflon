@@ -189,26 +189,146 @@ const CORRECTED_FREQUENCY_TABLE = [
 ];
 
 const INTERFLON_GREASES = {
-  "INTERFLON FOOD GREASE MP2": { dnMax: 400000, density: 0.90, isHighTemp: false, tempMin: -45, tempMax: 150 },
-  "INTERFLON FOOD GREASE EP": { dnMax: 250000, density: 0.94, isHighTemp: false, tempMin: -20, tempMax: 170 },
-  "INTERFLON GREASE LS1/2": { dnMax: 120000, density: 0.93, isHighTemp: false, tempMin: -20, tempMax: 120 },
-  "INTERFLON GREASE LS2": { dnMax: 120000, density: 0.94, isHighTemp: false, tempMin: -10, tempMax: 120 },
-  "INTERFLON GREASE MP00": { dnMax: 320000, density: 0.90, isHighTemp: false, tempMin: 0, tempMax: 145 },
-  "INTERFLON GREASE OG": { dnMax: 250000, density: 0.95, isHighTemp: false, tempMin: -10, tempMax: 120 },
-  "INTERFLON FLUOR GREASE 2": { dnMax: 250000, density: 2.01, isHighTemp: true, tempMin: -30, tempMax: 270 },
-  "INTERFLON FOOD GREASE 000": { dnMax: 250000, density: 0.89, isHighTemp: false, tempMin: -20, tempMax: 120 },
-  "INTERFLON FOOD GREASE 1": { dnMax: 250000, density: 0.92, isHighTemp: false, tempMin: -20, tempMax: 150 },
-  "INTERFLON FOOD GREASE 2": { dnMax: 250000, density: 0.94, isHighTemp: false, tempMin: -20, tempMax: 150 },
-  "INTERFLON FOOD GREASE LT2": { dnMax: 400000, density: 0.90, isHighTemp: false, tempMin: -45, tempMax: 150 },
-  "INTERFLON GREASE HD2": { dnMax: 500000, density: 1.00, isHighTemp: false, tempMin: -25, tempMax: 160 },
-  "INTERFLON GREASE HTG": { dnMax: 250000, density: 0.99, isHighTemp: true, tempMin: -20, tempMax: 240 },
-  "INTERFLON GREASE MP1": { dnMax: 680000, density: 0.92, isHighTemp: false, tempMin: -30, tempMax: 145 },
-  "INTERFLON GREASE MP2/3": { dnMax: 680000, density: 0.92, isHighTemp: false, tempMin: -30, tempMax: 145 },
-  "INTERFLON GREASE HS2": { dnMax: 1000000, density: 0.87, isHighTemp: false, tempMin: -35, tempMax: 120 },
-  "INTERFLON FOOD GREASE 3H": { dnMax: 120000, density: 0.97, isHighTemp: false, tempMin: -20, tempMax: 120 },
-  "INTERFLON FOOD GREASE HD00": { dnMax: 350000, density: 0.91, isHighTemp: false, tempMin: -25, tempMax: 145 },
-  "INTERFLON FOOD GREASE HD2": { dnMax: 250000, density: 0.96, isHighTemp: false, tempMin: -30, tempMax: 180 },
-  "INTERFLON FOOD GREASE S1/2": { dnMax: 300000, density: 1.00, isHighTemp: false, tempMin: -40, tempMax: 180 }
+  "INTERFLON FOOD GREASE MP2": {
+    dnMax: 400000, dnOptimalMax: 320000, dnEffectiveMax: 400000,
+    density: 0.90, isHighTemp: false, tempMin: -45, tempMax: 150, tempPeak: 180,
+    nlgi: 2, nlgiLabel: "2", viscosity40: 350, baseOil: "PAO / Synthetisch",
+    thickener: "Aluminium-complex", weldLoadN: 4400, waterWashoutPct: 1.5,
+    waterResistance: "high", category: "standard_bearing", isFoodH1: true
+  },
+  "INTERFLON FOOD GREASE EP": {
+    dnMax: 250000, dnOptimalMax: 200000, dnEffectiveMax: 250000,
+    density: 0.94, isHighTemp: false, tempMin: -20, tempMax: 170, tempPeak: 180,
+    nlgi: 2, nlgiLabel: "2", viscosity40: 400, baseOil: "Witte olie",
+    thickener: "Aluminium-complex", weldLoadN: 4500, waterWashoutPct: 1.5,
+    waterResistance: "extreme", category: "heavy_duty_bearing", isFoodH1: true
+  },
+  "INTERFLON GREASE LS1/2": {
+    dnMax: 120000, dnOptimalMax: 95000, dnEffectiveMax: 120000,
+    density: 0.93, isHighTemp: false, tempMin: -20, tempMax: 120, tempPeak: 140,
+    nlgi: 1.5, nlgiLabel: "1/2", viscosity40: 550, baseOil: "Mineraal",
+    thickener: "Calcium-Lithium-complex", weldLoadN: 7000, waterWashoutPct: 7.0,
+    waterResistance: "extreme", category: "slow_heavy_bearing", isFoodH1: false
+  },
+  "INTERFLON GREASE LS2": {
+    dnMax: 120000, dnOptimalMax: 80000, dnEffectiveMax: 120000,
+    density: 0.94, isHighTemp: false, tempMin: -10, tempMax: 120, tempPeak: 140,
+    nlgi: 2, nlgiLabel: "2", viscosity40: 1000, baseOil: "Mineraal",
+    thickener: "Calcium-Lithium-complex", weldLoadN: 7000, waterWashoutPct: 0.2,
+    waterResistance: "extreme", category: "slow_heavy_bearing", isFoodH1: false
+  },
+  "INTERFLON GREASE MP00": {
+    dnMax: 320000, dnOptimalMax: 250000, dnEffectiveMax: 320000,
+    density: 0.90, isHighTemp: false, tempMin: 0, tempMax: 145, tempPeak: 145,
+    nlgi: -1, nlgiLabel: "00", viscosity40: 105, baseOil: "Mineraal",
+    thickener: "Lithium-complex", weldLoadN: 3800, waterWashoutPct: 15.0,
+    waterResistance: "low", category: "semi_fluid_gear", isFoodH1: false
+  },
+  "INTERFLON GREASE OG": {
+    dnMax: 250000, dnOptimalMax: 40000, dnEffectiveMax: 60000,
+    density: 0.95, isHighTemp: false, tempMin: -10, tempMax: 120, tempPeak: 140,
+    nlgi: 0, nlgiLabel: "0", viscosity40: 800, baseOil: "Mineraal / Plantaardig",
+    thickener: "Calcium-Lithium-complex", weldLoadN: 8000, waterWashoutPct: 2.0,
+    waterResistance: "high", category: "open_gear", isFoodH1: false
+  },
+  "INTERFLON FLUOR GREASE 2": {
+    dnMax: 250000, dnOptimalMax: 180000, dnEffectiveMax: 250000,
+    density: 2.01, isHighTemp: true, tempMin: -30, tempMax: 270, tempPeak: 280,
+    nlgi: 2, nlgiLabel: "2", viscosity40: 550, baseOil: "PFPE (Perfluorpolyether)",
+    thickener: "PTFE", weldLoadN: 7000, waterWashoutPct: 0.1,
+    waterResistance: "extreme", category: "extreme_temp_chem", isFoodH1: true
+  },
+  "INTERFLON FOOD GREASE 000": {
+    dnMax: 250000, dnOptimalMax: 180000, dnEffectiveMax: 250000,
+    density: 0.89, isHighTemp: false, tempMin: -20, tempMax: 120, tempPeak: 120,
+    nlgi: -2, nlgiLabel: "000", viscosity40: 220, baseOil: "Witte olie",
+    thickener: "Silica-aerogel", weldLoadN: 2000, waterWashoutPct: 20.0,
+    waterResistance: "low", category: "semi_fluid_gear", isFoodH1: true
+  },
+  "INTERFLON FOOD GREASE 1": {
+    dnMax: 250000, dnOptimalMax: 180000, dnEffectiveMax: 250000,
+    density: 0.92, isHighTemp: false, tempMin: -20, tempMax: 150, tempPeak: 170,
+    nlgi: 1, nlgiLabel: "1", viscosity40: 400, baseOil: "Witte olie",
+    thickener: "Aluminium-complex", weldLoadN: 3000, waterWashoutPct: 1.5,
+    waterResistance: "medium", category: "soft_central_lube", isFoodH1: true
+  },
+  "INTERFLON FOOD GREASE 2": {
+    dnMax: 250000, dnOptimalMax: 180000, dnEffectiveMax: 250000,
+    density: 0.94, isHighTemp: false, tempMin: -20, tempMax: 150, tempPeak: 150,
+    nlgi: 2, nlgiLabel: "2", viscosity40: 400, baseOil: "Witte olie",
+    thickener: "Silica", weldLoadN: 2000, waterWashoutPct: 8.0,
+    waterResistance: "medium", category: "light_silica_bearing", isFoodH1: true
+  },
+  "INTERFLON FOOD GREASE LT2": {
+    dnMax: 400000, dnOptimalMax: 320000, dnEffectiveMax: 400000,
+    density: 0.90, isHighTemp: false, tempMin: -45, tempMax: 150, tempPeak: 180,
+    nlgi: 2, nlgiLabel: "2", viscosity40: 350, baseOil: "PAO / Synthetisch",
+    thickener: "Aluminium-complex", weldLoadN: 4400, waterWashoutPct: 1.5,
+    waterResistance: "high", category: "standard_bearing", isFoodH1: true
+  },
+  "INTERFLON GREASE HD2": {
+    dnMax: 500000, dnOptimalMax: 320000, dnEffectiveMax: 500000,
+    density: 1.00, isHighTemp: false, tempMin: -25, tempMax: 160, tempPeak: 200,
+    nlgi: 2, nlgiLabel: "2", viscosity40: 200, baseOil: "Mineraal",
+    thickener: "Calcium-sulfonaat-complex", weldLoadN: 7500, waterWashoutPct: 0.0,
+    waterResistance: "extreme", category: "heavy_duty_bearing", isFoodH1: false
+  },
+  "INTERFLON GREASE HTG": {
+    dnMax: 250000, dnOptimalMax: 180000, dnEffectiveMax: 250000,
+    density: 0.99, isHighTemp: true, tempMin: -20, tempMax: 240, tempPeak: 270,
+    nlgi: 2, nlgiLabel: "2", viscosity40: 380, baseOil: "Synthetisch",
+    thickener: "Bentoniet (Klei)", weldLoadN: 4200, waterWashoutPct: 6.0,
+    waterResistance: "medium", category: "high_temp_specialist", isFoodH1: false
+  },
+  "INTERFLON GREASE MP1": {
+    dnMax: 680000, dnOptimalMax: 450000, dnEffectiveMax: 680000,
+    density: 0.92, isHighTemp: false, tempMin: -30, tempMax: 145, tempPeak: 160,
+    nlgi: 1, nlgiLabel: "1", viscosity40: 185, baseOil: "Mineraal",
+    thickener: "Lithium-complex", weldLoadN: 3800, waterWashoutPct: 4.0,
+    waterResistance: "medium", category: "soft_central_lube", isFoodH1: false
+  },
+  "INTERFLON GREASE MP2/3": {
+    dnMax: 680000, dnOptimalMax: 550000, dnEffectiveMax: 680000,
+    density: 0.92, isHighTemp: false, tempMin: -30, tempMax: 145, tempPeak: 160,
+    nlgi: 2.5, nlgiLabel: "2/3", viscosity40: 220, baseOil: "Mineraal",
+    thickener: "Lithium-complex", weldLoadN: 3900, waterWashoutPct: 2.0,
+    waterResistance: "high", category: "standard_bearing", isFoodH1: false
+  },
+  "INTERFLON GREASE HS2": {
+    dnMax: 1000000, dnOptimalMax: 850000, dnEffectiveMax: 1000000,
+    density: 0.87, isHighTemp: false, tempMin: -35, tempMax: 120, tempPeak: 150,
+    nlgi: 2, nlgiLabel: "2", viscosity40: 230, baseOil: "Synthetisch (46-460 cSt adaptief)",
+    thickener: "Polymeer", weldLoadN: 3000, waterWashoutPct: 1.0,
+    waterResistance: "very_high", category: "high_speed_bearing", isFoodH1: false
+  },
+  "INTERFLON FOOD GREASE 3H": {
+    dnMax: 120000, dnOptimalMax: 90000, dnEffectiveMax: 120000,
+    density: 0.97, isHighTemp: false, tempMin: -20, tempMax: 120, tempPeak: 140,
+    nlgi: 2, nlgiLabel: "2", viscosity40: 103, baseOil: "Witte olie / Plantaardig",
+    thickener: "Silica", weldLoadN: 1800, waterWashoutPct: 8.0,
+    waterResistance: "medium", category: "direct_food_3h", isFoodH1: true
+  },
+  "INTERFLON FOOD GREASE HD00": {
+    dnMax: 350000, dnOptimalMax: 280000, dnEffectiveMax: 350000,
+    density: 0.91, isHighTemp: false, tempMin: -25, tempMax: 145, tempPeak: 145,
+    nlgi: -1, nlgiLabel: "00", viscosity40: 165, baseOil: "Mineraal / Synthetisch",
+    thickener: "Calcium-sulfonaat-complex", weldLoadN: 4000, waterWashoutPct: 12.0,
+    waterResistance: "low", category: "semi_fluid_gear", isFoodH1: true
+  },
+  "INTERFLON FOOD GREASE HD2": {
+    dnMax: 250000, dnOptimalMax: 200000, dnEffectiveMax: 250000,
+    density: 0.96, isHighTemp: false, tempMin: -30, tempMax: 180, tempPeak: 200,
+    nlgi: 2, nlgiLabel: "2", viscosity40: 400, baseOil: "PAO / Synthetisch",
+    thickener: "Calcium-sulfonaat-complex", weldLoadN: 4000, waterWashoutPct: 3.5,
+    waterResistance: "extreme", category: "heavy_duty_bearing", isFoodH1: true
+  },
+  "INTERFLON FOOD GREASE S1/2": {
+    dnMax: 300000, dnOptimalMax: 220000, dnEffectiveMax: 300000,
+    density: 1.00, isHighTemp: false, tempMin: -40, tempMax: 180, tempPeak: 200,
+    nlgi: 1.5, nlgiLabel: "1/2", viscosity40: 220, baseOil: "Synthetisch",
+    thickener: "Silica", weldLoadN: 2400, waterWashoutPct: 5.0,
+    waterResistance: "medium", category: "epdm_specialist", isFoodH1: true
+  }
 };
 
 
