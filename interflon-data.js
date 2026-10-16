@@ -252,13 +252,6 @@ const INTERFLON_GREASES = {
     thickener: "Aluminium-complex", weldLoadN: 3000, waterWashoutPct: 1.5,
     waterResistance: "medium", category: "soft_central_lube", isFoodH1: true
   },
-  "INTERFLON FOOD GREASE 2": {
-    dnMax: 250000, dnOptimalMax: 180000, dnEffectiveMax: 250000,
-    density: 0.94, isHighTemp: false, tempMin: -20, tempMax: 150, tempPeak: 150,
-    nlgi: 2, nlgiLabel: "2", viscosity40: 400, baseOil: "Witte olie",
-    thickener: "Silica", weldLoadN: 2000, waterWashoutPct: 8.0,
-    waterResistance: "medium", category: "light_silica_bearing", isFoodH1: true
-  },
   "INTERFLON FOOD GREASE LT2": {
     dnMax: 400000, dnOptimalMax: 320000, dnEffectiveMax: 400000,
     density: 0.90, isHighTemp: false, tempMin: -45, tempMax: 150, tempPeak: 180,
@@ -481,17 +474,6 @@ const INTERFLON_PRICELIST = {
     { artNo: "9248", content: "13 liter", packaging: "emmer", qty: 1, unitPrice: 790.4, pricePerL: 60.8 },
     { artNo: "8528", content: "30 liter", packaging: "vat", qty: 1, unitPrice: 1785, pricePerL: 59.5 },
     { artNo: "8529", content: "60 liter", packaging: "vat", qty: 1, unitPrice: 3450, pricePerL: 57.5 }
-  ],
-  "INTERFLON FOOD GREASE 2": [
-    { artNo: "9098", content: "400 ml", packaging: "Lube-Shuttle cart.", qty: 12, unitPrice: 32.6, pricePerL: 81.5 },
-    { artNo: "9098", content: "400 ml", packaging: "Lube-Shuttle cart.", qty: 24, unitPrice: 31, pricePerL: 77.5 },
-    { artNo: "9098", content: "400 ml", packaging: "Lube-Shuttle cart.", qty: 48, unitPrice: 29.8, pricePerL: 74.5 },
-    { artNo: "8384", content: "1 liter", packaging: "pot", qty: 6, unitPrice: 76.2, pricePerL: 76.2 },
-    { artNo: "8384", content: "1 liter", packaging: "pot", qty: 12, unitPrice: 72.6, pricePerL: 72.6 },
-    { artNo: "8384", content: "1 liter", packaging: "pot", qty: 24, unitPrice: 69.1, pricePerL: 69.1 },
-    { artNo: "8556", content: "13 liter", packaging: "emmer", qty: 1, unitPrice: 790.4, pricePerL: 60.8 },
-    { artNo: "8034", content: "30 liter", packaging: "vat", qty: 1, unitPrice: 1785, pricePerL: 59.5 },
-    { artNo: "8036", content: "60 liter", packaging: "vat", qty: 1, unitPrice: 3450, pricePerL: 57.5 }
   ],
   "INTERFLON FOOD GREASE 3H": [
     { artNo: "9855", content: "400 ml", packaging: "Lube-Shuttle cart.", qty: 1, unitPrice: 43.1, pricePerL: 107.75 },
