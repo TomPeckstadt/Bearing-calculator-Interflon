@@ -2958,12 +2958,13 @@ function populateOmSurveyBearingsDropdown(bearings) {
       const activeDesig = (typeof activeBearing !== "undefined" && activeBearing && activeBearing.designation)
         ? activeBearing.designation
         : (localStorage.getItem("active_bearing_designation") || (document.getElementById("bearingSearchInput") ? document.getElementById("bearingSearchInput").value.trim() : ""));
+      const formattedActiveDesig = activeDesig ? (/^(SKF|INA|FAG|NTN|SNR|NSK|TIMKEN)\b/i.test(activeDesig.trim()) ? activeDesig.trim().toUpperCase() : `SKF ${activeDesig.trim().toUpperCase()}`) : "";
       
       const manualBearingLabel = (lang === 'en')
-        ? (activeDesig ? `🔍 Custom searched bearing: SKF ${activeDesig.toUpperCase()}` : '🔍 Custom searched bearing (from Bearing Search)')
+        ? (formattedActiveDesig ? `🔍 Custom searched bearing: ${formattedActiveDesig}` : '🔍 Custom searched bearing (from Bearing Search)')
         : ((lang === 'fr')
-          ? (activeDesig ? `🔍 Roulement recherché : SKF ${activeDesig.toUpperCase()}` : '🔍 Roulement recherché (personnalisé)')
-          : (activeDesig ? `🔍 Zelf gezocht lager: SKF ${activeDesig.toUpperCase()}` : '🔍 Zelf gezocht lager (uit Lager Opzoeken)'));
+          ? (formattedActiveDesig ? `🔍 Roulement recherché : ${formattedActiveDesig}` : '🔍 Roulement recherché (personnalisé)')
+          : (formattedActiveDesig ? `🔍 Zelf gezocht lager: ${formattedActiveDesig}` : '🔍 Zelf gezocht lager (uit Lager Opzoeken)'));
 
       const manualOpt = document.createElement("option");
       manualOpt.value = "manual";
@@ -3236,9 +3237,11 @@ function activateManualSearchedBearingInOm(mode) {
     if (typeof updateCalculatorFields === "function") updateCalculatorFields();
     if (typeof updateTcoFrequencies === "function") updateTcoFrequencies();
     
+    const rawDesig = bearingObj.designation ? bearingObj.designation.trim().toUpperCase() : "";
+    const formattedDesig = rawDesig ? (/^(SKF|INA|FAG|NTN|SNR|NSK|TIMKEN)\b/i.test(rawDesig) ? rawDesig : `SKF ${rawDesig}`) : "";
     const omProdName1 = document.getElementById("omProdName1");
     if (omProdName1) {
-      omProdName1.textContent = "SKF " + (bearingObj.designation ? bearingObj.designation.toUpperCase() : "");
+      omProdName1.textContent = formattedDesig;
     }
     const omProdName2 = document.getElementById("omProdName2");
     if (omProdName2) {
@@ -3251,7 +3254,7 @@ function activateManualSearchedBearingInOm(mode) {
     if (typeof updateOmMetadata === "function") updateOmMetadata();
     if (typeof saveBearingTcoDetails === "function") saveBearingTcoDetails();
 
-    const desigLabel = bearingObj.designation ? `SKF ${bearingObj.designation.toUpperCase()}` : "lager";
+    const desigLabel = formattedDesig || "lager";
     if (typeof showToastNotification === "function") {
       showToastNotification(`✅ Zelf gezocht lager (${desigLabel}) actief in Opbrengstmodel!`);
     }
@@ -7709,6 +7712,7 @@ const TRANSLATIONS = {
     "Pendelkogellager": "Pendelkogellager",
     "Axiaalkogellager": "Axiaalkogellager",
     "Spanlager (Y-lager)": "Spanlager (Y-lager)",
+    "Lineaire kogelbus": "Lineaire kogelbus",
     menuOm: "Opbrengstmodel",
     pageOmTitle: "Opbrengstmodel (TCO)",
     pageOmSubtitle: "Calculatiesheet berekening kostenbesparingen door inzet van Interflon smeermiddelen volgens TCO.",
@@ -8250,6 +8254,7 @@ const TRANSLATIONS = {
     "Pendelkogellager": "Self-aligning ball bearing",
     "Axiaalkogellager": "Thrust ball bearing",
     "Spanlager (Y-lager)": "Insert ball bearing (Y-bearing)",
+    "Lineaire kogelbus": "Linear ball bushing",
     menuOm: "TCO Yield Model",
     pageOmTitle: "TCO Yield Model (TCO)",
     pageOmSubtitle: "Calculation of cost savings through the use of Interflon lubricants according to TCO.",
@@ -8791,6 +8796,7 @@ const TRANSLATIONS = {
     "Pendelkogellager": "Roulement à rotule sur billes",
     "Axiaalkogellager": "Butée à billes",
     "Spanlager (Y-lager)": "Roulement pour palier auto-aligneur (roulement Y)",
+    "Lineaire kogelbus": "Douille à billes linéaire",
     menuOm: "Modèle de rendement TCO",
     pageOmTitle: "Modèle TCO",
     pageOmSubtitle: "Calcul des économies de coûts grâce à l'utilisation des lubrifiants Interflon selon le TCO.",
@@ -10128,7 +10134,7 @@ function handleSearchInput() {
 
   // If input matches an exact bearing designation in DB, update details instantly!
   const spacedInput = cleanInput.replace(/^([A-Z]+)(\d+)/, "$1 $2");
-  const exactMatchKey = bearingDatabase[cleanInput] ? cleanInput : (bearingDatabase[spacedInput] ? spacedInput : null);
+  const exactMatchKey = bearingDatabase[input] ? input : (bearingDatabase[input.toUpperCase()] ? input.toUpperCase() : (bearingDatabase[cleanInput] ? cleanInput : (bearingDatabase[spacedInput] ? spacedInput : null)));
   if (cleanInput.length >= 2 && exactMatchKey) {
     loadBearingDetails(exactMatchKey);
   }
@@ -10243,7 +10249,7 @@ function selectBearing(key) {
     const desig = (typeof activeBearing !== "undefined" && activeBearing && activeBearing.designation)
       ? activeBearing.designation.toUpperCase()
       : key.toUpperCase();
-    omProdName1.textContent = "SKF " + desig;
+    omProdName1.textContent = /^(SKF|INA|FAG|NTN|SNR|NSK|TIMKEN)\b/i.test(desig.trim()) ? desig.trim() : ("SKF " + desig.trim());
   }
   const omProdName2 = document.getElementById("omProdName2");
   if (omProdName2) {
@@ -11079,7 +11085,9 @@ function updateCalculatorFields() {
     const typeLabel = langData.bearingType || "Lagertype";
     const customLabel = lang === "nl" ? "Bedrijfsparameters kunnen hieronder worden aangepast." : lang === "en" ? "Operating parameters can be customized below." : "Les paramètres de fonctionnement peuvent être modifiés ci-dessous.";
     
-    bannerTitle.textContent = `${selectedPrefix}: SKF ${activeBearing.designation.toUpperCase()}`;
+    const rawActiveDesig = (activeBearing.designation || "").trim().toUpperCase();
+    const displayActiveDesig = /^(SKF|INA|FAG|NTN|SNR|NSK|TIMKEN)\b/i.test(rawActiveDesig) ? rawActiveDesig : `SKF ${rawActiveDesig}`;
+    bannerTitle.textContent = `${selectedPrefix}: ${displayActiveDesig}`;
     bannerSubtitle.textContent = `${typeLabel}: ${translateBearingType(activeBearing.type)}. ${customLabel}`;
     bannerBadge.textContent = `${activeBearing.d}x${activeBearing.D}x${activeBearing.B} mm`;
     
@@ -28046,11 +28054,14 @@ function getActiveBearingDataForTwin() {
     }
   } else if (typeof activeBearing !== "undefined" && activeBearing && activeBearing.designation) {
     const bType = activeBearing.type || (window.currentBearingDetails && window.currentBearingDetails.type) || "";
-    bearingName = `SKF ${activeBearing.designation.toUpperCase()}${bType ? ' (' + bType + ')' : ''}`;
+    const rawD = activeBearing.designation.trim().toUpperCase();
+    const prefD = /^(SKF|INA|FAG|NTN|SNR|NSK|TIMKEN)\b/i.test(rawD) ? rawD : `SKF ${rawD}`;
+    bearingName = `${prefD}${bType ? ' (' + bType + ')' : ''}`;
   } else {
     const searchInp = document.getElementById("bearingSearchInput");
     if (searchInp && searchInp.value && searchInp.value.trim()) {
-      bearingName = `SKF ${searchInp.value.trim().toUpperCase()}`;
+      const rawS = searchInp.value.trim().toUpperCase();
+      bearingName = /^(SKF|INA|FAG|NTN|SNR|NSK|TIMKEN)\b/i.test(rawS) ? rawS : `SKF ${rawS}`;
     }
   }
 

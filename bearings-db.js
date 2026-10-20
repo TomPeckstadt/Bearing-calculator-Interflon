@@ -11,7 +11,8 @@ const BEARING_TYPES = {
   DOUBLE_ROW_ANGULAR_CONTACT: "Dubbelrijig hoekcontactkogellager",
   SELF_ALIGNING_BALL: "Pendelkogellager",
   THRUST_BALL: "Axiaalkogellager",
-  INSERT_BALL: "Spanlager (Y-lager)"
+  INSERT_BALL: "Spanlager (Y-lager)",
+  LINEAR_BALL_BUSHING: "Lineaire kogelbus"
 };
 
 // Database met exacte fabrieksspecificaties
@@ -443,14 +444,17 @@ const bearingDatabase = {
   "222SM280-MA": { d: 280, D: 560, B: 215, outerRingWidth: 145, C: 2800.0, C0: 4350.0, refSpeed: 640, limitSpeed: 450, mass: 205.00, type: BEARING_TYPES.SPHERICAL_ROLLER, note: "FAG Deelbaar pendelrollager (split spherical roller bearing)" },
 
   "222SM300": { d: 300, D: 580, B: 225, outerRingWidth: 150, C: 3050.0, C0: 4800.0, refSpeed: 600, limitSpeed: 420, mass: 235.00, type: BEARING_TYPES.SPHERICAL_ROLLER, note: "FAG Deelbaar pendelrollager (split spherical roller bearing)" },
-  "222SM300-MA": { d: 300, D: 580, B: 225, outerRingWidth: 150, C: 3050.0, C0: 4800.0, refSpeed: 600, limitSpeed: 420, mass: 235.00, type: BEARING_TYPES.SPHERICAL_ROLLER, note: "FAG Deelbaar pendelrollager (split spherical roller bearing)" }
+  "222SM300-MA": { d: 300, D: 580, B: 225, outerRingWidth: 150, C: 3050.0, C0: 4800.0, refSpeed: 600, limitSpeed: 420, mass: 235.00, type: BEARING_TYPES.SPHERICAL_ROLLER, note: "FAG Deelbaar pendelrollager (split spherical roller bearing)" },
+
+  // --- LINEAIRE KOGELBUSSEN (INA KH-SERIE) ---
+  "INA LINEAIRE KOGELBUS KH2540 PP": { d: 25, D: 35, B: 40, C: 2.42, C0: 2.13, refSpeed: 3000, limitSpeed: 5000, mass: 0.066, type: BEARING_TYPES.LINEAR_BALL_BUSHING, note: "INA Lineaire kogelbus met tweezijdige lipafdichting (PP)" }
 };
 
 // Functie om de aanduiding (designation) te cleanen en te parsen als deze niet in de DB zit
 function parseBearingDesignation(input) {
   if (!input) return null;
 
-  // Directe check op ongewijzigde invoer (bijv. "UC 214")
+  // Directe check op ongewijzigde invoer (bijv. "UC 214" of "INA LINEAIRE KOGELBUS KH2540 PP")
   if (bearingDatabase[input]) {
     return {
       designation: input,
@@ -458,9 +462,37 @@ function parseBearingDesignation(input) {
       ...bearingDatabase[input]
     };
   }
+  const upperTrimmed = input.trim().toUpperCase();
+  if (bearingDatabase[upperTrimmed]) {
+    return {
+      designation: upperTrimmed,
+      foundInDb: true,
+      ...bearingDatabase[upperTrimmed]
+    };
+  }
 
   // Haal spaties, streepjes en onnodige karakters weg, zet in hoofdletters
   let clean = input.toUpperCase().replace(/[\s-]/g, "");
+
+  // Specifieke herkenning voor INA LINEAIRE KOGELBUS KH2540 PP en gangbare verkortingen (KH2540 PP, KH2540-PP, KH25-PP, KH2540)
+  if ((clean.includes("KH2540") || clean === "KH25PP" || clean === "INAKH25PP") && bearingDatabase["INA LINEAIRE KOGELBUS KH2540 PP"]) {
+    return {
+      designation: "INA LINEAIRE KOGELBUS KH2540 PP",
+      foundInDb: true,
+      ...bearingDatabase["INA LINEAIRE KOGELBUS KH2540 PP"]
+    };
+  }
+
+  // Controleer ook alle sleutels in bearingDatabase zonder spaties/streepjes
+  for (const dbKey of Object.keys(bearingDatabase)) {
+    if (dbKey.toUpperCase().replace(/[\s-]/g, "") === clean) {
+      return {
+        designation: dbKey,
+        foundInDb: true,
+        ...bearingDatabase[dbKey]
+      };
+    }
+  }
 
   // Controleer eerst of het direct in de database zit
   if (bearingDatabase[clean]) {
