@@ -10402,8 +10402,6 @@ function updateBearingImage(type) {
     src = "bearing-thrust-ball.png";
   } else if (type === "Spanlager (Y-lager)" || (type && (type.includes("Spanlager") || type.includes("Y-lager") || type.includes("Inzetlager") || type.includes("Insert ball")))) {
     src = "crop-insert-ball.png";
-  } else if (type === "Lineaire kogelbus" || (type && (type.toLowerCase().includes("kogelbus") || type.toLowerCase().includes("linear ball") || type.toLowerCase().includes("douille")))) {
-    src = "bearing-linear-ball-bushing.png";
   }
   
   imgEl.src = src + "?v=20260817_1410";
