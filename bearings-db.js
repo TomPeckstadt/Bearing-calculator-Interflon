@@ -232,6 +232,8 @@ const bearingDatabase = {
   "NU309": { d: 45, D: 100, B: 25, C: 112.0, C0: 108.0, refSpeed: 6700, limitSpeed: 7500, mass: 0.93, type: BEARING_TYPES.CYLINDRICAL_ROLLER },
   "NU310": { d: 50, D: 110, B: 27, C: 125.0, C0: 125.0, refSpeed: 6000, limitSpeed: 6700, mass: 1.15, type: BEARING_TYPES.CYLINDRICAL_ROLLER },
   "NJ 2326 ECML/C4": { d: 130, D: 280, B: 93, C: 1060.0, C0: 1250.0, refSpeed: 2400, limitSpeed: 4500, mass: 29.5, type: BEARING_TYPES.CYLINDRICAL_ROLLER },
+  "NJ 2326 ECML/VA405": { d: 130, D: 280, B: 93, C: 1060.0, C0: 1250.0, refSpeed: 2400, limitSpeed: 4500, mass: 29.5, type: BEARING_TYPES.CYLINDRICAL_ROLLER },
+  "NJ 2326 ECML/C4VA405": { d: 130, D: 280, B: 93, C: 1060.0, C0: 1250.0, refSpeed: 2400, limitSpeed: 4500, mass: 29.5, type: BEARING_TYPES.CYLINDRICAL_ROLLER },
 
   // --- DUBBELRIJIGE COGEL- EN ROLLERSLAGERS ---
   // Pendelkogellagers (22xx, 23xx)
